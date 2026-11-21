@@ -1557,12 +1557,14 @@ class krakenfutures extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->privatePostCancelorder($this->extend(array( 'order_id' => $id ), $params));
-        $status = $this->safe_string($this->safe_dict($response, 'cancelStatus', array()), 'status');
+        $request = array( 'order_id' => $id );
+        $response = $this->privatePostCancelorder($this->extend($request, $params));
+        $cancelStatus = $this->safe_dict($response, 'cancelStatus');
+        $status = $this->safe_string($cancelStatus, 'status');
         $this->verify_order_action_success($status, 'cancelOrder');
         $order = array();
-        if (is_array($response) && array_key_exists('cancelStatus' ?? '', $response)) {
-            $order = $this->parse_order($response['cancelStatus']);
+        if ($cancelStatus !== null) {
+            $order = $this->parse_order($cancelStatus);
         }
         return $this->extend(array( 'info' => $response ), $order);
     }

@@ -1871,8 +1871,9 @@ class dydx extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $this->omit($params, 'methodName'));
-        return $this->parse_ledger($response, $currency, $since, $limit);
+        $rows = array();
+        $rows = $this->fetch_transactions_helper('fetchLedger', $code, $since, $limit, $this->omit($params, 'methodName'));
+        return $this->parse_ledger($rows, $currency, $since, $limit);
     }
 
     public function estimate_tx_fee(array $message, ?string $memo, array $account): array {

@@ -6092,9 +6092,9 @@ class kucoin extends Exchange {
                 $response = $this->privateGetOrdersOrderId($this->extend($request, $paramsOmitted));
             }
         }
-        $responseData = $this->safe_value($response, 'data', array());
-        if ((gettype($responseData) === 'array' && array_keys($responseData) === array_keys(array_keys($responseData)))) {
-            $responseData = $this->safe_dict($responseData, 0, array());
+        $responseData = $this->safe_dict($response, 'data');
+        if ($responseData === null) {
+            $responseData = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
         }
         return $this->parse_order($responseData, $market);
     }

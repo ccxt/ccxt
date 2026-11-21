@@ -822,7 +822,7 @@ class paradex extends \ccxt\async\paradex {
         if ($symbolsLength === 0) {
             throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        list($deltasOption, $paramsDeltas) = $this->handle_option_bool_and_params($params, 'watchOrderBook', 'deltas', false);
         $deltas = ($deltasOption === true) || (($limit !== null) && ($limit > 15));
         $url = $this->get_ws_url();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -901,7 +901,7 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        list($deltasOption, $paramsDeltas) = $this->handle_option_bool_and_params($params, 'watchOrderBook', 'deltas', false);
         $url = $this->get_ws_url();
         $client = $this->client($url);
         $channels = array();

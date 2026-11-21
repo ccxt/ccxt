@@ -4962,7 +4962,8 @@ class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        return $this->parse_ledger($response, null, $since, $limit);
+        $rows = $this->info_list($response);
+        return $this->parse_ledger($rows, null, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {

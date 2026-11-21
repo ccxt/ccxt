@@ -1356,7 +1356,7 @@ class bithumb extends Exchange {
         $response = null;
         $data = array();
         if ($generation === 2) {
-            list($paginate, $paramsPaginate) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
+            list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200));
             }

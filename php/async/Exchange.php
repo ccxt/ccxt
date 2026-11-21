@@ -5593,18 +5593,27 @@ class BaseExchange extends \ccxt\BaseExchange {
         //         ...
         //     ]
         //
-        $results = array();
         if ((gettype($pricesData) === 'array' && array_keys($pricesData) === array_keys(array_keys($pricesData)))) {
-            for ($i = 0; $i < count($pricesData); $i++) {
-                $results[] = $this->extend($this->parse_last_price($pricesData[$i]), $params);
-            }
-        } else {
-            $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId);
-                $results[] = $this->extend($this->parse_last_price($pricesData[$marketId], $market), $params);
-            }
+            return $this->parse_last_prices_list($pricesData, $symbols, $params);
+        }
+        return $this->parse_last_prices_dict($pricesData, $symbols, $params);
+    }
+
+    public function parse_last_prices_list(array $pricesData, ?array $symbols = null, $params = array()) {
+        $results = array();
+        for ($i = 0; $i < count($pricesData); $i++) {
+            $results[] = $this->extend($this->parse_last_price($pricesData[$i]), $params);
+        }
+        return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
+    }
+
+    public function parse_last_prices_dict(array $pricesData, ?array $symbols = null, $params = array()) {
+        $results = array();
+        $marketIds = is_array($pricesData) ? array_keys($pricesData) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId);
+            $results[] = $this->extend($this->parse_last_price($pricesData[$marketId], $market), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -5632,18 +5641,27 @@ class BaseExchange extends \ccxt\BaseExchange {
         //         ...
         //     ]
         //
-        $results = array();
         if ((gettype($tickers) === 'array' && array_keys($tickers) === array_keys(array_keys($tickers)))) {
-            for ($i = 0; $i < count($tickers); $i++) {
-                $results[] = $this->extend($this->parse_ticker($tickers[$i]), $params);
-            }
-        } else {
-            $marketIds = is_array($tickers) ? array_keys($tickers) : array();
-            for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
-                $market = $this->safe_market($marketId);
-                $results[] = $this->extend($this->parse_ticker($tickers[$marketId], $market), $params);
-            }
+            return $this->parse_tickers_list($tickers, $symbols, $params);
+        }
+        return $this->parse_tickers_dict($tickers, $symbols, $params);
+    }
+
+    public function parse_tickers_list(array $tickers, ?array $symbols = null, $params = array()) {
+        $results = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $results[] = $this->extend($this->parse_ticker($tickers[$i]), $params);
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
+    }
+
+    public function parse_tickers_dict(array $tickers, ?array $symbols = null, $params = array()) {
+        $results = array();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId);
+            $results[] = $this->extend($this->parse_ticker($tickers[$marketId], $market), $params);
         }
         return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }

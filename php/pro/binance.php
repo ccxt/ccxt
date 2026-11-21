@@ -1778,7 +1778,7 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        list($stock, $paramsStock) = $this->handle_option_and_params($params, 'watchOHLCV', 'stock');
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchOHLCV', 'stock', false);
         if ($stock === true) {
             if (($timeframe !== '5m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
                 throw new BadRequest($this->id . ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');

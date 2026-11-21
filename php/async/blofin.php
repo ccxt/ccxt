@@ -3039,7 +3039,7 @@ class blofin extends Exchange {
         $market = null;
         if ($symbols !== null) {
             $symbolsLength = count($symbols);
-            if ($symbolsLength === 0) {
+            if ($symbolsLength > 0) {
                 $market = $this->market($symbols[0]);
                 $request['instId'] = $market['id'];
             }

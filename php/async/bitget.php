@@ -8555,12 +8555,13 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
         if (($marketType === 'swap') || ($marketType === 'future')) {
+            $data = $this->safe_dict($response, 'data', array());
             $bills = $this->safe_list($data, 'bills', array());
             return $this->parse_ledger($bills, $currency, $since, $limit);
         }
-        return $this->parse_ledger($data, $currency, $since, $limit);
+        $rows = $this->safe_list($response, 'data', array());
+        return $this->parse_ledger($rows, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {

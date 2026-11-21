@@ -2737,7 +2737,7 @@ class xt extends Exchange {
             }
             $request['positionSide'] = $requestType;
         }
-        $response = array();
+        $response = null;
         $triggerPrice = $this->safe_number_2($paramsOmitted4, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_number_2($paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         $takeProfit = $this->safe_number_2($paramsOmitted4, 'takeProfit', 'triggerProfitPrice');

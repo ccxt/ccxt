@@ -13123,7 +13123,7 @@ class binance extends Exchange {
         }
         $leverages = $this->safe_list($response, 'positions', array());
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $leverages = $response;
+            $leverages = $this->to_array($response);
         }
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
@@ -15462,7 +15462,7 @@ class binance extends Exchange {
         }
         $assets = $this->safe_list($response, 'positions', array());
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $assets = $response;
+            $assets = $this->to_array($response);
         }
         return $this->parse_margin_modes($assets, $symbolsNormalized, 'symbol', 'swap');
     }
