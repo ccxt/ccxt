@@ -2249,11 +2249,10 @@ export default class kucoin extends Exchange {
         if (migrated) {
             hf = true;
         }
-        const hfParam = this.safeBool (params, 'hf');
+        const [ hfParam, paramsOmitted ] = this.handleParamBool (params, 'hf');
         if (hfParam !== undefined) {
             hf = (hfParam === true);
         }
-        const paramsOmitted: Dict = this.omit (params, 'hf');
         return [ hf, paramsOmitted ];
     }
 
