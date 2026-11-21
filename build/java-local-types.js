@@ -10801,6 +10801,7 @@ function objectKeysDeclaredType (printer, declaration) {
                 ? printer.printNativeObjectKeysCall (unwrapParens (declaration.initializer)) : undefined;
             ok = ((typeof native === 'string' && OBJECT_KEYS_NATIVE_COPY.test (native)) || objectKeysTimeframesInit (declaration))
                 && objectKeysStringListLocal (declaration);
+            ok = ok || (h28j01KeysCopy (native) !== undefined && objectKeysStringListLocal (declaration));
         } catch (e) {
             ok = false;
         }
@@ -10844,6 +10845,8 @@ export function patchJavaObjectKeysStringLists (transpiler) {
         if (at === -1) {
             return printed;
         }
+        const h28 = h28j01KeysCopy (printed.slice (at + head.length));
+        if (h28 !== undefined && objectKeysDeclaredType (printer, declaration) !== undefined) return printed.slice (0, at) + `${iden}java.util.List<String> ${name} = ${h28}`;
         const match = OBJECT_KEYS_NATIVE_COPY.exec (printed.slice (at + head.length));
         if (match === null) {
             // `Object.keys (this.timeframes)`: the hand-written Map<String, Object> field's null-guarded key copy
@@ -29041,3 +29044,22 @@ function h27j02NativeSelfSums (printer, declaration) {
     return seen > 0;
 }
 // ===== end h27-J02
+
+// ===== h28-J01 key copies of String-keyed field maps (ws Client maps, base Map fields) =====
+// printNativeObjectKeysCall emits these only for a `Map<String, ?>` receiver, so every key is a String;
+// the null-guarded field form keeps the helper's empty list for a null field.
+const H28J01_FIELD_COPY = /^new java\.util\.ArrayList<Object>\(((?:this|[A-Za-z_$][\w$]*)\.[A-Za-z_$][\w$]*)\.keySet\(\)\)(;?\s*)$/;
+const H28J01_GUARDED_COPY = /^\((this\.[A-Za-z_$][\w$]*) == null \? new java\.util\.ArrayList<Object>\(\) : new java\.util\.ArrayList<Object>\(\1\.keySet\(\)\)\)(;?\s*)$/;
+function h28j01KeysCopy (text) {
+    if (typeof text !== 'string') {
+        return undefined;
+    }
+    const field = H28J01_FIELD_COPY.exec (text);
+    if (field !== null) {
+        return `new java.util.ArrayList<String>(${field[1]}.keySet())${field[2]}`;
+    }
+    const guarded = H28J01_GUARDED_COPY.exec (text);
+    return guarded === null ? undefined
+        : `(${guarded[1]} == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(${guarded[1]}.keySet()))${guarded[2]}`;
+}
+// ===== end h28-J01
