@@ -3781,7 +3781,7 @@ export default class binance extends Exchange {
         const baseId = this.safeString (market, 'baseAsset', optionBase);
         let quoteId = this.safeString (market, 'quoteAsset');
         let stock = false;
-        if ('tradability' in market) {
+        if (this.safeString (market, 'tradability') !== undefined) {
             quoteId = 'USDC';
             stock = true;
         }
@@ -4649,17 +4649,17 @@ export default class binance extends Exchange {
         //
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
         let marketType: Str = undefined;
-        if (('time' in ticker)) {
+        if (this.safeInteger (ticker, 'time') !== undefined) {
             marketType = 'contract';
         }
         if (marketType === undefined) {
-            marketType = ('bidQty' in ticker) ? 'spot' : 'contract';
+            marketType = (this.safeString (ticker, 'bidQty') !== undefined) ? 'spot' : 'contract';
         }
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const last = this.safeString (ticker, 'lastPrice');
         const wAvg = this.safeString (ticker, 'weightedAvgPrice');
-        const isCoinm = ('baseVolume' in ticker);
+        const isCoinm = (this.safeString (ticker, 'baseVolume') !== undefined);
         let baseVolume: Str = undefined;
         let quoteVolume: Str = undefined;
         if (isCoinm) {
@@ -5292,7 +5292,7 @@ export default class binance extends Exchange {
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
-        if ('isDustTrade' in trade) {
+        if (this.safeBool (trade, 'isDustTrade') !== undefined) {
             return this.parseDustTrade (trade, market);
         }
         //
@@ -5511,7 +5511,7 @@ export default class binance extends Exchange {
         let amount = this.safeString2 (trade, 'q', 'qty');
         amount = this.safeString (trade, 'quantity', amount);
         const marketId = this.safeString (trade, 'symbol');
-        const isSpotTrade = ('isIsolated' in trade) || ('M' in trade) || ('orderListId' in trade) || ('isMaker' in trade);
+        const isSpotTrade = (this.safeBool (trade, 'isIsolated') !== undefined) || (this.safeBool (trade, 'M') !== undefined) || (this.safeInteger (trade, 'orderListId') !== undefined) || (this.safeBool (trade, 'isMaker') !== undefined);
         let marketType: Str = 'contract';
         if (isSpotTrade) {
             marketType = 'spot';
@@ -5523,30 +5523,30 @@ export default class binance extends Exchange {
         let takerOrMaker: Str = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-        } else if ('side' in trade) {
+        } else if (this.safeString (trade, 'side') !== undefined) {
             side = this.safeStringLower (trade, 'side');
         } else {
-            if ('isBuyer' in trade) {
+            if (this.safeBool (trade, 'isBuyer') !== undefined) {
                 side = (this.safeBool (trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee: FeeString = undefined;
-        if ('commission' in trade) {
+        if (this.safeString (trade, 'commission') !== undefined) {
             fee = {
                 'cost': this.safeString (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
-        if ('isMaker' in trade) {
+        if (this.safeBool (trade, 'isMaker') !== undefined) {
             takerOrMaker = (this.safeBool (trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
-        if ('maker' in trade) {
+        if (this.safeBool (trade, 'maker') !== undefined) {
             takerOrMaker = (this.safeBool (trade, 'maker', false)) ? 'maker' : 'taker';
         }
-        if (('optionSide' in trade) || (this.safeBool (marketResolved, 'option', false))) {
+        if ((this.safeString (trade, 'optionSide') !== undefined) || (this.safeBool (marketResolved, 'option', false))) {
             const settle = this.safeCurrencyCode (this.safeString (trade, 'quoteAsset', 'USDT'));
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
-            if ('fee' in trade) {
+            if (this.safeString (trade, 'fee') !== undefined) {
                 fee = {
                     'cost': this.safeString (trade, 'fee'),
                     'currency': settle,
@@ -5555,7 +5555,7 @@ export default class binance extends Exchange {
             if ((side !== 'buy') && (side !== 'sell')) {
                 side = (side === '1') ? 'buy' : 'sell';
             }
-            if ('optionSide' in trade) {
+            if (this.safeString (trade, 'optionSide') !== undefined) {
                 if (side !== 'buy') {
                     amount = Precise.stringMul ('-1', amount);
                 }
@@ -6827,7 +6827,7 @@ export default class binance extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeStringN (order, [ 'status', 'strategyStatus', 'algoStatus' ]));
         const marketId = this.safeString (order, 'symbol');
-        const isContract = ('positionSide' in order) || ('cumQuote' in order);
+        const isContract = (this.safeString (order, 'positionSide') !== undefined) || (this.safeString (order, 'cumQuote') !== undefined);
         let marketType: Str = 'spot';
         if (isContract) {
             marketType = 'contract';
@@ -6846,7 +6846,7 @@ export default class binance extends Exchange {
             }
         }
         let lastTradeTimestamp: Int = undefined;
-        if (('transactTime' in order) || ('updateTime' in order) || ('updatedAt' in order)) {
+        if ((this.safeInteger (order, 'transactTime') !== undefined) || (this.safeInteger (order, 'updateTime') !== undefined) || (this.safeInteger (order, 'updatedAt') !== undefined)) {
             const timestampValue = this.safeIntegerN (order, [ 'updateTime', 'transactTime', 'updatedAt' ]);
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
@@ -11501,7 +11501,7 @@ export default class binance extends Exchange {
             }
         }
         // as oppose to notionalValue
-        const usdm = ('notional' in position);
+        const usdm = (this.safeString (position, 'notional') !== undefined);
         const maintenanceMarginString = this.safeString (position, 'maintMargin');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         const entryPriceString = this.safeString (position, 'entryPrice');
@@ -11780,7 +11780,7 @@ export default class binance extends Exchange {
         const contractSize = this.safeNumber (marketResolved, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         // as oppose to notionalValue
-        const linear = ('notional' in position);
+        const linear = (this.safeString (position, 'notional') !== undefined);
         if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeDict (marketResolved, 'precision', {});
