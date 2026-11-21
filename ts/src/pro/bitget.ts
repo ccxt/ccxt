@@ -561,7 +561,8 @@ export default class bitget extends bitgetRest {
             args['interval'] = interval;
             messageHash = 'kline:' + symbolValue;
         } else {
-            args['channel'] = 'candle' + interval;
+            const intervalValue: string = this.safeString (timeframes, timeframe, '');
+            args['channel'] = 'candle' + intervalValue;
             args['instId'] = market['id'];
             messageHash = 'candles:' + timeframe + ':' + symbolValue;
         }
@@ -1757,7 +1758,8 @@ export default class bitget extends bitgetRest {
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchOrders', paramsInstType);
         if (marginMode !== undefined) {
             instType = 'MARGIN';
-            messageHash = messageHash + ':' + marginMode;
+            const marginModeValue: string = marginMode;
+            messageHash = messageHash + ':' + marginModeValue;
             if (marginMode === 'isolated') {
                 channel = 'orders-isolated';
             } else {
@@ -2248,7 +2250,8 @@ export default class bitget extends bitgetRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            messageHash = messageHash + ':' + symbolResolved;
+            const symbolValue: string = this.safeString (market, 'symbol', '');
+            messageHash = messageHash + ':' + symbolValue;
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const [ uta, paramsUta ] = this.handleOptionBoolAndParams (paramsMarketType, 'watchMyTrades', 'uta', false);

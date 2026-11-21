@@ -1619,7 +1619,8 @@ export default class backpack extends backpackRest {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions' + ':' + symbol);
-                topics.push ('account.positionUpdate.' + this.marketId (symbol));
+                const marketId: string = this.safeString (this.market (symbol), 'id', '');
+                topics.push ('account.positionUpdate.' + marketId);
             }
         } else {
             messageHashes.push ('positions');
@@ -1652,7 +1653,8 @@ export default class backpack extends backpackRest {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 messageHashes.push ('unsubscribe:positions' + ':' + symbol);
-                topics.push ('account.positionUpdate.' + this.marketId (symbol));
+                const marketId: string = this.safeString (this.market (symbol), 'id', '');
+                topics.push ('account.positionUpdate.' + marketId);
             }
         } else {
             messageHashes.push ('unsubscribe:positions');
