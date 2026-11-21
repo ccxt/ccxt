@@ -7376,6 +7376,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'cancelOrdersWs': { 0: '[]string' },
     // bybit topic lists: every caller hands a []string local or literal
     'watchTopics': { 1: '[]string', 2: '[]string' }, 'unWatchTopics': { 3: '[]string', 4: '[]string', 5: '[]string' },
+    // base filterByLimit (array: any[]): its callers hand a []any result local or SortBy; no override, no interface line
+    'filterByLimit': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
