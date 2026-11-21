@@ -960,7 +960,7 @@ export default class paradex extends paradexRest {
             if ((stored === undefined) || !(deltasChannel in client.subscriptions)) {
                 return;
             }
-            const storedNonce = stored['nonce'];
+            const storedNonce = this.safeInteger (stored, 'nonce');
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
             if ((storedNonce === undefined) || (nonce === undefined) || (nonce <= storedNonce)) {
                 return;
@@ -2426,8 +2426,9 @@ export default class paradex extends paradexRest {
         let bits = this.parseToInt (this.sbeReadUint (frameHex, offset, 1));
         for (let i = 0; i < names.length; i++) {
             const bit = this.parseToInt (bits % 2);
-            if ((bit === 1) && (names[i] !== '')) {
-                flags.push (names[i]);
+            const name: string = this.safeString (names, i, '');
+            if ((bit === 1) && (name !== '')) {
+                flags.push (name);
             }
             bits = this.parseToInt (bits / 2);
         }
