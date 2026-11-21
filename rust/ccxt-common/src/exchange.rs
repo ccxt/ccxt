@@ -867,7 +867,7 @@ impl Exchange {
         } else {
             crate::runtime::deep_merge_dict(&described, &self.userConfig)
         };
-        let get = |k: &str| crate::get_value(&props, &Value::Str(k.to_string().into()));
+        let get = |k: &str| props.at(k).to_owned();
         let assign = |field: &mut Value, v: Value| {
             if !matches!(v, Value::Null) {
                 *field = v;
@@ -956,17 +956,17 @@ impl Exchange {
         // markets/currencies/options arrive ready to use from offline
         // tests, the CLI, or library users seeding state. `setMarkets`
         // also derives markets_by_id and symbols.
-        let markets    = crate::get_value(cfg, &Value::Str("markets".into()));
-        let currencies = crate::get_value(cfg, &Value::Str("currencies".into()));
+        let markets    = cfg.at("markets").to_owned();
+        let currencies = cfg.at("currencies").to_owned();
         if !matches!(markets,    Value::Null) { self.set_markets_inline(markets); }
         if let Value::Dict(c) = currencies { self.currencies = c; }
-        let opts = crate::get_value(cfg, &Value::Str("options".into()));
+        let opts = cfg.at("options").to_owned();
         if let Value::Dict(extra) = opts {
             let merged = Arc::make_mut(&mut self.options);
             let extra = Arc::try_unwrap(extra).unwrap_or_else(|a| (*a).clone());
             for (k, v) in extra { merged.insert(k, v); }
         }
-        let accounts = crate::get_value(cfg, &Value::Str("accounts".into()));
+        let accounts = cfg.at("accounts").to_owned();
         if !matches!(accounts, Value::Null) { self.accounts = accounts; }
     }
 
@@ -1173,7 +1173,7 @@ impl Exchange {
         let merged = crate::Config::new().options(crate::Params::from(Value::Dict(self.options.clone())))
             .options(options)
             .into_value();
-        if let Value::Dict(m) = crate::runtime::get_value(&merged, &Value::Str("options".into())) { self.options = m; }
+        if let Value::Dict(m) = merged.at("options").to_owned() { self.options = m; }
         self
     }
 
@@ -2450,7 +2450,7 @@ impl Exchange {
     fn url_for_scope(&self, scope: &str) -> Option<String> {
         let api = self.urls.get("api").cloned().unwrap_or(Value::Null);
         // Try scoped first (binance-style: urls.api.public, urls.api.private).
-        let scoped = crate::get_value(&api, &Value::Str(scope.to_string().into()));
+        let scoped = api.at(scope).to_owned();
         let raw = match scoped {
             Value::Str(s) => s,
             Value::Dict(m) => match m.get("rest").or_else(|| m.get("current")) {

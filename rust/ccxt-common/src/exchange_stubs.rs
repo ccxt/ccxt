@@ -1254,9 +1254,9 @@ impl Exchange {
     pub fn set_last_request(&self, request: Value) {
         let me = unsafe { coerce_to_mut_unsafe(self) };
         me.last_request_headers =
-            crate::runtime::get_value(&request, &Value::Str("headers".into()));
-        me.last_request_body = crate::runtime::get_value(&request, &Value::Str("body".into()));
-        me.last_request_url = crate::runtime::get_value(&request, &Value::Str("url".into()));
+            request.at("headers").to_owned();
+        me.last_request_body = request.at("body").to_owned();
+        me.last_request_url = request.at("url").to_owned();
     }
 
     pub fn get_fetch_cache(&self) -> Value {

@@ -1182,8 +1182,8 @@ impl From<Flight> for Value {
 
 impl From<&Value> for Flight {
     fn from(v: &Value) -> Flight {
-        let led = matches!(crate::get_value(v, &Value::Str("__ws_flight_led".into())), Value::Bool(true));
-        let entry = crate::get_value(v, &Value::Str("__ws_flight_hash".into())).is_null() && future_hash_of(v).is_some();
+        let led = matches!(v.at("__ws_flight_led"), Value::Bool(true));
+        let entry = v.at("__ws_flight_hash").is_null() && future_hash_of(v).is_some();
         Flight { url: url_of(v), hash: flight_hash_of(v), led, entry }
     }
 }
@@ -1196,7 +1196,7 @@ impl From<&Flight> for Flight {
 /// shape too, so `client.futures[hash]` entries can be awaited as well.
 fn flight_hash_of(handle: &Value) -> Option<String> {
     for key in ["__ws_flight_hash", "__ws_future_hash"] {
-        if let Value::Str(h) = crate::get_value(handle, &Value::Str(key.to_string().into())) {
+        if let Value::Str(h) = handle.at(key) {
             return Some(h.to_string());
         }
     }
@@ -1278,7 +1278,7 @@ pub async fn ws_await_flight(handle: impl Into<Flight>) -> Value {
 
 /// Extract the `url` from a client-handle `Value` (`Map{"url": ...}`).
 pub fn url_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("url".into())) {
+    match client.at("url") {
         Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
@@ -1292,7 +1292,7 @@ fn handle_has(map: &Value, key: Option<&str>) -> bool {
 /// `client.subscriptions|futures[k]` on the handle's snapshot (Null when absent).
 fn handle_get(map: &Value, key: Option<&str>) -> Value {
     match key {
-        Some(k) => crate::get_value(map, &Value::from(k)),
+        Some(k) => map.at(k).to_owned(),
         None => Value::Null,
     }
 }
@@ -1326,7 +1326,7 @@ pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value 
 
 /// Extract the hash a future handle (`client.futures[hash]`) resolves/rejects.
 fn future_hash_of(client: &Value) -> Option<String> {
-    match crate::get_value(client, &Value::Str("__ws_future_hash".into())) {
+    match client.at("__ws_future_hash") {
         Value::Str(s) => Some(s.to_string()),
         _ => None,
     }
@@ -1611,7 +1611,7 @@ mod tests {
         let mut lasts = Vec::new();
         while lasts.len() < 3 {
             let msg = client.next_message().await.expect("message before close");
-            let last = crate::get_value(&msg, &Value::Str("last".into()));
+            let last = msg.at("last").to_owned();
             if let Value::Str(s) = &last {
                 client.resolve("ticker", Value::Str(s.clone()));
             }
@@ -1623,7 +1623,7 @@ mod tests {
 
         // Field snapshots the transpiled code reads off the client handle.
         let subs = client.subscriptions_value();
-        assert!(crate::get_value(&subs, &Value::Str("ticker:BTC/USDT".into())).is_truthy());
+        assert!(subs.at("ticker:BTC/USDT").is_truthy());
 
         drop_client(&url);
     }
@@ -1659,7 +1659,7 @@ mod tests {
                     "handle_message" => {
                         let client = args.get(0).cloned().unwrap_or(Value::Null);
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
-                        let last = crate::get_value(&message, &Value::Str("last".into()));
+                        let last = message.at("last").to_owned();
                         // `client.resolve(value, messageHash)` — routes to the registry.
                         client.resolve(last, "ticker");
                         Value::Null
@@ -1792,7 +1792,7 @@ mod tests {
     /// The transpiled follower test, `messageHash in client.futures`.
     fn in_op_futures(c: &Arc<ClientState>, hash: &str) -> bool {
         !matches!(
-            crate::get_value(&c.futures_value(), &Value::Str(hash.to_string().into())),
+            c.futures_value().at(hash),
             Value::Null
         )
     }

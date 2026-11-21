@@ -593,12 +593,12 @@ public partial class BaseExchange
 
     public virtual async Task<List<MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
-        return ToMarketInterfaceList(this.toArray(this.markets));
+        return ToMarketInterfaceList(this.markets == null ? null : new List<object>(this.markets.Values));
     }
 
     public virtual async Task<List<MarketInterface>> FetchMarketsWs(IDictionary<string, object> parameters = null)
     {
-        return ToMarketInterfaceList(this.toArray(this.markets));
+        return ToMarketInterfaceList(this.markets == null ? null : new List<object>(this.markets.Values));
     }
 
     public virtual async Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)

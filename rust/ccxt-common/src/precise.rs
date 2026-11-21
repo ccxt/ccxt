@@ -660,7 +660,7 @@ impl Precise {
         // Split each into (sign, integer-string, decimal-count). Mirrors
         // the constructor in TS Precise — chop at `.`, count fractional
         // digits, drop the `.` so the integer parses as a single number.
-        fn split(s: &str) -> Option<(i64, i64, u32)> {
+        fn split_parts(s: &str) -> Option<(i64, i64, u32)> {
             let (sign, body) = if let Some(rest) = s.strip_prefix('-') { (-1i64, rest) } else { (1i64, s) };
             let (int_part, frac_part) = match body.find('.') {
                 Some(i) => (&body[..i], &body[i + 1..]),
@@ -670,8 +670,8 @@ impl Precise {
             let n: i64 = joined.parse().ok()?;
             Some((sign, n, frac_part.len() as u32))
         }
-        let (sga, ia, da) = match split(&sa) { Some(t) => t, None => return crate::Value::Null };
-        let (sgb, ib, db) = match split(&sb) { Some(t) => t, None => return crate::Value::Null };
+        let (sga, ia, da) = match split_parts(&sa) { Some(t) => t, None => return crate::Value::Null };
+        let (sgb, ib, db) = match split_parts(&sb) { Some(t) => t, None => return crate::Value::Null };
         // Shift the smaller-decimal side up to match.
         let dmax = da.max(db);
         let ia_s = sga * ia * 10i64.pow(dmax - da);

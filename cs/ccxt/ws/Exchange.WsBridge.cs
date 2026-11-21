@@ -375,17 +375,19 @@ public partial class Exchange
             return;
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
+        Int64 maxTries = Convert.ToInt64(maxRetries);
         int tries = 0;
         Exception error = null;
         try
         {
             var stored = this.getOrderBook(this.orderbooks, symbol);
-            while (isLessThan(tries, maxRetries))
+            while (tries < maxTries)
             {
                 var cache = stored.cache;
                 object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
-                object index = this.getCacheIndex(orderBook, cache);
-                if (isGreaterThanOrEqual(index, 0))
+                object indexValue = this.getCacheIndex(orderBook, cache);
+                Int64 index = indexValue == null ? -1 : Convert.ToInt64(indexValue);
+                if (index >= 0)
                 {
                     stored.reset(orderBook);
                     this.handleBookDeltas(stored, (IList<object>)arraySlice(cache, index));

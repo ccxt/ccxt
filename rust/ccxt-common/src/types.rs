@@ -232,7 +232,7 @@ impl Trade {
         t.price          = safe_number(&v, "price",     None);
         t.amount         = safe_number(&v, "amount",    None);
         t.cost           = safe_number(&v, "cost",      None);
-        t.fee            = match crate::get_value(&v, &Value::Str("fee".into())) {
+        t.fee            = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -456,9 +456,8 @@ pub struct Balances {
 
 impl Balances {
     pub fn from_value(v: Value) -> Self {
-        use crate::value::get_value;
         let mut b = Balances::default();
-        b.info = get_value(&v, &Value::Str("info".into()));
+        b.info = v.at("info").to_owned();
         // The top-level `free`/`used`/`total` keys are dicts of
         // `<currency-code> → number`. Walk them and collect.
         let extract = |key: &str| -> HashMap<String, f64> {
@@ -528,7 +527,7 @@ impl Transaction {
         t.currency     = safe_string(&v, "currency",    None);
         t.status       = safe_string(&v, "status",      None);
         t.updated      = safe_integer(&v, "updated",    None);
-        t.fee          = match crate::get_value(&v, &Value::Str("fee".into())) {
+        t.fee          = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -708,7 +707,7 @@ impl LedgerEntry {
         l.before    = safe_number(&v, "before",    None);
         l.after     = safe_number(&v, "after",     None);
         l.status    = safe_string(&v, "status",    None);
-        l.fee       = match crate::get_value(&v, &Value::Str("fee".into())) {
+        l.fee       = match v.at("fee").to_owned() {
             fee @ Value::Dict(_) => Some(Fee::from_value(fee)),
             _ => None,
         };
@@ -2276,7 +2275,7 @@ impl OrderRequest {
 impl FromRaw for OrderRequest {
     fn from_raw(v: Value) -> Self {
         use crate::value::{safe_string, safe_number};
-        let params = match crate::get_value(&v, &Value::Str("params".into())) { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
+        let params = match v.at("params").to_owned() { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
         OrderRequest {
             id: safe_string(&v, "id", None), symbol: safe_string(&v, "symbol", None), outcome: safe_string(&v, "outcome", None),
             order_type: safe_string(&v, "type", None), side: safe_string(&v, "side", None),
