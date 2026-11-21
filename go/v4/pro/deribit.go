@@ -970,8 +970,8 @@ func (this *Deribit) CleanOrderBook(data map[string]any) map[string]any {
 	return data
 }
 func (this *Deribit) HandleDelta(bookside any, delta any) {
-	var price any = this.SafeValue(delta, 1)
-	var amount any = this.SafeValue(delta, 2)
+	var price *float64 = this.SafeNumber(delta, 1)
+	var amount *float64 = this.SafeNumber(delta, 2)
 	var action *string = this.SafeString(delta, 0)
 	if (action != nil && *action == "new") || (action != nil && *action == "change") {
 		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 1})
@@ -1247,7 +1247,11 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var wsOptions, _ = this.Options["ws"].(map[string]any)
-	var timeframes map[string]any = this.SafeDictMap(wsOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = wsOptions["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}

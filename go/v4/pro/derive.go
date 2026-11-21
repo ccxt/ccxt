@@ -1527,7 +1527,10 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	var updated bool = false
 	var positionUpdates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var name string = *this.SafeString(entry, "name", "")
 		if strings.Index(name, "-") >= 0 {
 			// position deltas carry instrument names and do not belong into the balance structure

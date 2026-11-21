@@ -602,7 +602,10 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan ccxt.AsyncResult[map[string
 						var questionsLength int = len(questions)
 						var idLower string = strings.ToLower(id)
 						for i := 0; i < questionsLength; i++ {
-							var q map[string]any = this.SafeDictMap(questions, i, map[string]any{})
+							var q, _ = questions[i].(map[string]any)
+							if q == nil {
+								q = map[string]any{}
+							}
 							var qId string = *this.SafeString(q, "id", "")
 							var qSlug *string = this.SafeString(q, "slug", "")
 							var qTitle string = *this.SafeString(q, "title", "")
@@ -1166,7 +1169,8 @@ func (this *Myriad) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var info map[string]any = r.Value.Info
+	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
+	var info, _ = outcomeObj["info"].(map[string]any)
 	var defaultModel *string = this.SafeString(info, "tradingModel", "amm")
 	var tradingModel *string = this.SafeStringLower(params, "tradingModel", defaultModel)
 	var rest map[string]any = this.OmitDict(params, []any{"tradingModel"})
@@ -1347,7 +1351,7 @@ func (this *Myriad) BuildOrderbookOrder(outcome *string, typeVar *string, side *
 	} else {
 		priceValue = marketPrice
 	}
-	var priceWei any = this.ToOrderbookWei(priceValue)
+	var priceWei string = this.ToOrderbookWei(priceValue)
 	if ccxt.Precise.StringLt(priceWei, "1") {
 		priceWei = "1"
 	}
@@ -1355,7 +1359,7 @@ func (this *Myriad) BuildOrderbookOrder(outcome *string, typeVar *string, side *
 	if ccxt.Precise.StringGt(priceWei, "1000000000000000000") {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() price must be a fraction between 0 and 1"))
 	}
-	var amountWei any = this.ToOrderbookWei(amount)
+	var amountWei string = this.ToOrderbookWei(amount)
 	// shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
 	if ccxt.Precise.StringLt(amountWei, "1") {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() amount is too small (rounds to zero shares)"))
@@ -1652,7 +1656,7 @@ func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[cc
  */
 func (this *Myriad) SignOrderbookTypedData(types map[string]any, message map[string]any, networkId string) string {
 	var chains, _ = this.Options["chains"].(map[string]any)
-	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, networkId)
+	var chainConfig, _ = chains[networkId].(map[string]any)
 	var exchangeAddress *string = this.SafeString(chainConfig, "obExchangeAddress")
 	if exchangeAddress == nil {
 		panic(ccxt.NotSupported(this.Id + " order book trading is not configured for network " + networkId))
@@ -1795,7 +1799,7 @@ func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) a
 	}
 	var orderResponsesById map[string]any = ccxt.SafeMapTyped(params, "orderResponses")
 	if orderResponsesById != nil {
-		var keyedResponse map[string]any = ccxt.SafeMapTyped(orderResponsesById, id)
+		var keyedResponse, _ = orderResponsesById[id].(map[string]any)
 		if keyedResponse != nil {
 			return keyedResponse
 		}
@@ -1804,7 +1808,10 @@ func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) a
 	if orderResponses != nil {
 		var responsesLength int = len(orderResponses)
 		for i := 0; i < responsesLength; i++ {
-			var current map[string]any = this.SafeDictMap(orderResponses, i, map[string]any{})
+			var current, _ = orderResponses[i].(map[string]any)
+			if current == nil {
+				current = map[string]any{}
+			}
 			var currentId *string = this.SafeStringN(current, []any{"orderHash", "hash", "id"})
 			if (currentId != nil) && (*currentId == id) {
 				return current
@@ -1821,7 +1828,7 @@ func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) a
  * @description scales a decimal value by 1e18 and truncates to an integer wei string
  * @returns {string} the integer wei string
  */
-func (this *Myriad) ToOrderbookWei(value any) any {
+func (this *Myriad) ToOrderbookWei(value any) string {
 	var valueStr *string = this.NumberToString(value)
 	var scaled *string = ccxt.Precise.StringMul(valueStr, "1000000000000000000")
 	// use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
@@ -1836,7 +1843,7 @@ func (this *Myriad) ToOrderbookWei(value any) any {
 	if dotIndex > -1 {
 		return (*scaled)[0:min(dotIndex+len((*scaled))*min(max(-dotIndex, 0), 1), len((*scaled)))]
 	}
-	return scaled
+	return *scaled
 }
 func (this *Myriad) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2287,7 +2294,8 @@ func (this *Myriad) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var info map[string]any = r.Value.Info
+		var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
+		var info, _ = outcomeObj["info"].(map[string]any)
 		marketId = this.SafeString(info, "marketId", marketId)
 		networkId = this.SafeString(info, "networkId", networkId)
 	}
@@ -3043,13 +3051,13 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) map[string]a
 	var quoteCurrency *string = this.SafeString(tokenObj, "symbol", "USDC")
 	// per-side fees: buys are charged the taker fee, sells the maker fee (mirrors fetchTradingFee)
 	var feesObj map[string]any = ccxt.SafeMapTyped(raw, "fees")
-	var buyFees map[string]any = ccxt.SafeMapTyped(feesObj, "buy")
-	var sellFees map[string]any = ccxt.SafeMapTyped(feesObj, "sell")
+	var buyFees, _ = feesObj["buy"].(map[string]any)
+	var sellFees, _ = feesObj["sell"].(map[string]any)
 	var takerFee *float64 = this.SafeNumber(buyFees, "fee", 0.01)
 	var makerFee *float64 = this.SafeNumber(sellFees, "fee", 0)
 	var outcomes []any = []any{}
 	for i := 0; i < len(rawOutcomes); i++ {
-		var outcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, i)
+		var outcome, _ = rawOutcomes[i].(map[string]any)
 		var outcomeId *string = this.SafeString(outcome, "outcomeId", this.SafeString(outcome, "id", strconv.Itoa(i)))
 		var outcomeLabel *string = this.SafeString(outcome, "label", this.SafeString(outcome, "title", outcomeId))
 		var price *float64 = this.SafeNumber(outcome, "price")
@@ -3474,7 +3482,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	var previousClose any = nil
 	var percentage any = nil
 	for i := 0; i < len(outcomes); i++ {
-		var o map[string]any = ccxt.SafeMapTyped(outcomes, i)
+		var o, _ = outcomes[i].(map[string]any)
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			var priceValue *float64 = this.SafeNumber(o, "price")
 			var changeValue *float64 = this.SafeNumber(o, "priceChange24h")
@@ -3971,7 +3979,7 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	var marketKeys []string = []string{}
 	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info, _ = outcomeObj["info"].(map[string]any)
 		var networkId string = *this.SafeString(info, "networkId", "")
 		var marketId string = *this.SafeString(info, "marketId", "")
 		var key string = networkId + ":" + marketId
@@ -3989,7 +3997,7 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		var key string = marketKeys[i]
 		var grouped any = outcomesByMarket[key]
 		var firstOutcome map[string]any = ccxt.SafeMapTyped(grouped, 0)
-		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
+		var info, _ = firstOutcome["info"].(map[string]any)
 		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
 			"network_id": this.SafeString(info, "networkId"),
@@ -4269,7 +4277,10 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		var evMarketsLength int = len(evMarkets)
 		var filteredMarkets []any = []any{}
 		for j := 0; j < evMarketsLength; j++ {
-			var m map[string]any = this.SafeDictMap(evMarkets, j, map[string]any{})
+			var m, _ = evMarkets[j].(map[string]any)
+			if m == nil {
+				m = map[string]any{}
+			}
 			var marketHandle *string = this.SafeString(m, "market")
 			if marketHandle != nil {
 				if _, ok := seenMarketHandles[*marketHandle]; ok {
@@ -4552,7 +4563,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	if channel == nil {
 		return
 	}
-	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
+	var pub, _ = push["pub"].(map[string]any)
 	var data map[string]any = this.SafeDictMap(pub, "data", map[string]any{})
 	var parts []string = strings.Split(*channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
@@ -4685,7 +4696,7 @@ func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
 	var changesLength int = len(changes)
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < changesLength; i++ {
-		var change map[string]any = ccxt.SafeMapTyped(changes, i)
+		var change, _ = changes[i].(map[string]any)
 		var outcomeId *string = this.SafeString(change, "outcome")
 		var sym *string = this.MarketOutcomeToSymbol(networkId, marketId, outcomeId)
 		if sym == nil {
@@ -4859,7 +4870,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 	var outcomeObj map[string]any = this.SafeOutcome(sym)
 	// the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
 	// unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
-	var fees map[string]any = ccxt.SafeMapTyped(taker, "totalFees")
+	var fees, _ = taker["totalFees"].(map[string]any)
 	var trade any = this.SafePredictionTrade(map[string]any{
 		"id":           txHash,
 		"info":         data,
@@ -4908,7 +4919,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 				var makerSym *string = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
 				var makerMarket map[string]any = this.SafeMarket(makerSym)
 				var makerOutcomeObj map[string]any = this.SafeOutcome(makerSym)
-				var makerFees map[string]any = ccxt.SafeMapTyped(maker, "fees")
+				var makerFees, _ = maker["fees"].(map[string]any)
 				var makerTrade any = this.SafePredictionTrade(map[string]any{
 					"id":           txHash,
 					"info":         maker,

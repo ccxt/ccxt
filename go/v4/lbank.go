@@ -1703,11 +1703,11 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	// from spotPrivatePostUserInfo
-	var toBtc map[string]any = SafeMapTyped(data, "toBtc")
+	var toBtc, _ = data["toBtc"].(map[string]any)
 	if toBtc != nil {
-		var used map[string]any = SafeMapTyped(data, "freeze")
+		var used, _ = data["freeze"].(map[string]any)
 		var free map[string]any = SafeMapTyped(data, "free")
 		var currencies []string = nil
 		if free != nil {
@@ -1732,7 +1732,7 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 	var balances []any = SafeListTyped(data, "balances")
 	if balances != nil {
 		for i := 0; i < len(balances); i++ {
-			var item map[string]any = SafeMapTyped(balances, i)
+			var item, _ = balances[i].(map[string]any)
 			var currencyId *string = this.SafeString(item, "asset")
 			var codeInner *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -4164,7 +4164,7 @@ func (this *Lbank) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 	var code *string = this.SafeString(currency, "code")
 	var networkList []any = SafeListTyped(fee, "networkList")
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = SafeMapTyped(networkList, j)
+		var networkEntry, _ = networkList[j].(map[string]any)
 		var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 		var isDefault *bool = this.SafeBool(networkEntry, "isDefault", false)

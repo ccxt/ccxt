@@ -5378,7 +5378,7 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 	var baseId *string = this.SafeString(market, "baseAsset", optionBase)
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var stock bool = false
-	if InOp(market, "tradability") {
+	if this.SafeString(market, "tradability") != nil {
 		quoteIdStr := "USDC"
 		quoteId = &quoteIdStr
 		stock = true
@@ -5431,8 +5431,14 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 				symbol = nil
 			}
 		} else if option {
+			var strikeString *string = this.NumberToString(this.ParseToNumeric(this.SafeString(market, "strikePrice")))
+			var optionType string = *this.SafeString(optionParts, 3, "")
 			strike = this.NumberToString(this.ParseToNumeric(this.SafeString(market, "strikePrice")))
-			symbol = Add(Add(Add(Add(Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), this.SafeString(optionParts, 3))
+			if settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry) + "-" + *strikeString + "-" + optionType
+			} else {
+				symbol = nil
+			}
 		}
 		contractSize = this.SafeNumber2(market, "contractSize", "unit", this.ParseNumber("1"))
 		linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
@@ -5511,9 +5517,9 @@ func (this *Binance) ParseMarket(market any) map[string]any {
 		"min": this.SafeNumber(market, "minNotional"),
 		"max": this.SafeNumber(market, "maxNotional"),
 	}
-	_, has3 := filtersByType["MIN_NOTIONAL"]
-	_, has4 := filtersByType["NOTIONAL"]
-	if has3 || has4 {
+	_, has2 := filtersByType["MIN_NOTIONAL"]
+	_, has3 := filtersByType["NOTIONAL"]
+	if has2 || has3 {
 		var filter map[string]any = SafeDict2Typed(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
 		costLimits["min"] = this.SafeNumber2(filter, "minNotional", "notional")
 		costLimits["max"] = this.SafeNumber(filter, "maxNotional")
@@ -5625,7 +5631,7 @@ func (this *Binance) ParseBalanceCustom(response map[string]any, optionalArgs ..
 		timestamp = this.SafeInteger(response, "updateTime")
 		var balances []any = SafeList2Typed(response, "balances", "userAssets")
 		for i := 0; i < len(balances); i++ {
-			var balance map[string]any = SafeMapTyped(balances, i)
+			var balance, _ = balances[i].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var accountSpot map[string]any = this.Account()
@@ -5643,7 +5649,7 @@ func (this *Binance) ParseBalanceCustom(response map[string]any, optionalArgs ..
 	} else if isolated {
 		var assets []any = SafeListTyped(response, "assets")
 		for i := 0; i < len(assets); i++ {
-			var asset map[string]any = SafeMapTyped(assets, i)
+			var asset, _ = assets[i].(map[string]any)
 			var base map[string]any = this.SafeDictMap(asset, "baseAsset", map[string]any{})
 			var quote map[string]any = this.SafeDictMap(asset, "quoteAsset", map[string]any{})
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "asset"))
@@ -5658,7 +5664,7 @@ func (this *Binance) ParseBalanceCustom(response map[string]any, optionalArgs ..
 	} else if typeVar != nil && *typeVar == "savings" {
 		var positionAmountVos []any = SafeListTyped(response, "positionAmountVos")
 		for i := 0; i < len(positionAmountVos); i++ {
-			var entry map[string]any = SafeMapTyped(positionAmountVos, i)
+			var entry, _ = positionAmountVos[i].(map[string]any)
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var accountSavings map[string]any = this.Account()
@@ -5703,7 +5709,7 @@ func (this *Binance) ParseBalanceList(response []any, optionalArgs ...any) map[s
 	var cross bool = (typeVar != nil && *typeVar == "margin") || (marginMode != nil && *marginMode == "cross")
 	if isPortfolioMargin == true {
 		for i := 0; i < len(response); i++ {
-			var entry map[string]any = SafeMapTyped(response, i)
+			var entry, _ = response[i].(map[string]any)
 			var accountPapi map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -5733,7 +5739,7 @@ func (this *Binance) ParseBalanceList(response []any, optionalArgs ...any) map[s
 		}
 	} else if typeVar != nil && *typeVar == "funding" {
 		for i := 0; i < len(response); i++ {
-			var entry map[string]any = SafeMapTyped(response, i)
+			var entry, _ = response[i].(map[string]any)
 			var accountFunding map[string]any = this.Account()
 			var currencyId *string = this.SafeString(entry, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
@@ -5749,7 +5755,7 @@ func (this *Binance) ParseBalanceList(response []any, optionalArgs ...any) map[s
 	} else {
 		var balances []any = response
 		for i := 0; i < len(balances); i++ {
-			var balance map[string]any = SafeMapTyped(balances, i)
+			var balance, _ = balances[i].(map[string]any)
 			// skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
 			var updateTime *int64 = this.SafeInteger(balance, "updateTime")
 			if updateTime != nil && *updateTime == 0 {
@@ -6392,13 +6398,13 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(ticker, "closeTime", "time")
 	var marketType *string = nil
-	if InOp(ticker, "time") {
+	if this.SafeInteger(ticker, "time") != nil {
 		marketTypeStr := "contract"
 		marketType = &marketTypeStr
 	}
 	if marketType == nil {
 		var marketTypeStr2 string
-		if InOp(ticker, "bidQty") {
+		if this.SafeString(ticker, "bidQty") != nil {
 			marketTypeStr2 = "spot"
 		} else {
 			marketTypeStr2 = "contract"
@@ -6409,7 +6415,7 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var wAvg *string = this.SafeString(ticker, "weightedAvgPrice")
-	var isCoinm bool = (InOp(ticker, "baseVolume"))
+	var isCoinm bool = (this.SafeString(ticker, "baseVolume") != nil)
 	var baseVolume *string = nil
 	var quoteVolume *string = nil
 	if isCoinm {
@@ -6420,7 +6426,7 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		baseVolume = this.SafeString(ticker, "volume")
 		quoteVolume = this.SafeString2(ticker, "quoteVolume", "amount")
 	}
-	var literal467232 map[string]any = map[string]any{
+	var literal467432 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -6445,12 +6451,12 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if baseVolume != nil {
-		literal467232["baseVolume"] = *baseVolume
+		literal467432["baseVolume"] = *baseVolume
 	}
 	if quoteVolume != nil {
-		literal467232["quoteVolume"] = *quoteVolume
+		literal467432["quoteVolume"] = *quoteVolume
 	}
-	return this.SafeTicker(literal467232, market)
+	return this.SafeTicker(literal467432, market)
 }
 
 /**
@@ -6960,11 +6966,14 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 	var response []any = nil
 	if *this.SafeBool(market, "option", false) {
 
-		responseRecv := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
-		if responseRecv.Err != nil {
-			panic(responseRecv.Err)
+		optionResponseRecv := <-this.EapiPublicGetMark(this.Extend(request, paramsSubType))
+		if optionResponseRecv.Err != nil {
+			panic(optionResponseRecv.Err)
 		}
-		response = responseRecv.Value
+		var optionResponse []any = optionResponseRecv.Value
+
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(optionResponse, 0, map[string]any{}), market)}
+		return nil
 	} else if this.IsLinear(typeVar, subType) {
 
 		responseRecv := <-this.FapiPublicGetPremiumIndex(this.Extend(request, paramsSubType))
@@ -6981,11 +6990,6 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 		response = responseRecv.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
-	}
-	if response != nil {
-
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response, 0, map[string]any{}), market)}
-		return nil
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchMarkPrice() returned empty response"))
@@ -7344,7 +7348,7 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if InOp(trade, "isDustTrade") {
+	if this.SafeBool(trade, "isDustTrade") != nil {
 		return TradeFromMap(this.ParseDustTrade(trade, market))
 	}
 	//
@@ -7563,7 +7567,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var amount *string = this.SafeString2(trade, "q", "qty")
 	amount = this.SafeString(trade, "quantity", amount)
 	var marketId *string = this.SafeString(trade, "symbol")
-	var isSpotTrade bool = (InOp(trade, "isIsolated")) || (InOp(trade, "M")) || (InOp(trade, "orderListId")) || (InOp(trade, "isMaker"))
+	var isSpotTrade bool = (this.SafeBool(trade, "isIsolated") != nil) || (this.SafeBool(trade, "M") != nil) || (this.SafeInteger(trade, "orderListId") != nil) || (this.SafeBool(trade, "isMaker") != nil)
 	var marketType string = "contract"
 	if isSpotTrade {
 		marketType = "spot"
@@ -7581,10 +7585,10 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 			sideStr = "buy"
 		}
 		side = &sideStr // this is reversed intentionally
-	} else if InOp(trade, "side") {
+	} else if this.SafeString(trade, "side") != nil {
 		side = this.SafeStringLower(trade, "side")
 	} else {
-		if InOp(trade, "isBuyer") {
+		if this.SafeBool(trade, "isBuyer") != nil {
 			var sideStr2 string
 			if *this.SafeBool(trade, "isBuyer", false) {
 				sideStr2 = "buy"
@@ -7595,13 +7599,13 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var fee map[string]any = nil
-	if InOp(trade, "commission") {
+	if this.SafeString(trade, "commission") != nil {
 		fee = map[string]any{
 			"cost":     this.SafeString(trade, "commission"),
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "commissionAsset")),
 		}
 	}
-	if InOp(trade, "isMaker") {
+	if this.SafeBool(trade, "isMaker") != nil {
 		var takerOrMakerStr string
 		if *this.SafeBool(trade, "isMaker", false) {
 			takerOrMakerStr = "maker"
@@ -7610,7 +7614,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	if InOp(trade, "maker") {
+	if this.SafeBool(trade, "maker") != nil {
 		var takerOrMakerStr2 string
 		if *this.SafeBool(trade, "maker", false) {
 			takerOrMakerStr2 = "maker"
@@ -7619,10 +7623,10 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 		takerOrMaker = &takerOrMakerStr2
 	}
-	if (InOp(trade, "optionSide")) || (*this.SafeBool(marketResolved, "option", false)) {
+	if (this.SafeString(trade, "optionSide") != nil) || (*this.SafeBool(marketResolved, "option", false)) {
 		var settle *string = this.SafeCurrencyCode(this.SafeString(trade, "quoteAsset", "USDT"))
 		takerOrMaker = this.SafeStringLower(trade, "liquidity")
-		if InOp(trade, "fee") {
+		if this.SafeString(trade, "fee") != nil {
 			fee = map[string]any{
 				"cost":     this.SafeString(trade, "fee"),
 				"currency": settle,
@@ -7637,7 +7641,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 			side = &sideStr3
 		}
-		if InOp(trade, "optionSide") {
+		if this.SafeString(trade, "optionSide") != nil {
 			if side == nil || *side != "buy" {
 				amount = Precise.StringMul("-1", amount)
 			}
@@ -7756,12 +7760,12 @@ func (this *Binance) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		} else {
 			maxLimitForContractHistorical = 1000
 		}
-		request["limit"] = func() any {
-			if isFutureOrSwap {
-				return mathMin(limit, maxLimitForContractHistorical)
-			}
-			return limit
-		}() // default = 500, maximum = 1000
+		// default = 500, maximum = 1000
+		if isFutureOrSwap {
+			request["limit"] = mathMin(limit, maxLimitForContractHistorical)
+		} else {
+			request["limit"] = *limit
+		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until", "fetchTradesMethod"})
 	if method == nil {
@@ -8022,7 +8026,7 @@ func (this *Binance) editSpotOrderBody(ch chan AsyncResult[Order], id string, sy
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Binance) EditSpotOrderRequest(id string, symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
+func (this *Binance) EditSpotOrderRequest(id string, symbol string, typeVar string, side string, amount *float64, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -8156,7 +8160,7 @@ func (this *Binance) EditSpotOrderRequest(id string, symbol string, typeVar stri
 	var paramsOmitted map[string]any = this.OmitDict(paramsTimeInForce, []any{"quoteOrderQty", "cost", "stopPrice", "newClientOrderId", "clientOrderId", "postOnly"})
 	return this.Extend(request, paramsOmitted)
 }
-func (this *Binance) EditContractOrderRequest(id *string, symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Binance) EditContractOrderRequest(id *string, symbol *string, typeVar *string, side *string, amount *float64, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -8398,8 +8402,8 @@ func (this *Binance) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		var id *string = this.SafeString(rawOrder, "id")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var isPortfolioMargin bool
 		isPortfolioMargin, orderParams = this.HandleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false)
@@ -9123,7 +9127,7 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var status *string = this.ParseOrderStatus(this.SafeStringN(order, []any{"status", "strategyStatus", "algoStatus"}))
 	var marketId *string = this.SafeString(order, "symbol")
-	var isContract bool = (InOp(order, "positionSide")) || (InOp(order, "cumQuote"))
+	var isContract bool = (this.SafeString(order, "positionSide") != nil) || (this.SafeString(order, "cumQuote") != nil)
 	var marketType string = "spot"
 	if isContract {
 		marketType = "contract"
@@ -9142,7 +9146,7 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var lastTradeTimestamp *int64 = nil
-	if (InOp(order, "transactTime")) || (InOp(order, "updateTime")) || (InOp(order, "updatedAt")) {
+	if (this.SafeInteger(order, "transactTime") != nil) || (this.SafeInteger(order, "updateTime") != nil) || (this.SafeInteger(order, "updatedAt") != nil) {
 		var timestampValue *int64 = this.SafeIntegerN(order, []any{"updateTime", "transactTime", "updatedAt"})
 		if status != nil && *status == "open" {
 			if Precise.StringGt(filled, "0") {
@@ -9258,8 +9262,8 @@ func (this *Binance) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		orderSymbols = append(orderSymbols, marketId)
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var orderMarket map[string]any = this.Market(marketId)
 		if (*this.SafeBool(orderMarket, "linear", false)) && (!(*this.SafeBool(orderMarket, "option", false))) && this.IsConditionalOrder(orderParams) {
@@ -10557,11 +10561,11 @@ func (this *Binance) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes790419 []any = r1.Value
-		if retRes790419 == nil {
+		var retRes790919 []any = r1.Value
+		if retRes790919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes790419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes790919)}
 		}
 		return nil
 	}
@@ -12225,11 +12229,11 @@ func (this *Binance) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes916715 []any = TradesToList(r1.Value)
-	if retRes916715 == nil {
+	var retRes917215 []any = TradesToList(r1.Value)
+	if retRes917215 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes916715)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes917215)}
 	}
 	return nil
 }
@@ -12289,11 +12293,11 @@ func (this *Binance) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes920119 []any = r1.Value
-		if retRes920119 == nil {
+		var retRes920619 []any = r1.Value
+		if retRes920619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes920119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes920619)}
 		}
 		return nil
 	}
@@ -12712,8 +12716,9 @@ func (this *Binance) fetchMyDustTradesBody(ch chan AsyncResult[[]Trade], optiona
 			return nil
 		}(), "userAssetDribbletDetails")
 		for j := 0; j < len(logs); j++ {
-			AddElementToObject(logs[j], "isDustTrade", true)
-			data = append(data, logs[j])
+			data = append(data, this.Extend(logs[j], map[string]any{
+				"isDustTrade": true,
+			}))
 		}
 	}
 	var trades []any = this.ParseTrades(data, nil, since, limit)
@@ -12847,11 +12852,11 @@ func (this *Binance) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes963419 []any = r1.Value
-		if retRes963419 == nil {
+		var retRes963819 []any = r1.Value
+		if retRes963819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes963419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes963819)}
 		}
 		return nil
 	}
@@ -12973,11 +12978,11 @@ func (this *Binance) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes975719 []any = r1.Value
-		if retRes975719 == nil {
+		var retRes976119 []any = r1.Value
+		if retRes976119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes975719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes976119)}
 		}
 		return nil
 	}
@@ -13338,7 +13343,7 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	}
 	var timestamp *int64 = this.SafeInteger2(transfer, "timestamp", "transactionTime")
 	var status *string = this.ParseTransferStatus(this.SafeString(transfer, "status"))
-	var literal1015015 map[string]any = map[string]any{
+	var literal1015415 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          id,
 		"timestamp":   timestamp,
@@ -13350,12 +13355,12 @@ func (this *Binance) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 		"status":      status,
 	}
 	if fromAccount != nil {
-		literal1015015["fromAccount"] = *fromAccount
+		literal1015415["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal1015015["toAccount"] = *toAccount
+		literal1015415["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal1015015)
+	return TransferEntryFromMap(literal1015415)
 }
 func (this *Binance) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	//
@@ -13561,11 +13566,11 @@ func (this *Binance) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1031919 []any = r1.Value
-		if retRes1031919 == nil {
+		var retRes1032319 []any = r1.Value
+		if retRes1032319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1031919)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1032319)}
 		}
 		return nil
 	}
@@ -13861,17 +13866,22 @@ func (this *Binance) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var networkList []any = SafeListTyped(entry, "networkList")
-		if code != nil {
-			withdrawFees[*code] = map[string]any{}
-		}
+		var networkFees map[string]any = map[string]any{}
 		for j := 0; j < len(networkList); j++ {
-			var networkEntry map[string]any = SafeMapTyped(networkList, j)
+			var networkEntry, _ = networkList[j].(map[string]any)
 			var networkId *string = this.SafeString(networkEntry, "network")
 			var networkCode *string = this.NetworkIdToCode(networkId, code)
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
-			if (code != nil) && (networkCode != nil) {
-				AddElementToObject(withdrawFees[*code], networkCode, fee)
+			if networkCode != nil {
+				if fee != nil {
+					networkFees[*networkCode] = *fee
+				} else {
+					networkFees[*networkCode] = nil
+				}
 			}
+		}
+		if code != nil {
+			withdrawFees[*code] = networkFees
 		}
 	}
 
@@ -14011,7 +14021,7 @@ func (this *Binance) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = SafeMapTyped(networkList, j)
+		var networkEntry, _ = networkList[j].(map[string]any)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -14647,11 +14657,11 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1120719 []any = r1.Value
-		if retRes1120719 == nil {
+		var retRes1121219 []any = r1.Value
+		if retRes1121219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes1120719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes1121219)}
 		}
 		return nil
 	}
@@ -15000,8 +15010,7 @@ func (this *Binance) ParseAccountPosition(position map[string]any, optionalArgs 
 		}
 	}
 	// as oppose to notionalValue
-	_, has1 := position["notional"]
-	var usdm bool = has1
+	var usdm bool = (this.SafeString(position, "notional") != nil)
 	var maintenanceMarginString *string = this.SafeString(position, "maintMargin")
 	var maintenanceMargin *float64 = this.ParseNumber(maintenanceMarginString)
 	var entryPriceString *string = this.SafeString(position, "entryPrice")
@@ -15295,10 +15304,10 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contractSize *float64 = this.SafeNumber(marketResolved, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
-	var linear bool = (InOp(position, "notional"))
+	var linear bool = (this.SafeString(position, "notional") != nil)
 	if marginMode != nil && *marginMode == "cross" {
 		// calculate collateral
-		var precision map[string]any = SafeMapTyped(marketResolved, "precision")
+		var precision, _ = marketResolved["precision"].(map[string]any)
 		var basePrecisionValue *string = this.SafeString(precision, "base")
 		var quotePrecisionValue *string = this.SafeString2(precision, "quote", "price")
 		var precisionIsUndefined bool = (basePrecisionValue == nil) && (quotePrecisionValue == nil)
@@ -15483,13 +15492,13 @@ func (this *Binance) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any
 		}
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
-			var entry map[string]any = SafeMapTyped(entries, i)
+			var entry, _ = entries[i].(map[string]any)
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets []any = SafeListTyped(entry, "brackets")
 			var result []any = []any{}
 			for j := 0; j < len(brackets); j++ {
-				var bracket map[string]any = SafeMapTyped(brackets, j)
+				var bracket, _ = brackets[j].(map[string]any)
 				var floorValue *string = this.SafeString2(bracket, "notionalFloor", "qtyFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})
@@ -15941,11 +15950,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes1227719 []any = PositionsToList(r.Value)
-		if retRes1227719 == nil {
+		var retRes1228219 []any = PositionsToList(r.Value)
+		if retRes1228219 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1227719)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1228219)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -15954,11 +15963,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1227919 []any = PositionsToList(r1.Value)
-		if retRes1227919 == nil {
+		var retRes1228419 []any = PositionsToList(r1.Value)
+		if retRes1228419 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1227919)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1228419)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "option" {
@@ -15967,11 +15976,11 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes1228119 []any = PositionsToList(r2.Value)
-		if retRes1228119 == nil {
+		var retRes1228619 []any = PositionsToList(r2.Value)
+		if retRes1228619 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1228119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes1228619)}
 		}
 		return nil
 	} else {
@@ -16732,7 +16741,7 @@ func (this *Binance) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage]
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLeverages", nil, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLeverages", nil, paramsMarketType, "linear")
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(paramsSubType, "fetchLeverages", "papi", "portfolioMargin", false)
-	var response any = nil
+	var leverages []any = []any{}
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
 
@@ -16740,37 +16749,45 @@ func (this *Binance) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage]
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Raw
+			var response map[string]any = r2.Value
+			leverages, _ = response["positions"].([]any)
+			if leverages == nil {
+				leverages = []any{}
+			}
 		} else {
 
-			r3 := <-this.FapiPrivateGetSymbolConfig(paramsPapi)
-			if r3.Err != nil {
-				panic(r3.Err)
+			leveragesRecv := <-this.FapiPrivateGetSymbolConfig(paramsPapi)
+			if leveragesRecv.Err != nil {
+				panic(leveragesRecv.Err)
 			}
-			response = r3.Raw
+			leverages = leveragesRecv.Value
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin {
 
-			r4 := <-this.PapiGetCmAccount(paramsPapi)
+			r3 := <-this.PapiGetCmAccount(paramsPapi)
+			if r3.Err != nil {
+				panic(r3.Err)
+			}
+			var response map[string]any = r3.Value
+			leverages, _ = response["positions"].([]any)
+			if leverages == nil {
+				leverages = []any{}
+			}
+		} else {
+
+			r4 := <-this.DapiPrivateGetAccount(paramsPapi)
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			response = r4.Raw
-		} else {
-
-			r5 := <-this.DapiPrivateGetAccount(paramsPapi)
-			if r5.Err != nil {
-				panic(r5.Err)
+			var response map[string]any = r4.Value
+			leverages, _ = response["positions"].([]any)
+			if leverages == nil {
+				leverages = []any{}
 			}
-			response = r5.Raw
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchLeverages() supports linear and inverse contracts only"))
-	}
-	var leverages any = this.SafeList(response, "positions", []any{})
-	if IsArray(response) {
-		leverages = this.ToArray(response)
 	}
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leverages, symbols, "symbol"))}
@@ -17194,11 +17211,11 @@ func (this *Binance) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1317419 []any = r1.Value
-		if retRes1317419 == nil {
+		var retRes1317819 []any = r1.Value
+		if retRes1317819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes1317419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes1317819)}
 		}
 		return nil
 	}
@@ -17736,12 +17753,12 @@ func (this *Binance) CalculateRateLimiterCost(api any, method string, path strin
 	} else if _, ok := config["noPoolId"]; ok && !(InOp(params, "poolId")) {
 		return config["noPoolId"]
 	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
-		var limit any = GetValue(params, "limit")
+		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
 			var entry any = byLimit[i]
-			if IsLessThanOrEqual(limit, GetValue(entry, 0)) {
-				return GetValue(entry, 1)
+			if (limit != nil) && IsLessThanOrEqual(limit, this.SafeInteger(entry, 0, 0)) {
+				return this.SafeInteger(entry, 1)
 			}
 		}
 	}
@@ -17880,23 +17897,23 @@ func (this *Binance) ParseMarginModification(data any, optionalArgs ...any) map[
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "swap")
 	var noErrorCode bool = (errorCode == nil)
 	var success bool = (errorCode != nil && *errorCode == "200")
-	var ternaryStr1374820 string = "reduce"
+	var ternaryStr1375220 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		ternaryStr1374820 = "add"
+		ternaryStr1375220 = "add"
 	}
-	var ternaryStr1375322 string = "failed"
+	var ternaryStr1375722 string = "failed"
 	if success || noErrorCode {
-		ternaryStr1375322 = "ok"
+		ternaryStr1375722 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     marketResolved["symbol"],
-		"type":       ternaryStr1374820,
+		"type":       ternaryStr1375220,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"code":       this.SafeString(data, "asset"),
 		"total":      nil,
-		"status":     ternaryStr1375322,
+		"status":     ternaryStr1375722,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}
@@ -18253,8 +18270,14 @@ func (this *Binance) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[
 	var marketId *string = this.SafeString(info, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "spot")
 	var data []any = SafeListTyped(info, "data")
-	var baseInfo map[string]any = SafeMapTyped(data, 0)
-	var quoteInfo map[string]any = SafeMapTyped(data, 1)
+	var baseInfo map[string]any
+	if 0 < len(data) {
+		baseInfo, _ = data[0].(map[string]any)
+	}
+	var quoteInfo map[string]any
+	if 1 < len(data) {
+		quoteInfo, _ = data[1].(map[string]any)
+	}
 	return map[string]any{
 		"info":      info,
 		"symbol":    this.SafeString(marketResolved, "symbol"),
@@ -18892,11 +18915,11 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1441819 []any = r1.Value
-		if retRes1441819 == nil {
+		var retRes1442219 []any = r1.Value
+		if retRes1442219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1441819)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1442219)}
 		}
 		return nil
 	}
@@ -19033,7 +19056,7 @@ func (this *Binance) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 		var symbolValue *string = SafeStringPtr(market["symbol"])
 		var result []any = ArrayTyped(this.ParseOpenInterestsHistory(optionResponse, market))
 		for i := 0; i < len(result); i++ {
-			var item map[string]any = SafeMapTyped(result, i)
+			var item, _ = result[i].(map[string]any)
 			if this.SafeString(item, "symbol") == symbolValue || (this.SafeString(item, "symbol") != nil && symbolValue != nil && *this.SafeString(item, "symbol") == *symbolValue) {
 
 				ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(item)}
@@ -19171,11 +19194,11 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1460819 []any = r1.Value
-		if retRes1460819 == nil {
+		var retRes1461219 []any = r1.Value
+		if retRes1461219 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1460819)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1461219)}
 		}
 		return nil
 	}
@@ -19740,27 +19763,27 @@ func (this *Binance) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginM
 		}
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMarginMode", market, params)
-	var response any = nil
+	var assets []any = []any{}
 	if subType != nil && *subType == "linear" {
 
-		r1 := <-this.FapiPrivateGetSymbolConfig(paramsSubType)
+		assetsRecv := <-this.FapiPrivateGetSymbolConfig(paramsSubType)
+		if assetsRecv.Err != nil {
+			panic(assetsRecv.Err)
+		}
+		assets = assetsRecv.Value
+	} else if subType != nil && *subType == "inverse" {
+
+		r1 := <-this.DapiPrivateGetAccount(paramsSubType)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
-	} else if subType != nil && *subType == "inverse" {
-
-		r2 := <-this.DapiPrivateGetAccount(paramsSubType)
-		if r2.Err != nil {
-			panic(r2.Err)
+		var response map[string]any = r1.Value
+		assets, _ = response["positions"].([]any)
+		if assets == nil {
+			assets = []any{}
 		}
-		response = r2.Raw
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginModes () supports linear and inverse subTypes only"))
-	}
-	var assets any = this.SafeList(response, "positions", []any{})
-	if IsArray(response) {
-		assets = this.ToArray(response)
 	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(assets, symbolsNormalized, "symbol", "swap"))}
@@ -20066,7 +20089,7 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Marg
 		}
 		response = responseRecv.Value
 	} else {
-		panic(BadRequest(Add(this.Id+" fetchMarginAdjustmentHistory () is not supported for markets of type ", market["type"])))
+		panic(BadRequest(this.Id + " fetchMarginAdjustmentHistory () is not supported for markets of type " + *this.SafeString(market, "type", "")))
 	}
 	//
 	//    [
@@ -20719,7 +20742,11 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSh
 		}
 		response = responseRecv.Value
 	} else if subType != nil && *subType == "inverse" {
-		requestUntil["pair"] = GetValue(market["info"], "pair")
+		if ptrValue := this.SafeString(market["info"], "pair"); ptrValue != nil {
+			requestUntil["pair"] = *ptrValue
+		} else {
+			requestUntil["pair"] = nil
+		}
 
 		responseRecv := <-this.DapiDataGetGlobalLongShortAccountRatio(this.Extend(requestUntil, paramsSubType))
 		if responseRecv.Err != nil {

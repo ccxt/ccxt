@@ -1230,7 +1230,10 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 		amountMaxLimitString = Precise.StringDiv(amountMaxLimitString, contractSizeString)
 		var riskLimits []any = SafeListTyped(market, "riskLimits")
 		if riskLimits != nil {
-			var first map[string]any = SafeMapTyped(riskLimits, 0)
+			var first map[string]any
+			if 0 < len(riskLimits) {
+				first, _ = riskLimits[0].(map[string]any)
+			}
 			var arrayLength int = len(riskLimits)
 			var last map[string]any = SafeMapTyped(riskLimits, arrayLength-1)
 			var minInitialMargin any
@@ -3524,7 +3527,10 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		}
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var firstOrder map[string]any = SafeMapTyped(ordersRequests, 0)
+	var firstOrder map[string]any
+	if 0 < len(ordersRequests) {
+		firstOrder, _ = ordersRequests[0].(map[string]any)
+	}
 	var firstSymbol *string = this.SafeString(firstOrder, "symbol")
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(firstSymbol))
 	var request map[string]any = map[string]any{
@@ -4354,40 +4360,31 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(order, "transactTime", "time")
 	var status *string = this.SafeString(order, "status")
-	var typeVar any
-	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
-		typeVar = *derefPtr
-	}
+	var typeVar *string = this.SafeString(order, "type")
 	var priceType *string = this.SafeString(order, "priceType")
 	if priceType != nil && *priceType == "MARKET" {
-		typeVar = "market"
+		typeVarStr := "market"
+		typeVar = &typeVarStr
 	}
 	var price *string = this.OmitZero(this.SafeString(order, "price"))
-	if typeVar == "STOP" {
+	if typeVar != nil && *typeVar == "STOP" {
 		if price == nil {
-			typeVar = "market"
+			typeVarStr2 := "market"
+			typeVar = &typeVarStr2
 		} else {
-			typeVar = "limit"
+			typeVarStr3 := "limit"
+			typeVar = &typeVarStr3
 		}
 	}
-	var timeInForce any
-	if derefPtr := this.SafeString(order, "timeInForce"); derefPtr != nil {
-		timeInForce = *derefPtr
-	}
-	var postOnly any = nil
-	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
-	typeVar = GetValue(typeVartimeInForcepostOnlyVariable, 0)
-	timeInForce = GetValue(typeVartimeInForcepostOnlyVariable, 1)
-	postOnly = typeVartimeInForcepostOnlyVariable[2]
+	var rawTimeInForce *string = this.SafeString(order, "timeInForce")
+	var timeInForce *string = this.ParseOrderTimeInForceValue(typeVar, rawTimeInForce)
+	var typeParsed *string = this.ParseOrderType(typeVar)
 	var average *string = this.OmitZero(this.SafeString(order, "avgPrice"))
 	if price == nil {
 		price = average
 	}
-	var side any = this.SafeStringLower(order, "side")
-	var reduceOnly any = nil
-	sidereduceOnlyVariable := this.ParseOrderSideAndReduceOnly(side)
-	side = sidereduceOnlyVariable[0]
-	reduceOnly = sidereduceOnlyVariable[1]
+	var rawSide *string = this.SafeStringLower(order, "side")
+	var side *string = this.ParseOrderSideValue(rawSide)
 	var feeCurrncyId *string = this.SafeString(order, "feeCoin")
 	if feeCurrncyId != nil && *feeCurrncyId == "" {
 		feeCurrncyId = nil
@@ -4401,7 +4398,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 		"lastUpdateTimestamp": this.SafeInteger(order, "updateTime"),
 		"status":              this.ParseOrderStatus(status),
 		"symbol":              marketResolved["symbol"],
-		"type":                typeVar,
+		"type":                typeParsed,
 		"timeInForce":         timeInForce,
 		"side":                side,
 		"price":               price,
@@ -4418,27 +4415,29 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": this.SafeCurrencyCode(feeCurrncyId),
 			"cost":     this.OmitZero(this.SafeString(order, "feeAmount")),
 		},
-		"reduceOnly": reduceOnly,
-		"postOnly":   postOnly,
+		"reduceOnly": this.ParseOrderReduceOnlyValue(rawSide),
+		"postOnly":   this.ParseOrderPostOnlyValue(typeVar, rawTimeInForce),
 		"info":       order,
 	}, marketResolved)
 }
-func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) []any {
-	var parts []string = Split(unparsed, "_")
-	var side any
-	if 0 >= 0 && 0 < len(parts) {
-		side = parts[0]
-	} else {
-		side = nil
+func (this *Hashkey) ParseOrderSideValue(unparsed *string) *string {
+	if unparsed == nil {
+		return nil
 	}
-	var secondPart *string = this.SafeString(parts, 1)
+	return this.SafeString(strings.Split(*unparsed, "_"), 0)
+}
+func (this *Hashkey) ParseOrderReduceOnlyValue(unparsed *string) any {
+	if unparsed == nil {
+		return nil
+	}
+	var secondPart *string = this.SafeString(strings.Split(*unparsed, "_"), 1)
 	if secondPart != nil && *secondPart == "open" {
-		return []any{side, false}
+		return false
 	}
 	if secondPart != nil && *secondPart == "close" {
-		return []any{side, true}
+		return true
 	}
-	return []any{side, nil}
+	return nil
 }
 func (this *Hashkey) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4454,17 +4453,20 @@ func (this *Hashkey) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hashkey) ParseOrderTypeTimeInForceAndPostOnly(typeVar any, timeInForce any) []any {
-	var isMakerTimeInForce bool = (IsEqual(timeInForce, "LIMIT_MAKER")) || (IsEqual(timeInForce, "MAKER"))
-	var timeInForceParsed any = timeInForce
+func (this *Hashkey) ParseOrderTimeInForceValue(typeVar any, timeInForce *string) *string {
+	var isMakerTimeInForce bool = (timeInForce != nil && *timeInForce == "LIMIT_MAKER") || (timeInForce != nil && *timeInForce == "MAKER")
 	if (!IsEqual(typeVar, "LIMIT_MAKER")) && isMakerTimeInForce {
-		timeInForceParsed = "PO"
+		retStrVal := "PO"
+		return &retStrVal
 	}
-	var typeValue *string = this.ParseOrderType(typeVar)
+	return timeInForce
+}
+func (this *Hashkey) ParseOrderPostOnlyValue(typeVar any, timeInForce *string) any {
+	var isMakerTimeInForce bool = (timeInForce != nil && *timeInForce == "LIMIT_MAKER") || (timeInForce != nil && *timeInForce == "MAKER")
 	if (IsEqual(typeVar, "LIMIT_MAKER")) || isMakerTimeInForce {
-		return []any{typeValue, timeInForceParsed, true}
+		return true
 	}
-	return []any{typeValue, timeInForceParsed, nil}
+	return nil
 }
 func (this *Hashkey) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
@@ -4735,18 +4737,19 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 			panic(r.Err)
 		}
 	}
+	var firstSymbol string = *this.SafeString(symbols, 0, "")
 
-	r1 := <-this.FetchPositionsForSymbolAsync(StringArg(symbols[0]), this.Extend(map[string]any{
+	r1 := <-this.FetchPositionsForSymbolAsync(firstSymbol, this.Extend(map[string]any{
 		"methodName": "fetchPositions",
 	}, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes401815 []any = PositionsToList(r1.Value)
-	if retRes401815 == nil {
+	var retRes402915 []any = PositionsToList(r1.Value)
+	if retRes402915 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401815)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes402915)}
 	}
 	return nil
 }
@@ -5178,9 +5181,9 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var errorCode *string = this.SafeString(data, "code")
 	var success bool = (errorCode != nil && *errorCode == "0000")
-	var ternaryStr430122 string = "failed"
+	var ternaryStr431222 string = "failed"
 	if success {
-		ternaryStr430122 = "ok"
+		ternaryStr431222 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -5190,7 +5193,7 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       marketResolved["settle"],
-		"status":     ternaryStr430122,
+		"status":     ternaryStr431222,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}
@@ -5462,9 +5465,13 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var fee map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var fee, _ = data[i].(map[string]any)
+		if fee == nil {
+			fee = map[string]any{}
+		}
 		var parsedFee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fee))
-		AddElementToObject(result, parsedFee["symbol"], parsedFee)
+		var feeSymbol string = *this.SafeString(parsedFee, "symbol", "")
+		result[feeSymbol] = parsedFee
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -5598,7 +5605,7 @@ func (this *Hashkey) HandleErrors(code int64, reason string, url string, method 
 	if responseCodeInteger != nil && *responseCodeInteger == 0 {
 		var result []any = SafeListTyped(response, "result") // for batch methods
 		for i := 0; i < len(result); i++ {
-			var entry map[string]any = SafeMapTyped(result, i)
+			var entry, _ = result[i].(map[string]any)
 			var entryCodeInteger *int64 = this.SafeInteger(entry, "code")
 			if entryCodeInteger == nil || *entryCodeInteger != 0 {
 				errorInArray = true

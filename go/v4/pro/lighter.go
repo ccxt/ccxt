@@ -1608,7 +1608,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 		}
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = assetIds[i]
-			var asset map[string]any = ccxt.SafeMapTyped(assets, assetId)
+			var asset, _ = assets[assetId].(map[string]any)
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
 			var account map[string]any = this.Account()
@@ -2235,7 +2235,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 			var subscriptionHash string = subscriptionHashes[i]
 			if strings.HasPrefix(subscriptionHash, "ticker") {
 				var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
-				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
+				var subscriptionParams, _ = subscription["params"].(map[string]any)
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
 					client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)

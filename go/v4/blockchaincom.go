@@ -369,7 +369,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var market map[string]any = SafeMapTyped(markets, marketId)
+		var market, _ = markets[marketId].(map[string]any)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -1746,7 +1746,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan AsyncResult[Balances], optio
 		"info": responseReply.Raw,
 	}
 	for i := 0; i < len(balances); i++ {
-		var entry map[string]any = SafeMapTyped(balances, i)
+		var entry, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

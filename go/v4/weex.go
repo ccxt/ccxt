@@ -1078,7 +1078,7 @@ func (this *Weex) ParseCurrency(rawCurrency any) map[string]any {
 	var networks map[string]any = map[string]any{}
 	var chains []any = SafeListTyped(rawCurrency, "networkList")
 	for j := 0; j < len(chains); j++ {
-		var chain map[string]any = SafeMapTyped(chains, j)
+		var chain, _ = chains[j].(map[string]any)
 		var networkId *string = this.SafeString(chain, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
@@ -2077,7 +2077,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	historical, paramsHistorical := this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
 	var timeframeOption, _ = this.Options["timeframes"].(map[string]any)
-	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
+	var contractTimeframes, _ = timeframeOption["contract"].(map[string]any)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -2744,7 +2744,7 @@ func (this *Weex) ParseBalanceList(response any) map[string]any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var balances []any = this.SafeListSlice(response, "balances", response)
 	for i := 0; i < len(balances); i++ {
-		var entry map[string]any = SafeMapTyped(balances, i)
+		var entry, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "asset")
 		if (sandboxMode != nil && *sandboxMode) && (currencyId != nil && *currencyId == "SUSDT") {
 			currencyIdStr := "USDT"
@@ -5602,7 +5602,7 @@ func (this *Weex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Weex) EncodeMarginMode(marginMode string) any {
+func (this *Weex) EncodeMarginMode(marginMode string) string {
 	var marginTypes map[string]any = map[string]any{
 		"cross":    "CROSSED",
 		"isolated": "ISOLATED",
@@ -5611,7 +5611,7 @@ func (this *Weex) EncodeMarginMode(marginMode string) any {
 	if result == nil {
 		panic(ArgumentsRequired(this.Id + " marginMode must be either cross or isolated"))
 	}
-	return result
+	return *result
 }
 
 /**

@@ -1221,11 +1221,11 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder bool = (InOp(trade, "id"))
+	var isFromFetchOrder bool = (this.SafeString(trade, "id") != nil)
 	var timestamp *int64 = this.SafeInteger(trade, "executed_timestamp")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
@@ -2206,7 +2206,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var maker *string = this.SafeString(data, "futures_maker_fee_rate")
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -2437,7 +2437,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var clientOrderId *string = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var amount *string = this.SafeString2(order, "order_quantity", "quantity") // This is base amount
 	var cost *string = this.SafeString2(order, "order_amount", "amount")       // This is quote amount
@@ -2464,12 +2464,18 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
 	if childOrders != nil {
-		var first map[string]any = SafeMapTyped(childOrders, 0)
+		var first map[string]any
+		if 0 < len(childOrders) {
+			first, _ = childOrders[0].(map[string]any)
+		}
 		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)
 		if innerChildOrdersLength > 0 {
-			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
-			var stopLossOrder map[string]any = SafeMapTyped(innerChildOrders, 1)
+			var takeProfitOrder, _ = innerChildOrders[0].(map[string]any)
+			var stopLossOrder map[string]any
+			if 1 < len(innerChildOrders) {
+				stopLossOrder, _ = innerChildOrders[1].(map[string]any)
+			}
 			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
 			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
@@ -2793,8 +2799,8 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
-		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
+		var stopLoss, _ = orderParams["stopLoss"].(map[string]any)
+		var takeProfit, _ = orderParams["takeProfit"].(map[string]any)
 		var paramsChildOrders []any = SafeListTyped(orderParams, "childOrders")
 		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 		if isConditional {
@@ -4317,7 +4323,7 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var currency map[string]any = this.Currency(codeUpper)
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
-	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetworks, _ = currency["networks"].(map[string]any)
 	var coinNetwork map[string]any = SafeMapTyped(currencyNetworks, chainId)
 	var coinNetworkId *float64 = this.SafeNumber(coinNetwork, "id")
 	if coinNetworkId == nil {

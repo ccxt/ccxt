@@ -2119,7 +2119,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var maker *string = this.SafeString(data, "futures_maker_fee_rate")
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -2380,12 +2380,18 @@ func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopLossPrice *float64 = nil
 	var childOrders []any = SafeListTyped(order, "childOrders")
 	if childOrders != nil {
-		var first map[string]any = SafeMapTyped(childOrders, 0)
+		var first map[string]any
+		if 0 < len(childOrders) {
+			first, _ = childOrders[0].(map[string]any)
+		}
 		var innerChildOrders []any = SafeListTyped(first, "childOrders")
 		var innerChildOrdersLength int = len(innerChildOrders)
 		if innerChildOrdersLength > 0 {
-			var takeProfitOrder map[string]any = SafeMapTyped(innerChildOrders, 0)
-			var stopLossOrder map[string]any = SafeMapTyped(innerChildOrders, 1)
+			var takeProfitOrder, _ = innerChildOrders[0].(map[string]any)
+			var stopLossOrder map[string]any
+			if 1 < len(innerChildOrders) {
+				stopLossOrder, _ = innerChildOrders[1].(map[string]any)
+			}
 			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
 			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
@@ -2713,12 +2719,12 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []m
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type", "")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-		var stopLoss map[string]any = SafeMapTyped(orderParams, "stopLoss")
-		var takeProfit map[string]any = SafeMapTyped(orderParams, "takeProfit")
+		var stopLoss, _ = orderParams["stopLoss"].(map[string]any)
+		var takeProfit, _ = orderParams["takeProfit"].(map[string]any)
 		var childOrders []any = SafeListTyped(orderParams, "childOrders")
 		var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (childOrders != nil)
 		if isConditional {
@@ -4279,7 +4285,7 @@ func (this *Modetrade) withdrawBody(ch chan AsyncResult[Transaction], code strin
 	var currency map[string]any = this.Currency(codeUpper)
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
-	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetworks, _ = currency["networks"].(map[string]any)
 	var coinNetwork any
 	if chainId == nil {
 		coinNetwork = map[string]any{}

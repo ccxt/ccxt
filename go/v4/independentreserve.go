@@ -529,7 +529,7 @@ func (this *Independentreserve) ParseBalanceList(response []any) map[string]any 
 	}
 	var accounts []any = this.ToArray(response)
 	for i := 0; i < len(accounts); i++ {
-		var balance map[string]any = SafeMapTyped(accounts, i)
+		var balance, _ = accounts[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

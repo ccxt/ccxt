@@ -2552,10 +2552,10 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 		costStr := "0"
 		cost = &costStr
 		for i := 0; i < numTrades; i++ {
-			var trade map[string]any = SafeMapTyped(trades, i)
+			var trade, _ = trades[i].(map[string]any)
 			cost = Precise.StringAdd(cost, this.SafeString(trade, "cost"))
 			if getFeesFromTrades {
-				var tradeFee map[string]any = SafeMapTyped(trade, "fee")
+				var tradeFee, _ = trade["fee"].(map[string]any)
 				var tradeFeeCost *string = this.SafeString(tradeFee, "cost")
 				if tradeFeeCost != nil {
 					feeCost = Precise.StringAdd(feeCost, tradeFeeCost)

@@ -486,7 +486,7 @@ func (this *Toobit) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var timeframeId *string = this.SafeString(params, "klineType")
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
@@ -680,7 +680,10 @@ func (this *Toobit) HandleTickers(client any, message map[string]any) {
 	}
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var ticker, _ = data[i].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseWsTicker(ticker)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -824,7 +827,7 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var messageHash string = "orderBook::" + *symbol + "::" + "diffDepth"
 		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 			var limit *int64 = this.SafeInteger(this.Options["ws"], "orderBookLimit", 1000)
@@ -881,7 +884,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message map[string]any, cha
 		return
 	}
 	for i := 0; i < length; i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "orderBook::" + *symbol + "::" + channel

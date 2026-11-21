@@ -219,18 +219,22 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	} else {
 		bookParams["bookSubscriptionType"] = nil
 	}
-	ccxt.AddElementToObject(paramsBookSubscriptionType2, "params", bookParams)
-	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
+	var paramsWithBook map[string]any = this.Extend(paramsBookSubscriptionType2, map[string]any{
+		"params": bookParams,
+	})
+	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 	if bookUpdateFrequency2 != nil {
-		var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 		if bookUpdateFrequency2 != nil {
 			frequencyParams["bookSubscriptionType"] = *bookUpdateFrequency2
 		} else {
 			frequencyParams["bookSubscriptionType"] = nil
 		}
-		ccxt.AddElementToObject(paramsBookUpdateFrequency2, "params", frequencyParams)
 	}
+	var paramsWithFrequency map[string]any = this.Extend(paramsBookUpdateFrequency2, map[string]any{
+		"params": frequencyParams,
+	})
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -239,7 +243,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 		topics = append(topics, "book."+*this.SafeString(market, "id", "")+"."+*limitString)
 	}
 
-	r1 := <-this.WatchPublicMultipleAsync(messageHashes, topics, paramsBookUpdateFrequency2)
+	r1 := <-this.WatchPublicMultipleAsync(messageHashes, topics, paramsWithFrequency)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -295,18 +299,22 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	} else {
 		bookParams["bookSubscriptionType"] = nil
 	}
-	ccxt.AddElementToObject(paramsBookSubscriptionType2, "params", bookParams)
-	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency")
+	var paramsWithBook map[string]any = this.Extend(paramsBookSubscriptionType2, map[string]any{
+		"params": bookParams,
+	})
+	bookUpdateFrequency, paramsBookUpdateFrequency := this.HandleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency2, paramsBookUpdateFrequency2 := this.HandleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 	if bookUpdateFrequency2 != nil {
-		var frequencyParams map[string]any = this.SafeDictMap(paramsBookUpdateFrequency2, "params", map[string]any{})
 		if bookUpdateFrequency2 != nil {
 			frequencyParams["bookSubscriptionType"] = *bookUpdateFrequency2
 		} else {
 			frequencyParams["bookSubscriptionType"] = nil
 		}
-		ccxt.AddElementToObject(paramsBookUpdateFrequency2, "params", frequencyParams)
 	}
+	var paramsWithFrequency map[string]any = this.Extend(paramsBookUpdateFrequency2, map[string]any{
+		"params": frequencyParams,
+	})
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -315,7 +323,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 		topics = append(topics, "book."+*this.SafeString(market, "id", "")+"."+strconv.FormatInt(limit, 10))
 	}
 
-	r1 := <-this.UnWatchPublicMultipleAsync("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2)
+	r1 := <-this.UnWatchPublicMultipleAsync("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsWithFrequency)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1620,7 +1628,7 @@ func (this *Cryptocom) HandleBalance(client any, message map[string]any) {
 	var positionBalances []any = ccxt.SafeListTyped(ccxt.GetValue(data, 0), "position_balances")
 	this.Balance["info"] = data
 	for i := 0; i < len(positionBalances); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(positionBalances, i)
+		var balance, _ = positionBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

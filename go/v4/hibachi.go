@@ -1040,7 +1040,7 @@ func (this *Hibachi) OrderMessage(market map[string]any, nonce int64, feeRate an
 	// - FeeRate: Internal = External * (10^8)
 	var amountStr *string = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
-	var info map[string]any = SafeMapTyped(market, "info")
+	var info, _ = market["info"].(map[string]any)
 	var underlying string = "1e" + *this.SafeString(info, "underlyingDecimals", "")
 	var one string = "1"
 	var feeRateFactor string = "100000000" // 10^8

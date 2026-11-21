@@ -114,7 +114,8 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	}
 	var willSend bool = false
 	for i := 0; i < ccxt.GetArrayLength(hashesToCheck); i++ {
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(hashesToCheck, i))) {
+		var hashToCheck string = *this.SafeString(hashesToCheck, i, "")
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(hashToCheck)) {
 			willSend = true
 		}
 	}
@@ -698,7 +699,7 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	if rowsLength == 0 {
 		return
 	}
-	var first map[string]any = ccxt.SafeMapTyped(rows, 0)
+	var first, _ = rows[0].(map[string]any)
 	var marketId *string = this.SafeString(first, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -709,7 +710,10 @@ func (this *Polymarket) HandleTrades(client any, message map[string]any) {
 	}
 	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(row, market)
 		trades.Append(trade)
 	}
@@ -1098,7 +1102,10 @@ func (this *Polymarket) HandleOrder(client any, message map[string]any) {
 	var stored ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(row))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -1227,7 +1234,10 @@ func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < rowsLength; i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(row))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -1513,7 +1523,10 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	var rows, _ = data["positions"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
+		var row, _ = rows[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var extended map[string]any = this.Extend(row, map[string]any{
 			"timestamp": timestamp,
 		})

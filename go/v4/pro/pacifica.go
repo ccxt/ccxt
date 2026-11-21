@@ -405,7 +405,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	var results []any = ccxt.SafeListTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var order map[string]any = ccxt.SafeMapTyped(results, i)
+		var order, _ = results[i].(map[string]any)
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
 		var marketId *string = this.SafeString(order, "symbol")
@@ -1379,7 +1379,10 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	}
 	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < len(entry); i++ {
-		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
+		var data, _ = entry[i].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(data)
 		trades.Append(trade)
 	}
@@ -1911,8 +1914,12 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 		id = this.SafeString(data, "id")
 	}
 	var wsOptions, _ = this.Options["ws"].(map[string]any)
-	var wsHeaders map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
-	var wsHeadersFinal map[string]any = this.SafeDictMap(wsHeaders, "headers", map[string]any{})
+	var wsHeaders, _ = wsOptions["options"].(map[string]any)
+	var wsHeadersFinal map[string]any
+	wsHeadersFinal, _ = wsHeaders["headers"].(map[string]any)
+	if wsHeadersFinal == nil {
+		wsHeadersFinal = map[string]any{}
+	}
 
 	{
 		func(this *Pacifica) (ret_ any) {

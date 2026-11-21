@@ -1277,7 +1277,7 @@ func (this *Bitrue) ParseBalance(response any) map[string]any {
 	var timestamp *int64 = this.SafeInteger(response, "updateTime")
 	var balances []any = SafeList2Typed(response, "balances", "account")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1685,7 +1685,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var response any = nil
 	var data any = []any{}
 	if *this.SafeBool(market, "swap", false) {
-		var timeframesFuture map[string]any = SafeMapTyped(timeframes, "future")
+		var timeframesFuture, _ = timeframes["future"].(map[string]any)
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
 			"interval":     this.SafeString(timeframesFuture, timeframe, "1min"),
@@ -1710,7 +1710,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		data = response
 	} else if *this.SafeBool(market, "spot", false) {
-		var timeframesSpot map[string]any = SafeMapTyped(timeframes, "spot")
+		var timeframesSpot, _ = timeframes["spot"].(map[string]any)
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 			"scale":  this.SafeString(timeframesSpot, timeframe, "1m"),
@@ -2011,7 +2011,10 @@ func (this *Bitrue) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	// https://github.com/ccxt/ccxt/issues/13856
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var ticker, _ = data[i].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		// skip entries without a symbol: an undefined market id would become a null
 		// dictionary key here, which crashes fetchTickers in the C# build
 		var marketId *string = this.SafeString(ticker, "symbol")
@@ -3653,7 +3656,7 @@ func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	}
 	if chainDetailLength != 0 {
 		for i := 0; i < chainDetailLength; i++ {
-			var chainDetail map[string]any = SafeMapTyped(chainDetails, i)
+			var chainDetail, _ = chainDetails[i].(map[string]any)
 			var networkId *string = this.SafeString(chainDetail, "chain")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)
@@ -4243,9 +4246,11 @@ func (this *Bitrue) HandleErrors(code int64, reason string, url string, method s
 func (this *Bitrue) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["noSymbol"]; ok && !(InOp(params, "symbol")) {
+	var paramsSymbol *string = this.SafeString(params, "symbol")
+	var paramsLimit *string = this.SafeString(params, "limit")
+	if _, ok := config["noSymbol"]; ok && (paramsSymbol == nil) {
 		return config["noSymbol"]
-	} else if _, ok := config["byLimit"]; ok && (InOp(params, "limit")) {
+	} else if _, ok := config["byLimit"]; ok && (paramsLimit != nil) {
 		var limit *int64 = this.SafeInteger(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

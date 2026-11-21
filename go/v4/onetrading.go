@@ -963,8 +963,14 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	//
 	var activeFeeTier []any
 	activeFeeTier, _ = response["active_fee_tiers"].([]any)
-	var spotFees map[string]any = SafeMapTyped(activeFeeTier, 0)
-	var futuresFees map[string]any = SafeMapTyped(activeFeeTier, 1)
+	var spotFees map[string]any
+	if 0 < len(activeFeeTier) {
+		spotFees, _ = activeFeeTier[0].(map[string]any)
+	}
+	var futuresFees map[string]any
+	if 1 < len(activeFeeTier) {
+		futuresFees, _ = activeFeeTier[1].(map[string]any)
+	}
 	var spotMakerFee *string = this.SafeString(spotFees, "maker_fee")
 	var spotTakerFee *string = this.SafeString(spotFees, "taker_fee")
 	spotMakerFee = Precise.StringDiv(spotMakerFee, "100")
@@ -1012,7 +1018,7 @@ func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[s
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
 	for i := 0; i < len(feeTiers); i++ {
-		var tier map[string]any = SafeMapTyped(feeTiers, i)
+		var tier, _ = feeTiers[i].(map[string]any)
 		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")
 		var maker *string = this.SafeString(tier, "maker_fee")
@@ -1199,7 +1205,7 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
 		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTickers[i]))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -1538,7 +1544,7 @@ func (this *Onetrading) ParseBalance(response map[string]any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

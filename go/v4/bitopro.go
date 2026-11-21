@@ -1126,12 +1126,10 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	}
 	// we need to have a limit argument because "to" and "from" are required
 	// supports slightly more than 75k candles atm, but limit here to avoid errors
-	var limitResolved int64 = this.ParseToInt(func() any {
-		if limit == nil {
-			return 500
-		}
-		return mathMin(limit, 75000)
-	}())
+	var limitResolved int64 = 500
+	if limit != nil {
+		limitResolved = this.ParseToInt(min(*limit, 75000))
+	}
 	var timeframeInSeconds int64 = this.ParseTimeframe(timeframe)
 	var alignedSince any = nil
 	if since == nil {
@@ -1229,7 +1227,7 @@ func (this *Bitopro) ParseBalanceList(response []any) map[string]any {
 	}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var balance map[string]any = SafeMapTyped(rows, i)
+		var balance, _ = rows[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var amount *string = this.SafeString(balance, "amount")
@@ -1298,7 +1296,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
 	return nil
 }
-func (this *Bitopro) ParseOrderStatus(status *string) any {
+func (this *Bitopro) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "open",
 		"0":  "open",
@@ -1308,12 +1306,10 @@ func (this *Bitopro) ParseOrderStatus(status *string) any {
 		"4":  "canceled",
 		"6":  "canceled",
 	}
-	return func() any {
-		if status == nil {
-			return nil
-		}
-		return this.SafeString(statuses, status)
-	}()
+	if status == nil {
+		return nil
+	}
+	return this.SafeString(statuses, status)
 }
 func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) Order {
 	//
@@ -1366,7 +1362,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var orderStatus *string = this.SafeString(order, "status")
-	var status any = this.ParseOrderStatus(orderStatus)
+	var status *string = this.ParseOrderStatus(orderStatus)
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var average *string = this.SafeString(order, "avgExecutionPrice")
 	var filled *string = this.SafeString(order, "executedAmount")
@@ -1964,11 +1960,11 @@ func (this *Bitopro) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes149615 []any = OrdersToList(r.Value)
-	if retRes149615 == nil {
+	var retRes150215 []any = OrdersToList(r.Value)
+	if retRes150215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes149615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes150215)}
 	}
 	return nil
 }
@@ -2617,16 +2613,16 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var fullUrl string = *apiUrl + url
-	var literal196115 map[string]any = map[string]any{
+	var literal196715 map[string]any = map[string]any{
 		"url":     fullUrl,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal196115["body"] = *requestBody
+		literal196715["body"] = *requestBody
 	}
-	return literal196115
+	return literal196715
 }
 func (this *Bitopro) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

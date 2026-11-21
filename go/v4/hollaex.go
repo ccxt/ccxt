@@ -623,7 +623,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = networkIds[j]
-		var networkEntry map[string]any = SafeMapTyped(rawNetworks, networkId)
+		var networkEntry, _ = rawNetworks[networkId].(map[string]any)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
@@ -1166,8 +1166,8 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	if fees == nil {
 		fees = map[string]any{}
 	}
-	var makerFees map[string]any = SafeMapTyped(fees, "maker")
-	var takerFees map[string]any = SafeMapTyped(fees, "taker")
+	var makerFees, _ = fees["maker"].(map[string]any)
+	var takerFees, _ = fees["taker"].(map[string]any)
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
@@ -2662,7 +2662,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
 			var key string = keys[i]
-			var value map[string]any = SafeMapTyped(withdrawalFees, key)
+			var value, _ = withdrawalFees[key].(map[string]any)
 			var currencyId *string = this.SafeString(value, "symbol")
 			var currencyCode *string = this.SafeCurrencyCode(currencyId)
 			var networkCode *string = this.NetworkIdToCode(key, currencyCode)

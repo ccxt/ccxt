@@ -4131,7 +4131,7 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			response = r3.Value
 		}
 	} else if priceType != nil && *priceType == "index" {
-		var marketInfo map[string]any = SafeMapTyped(market, "info")
+		var marketInfo, _ = market["info"].(map[string]any)
 		request["instId"] = marketInfo["instFamily"] // okx index candles require instFamily instead of instId
 		if isHistoryCandles {
 
@@ -4323,11 +4323,14 @@ func (this *Okx) ParseTradingBalance(response any) map[string]any {
 		"info": response,
 	}
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var timestamp *int64 = this.SafeInteger(first, "uTime")
 	var details []any = SafeListTyped(first, "details")
 	for i := 0; i < len(details); i++ {
-		var balance map[string]any = SafeMapTyped(details, i)
+		var balance, _ = details[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4355,7 +4358,7 @@ func (this *Okx) ParseFundingBalance(response map[string]any) map[string]any {
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -8522,7 +8525,7 @@ func (this *Okx) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string,
 	var longLeverage *int64 = nil
 	var shortLeverage *int64 = nil
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		rowMarginMode = this.SafeStringLower(entry, "mgnMode")
 		marketId = this.SafeString(entry, "instId")
 		var positionSide *string = this.SafeStringLower(entry, "posSide")
@@ -8703,7 +8706,7 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var entry *string = &symbols[i]
+			var entry string = symbols[i]
 			var market map[string]any = this.Market(entry)
 			marketIds = append(marketIds, market["id"])
 		}
@@ -9601,7 +9604,7 @@ func (this *Okx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var ruleType *string = this.SafeString(marketInfo, "ruleType")
 	var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 	if (!(*this.SafeBool(market, "swap", false))) && !isExtendedPerpetual {
@@ -9678,7 +9681,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
-			var marketInfo map[string]any = SafeMapTyped(market, "info")
+			var marketInfo, _ = market["info"].(map[string]any)
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 			if (!(*this.SafeBool(market, "swap", false))) && !isExtendedPerpetual {
@@ -10291,7 +10294,7 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
 	//
 	var borrowRateHistories map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var item map[string]any = SafeMapTyped(response, i)
+		var item, _ = response[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "ccy"))
 		if (code != nil) && ((IsEqual(codes, nil)) || this.InArray(code, codes)) {
 			if _, ok := borrowRateHistories[*code]; !ok {
@@ -11290,7 +11293,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var options, _ = this.Options["fetchOpenInterestHistory"].(map[string]any)
-	var timeframes map[string]any = SafeMapTyped(options, "timeframes")
+	var timeframes, _ = options["timeframes"].(map[string]any)
 	var timeframeValue string = *this.SafeString(timeframes, timeframe, timeframe)
 	if (timeframeValue != "5m") && (timeframeValue != "1H") && (timeframeValue != "1D") {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe"))
@@ -12068,7 +12071,7 @@ func (this *Okx) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, opt
 	var market map[string]any = this.Market(symbol)
 	var marketId *string = this.SafeString(market, "id", "")
 	var optionParts []string = strings.Split(*marketId, "-")
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var request map[string]any = map[string]any{
 		"uly":        marketInfo["uly"],
 		"instFamily": marketInfo["instFamily"],
@@ -13094,7 +13097,7 @@ func (this *Okx) HandleErrors(code int64, reason string, url string, method stri
 		var feedback string = this.Id + " " + body
 		var data []any = SafeListTyped(response, "data")
 		for i := 0; i < len(data); i++ {
-			var error map[string]any = SafeMapTyped(data, i)
+			var error, _ = data[i].(map[string]any)
 			var errorCode *string = this.SafeString(error, "sCode")
 			var message *string = this.SafeString(error, "sMsg")
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

@@ -1435,14 +1435,15 @@ func (this *Hitbtc) HandleOrder(client any, message map[string]any) map[string]a
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit")
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var data any = this.SafeValue(message, "params", []any{})
-	if ccxt.IsArray(data) {
-		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			var order any = ccxt.GetValue(data, i)
+	var dataDict, _ = message["params"].(map[string]any)
+	if dataDict != nil {
+		this.HandleOrderHelper(client, message, dataDict)
+	} else {
+		var data, _ = message["params"].([]any)
+		for i := 0; i < len(data); i++ {
+			var order any = data[i]
 			this.HandleOrderHelper(client, message, order)
 		}
-	} else {
-		this.HandleOrderHelper(client, message, data)
 	}
 	return message
 }
@@ -2041,8 +2042,10 @@ func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[s
 	var result any = this.SafeValue(message, "result", map[string]any{})
 	if ccxt.IsArray(result) {
 		var parsedOrders []any = []any{}
-		for i := 0; i < ccxt.GetArrayLength(result); i++ {
-			var parsedOrder any = this.ParseWsOrder(ccxt.GetValue(result, i))
+		var rows, _ = message["result"].([]any)
+		var rowsLength int = len(rows)
+		for i := 0; i < rowsLength; i++ {
+			var parsedOrder any = this.ParseWsOrder(rows[i])
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 		client.(ccxt.ClientInterface).Resolve(parsedOrders, messageHash)
@@ -2103,7 +2106,8 @@ func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
 		if ccxt.IsArray(result) {
 			// to do improve this, not very reliable right now
 			var first map[string]any = ccxt.SafeMapTyped(result, 0)
-			var arrayLength int = ccxt.GetArrayLength(result)
+			var rows, _ = message["result"].([]any)
+			var arrayLength int = len(rows)
 			if _, ok := first["client_order_id"]; (arrayLength == 0) || ok {
 				this.HandleOrderRequest(client, message)
 			}

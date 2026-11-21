@@ -663,10 +663,10 @@ func (this *Apex) ParseCurrency(currency any) map[string]any {
 	var networks map[string]any = map[string]any{}
 	var chains []any = SafeListTyped(this.Options, "_temp_currencies_chains")
 	for j := 0; j < len(chains); j++ {
-		var chain map[string]any = SafeMapTyped(chains, j)
+		var chain, _ = chains[j].(map[string]any)
 		var tokens []any = SafeListTyped(chain, "tokens")
 		for f := 0; f < len(tokens); f++ {
-			var token map[string]any = SafeMapTyped(tokens, f)
+			var token, _ = tokens[f].(map[string]any)
 			var tokenName *string = this.SafeString(token, "token")
 			if tokenName == currencyId || (tokenName != nil && currencyId != nil && *tokenName == *currencyId) {
 				var networkId *string = this.SafeString(chain, "chainId")
@@ -1174,12 +1174,10 @@ func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	request["limit"] = func() any {
-		if limit == nil {
-			return 100
-		}
-		return limit
-	}() // max 100, default 100
+	request["limit"] = 100 // max 100, default 100
+	if limit != nil {
+		request["limit"] = *limit
+	}
 
 	r1 := <-this.PublicGetV3Depth(this.Extend(request, params))
 	if r1.Err != nil {
@@ -1682,7 +1680,7 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 				var markets []any = ArrayTyped(GetValue(this.Markets_by_id, newMarketId))
 				var numMarkets int = len(markets)
 				for i := 0; i < numMarkets; i++ {
-					if (i == 0) && (IsEqual(GetValue(markets[i], "id2"), marketId)) {
+					if (i == 0) && (IsEqual(this.SafeString(markets[i], "id2"), marketId)) {
 						marketResolved = markets[i]
 					}
 				}
@@ -1707,12 +1705,12 @@ func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {
 	}
 	return symbol
 }
-func (this *Apex) GetSeeds() any {
+func (this *Apex) GetSeeds() string {
 	var seeds *string = this.SafeString(this.Options, "seeds")
 	if seeds == nil {
 		panic(ArgumentsRequired(this.Id + " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX"))
 	}
-	return seeds
+	return *seeds
 }
 func (this *Apex) GetAccountIdAsync() <-chan AsyncResult[*string] {
 	ch := make(chan AsyncResult[*string], 1)
@@ -1943,7 +1941,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var configData, _ = configResponse["data"].(map[string]any)
 	var contractConfig, _ = configData["contractConfig"].(map[string]any)
 	var spotConfig, _ = configData["spotConfig"].(map[string]any)
-	var globalConfig map[string]any = SafeMapTyped(spotConfig, "global")
+	var globalConfig, _ = spotConfig["global"].(map[string]any)
 	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
 	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
 	var receiverSubAccountId *string = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")

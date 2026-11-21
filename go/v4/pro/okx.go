@@ -183,12 +183,12 @@ func (this *Okx) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], access str
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Okx) SubscribeAsync(access string, messageHash any, channel string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Okx) SubscribeAsync(access string, messageHash string, channel string, symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, access, messageHash, channel, symbol, optionalArgs...)
 	return ch
 }
-func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, messageHash any, channel string, symbol any, optionalArgs ...any) any {
+func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, messageHash string, channel string, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -204,10 +204,10 @@ func (this *Okx) subscribeBody(ch chan ccxt.AsyncResult[any], access string, mes
 	var firstArgument map[string]any = map[string]any{
 		"channel": channel,
 	}
-	var messageHashResolved any = messageHash
+	var messageHashResolved string = messageHash
 	if !ccxt.IsEqual(symbol, nil) {
 		var market map[string]any = this.Market(symbol)
-		messageHashResolved = ccxt.Add(ccxt.Add(messageHash, ":"), this.SafeString(market, "id", ""))
+		messageHashResolved = messageHash + ":" + *this.SafeString(market, "id", "")
 		firstArgument["instId"] = market["id"]
 	}
 	var request map[string]any = map[string]any{
@@ -1554,7 +1554,10 @@ func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any 
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var posData []any = ccxt.SafeListTyped(liquidation, "posData")
-	var firstPosData map[string]any = ccxt.SafeMapTyped(posData, 0)
+	var firstPosData map[string]any
+	if 0 < len(posData) {
+		firstPosData, _ = posData[0].(map[string]any)
+	}
 	var marketId *string = this.SafeString(firstPosData, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(firstPosData, "uTIme")
@@ -1594,7 +1597,10 @@ func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var details []any = ccxt.SafeListTyped(liquidation, "details")
-	var liquidationDetails map[string]any = ccxt.SafeMapTyped(details, 0)
+	var liquidationDetails map[string]any
+	if 0 < len(details) {
+		liquidationDetails, _ = details[0].(map[string]any)
+	}
 	var marketId *string = this.SafeString(liquidation, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(liquidationDetails, "ts")
@@ -2720,7 +2726,7 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	if isTrigger != nil && *isTrigger {
 		channel = "orders-algo"
 	}
-	var messageHash any = channel + "::myTrades"
+	var messageHash string = channel + "::myTrades"
 	var market map[string]any = nil
 	var symbolResolved any = nil
 	var typeVar *string = typeOption
@@ -2728,7 +2734,7 @@ func (this *Okx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		market = this.Market(symbol)
 		symbolResolved = market["symbol"]
 		typeVar = this.SafeString(market, "type")
-		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolResolved)
+		messageHash = messageHash + "::" + *this.SafeString(market, "symbol", "")
 	}
 	if typeVar != nil && *typeVar == "future" {
 		typeVarStr := "futures"
@@ -2833,14 +2839,14 @@ func (this *Okx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 		newPositions = r3.Value
 	}
 	if this.NewUpdates {
+		if ccxt.IsEqual(newPositions, nil) {
+
+			ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList([]any{})}
+			return nil
+		}
 
 		var resolved []any
-		switch resolvedBox := func() any {
-			if ccxt.IsEqual(newPositions, nil) {
-				return []any{}
-			}
-			return newPositions
-		}().(type) {
+		switch resolvedBox := newPositions.(type) {
 		case []any:
 			resolved = resolvedBox
 		case ccxt.IArrayCache:
@@ -3356,7 +3362,13 @@ func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
 		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), *method, map[string]any{}, stringMsg, message, map[string]any{}, "")
 	}
 	var orders []any = ccxt.ArrayTyped(this.ParseOrders(args, nil, nil, nil))
-	var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(orders) {
+		first, _ = orders[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 	client.(ccxt.ClientInterface).Resolve(first, messageHash)
 }
 

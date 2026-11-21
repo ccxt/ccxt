@@ -1314,8 +1314,8 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *string, precision *int64, minCost any, originalPayload map[string]any) map[string]any {
 	var currencyType string = "crypto"
 	var description map[string]any = this.Describe()
-	var fees map[string]any = SafeMapTyped(description, "fees")
-	var fundingFees map[string]any = SafeMapTyped(fees, "funding")
+	var fees, _ = description["fees"].(map[string]any)
+	var fundingFees, _ = fees["funding"].(map[string]any)
 	var withdrawFee *float64 = this.SafeNumber(fundingFees, "withdraw")
 	if this.IsFiat(code) {
 		currencyType = "fiat"
@@ -1462,7 +1462,10 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) map[string]any {
 	var result map[string]any = map[string]any{}
 	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; i < len(arr); i++ {
-		var market map[string]any = this.SafeDictMap(arr, i, map[string]any{})
+		var market, _ = arr[i].(map[string]any)
+		if market == nil {
+			market = map[string]any{}
+		}
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -2155,7 +2158,7 @@ func (this *Bitstamp) ParseBalanceList(response []any) map[string]any {
 	}
 	var responseEntries []any = this.ToArray(response)
 	for i := 0; i < len(responseEntries); i++ {
-		var currencyBalance map[string]any = SafeMapTyped(responseEntries, i)
+		var currencyBalance, _ = responseEntries[i].(map[string]any)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2490,7 +2493,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 	var feeEntries []any = this.ToArray(fee)
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(feeEntries); j++ {
-		var networkEntry map[string]any = SafeMapTyped(feeEntries, j)
+		var networkEntry, _ = feeEntries[j].(map[string]any)
 		var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "network"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "fee")
 		result["withdraw"] = map[string]any{

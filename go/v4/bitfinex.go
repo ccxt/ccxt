@@ -803,7 +803,7 @@ func (this *Bitfinex) Describe() map[string]any {
 }
 func (this *Bitfinex) IsFiat(code any) bool {
 	var fiat, _ = this.Options["fiat"].(map[string]any)
-	return (InOp(fiat, code))
+	return (this.SafeString(fiat, code) != nil)
 }
 func (this *Bitfinex) GetCurrencyName(code string) any {
 	// temporary fix for transpiler recognition, even though this is in parent class
@@ -1229,7 +1229,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed map[string]any, indexe
 	var name *string = this.SafeString(label, 1)
 	var pool []any = this.SafeListSlice(indexed["pool"], id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
-	var explorer map[string]any = SafeMapTyped(indexed, "explorer")
+	var explorer, _ = indexed["explorer"].(map[string]any)
 	var isCryptoCoin bool = (rawType != nil) || (InOp(explorer, id)) // "hacky" solution
 	var typeVar *string
 	if isCryptoCoin {
@@ -3429,7 +3429,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	// if not provided explicitly we will try to match using the currency name
 	var networkParam *string = this.SafeString(params, "network", code)
 	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
-	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetworks, _ = currency["networks"].(map[string]any)
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
@@ -3784,17 +3784,22 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = this.SafeString(this.Symbols, i, "")
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var fee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
 			"percentage": true,
 			"tierBased":  true,
 		}
-		if InOp(fiat, market["quote"]) {
+		var quote *string
+		if market.QuoteCurrency != "" {
+			quote = &market.QuoteCurrency
+		}
+		var fiatQuote *string = this.SafeString(fiat, quote)
+		if fiatQuote != nil {
 			fee["maker"] = makerFeeFiat
 			fee["taker"] = takerFeeFiat
-		} else if *this.SafeBool(market, "contract", false) {
+		} else if market.Contract {
 			fee["maker"] = makerFeeDeriv
 			fee["taker"] = takerFeeDeriv
 		} else {
@@ -3947,7 +3952,7 @@ func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var networkParam *string = this.SafeString(paramsWithdrawTag, "network", code)
 	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
-	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var currencyNetworks, _ = currency["networks"].(map[string]any)
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
@@ -4145,9 +4150,9 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 	var meta *string = this.SafeString(positionList, 19)
 	var tradePrice *string = this.SafeString(meta, "trade_price")
 	var tradeAmount *string = this.SafeString(meta, "trade_amount")
-	var ternaryStr303820 string = "short"
+	var ternaryStr304020 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr303820 = "long"
+		ternaryStr304020 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        positionList,
@@ -4163,7 +4168,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 		"contractSize":                nil,
 		"markPrice":                   nil,
 		"lastPrice":                   nil,
-		"side":                        ternaryStr303820,
+		"side":                        ternaryStr304020,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -4420,11 +4425,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321719 []any = r1.Value
-		if retRes321719 == nil {
+		var retRes321919 []any = r1.Value
+		if retRes321919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes321719)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes321919)}
 		}
 		return nil
 	}
@@ -4603,11 +4608,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333419 []any = r1.Value
-		if retRes333419 == nil {
+		var retRes333619 []any = r1.Value
+		if retRes333619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333619)}
 		}
 		return nil
 	}
@@ -4965,11 +4970,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361219 []any = r1.Value
-		if retRes361219 == nil {
+		var retRes361419 []any = r1.Value
+		if retRes361419 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361219)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361419)}
 		}
 		return nil
 	}
@@ -5144,11 +5149,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375019 []any = r1.Value
-		if retRes375019 == nil {
+		var retRes375219 []any = r1.Value
+		if retRes375219 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375019)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375219)}
 		}
 		return nil
 	}

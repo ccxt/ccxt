@@ -1576,7 +1576,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 				var totalAmount *string = &totalAmountLit76
 				var previousOrderTrades []any = ccxt.SafeListTyped(previousOrder, "trades")
 				for j := 0; j < len(previousOrderTrades); j++ {
-					var previousOrderTrade map[string]any = ccxt.SafeMapTyped(previousOrderTrades, j)
+					var previousOrderTrade, _ = previousOrderTrades[j].(map[string]any)
 					var cost *string = this.NumberToString(previousOrderTrade["cost"])
 					var amount *string = this.NumberToString(previousOrderTrade["amount"])
 					totalCost = ccxt.Precise.StringAdd(totalCost, cost)
@@ -1631,7 +1631,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 						}
 					}
 				}
-				if (!ccxt.IsEqual(ccxt.GetValue(previousOrder["fee"], "cost"), nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
+				if (this.SafeString(previousOrder["fee"], "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {
 					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousOrder["fee"], "cost"))
 					var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
 					ccxt.AddElementToObject(previousOrder["fee"], "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))

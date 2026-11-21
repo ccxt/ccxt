@@ -175,7 +175,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	this.CheckContractMarket(market, "fetchOHLCVWs")
 	var url *string = this.UrlsApiStrings["ws"]
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
-	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
+	var timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	messageHashStr := "fetchOHLCV:" + market["symbol"].(string) + ":" + *timeframeId
 	var messageHash *string = &messageHashStr
@@ -241,7 +241,7 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOHLCV")
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
-	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
+	var timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	messageHashStr := "ohlcv:" + market["symbol"].(string) + ":" + *timeframeId
 	var messageHash *string = &messageHashStr
@@ -300,7 +300,7 @@ func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "unWatchOHLCV")
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
-	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
+	var timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	if timeframeId == nil {
 		panic(ccxt.BadRequest(this.Id + " unWatchOHLCV() does not support the " + timeframe + " timeframe"))
@@ -378,7 +378,11 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_")
 	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
-	var timeframes map[string]any = this.SafeDictMap(watchOHLCVOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = watchOHLCVOptions["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var records, _ = message["records"].([]any)
 	var timeframeId string = ""
 	var messageHash string = ""

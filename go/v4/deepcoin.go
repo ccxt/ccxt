@@ -2230,13 +2230,13 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 		request["clOrdId"] = clientOrderId
 		keysToOmit = append(keysToOmit, "clientOrderId")
 	}
-	var stopLoss map[string]any = SafeMapTyped(paramsOrderType, "stopLoss")
+	var stopLoss, _ = paramsOrderType["stopLoss"].(map[string]any)
 	var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice")
 	if stopLossPrice != nil {
 		keysToOmit = append(keysToOmit, "stopLoss")
 		request["slTriggerPx"] = this.PriceToPrecision(symbol, stopLossPrice)
 	}
-	var takeProfit map[string]any = SafeMapTyped(paramsOrderType, "takeProfit")
+	var takeProfit, _ = paramsOrderType["takeProfit"].(map[string]any)
 	var takeProfitPrice *string = this.SafeString(takeProfit, "triggerPrice")
 	if takeProfitPrice != nil {
 		keysToOmit = append(keysToOmit, "takeProfit")
@@ -2643,7 +2643,10 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 	if length == 0 {
 		panic(OrderNotFound(this.Id + " fetchOpenOrder() could not find order id " + id))
 	}
-	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var entry, _ = data[0].(map[string]any)
+	if entry == nil {
+		entry = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(entry, market)}
 	return nil
@@ -4430,7 +4433,7 @@ func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method
 	}
 	var errorList []any = SafeListTyped(data, "errorList")
 	for i := 0; i < len(errorList); i++ {
-		var entry map[string]any = SafeMapTyped(errorList, i)
+		var entry, _ = errorList[i].(map[string]any)
 		errorCode = this.SafeString(entry, "errorCode")
 	}
 	var feedback string = this.Id + " " + body

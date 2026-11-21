@@ -281,7 +281,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) any {
 	// we will consider it a fail
 	var firstElement map[string]any
-	if len(deltas) > 0 {
+	if 0 < len(deltas) {
 		firstElement, _ = deltas[0].(map[string]any)
 	}
 	var firstElementNonce *int64 = this.SafeInteger(firstElement, "microtimestamp")

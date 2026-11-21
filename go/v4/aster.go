@@ -1693,7 +1693,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = this.SafeString2(trade, "id", "a")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketType string = "spot"
-	if InOp(trade, "positionSide") {
+	if this.SafeString(trade, "positionSide") != nil {
 		marketType = "swap"
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
@@ -2076,16 +2076,16 @@ func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var high *string = this.SafeString(ticker, "highPrice")
 	var low *string = this.SafeString(ticker, "lowPrice")
-	var isTickerResponse bool = (InOp(ticker, "priceChange"))
+	var isTickerResponse bool = (this.SafeString(ticker, "priceChange") != nil)
 	var marketType string
 	if isTickerResponse {
-		if InOp(ticker, "baseAsset") {
+		if this.SafeString(ticker, "baseAsset") != nil {
 			marketType = "spot"
 		} else {
 			marketType = "swap"
 		}
 	} else {
-		if InOp(ticker, "lastUpdateId") {
+		if this.SafeInteger(ticker, "lastUpdateId") != nil {
 			marketType = "swap"
 		} else {
 			marketType = "spot"
@@ -2815,7 +2815,7 @@ func (this *Aster) ParseBalanceList(response []any) map[string]any {
 	}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var balance map[string]any = SafeMapTyped(rows, i)
+		var balance, _ = rows[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3826,7 +3826,7 @@ func (this *Aster) CreateOrderRequest(symbol *string, typeVar *string, side *str
 			var quoteOrderQty bool = this.HandleOption("createOrder", "quoteOrderQty", true) == true
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
-				var marketPrecision map[string]any = SafeMapTyped(market, "precision")
+				var marketPrecision, _ = market["precision"].(map[string]any)
 				var precision any = marketPrecision["price"]
 				if quoteOrderQtyNew != nil {
 					request["quoteOrderQty"] = this.DecimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.PrecisionMode)
@@ -4889,10 +4889,10 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contractSize *float64 = this.SafeNumber(marketResolved, "contractSize")
 	var contractSizeString *string = this.NumberToString(contractSize)
 	// as oppose to notionalValue
-	var linear bool = (InOp(position, "notional"))
+	var linear bool = (this.SafeString(position, "notional") != nil)
 	if marginMode != nil && *marginMode == "cross" {
 		// calculate collateral
-		var precision map[string]any = SafeMapTyped(marketResolved, "precision")
+		var precision, _ = marketResolved["precision"].(map[string]any)
 		var basePrecisionValue *string = this.SafeString(precision, "base")
 		var quotePrecisionValue *string = this.SafeString2(precision, "quote", "price")
 		var precisionIsUndefined bool = (basePrecisionValue == nil) && (quotePrecisionValue == nil)
@@ -5487,7 +5487,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 			var brackets []any = SafeListTyped(entry, "brackets")
 			var result []any = []any{}
 			for j := 0; j < len(brackets); j++ {
-				var bracket map[string]any = SafeMapTyped(brackets, j)
+				var bracket, _ = brackets[j].(map[string]any)
 				var floorValue *string = this.SafeString(bracket, "notionalFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
 				result = append(result, []any{floorValue, maintenanceMarginPercentage})

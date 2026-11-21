@@ -696,7 +696,8 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		args["interval"] = interval
 		messageHash = "kline:" + symbolValue
 	} else {
-		args["channel"] = ccxt.Add("candle", interval)
+		var intervalValue string = *this.SafeString(timeframes, timeframe, "")
+		args["channel"] = "candle" + intervalValue
 		args["instId"] = market["id"]
 		messageHash = "candles:" + timeframe + ":" + symbolValue
 	}
@@ -1735,15 +1736,17 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 			defaultType = "spot"
 		}
 	}
-	var marketResolved map[string]any = this.SafeMarket(func() any {
-		if market == nil {
-			return instId
-		}
-		return nil
-	}(), market, nil, defaultType)
+	var instIdResolved *string = nil
+	if market == nil {
+		instIdResolved = instId
+	}
+	var marketResolved map[string]any = this.SafeMarket(instIdResolved, market, nil, defaultType)
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
 	var feeDetail []any = ccxt.SafeListTyped(trade, "feeDetail")
-	var first map[string]any = ccxt.SafeMapTyped(feeDetail, 0)
+	var first map[string]any
+	if 0 < len(feeDetail) {
+		first, _ = feeDetail[0].(map[string]any)
+	}
 	var fee map[string]any = nil
 	if first != nil {
 		var feeCurrencyId *string = this.SafeString(first, "feeCoin")
@@ -2199,7 +2202,8 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsInstType)
 	if marginMode != nil {
 		instType = "MARGIN"
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), marginMode)
+		var marginModeValue *string = marginMode
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), marginModeValue)
 		if marginMode != nil && *marginMode == "isolated" {
 			channel = "orders-isolated"
 		} else {
@@ -2569,8 +2573,8 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var isSpot bool = !(ccxt.InOp(order, "posMode"))
-	var isMargin bool = (ccxt.InOp(order, "loanType"))
+	var isSpot bool = (this.SafeString(order, "posMode") == nil)
+	var isMargin bool = (this.SafeString(order, "loanType") != nil)
 	var category *string = this.SafeStringLower(order, "category")
 	if category != nil && *category == "spot" {
 		isSpot = true
@@ -2584,7 +2588,10 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var rawStatus *string = this.SafeString2(order, "status", "orderStatus")
 	var orderFee []any = ccxt.SafeListTyped(order, "feeDetail")
-	var fee map[string]any = ccxt.SafeMapTyped(orderFee, 0)
+	var fee map[string]any
+	if 0 < len(orderFee) {
+		fee, _ = orderFee[0].(map[string]any)
+	}
 	var feeAmount *string = this.SafeString(fee, "fee")
 	var feeObject map[string]any = nil
 	if feeAmount != nil {
@@ -2656,7 +2663,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	var literal219031 map[string]any = map[string]any{
+	var literal219631 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2680,18 +2687,18 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"trades":             nil,
 	}
 	if totalAmount != nil {
-		literal219031["amount"] = *totalAmount
+		literal219631["amount"] = *totalAmount
 	}
 	if cost != nil {
-		literal219031["cost"] = *cost
+		literal219631["cost"] = *cost
 	}
 	if filledAmount != nil {
-		literal219031["filled"] = *filledAmount
+		literal219631["filled"] = *filledAmount
 	}
 	if remaining != nil {
-		literal219031["remaining"] = *remaining
+		literal219631["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal219031, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal219631, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -2742,12 +2749,13 @@ func (this *Bitget) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		}
 	}
 	var market any = nil
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var symbolResolved *string = symbol
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbolResolved = this.SafeString(market, "symbol")
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
+		var symbolValue string = *this.SafeString(market, "symbol", "")
+		messageHash = messageHash + ":" + symbolValue
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsMarketType, "watchMyTrades", "uta", false)
@@ -3119,7 +3127,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 		if instType != nil && *instType == "uta" {
 			var coins []any = ccxt.SafeListTyped(rawBalance, "coin")
 			for j := 0; j < len(coins); j++ {
-				var entry map[string]any = ccxt.SafeMapTyped(coins, j)
+				var entry, _ = coins[j].(map[string]any)
 				var currencyId *string = this.SafeString(entry, "coin")
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var coinAccount map[string]any = this.Account()
@@ -3185,7 +3193,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 				}
 			}
 			var freeQuery string = "available"
-			if ccxt.InOp(rawBalance, "maxTransferOut") {
+			if this.SafeString(rawBalance, "maxTransferOut") != nil {
 				freeQuery = "maxTransferOut"
 			}
 			if account != nil {
@@ -3395,7 +3403,10 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 	}
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode {
-		var argsArrayFirst map[string]any = ccxt.SafeMapTyped(argsArray, 0)
+		var argsArrayFirst map[string]any
+		if 0 < len(argsArray) {
+			argsArrayFirst, _ = argsArray[0].(map[string]any)
+		}
 		var instType *string = this.SafeString(argsArrayFirst, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
@@ -3893,7 +3904,7 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]an
 		argsList = []any{arg}
 	}
 	for i := 0; i < len(argsList); i++ {
-		var arg map[string]any = ccxt.SafeMapTyped(argsList, i)
+		var arg, _ = argsList[i].(map[string]any)
 		var channel *string = this.SafeString2(arg, "channel", "topic", "")
 		if strings.Index(*channel, "books") >= 0 {
 			// for now only unWatchOrderBook is supported

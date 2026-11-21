@@ -315,12 +315,13 @@ func (this *Phemex) HandleTicker(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(tickers); i++ {
-		var ticker any = tickers[i]
-		var symbol string = *this.SafeString(ticker, "symbol", "")
+		var symbol string = *this.SafeString(tickers[i], "symbol", "")
 		var messageHash string = "ticker:" + symbol
 		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
-		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
-		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
+		var ticker map[string]any = this.Extend(tickers[i], map[string]any{
+			"timestamp": timestamp,
+			"datetime":  this.Iso8601(timestamp),
+		})
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -2033,7 +2034,7 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 	//     }
 	// }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	var status *string = this.SafeString(result, "status")
 	var messageHash string = "authenticated"
 	if status != nil && *status == "success" {

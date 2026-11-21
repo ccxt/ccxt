@@ -1780,7 +1780,7 @@ func (this *Xt) ParseMarket(market any) map[string]any {
 	var maxPrice *float64 = nil
 	var amountPrecision *float64 = nil
 	for i := 0; i < len(filters); i++ {
-		var entry map[string]any = SafeMapTyped(filters, i)
+		var entry, _ = filters[i].(map[string]any)
 		var filter *string = this.SafeString(entry, "filter")
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
@@ -3329,7 +3329,7 @@ func (this *Xt) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString2(balance, "currency", "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -6474,7 +6474,7 @@ func (this *Xt) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
 	var tiers []any = []any{}
 	var brackets []any = SafeListTyped(info, "leverageBrackets")
 	for i := 0; i < len(brackets); i++ {
-		var tier map[string]any = SafeMapTyped(brackets, i)
+		var tier, _ = brackets[i].(map[string]any)
 		var marketId *string = this.SafeString(info, "symbol")
 		var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", "contract")
 		var minNotional *float64 = this.SafeNumber(this.SafeDict(brackets, i-1), "maxNominalValue", 0)

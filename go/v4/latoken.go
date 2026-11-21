@@ -610,8 +610,8 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var baseCurrency map[string]any = SafeMapTyped(currenciesById, baseId)
 		var quoteCurrency map[string]any = SafeMapTyped(currenciesById, quoteId)
-		var baseCurrencyInfo map[string]any = SafeMapTyped(baseCurrency, "info")
-		var quoteCurrencyInfo map[string]any = SafeMapTyped(quoteCurrency, "info")
+		var baseCurrencyInfo, _ = baseCurrency["info"].(map[string]any)
+		var quoteCurrencyInfo, _ = quoteCurrency["info"].(map[string]any)
 		if (baseCurrencyInfo != nil) && (quoteCurrencyInfo != nil) {
 			var base *string = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
 			var quote *string = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
@@ -915,10 +915,13 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
 	var balances []any = SafeListTyped(balancesByType, accountType)
-	var firstBalance map[string]any = SafeMapTyped(balances, 0)
+	var firstBalance map[string]any
+	if 0 < len(balances) {
+		firstBalance, _ = balances[0].(map[string]any)
+	}
 	var maxTimestamp *int64 = this.SafeInteger(firstBalance, "timestamp")
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var timestamp *int64 = this.SafeInteger(balance, "timestamp")
 		if timestamp != nil {

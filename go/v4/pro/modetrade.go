@@ -1743,7 +1743,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var value map[string]any = ccxt.SafeMapTyped(balances, key)
+		var value, _ = balances[key].(map[string]any)
 		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = this.Account()
 		var total *string = this.SafeString(value, "holding")

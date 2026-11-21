@@ -142,7 +142,7 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 	if (eventId != nil) || (slug != nil) {
 		var filtered []any = []any{}
 		for i := 0; i < len(result); i++ {
-			var event map[string]any = SafeMapTyped(result, i)
+			var event, _ = result[i].(map[string]any)
 			var idMatch bool = (eventId != nil) && (this.SafeString(event, "id") == eventId || (this.SafeString(event, "id") != nil && eventId != nil && *this.SafeString(event, "id") == *eventId))
 			var slugMatch bool = (slug != nil) && (this.SafeString(event, "slug") == slug || (this.SafeString(event, "slug") != nil && slug != nil && *this.SafeString(event, "slug") == *slug))
 			if idMatch || slugMatch {
@@ -164,7 +164,7 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 	}
 	var sort *string = this.SafeString(params, "sort")
 	if sort != nil {
-		var sortKey any = nil
+		var sortKey string = ""
 		if sort != nil && *sort == "volume" {
 			sortKey = "volume"
 		} else if sort != nil && *sort == "liquidity" {
@@ -172,7 +172,7 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 		} else if sort != nil && *sort == "newest" {
 			sortKey = "created"
 		}
-		if sortKey != nil {
+		if sortKey != "" {
 			// normalize the sort key on every row first — sortBy reads it with a raw
 			// subscript, which raises KeyError/undefined-index in Python/PHP when a
 			// venue's parsed event omits the field (JS alone tolerates the miss)
@@ -187,9 +187,10 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 		// clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
 		// via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
 		var resultLength int = len(result)
-		var sliceEnd any = limit
-		if IsGreaterThan(sliceEnd, resultLength) {
-			sliceEnd = resultLength
+		var limitValue *int64 = this.SafeInteger(params, "limit", 0)
+		var sliceEnd any = resultLength
+		if limitValue == nil || *limitValue < int64(resultLength) {
+			sliceEnd = limitValue
 		}
 		result = this.ArraySlice(result, 0, sliceEnd)
 	}
@@ -205,7 +206,7 @@ func (this *PredictionExchange) FilterEventsByStatus(events []any, optionalArgs 
 	var wantActive bool = (status != nil && *status == "active")
 	var result []any = []any{}
 	for i := 0; i < len(events); i++ {
-		var event map[string]any = SafeMapTyped(events, i)
+		var event, _ = events[i].(map[string]any)
 		var isActive *bool = this.SafeBool(event, "active")
 		// keep events whose status is unknown (already filtered server-side, no `active` field)
 		if (isActive == nil) || (isActive != nil && *isActive == wantActive) {
@@ -230,7 +231,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events []any, queries any
 	var checkDescription bool = (searchIn != nil && *searchIn == "description") || (searchIn != nil && *searchIn == "both")
 	var result []any = []any{}
 	for i := 0; i < len(events); i++ {
-		var event map[string]any = SafeMapTyped(events, i)
+		var event, _ = events[i].(map[string]any)
 		var title string = *this.SafeStringLower(event, "title", "")
 		var description string = *this.SafeStringLower(event, "description", "")
 		var matched bool = false
@@ -290,7 +291,7 @@ func (this *PredictionExchange) FilterEventsByTags(events []any, optionalArgs ..
 	}
 	var wanted []string = []string{}
 	for i := 0; i < tagsLength; i++ {
-		var wantedKey string = this.NormalizeTagKey(this.SafeString(tags, i, ""))
+		var wantedKey string = this.NormalizeTagKey(tags[i])
 		if wantedKey != "" {
 			// an empty normalized key would substring-match every tag
 			wanted = append(wanted, wantedKey)
@@ -298,7 +299,7 @@ func (this *PredictionExchange) FilterEventsByTags(events []any, optionalArgs ..
 	}
 	var result []any = []any{}
 	for i := 0; i < len(events); i++ {
-		var event map[string]any = SafeMapTyped(events, i)
+		var event, _ = events[i].(map[string]any)
 		var eventTags []any = SafeListTyped(event, "tags")
 		var matched bool = false
 		for ti := 0; ti < len(eventTags); ti++ {
@@ -1849,7 +1850,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 					lastTradeTimestamp = tradeTimestamp
 				}
 			}
-			var tradeFee map[string]any = this.SafeDictMap(trade, "fee")
+			var tradeFee, _ = trade["fee"].(map[string]any)
 			if tradeFee != nil {
 				feeList = append(feeList, tradeFee)
 			}

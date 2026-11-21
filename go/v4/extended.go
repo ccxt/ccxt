@@ -1642,20 +1642,17 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) Trade {
 		side = nil
 	}
 	var feeCost *string = this.SafeString(trade, "fee")
-	var fee any = func() any {
-		if feeCost == nil {
-			return nil
+	var fee map[string]any = nil
+	if feeCost != nil {
+		var feeDict map[string]any = map[string]any{
+			"cost":     feeCost,
+			"currency": nil,
 		}
-		return map[string]any{
-			"cost": feeCost,
-			"currency": func() any {
-				if marketResolved == nil {
-					return nil
-				}
-				return marketResolved["settle"]
-			}(),
+		if marketResolved != nil {
+			feeDict["currency"] = marketResolved["settle"]
 		}
-	}()
+		fee = feeDict
+	}
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
 	var takerOrMaker *string = nil
 	if isTaker != nil {
@@ -1842,11 +1839,11 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes133819 []any = r1.Value
-		if retRes133819 == nil {
+		var retRes134519 []any = r1.Value
+		if retRes134519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes133819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes134519)}
 		}
 		return nil
 	}
@@ -2303,11 +2300,11 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes164219 []any = r1.Value
-		if retRes164219 == nil {
+		var retRes164919 []any = r1.Value
+		if retRes164919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes164219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes164919)}
 		}
 		return nil
 	}
@@ -2386,7 +2383,7 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 			"cost":     this.ParseNumber(Precise.StringAbs(feeCost)),
 		}
 	}
-	var literal169937 map[string]any = map[string]any{
+	var literal170637 map[string]any = map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"timestamp":        timestamp,
@@ -2403,11 +2400,11 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		"fee":              fee,
 	}
 	if amountString == nil {
-		literal169937["amount"] = nil
+		literal170637["amount"] = nil
 	} else {
-		literal169937["amount"] = this.ParseNumber(Precise.StringAbs(amountString))
+		literal170637["amount"] = this.ParseNumber(Precise.StringAbs(amountString))
 	}
-	return this.SafeLedgerEntry(literal169937, ledgerCurrency)
+	return this.SafeLedgerEntry(literal170637, ledgerCurrency)
 }
 
 /**
@@ -2450,11 +2447,11 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes173419 []any = r1.Value
-		if retRes173419 == nil {
+		var retRes174119 []any = r1.Value
+		if retRes174119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes173419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes174119)}
 		}
 		return nil
 	}
@@ -2552,11 +2549,11 @@ func (this *Extended) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes179515 []any = TransactionsToList(r.Value)
-	if retRes179515 == nil {
+	var retRes180215 []any = TransactionsToList(r.Value)
+	if retRes180215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes179515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes180215)}
 	}
 	return nil
 }
@@ -2596,11 +2593,11 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes181115 []any = TransactionsToList(r.Value)
-	if retRes181115 == nil {
+	var retRes181815 []any = TransactionsToList(r.Value)
+	if retRes181815 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes181115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes181815)}
 	}
 	return nil
 }
@@ -2743,11 +2740,11 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes190019 []any = r1.Value
-		if retRes190019 == nil {
+		var retRes190719 []any = r1.Value
+		if retRes190719 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes190019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes190719)}
 		}
 		return nil
 	}
@@ -3145,7 +3142,10 @@ func (this *Extended) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var fee map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var fee, _ = data[i].(map[string]any)
+		if fee == nil {
+			fee = map[string]any{}
+		}
 		var parsed map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fee))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
@@ -3463,11 +3463,11 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes238419 []any = r1.Value
-		if retRes238419 == nil {
+		var retRes239119 []any = r1.Value
+		if retRes239119 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes238419)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes239119)}
 		}
 		return nil
 	}
@@ -3686,7 +3686,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address string, amountStrin
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId *string = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
 	var recipient *string = this.SafeString(params, "recipient", address)
-	var currencyInfo map[string]any = SafeMapTyped(currency, "info")
+	var currencyInfo, _ = currency["info"].(map[string]any)
 	var collateralId *string = this.SafeString(params, "collateralId", this.SafeString2(currencyInfo, "starkexId", "l1Id"))
 	var resolution *int64 = this.SafeInteger(params, "resolution", this.SafeInteger2(currencyInfo, "starkexResolution", "l1Resolution"))
 	var starkKey *string = this.SafeString(account, "l2Key")
@@ -3720,7 +3720,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency ma
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault *string = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
 	var fromL2Key *string = this.SafeString2(params, "fromL2Key", "senderPublicKey", this.SafeString(account, "l2Key"))
-	var currencyInfo map[string]any = SafeMapTyped(currency, "info")
+	var currencyInfo, _ = currency["info"].(map[string]any)
 	var collateralId *string = this.SafeString2(params, "assetId", "collateralId", this.SafeString2(currencyInfo, "starkexId", "l1Id"))
 	var resolution *int64 = this.SafeInteger(params, "resolution", this.SafeInteger2(currencyInfo, "starkexResolution", "l1Resolution"))
 	if (fromVault == nil) || (fromL2Key == nil) || (collateralId == nil) || (resolution == nil) {
@@ -3832,8 +3832,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 	var account map[string]any = r2.Value
 	var starkKey *string = this.SafeString(account, "l2Key")
 	var collateralPosition *string = this.SafeString(account, "l2Vault")
-	var info map[string]any = SafeMapTyped(market, "info")
-	var l2Config map[string]any = SafeMapTyped(info, "l2Config")
+	var info, _ = market["info"].(map[string]any)
+	var l2Config, _ = info["l2Config"].(map[string]any)
 	var syntheticId *string = this.SafeString(l2Config, "syntheticId")
 	var collateralId *string = this.SafeString(l2Config, "collateralId")
 	var syntheticResolution *int64 = this.SafeInteger(l2Config, "syntheticResolution")
@@ -4653,11 +4653,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322719 []any = r1.Value
-		if retRes322719 == nil {
+		var retRes323419 []any = r1.Value
+		if retRes323419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes323419)}
 		}
 		return nil
 	}
@@ -4981,7 +4981,7 @@ func (this *Extended) GetExtendedOrderMsgHash(settlement map[string]any) string 
 func (this *Extended) GetExtendedWithdrawalMsgHash(settlement map[string]any, starkKey string) string {
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
-	var expiration map[string]any = SafeMapTyped(settlement, "expiration")
+	var expiration, _ = settlement["expiration"].(map[string]any)
 	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient", "0")), this.ConvertToBigInt(this.SafeString(settlement, "positionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(expiration, "seconds", "0")), this.ConvertToBigInt(this.SafeString(settlement, "salt", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
 }
@@ -5047,16 +5047,16 @@ func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
-	var literal361115 map[string]any = map[string]any{
+	var literal361815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal361115["body"] = *requestBody
+		literal361815["body"] = *requestBody
 	}
-	return literal361115
+	return literal361815
 }
 
 func NewExtended(userConfig map[string]any) *Extended {

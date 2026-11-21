@@ -3585,11 +3585,11 @@ func (this *Ndax) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	if template == nil {
 		panic(ExchangeError(this.Id + " withdraw() could not find a withdraw template for " + currency["code"].(string)))
 	}
-	var withdrawTemplate any = JsonParse(template)
-	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
+	var withdrawTemplate map[string]any = this.Extend(map[string]any{}, JsonParse(template))
+	withdrawTemplate["ExternalAddress"] = address
 	if tagWithdrawTag != nil {
-		if InOp(withdrawTemplate, "Memo") {
-			AddElementToObject(withdrawTemplate, "Memo", tagWithdrawTag)
+		if _, ok := withdrawTemplate["Memo"]; ok {
+			withdrawTemplate["Memo"] = tagWithdrawTag
 		}
 	}
 	var withdrawPayload map[string]any = map[string]any{

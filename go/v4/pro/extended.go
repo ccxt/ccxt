@@ -378,7 +378,7 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 	}
 	var spotBalances []any = ccxt.SafeListTyped(data, "spotBalances")
 	for i := 0; i < len(spotBalances); i++ {
-		var spotBalance map[string]any = ccxt.SafeMapTyped(spotBalances, i)
+		var spotBalance, _ = spotBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(spotBalance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
@@ -1205,7 +1205,10 @@ func (this *Extended) HandleMessage(client any, message map[string]any) {
 	var dataList, _ = message["data"].([]any)
 	var data, _ = message["data"].(map[string]any)
 	if dataList != nil {
-		var first map[string]any = ccxt.SafeMapTyped(dataList, 0)
+		var first map[string]any
+		if 0 < len(dataList) {
+			first, _ = dataList[0].(map[string]any)
+		}
 		var side *string = this.SafeString(first, "S")
 		if side != nil {
 			this.HandleTrades(client, message)

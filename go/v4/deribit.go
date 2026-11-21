@@ -1490,7 +1490,7 @@ func (this *Deribit) ParseBalance(balance map[string]any) map[string]any {
 		summaries = []any{balance}
 	}
 	for i := 0; i < len(summaries); i++ {
-		var data map[string]any = SafeMapTyped(summaries, i)
+		var data, _ = summaries[i].(map[string]any)
 		var currencyId *string = this.SafeString(data, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -4834,7 +4834,13 @@ func (this *Deribit) AddPaginationCursorToResult(cursor *string, data []any) []a
 	if cursor != nil {
 		var dataLength int = len(data)
 		if dataLength > 0 {
-			var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+			var first map[string]any
+			if 0 < len(data) {
+				first, _ = data[0].(map[string]any)
+			}
+			if first == nil {
+				first = map[string]any{}
+			}
 			var last map[string]any = this.SafeDictMap(data, dataLength-1, map[string]any{})
 			if cursor != nil {
 				first["continuation"] = *cursor

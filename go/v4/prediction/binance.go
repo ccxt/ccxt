@@ -402,7 +402,7 @@ func (this *Binance) completeRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string
 		var rawMarketsLength int = len(rawMarkets)
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
-			var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)
+			var firstMarket, _ = rawMarkets[0].(map[string]any)
 			var firstOutcomes []any = ccxt.SafeListTyped(firstMarket, "outcomes")
 			var firstOutcomesLength int = len(firstOutcomes)
 			hasOutcomes = (firstOutcomesLength > 0)
@@ -855,7 +855,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]an
 	var resolvedOutcomeRaw any = nil
 	var rawOutcomesLength int = len(rawOutcomes)
 	for oi := 0; oi < rawOutcomesLength; oi++ {
-		var rawOutcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, oi)
+		var rawOutcome, _ = rawOutcomes[oi].(map[string]any)
 		var label *string = this.SafeStringUpper(rawOutcome, "name")
 		var tokenId *string = this.SafeString(rawOutcome, "tokenId")
 		var outcomeHandle any = nil
@@ -1038,7 +1038,7 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[str
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	// the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
 	// any other outcome of a binary market mirrors as 1 - price
-	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var outcomeInfo, _ = outcomeObj["info"].(map[string]any)
 	var outcomeIndex *string = this.SafeString(outcomeInfo, "index")
 	var isMirrored bool = false
 	if outcomeIndex != nil {
@@ -1646,7 +1646,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
 	if outcomes != nil {
 		for i := 0; i < len(outcomes); i++ {
-			var requested *string = &outcomes[i]
+			var requested string = outcomes[i]
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			if requestedOutcome != nil {

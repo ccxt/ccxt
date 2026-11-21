@@ -1641,7 +1641,7 @@ func (this *Poloniex) ParseCurrency(currency any) map[string]any {
 	var chains []any = SafeListTyped(currency, "networkList")
 	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
-		var chain map[string]any = SafeMapTyped(chains, j)
+		var chain, _ = chains[j].(map[string]any)
 		var chainId *string = this.SafeString(chain, "blockchain")
 		var networkCode *string = this.NetworkIdToCode(chainId, code)
 		if networkCode != nil {
@@ -2351,7 +2351,10 @@ func (this *Poloniex) ParseOrderType(status *string) *string {
 }
 func (this *Poloniex) ParseOpenOrders(orders []any, market map[string]any, result []any) any {
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = this.SafeDictMap(orders, i, map[string]any{})
+		var order, _ = orders[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		var extended map[string]any = this.Extend(order, map[string]any{
 			"status": "open",
 			"type":   "limit",
@@ -3509,7 +3512,7 @@ func (this *Poloniex) ParseBalanceList(response any) map[string]any {
 		result["datetime"] = this.Iso8601(ts)
 		var details []any = SafeListTyped(response, "details")
 		for i := 0; i < len(details); i++ {
-			var balance map[string]any = SafeMapTyped(details, i)
+			var balance, _ = details[i].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "ccy")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -3526,7 +3529,7 @@ func (this *Poloniex) ParseBalanceList(response any) map[string]any {
 		var account map[string]any = SafeMapTyped(response, i)
 		var balances []any = SafeListTyped(account, "balances")
 		for j := 0; j < len(balances); j++ {
-			var balance map[string]any = SafeMapTyped(balances, j)
+			var balance, _ = balances[j].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "currency")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var newAccount map[string]any = this.Account()
@@ -4546,7 +4549,7 @@ func (this *Poloniex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 		entries = response
 	}
 	for i := 0; i < len(entries); i++ {
-		var entry map[string]any = SafeMapTyped(entries, i)
+		var entry, _ = entries[i].(map[string]any)
 		var currencies []string = nil
 		if entry != nil {
 			currencies = make([]string, 0, len(entry))
@@ -4965,7 +4968,7 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) Leverage 
 	var marginMode *string = nil
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		marketId = this.SafeString(entry, "symbol")
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower

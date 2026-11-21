@@ -2708,7 +2708,7 @@ func (this *Bitteam) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(rawCurrencyIds); i++ {
 		var rawCurrencyId string = rawCurrencyIds[i]
-		var currencyBalance map[string]any = SafeMapTyped(result, rawCurrencyId)
+		var currencyBalance, _ = result[rawCurrencyId].(map[string]any)
 		var free *string = this.SafeString(currencyBalance, "free")
 		var used *string = this.SafeString(currencyBalance, "used")
 		var total *string = this.SafeString(currencyBalance, "total")
@@ -2931,7 +2931,10 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var networkId *string = this.SafeString(transaction, "blockChain")
 	if networkId == nil {
 		var links []any = SafeListTyped(currencyObject, "links")
-		var blockChain map[string]any = SafeMapTyped(links, 0)
+		var blockChain map[string]any
+		if 0 < len(links) {
+			blockChain, _ = links[0].(map[string]any)
+		}
 		networkId = this.SafeString(blockChain, "blockChain")
 	}
 	var addressFrom *string = this.SafeString(transaction, "sender")

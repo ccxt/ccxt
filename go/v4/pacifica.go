@@ -1144,7 +1144,7 @@ func (this *Pacifica) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	result["USDC"] = usdcAccount
 	var spotBalances []any = SafeListTyped(data, "spot_balances")
 	for i := 0; i < len(spotBalances); i++ {
-		var balance map[string]any = SafeMapTyped(spotBalances, i)
+		var balance, _ = spotBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1255,8 +1255,8 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol *string, setting map[strin
 	}
 }
 func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) map[string]any {
-	var marketLimits map[string]any = SafeMapTyped(market, "limits")
-	var leverageLimits map[string]any = SafeMapTyped(marketLimits, "leverage")
+	var marketLimits, _ = market["limits"].(map[string]any)
+	var leverageLimits, _ = marketLimits["leverage"].(map[string]any)
 	return map[string]any{
 		"info":          market,
 		"symbol":        this.SafeString(market, "symbol"),
@@ -3409,10 +3409,10 @@ func (this *Pacifica) AddPaginationCursorToResult(response map[string]any) []any
 	var dataLength int = len(data)
 	if hasMore != nil && *hasMore {
 		if (paginationCursor != nil) && (dataLength > 0) {
-			var first any = data[0]
-			AddElementToObject(first, "next_cursor", paginationCursor)
-			AddElementToObject(first, "has_more", hasMore)
-			AddElementToObject(data, 0, first)
+			AddElementToObject(data, 0, this.Extend(data[0], map[string]any{
+				"next_cursor": paginationCursor,
+				"has_more":    hasMore,
+			}))
 		}
 	}
 	return data
@@ -4379,11 +4379,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311519 []any = r1.Value
-		if retRes311519 == nil {
+		var retRes311219 []any = r1.Value
+		if retRes311219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311519)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311219)}
 		}
 		return nil
 	}
@@ -4695,11 +4695,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333319 []any = r1.Value
-		if retRes333319 == nil {
+		var retRes333019 []any = r1.Value
+		if retRes333019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333319)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333019)}
 		}
 		return nil
 	}
@@ -5267,16 +5267,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	var literal372715 map[string]any = map[string]any{
+	var literal372415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if requestBody != nil {
-		literal372715["body"] = *requestBody
+		literal372415["body"] = *requestBody
 	}
-	return literal372715
+	return literal372415
 }
 func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

@@ -110,7 +110,11 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var ordersRequest map[string]any = this.CreateOrdersRequest(orders, params)
 	var wrapped map[string]any = this.WrapAsPostAction(ordersRequest)
-	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
+	var request map[string]any
+	request, _ = wrapped["request"].(map[string]any)
+	if request == nil {
+		request = map[string]any{}
+	}
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, request, requestId)
@@ -119,7 +123,7 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	}
 	response := r1.Value
 	var responseOjb map[string]any = ccxt.SafeMapTyped(response, "response")
-	var data map[string]any = ccxt.SafeMapTyped(responseOjb, "data")
+	var data, _ = responseOjb["data"].(map[string]any)
 	var statuses any = this.SafeList(data, "statuses", []any{})
 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.ParseOrders(statuses, nil))}
@@ -231,7 +235,11 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	order, globalParams := this.ParseCreateEditOrderArgs(&id, &symbol, &typeVar, &side, amount, price, params)
 	var postRequest map[string]any = this.EditOrdersRequest([]map[string]any{order}, globalParams)
 	var wrapped map[string]any = this.WrapAsPostAction(postRequest)
-	var request map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
+	var request map[string]any
+	request, _ = wrapped["request"].(map[string]any)
+	if request == nil {
+		request = map[string]any{}
+	}
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, request, requestId)
@@ -241,9 +249,15 @@ func (this *Hyperliquid) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], i
 	response := r1.Value
 	// response is the same as in this.editOrder
 	var responseObject map[string]any = ccxt.SafeMapTyped(response, "response")
-	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
+	var dataObject, _ = responseObject["data"].(map[string]any)
 	var statuses []any = ccxt.SafeListTyped(dataObject, "statuses")
-	var first map[string]any = this.SafeDictMap(statuses, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(statuses) {
+		first, _ = statuses[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(first, market))
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(parsedOrder)}
@@ -285,7 +299,11 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	var request map[string]any = this.CancelOrdersRequest(ids, symbol, params)
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var wrapped map[string]any = this.WrapAsPostAction(request)
-	var wsRequest map[string]any = this.SafeDictMap(wrapped, "request", map[string]any{})
+	var wsRequest map[string]any
+	wsRequest, _ = wrapped["request"].(map[string]any)
+	if wsRequest == nil {
+		wsRequest = map[string]any{}
+	}
 	var requestId *string = this.SafeString(wrapped, "requestId")
 
 	r1 := <-this.Watch(url, requestId, wsRequest, requestId)
@@ -294,7 +312,7 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	}
 	response := r1.Value
 	var responseObj map[string]any = ccxt.SafeMapTyped(response, "response")
-	var data map[string]any = ccxt.SafeMapTyped(responseObj, "data")
+	var data, _ = responseObj["data"].(map[string]any)
 	var statuses []any = ccxt.SafeListTyped(data, "statuses")
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
@@ -1440,7 +1458,10 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	}
 	var trades ccxt.WsArrayCache = this.Trades[*symbol]
 	for i := 0; i < len(entry); i++ {
-		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
+		var data, _ = entry[i].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(data)
 		trades.Append(trade)
 	}

@@ -1372,7 +1372,7 @@ func (this *Btse) ParseBalanceList(response any) map[string]any {
 			// several wallet rows can report the same currency, so amounts are aggregated
 			var inUse []any = SafeListTyped(row, "assetsInUse")
 			for j := 0; j < len(inUse); j++ {
-				var usedRow map[string]any = SafeMapTyped(inUse, j)
+				var usedRow, _ = inUse[j].(map[string]any)
 				var usedCode *string = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
 				if usedCode == nil {
 					continue
@@ -1384,7 +1384,7 @@ func (this *Btse) ParseBalanceList(response any) map[string]any {
 				}
 			}
 			for j := 0; j < len(assets); j++ {
-				var assetRow map[string]any = SafeMapTyped(assets, j)
+				var assetRow, _ = assets[j].(map[string]any)
 				var code *string = this.SafeCurrencyCode(this.SafeString(assetRow, "currency"))
 				if code == nil {
 					continue
@@ -1502,7 +1502,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 	var data []any = this.SafeListSlice(response, "data", []any{single})
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
@@ -2975,14 +2975,8 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		}
 		response = r2.Value
 	}
-	// the normal futures endpoint responds with a single order dict, keep a
-	// one element array guard in case a gateway wraps it
-	var order any = response
-	if false {
-		order = this.SafeDict(response, 0, map[string]any{})
-	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
 func (this *Btse) EncodeTriggerPriceType(priceType string) *string {
@@ -3684,7 +3678,10 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	var responseList []any = this.ArrayConcat([]any{}, rows)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(responseList); i++ {
-		var feeInfo map[string]any = this.SafeDictMap(responseList, i, map[string]any{})
+		var feeInfo, _ = responseList[i].(map[string]any)
+		if feeInfo == nil {
+			feeInfo = map[string]any{}
+		}
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
 		var symbol *string
@@ -3810,7 +3807,10 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	}
 	var rows []any = []any{}
 	for i := 0; i < len(rawRows); i++ {
-		var entry map[string]any = this.SafeDictMap(rawRows, i, map[string]any{})
+		var entry, _ = rawRows[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var typeVar string = *this.SafeString(entry, "type", "")
 		if _, ok := allowed[typeVar]; ok {
 			rows = append(rows, entry)
@@ -3855,11 +3855,11 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes291515 []any = r.Value
-	if retRes291515 == nil {
+	var retRes290915 []any = r.Value
+	if retRes290915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes291515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes290915)}
 	}
 	return nil
 }
@@ -3898,11 +3898,11 @@ func (this *Btse) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes293215 []any = r.Value
-	if retRes293215 == nil {
+	var retRes292615 []any = r.Value
+	if retRes292615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes293215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes292615)}
 	}
 	return nil
 }
@@ -3941,11 +3941,11 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes294915 []any = r.Value
-	if retRes294915 == nil {
+	var retRes294315 []any = r.Value
+	if retRes294315 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes294315)}
 	}
 	return nil
 }
@@ -4351,11 +4351,11 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes325815 []any = PositionsToList(r1.Value)
-	if retRes325815 == nil {
+	var retRes325215 []any = PositionsToList(r1.Value)
+	if retRes325215 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325815)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes325215)}
 	}
 	return nil
 }
@@ -4852,7 +4852,7 @@ func (this *Btse) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 	var shortLeverage *int64 = nil
 	var marginMode *string = nil
 	for i := 0; i < len(safeResponse); i++ {
-		var entrty map[string]any = SafeMapTyped(safeResponse, i)
+		var entrty, _ = safeResponse[i].(map[string]any)
 		var leverageValue *int64 = this.SafeInteger(entrty, "leverage")
 		var positionDirection *string = this.SafeString(entrty, "positionDirection")
 		marginMode = this.SafeStringLower(entrty, "marginMode")
@@ -4988,7 +4988,7 @@ func (this *Btse) HandleErrors(code int64, reason string, url string, method str
 		rows = []any{response}
 	}
 	for i := 0; i < len(rows); i++ {
-		var row map[string]any = SafeMapTyped(rows, i)
+		var row, _ = rows[i].(map[string]any)
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
 			var rowMessage *string = this.SafeString(row, "message")
@@ -5061,22 +5061,22 @@ func (this *Btse) Sign(path string, optionalArgs ...any) map[string]any {
 			"BROKER-ID":     "ccxt",
 		}
 	}
-	var literal379215 map[string]any = map[string]any{
+	var literal378615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal379215["body"] = *requestBody
+		literal378615["body"] = *requestBody
 	}
-	return literal379215
+	return literal378615
 }
 func (this *Btse) FuturesRequestId(market map[string]any) *string {
 	// the futures v3 trading api identifies contracts by the short trade-currency
 	// form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
 	// from the raw market info so that cached markets resolve it as well
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	return this.SafeString(marketInfo, "tradeCurrency", this.SafeString(market, "id"))
 }
 func (this *Btse) CleanPath(path string) string {

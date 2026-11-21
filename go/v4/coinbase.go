@@ -850,11 +850,11 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan AsyncResult[[]Account], option
 	var accounts []any
 	accounts, _ = response["data"].([]any)
 	var length int = len(accounts)
-	var lastIndex int64 = int64(length) - 1
-	if (cursor != nil) && (cursor == nil || *cursor != "") {
-		AddElementToObject(accounts, lastIndex, this.Extend(this.SafeDict(accounts, lastIndex, map[string]any{}), map[string]any{
+	if (length > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
+		var lastIndex int64 = int64(length) - 1
+		accounts[lastIndex] = this.Extend(this.SafeDict(accounts, lastIndex, map[string]any{}), map[string]any{
 			"next_starting_after": cursor,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(data, paramsPaginate))}
@@ -1949,8 +1949,8 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface],
 		panic(r.Err)
 	}
 	var response map[string]any = StructResultMap(r.Value, CurrenciesToMap)
-	var currencies map[string]any = SafeMapTyped(response, "currencies")
-	var exchangeRates map[string]any = SafeMapTyped(response, "exchangeRates")
+	var currencies, _ = response["currencies"].(map[string]any)
+	var exchangeRates, _ = response["exchangeRates"].(map[string]any)
 	var data []any = SafeListTyped(currencies, "data")
 	var dataById map[string]any = this.IndexBy(data, "id")
 	var rates map[string]any = SafeMapTyped(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates")
@@ -2714,7 +2714,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var ratesResponse map[string]any = promisesResult[2]
 	var fiatData []any = this.SafeListSlice(fiatResponse, "data", []any{})
 	var cryptoData []any = this.SafeListSlice(cryptoResponse, "data", []any{})
-	var ratesData map[string]any = SafeMapTyped(ratesResponse, "data")
+	var ratesData, _ = ratesResponse["data"].(map[string]any)
 	var rates map[string]any = SafeMapTyped(ratesData, "rates")
 	var ratesIds []string = nil
 	if rates != nil {
@@ -3291,8 +3291,14 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var bids []any = SafeListTyped(ticker, "bids")
 	if bids != nil {
 		var asks []any = SafeListTyped(ticker, "asks")
-		var firstBid map[string]any = SafeMapTyped(bids, 0)
-		var firstAsk map[string]any = SafeMapTyped(asks, 0)
+		var firstBid map[string]any
+		if 0 < len(bids) {
+			firstBid, _ = bids[0].(map[string]any)
+		}
+		var firstAsk map[string]any
+		if 0 < len(asks) {
+			firstAsk, _ = asks[0].(map[string]any)
+		}
 		bid = this.SafeNumber(firstBid, "price")
 		bidVolume = this.SafeNumber(firstBid, "size")
 		ask = this.SafeNumber(firstAsk, "price")
@@ -3329,8 +3335,8 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var summary map[string]any = SafeMapTyped(response, "balance_summary")
-	var totalUsdBalanceData map[string]any = SafeMapTyped(summary, "total_usd_balance")
-	var futuresBuyingPowerData map[string]any = SafeMapTyped(summary, "futures_buying_power")
+	var totalUsdBalanceData, _ = summary["total_usd_balance"].(map[string]any)
+	var futuresBuyingPowerData, _ = summary["futures_buying_power"].(map[string]any)
 	var totalUsdBalance *string = this.SafeString(totalUsdBalanceData, "value")
 	var futuresBuyingPower *string = this.SafeString(futuresBuyingPowerData, "value")
 	if (totalUsdBalance != nil) || (futuresBuyingPower != nil) {
@@ -3364,10 +3370,10 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 		"info": response,
 	}
 	for b := 0; b < len(balances); b++ {
-		var balance map[string]any = SafeMapTyped(balances, b)
+		var balance, _ = balances[b].(map[string]any)
 		var typeVar *string = this.SafeString(balance, "type")
 		if this.InArray(typeVar, accounts) {
-			var value map[string]any = SafeMapTyped(balance, "balance")
+			var value, _ = balance["balance"].(map[string]any)
 			if value != nil {
 				var currencyId *string = this.SafeString(value, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
@@ -3390,8 +3396,8 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 				}
 			}
 		} else if this.InArray(typeVar, v3Accounts) {
-			var available map[string]any = SafeMapTyped(balance, "available_balance")
-			var hold map[string]any = SafeMapTyped(balance, "hold")
+			var available, _ = balance["available_balance"].(map[string]any)
+			var hold, _ = balance["hold"].(map[string]any)
 			if (available != nil) && (hold != nil) {
 				var currencyId *string = this.SafeString(available, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
@@ -3972,7 +3978,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	var fee map[string]any = nil
 	var networkInfo map[string]any = SafeMapTyped(item, "network")
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
-	var feeInfo map[string]any = SafeMapTyped(networkInfo, "transaction_fee")
+	var feeInfo, _ = networkInfo["transaction_fee"].(map[string]any)
 	if feeInfo != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId, currencyResolved)
@@ -4533,12 +4539,12 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 		marketResolved = market
 	}
 	var orderConfiguration map[string]any = SafeMapTyped(order, "order_configuration")
-	var limitGTC map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtc")
-	var limitGTD map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtd")
+	var limitGTC, _ = orderConfiguration["limit_limit_gtc"].(map[string]any)
+	var limitGTD, _ = orderConfiguration["limit_limit_gtd"].(map[string]any)
 	var limitIOC any = this.SafeDict(orderConfiguration, "sor_limit_ioc")
-	var stopLimitGTC map[string]any = this.SafeDictMap(orderConfiguration, "stop_limit_stop_limit_gtc")
+	var stopLimitGTC, _ = orderConfiguration["stop_limit_stop_limit_gtc"].(map[string]any)
 	var stopLimitGTD any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtd")
-	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
+	var marketIOC, _ = orderConfiguration["market_market_ioc"].(map[string]any)
 	var isLimit bool = ((limitGTC != nil) || (limitGTD != nil) || (limitIOC != nil))
 	var isStop bool = ((stopLimitGTC != nil) || (stopLimitGTD != nil))
 	var price *string = nil
@@ -6698,7 +6704,7 @@ func (this *Coinbase) ParseConversion(conversion any, optionalArgs ...any) Conve
 	var toCode *string = this.SafeCurrencyCode(to, toCurrency)
 	var fromAmountStructure map[string]any = SafeMapTyped(conversion, "user_entered_amount")
 	var feeStructure map[string]any = SafeMapTyped(conversion, "total_fee")
-	var feeAmountStructure map[string]any = SafeMapTyped(feeStructure, "amount")
+	var feeAmountStructure, _ = feeStructure["amount"].(map[string]any)
 	return ConversionFromMap(map[string]any{
 		"info":         conversion,
 		"timestamp":    nil,
@@ -7095,7 +7101,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	//     has_promo_fee: false
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "fee_tier")
+	var data, _ = response["fee_tier"].(map[string]any)
 	var taker_fee *float64 = this.SafeNumber(data, "taker_fee_rate")
 	var maker_fee *float64 = this.SafeNumber(data, "maker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -7178,9 +7184,9 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData map[string]any) []any 
 		if (totalBalanceFiat != nil) && (availableBalance != nil) && (*totalBalanceFiat > *availableBalance) {
 			holdAmount = (*totalBalanceFiat - *availableBalance)
 		}
-		var costBasisDict map[string]any = SafeMapTyped(position, "cost_basis")
+		var costBasisDict, _ = position["cost_basis"].(map[string]any)
 		var costBasisStr string = *this.SafeString(costBasisDict, "value", "0")
-		var averageEntryPriceDict map[string]any = SafeMapTyped(position, "average_entry_price")
+		var averageEntryPriceDict, _ = position["average_entry_price"].(map[string]any)
 		var averageEntryPriceStr string = *this.SafeString(averageEntryPriceDict, "value", "0")
 		var positionData map[string]any = map[string]any{
 			"currency":                     currencyCode,

@@ -394,7 +394,7 @@ func (this *Btcturk) ParseMarket(entry any) map[string]any {
 	var maxAmount *float64 = nil
 	var minCost *float64 = nil
 	for j := 0; j < len(filters); j++ {
-		var filter map[string]any = SafeMapTyped(filters, j)
+		var filter, _ = filters[j].(map[string]any)
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
 			minPrice = this.SafeNumber(filter, "minPrice")

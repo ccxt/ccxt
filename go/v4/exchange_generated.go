@@ -1320,7 +1320,7 @@ func (this *BaseExchange) ParseCurrencies(rawCurrencies any) map[string]any {
 		if parsed == nil {
 			continue
 		}
-		var code *string = SafeStringPtr(parsed["code"])
+		var code *string = this.SafeString(parsed, "code")
 		if code != nil {
 			result[*code] = parsed
 		}
@@ -2235,7 +2235,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency map[string]any) map[str
 	if length != 0 {
 		for i := 0; i < length; i++ {
 			var key string = keys[i]
-			var network map[string]any = SafeMapTyped(networks, key)
+			var network, _ = networks[key].(map[string]any)
 			var deposit *bool = this.SafeBool(network, "deposit")
 			var currencyDeposit *bool = this.SafeBool(currency, "deposit")
 			if (currencyDeposit == nil) || (deposit != nil && *deposit == true) {
@@ -2259,10 +2259,10 @@ func (this *BaseExchange) SafeCurrencyStructure(currency map[string]any) map[str
 				currency["precision"] = this.ParseNumber(precision)
 			}
 			// limits
-			var limits map[string]any = SafeMapTyped(network, "limits")
+			var limits, _ = network["limits"].(map[string]any)
 			var limitsMain map[string]any = this.SafeDictMap(currency, "limits", map[string]any{})
 			// deposits
-			var limitsDeposit map[string]any = SafeMapTyped(limits, "deposit")
+			var limitsDeposit, _ = limits["deposit"].(map[string]any)
 			var limitsDepositMain map[string]any = this.SafeDictMap(limitsMain, "deposit", map[string]any{})
 			var limitsDepositNew map[string]any = map[string]any{}
 			var limitsDepositMin *string = this.SafeString(limitsDeposit, "min")
@@ -2278,7 +2278,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency map[string]any) map[str
 				limitsDepositNew["max"] = this.ParseNumber(limitsDepositMax)
 			}
 			// withdrawals
-			var limitsWithdraw map[string]any = SafeMapTyped(limits, "withdraw")
+			var limitsWithdraw, _ = limits["withdraw"].(map[string]any)
 			var limitsWithdrawMain map[string]any = this.SafeDictMap(limitsMain, "withdraw", map[string]any{})
 			var limitsWithdrawNew map[string]any = map[string]any{}
 			var limitsWithdrawMin *string = this.SafeString(limitsWithdraw, "min")
@@ -2423,7 +2423,10 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	// we insert spot markets first
 	var marketValues []any = this.SortBy(this.ToArray(markets), "spot", true, true)
 	for i := 0; i < len(marketValues); i++ {
-		var value map[string]any = this.SafeDictMap(marketValues, i, map[string]any{})
+		var value, _ = marketValues[i].(map[string]any)
+		if value == nil {
+			value = map[string]any{}
+		}
 		if InOp(marketsById, value["id"]) {
 			var marketsByIdArray any = GetValue(marketsById, value["id"])
 			AppendToArray(&marketsByIdArray, value)
@@ -3941,8 +3944,8 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 	var withdrawEnabled *bool = this.SafeBool(network, "withdraw")
 	var depositEnabled *bool = this.SafeBool(network, "deposit")
 	var limits map[string]any = SafeMapTyped(network, "limits")
-	var withdraw map[string]any = SafeMapTyped(limits, "withdraw")
-	var deposit map[string]any = SafeMapTyped(limits, "deposit")
+	var withdraw, _ = limits["withdraw"].(map[string]any)
+	var deposit, _ = limits["deposit"].(map[string]any)
 	var isEnabled *bool = withdrawEnabled
 	if withdrawEnabled != nil && *withdrawEnabled == true {
 		isEnabled = depositEnabled
@@ -5670,11 +5673,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes707215 map[string]any = r.Value
-	if retRes707215 == nil {
+	var retRes707415 map[string]any = r.Value
+	if retRes707415 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes707215}
+		ch <- AsyncResult[map[string]any]{Value: retRes707415}
 	}
 	return nil
 }
@@ -6705,22 +6708,14 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	var marketSymbol *string = this.SafeString(market, "symbol")
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var result string = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		var pricePrecision *string = this.NumberToString(GetValue(market["precision"], "price"))
 		if pricePrecision == nil {
-			if marketSymbol != nil {
-				messageText := this.Id + " priceToPrecision() market " + *marketSymbol + " has no price precision"
-				panic(BadSymbol(messageText))
-			}
-			panic(BadSymbol(nil))
+			panic(BadSymbol(this.Id + " priceToPrecision() market " + marketSymbol + " has no price precision"))
 		}
-		if marketSymbol != nil {
-			messageText := this.Id + " price of " + *marketSymbol + " must be greater than minimum price precision of " + *pricePrecision
-			panic(InvalidOrder(messageText))
-		}
-		panic(InvalidOrder(nil))
+		panic(InvalidOrder(this.Id + " price of " + marketSymbol + " must be greater than minimum price precision of " + *pricePrecision))
 	}
 	return &result
 }
@@ -6730,22 +6725,14 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	var marketSymbol *string = this.SafeString(market, "symbol")
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
 	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		var amountPrecision *string = this.NumberToString(GetValue(market["precision"], "amount"))
 		if amountPrecision == nil {
-			if marketSymbol != nil {
-				messageText := this.Id + " amountToPrecision() market " + *marketSymbol + " has no amount precision"
-				panic(BadSymbol(messageText))
-			}
-			panic(BadSymbol(nil))
+			panic(BadSymbol(this.Id + " amountToPrecision() market " + marketSymbol + " has no amount precision"))
 		}
-		if marketSymbol != nil {
-			messageText := this.Id + " amount of " + *marketSymbol + " must be greater than minimum amount precision of " + *amountPrecision
-			panic(InvalidOrder(messageText))
-		}
-		panic(InvalidOrder(nil))
+		panic(InvalidOrder(this.Id + " amount of " + marketSymbol + " must be greater than minimum amount precision of " + *amountPrecision))
 	}
 	return &result
 }
@@ -6766,7 +6753,7 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 	var currency map[string]any = MapTyped(GetValue(this.Currencies, code))
 	var precision any = this.SafeValue(currency, "precision")
 	if networkCode != nil {
-		var networks map[string]any = SafeMapTyped(currency, "networks")
+		var networks, _ = currency["networks"].(map[string]any)
 		var networkItem map[string]any = SafeMapTyped(networks, networkCode)
 		precision = this.SafeValue(networkItem, "precision", precision)
 	}
@@ -7093,7 +7080,10 @@ func (this *BaseExchange) ParseBorrowInterests(response []any, optionalArgs ...a
 	_ = market
 	var interests []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var row, _ = response[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
 	return interests
@@ -7114,7 +7104,10 @@ func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since a
 func (this *BaseExchange) ParseIsolatedBorrowRates(info []any) map[string]any {
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(info); i++ {
-		var item map[string]any = this.SafeDictMap(info, i, map[string]any{})
+		var item, _ = info[i].(map[string]any)
+		if item == nil {
+			item = map[string]any{}
+		}
 		var borrowRate map[string]any = this.ParseIsolatedBorrowRate(item)
 		var symbol *string = this.SafeString(borrowRate, "symbol")
 		if symbol != nil {
@@ -8396,7 +8389,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan AsyncResult[[]any
 					if cursorValue == nil {
 						var index int64 = (int64(responseLength) - int64(j)) - 1
 						var entry map[string]any = SafeMapTyped(response, index)
-						var info map[string]any = SafeMapTyped(entry, "info")
+						var info, _ = entry["info"].(map[string]any)
 						if cursorReceived != nil {
 							cursorValue = this.SafeValue(info, cursorReceived)
 						}
@@ -11534,12 +11527,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1052415Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1052415 []any = retRes1052415Recv
-	if retRes1052415 == nil {
+	retRes1052615Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1052615 []any = retRes1052615Recv
+	if retRes1052615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1052415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1052615)}
 	}
 	return nil
 }

@@ -135,7 +135,7 @@ func (this *Luno) HandleTrades(client any, message map[string]any, subscription 
 	if length == 0 {
 		return
 	}
-	var symbol any = subscription["symbol"]
+	var symbol string = *this.SafeString(subscription, "symbol", "")
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trades:" + *symbolValue
@@ -546,7 +546,10 @@ func (this *Luno) HandleMessage(client any, message map[string]any) {
 		// frames still arriving until the client resubscribes
 		return
 	}
-	var subscription map[string]any = this.SafeDictMap(subscriptions, 0, map[string]any{})
+	var subscription, _ = subscriptions[0].(map[string]any)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	this.HandleOrderBook(client, message, subscription)
 	this.HandleTrades(client, message, subscription)
 }

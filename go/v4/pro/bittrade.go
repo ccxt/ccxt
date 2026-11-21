@@ -499,7 +499,7 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 		// the book was removed (unwatch/cleanCache) before the snapshot arrived
 		return
 	}
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol)
 	snapshot["nonce"] = this.SafeInteger(data, "seqNum")
 	snapshot["timestamp"] = timestamp
@@ -545,7 +545,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			// try block:
 			var symbol *string = this.SafeString(subscription, "symbol")
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
+			var params, _ = subscription["params"].(map[string]any)
 			var api string = *this.SafeString(this.Options, "api", "api")
 			var apiUrls map[string]any = this.UrlsApi
 			var wsUrls, _ = apiUrls["ws"].(map[string]any)

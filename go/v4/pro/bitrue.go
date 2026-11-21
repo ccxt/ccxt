@@ -198,7 +198,7 @@ func (this *Bitrue) ParseWSBalances(balances []any) {
 	//
 	this.Balance["info"] = balances
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "a")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

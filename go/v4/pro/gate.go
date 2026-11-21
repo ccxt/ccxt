@@ -1047,7 +1047,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 func (this *Gate) GetCacheIndex(orderBook any, cache []any) any {
 	var nonce *int64 = this.SafeInteger(orderBook, "nonce")
 	var firstDelta map[string]any
-	if len(cache) > 0 {
+	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
 	}
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
@@ -1322,10 +1322,11 @@ func (this *Gate) HandleTickerAndBidAsk(objectName string, client any, message m
 	if rawMarketType != nil && *rawMarketType == "futures" {
 		marketType = "contract"
 	}
-	var result any = this.SafeValue(message, "result")
+	var resultList []any
+	resultList, _ = message["result"].([]any)
 	var results []any = []any{}
-	if ccxt.IsArray(result) {
-		results = ccxt.ArrayTyped(this.SafeList(message, "result", []any{}))
+	if resultList != nil {
+		results = resultList
 	} else {
 		var rawTicker map[string]any = this.SafeDictMap(message, "result", map[string]any{})
 		results = []any{rawTicker}
@@ -1775,15 +1776,15 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	if rawMarketType != nil && *rawMarketType == "spot" {
 		marketType = "spot"
 	}
-	var rawResult any = this.SafeValue(message, "result")
+	var resultList, _ = message["result"].([]any)
 	var result []any = []any{}
-	if ccxt.IsArray(rawResult) {
+	if resultList != nil {
 		result, _ = message["result"].([]any)
 		if result == nil {
 			result = []any{}
 		}
 	} else {
-		result = []any{rawResult}
+		result = []any{this.SafeValue(message, "result")}
 	}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
@@ -2108,8 +2109,10 @@ func (this *Gate) HandleBalance(client any, message map[string]any) {
 	//
 	var result any = this.SafeList(message, "result", []any{})
 	this.Balance["info"] = result
-	for i := 0; i < ccxt.GetArrayLength(result); i++ {
-		var rawBalance map[string]any = ccxt.SafeMapTyped(result, i)
+	var rows, _ = message["result"].([]any)
+	var rowsLength int = len(rows)
+	for i := 0; i < rowsLength; i++ {
+		var rawBalance, _ = rows[i].(map[string]any)
 		var account map[string]any = this.Account()
 		var currencyId string = *this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -2577,25 +2580,24 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	var marketIds map[string]any = map[string]any{}
 	var parsedOrders []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 	for i := 0; i < len(parsedOrders); i++ {
-		var parsed any = parsedOrders[i]
 		// inject order status
-		var info map[string]any = ccxt.SafeMapTyped(parsed, "info")
+		var info map[string]any = ccxt.SafeMapTyped(parsedOrders[i], "info")
 		var event *string = this.SafeString(info, "event")
+		var statusUpdate map[string]any = map[string]any{}
 		if (event != nil && *event == "put") || (event != nil && *event == "update") {
-			ccxt.AddElementToObject(parsed, "status", "open")
+			statusUpdate["status"] = "open"
 		} else if event != nil && *event == "finish" {
-			var status *string = this.SafeString(parsed, "status")
+			var status *string = this.SafeString(parsedOrders[i], "status")
 			if status == nil {
 				var left *string = this.SafeString(info, "left")
-				var branchValue string
 				if ccxt.Precise.StringEquals(left, "0") {
-					branchValue = "closed"
+					statusUpdate["status"] = "closed"
 				} else {
-					branchValue = "canceled"
+					statusUpdate["status"] = "canceled"
 				}
-				ccxt.AddElementToObject(parsed, "status", branchValue)
 			}
 		}
+		var parsed map[string]any = this.Extend(parsedOrders[i], statusUpdate)
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
@@ -2707,7 +2709,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var payload []any = []any{}
-	var messageHash any = ""
+	var messageHash string = ""
 	if this.IsEmpty(symbolsNormalized) {
 		if (typeId != "futures") && !isInverse {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch."))
@@ -2719,7 +2721,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 		if symbolsLength != 1 {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times."))
 		}
-		messageHash = ccxt.Add("myLiquidations::", symbolsNormalized[0])
+		messageHash = "myLiquidations::" + symbolsNormalized[0]
 		payload = append(payload, market["id"])
 	}
 	var channel string = typeId + ".liquidates"

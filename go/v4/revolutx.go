@@ -684,7 +684,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = SafeStringPtr(symbols[i])
+			var symbol string = symbols[i]
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
 		}
@@ -716,7 +716,10 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var tickerData map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var tickerData, _ = data[i].(map[string]any)
+		if tickerData == nil {
+			tickerData = map[string]any{}
+		}
 		tickerData["timestamp"] = timestamp
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickerData))
 		var symbol *string = this.SafeString(ticker, "symbol", "")
@@ -730,16 +733,9 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < len(symbols); i++ {
-			var s *string = &symbols[i]
-			if s != nil {
-				if _, ok := result[*s]; ok {
-					AddElementToObject(filtered, s, func() any {
-						if s == nil {
-							return nil
-						}
-						return result[*s]
-					}())
-				}
+			var s string = symbols[i]
+			if _, ok := result[s]; ok {
+				filtered[s] = result[s]
 			}
 		}
 
@@ -1095,7 +1091,10 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var trade, _ = data[i].(map[string]any)
+		if trade == nil {
+			trade = map[string]any{}
+		}
 		result = append(result, TradeToMap(this.ParseTrade(trade, market)))
 	}
 
@@ -1151,7 +1150,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		"info": response,
 	}
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currency *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currency)
 		if code == nil {
@@ -1748,7 +1747,10 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var order, _ = data[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
@@ -1850,7 +1852,10 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var order map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var order, _ = data[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		result = append(result, OrderToMap(this.ParseOrder(order)))
 	}
 
@@ -2041,7 +2046,10 @@ func (this *Revolutx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var trade, _ = data[i].(map[string]any)
+		if trade == nil {
+			trade = map[string]any{}
+		}
 		result = append(result, this.ParseMyTrade(trade, market))
 	}
 
@@ -2152,10 +2160,7 @@ func (this *Revolutx) HandleErrors(code int64, reason string, url string, method
 			return nil
 		}
 		var feedback string = this.Id + " " + body
-		var errorMessage *string = nil
-		if IsObject(response) {
-			errorMessage = this.SafeString2(response, "message", "error")
-		}
+		var errorMessage *string = this.SafeString2(response, "message", "error")
 		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		}

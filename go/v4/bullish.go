@@ -1050,14 +1050,22 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 				datePartPart = str[2:]
 			}
 			var dateYmd string = datePartPart
-			symbol = Add(symbol, "-"+dateYmd)
+			if settle != nil {
+				symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd
+			} else {
+				symbol = nil
+			}
 			if typeVar != nil && *typeVar == "future" {
 				future = true
 			} else if typeVar != nil && *typeVar == "option" {
 				option = true
 				optionType = this.SafeStringLower(market, "optionType")
 				strike = this.ParseToNumeric(this.SafeString(market, "optionStrikePrice"))
-				symbol = Add(symbol, Add(Add(Add("-", this.NumberToString(strike)), "-"), this.SafeString(idParts, 4)))
+				if symbolPiece, symbolPiece2 := this.NumberToString(strike), this.SafeString(idParts, 4); symbolPiece != nil && symbolPiece2 != nil && settle != nil {
+					symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd + "-" + *symbolPiece + "-" + *symbolPiece2
+				} else {
+					symbol = nil
+				}
 			}
 		}
 	}
@@ -3142,7 +3150,10 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transaction, "status")
 	var sources []any = SafeListTyped(transactionDetails, "sources")
-	var source map[string]any = SafeMapTyped(sources, 0)
+	var source map[string]any
+	if 0 < len(sources) {
+		source, _ = sources[0].(map[string]any)
+	}
 	var sourceAddress *string = this.SafeString(source, "address")
 	var fee map[string]any = map[string]any{
 		"currency": nil,
@@ -3204,35 +3215,38 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	tradingAccountIdOption, paramsTradingAccountId := this.HandleOptionStringAndParams(params, "loadAccount", "tradingAccountId")
-	var tradingAccountId any = tradingAccountIdOption
-	if IsEqual(tradingAccountId, nil) {
+	if tradingAccountIdOption != nil {
+		this.Options["tradingAccountId"] = tradingAccountIdOption
 
-		responseRecv := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-		if responseRecv.Err != nil {
-			panic(responseRecv.Err)
-		}
-		var response []any = responseRecv.Value
-		var accounts []any = this.ToArray(response)
-		for i := 0; i < len(accounts); i++ {
-			var account, _ = accounts[i].(map[string]any)
-			var name *string = this.SafeString(account, "tradingAccountName")
-			if name != nil && *name == "Primary Account" {
-				if derefPtr := this.SafeString(account, "tradingAccountId"); derefPtr != nil {
-					tradingAccountId = *derefPtr
+		ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
+		return nil
+	}
+
+	responseRecv := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
+	}
+	var response []any = responseRecv.Value
+	var accounts []any = this.ToArray(response)
+	for i := 0; i < len(accounts); i++ {
+		var account, _ = accounts[i].(map[string]any)
+		var name *string = this.SafeString(account, "tradingAccountName")
+		if name != nil && *name == "Primary Account" {
+			var primaryAccountId *string = this.SafeString(account, "tradingAccountId")
+			if primaryAccountId != nil {
+				if primaryAccountId != nil {
+					this.Options["tradingAccountId"] = *primaryAccountId
 				} else {
-					tradingAccountId = nil
+					this.Options["tradingAccountId"] = nil
 				}
-				break
+
+				ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
+				return nil
 			}
+			break
 		}
 	}
-	if IsEqual(tradingAccountId, nil) {
-		panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
-	}
-	this.Options["tradingAccountId"] = tradingAccountId
-
-	ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
-	return nil
+	panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 }
 
 /**
@@ -3548,7 +3562,7 @@ func (this *Bullish) ParseBalanceList(response []any) map[string]any {
 	}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var balance map[string]any = SafeMapTyped(rows, i)
+		var balance, _ = rows[i].(map[string]any)
 		var symbol *string = this.SafeString(balance, "assetSymbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -3746,11 +3760,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes267119 []any = r2.Value
-		if retRes267119 == nil {
+		var retRes267219 []any = r2.Value
+		if retRes267219 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267219)}
 		}
 		return nil
 	}
@@ -4222,16 +4236,16 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var literal305015 map[string]any = map[string]any{
+	var literal305115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal305015["body"] = *requestBody
+		literal305115["body"] = *requestBody
 	}
-	return literal305015
+	return literal305115
 }
 
 /**

@@ -97,7 +97,9 @@ func (this *Bitfinex) subscribeBody(ch chan ccxt.AsyncResult[any], channel strin
 		var sub any = client.(ccxt.ClientInterface).SubscriptionGet(messageHash)
 		var subChecksum *bool = this.SafeBool(sub, "checksum", false)
 		if (sub != nil) && !(subChecksum != nil && *subChecksum) {
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).SubscriptionGet(messageHash), "checksum", true)
+			var subUpdated map[string]any = this.Extend(map[string]any{}, sub)
+			subUpdated["checksum"] = true
+			client.(ccxt.ClientInterface).SubscriptionSet(messageHash, subUpdated)
 
 			r2 := <-client.(ccxt.ClientInterface).SendAsync(map[string]any{
 				"event": "conf",
@@ -879,7 +881,7 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	var literal56331 map[string]any = map[string]any{
+	var literal56531 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -895,9 +897,9 @@ func (this *Bitfinex) ParseWsTrade(tradeResult any, optionalArgs ...any) map[str
 		"fee":          fee,
 	}
 	if orderId != nil {
-		literal56331["order"] = *orderId
+		literal56531["order"] = *orderId
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal56331, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal56531, marketResolved))
 }
 func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[string]any) {
 	//

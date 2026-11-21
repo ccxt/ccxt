@@ -1599,7 +1599,10 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var data []any
 	data, _ = response["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var rate map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rate, _ = data[i].(map[string]any)
+		if rate == nil {
+			rate = map[string]any{}
+		}
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
 		rates = append(rates, map[string]any{
 			"info":        rate,
@@ -1768,11 +1771,11 @@ func (this *Blofin) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var details []any = SafeListTyped(data, "details")
 	for i := 0; i < len(details); i++ {
-		var balance map[string]any = SafeMapTyped(details, i)
+		var balance, _ = details[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1815,7 +1818,7 @@ func (this *Blofin) ParseFundingBalance(response map[string]any) map[string]any 
 	}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -5096,7 +5099,10 @@ func (this *Blofin) HandleErrors(code int64, reason string, url string, method s
 	//  }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	var insideMsg *string = this.SafeString(first, "msg")
 	var insideCode *string = this.SafeString(first, "code")
 	if (insideCode != nil) && (insideCode == nil || *insideCode != "0") {

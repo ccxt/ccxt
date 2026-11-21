@@ -924,7 +924,7 @@ func (this *Upbit) HandleOrder(client any, message map[string]any) {
 	}
 	if order != nil {
 		// paid_fee is cumulative, so the cached fee is only a fallback
-		var parsedFee map[string]any = ccxt.SafeMapTyped(parsed, "fee")
+		var parsedFee, _ = parsed["fee"].(map[string]any)
 		if parsedFee == nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {

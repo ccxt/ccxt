@@ -216,8 +216,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], opti
 	var typeVar *string = nil
 	var market map[string]any = nil
 	var wsUrls map[string]any = this.UrlsApiSections["ws"]
-	var accessibilityUrls map[string]any
-	accessibilityUrls, _ = wsUrls[accessibility].(map[string]any)
+	var accessibilityUrls, _ = wsUrls[accessibility].(map[string]any)
 	var url any = this.UrlsApi["ws"]
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -250,7 +249,11 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], opti
 			url = accessibilityUrls["spot"]
 		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 			subType, _ := this.HandleSubTypeAndParams(methodValue, market, params, "linear")
-			url = ccxt.GetValue(accessibilityUrls, subType)
+			if derefPtr := this.SafeString(accessibilityUrls, subType); derefPtr != nil {
+				url = *derefPtr
+			} else {
+				url = nil
+			}
 		} else {
 			// option
 			url = accessibilityUrls["option"]
@@ -2249,7 +2252,10 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 		execTypes = execTypeOption
 	}
 	for i := 0; i < len(data); i++ {
-		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rawTrade, _ = data[i].(map[string]any)
+		if rawTrade == nil {
+			rawTrade = map[string]any{}
+		}
 		var parsed any = nil
 		if spot && !executionFast {
 			parsed = this.ParseWsTrade(rawTrade)
@@ -3312,7 +3318,10 @@ func (this *Bybit) HandleBalance(client any, message map[string]any) {
 	if topic != nil && *topic == "wallet" {
 		var data, _ = message["data"].([]any)
 		for i := 0; i < len(data); i++ {
-			var result map[string]any = ccxt.SafeMapTyped(data, 0)
+			var result map[string]any
+			if 0 < len(data) {
+				result, _ = data[0].(map[string]any)
+			}
 			account = this.SafeStringLower(result, "accountType")
 			rawBalances = this.ArrayConcat(rawBalances, this.SafeList(result, "coin", []any{}))
 		}

@@ -2196,7 +2196,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
 		var rawTrade any = tradesArray[i]
-		var isFetchTrades bool = !(InOp(rawTrade, "order_id"))
+		var isFetchTrades bool = (this.SafeString(rawTrade, "order_id") == nil)
 		var liquidityRole *string = this.SafeString(rawTrade, "liquidity_role")
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
 			continue
@@ -2734,7 +2734,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	}
 	var paramsMaxFee map[string]any = this.SafeDictMap(maxFeeOptionAndParams, 1, map[string]any{})
 	var amountString *string = this.NumberToString(amount)
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("createOrder", paramsMaxFee)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
@@ -2853,7 +2853,7 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var rawOrder map[string]any = this.SafeDictMap(result, "raw_data")
+	var rawOrder, _ = result["raw_data"].(map[string]any)
 	if rawOrder == nil {
 		rawOrder = this.SafeDictMap(result, "order", map[string]any{})
 	}
@@ -2915,7 +2915,7 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	var priceString *string = this.NumberToString(price)
 	var maxFeeString *string = this.SafeString(paramsDeriveSubaccountId, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{marketInfo["base_asset_address"], this.ConvertToBigInt(marketInfo["base_asset_sub_id"]), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleDeriveWalletAddress("editOrder", paramsDeriveSubaccountId)
 	var signature string = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, this.ConvertToBigInt(nonce), TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
@@ -4730,11 +4730,11 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 	var usedUsd any = "0"
 	var subaccounts []any = this.ToArray(response)
 	for i := 0; i < len(subaccounts); i++ {
-		var subaccount map[string]any = SafeMapTyped(subaccounts, i)
+		var subaccount, _ = subaccounts[i].(map[string]any)
 		usedUsd = Precise.StringSub(usedUsd, Precise.StringAdd(this.SafeString(subaccount, "positions_initial_margin", "0"), this.SafeString(subaccount, "open_orders_margin", "0")))
 		var collaterals []any = SafeListTyped(subaccount, "collaterals")
 		for j := 0; j < len(collaterals); j++ {
-			var balance map[string]any = SafeMapTyped(collaterals, j)
+			var balance, _ = collaterals[j].(map[string]any)
 			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account map[string]any = this.SafeDictMap(result, code)
 			if account == nil {
@@ -4814,7 +4814,10 @@ func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var currency map[string]any = this.Currency(code)
 	// the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
 	var spotAssets []any = SafeListTyped(currency["info"], "spot")
-	var spotAsset map[string]any = SafeMapTyped(spotAssets, 0)
+	var spotAsset map[string]any
+	if 0 < len(spotAssets) {
+		spotAsset, _ = spotAssets[0].(map[string]any)
+	}
 	var assetAddress *string = this.SafeString(spotAsset, "address")
 	if assetAddress == nil {
 		panic(BadRequest(this.Id + " transfer() " + code + " has no deposit-enabled spot asset"))
@@ -5248,12 +5251,15 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var currency map[string]any = this.Currency(code)
 	// the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
 	var spotAssets []any = SafeListTyped(currency["info"], "spot")
-	var spotAsset map[string]any = SafeMapTyped(spotAssets, 0)
+	var spotAsset map[string]any
+	if 0 < len(spotAssets) {
+		spotAsset, _ = spotAssets[0].(map[string]any)
+	}
 	var assetAddress *string = this.SafeString(spotAsset, "address")
 	if assetAddress == nil {
 		panic(BadRequest(this.Id + " withdraw() " + code + " has no deposit-enabled spot asset"))
 	}
-	var erc20 map[string]any = SafeMapTyped(spotAsset, "erc20")
+	var erc20, _ = spotAsset["erc20"].(map[string]any)
 	var decimals *int64 = this.SafeInteger(erc20, "decimals")
 	if decimals == nil {
 		panic(BadRequest(this.Id + " withdraw() " + code + " carries no erc20 decimals metadata"))

@@ -1465,15 +1465,11 @@ func (this *Bitvavo) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol")
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
-	var messageHash *string = nil
-	if symbolValue != nil {
-		messageHashValue := "order:" + *symbolValue
-		messageHash = &messageHashValue
-	}
+	var messageHash string = "order:" + *symbolValue
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -1538,15 +1534,11 @@ func (this *Bitvavo) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = this.SafeString(market, "symbol")
+	var symbolValue *string = this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
-	var messageHash *string = nil
-	if symbolValue != nil {
-		messageHashValue := "myTrades:" + *symbolValue
-		messageHash = &messageHashValue
-	}
+	var messageHash string = "myTrades:" + *symbolValue
 	var request map[string]any = map[string]any{
 		"action": "subscribe",
 		"channels": []any{map[string]any{
@@ -2676,12 +2668,8 @@ func (this *Bitvavo) HandleOrder(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "market")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
-	var symbol *string = this.SafeString(market, "symbol")
-	var messageHash *string = nil
-	if symbol != nil {
-		messageHashValue := "order:" + *symbol
-		messageHash = &messageHashValue
-	}
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "order:" + symbol
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(message, market))
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2709,12 +2697,8 @@ func (this *Bitvavo) HandleMyTrade(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "market")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
-	var symbol *string = this.SafeString(market, "symbol")
-	var messageHash *string = nil
-	if symbol != nil {
-		messageHashValue := "myTrades:" + *symbol
-		messageHash = &messageHashValue
-	}
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "myTrades:" + symbol
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(message, market))
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

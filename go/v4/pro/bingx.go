@@ -1103,7 +1103,11 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 	var timeframeParts []string = strings.Split(*dataType, "_")
 	var rawTimeframe *string = this.SafeString(timeframeParts, 1)
 	var marketOptions, _ = this.Options[marketType].(map[string]any)
-	var timeframes map[string]any = this.SafeDictMap(marketOptions, "timeframes", map[string]any{})
+	var timeframes map[string]any
+	timeframes, _ = marketOptions["timeframes"].(map[string]any)
+	if timeframes == nil {
+		timeframes = map[string]any{}
+	}
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[*symbol], unifiedTimeframe), nil) {
 		var subscriptionHash *string = dataType
@@ -1193,7 +1197,7 @@ func (this *Bingx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV is not supported for ", marketType), " markets.")))
 	}
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
-	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
+	var timeframes, _ = options["timeframes"].(map[string]any)
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
 	var messageHash string = this.GetMessageHash("ohlcv", this.SafeString(market, "symbol"), timeframe)
 	var subscriptionHash string = *this.SafeString(market, "id", "") + "@kline_" + *rawTimeframe
@@ -1260,7 +1264,7 @@ func (this *Bingx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	}
 	var market map[string]any = this.Market(symbol)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, market["type"])
-	var timeframes map[string]any = ccxt.SafeMapTyped(options, "timeframes")
+	var timeframes, _ = options["timeframes"].(map[string]any)
 	var rawTimeframe *string = this.SafeString(timeframes, timeframe, timeframe)
 	var subMessageHash string = *this.SafeString(market, "id", "") + "@kline_" + *rawTimeframe
 	var messageHash string = "unsubscribe::" + subMessageHash

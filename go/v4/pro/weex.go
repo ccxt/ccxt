@@ -186,8 +186,8 @@ func (this *Weex) Authenticate(url string) {
 	var payload string = timestamp + "/v3/ws/private"
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
 	var wsOptions, _ = this.Options["ws"].(map[string]any)
-	var wsInnerOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
-	var originalHeaders map[string]any = ccxt.SafeMapTyped(wsInnerOptions, "headers")
+	var wsInnerOptions, _ = wsOptions["options"].(map[string]any)
+	var originalHeaders, _ = wsInnerOptions["headers"].(map[string]any)
 	var userAgent *string = this.SafeString(originalHeaders, "User-Agent", "ccxt")
 	var extendedOptions map[string]any = map[string]any{
 		"ws": map[string]any{
@@ -463,7 +463,13 @@ func (this *Weex) HandleTicker(client any, message map[string]any) {
 		return
 	}
 	var tickers, _ = message["d"].([]any)
-	var data map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(tickers) {
+		data, _ = tickers[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsTicker(data, market)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "ticker::" + symbol
@@ -772,7 +778,10 @@ func (this *Weex) HandleTrade(client any, message map[string]any) {
 	var data, _ = message["d"].([]any)
 	var newTrades []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rawTrade, _ = data[i].(map[string]any)
+		if rawTrade == nil {
+			rawTrade = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(rawTrade, market)
 		newTrades = append(newTrades, trade)
 	}
@@ -945,7 +954,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 		var data []any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != firstMarket["type"] {
+		if this.SafeString(market, "type") != this.SafeString(firstMarket, "type") && (this.SafeString(market, "type") == nil || this.SafeString(firstMarket, "type") == nil || *this.SafeString(market, "type") != *this.SafeString(firstMarket, "type")) {
 			panic(ccxt.BadRequest(this.Id + " " + callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = *this.SafeString(market, "symbol", "")
@@ -1058,7 +1067,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		var data []any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != firstMarket["type"] {
+		if this.SafeString(market, "type") != this.SafeString(firstMarket, "type") && (this.SafeString(market, "type") == nil || this.SafeString(firstMarket, "type") == nil || *this.SafeString(market, "type") != *this.SafeString(firstMarket, "type")) {
 			panic(ccxt.BadRequest(this.Id + " " + callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = *this.SafeString(market, "symbol", "")
@@ -1154,7 +1163,10 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var parsed any = this.ParseWsOHLCV(entry)
 		stored.Append(parsed)
 	}
@@ -1618,13 +1630,9 @@ func (this *Weex) HandleBidAsk(client any, message map[string]any) {
 	var symbol *string = this.SafeString(market, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
+		var messageHash string = "bidask::" + *symbol
+		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
-	var messageHash *string = nil
-	if symbol != nil {
-		messageHashValue := "bidask::" + *symbol
-		messageHash = &messageHashValue
-	}
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -1833,7 +1841,10 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 	var data, _ = message["d"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var trade, _ = data[i].(map[string]any)
+		if trade == nil {
+			trade = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseWsMyTrade(trade)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
@@ -2106,7 +2117,10 @@ func (this *Weex) HandleOrders(client any, message map[string]any) {
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(data); i++ {
-		var rawOrder map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rawOrder, _ = data[i].(map[string]any)
+		if rawOrder == nil {
+			rawOrder = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseWsOrder(rawOrder)
 		orders.Append(parsed)
 		var symbol *string = this.SafeString(parsed, "symbol")
@@ -2716,7 +2730,10 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	var data, _ = message["d"].([]any)
 	for i := 0; i < len(data); i++ {
-		var rawPosition map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rawPosition, _ = data[i].(map[string]any)
+		if rawPosition == nil {
+			rawPosition = map[string]any{}
+		}
 		var position map[string]any = this.ParseWsPosition(rawPosition)
 		cache.Append(position)
 		newPositions = append(newPositions, position)

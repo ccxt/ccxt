@@ -707,7 +707,11 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				response = results[i]
 			}
 			var data map[string]any = SafeMapTyped(response, "data")
-			var extension map[string]any = this.SafeDictMap(quoteCurrencies, quote, map[string]any{})
+			var extension map[string]any
+			extension, _ = quoteCurrencies[quote].(map[string]any)
+			if extension == nil {
+				extension = map[string]any{}
+			}
 			var currencyIds []string = nil
 			if data != nil {
 				currencyIds = make([]string, 0, len(data))
@@ -971,7 +975,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		var bids []any = []any{}
 		var asks []any = []any{}
 		for i := 0; i < len(orderBookUnits); i++ {
-			var entry map[string]any = SafeMapTyped(orderBookUnits, i)
+			var entry, _ = orderBookUnits[i].(map[string]any)
 			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),
@@ -1322,7 +1326,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < len(symbols); i++ {
-				var symbol *string = SafeStringPtr(symbols[i])
+				var symbol string = symbols[i]
 				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if quoteId != nil {

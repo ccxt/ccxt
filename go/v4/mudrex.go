@@ -301,7 +301,10 @@ func (this *Mudrex) HandleErrors(code int64, reason string, url string, method s
 	var success *bool = this.SafeBool(response, "success", true)
 	if !(success != nil && *success) {
 		var errors []any = SafeListTyped(response, "errors")
-		var first map[string]any = SafeMapTyped(errors, 0)
+		var first map[string]any
+		if 0 < len(errors) {
+			first, _ = errors[0].(map[string]any)
+		}
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, this.Id+" "+*text)
@@ -393,12 +396,10 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var now int64 = this.Seconds()
 	var windowLength int64 = duration * requestLimit
 	var defaultStart int64 = now - windowLength
-	var startTime int64 = this.ParseToInt(func() any {
-		if since != nil {
-			return (float64(*since) / 1000)
-		}
-		return defaultStart
-	}())
+	var startTime int64 = this.ParseToInt(defaultStart)
+	if since != nil {
+		startTime = this.ParseToInt(float64(*since) / 1000)
+	}
 	var windowEnd int64 = this.ParseToInt(startTime + (duration * requestLimit))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
@@ -408,12 +409,10 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		cappedEnd = windowEnd
 	}
-	var endTime int64 = this.ParseToInt(func() any {
-		if until != nil {
-			return (float64(*until) / 1000)
-		}
-		return cappedEnd
-	}())
+	var endTime int64 = this.ParseToInt(cappedEnd)
+	if until != nil {
+		endTime = this.ParseToInt(float64(*until) / 1000)
+	}
 	request["start_time"] = startTime
 	request["end_time"] = endTime
 	var response map[string]any = nil
@@ -485,11 +484,11 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes34415 []any = OHLCVsToList(r.Value)
-	if retRes34415 == nil {
+	var retRes35015 []any = OHLCVsToList(r.Value)
+	if retRes35015 == nil {
 		ch <- AsyncResult[[]OHLCV]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes34415)}
+		ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes35015)}
 	}
 	return nil
 }
@@ -666,21 +665,24 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		var data any = this.SafeValue(response, "data", []any{})
+		var dataDict, _ = response["data"].(map[string]any)
 		var items []any = []any{}
-		if IsObject(data) && !IsArray(data) {
-			items = ArrayTyped(this.SafeList(data, "items", []any{}))
+		if dataDict != nil {
+			items = ArrayTyped(this.SafeList(dataDict, "items", []any{}))
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
 			var itemsLength int = len(items)
 			if itemsLength == 0 {
-				items = ArrayTyped(this.SafeList(data, "results", []any{}))
+				items = ArrayTyped(this.SafeList(dataDict, "results", []any{}))
 				itemsLength = len(items)
 			}
-			if (itemsLength == 0) && (InOp(data, "symbol")) {
-				items = []any{data}
+			if _, ok := dataDict["symbol"]; (itemsLength == 0) && ok {
+				items = []any{dataDict}
 			}
 		} else {
-			items = this.ToArray(data)
+			items, _ = response["data"].([]any)
+			if items == nil {
+				items = []any{}
+			}
 		}
 		var numItems int = len(items)
 		if numItems == 0 {
@@ -726,7 +728,7 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 	}
 	var priceStep string = *this.SafeString(asset, "price_step", "0.01")
 	var qtyStep string = *this.SafeString(asset, "quantity_step", "0.001")
-	var literal50541 map[string]any = map[string]any{
+	var literal51141 map[string]any = map[string]any{
 		"id":             ms,
 		"lowercaseId":    nil,
 		"symbol":         nil,
@@ -775,9 +777,9 @@ func (this *Mudrex) ParseMarket(asset any) map[string]any {
 		"created": nil,
 	}
 	if symbol != nil {
-		literal50541["symbol"] = *symbol
+		literal51141["symbol"] = *symbol
 	}
-	return this.SafeMarketStructure(literal50541)
+	return this.SafeMarketStructure(literal51141)
 }
 
 /**
@@ -848,7 +850,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	return nil
 }
 func (this *Mudrex) ParseBalance(response map[string]any) map[string]any {
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var currency string = *this.SafeString(response, "currency", "USDT")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1059,13 +1061,13 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if (typeVar == "market") && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
-	var ternaryStr73926 string = "SHORT"
+	var ternaryStr74526 string = "SHORT"
 	if side == "buy" {
-		ternaryStr73926 = "LONG"
+		ternaryStr74526 = "LONG"
 	}
-	var ternaryStr74028 string = "LIMIT"
+	var ternaryStr74628 string = "LIMIT"
 	if typeVar == "market" {
-		ternaryStr74028 = "MARKET"
+		ternaryStr74628 = "MARKET"
 	}
 	var request map[string]any = map[string]any{
 		"asset_id":     market["id"],
@@ -1073,8 +1075,8 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"leverage":     this.NumberToString(lev),
 		"quantity":     this.AmountToPrecision(symbol, amount),
 		"order_price":  this.PriceToPrecision(symbol, price),
-		"order_type":   ternaryStr73926,
-		"trigger_type": ternaryStr74028,
+		"order_type":   ternaryStr74526,
+		"trigger_type": ternaryStr74628,
 		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
@@ -1234,7 +1236,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
 	var sym *string = SafeStringPtr(marketResolved["symbol"])
-	var literal85431 map[string]any = map[string]any{
+	var literal86031 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  oid,
 		"clientOrderId":       nil,
@@ -1263,15 +1265,15 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 		"reduceOnly":          this.SafeBool(order, "reduce_only"),
 	}
 	if triggerPrice != nil {
-		literal85431["triggerPrice"] = *triggerPrice
+		literal86031["triggerPrice"] = *triggerPrice
 	}
 	if stopLossPrice != nil {
-		literal85431["stopLossPrice"] = *stopLossPrice
+		literal86031["stopLossPrice"] = *stopLossPrice
 	}
 	if takeProfitPrice != nil {
-		literal85431["takeProfitPrice"] = *takeProfitPrice
+		literal86031["takeProfitPrice"] = *takeProfitPrice
 	}
-	return this.SafeOrder(literal85431, marketResolved)
+	return this.SafeOrder(literal86031, marketResolved)
 }
 
 /**
@@ -1481,11 +1483,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes98815 []any = OrdersToList(r.Value)
-	if retRes98815 == nil {
+	var retRes99415 []any = OrdersToList(r.Value)
+	if retRes99415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes98815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes99415)}
 	}
 	return nil
 }
@@ -1522,11 +1524,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes100315 []any = OrdersToList(r.Value)
-	if retRes100315 == nil {
+	var retRes100915 []any = OrdersToList(r.Value)
+	if retRes100915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100915)}
 	}
 	return nil
 }
@@ -1563,11 +1565,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes101815 []any = OrdersToList(r.Value)
-	if retRes101815 == nil {
+	var retRes102415 []any = OrdersToList(r.Value)
+	if retRes102415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes101815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes102415)}
 	}
 	return nil
 }
@@ -2025,7 +2027,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			allRows = append(allRows, entry)
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-				if (market == nil) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
+				if (market == nil) || (this.SafeString(entry, "symbol") == this.SafeString(market, "id") || (this.SafeString(entry, "symbol") != nil && this.SafeString(market, "id") != nil && *this.SafeString(entry, "symbol") == *this.SafeString(market, "id"))) {
 					transactionsCount = transactionsCount + 1
 				}
 			}

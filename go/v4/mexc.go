@@ -2763,7 +2763,7 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var prevClose *string = nil
 	var isSwap *bool = this.SafeBool(marketResolved, "swap", false)
 	// if swap
-	if (isSwap != nil && *isSwap) || (InOp(ticker, "timestamp")) {
+	if (isSwap != nil && *isSwap) || (this.SafeString(ticker, "timestamp") != nil) {
 		//
 		//     {
 		//         "symbol": "ETH_USDT",
@@ -3539,8 +3539,8 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[st
 		}
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var marginMode *string = nil
 		marginMode, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
@@ -6348,7 +6348,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 	if networkCode != nil {
 		// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 		var networkUnified *string = this.NetworkIdToCode(networkCode, code)
-		var networks map[string]any = SafeMapTyped(currency, "networks")
+		var networks, _ = currency["networks"].(map[string]any)
 		var networkUnifiedInNetworks bool
 		if networkUnified != nil {
 			_, networkUnifiedInNetworks = networks[*networkUnified]
@@ -6432,7 +6432,7 @@ func (this *Mexc) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	// createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
 	var networkId *string = nil
 	var networkUnified *string = this.NetworkIdToCode(networkCode, code)
-	var networks map[string]any = SafeMapTyped(currency, "networks")
+	var networks, _ = currency["networks"].(map[string]any)
 	var networkUnifiedInNetworks bool
 	if networkUnified != nil {
 		_, networkUnifiedInNetworks = networks[*networkUnified]
@@ -7856,7 +7856,7 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) map[
 	var networkList []any = SafeListTyped(transaction, "networkList")
 	var result map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = SafeMapTyped(networkList, j)
+		var networkEntry, _ = networkList[j].(map[string]any)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.SafeString(this.Options["networks"], networkId, networkId)
 		var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
@@ -7971,7 +7971,7 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[stri
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(networkList); j++ {
-		var networkEntry map[string]any = SafeMapTyped(networkList, j)
+		var networkEntry, _ = networkList[j].(map[string]any)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 		if networkCode != nil {

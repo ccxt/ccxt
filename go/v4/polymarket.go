@@ -2917,7 +2917,10 @@ func (this *Polymarket) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 	// select the requested row explicitly in case the documented
 	// order_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
-		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var row, _ = response[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var rowId *string = this.SafeString(row, "order_id")
 		if rowId != nil && *rowId == id {
 
@@ -3507,7 +3510,10 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 	// select the requested row explicitly in case the documented
 	// instrument_id filter is ever ignored the way the tickers one is
 	for i := 0; i < len(response); i++ {
-		var row map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var row, _ = response[i].(map[string]any)
+		if row == nil {
+			row = map[string]any{}
+		}
 		var rowId *string = this.SafeString(row, "instrument_id")
 		if IsEqual(rowId, market["id"]) {
 
@@ -4082,7 +4088,7 @@ func (this *Polymarket) PriceToPrecision(symbol any, price any) *string {
 	// per-instrument decimals, deliberately for any magnitude - a six
 	// digit integer price coarsens to an effective step of ten
 	var market map[string]any = this.Market(symbol)
-	var precision map[string]any = SafeMapTyped(market, "precision")
+	var precision, _ = market["precision"].(map[string]any)
 	var significant string = this.DecimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS)
 	var result string = this.DecimalToPrecision(significant, ROUND, precision["price"], TICK_SIZE)
 	if result == "0" {
@@ -4096,7 +4102,7 @@ func (this *Polymarket) AmountToPrecision(symbol any, amount any) *string {
 	}
 	// quantities carry the same five significant figures cap
 	var market map[string]any = this.Market(symbol)
-	var precision map[string]any = SafeMapTyped(market, "precision")
+	var precision, _ = market["precision"].(map[string]any)
 	var significant string = this.DecimalToPrecision(amount, TRUNCATE, 5, SIGNIFICANT_DIGITS)
 	var result string = this.DecimalToPrecision(significant, TRUNCATE, precision["amount"], TICK_SIZE)
 	if result == "0" {
@@ -4108,20 +4114,16 @@ func (this *Polymarket) CalculateRateLimiterCost(api any, method string, path st
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	if path == "account/orders" {
-		return func() int {
-			if InOp(params, "order_id") {
-				return 1
-			}
-			return 10
-		}()
+		if this.SafeString(params, "order_id") != nil {
+			return 1
+		}
+		return 10
 	}
 	if path == "account/open-orders" {
-		return func() int {
-			if InOp(params, "instrument_id") {
-				return 1
-			}
-			return 20
-		}()
+		if this.SafeString(params, "instrument_id") != nil {
+			return 1
+		}
+		return 20
 	}
 	if (path == "trade/orders") || (path == "trade/orders-coid") {
 		var op map[string]any = SafeMapTyped(params, "op")
@@ -4177,16 +4179,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
 		}
 	}
-	var literal286515 map[string]any = map[string]any{
+	var literal287115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersResolved,
 	}
 	if bodyResolved != nil {
-		literal286515["body"] = *bodyResolved
+		literal287115["body"] = *bodyResolved
 	}
-	return literal286515
+	return literal287115
 }
 func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

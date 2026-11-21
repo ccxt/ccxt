@@ -1340,7 +1340,10 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
 	var price *float64 = this.SafeNumber(order, "price")
 	var transaction []any = SafeListTyped(deal, "transactions")
 	var fee map[string]any = nil
-	var firstTx map[string]any = SafeMapTyped(transaction, 0)
+	var firstTx map[string]any
+	if 0 < len(transaction) {
+		firstTx, _ = transaction[0].(map[string]any)
+	}
 	var feeCurrency *string = this.SafeString(firstTx, "feeCurrency")
 	if feeCurrency != nil {
 		fee = map[string]any{
@@ -1466,8 +1469,8 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var currentFeeTier map[string]any = SafeMapTyped(data, "current_tariff_step")
+	var data, _ = response["result"].(map[string]any)
+	var currentFeeTier, _ = data["current_tariff_step"].(map[string]any)
 	var makerFee *string = this.SafeString(currentFeeTier, "maker_percent")
 	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")
@@ -1503,7 +1506,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[st
 	var takerFees []any = []any{}
 	var makerFees []any = []any{}
 	for i := 0; i < len(feeTiers); i++ {
-		var tier map[string]any = SafeMapTyped(feeTiers, i)
+		var tier, _ = feeTiers[i].(map[string]any)
 		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
 		var taker *string = this.SafeString(tier, "taker_percent")
 		var maker *string = this.SafeString(tier, "maker_percent")

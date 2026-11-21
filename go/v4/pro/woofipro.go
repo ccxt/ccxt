@@ -762,7 +762,7 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString2(trade, "executedPrice", "price")
 	var amount *string = this.SafeString2(trade, "executedQuantity", "size")
 	var cost *string = ccxt.Precise.StringMul(price, amount)
@@ -1160,7 +1160,10 @@ func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = &marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1520,8 +1523,8 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 		var position map[string]any = this.ParseWsPosition(rawPositions[i], market)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
-		var positionSymbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var messageHash string = "positions::" + *positionSymbol
+		var positionSymbol string = *this.SafeString(market, "symbol", "")
+		var messageHash string = "positions::" + positionSymbol
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
@@ -1696,7 +1699,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var value map[string]any = ccxt.SafeMapTyped(balances, key)
+		var value, _ = balances[key].(map[string]any)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if code != nil {

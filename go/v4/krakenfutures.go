@@ -1118,7 +1118,7 @@ func (this *Krakenfutures) ParseTradingFee(fee map[string]any, optionalArgs ...a
 	var makerFee *string = nil
 	var takerFee *string = nil
 	for i := 0; i < len(tiers); i++ {
-		var tier map[string]any = SafeMapTyped(tiers, i)
+		var tier, _ = tiers[i].(map[string]any)
 		var tierVolume *string = this.SafeString(tier, "usdVolume")
 		if (volume == nil) || Precise.StringGe(volume, tierVolume) {
 			makerFee = this.SafeString(tier, "makerFee")
@@ -1411,8 +1411,8 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		for i := 0; i < length; i++ {
 			var index any = (int64(length) - 1) - int64(i)
 			var element map[string]any = SafeMapTyped(elements, index)
-			var event map[string]any = SafeMapTyped(element, "event")
-			var executionContainer map[string]any = SafeMapTyped(event, "Execution")
+			var event, _ = element["event"].(map[string]any)
+			var executionContainer, _ = event["Execution"].(map[string]any)
 			var rawTrade map[string]any = this.SafeDictMap(executionContainer, "execution", map[string]any{})
 			rawTrades = append(rawTrades, rawTrade)
 		}
@@ -2470,7 +2470,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], o
 		var order, _ = allOrders[i].(map[string]any)
 		var event, _ = order["event"].(map[string]any)
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerActivated")
-		var orderUpdated map[string]any = SafeMapTyped(event, "OrderUpdated")
+		var orderUpdated, _ = event["OrderUpdated"].(map[string]any)
 		if orderPlaced != nil {
 			var innerOrder map[string]any = this.SafeDictMap(orderPlaced, "order", map[string]any{})
 			var filled *string = this.SafeString(innerOrder, "filled")
@@ -2572,13 +2572,13 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 				canceledAndRejected = append(canceledAndRejected, innerOrder)
 			}
 		}
-		var orderCanceled map[string]any = SafeMapTyped(event, "OrderCancelled")
+		var orderCanceled, _ = event["OrderCancelled"].(map[string]any)
 		if orderCanceled != nil {
 			var innerOrder map[string]any = this.SafeDictMap(orderCanceled, "order", map[string]any{})
 			innerOrder["status"] = "canceled" // status not available in the response
 			canceledAndRejected = append(canceledAndRejected, innerOrder)
 		}
-		var orderRejected map[string]any = SafeMapTyped(event, "OrderRejected")
+		var orderRejected, _ = event["OrderRejected"].(map[string]any)
 		if orderRejected != nil {
 			var innerOrder map[string]any = this.SafeDictMap(orderRejected, "order", map[string]any{})
 			innerOrder["status"] = "rejected" // status not available in the response
@@ -2970,7 +2970,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		//
 		var datetime *string = this.SafeString(orderDictFromFetchOrder, "timestamp")
 		var innerStatus *string = this.SafeString(order, "status")
-		var fetchOrderPriceTriggerOptions map[string]any = SafeMapTyped(orderDictFromFetchOrder, "priceTriggerOptions")
+		var fetchOrderPriceTriggerOptions, _ = orderDictFromFetchOrder["priceTriggerOptions"].(map[string]any)
 		var fetchOrderTriggerPrice *string = this.SafeString(fetchOrderPriceTriggerOptions, "triggerPrice")
 		var unifiedSymbol *string = this.SafeSymbol(this.SafeString(orderDictFromFetchOrder, "symbol"), market)
 		return this.SafeOrder(map[string]any{
@@ -3079,7 +3079,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		vwapSumLit409 := "0.0"
 		var vwapSum *string = &vwapSumLit409
 		for i := 0; i < len(trades); i++ {
-			var trade map[string]any = SafeMapTyped(trades, i)
+			var trade, _ = trades[i].(map[string]any)
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			var tradePrice *string = this.SafeString(trade, "price")
 			filled2 = Precise.StringAdd(filled2, tradeAmount)
@@ -3867,7 +3867,7 @@ func (this *Krakenfutures) ParseBalance(response map[string]any) map[string]any 
 			account["used"] = "0.0"
 			account["total"] = balance
 		} else {
-			var auxiliary map[string]any = SafeMapTyped(response, "auxiliary")
+			var auxiliary, _ = response["auxiliary"].(map[string]any)
 			account["free"] = this.SafeString(auxiliary, "af")
 			account["total"] = this.SafeString(auxiliary, "pv")
 		}
@@ -4264,7 +4264,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 	var updates []any = []any{}
 	for i := 0; i < len(elements); i++ {
 		var event map[string]any = SafeMapTyped(elements[i], "event")
-		var update map[string]any = SafeMapTyped(event, "PositionUpdate")
+		var update, _ = event["PositionUpdate"].(map[string]any)
 		if update != nil {
 			updates = append(updates, update)
 		}
@@ -4900,7 +4900,10 @@ func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, m
 		panic(DDoSProtection(this.Id + " " + body))
 	}
 	var errors []any = SafeListTyped(response, "errors")
-	var firstError map[string]any = SafeMapTyped(errors, 0)
+	var firstError map[string]any
+	if 0 < len(errors) {
+		firstError, _ = errors[0].(map[string]any)
+	}
 	var firtErrorMessage *string = this.SafeString(firstError, "message")
 	var message *string = this.SafeString(response, "error", firtErrorMessage)
 	if message == nil {

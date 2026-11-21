@@ -453,11 +453,11 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) map[string]any {
 	var typeVar *string = this.SafeStringLower(rawCurrency, "type")
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var network map[string]any = SafeMapTyped(networks, j)
+		var network, _ = networks[j].(map[string]any)
 		var networkId *string = this.SafeString(network, "code")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
-		var networkDepositInfo map[string]any = SafeMapTyped(network, "deposit_info")
+		var networkWithdrawInfo, _ = network["withdraw_info"].(map[string]any)
+		var networkDepositInfo, _ = network["deposit_info"].(map[string]any)
 		if networkCode != nil {
 			parsedNetworks[*networkCode] = map[string]any{
 				"info":      rawCurrency,
@@ -835,10 +835,8 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "market_symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
-		if symbol != nil {
-			result[*symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data[i], market))
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		result[symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data[i], market))
 	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -1428,7 +1426,11 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		var symbol *string = this.SafeString(order, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var typeVar *string = this.SafeStringUpper(order, "type", "")
-		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = order["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
 			panic(InvalidOrder("Invalid order type: " + *typeVar + ". Must be one of: limit, market, stop_market, stop_limit, instant."))
 		}
@@ -2506,8 +2508,8 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
 	var rolling_24h map[string]any = SafeMapTyped(ticker, "rolling_24h")
 	var best map[string]any = SafeMapTyped(ticker, "best")
-	var bestAsk map[string]any = SafeMapTyped(best, "ask")
-	var bestBid map[string]any = SafeMapTyped(best, "bid")
+	var bestAsk, _ = best["ask"].(map[string]any)
+	var bestBid, _ = best["bid"].(map[string]any)
 	var lastTrade map[string]any = SafeMapTyped(ticker, "last_trade")
 	var lastPrice *string = this.SafeString(lastTrade, "price")
 	var change *string = this.SafeString(rolling_24h, "price_change")

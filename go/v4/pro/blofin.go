@@ -261,7 +261,10 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 		return
 	}
 	for i := 0; i < len(data); i++ {
-		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var rawTrade, _ = data[i].(map[string]any)
+		if rawTrade == nil {
+			rawTrade = map[string]any{}
+		}
 		var trade map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol string = *this.SafeString(trade, "symbol", "")
 		var stored ccxt.WsArrayCache = this.Trades[symbol]
@@ -657,7 +660,7 @@ func (this *Blofin) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		panic(r.Err)
 	}
 	var result map[string]any = ccxt.StructResultMap(r.Value, ccxt.OHLCVForSymbolsMapToMap)
-	var symbolResult map[string]any = ccxt.SafeMapTyped(result, symbol)
+	var symbolResult, _ = result[symbol].(map[string]any)
 
 	var resolved []any
 	switch resolvedBox := this.SafeList(symbolResult, timeframe, []any{}).(type) {
@@ -1339,12 +1342,12 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 		for i := 0; i < len(symbols); i++ {
 			var current string = symbols[i]
 			var market map[string]any = nil
-			var channel any = channelName
+			var channel string = channelName
 			if isOHLCV {
 				market = this.Market(current)
-				var tf *string = this.SafeString(this.SafeList(symbolsArray, i), 1)
-				var interval *string = this.SafeString(this.Timeframes, tf, tf)
-				channel = ccxt.Add(channel, interval)
+				var tf string = *this.SafeString(this.SafeList(symbolsArray, i), 1, "")
+				var interval string = *this.SafeString(this.Timeframes, tf, tf)
+				channel = channel + interval
 			} else {
 				market = this.Market(current)
 			}
@@ -1353,7 +1356,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 				"instId":  market["id"],
 			}
 			rawSubscriptions = append(rawSubscriptions, topic)
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), this.SafeString(market, "symbol", "")))
+			messageHashes = append(messageHashes, channel+":"+*this.SafeString(market, "symbol", ""))
 		}
 	} else {
 		rawSubscriptions = append(rawSubscriptions, map[string]any{
@@ -1424,11 +1427,11 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbols); i++ {
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(this.SafeString(symbols, i)))
-		var channel any = channelName
+		var channel string = channelName
 		if isOHLCV {
-			var tf *string = this.SafeString(this.SafeList(symbolsArray, i), 1)
-			var interval *string = this.SafeString(this.Timeframes, tf, tf)
-			channel = ccxt.Add(channel, interval)
+			var tf string = *this.SafeString(this.SafeList(symbolsArray, i), 1, "")
+			var interval string = *this.SafeString(this.Timeframes, tf, tf)
+			channel = channel + interval
 		}
 		var topic map[string]any = map[string]any{
 			"channel": channel,
@@ -1438,7 +1441,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 			topic["instId"] = *market.Id
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), market.Symbol))
+		messageHashes = append(messageHashes, "unsubscribe:"+channel+":"+market.Symbol)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",

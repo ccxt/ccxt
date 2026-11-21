@@ -431,7 +431,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 					break
 				}
 				for i := 0; i < pageMarketsLength; i++ {
-					var raw map[string]any = ccxt.SafeMapTyped(page_markets, i)
+					var raw, _ = page_markets[i].(map[string]any)
 					allRaw = append(allRaw, raw)
 				}
 				var allRawCount int = len(allRaw)
@@ -1837,7 +1837,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 	var candles map[string]any = map[string]any{}
 	var bucketOrder []string = []string{}
 	for i := 0; i < len(sorted); i++ {
-		var point map[string]any = ccxt.SafeMapTyped(sorted, i)
+		var point, _ = sorted[i].(map[string]any)
 		var pTs *int64 = this.SafeInteger(point, "timestamp")
 		var pPrice *float64 = this.SafeNumber(point, "price")
 		if pTs == nil {
@@ -1853,17 +1853,17 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 			candles[key] = []any{bucket, pPrice, pPrice, pPrice, pPrice, 0}
 			bucketOrder = append(bucketOrder, key)
 		} else {
-			var candle any = candles[key]
-			var prevHigh *float64 = this.SafeNumber(candle, 2)
-			if (prevHigh == nil) || (pPrice != nil && (prevHigh == nil || *pPrice > *prevHigh)) {
-				ccxt.AddElementToObject(candle, 2, pPrice)
+			var prevHigh *float64 = this.SafeNumber(candles[key], 2, pPrice)
+			var prevLow *float64 = this.SafeNumber(candles[key], 3, pPrice)
+			var openTs *int64 = this.SafeInteger(candles[key], 0)
+			var openPrice *float64 = this.SafeNumber(candles[key], 1)
+			if (prevHigh != nil) && (pPrice != nil && *pPrice > *prevHigh) {
+				candles[key] = []any{openTs, openPrice, pPrice, prevLow, pPrice, 0}
+			} else if (prevLow != nil) && (pPrice == nil || *prevLow > *pPrice) {
+				candles[key] = []any{openTs, openPrice, prevHigh, pPrice, pPrice, 0}
+			} else {
+				candles[key] = []any{openTs, openPrice, prevHigh, prevLow, pPrice, 0}
 			}
-			var prevLow *float64 = this.SafeNumber(candle, 3)
-			if (prevLow == nil) || (prevLow != nil && (pPrice == nil || *prevLow > *pPrice)) {
-				ccxt.AddElementToObject(candle, 3, pPrice)
-			}
-			ccxt.AddElementToObject(candle, 4, pPrice)
-			candles[key] = candle // php arrays are value types - write the mutation back
 		}
 	}
 	var result []any = []any{}
@@ -2205,7 +2205,10 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	var results, _ = response["results"].([]any)
 	var found []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var item map[string]any = this.SafeDictMap(results, i, map[string]any{})
+		var item, _ = results[i].(map[string]any)
+		if item == nil {
+			item = map[string]any{}
+		}
 		var itemStatus *string = this.SafeString(item, "status")
 		if itemStatus != nil && *itemStatus == "found" {
 			found = append(found, item)
@@ -2417,13 +2420,13 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) map[
 		typeVar = &typeVarStr2
 	}
 	var rawStatus *string = this.SafeString(rawOrder, "status")
-	var execution map[string]any = ccxt.SafeMapTyped(data, "execution")
+	var execution, _ = data["execution"].(map[string]any)
 	var fee map[string]any = nil
 	var filled any = nil
 	var cost any = nil
 	if execution != nil {
 		rawStatus = this.SafeString(execution, "settlementStatus")
-		var totals map[string]any = ccxt.SafeMapTyped(execution, "totalsRaw")
+		var totals, _ = execution["totalsRaw"].(map[string]any)
 		if derefPtr := this.SafeString(totals, "usdGross"); derefPtr != nil {
 			cost = *derefPtr
 		} else {
@@ -2615,7 +2618,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	}
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	var account map[string]any = ccxt.SafeMapTyped(accounts, 0)
-	var accountInfo map[string]any = ccxt.SafeMapTyped(account, "info")
+	var accountInfo, _ = account["info"].(map[string]any)
 	// the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
 	// the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
 	// smartWallet field can stay populated after switching to eoa, so key off the option here
@@ -2723,7 +2726,7 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	}
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var sideValue *int64 = this.SafeInteger(sides, strings.ToLower(side))
-	var rank map[string]any = ccxt.SafeMapTyped(accountInfo, "rank")
+	var rank, _ = accountInfo["rank"].(map[string]any)
 	// signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
 	var signatureType any = func() int {
 		if isSmartWallet {
@@ -2850,8 +2853,8 @@ func (this *Limitless) SignOrderRequest(signRequest map[string]any, marketSymbol
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders"))
 	}
 	var market map[string]any = this.Market(marketSymbol)
-	var info map[string]any = ccxt.SafeMapTyped(market, "info")
-	var venue map[string]any = ccxt.SafeMapTyped(info, "venue")
+	var info, _ = market["info"].(map[string]any)
+	var venue, _ = info["venue"].(map[string]any)
 	var exchange *string = this.SafeString(venue, "exchange")
 	var domain map[string]any = map[string]any{
 		"chainId":           8453,
@@ -3531,7 +3534,7 @@ func (this *Limitless) GetOutcomeBySlugAndLabel(slug *string, label *string, opt
 	var mkt map[string]any = this.SafeMarket(slug, market)
 	var outcomes []any = ccxt.SafeListTyped(mkt, "outcomes")
 	for i := 0; i < len(outcomes); i++ {
-		var outcome map[string]any = ccxt.SafeMapTyped(outcomes, i)
+		var outcome, _ = outcomes[i].(map[string]any)
 		var outcomeLabel *string = this.SafeString(outcome, "label")
 		if outcomeLabel == label || (outcomeLabel != nil && label != nil && *outcomeLabel == *label) {
 			return outcome
@@ -4037,7 +4040,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	var categoryIds []string = []string{}
 	var categoriesLength int = len(categories)
 	for i := 0; i < categoriesLength; i++ {
-		var category map[string]any = ccxt.SafeMapTyped(categories, i)
+		var category, _ = categories[i].(map[string]any)
 		var name string = *this.SafeStringLower(category, "name", "")
 		var categoryId *string = this.SafeString(category, "id")
 		var matched bool = false

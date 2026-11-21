@@ -1201,7 +1201,10 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
-		var market map[string]any = this.SafeDictMap(all, i, map[string]any{})
+		var market, _ = all[i].(map[string]any)
+		if market == nil {
+			market = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseMarket(market)
 		if parsed != nil {
 			result = append(result, parsed)
@@ -2202,7 +2205,7 @@ func (this *Toobit) ParseBalanceList(response any) map[string]any {
 	}
 	var balances []any = this.SafeListSlice(response, "balances", response)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "asset"))
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString2(balance, "free", "availableBalance")

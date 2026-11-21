@@ -833,7 +833,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) map[string]any {
 func (this *Coinsph) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	var hasSymbolParam bool = (InOp(params, "symbol"))
+	var hasSymbolParam bool = (this.SafeString(params, "symbol") != nil)
 	var hasSymbolsParam bool = (InOp(params, "symbols"))
 	var limit *int64 = this.SafeInteger(params, "limit")
 	if _, ok := config["noSymbol"]; ok && !hasSymbolParam {
@@ -1873,7 +1873,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"side":   orderSide,
 	}
 	var options, _ = this.Options["createOrder"].(map[string]any)
-	var newOrderRespTypes map[string]any = SafeMapTyped(options, "newOrderRespType")
+	var newOrderRespTypes, _ = options["newOrderRespType"].(map[string]any)
 	var newOrderRespType string = "FULL"
 	// if limit order
 	if (orderType != nil && *orderType == "LIMIT") || (orderType != nil && *orderType == "STOP_LOSS_LIMIT") || (orderType != nil && *orderType == "TAKE_PROFIT_LIMIT") || (orderType != nil && *orderType == "LIMIT_MAKER") {

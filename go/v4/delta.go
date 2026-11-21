@@ -455,17 +455,20 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		str := *rawExpiry
 		rawExpiryPart = str[4:]
 	}
+	var expiryYear string = rawExpiryPart
 	var rawExpiryPart2 string
 	if rawExpiry != nil {
 		str := *rawExpiry
 		rawExpiryPart2 = str[2:min(4, len(str))]
 	}
+	var expiryMonth string = rawExpiryPart2
 	var rawExpiryPart3 string
 	if rawExpiry != nil {
 		str := *rawExpiry
 		rawExpiryPart3 = str[0:min(2, len(str))]
 	}
-	var expiry string = rawExpiryPart + rawExpiryPart2 + rawExpiryPart3
+	var expiryDay string = rawExpiryPart3
+	var expiry string = expiryYear + expiryMonth + expiryDay
 	var settle string = quote
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var datetime any = this.ConvertExpireDate(&expiry)
@@ -1068,10 +1071,10 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			continue
 		}
 		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
-		var quotingAsset map[string]any = SafeMapTyped(market, "quoting_asset")
-		var underlyingAsset map[string]any = SafeMapTyped(market, "underlying_asset")
-		var settlingAsset map[string]any = SafeMapTyped(market, "settling_asset")
-		var productSpecs map[string]any = SafeMapTyped(market, "product_specs")
+		var quotingAsset, _ = market["quoting_asset"].(map[string]any)
+		var underlyingAsset, _ = market["underlying_asset"].(map[string]any)
+		var settlingAsset, _ = market["settling_asset"].(map[string]any)
+		var productSpecs, _ = market["product_specs"].(map[string]any)
 		var baseId *string = this.SafeString(underlyingAsset, "symbol")
 		var quoteId *string = this.SafeString(quotingAsset, "symbol")
 		var settleId *string = this.SafeString(settlingAsset, "symbol")
@@ -1103,11 +1106,13 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		}
 		var linear bool = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 		var optionType *string = nil
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		if swap || future || option {
-			symbol = Add(Add(symbol, ":"), settle)
+			var settleCode *string = this.SafeCurrencyCode(settleId)
+			symbol = symbol + ":" + *settleCode
 			if future || option {
-				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+				var expiryCode string = this.Yymmdd(expiry)
+				symbol = symbol + "-" + expiryCode
 				if option {
 					typeVarStr := "option"
 					typeVar = &typeVarStr
@@ -1123,7 +1128,8 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 						optionTypeStr3 := "move"
 						optionType = &optionTypeStr3
 					}
-					symbol = Add(Add(Add(Add(symbol, "-"), strike), "-"), letter)
+					var strikeString string = *this.SafeString(market, "strike_price", "")
+					symbol = symbol + "-" + strikeString + "-" + letter
 				} else {
 					typeVarStr2 := "future"
 					typeVar = &typeVarStr2
@@ -1134,44 +1140,29 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			}
 		}
 		var state *string = this.SafeString(market, "state")
-		result = append(result, this.SafeMarketStructure(map[string]any{
-			"id":        id,
-			"numericId": numericId,
-			"symbol":    symbol,
-			"base":      base,
-			"quote":     quote,
-			"settle":    settle,
-			"baseId":    baseId,
-			"quoteId":   quoteId,
-			"settleId":  settleId,
-			"type":      typeVar,
-			"spot":      spot,
-			"margin":    false,
-			"swap":      swap,
-			"future":    future,
-			"option":    option,
-			"active":    (state != nil && *state == "live"),
-			"contract":  !spot,
-			"linear": func() any {
-				if spot {
-					return nil
-				}
-				return linear
-			}(),
-			"inverse": func() any {
-				if spot {
-					return nil
-				}
-				return !linear
-			}(),
-			"taker": this.SafeNumber(market, "taker_commission_rate"),
-			"maker": this.SafeNumber(market, "maker_commission_rate"),
-			"contractSize": func() any {
-				if spot {
-					return nil
-				}
-				return contractSize
-			}(),
+		var marketStructure map[string]any = map[string]any{
+			"id":             id,
+			"numericId":      numericId,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           spot,
+			"margin":         false,
+			"swap":           swap,
+			"future":         future,
+			"option":         option,
+			"active":         (state != nil && *state == "live"),
+			"contract":       !spot,
+			"linear":         nil,
+			"inverse":        nil,
+			"taker":          this.SafeNumber(market, "taker_commission_rate"),
+			"maker":          this.SafeNumber(market, "maker_commission_rate"),
+			"contractSize":   nil,
 			"expiry":         expiry,
 			"expiryDatetime": this.Iso8601(expiry),
 			"strike":         this.ParseNumber(strike),
@@ -1200,7 +1191,13 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			},
 			"created": this.Parse8601(this.SafeString(market, "launch_time")),
 			"info":    market,
-		}))
+		}
+		if !spot {
+			marketStructure["linear"] = linear
+			marketStructure["inverse"] = !linear
+			marketStructure["contractSize"] = contractSize
+		}
+		result = append(result, this.SafeMarketStructure(marketStructure))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -1868,7 +1865,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee map[string]any = nil
 	if feeCostString != nil {
-		var settlingAsset map[string]any = SafeMapTyped(product, "settling_asset")
+		var settlingAsset, _ = product["settling_asset"].(map[string]any)
 		var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -2040,8 +2037,8 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	if price != nil && *price == "mark" {
 		request["symbol"] = "MARK:" + *marketId
 	} else if price != nil && *price == "index" {
-		var marketInfo map[string]any = SafeMapTyped(market, "info")
-		var spotIndex map[string]any = SafeMapTyped(marketInfo, "spot_index")
+		var marketInfo, _ = market["info"].(map[string]any)
+		var spotIndex, _ = marketInfo["spot_index"].(map[string]any)
 		request["symbol"] = this.SafeString(spotIndex, "symbol")
 	} else {
 		request["symbol"] = marketId
@@ -2450,7 +2447,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		var feeCurrencyCode *string = nil
 		if marketValue != nil {
 			var marketInfo map[string]any = SafeMapTyped(marketValue, "info")
-			var settlingAsset map[string]any = SafeMapTyped(marketInfo, "settling_asset")
+			var settlingAsset, _ = marketInfo["settling_asset"].(map[string]any)
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		}
@@ -2459,7 +2456,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal201231 map[string]any = map[string]any{
+	var literal202431 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2480,9 +2477,9 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             nil,
 	}
 	if symbol != nil {
-		literal201231["symbol"] = *symbol
+		literal202431["symbol"] = *symbol
 	}
-	return this.SafeOrder(literal201231, marketValue)
+	return this.SafeOrder(literal202431, marketValue)
 }
 
 /**
@@ -2930,11 +2927,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233615 []any = OrdersToList(r.Value)
-	if retRes233615 == nil {
+	var retRes234815 []any = OrdersToList(r.Value)
+	if retRes234815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234815)}
 	}
 	return nil
 }
@@ -2971,11 +2968,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes235115 []any = OrdersToList(r.Value)
-	if retRes235115 == nil {
+	var retRes236315 []any = OrdersToList(r.Value)
+	if retRes236315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes235115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236315)}
 	}
 	return nil
 }

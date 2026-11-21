@@ -632,7 +632,7 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
 		var asset map[string]any = this.SafeDictMap(assets, id, map[string]any{})
-		var assetSettings map[string]any = SafeMapTyped(settingsById, id)
+		var assetSettings, _ = settingsById[id].(map[string]any)
 		// an operation that is not listed for an asset is not available for it
 		var actions []any = this.SafeListSlice(assetSettings, "actions", []any{})
 		var currency map[string]any = this.ParseCurrency(this.Extend(asset, map[string]any{
@@ -1174,11 +1174,9 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var end any
+		var end any = this.Milliseconds()
 		if until != nil {
 			end = until
-		} else {
-			end = this.Milliseconds()
 		}
 		request["startTime"] = Subtract(end, requestLimit*duration)
 	}
@@ -1429,14 +1427,10 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 		request["takeProfitPrice"] = this.PriceToPrecision(symbol, takeProfitPrice)
 		request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
-		var stopLossLimit any = stopLimitPrice
-		if IsEqual(stopLossLimit, nil) {
+		var stopLossLimit *string = stopLimitPrice
+		if stopLossLimit == nil {
 			if price != nil {
-				if derefPtr := this.NumberToString(price); derefPtr != nil {
-					stopLossLimit = *derefPtr
-				} else {
-					stopLossLimit = nil
-				}
+				stopLossLimit = this.NumberToString(price)
 			} else {
 				stopLossLimit = stopLossPrice
 			}
@@ -1855,11 +1849,11 @@ func (this *Bit2me) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes139615 []any = OrdersToList(r.Value)
-	if retRes139615 == nil {
+	var retRes140315 []any = OrdersToList(r.Value)
+	if retRes140315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes139615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140315)}
 	}
 	return nil
 }
@@ -1900,11 +1894,11 @@ func (this *Bit2me) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes141515 []any = OrdersToList(r.Value)
-	if retRes141515 == nil {
+	var retRes142215 []any = OrdersToList(r.Value)
+	if retRes142215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142215)}
 	}
 	return nil
 }
@@ -1945,11 +1939,11 @@ func (this *Bit2me) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes143415 []any = OrdersToList(r.Value)
-	if retRes143415 == nil {
+	var retRes144115 []any = OrdersToList(r.Value)
+	if retRes144115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes143415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes144115)}
 	}
 	return nil
 }
@@ -1990,11 +1984,11 @@ func (this *Bit2me) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes145315 []any = OrdersToList(r.Value)
-	if retRes145315 == nil {
+	var retRes146015 []any = OrdersToList(r.Value)
+	if retRes146015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes145315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes146015)}
 	}
 	return nil
 }
@@ -2478,7 +2472,7 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		statusStr := "ok"
 		status = &statusStr
 	}
-	var literal180315 map[string]any = map[string]any{
+	var literal181015 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -2490,12 +2484,12 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      nil,
 	}
 	if id != nil {
-		literal180315["id"] = *id
+		literal181015["id"] = *id
 	}
 	if status != nil {
-		literal180315["status"] = *status
+		literal181015["status"] = *status
 	}
-	return TransferEntryFromMap(literal180315)
+	return TransferEntryFromMap(literal181015)
 }
 func (this *Bit2me) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

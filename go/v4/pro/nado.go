@@ -1469,7 +1469,11 @@ func (this *Nado) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 		panic(r1.Err)
 	}
 	var request map[string]any = r1.Value
-	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
+	var placeOrder map[string]any
+	placeOrder, _ = request["place_order"].(map[string]any)
+	if placeOrder == nil {
+		placeOrder = map[string]any{}
+	}
 	if _, ok := placeOrder["trigger"]; ok {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() does not support trigger orders, use createOrder() instead"))
 	}
@@ -1580,8 +1584,12 @@ func (this *Nado) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id strin
 	//         "id": 100
 	//     }
 	//
-	var cancelAndPlace map[string]any = ccxt.SafeMapTyped(request, "cancel_and_place")
-	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
+	var cancelAndPlace, _ = request["cancel_and_place"].(map[string]any)
+	var placeOrder map[string]any
+	placeOrder, _ = cancelAndPlace["place_order"].(map[string]any)
+	if placeOrder == nil {
+		placeOrder = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,

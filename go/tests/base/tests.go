@@ -2065,19 +2065,19 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 		return nil
 	}
 	var urlParts []string = Split(url, "/")
-	var res any = ""
+	var res string = ""
 	for i := 0; i < len(urlParts); i++ {
 		if i > 2 {
 			var current string = urlParts[i]
 			if strings.Index(current, "?") > -1 {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = strings.Split(current, "?")
-				res = Add(res, "/")
-				res = Add(res, currentParts[0])
+				res += "/"
+				res += currentParts[0]
 				break
 			}
-			res = Add(res, "/")
-			res = Add(res, current)
+			res += "/"
+			res += current
 		}
 	}
 	return res

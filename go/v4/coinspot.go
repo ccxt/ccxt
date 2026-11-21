@@ -598,7 +598,7 @@ func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 		var rows []any = SafeList2Typed(response, "balance", "balances")
 		var numRows int = len(rows)
 		for i := 0; i < numRows; i++ {
-			var currencies map[string]any = SafeMapTyped(rows, i)
+			var currencies, _ = rows[i].(map[string]any)
 			var currencyIdsList []string = nil
 			if currencies != nil {
 				currencyIdsList = make([]string, 0, len(currencies))
@@ -608,7 +608,7 @@ func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 			}
 			for j := 0; j < len(currencyIdsList); j++ {
 				var currencyId string = currencyIdsList[j]
-				var balance map[string]any = SafeMapTyped(currencies, currencyId)
+				var balance, _ = currencies[currencyId].(map[string]any)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
 				account["total"] = this.SafeString(balance, "balance")
@@ -904,11 +904,9 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		if *this.SafeBool(market, "spot", false) {
-			var symbol *string = SafeStringPtr(market["symbol"])
+			var symbol string = *this.SafeString(market, "symbol", "")
 			var ticker any = prices[id]
-			if symbol != nil {
-				result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
-			}
+			result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
 		}
 	}
 

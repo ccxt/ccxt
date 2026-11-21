@@ -311,7 +311,10 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var storesForSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
-		var rawTrade map[string]any = this.SafeDictMap(trades, i, map[string]any{})
+		var rawTrade, _ = trades[i].(map[string]any)
+		if rawTrade == nil {
+			rawTrade = map[string]any{}
+		}
 		var marketId string = strings.ToLower(*this.SafeString(rawTrade, "symbol", ""))
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -695,7 +698,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	var messageHash string = "bidsasks:" + *symbol
 	// last update always overwrites the previous state and is the latest state
 	for i := 0; i < len(rawBidAskChanges); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(rawBidAskChanges, i)
+		var entry, _ = rawBidAskChanges[i].(map[string]any)
 		var rawSide *string = this.SafeString(entry, "side")
 		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
@@ -810,7 +813,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var bids ccxt.IOrderBookSide = orderbook.GetBids()
 	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(rawOrderBookChanges, i)
+		var entry, _ = rawOrderBookChanges[i].(map[string]any)
 		var price *float64 = this.SafeNumber(entry, "price")
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
@@ -1159,7 +1162,10 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		var collectedEventsOfTrades []any = []any{}
 		var eventsLength int = len(events)
 		for i := 0; i < len(events); i++ {
-			var event map[string]any = this.SafeDictMap(events, i, map[string]any{})
+			var event, _ = events[i].(map[string]any)
+			if event == nil {
+				event = map[string]any{}
+			}
 			var eventType *string = this.SafeString(event, "type")
 			var side *string = this.SafeString(event, "side")
 			var isOrderBook bool = (eventType != nil && *eventType == "change") && (side != nil) && this.InArray(side, []any{"ask", "bid"})
@@ -1234,7 +1240,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
 	var wsOptions, _ = this.Options["ws"].(map[string]any)
-	var wsSubOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
+	var wsSubOptions, _ = wsOptions["options"].(map[string]any)
 	var originalHeaders map[string]any = this.SafeDictMap(wsSubOptions, "headers", map[string]any{})
 	var headers map[string]any = map[string]any{
 		"X-GEMINI-APIKEY":    this.ApiKey,

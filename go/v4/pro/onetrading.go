@@ -1301,9 +1301,12 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var marketId *string = this.SafeString(market, "id", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
@@ -1333,15 +1336,11 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 			subscription = map[string]any{}
 		}
 	}
-	var subscriptionMarketId map[string]any = ccxt.SafeMapTyped(subscription, marketId)
-	if subscriptionMarketId == nil {
-		if marketId != nil {
-			ccxt.AddElementToObject(subscription, marketId, map[string]any{})
-		}
+	var marketTimeframes map[string]any = this.SafeDictMap(subscription, marketId, map[string]any{})
+	if timeframe != nil {
+		ccxt.AddElementToObject(marketTimeframes, timeframe, true)
 	}
-	if (marketId != nil) && (timeframe != nil) {
-		ccxt.AddElementToObject(ccxt.GetValue(subscription, marketId), timeframe, true)
-	}
+	ccxt.AddElementToObject(subscription, marketId, marketTimeframes)
 	var properties []any = []any{}
 	var marketIds []string = ccxt.ObjectKeys(subscription)
 	for i := 0; i < len(marketIds); i++ {
@@ -1465,11 +1464,12 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	if ccxt.IsEqual(timeframesResolved, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " findTimeframe() timeframes is required"))
 	}
+	var unit *string = this.SafeString(timeframe, "unit")
+	var period *string = this.SafeString(timeframe, "period")
 	var keys []string = ccxt.ObjectKeys(timeframesResolved)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var timeframeResolved map[string]any = this.SafeDictMap(timeframesResolved, key, map[string]any{})
-		if ccxt.IsEqual(timeframeResolved["unit"], ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(timeframeResolved["period"], ccxt.GetValue(timeframe, "period")) {
+		if ccxt.IsEqual(this.SafeString(ccxt.GetValue(timeframesResolved, key), "unit"), unit) && ccxt.IsEqual(this.SafeString(ccxt.GetValue(timeframesResolved, key), "period"), period) {
 			return &key
 		}
 	}

@@ -1770,7 +1770,7 @@ func (this *Cryptocom) ParseBalance(response map[string]any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(positionBalances); i++ {
-		var balance map[string]any = SafeMapTyped(positionBalances, i)
+		var balance, _ = positionBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "instrument_name")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3610,7 +3610,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var status *string = nil
-	if InOp(transaction, "client_wid") {
+	if this.SafeString(transaction, "client_wid") != nil {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)
 	} else {
@@ -3709,7 +3709,7 @@ func (this *Cryptocom) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map
 	}
 	if networkList != nil {
 		for i := 0; i < networkListLength; i++ {
-			var networkInfo map[string]any = SafeMapTyped(networkList, i)
+			var networkInfo, _ = networkList[i].(map[string]any)
 			var networkId *string = this.SafeString(networkInfo, "network_id")
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode *string = this.NetworkIdToCode(networkId, currencyCode)

@@ -602,7 +602,10 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	var content, _ = message["content"].(map[string]any)
 	if content != nil {
 		var list []any = this.SafeListSlice(content, "list", []any{})
-		var first map[string]any = ccxt.SafeMapTyped(list, 0)
+		var first map[string]any
+		if 0 < len(list) {
+			first, _ = list[0].(map[string]any)
+		}
 		var legacyMarketId *string = this.SafeString(first, "symbol")
 		if legacyMarketId == nil {
 			return

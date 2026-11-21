@@ -233,7 +233,7 @@ func (this *Xt) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any
-	if len(cache) > 0 {
+	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
 	}
 	var firstDeltaNonce *int64 = this.SafeInteger2(firstDelta, "i", "u")
@@ -601,11 +601,7 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 	}
 	var market map[string]any = nil
 	if symbols != nil {
-		var symbolsElem38134 *string = nil
-		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem38134 = &symbols[0]
-		}
-		market = this.Market(symbolsElem38134)
+		market = this.Market(this.SafeString(symbols, 0))
 	}
 	if name != nil {
 
@@ -1899,7 +1895,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any
 	_ = market
 	var marketId *string = this.SafeString(trade, "s")
 	var tradeType string = "spot"
-	if ccxt.InOp(trade, "symbol") {
+	if this.SafeString(trade, "symbol") != nil {
 		tradeType = "contract"
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, tradeType)
@@ -1971,7 +1967,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	_ = market
 	var marketId *string = this.SafeString2(order, "s", "symbol")
 	var tradeType string = "spot"
-	if ccxt.InOp(order, "symbol") {
+	if this.SafeString(order, "symbol") != nil {
 		tradeType = "contract"
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, tradeType)

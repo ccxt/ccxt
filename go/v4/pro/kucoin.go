@@ -264,12 +264,12 @@ func (this *Kucoin) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
 	return requestId
 }
-func (this *Kucoin) SubscribeAsync(url any, messageHash any, subscriptionHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Kucoin) SubscribeAsync(url any, messageHash string, subscriptionHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, url, messageHash, subscriptionHash, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribeBody(ch chan ccxt.AsyncResult[any], url any, messageHash any, subscriptionHash any, optionalArgs ...any) any {
+func (this *Kucoin) subscribeBody(ch chan ccxt.AsyncResult[any], url any, messageHash string, subscriptionHash any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2649,7 +2649,7 @@ func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
 }
 func (this *Kucoin) GetCacheIndex(orderbook any, cache []any) any {
 	var firstDelta map[string]any
-	if len(cache) > 0 {
+	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
@@ -3357,7 +3357,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -3366,8 +3366,8 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	if market != nil {
 		symbolResolved = this.SafeString(market, "symbol")
 	}
-	if market != nil {
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
+	if symbolResolved != nil {
+		messageHash = messageHash + ":" + *symbolResolved
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
@@ -3383,7 +3383,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		var paramsExtended map[string]any = this.Extend(paramsUta, map[string]any{
 			"tradeType": "UNIFIED",
 		})
-		messageHash = ccxt.Add("uta:", messageHash)
+		messageHash = "uta:" + messageHash
 		var channel string = "execution.lite"
 
 		r2 := <-this.SubscribePrivateUtaAsync([]any{messageHash}, channel, channel, nil, paramsExtended)
@@ -3412,7 +3412,7 @@ func (this *Kucoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		}
 		if symbolResolved == nil {
 			var suffix string = this.GetMyTradesMessageHashSuffix(*topic)
-			messageHash = ccxt.Add(messageHash, suffix)
+			messageHash = messageHash + suffix
 		}
 
 		r4 := <-this.SubscribeAsync(url, messageHash, topic, this.Extend(request, paramsTopic))
@@ -4058,7 +4058,7 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		tradeType = "UNIFIED"
 	}
 	var messageHash string = "positions"
-	var messageHashes []any = []any{}
+	var messageHashes []string = []string{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized == nil {
 		messageHashes = append(messageHashes, messageHash)

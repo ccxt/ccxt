@@ -1765,7 +1765,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	var postOnly bool = this.IsPostOnly(isMarket, nil, paramsSubAccountId)
 	var amountStr *string = this.AmountToPrecision(symbol, amount)
 	var priceStr *string = this.PriceToPrecision(symbol, price)
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var atomicResolution any = marketInfo["atomicResolution"]
 	var quantumScale *string = this.Pow("10", Precise.StringNeg(atomicResolution))
 	var quantums *string = Precise.StringMul(amountStr, quantumScale)
@@ -2053,8 +2053,8 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	//
 	var result, _ = response["result"].(map[string]any)
 	var requestValue map[string]any = SafeMapTyped(orderRequest, "value")
-	var requestOrder map[string]any = SafeMapTyped(requestValue, "order")
-	var requestOrderId map[string]any = SafeMapTyped(requestOrder, "orderId")
+	var requestOrder, _ = requestValue["order"].(map[string]any)
+	var requestOrderId, _ = requestOrder["orderId"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info":          result,
@@ -2172,7 +2172,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	if r2.Value != nil {
 		account = r2.Value
 	}
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var cancelPayload map[string]any = map[string]any{
 		"orderId": map[string]any{
 			"subaccountId": map[string]any{
@@ -2288,7 +2288,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	if r2.Value != nil {
 		account = r2.Value
 	}
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var cancelOrders map[string]any = map[string]any{
 		"clientIds":  clientOrderIds,
 		"clobPairId": marketInfo["clobPairId"],

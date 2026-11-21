@@ -514,7 +514,10 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var operation *string = this.SafeString(item, "operation")
 	var typeVar *string = this.ParseLedgerEntryType(operation)
 	var balanceUpdates []any = SafeListTyped(item, "balance_updates")
-	var firstBalance map[string]any = SafeMapTyped(balanceUpdates, 0)
+	var firstBalance map[string]any
+	if 0 < len(balanceUpdates) {
+		firstBalance, _ = balanceUpdates[0].(map[string]any)
+	}
 	var direction any = nil
 	var fee map[string]any = nil
 	var amount *string = this.SafeString(firstBalance, "amount")
@@ -630,8 +633,8 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var fees map[string]any = SafeMapTyped(market, "fees")
-		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
+		var fees, _ = market["fees"].(map[string]any)
+		var flatRate, _ = fees["flat_rate"].(map[string]any)
 		var takerString *string = this.SafeString(flatRate, "taker")
 		var makerString *string = this.SafeString(flatRate, "maker")
 		var taker *float64 = this.ParseNumber(Precise.StringDiv(takerString, "100"))
@@ -646,7 +649,7 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		var takerFees []any = []any{}
 		var makerFees []any = []any{}
 		for j := 0; j < len(feeTiers); j++ {
-			var tier map[string]any = SafeMapTyped(feeTiers, j)
+			var tier, _ = feeTiers[j].(map[string]any)
 			var volume *float64 = this.SafeNumber(tier, "volume")
 			var takerFee *float64 = this.SafeNumber(tier, "taker")
 			var makerFee *float64 = this.SafeNumber(tier, "maker")

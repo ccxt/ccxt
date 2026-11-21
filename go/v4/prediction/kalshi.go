@@ -710,9 +710,10 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		}
 	}
 	for i := 0; i < outcomeSymbolsLength; i++ {
-		if !this.HasOutcome(ccxt.GetValue(outcomeSymbols, i)) {
+		var pendingSymbol *string = this.SafeString(outcomeSymbols, i, "")
+		if !this.HasOutcome(pendingSymbol) {
 
-			r1 := <-this.FetchOutcomeAsync(ccxt.GetValue(outcomeSymbols, i))
+			r1 := <-this.FetchOutcomeAsync(pendingSymbol)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -851,7 +852,10 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	// e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
 	// used tick_size (in cents). amount is a whole number of contracts
 	var priceRanges []any = ccxt.SafeListTyped(raw, "price_ranges")
-	var firstRange map[string]any = ccxt.SafeMapTyped(priceRanges, 0)
+	var firstRange map[string]any
+	if 0 < len(priceRanges) {
+		firstRange, _ = priceRanges[0].(map[string]any)
+	}
 	var stepDollars *string = this.SafeString(firstRange, "step")
 	var pricePrecision *float64 = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
 	if stepDollars != nil {
@@ -925,7 +929,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome *string = resolvedOutcome
-	var literal64115 map[string]any = map[string]any{
+	var literal64215 map[string]any = map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
 		"base":            "USD",
@@ -990,11 +994,11 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		"created": nil,
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal64115["expiry"] = this.Parse8601(endDate)
+		literal64215["expiry"] = this.Parse8601(endDate)
 	} else {
-		literal64115["expiry"] = nil
+		literal64215["expiry"] = nil
 	}
-	return literal64115
+	return literal64215
 }
 
 /**
@@ -1125,12 +1129,12 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//     { "exchange_active": true, "trading_active": true }
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
-	var ternaryStr78722 string = "maintenance"
+	var ternaryStr78822 string = "maintenance"
 	if tradingActive != nil && *tradingActive {
-		ternaryStr78722 = "ok"
+		ternaryStr78822 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr78722,
+		"status":  ternaryStr78822,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1857,7 +1861,7 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var amount *float64 = this.SafeNumber(trade, "count", amountFp)
 	var rawSide *string = this.SafeStringLower(trade, "taker_side")
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
-	var marketInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var marketInfo, _ = outcomeObj["info"].(map[string]any)
 	var requestedOutcomeLabel *string = this.SafeStringLower(outcomeObj, "label", this.SafeStringLower(marketInfo, "outcomeLabel"))
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
 	var outcomeId *string = this.SafeString2(outcomeObj, "outcomeId", "id")
@@ -3472,7 +3476,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]
 				}
 			}
 			var request map[string]any = map[string]any{
-				"series_ticker":       ccxt.GetValue(seriesTickers, si),
+				"series_ticker":       this.SafeString(seriesTickers, si),
 				"status":              status,
 				"with_nested_markets": true,
 				"limit":               reqLimit,
@@ -3619,7 +3623,10 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	var totalVolume any = 0
 	var totalLiquidity any = 0
 	// seeded from the first market, which the loop re-reads, so the min/max stays the same
-	var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)
+	var firstMarket map[string]any
+	if 0 < len(rawMarkets) {
+		firstMarket, _ = rawMarkets[0].(map[string]any)
+	}
 	var earliestCreated *int64 = this.Parse8601(this.SafeString(firstMarket, "open_time"))
 	var anyActive bool = false
 	var allResolved bool = true
@@ -3675,7 +3682,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal261128 map[string]any = map[string]any{
+	var literal261228 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3698,9 +3705,9 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal261128["event"] = *eventSlug
+		literal261228["event"] = *eventSlug
 	}
-	return this.Extend(literal261128)
+	return this.Extend(literal261228)
 }
 
 /**

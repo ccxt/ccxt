@@ -1059,7 +1059,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache []any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any
-	if len(cache) > 0 {
+	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
 	}
 	var firstDeltaNonce *int64 = this.SafeIntegerN(firstDelta, []any{"r", "version", "fromVersion"})

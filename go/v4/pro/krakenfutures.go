@@ -1946,7 +1946,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			var key string = futuresKeys[i]
 			var symbol *string = this.SafeSymbol(key)
 			var newAccount map[string]any = this.Account()
-			var future map[string]any = ccxt.SafeMapTyped(futures, key)
+			var future, _ = futures[key].(map[string]any)
 			var currencyId *string = this.SafeString(future, "unit")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			newAccount["free"] = this.SafeString(future, "available")
@@ -1999,7 +1999,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		var flexBalance map[string]any = this.SafeDictMap(this.Balance, "flex", map[string]any{})
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = flexFuturesKeys[i]
-			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
+			var flexFuture, _ = flexFutureCurrencies[key].(map[string]any)
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
 			newAccount["free"] = this.SafeString(flexFuture, "available")

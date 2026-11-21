@@ -727,7 +727,10 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	var trades []any = this.ToArray(response)
 	var numTrades int = len(trades)
 	if numTrades == 1 {
-		var firstTrade map[string]any = SafeMapTyped(trades, 0)
+		var firstTrade map[string]any
+		if 0 < len(trades) {
+			firstTrade, _ = trades[0].(map[string]any)
+		}
 		if len(firstTrade) == 0 {
 			trades = []any{}
 		}

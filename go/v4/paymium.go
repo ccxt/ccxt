@@ -885,7 +885,10 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var updatedAt *string = this.SafeString(transfer, "updated_at")
 	var timetstamp any = this.ParseDate(updatedAt)
 	var accountOperations []any = SafeListTyped(transfer, "account_operations")
-	var firstOperation map[string]any = SafeMapTyped(accountOperations, 0)
+	var firstOperation map[string]any
+	if 0 < len(accountOperations) {
+		firstOperation, _ = accountOperations[0].(map[string]any)
+	}
 	var status *string = this.SafeString(transfer, "state")
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,

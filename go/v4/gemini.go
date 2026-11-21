@@ -1001,7 +1001,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	var fetchUsdtMarkets []any = SafeListTyped(this.Options, "fetchUsdtMarkets")
 	var result []any = []any{}
 	for i := 0; i < len(fetchUsdtMarkets); i++ {
-		var marketId *string = SafeStringPtr(fetchUsdtMarkets[i])
+		var marketId *string = this.SafeString(fetchUsdtMarkets, i, "")
 		var request map[string]any = map[string]any{
 			"symbol": marketId,
 		}
@@ -1060,7 +1060,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 	if *this.SafeBool(options, "fetchDetailsForAllSymbols", false) {
 		var promises []any = []any{}
 		for i := 0; i < len(marketIds); i++ {
-			var marketId *string = SafeStringPtr(marketIds[i])
+			var marketId *string = this.SafeString(marketIds, i, "")
 			var request map[string]any = map[string]any{
 				"symbol": marketId,
 			}
@@ -1084,7 +1084,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 		if tradingPairs != nil {
 			var indexedTradingPairs map[string]any = this.IndexBy(tradingPairs, 0)
 			for i := 0; i < len(marketIds); i++ {
-				var marketId *string = SafeStringPtr(marketIds[i])
+				var marketId *string = this.SafeString(marketIds, i, "")
 				var pairInfo []any = SafeListTyped(indexedTradingPairs, strings.ToUpper(*marketId))
 				if (pairInfo != nil) && !this.InArray(marketId, brokenPairs) {
 					var parsed map[string]any = this.ParseMarket(pairInfo)

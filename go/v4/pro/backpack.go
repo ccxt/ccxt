@@ -195,7 +195,13 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		}
 		var marketSelection []any = this.HandleStockParams(methodName, query, market)
 		var marketStock *bool = this.SafeBool(marketSelection, 0, false)
-		var marketParams map[string]any = this.SafeDictMap(marketSelection, 1, map[string]any{})
+		var marketParams map[string]any
+		if 1 < len(marketSelection) {
+			marketParams, _ = marketSelection[1].(map[string]any)
+		}
+		if marketParams == nil {
+			marketParams = map[string]any{}
+		}
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var source *string = explicitSource
 		if source == nil {
@@ -639,7 +645,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
 		var messageHash string = hashes[i]
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
+		var subscription, _ = subscriptions[messageHash].(map[string]any)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
 			continue
@@ -741,7 +747,7 @@ func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
 		var messageHash string = hashes[i]
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
+		var subscription, _ = subscriptions[messageHash].(map[string]any)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
 			continue
@@ -865,7 +871,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	var hashesLength int = len(hashes)
 	for i := 0; i < hashesLength; i++ {
 		var messageHash string = hashes[i]
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptions, messageHash)
+		var subscription, _ = subscriptions[messageHash].(map[string]any)
 		var symbol *string = this.SafeString(subscription, "symbol")
 		if symbol == nil {
 			continue
@@ -1852,7 +1858,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache []any) any {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
 	var firstDelta map[string]any
-	if len(cache) > 0 {
+	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
@@ -2186,7 +2192,7 @@ func (this *Backpack) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 			"info":      this.SafeDict(balances, "info"),
 		}
 		for i := 0; i < len(securities); i++ {
-			var security map[string]any = ccxt.SafeMapTyped(securities, i)
+			var security, _ = securities[i].(map[string]any)
 			var code *string = this.SafeCurrencyCode(this.SafeString(security, "asset"))
 			if code == nil {
 				continue
@@ -2438,7 +2444,8 @@ func (this *Backpack) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions"+":"+symbol)
-			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(&symbol)))
+			var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+			topics = append(topics, "account.positionUpdate."+marketId)
 		}
 	} else {
 		messageHashes = append(messageHashes, "positions")
@@ -2505,7 +2512,8 @@ func (this *Backpack) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], optio
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "unsubscribe:positions"+":"+symbol)
-			topics = append(topics, ccxt.Add("account.positionUpdate.", this.MarketId(&symbol)))
+			var marketId string = *this.SafeString(this.Market(symbol), "id", "")
+			topics = append(topics, "account.positionUpdate."+marketId)
 		}
 	} else {
 		messageHashes = append(messageHashes, "unsubscribe:positions")

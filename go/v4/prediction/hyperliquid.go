@@ -337,7 +337,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 				if thresholdsLength > 0 {
 					var bucketLabel any = ""
 					if index <= 0 {
-						bucketLabel = ccxt.Add("BELOW_", thresholds[0])
+						bucketLabel = "BELOW_" + thresholds[0]
 					} else if index >= int64(thresholdsLength) {
 						var lastIdx int64 = int64(thresholdsLength) - 1
 						bucketLabel = ccxt.Add("ABOVE_", ccxt.GetValue(thresholds, lastIdx))
@@ -470,7 +470,10 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 		this.Outcomes_by_id = map[string]any{}
 	}
 	for i := 0; i < len(outcomesList); i++ {
-		var outcomeInfo map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
+		var outcomeInfo, _ = outcomesList[i].(map[string]any)
+		if outcomeInfo == nil {
+			outcomeInfo = map[string]any{}
+		}
 		var outcomeId *int64 = this.SafeInteger(outcomeInfo, "outcome", i)
 		var linkedQuestion map[string]any = this.SafeDictMap(outcomesToQuestions, strconv.FormatInt(*outcomeId, 10), map[string]any{})
 		var market any = this.ParseOutcomeMarket(outcomeInfo, strconv.FormatInt(*outcomeId, 10), outcomeId, linkedQuestion)
@@ -478,7 +481,10 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.Market
 		// Build outcomes dictionary from market outcomes
 		var marketOutcomes []any = ccxt.SafeListTyped(market, "outcomes")
 		for oi := 0; oi < len(marketOutcomes); oi++ {
-			var outcome map[string]any = this.SafeDictMap(marketOutcomes, oi, map[string]any{})
+			var outcome, _ = marketOutcomes[oi].(map[string]any)
+			if outcome == nil {
+				outcome = map[string]any{}
+			}
 			var outcomeSymbol *string = this.SafeString2(outcome, "outcome", "symbol")
 			var outcomeId_ *string = this.SafeString2(outcome, "outcomeId", "id")
 			if outcomeSymbol != nil {
@@ -791,7 +797,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 			panic(r.Err)
 		}
 		for i := 0; i < len(outcomes); i++ {
-			var requested *string = ccxt.SafeStringPtr(outcomes[i])
+			var requested string = outcomes[i]
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			if requestedOutcome != nil {
@@ -880,8 +886,14 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) map
 	var levels []any = ccxt.SafeListTyped(raw, "levels")
 	var rawBids []any = ccxt.SafeListTyped(levels, 0)
 	var rawAsks []any = ccxt.SafeListTyped(levels, 1)
-	var topBid map[string]any = ccxt.SafeMapTyped(rawBids, 0)
-	var topAsk map[string]any = ccxt.SafeMapTyped(rawAsks, 0)
+	var topBid map[string]any
+	if 0 < len(rawBids) {
+		topBid, _ = rawBids[0].(map[string]any)
+	}
+	var topAsk map[string]any
+	if 0 < len(rawAsks) {
+		topAsk, _ = rawAsks[0].(map[string]any)
+	}
 	var bid *float64 = func() *float64 {
 		if topBid != nil {
 			return this.SafeNumber(topBid, "px")
@@ -1016,11 +1028,11 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predic
 	var bids []any = []any{}
 	var asks []any = []any{}
 	for i := 0; i < len(rawBids); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(rawBids, i)
+		var entry, _ = rawBids[i].(map[string]any)
 		bids = append(bids, []any{this.SafeNumber(entry, "px"), this.SafeNumber(entry, "sz")})
 	}
 	for i := 0; i < len(rawAsks); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(rawAsks, i)
+		var entry, _ = rawAsks[i].(map[string]any)
 		asks = append(asks, []any{this.SafeNumber(entry, "px"), this.SafeNumber(entry, "sz")})
 	}
 	var orderbook map[string]any = this.ParseOrderBook(map[string]any{
@@ -1249,7 +1261,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 			panic(r.Err)
 		}
 		for i := 0; i < len(outcomes); i++ {
-			var requested *string = &outcomes[i]
+			var requested string = outcomes[i]
 			var requestedOutcomeObj map[string]any = this.SafeOutcome(requested)
 			var requestedOutcome *string = this.SafeString(requestedOutcomeObj, "outcome", requested)
 			if requestedOutcome != nil {
@@ -1288,7 +1300,10 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	var mids map[string]any = this.SafeDictMap(allMids, "mids", allMids)
 	var positions []any = []any{}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = this.SafeDictMap(balances, i, map[string]any{})
+		var balance, _ = balances[i].(map[string]any)
+		if balance == nil {
+			balance = map[string]any{}
+		}
 		var coin *string = this.SafeString(balance, "coin", "")
 		// outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
 		if strings.Index(*coin, "+") != 0 {
@@ -1396,7 +1411,10 @@ func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs
 	if (sideHint != nil) && (sideHint == nil || *sideHint != "") {
 		var normalizedHint string = strings.ToUpper(*sideHint)
 		for i := 0; i < len(outcomesList); i++ {
-			var oc map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
+			var oc, _ = outcomesList[i].(map[string]any)
+			if oc == nil {
+				oc = map[string]any{}
+			}
 			var ocSymbol *string = this.SafeString2(oc, "outcome", "symbol", "")
 			var ocLabel *string = this.SafeStringUpper(oc, "label")
 			if (ocLabel != nil && *ocLabel == normalizedHint) || strings.HasSuffix(*ocSymbol, ":"+normalizedHint) {
@@ -1405,8 +1423,11 @@ func (this *Hyperliquid) FindOutcomeInMarket(market map[string]any, optionalArgs
 		}
 	}
 	for i := 0; i < len(outcomesList); i++ {
-		var oc map[string]any = this.SafeDictMap(outcomesList, i, map[string]any{})
-		var info map[string]any = ccxt.SafeMapTyped(oc, "info")
+		var oc, _ = outcomesList[i].(map[string]any)
+		if oc == nil {
+			oc = map[string]any{}
+		}
+		var info, _ = oc["info"].(map[string]any)
 		if this.SafeInteger(info, "side") != nil && *this.SafeInteger(info, "side") == 0 {
 			return oc
 		}
@@ -1652,8 +1673,8 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	if 0 < len(statuses) {
 		firstStatus, _ = statuses[0].(map[string]any)
 	}
-	var resting map[string]any = ccxt.SafeMapTyped(firstStatus, "resting")
-	var filled map[string]any = ccxt.SafeMapTyped(firstStatus, "filled")
+	var resting, _ = firstStatus["resting"].(map[string]any)
+	var filled, _ = firstStatus["filled"].(map[string]any)
 	var oid *string = this.SafeString(resting, "oid", this.SafeString(filled, "oid"))
 	var restingOid *string = this.SafeString(resting, "oid")
 	var orderStatus string = "closed"
@@ -2583,7 +2604,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		firstMarket = map[string]any{}
 	}
 	var firstInfo map[string]any = ccxt.SafeMapTyped(firstMarket, "info")
-	var desc map[string]any = ccxt.SafeMapTyped(firstInfo, "parsedDescription")
+	var desc, _ = firstInfo["parsedDescription"].(map[string]any)
 	var underlying *string = this.SafeString(desc, "underlying")
 	var targetPrice *string = this.SafeString(desc, "targetPrice")
 	var expiryRaw *string = this.SafeString(desc, "expiry")
@@ -2977,7 +2998,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 	}
 	// Check for error statuses in order responses
 	var responsePayload map[string]any = ccxt.SafeMapTyped(response, "response")
-	var data map[string]any = ccxt.SafeMapTyped(responsePayload, "data")
+	var data, _ = responsePayload["data"].(map[string]any)
 	var statuses []any = ccxt.SafeListTyped(data, "statuses")
 	for i := 0; i < len(statuses); i++ {
 		var message *string = this.SafeString(statuses[i], "error")
@@ -2994,10 +3015,12 @@ func (this *Hyperliquid) CalculateRateLimiterCost(api any, method string, path s
 	var config map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	if _, ok := config["byType"]; ok && (ccxt.InOp(params, "type")) {
-		var typeVar any = ccxt.GetValue(params, "type")
+		var typeVar *string = this.SafeString(params, "type")
 		var byType any = config["byType"]
-		if ccxt.InOp(byType, typeVar) {
-			return ccxt.GetValue(byType, typeVar)
+		if typeVar != nil {
+			if ccxt.InOp(byType, typeVar) {
+				return this.SafeInteger(byType, typeVar)
+			}
 		}
 	}
 	return this.SafeValue(config, "cost", 1)

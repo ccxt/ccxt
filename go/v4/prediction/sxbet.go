@@ -388,11 +388,11 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	//     }
 	//
 	var marketHash *string = this.SafeString(raw, "marketHash", "")
-	var teamOneName *string = this.SafeString(raw, "teamOneName")
-	var teamTwoName *string = this.SafeString(raw, "teamTwoName")
+	var teamOneName string = *this.SafeString(raw, "teamOneName", "")
+	var teamTwoName string = *this.SafeString(raw, "teamTwoName", "")
 	var outcomeOneName *string = this.SafeString(raw, "outcomeOneName")
 	var outcomeTwoName *string = this.SafeString(raw, "outcomeTwoName")
-	var eventSlug string = this.ShortenSlug(ccxt.Add(ccxt.Add(teamOneName, " "), teamTwoName))
+	var eventSlug string = this.ShortenSlug(teamOneName + " " + teamTwoName)
 	// one fixture carries many markets (moneyline, several spread/total lines, quarter/half
 	// variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
 	// slug isn't guaranteed unique. suffix with the market hash instead (always unique,
@@ -1370,7 +1370,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	//     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
 	// documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
 	// CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
-	var matchOutcome map[string]any = ccxt.SafeMapTyped(first, "outcome")
+	var matchOutcome, _ = first["outcome"].(map[string]any)
 	var usdcDecimals string = "1000000"
 	var filled *float64 = nil
 	var remaining *float64 = nil
@@ -1443,7 +1443,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
 func (this *Sxbet) ParseSxbetCancelResponse(response map[string]any) any {
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var result []any = []any{}
 	// by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
 	// report 'cancelledSubmitted' instead - treat both like cancelled
@@ -2500,7 +2500,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		resultLabelStr := "VOID"
 		resultLabel = &resultLabelStr
 	} else if winner != nil {
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info, _ = outcomeObj["info"].(map[string]any)
 		var labelKey string = "outcomeTwoName"
 		if winner != nil && *winner == 1 {
 			labelKey = "outcomeOneName"
@@ -2671,8 +2671,14 @@ func (this *Sxbet) ParseSxbetSnapshotBestOdds(snapshot any) map[string]any {
 	// levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
 	var oneLevels []any = ccxt.SafeListTyped(snapshot, "outcomeOne")
 	var twoLevels []any = ccxt.SafeListTyped(snapshot, "outcomeTwo")
-	var bestOne map[string]any = ccxt.SafeMapTyped(oneLevels, 0)
-	var bestTwo map[string]any = ccxt.SafeMapTyped(twoLevels, 0)
+	var bestOne map[string]any
+	if 0 < len(oneLevels) {
+		bestOne, _ = oneLevels[0].(map[string]any)
+	}
+	var bestTwo map[string]any
+	if 0 < len(twoLevels) {
+		bestTwo, _ = twoLevels[0].(map[string]any)
+	}
 	return map[string]any{
 		"marketHash": this.SafeString(snapshot, "marketHash"),
 		"outcomeOne": map[string]any{
@@ -2806,7 +2812,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList []string, rowsByHash map
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomesList[i])
 		var marketHash string = *this.SafeString(outcomeObj["info"], "marketHash", "")
-		var raw map[string]any = ccxt.SafeMapTyped(rowsByHash, marketHash)
+		var raw, _ = rowsByHash[marketHash].(map[string]any)
 		if raw == nil {
 			continue
 		}
@@ -3295,7 +3301,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	if channel == nil {
 		return
 	}
-	var pub map[string]any = ccxt.SafeMapTyped(push, "pub")
+	var pub, _ = push["pub"].(map[string]any)
 	var data any = this.SafeValue(pub, "data")
 	if data == nil {
 		return
@@ -3580,15 +3586,15 @@ func (this *Sxbet) HandleTicker(client any, rows []any) {
 	}
 	var rowsLength int = len(rows)
 	for i := 0; i < rowsLength; i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(rows, i)
+		var entry, _ = rows[i].(map[string]any)
 		var marketHash *string = this.SafeString(entry, "marketHash")
 		if marketHash == nil {
 			continue
 		}
 		// every publication carries BOTH sides (null = no resting liquidity), so the legacy
 		// best-odds shape rebuilds directly without any merge cache
-		var bestOne map[string]any = ccxt.SafeMapTyped(entry, "outcomeOne")
-		var bestTwo map[string]any = ccxt.SafeMapTyped(entry, "outcomeTwo")
+		var bestOne, _ = entry["outcomeOne"].(map[string]any)
+		var bestTwo, _ = entry["outcomeTwo"].(map[string]any)
 		var raw map[string]any = map[string]any{
 			"marketHash": marketHash,
 			"outcomeOne": map[string]any{

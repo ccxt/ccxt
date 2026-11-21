@@ -1383,10 +1383,10 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var entry, _ = snapshots[marketId].(map[string]any)
-		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
-		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
-		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
-		var latestTrade map[string]any = SafeMapTyped(entry, "latestTrade")
+		var dailyBar, _ = entry["dailyBar"].(map[string]any)
+		var prevDailyBar, _ = entry["prevDailyBar"].(map[string]any)
+		var latestQuote, _ = entry["latestQuote"].(map[string]any)
+		var latestTrade, _ = entry["latestTrade"].(map[string]any)
 		var datetime *string = this.SafeString(latestQuote, "t")
 		var ticker map[string]any = TickerToMap(this.SafeTicker(map[string]any{
 			"info":          entry,
@@ -3010,7 +3010,7 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 	//         }
 	//     ]
 	//
-	var account map[string]any = SafeMapTyped(response, "account")
+	var account, _ = response["account"].(map[string]any)
 	var positions []any = SafeListTyped(response, "positions")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -3026,7 +3026,7 @@ func (this *Alpaca) ParseBalance(response map[string]any) map[string]any {
 		result[*code] = cashAccount
 	}
 	for i := 0; i < len(positions); i++ {
-		var position map[string]any = SafeMapTyped(positions, i)
+		var position, _ = positions[i].(map[string]any)
 		var positionSymbol *string = this.SafeString(position, "symbol", "")
 		if positionSymbol != nil && *positionSymbol == "" {
 			continue

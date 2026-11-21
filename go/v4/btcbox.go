@@ -303,8 +303,8 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		} else {
 			fee = this.ParseNumber("0.0010")
 		}
-		var details map[string]any = SafeMapTyped(result2Data, id)
-		var tradeDetails map[string]any = SafeMapTyped(details, "trade")
+		var details, _ = result2Data[id].(map[string]any)
+		var tradeDetails, _ = details["trade"].(map[string]any)
 		markets = append(markets, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"uppercaseId":    nil,
@@ -441,10 +441,11 @@ func (this *Btcbox) ParseBalance(response map[string]any) map[string]any {
 			currencyId = *currency.Id
 		}
 		var free string = currencyId + "_balance"
-		if _, ok := response[free]; ok {
+		var freeValue *string = this.SafeString(response, free)
+		if freeValue != nil {
 			var account map[string]any = this.Account()
 			var used string = currencyId + "_lock"
-			account["free"] = this.SafeString(response, free)
+			account["free"] = freeValue
 			account["used"] = this.SafeString(response, used)
 			result[code] = account
 		}
@@ -1086,11 +1087,11 @@ func (this *Btcbox) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes79515 []any = OrdersToList(r.Value)
-	if retRes79515 == nil {
+	var retRes79615 []any = OrdersToList(r.Value)
+	if retRes79615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes79515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes79615)}
 	}
 	return nil
 }
@@ -1127,11 +1128,11 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes81015 []any = OrdersToList(r.Value)
-	if retRes81015 == nil {
+	var retRes81115 []any = OrdersToList(r.Value)
+	if retRes81115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes81015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes81115)}
 	}
 	return nil
 }

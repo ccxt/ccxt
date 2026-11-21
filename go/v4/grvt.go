@@ -905,7 +905,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 	var found bool = false
 	var builderId *string = this.SafeString(this.Options, "builder")
 	for i := 0; i < length; i++ {
-		var builderInfo map[string]any = SafeMapTyped(approvedBuilder, i)
+		var builderInfo, _ = approvedBuilder[i].(map[string]any)
 		var builderAccountId *string = this.SafeString(builderInfo, "builder_account_id")
 		if builderAccountId == builderId || (builderAccountId != nil && builderId != nil && *builderAccountId == *builderId) {
 			found = true
@@ -3106,7 +3106,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 		}
 		legs = append(legs, legOrder)
 	}
-	var orderSignature map[string]any = SafeMapTyped(order, "signature")
+	var orderSignature, _ = order["signature"].(map[string]any)
 	var returnValue map[string]any = map[string]any{
 		"subAccountID": order["sub_account_id"],
 		"isMarket":     order["is_market"],
@@ -4429,7 +4429,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	signerAddress := GetArg(optionalArgs, 1, nil)
 	_ = signerAddress
 	var messageData any = nil
-	var requestSignature map[string]any = SafeMapTyped(request, "signature")
+	var requestSignature, _ = request["signature"].(map[string]any)
 	if structureType == "EIP712_TRANSFER_TYPE" {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
 		var amountInt *string = Precise.StringMul(this.SafeString(request, "num_tokens", "0"), this.NumberToString(amountMultiplier))

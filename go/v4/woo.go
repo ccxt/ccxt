@@ -1478,7 +1478,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 	//         "timestamp": 1752062807915
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var maker *string = this.SafeString(data, "makerFeeRate")
 	var taker *string = this.SafeString(data, "takerFeeRate")
 	var result map[string]any = map[string]any{}
@@ -5347,7 +5347,7 @@ func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var shortLeverage *int64 = spotLeverage
 	var details []any = SafeListTyped(leverage, "details")
 	for i := 0; i < len(details); i++ {
-		var position map[string]any = SafeMapTyped(details, i)
+		var position, _ = details[i].(map[string]any)
 		var positionLeverage *int64 = this.SafeInteger(position, "leverage")
 		var side *string = this.SafeString(position, "positionSide")
 		if side != nil && *side == "BOTH" {

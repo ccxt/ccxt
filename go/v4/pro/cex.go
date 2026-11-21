@@ -191,12 +191,8 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	if (currentSymbol != nil) && !ccxt.IsEqual(currentSymbol, symbol) {
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
-	var watchTradesDict map[string]any
-	watchTradesDict, _ = this.Options["watchTrades"].(map[string]any)
-	if watchTradesDict == nil {
-		watchTradesDict = map[string]any{}
-	}
-	ccxt.AddElementToObject(watchTradesDict, "symbol", symbol)
+	var watchTradesDict map[string]any = this.Extend(map[string]any{}, this.SafeDict(this.Options, "watchTrades", map[string]any{}))
+	watchTradesDict["symbol"] = symbol
 	this.Options["watchTrades"] = watchTradesDict
 	if this.Markets == nil {
 
@@ -1024,27 +1020,27 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 		// market comes from safeMarket, so the parser never takes its undefined returns here
 		order = this.ParseWsOrderUpdate(data, market)
 	}
-	ccxt.AddElementToObject(order, "remaining", remains)
+	var orderUpdate map[string]any = map[string]any{}
+	orderUpdate["remaining"] = remains
 	var canceled *bool = this.SafeBool(data, "cancel", false)
 	if canceled != nil && *canceled {
-		ccxt.AddElementToObject(order, "status", "canceled")
+		orderUpdate["status"] = "canceled"
 	}
 	if isTransaction {
-		ccxt.AddElementToObject(order, "status", "closed")
+		orderUpdate["status"] = "closed"
 	}
 	var fee *float64 = this.SafeNumber(data, "fee")
 	if fee != nil {
-		ccxt.AddElementToObject(order, "fee", map[string]any{
+		orderUpdate["fee"] = map[string]any{
 			"cost":     fee,
 			"currency": quote,
 			"rate":     nil,
-		})
+		}
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	ccxt.AddElementToObject(order, "timestamp", timestamp)
-	ccxt.AddElementToObject(order, "datetime", this.Iso8601(timestamp))
-	// a fresh map copy: the cached entry is untyped
-	var parsedOrder map[string]any = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, map[string]any{})))
+	orderUpdate["timestamp"] = timestamp
+	orderUpdate["datetime"] = this.Iso8601(timestamp)
+	var parsedOrder map[string]any = ccxt.OrderToMap(this.SafeOrder(this.Extend(order, orderUpdate)))
 	storedOrders.Append(parsedOrder)
 	var messageHash string = "orders:" + symbol
 	client.(ccxt.ClientInterface).Resolve(storedOrders, messageHash)
@@ -1106,7 +1102,7 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 	}
 	var baseId *string = this.SafeString(order, "symbol")
 	var quoteId *string = this.SafeString(order, "symbol2")
-	var pair map[string]any = ccxt.SafeMapTyped(order, "pair")
+	var pair, _ = order["pair"].(map[string]any)
 	if pair != nil {
 		baseId = this.SafeString(order, "symbol1")
 		quoteId = this.SafeString(order, "symbol2")

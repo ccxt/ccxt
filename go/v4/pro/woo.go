@@ -437,7 +437,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			// try block:
 			var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 			var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
-			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
+			var params, _ = subscription["params"].(map[string]any)
 
 			r := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			if r.Err != nil {
@@ -908,7 +908,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.SafeDictMap(data, i)
+		var ticker, _ = data[i].(map[string]any)
 		if ticker == nil {
 			continue
 		}
@@ -2125,7 +2125,7 @@ func (this *Woo) HandleBalance(client any, message map[string]any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var value map[string]any = ccxt.SafeMapTyped(balances, key)
+		var value, _ = balances[key].(map[string]any)
 		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = this.Account()
 		var total *string = this.SafeString(value, "holding")

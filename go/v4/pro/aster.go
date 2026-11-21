@@ -1224,10 +1224,11 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var side *string = this.SafeStringLower(trade, "S")
 	var takerOrMaker *string = nil
 	var orderId *string = this.SafeString(trade, "i")
-	if ccxt.InOp(trade, "m") {
+	var isMaker *bool = this.SafeBool(trade, "m")
+	if isMaker != nil {
 		if side == nil {
 			var sideStr string
-			if *this.SafeBool(trade, "m", false) {
+			if isMaker != nil && *isMaker {
 				sideStr = "sell"
 			} else {
 				sideStr = "buy"
@@ -1235,7 +1236,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			side = &sideStr // this is reversed intentionally
 		}
 		var takerOrMakerStr string
-		if *this.SafeBool(trade, "m", false) {
+		if isMaker != nil && *isMaker {
 			takerOrMakerStr = "maker"
 		} else {
 			takerOrMakerStr = "taker"
@@ -1253,7 +1254,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		}
 	}
 	var typeVar *string = this.SafeStringLower(trade, "o")
-	var literal88431 map[string]any = map[string]any{
+	var literal88531 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1269,9 +1270,9 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if amount != nil {
-		literal88431["amount"] = *amount
+		literal88531["amount"] = *amount
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal88431))
+	return ccxt.TradeToMap(this.SafeTrade(literal88531))
 }
 
 /**

@@ -1576,7 +1576,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
 func (this *Tokocrypto) IsNativeMarket(market map[string]any) bool {
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var symbolType *string = this.SafeString(marketInfo, "type")
 	// a market with an unknown symbol type falls back to the binance backed
 	// host, the route that answers with data for every symbol type 1 market
@@ -2278,7 +2278,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	//
 	if uppercaseType == "MARKET" {
 		if side == "buy" {
-			var marketPrecision map[string]any = SafeMapTyped(market, "precision")
+			var marketPrecision, _ = market["precision"].(map[string]any)
 			var precision any = marketPrecision["price"]
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice bool = true

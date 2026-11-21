@@ -880,13 +880,19 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) map[
 	_ = market
 	var marketAny any = market
 	var priceResponse map[string]any = ccxt.SafeMapTyped(ticker, "price")
-	var priceResult map[string]any = ccxt.SafeMapTyped(priceResponse, "result")
+	var priceResult, _ = priceResponse["result"].(map[string]any)
 	var bookResponse map[string]any = ccxt.SafeMapTyped(ticker, "book")
-	var bookResult map[string]any = ccxt.SafeMapTyped(bookResponse, "result")
+	var bookResult, _ = bookResponse["result"].(map[string]any)
 	var bids []any = ccxt.SafeListTyped(bookResult, "bids")
 	var asks []any = ccxt.SafeListTyped(bookResult, "asks")
-	var bestBid map[string]any = ccxt.SafeMapTyped(bids, 0)
-	var bestAsk map[string]any = ccxt.SafeMapTyped(asks, 0)
+	var bestBid map[string]any
+	if 0 < len(bids) {
+		bestBid, _ = bids[0].(map[string]any)
+	}
+	var bestAsk map[string]any
+	if 0 < len(asks) {
+		bestAsk, _ = asks[0].(map[string]any)
+	}
 	var last *float64 = this.SafeNumber(priceResult, "price")
 	var timestamp *int64 = this.SafeInteger(priceResult, "timestamp")
 	if timestamp != nil && *timestamp == 0 {
@@ -1178,7 +1184,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any]
 	}
 	var cacheKey string = strings.ToLower(*quoteTokenAddress)
 	var cached, _ = this.Options["quoteTokens"].(map[string]any)
-	var existing map[string]any = this.SafeDictMap(cached, cacheKey)
+	var existing, _ = cached[cacheKey].(map[string]any)
 	if existing != nil {
 
 		ch <- ccxt.AsyncResult[map[string]any]{Value: existing}
@@ -1203,7 +1209,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan ccxt.AsyncResult[map[string]any]
 		}
 	}
 	this.Options["quoteTokens"] = quoteTokens
-	var quoteToken map[string]any = this.SafeDictMap(quoteTokens, cacheKey)
+	var quoteToken, _ = quoteTokens[cacheKey].(map[string]any)
 	if quoteToken == nil {
 		panic(ccxt.ExchangeError(this.Id + " loadQuoteToken() could not find quote token " + *quoteTokenAddress))
 	}
@@ -1950,7 +1956,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 				panic(r3.Err)
 			}
 			var tradeMarket map[string]any = ccxt.StructResultMap(r3.Value, ccxt.MarketInterfaceToMap)
-			var info map[string]any = ccxt.SafeMapTyped(tradeMarket, "info")
+			var info, _ = tradeMarket["info"].(map[string]any)
 			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
 			var branchValue *string
 			if isYes {
@@ -2092,7 +2098,7 @@ func (this *Opinion) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result map[string]any = ccxt.SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var rawBalances []any = ccxt.SafeListTyped(result, "balances")
 	var rawBalancesLength int = len(rawBalances)
 	for i := 0; i < rawBalancesLength; i++ {
@@ -2123,11 +2129,11 @@ func (this *Opinion) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data map[string]any = ccxt.SafeMapTyped(response, "result")
+	var data, _ = response["result"].(map[string]any)
 	var balances []any = ccxt.SafeListTyped(data, "balances")
 	var balancesLength int = len(balances)
 	for i := 0; i < balancesLength; i++ {
-		var balance map[string]any = ccxt.SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var code string = *this.SafeString(balance, "symbol", "USDT")
 		result[code] = map[string]any{
 			"free":  this.SafeNumber(balance, "availableBalance"),
@@ -2621,7 +2627,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId *int64, outcomeSide *
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
 		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
-		var info map[string]any = ccxt.SafeMapTyped(market, "info")
+		var info, _ = market["info"].(map[string]any)
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes []any = ccxt.SafeListTyped(market, "outcomes")
 			var index int

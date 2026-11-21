@@ -894,7 +894,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		if strings.HasSuffix(id, "_BQX") {
 			continue
 		}
-		var market map[string]any = SafeMapTyped(response, id)
+		var market, _ = response[id].(map[string]any)
 		var marketType *string = this.SafeString(market, "type")
 		var expiry *int64 = this.SafeInteger(market, "expiry")
 		var contract bool = (marketType != nil && *marketType == "futures")
@@ -1818,7 +1818,7 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		takerOrMaker = "taker" // the only case when `taker` field is missing, is public fetchTrades and it must be taker
 	}
 	if feeCostString != nil {
-		var info map[string]any = SafeMapTyped(marketResolved, "info")
+		var info, _ = marketResolved["info"].(map[string]any)
 		var feeCurrency *string = this.SafeString(info, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrency)
 		fee = map[string]any{
@@ -4371,7 +4371,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) Position {
 	var entryPrice *float64 = nil
 	var contracts *float64 = nil
 	for i := 0; i < len(positions); i++ {
-		var entry map[string]any = SafeMapTyped(positions, i)
+		var entry, _ = positions[i].(map[string]any)
 		liquidationPrice = this.SafeNumber(entry, "price_liquidation")
 		entryPrice = this.SafeNumber(entry, "price_entry")
 		contracts = this.SafeNumber(entry, "quantity")
@@ -4379,7 +4379,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) Position {
 	var currencies []any = SafeListTyped(position, "currencies")
 	var collateral *float64 = nil
 	for i := 0; i < len(currencies); i++ {
-		var entry map[string]any = SafeMapTyped(currencies, i)
+		var entry, _ = currencies[i].(map[string]any)
 		collateral = this.SafeNumber(entry, "margin_balance")
 	}
 	var marketId *string = this.SafeString(position, "symbol")
@@ -4793,7 +4793,10 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) map[s
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var currencies []any = SafeListTyped(data, "currencies")
-	var currencyInfo map[string]any = SafeMapTyped(currencies, 0)
+	var currencyInfo map[string]any
+	if 0 < len(currencies) {
+		currencyInfo, _ = currencies[0].(map[string]any)
+	}
 	var datetime *string = this.SafeString(data, "updated_at")
 	return map[string]any{
 		"info":       data,
@@ -5030,7 +5033,7 @@ func (this *Hitbtc) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var limits map[string]any = SafeMapTyped(market, "limits")
+	var limits, _ = market["limits"].(map[string]any)
 	var maxLeverage int64 = *this.SafeInteger(limits["leverage"], "max", 50)
 	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
@@ -5145,7 +5148,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var networkFees map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
-		var networkEntry map[string]any = SafeMapTyped(networks, j)
+		var networkEntry, _ = networks[j].(map[string]any)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var rawNetworkCode *string = this.NetworkIdToCode(networkId, code)

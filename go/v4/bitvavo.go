@@ -1509,7 +1509,7 @@ func (this *Bitvavo) ParseBalanceList(response []any) map[string]any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "symbol")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -3430,7 +3430,7 @@ func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) Tran
 		}
 	}
 	var typeVar string
-	if (InOp(transaction, "success")) || (InOp(transaction, "address")) {
+	if (this.SafeBool(transaction, "success") != nil) || (this.SafeString(transaction, "address") != nil) {
 		typeVar = "withdrawal"
 	} else {
 		typeVar = "deposit"

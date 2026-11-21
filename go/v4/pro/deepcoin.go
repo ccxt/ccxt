@@ -1059,7 +1059,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	var paramsAggregation map[string]any = nil
 	aggregation, paramsAggregation = this.HandleOptionStringAndParams(params, methodName, "aggregation")
 	if aggregation == nil {
-		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
+		var precision, _ = market["precision"].(map[string]any)
 		var tickSize *float64 = this.SafeNumber(precision, "price")
 		if tickSize == nil {
 			panic(ccxt.BadRequest(this.Id + " " + methodName + "() requires a params[\"aggregation\"] price level for " + symbol + " because the market has no price precision"))
@@ -1091,7 +1091,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = ccxt.SafeMapTyped(first, "d")
+	var data, _ = first["d"].(map[string]any)
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1122,7 +1122,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any
 	if 0 < len(entries) {
 		first, _ = entries[0].(map[string]any)
 	}
-	var data map[string]any = ccxt.SafeMapTyped(first, "d")
+	var data, _ = first["d"].(map[string]any)
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1744,7 +1744,7 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]an
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = ccxt.SafeMapTyped(first, "d")
+	var data, _ = first["d"].(map[string]any)
 	var action *string = this.SafeString(data, "A") // 1 = subscribe, 0 = unsubscribe
 	if action != nil && *action == "0" {
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
@@ -1789,7 +1789,7 @@ func (this *Deepcoin) HandleErrorMessage(client any, message map[string]any) {
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = ccxt.SafeMapTyped(first, "d")
+	var data, _ = first["d"].(map[string]any)
 	var requestId *int64 = this.SafeInteger(data, "L")
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, requestId)

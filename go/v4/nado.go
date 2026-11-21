@@ -762,7 +762,7 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	//         "request_type": "execute_cancel_and_place"
 	//     }
 	//
-	var cancelAndPlace map[string]any = SafeMapTyped(request, "cancel_and_place")
+	var cancelAndPlace, _ = request["cancel_and_place"].(map[string]any)
 	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{
@@ -3608,10 +3608,10 @@ func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var timestamp *int64 = this.SafeTimestamp(transaction, "timestamp")
 	var preBalance map[string]any = SafeMapTyped(transaction, "pre_balance")
 	var postBalance map[string]any = SafeMapTyped(transaction, "post_balance")
-	var preSpot map[string]any = SafeMapTyped(preBalance, "spot")
-	var postSpot map[string]any = SafeMapTyped(postBalance, "spot")
-	var preSpotBalance map[string]any = SafeMapTyped(preSpot, "balance")
-	var postSpotBalance map[string]any = SafeMapTyped(postSpot, "balance")
+	var preSpot, _ = preBalance["spot"].(map[string]any)
+	var postSpot, _ = postBalance["spot"].(map[string]any)
+	var preSpotBalance, _ = preSpot["balance"].(map[string]any)
+	var postSpotBalance, _ = postSpot["balance"].(map[string]any)
 	var preAmount *string = this.SafeString(preSpotBalance, "amount", "0")
 	var postAmount *string = this.SafeString(postSpotBalance, "amount", "0")
 	var amount any = this.ParseX18(Precise.StringAbs(Precise.StringSub(postAmount, preAmount)))
@@ -3663,7 +3663,7 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) Position {
 	var balance map[string]any = SafeMapTyped(position, "balance")
 	var amountString *string = this.SafeString(balance, "amount")
 	var product map[string]any = SafeMapTyped(position, "product")
-	var risk map[string]any = SafeMapTyped(product, "risk")
+	var risk, _ = product["risk"].(map[string]any)
 	var markPriceX18 *string = this.SafeString2(risk, "price_x18", "oracle_price_x18")
 	var vQuoteBalance *string = this.SafeString(balance, "v_quote_balance")
 	var side *string = nil
@@ -3882,7 +3882,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		status = this.SafeString(order, "status", "open")
 	} else {
 		var placeOrder map[string]any = SafeDict2Typed(order, "place_order", "order")
-		var rawOrder map[string]any = SafeMapTyped(placeOrder, "order")
+		var rawOrder, _ = placeOrder["order"].(map[string]any)
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		marketResolved = this.SafeMarket(marketId, market)
 		var data map[string]any = SafeMapTyped(order, "data")
@@ -3905,7 +3905,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		var triggerStatus map[string]any = SafeMapTyped(order, "status")
 		if triggerStatus != nil {
-			var triggered map[string]any = SafeMapTyped(triggerStatus, "triggered")
+			var triggered, _ = triggerStatus["triggered"].(map[string]any)
 			if triggered != nil {
 				statusStr2 := "closed"
 				status = &statusStr2
@@ -4245,8 +4245,8 @@ func (this *Nado) CalculateRateLimiterCost(api any, method string, path string, 
 					return baseWeight
 				}
 				var query map[string]any = SafeMapTyped(params, queryName)
-				var rows *int64 = this.SafeInteger(query, "limit", 100)       // the archive default page
-				var nestedLimit map[string]any = SafeMapTyped(query, "limit") // the events query sends { 'raw': 100 }
+				var rows *int64 = this.SafeInteger(query, "limit", 100) // the archive default page
+				var nestedLimit, _ = query["limit"].(map[string]any)    // the events query sends { 'raw': 100 }
 				if nestedLimit != nil {
 					rows = this.SafeInteger(nestedLimit, "raw", 100)
 				}

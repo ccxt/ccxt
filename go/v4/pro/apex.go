@@ -362,7 +362,8 @@ func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messag
 	var client ccxt.ClientInterface = this.Client(url)
 	var newTopics []any = []any{}
 	for i := 0; i < len(topics); i++ {
-		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(messageHashes, i))) {
+		var messageHash string = *this.SafeString(messageHashes, i, "")
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
 			newTopics = append(newTopics, topics[i])
 		}
 	}
@@ -1081,7 +1082,10 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		var rawTrade map[string]any = this.SafeDictMap(lists, i, map[string]any{})
+		var rawTrade, _ = lists[i].(map[string]any)
+		if rawTrade == nil {
+			rawTrade = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -1237,7 +1241,10 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
-		var rawPosition map[string]any = this.SafeDictMap(lists, i, map[string]any{})
+		var rawPosition, _ = lists[i].(map[string]any)
+		if rawPosition == nil {
+			rawPosition = map[string]any{}
+		}
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions

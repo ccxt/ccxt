@@ -453,7 +453,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) map[string]any {
 	}
 	for j := 0; j < len(keys); j++ {
 		var networkId string = keys[j]
-		var rawNetwork map[string]any = SafeMapTyped(rawNetworks, networkId)
+		var rawNetwork, _ = rawNetworks[networkId].(map[string]any)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit bool = (this.SafeString(rawNetwork, "deposit") != nil && *this.SafeString(rawNetwork, "deposit") == "enabled")
 		var withdraw bool = (this.SafeString(rawNetwork, "withdrawal") != nil && *this.SafeString(rawNetwork, "withdrawal") == "enabled")
@@ -1332,7 +1332,7 @@ func (this *Cex) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var balance map[string]any = SafeMapTyped(response, key)
+		var balance, _ = response[key].(map[string]any)
 		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = map[string]any{
 			"used":  this.SafeString(balance, "balanceOnHold"),

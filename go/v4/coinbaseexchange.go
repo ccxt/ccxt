@@ -1011,7 +1011,7 @@ func (this *Coinbaseexchange) ParseBalanceList(response []any) map[string]any {
 	}
 	var rawBalances []any = this.ToArray(response)
 	for i := 0; i < len(rawBalances); i++ {
-		var balance map[string]any = SafeMapTyped(rawBalances, i)
+		var balance, _ = rawBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1794,12 +1794,10 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "end")
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	// https://docs.pro.coinbase.com/#get-historic-rates max = 300
-	var cappedLimit int64 = this.ParseToInt(func() any {
-		if limit == nil {
-			return 300
-		}
-		return mathMin(limit, 300)
-	}())
+	var cappedLimit int64 = 300
+	if limit != nil {
+		cappedLimit = this.ParseToInt(min(*limit, 300))
+	}
 	var limitResolved *int64 = func() *int64 {
 		if since != nil {
 			return Int64PtrTyped(cappedLimit)
@@ -2104,11 +2102,11 @@ func (this *Coinbaseexchange) fetchOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes153115 []any = OrdersToList(r.Value)
-	if retRes153115 == nil {
+	var retRes153415 []any = OrdersToList(r.Value)
+	if retRes153415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes153115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes153415)}
 	}
 	return nil
 }
@@ -2156,11 +2154,11 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes155319 []any = r1.Value
-		if retRes155319 == nil {
+		var retRes155619 []any = r1.Value
+		if retRes155619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes155319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes155619)}
 		}
 		return nil
 	}
@@ -2233,11 +2231,11 @@ func (this *Coinbaseexchange) fetchClosedOrdersBody(ch chan AsyncResult[[]Order]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes159215 []any = OrdersToList(r.Value)
-	if retRes159215 == nil {
+	var retRes159515 []any = OrdersToList(r.Value)
+	if retRes159515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes159215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes159515)}
 	}
 	return nil
 }
@@ -2823,12 +2821,14 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		//        }
 		//    ]
 		//
-		response = this.ToArray(transfers)
-		for i := 0; i < len(response); i++ {
-			var account_id *string = this.SafeString(response[i], "account_id")
+		var transferRows []any = this.ToArray(transfers)
+		response = []any{}
+		for i := 0; i < len(transferRows); i++ {
+			var row map[string]any = this.Extend(map[string]any{}, transferRows[i])
+			var account_id *string = this.SafeString(row, "account_id")
 			var account map[string]any = SafeMapTyped(this.AccountsById, account_id)
-			var codeInner *string = this.SafeString(account, "code")
-			AddElementToObject(GetValue(response, i), "currency", codeInner)
+			row["currency"] = this.SafeString(account, "code")
+			response = append(response, row)
 		}
 	} else {
 
@@ -2863,9 +2863,12 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		//        }
 		//    ]
 		//
-		response = this.ToArray(accountTransfers)
-		for i := 0; i < len(response); i++ {
-			AddElementToObject(GetValue(response, i), "currency", code)
+		var transferRows []any = this.ToArray(accountTransfers)
+		response = []any{}
+		for i := 0; i < len(transferRows); i++ {
+			var row map[string]any = this.Extend(map[string]any{}, transferRows[i])
+			row["currency"] = code
+			response = append(response, row)
 		}
 	}
 
@@ -2908,11 +2911,11 @@ func (this *Coinbaseexchange) fetchDepositsBody(ch chan AsyncResult[[]Transactio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes206215 []any = TransactionsToList(r.Value)
-	if retRes206215 == nil {
+	var retRes207015 []any = TransactionsToList(r.Value)
+	if retRes207015 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes206215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes207015)}
 	}
 	return nil
 }
@@ -2952,11 +2955,11 @@ func (this *Coinbaseexchange) fetchWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes207815 []any = TransactionsToList(r.Value)
-	if retRes207815 == nil {
+	var retRes208615 []any = TransactionsToList(r.Value)
+	if retRes208615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes207815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes208615)}
 	}
 	return nil
 }
@@ -3190,16 +3193,16 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 			"Content-Type":         "application/json",
 		}
 	}
-	var literal226315 map[string]any = map[string]any{
+	var literal227115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal226315["body"] = *requestBody
+		literal227115["body"] = *requestBody
 	}
-	return literal226315
+	return literal227115
 }
 func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 400) || (code == 404) {

@@ -581,8 +581,8 @@ func (this *Lighter) InitAuthObject(strAccountIndex string, strApiKeyIndex strin
 }
 func (this *Lighter) GetLighterPrivateKey(strAccountIndex string, strApiKeyIndex string) *string {
 	var auths, _ = this.Options["auths"].(map[string]any)
-	var accountAuths map[string]any = SafeMapTyped(auths, strAccountIndex)
-	var apiKeyAuths map[string]any = SafeMapTyped(accountAuths, strApiKeyIndex)
+	var accountAuths, _ = auths[strAccountIndex].(map[string]any)
+	var apiKeyAuths, _ = accountAuths[strApiKeyIndex].(map[string]any)
 	return this.SafeString(apiKeyAuths, "lighterPrivateKey")
 }
 
@@ -1196,7 +1196,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar string, side string,
 			}
 		}
 	}
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var amountStr *string = nil
 	var priceStr *string = this.PriceToPrecision(symbol, price)
 	var amountScale *string = this.Pow("10", marketInfo["size_decimals"])
@@ -1570,7 +1570,7 @@ func (this *Lighter) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	signer := r1.Value
 	var market map[string]any = this.Market(symbol)
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var amountScale *string = this.Pow("10", marketInfo["size_decimals"])
 	var priceScale *string = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPrice *string = this.SafeStringN(paramsAccountIndex, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
@@ -2308,7 +2308,13 @@ func (this *Lighter) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		swapTickers = []any{}
 	}
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
-	var first map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(tickers) {
+		first, _ = tickers[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(first, market)}
 	return nil
@@ -2691,11 +2697,11 @@ func (this *Lighter) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	}
 	var accounts []any = SafeListTyped(response, "accounts")
 	for i := 0; i < len(accounts); i++ {
-		var account map[string]any = SafeMapTyped(accounts, i)
+		var account, _ = accounts[i].(map[string]any)
 		if typeVar != nil && *typeVar == "spot" {
 			var assets []any = SafeListTyped(account, "assets")
 			for j := 0; j < len(assets); j++ {
-				var asset map[string]any = SafeMapTyped(assets, j)
+				var asset, _ = assets[j].(map[string]any)
 				var codeId *string = this.SafeString(asset, "symbol")
 				var code *string = this.SafeCurrencyCode(codeId)
 				var balance map[string]any = this.Extend(this.Account(), this.SafeDict(result, code, map[string]any{}))
@@ -3731,7 +3737,10 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		rows = []any{}
 	}
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(rows, 0)
+	var first map[string]any
+	if 0 < len(rows) {
+		first, _ = rows[0].(map[string]any)
+	}
 	if (first != nil) && (cursor != nil) {
 		if row, ok := rows[0].(map[string]any); ok && (row != nil) {
 			if cursor != nil {
@@ -3890,7 +3899,10 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		data = []any{}
 	}
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	if (first != nil) && (cursor != nil) {
 		if row, ok := data[0].(map[string]any); ok && (row != nil) {
 			if cursor != nil {
@@ -4007,7 +4019,10 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		data = []any{}
 	}
 	var cursor *string = this.SafeString(response, "cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	if (first != nil) && (cursor != nil) {
 		if row, ok := data[0].(map[string]any); ok && (row != nil) {
 			if cursor != nil {
@@ -4393,7 +4408,10 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		}
 	}
 	var nextCursor *string = this.SafeString(response, "next_cursor")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	if (first != nil) && (nextCursor != nil) {
 		if row, ok := data[0].(map[string]any); ok && (row != nil) {
 			if nextCursor != nil {

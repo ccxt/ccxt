@@ -1172,11 +1172,11 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 	var parts []string = Split(symbol, "-")
 	var partsLength int = len(parts)
 	var base *string = nil
-	var quote any = nil
+	var quote string = ""
 	var settle *string = nil
 	var expiryDate *string = nil
 	var strike any = nil
-	var optionType *string = nil
+	var optionType string = ""
 	if GetIndexOf(symbol, "/") > -1 {
 		if partsLength != 4 {
 			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
@@ -1189,11 +1189,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		base = this.SafeString(pairParts, 0)
 		var quoteAndSettle string = *this.SafeString(pairParts, 1, "")
 		var quoteParts []string = strings.Split(quoteAndSettle, ":")
-		if derefPtr := this.SafeString(quoteParts, 0); derefPtr != nil {
-			quote = *derefPtr
-		} else {
-			quote = nil
-		}
+		quote = *this.SafeString(quoteParts, 0, "")
 		settle = this.SafeString(quoteParts, 1, quote)
 		expiryDate = this.SafeString(parts, 1)
 		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
@@ -1201,17 +1197,13 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		} else {
 			strike = nil
 		}
-		optionType = this.SafeString(parts, 3)
+		optionType = *this.SafeString(parts, 3, "")
 	} else {
 		if partsLength != 5 {
 			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
 		}
 		base = this.SafeString(parts, 0)
-		if derefPtr := this.SafeString(parts, 1); derefPtr != nil {
-			quote = *derefPtr
-		} else {
-			quote = nil
-		}
+		quote = *this.SafeString(parts, 1, "")
 		settleStr := "USDC"
 		settle = &settleStr // every option on the venue settles in USDC
 		expiryDate = this.ConvertMarketIdExpireDate(this.SafeString(parts, 2))
@@ -1220,7 +1212,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 			strikeId = &parts[3]
 		}
 		strike = strings.Replace(*strikeId, "_", ".", 1)
-		optionType = this.SafeString(parts, 4)
+		optionType = *this.SafeString(parts, 4, "")
 	}
 	// the id carries the day without a leading zero, 6NOV26
 	var idDate any = this.ConvertExpireDateToMarketIdDate(expiryDate)
@@ -1239,7 +1231,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		strikeInId = Replace(strike, ".", "_")
 	}
 	var ternaryStr92326 string = "put"
-	if optionType != nil && *optionType == "C" {
+	if optionType == "C" {
 		ternaryStr92326 = "call"
 	}
 	return map[string]any{
@@ -1339,9 +1331,9 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInt
 	var marketId *string = this.SafeString(fee, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var feeConfig map[string]any = SafeMapTyped(fee, "fee_config")
-	var apiFee map[string]any = SafeMapTyped(feeConfig, "api_fee")
-	var makerFee map[string]any = SafeMapTyped(apiFee, "maker_fee")
-	var takerFee map[string]any = SafeMapTyped(apiFee, "taker_fee")
+	var apiFee, _ = feeConfig["api_fee"].(map[string]any)
+	var makerFee, _ = apiFee["maker_fee"].(map[string]any)
+	var takerFee, _ = apiFee["taker_fee"].(map[string]any)
 	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     marketResolved["symbol"],
@@ -1697,7 +1689,7 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if data == nil {
 		data = []any{}
 	}
-	if IsEqual(request["market"], "ALL") {
+	if this.SafeString(request, "market") != nil && *this.SafeString(request, "market") == "ALL" {
 
 		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(this.FilterLoadedSummaries(data), symbolsNormalized))}
 		return nil
@@ -1932,7 +1924,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 		data = []any{}
 	}
 	// only a perpetual funds, the other rows are dropped before they are parsed
-	if IsEqual(request["market"], "ALL") {
+	if this.SafeString(request, "market") != nil && *this.SafeString(request, "market") == "ALL" {
 
 		ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(this.FilterLoadedSummaries(data, "swap"), symbolsNormalized))}
 		return nil
@@ -5278,7 +5270,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 		results = []any{}
 	}
 	// the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-	if IsEqual(request["market"], "ALL") {
+	if this.SafeString(request, "market") != nil && *this.SafeString(request, "market") == "ALL" {
 
 		ch <- AsyncResult[map[string]Greeks]{Value: GreeksMapFromMap(this.ParseAllGreeks(this.FilterLoadedSummaries(results, "option"), symbolsNormalized))}
 		return nil
@@ -5742,12 +5734,10 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		// the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
 		// end_at is set to as many full pages from since as the calls allow, so the rows begin at since
 		paginationCalls, paramsCalls := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10)
-		var endAt any
-		if derefPtr := this.SafeInteger(paramsCalls, "until"); derefPtr != nil {
-			endAt = *derefPtr
-		}
-		if IsEqual(endAt, nil) {
-			endAt = mathMin(this.Milliseconds(), this.Sum(since, ((paginationCalls*5000)*int64(rowSpacing))))
+		var until *int64 = this.SafeInteger(paramsCalls, "until")
+		var endAt any = mathMin(this.Milliseconds(), this.Sum(since, ((paginationCalls*5000)*int64(rowSpacing))))
+		if until != nil {
+			endAt = until
 		}
 		var paramsEndAt map[string]any = this.Extend(this.Omit(paramsPaginate, "until"), map[string]any{
 			"end_at": endAt,
@@ -5779,10 +5769,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		// a page holds the newest rows of its range, so a range wider than one page would return the latest
 		// rows and skip since, the range is cut to one page of rows from since
 		var windowEnd any = this.Sum(since, pageSize*int64(rowSpacing))
-		var endAt any
-		if derefPtr := this.SafeInteger(requestUntil, "end_at", windowEnd); derefPtr != nil {
-			endAt = *derefPtr
-		}
+		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
 		if !(InOp(requestUntil, "end_at")) || (IsGreaterThan(endAt, windowEnd)) {
 			AddElementToObject(requestUntil, "end_at", windowEnd)
 		}

@@ -1019,8 +1019,8 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 	var depositsNetworks []any = this.SafeListSlice(rawNetworks, "deposits", []any{})
 	var withdrawsNetworks []any = this.SafeListSlice(rawNetworks, "withdraws", []any{})
 	var networkLimits map[string]any = SafeMapTyped(rawCurrency, "limits")
-	var depositLimits map[string]any = SafeMapTyped(networkLimits, "deposit")
-	var withdrawLimits map[string]any = SafeMapTyped(networkLimits, "withdraw")
+	var depositLimits, _ = networkLimits["deposit"].(map[string]any)
+	var withdrawLimits, _ = networkLimits["withdraw"].(map[string]any)
 	var allNetworks []any = this.ArrayConcat(depositsNetworks, withdrawsNetworks)
 	for j := 0; j < len(allNetworks); j++ {
 		var networkId *string = this.SafeString(allNetworks, j, "")
@@ -1153,9 +1153,9 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 	var depositFees map[string]any = map[string]any{}
 	for i := 0; i < len(currenciesIds); i++ {
 		var currency string = currenciesIds[i]
-		var data map[string]any = SafeMapTyped(response, currency)
+		var data, _ = response[currency].(map[string]any)
 		var code *string = this.SafeCurrencyCode(currency)
-		var withdraw map[string]any = SafeMapTyped(data, "withdraw")
+		var withdraw, _ = data["withdraw"].(map[string]any)
 		if code != nil {
 			if ptrValue := this.SafeString(withdraw, "fixed"); ptrValue != nil {
 				withdrawFees[*code] = *ptrValue
@@ -1163,7 +1163,7 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 				withdrawFees[*code] = nil
 			}
 		}
-		var deposit map[string]any = SafeMapTyped(data, "deposit")
+		var deposit, _ = data["deposit"].(map[string]any)
 		if code != nil {
 			if ptrValue := this.SafeString(deposit, "fixed"); ptrValue != nil {
 				depositFees[*code] = *ptrValue
@@ -1556,9 +1556,9 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Extract trading limits
 		var limits map[string]any = SafeMapTyped(market, "limits")
-		var amountLimits map[string]any = SafeMapTyped(limits, "amount")
-		var priceLimits map[string]any = SafeMapTyped(limits, "price")
-		var costLimits map[string]any = SafeMapTyped(limits, "cost")
+		var amountLimits, _ = limits["amount"].(map[string]any)
+		var priceLimits, _ = limits["price"].(map[string]any)
+		var costLimits, _ = limits["cost"].(map[string]any)
 		// Validate that all required limits exist and are valid numbers
 		var hasAmountLimits bool = (amountLimits != nil) && (this.SafeNumber(amountLimits, "min") != nil) && (this.SafeNumber(amountLimits, "max") != nil)
 		var hasPriceLimits bool = (priceLimits != nil) && (this.SafeNumber(priceLimits, "min") != nil) && (this.SafeNumber(priceLimits, "max") != nil)
@@ -1712,7 +1712,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		for j := 0; j < len(feeKeys); j++ {
 			var feeKey string = feeKeys[j]
-			var fee map[string]any = this.SafeDictMap(feesData, feeKey)
+			var fee, _ = feesData[feeKey].(map[string]any)
 			if (fee != nil) && (this.SafeString(fee, "ticker") != nil && *this.SafeString(fee, "ticker") == code) {
 				feeData = fee
 				break
@@ -1720,8 +1720,8 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Build comprehensive funding limits
 		var currencyLimits map[string]any = SafeMapTyped(currency, "limits")
-		var depositLimits map[string]any = SafeMapTyped(currencyLimits, "deposit")
-		var withdrawLimits map[string]any = SafeMapTyped(currencyLimits, "withdraw")
+		var depositLimits, _ = currencyLimits["deposit"].(map[string]any)
+		var withdrawLimits, _ = currencyLimits["withdraw"].(map[string]any)
 		var depositLimitsResult map[string]any = map[string]any{
 			"min": depositLimits["min"],
 			"max": depositLimits["max"],
@@ -1738,7 +1738,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 				var depositFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(depositFee, "fixed"),
 				}
-				var depositFlex map[string]any = SafeMapTyped(depositFee, "flex")
+				var depositFlex, _ = depositFee["flex"].(map[string]any)
 				if depositFlex != nil {
 					depositFeeData["flex"] = map[string]any{
 						"min":     this.SafeNumber(depositFlex, "min_fee"),
@@ -1752,7 +1752,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 				var withdrawFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(withdrawFee, "fixed"),
 				}
-				var withdrawFlex map[string]any = SafeMapTyped(withdrawFee, "flex")
+				var withdrawFlex, _ = withdrawFee["flex"].(map[string]any)
 				if withdrawFlex != nil {
 					withdrawFeeData["flex"] = map[string]any{
 						"min":     this.SafeNumber(withdrawFlex, "min_fee"),
@@ -4313,7 +4313,10 @@ func (this *Whitebit) fetchAccountsBody(ch chan AsyncResult[[]Account], optional
 	var subAccounts []any
 	subAccounts, _ = response["data"].([]any)
 	for i := 0; i < len(subAccounts); i++ {
-		var subAccount map[string]any = this.SafeDictMap(subAccounts, i, map[string]any{})
+		var subAccount, _ = subAccounts[i].(map[string]any)
+		if subAccount == nil {
+			subAccount = map[string]any{}
+		}
 		var accountId *string = this.SafeString(subAccount, "id")
 		var accountName *string = this.SafeString(subAccount, "alias")
 		accounts = append(accounts, map[string]any{
@@ -5598,7 +5601,10 @@ func (this *Whitebit) ParseConversion(conversion any, optionalArgs ...any) Conve
 	var toCurrency map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = toCurrency
 	var path []any = SafeListTyped(conversion, "path")
-	var first map[string]any = SafeMapTyped(path, 0)
+	var first map[string]any
+	if 0 < len(path) {
+		first, _ = path[0].(map[string]any)
+	}
 	var fromPath *string = this.SafeString(first, "from")
 	var toPath *string = this.SafeString(first, "to")
 	var timestamp *int64 = this.SafeTimestamp2(conversion, "date", "expireAt")

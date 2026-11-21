@@ -218,7 +218,10 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
-		var candle map[string]any = this.SafeDictMap(data, i, map[string]any{})
+		var candle, _ = data[i].(map[string]any)
+		if candle == nil {
+			candle = map[string]any{}
+		}
 		var parsed any = this.ParseWsOHLCV(candle, market)
 		stored.Append(parsed)
 	}
@@ -407,7 +410,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 	if data != nil {
 		data = this.SortBy(data, "t")
 		for i := 0; i < len(data); i++ {
-			var trade map[string]any = ccxt.SafeMapTyped(data, i)
+			var trade, _ = data[i].(map[string]any)
 			var parsed map[string]any = this.ParseWsTrade(trade, market)
 			stored.Append(parsed)
 		}
@@ -499,7 +502,10 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var dataEntry map[string]any = ccxt.SafeMapTyped(data, 0)
+	var dataEntry map[string]any
+	if 0 < len(data) {
+		dataEntry, _ = data[0].(map[string]any)
+	}
 	var timestamp *int64 = this.SafeInteger(dataEntry, "t")
 	var snapshot map[string]any = this.ParseOrderBook(dataEntry, symbol, timestamp, "b", "a")
 	orderbook.Reset(snapshot)
@@ -632,21 +638,12 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 	var marketId *string = this.SafeString(order, "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(order, "O")
-	var side any = this.SafeStringLower(order, "S")
-	var reduceOnly any = nil
-	sidereduceOnlyVariable := this.ParseOrderSideAndReduceOnly(side)
-	side = ccxt.GetValue(sidereduceOnlyVariable, 0)
-	reduceOnly = sidereduceOnlyVariable[1]
-	var typeVar any = this.ParseOrderType(this.SafeString(order, "o"))
-	var timeInForce any
-	if derefPtr := this.SafeString(order, "f"); derefPtr != nil {
-		timeInForce = *derefPtr
-	}
-	var postOnly any = nil
-	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
-	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)
-	timeInForce = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 1)
-	postOnly = typeVartimeInForcepostOnlyVariable[2]
+	var rawSide *string = this.SafeStringLower(order, "S")
+	var side any = this.ParseOrderSideValue(rawSide)
+	var rawType any = this.ParseOrderType(this.SafeString(order, "o"))
+	var rawTimeInForce *string = this.SafeString(order, "f")
+	var timeInForce any = this.ParseOrderTimeInForceValue(rawType, rawTimeInForce)
+	var typeVar any = this.ParseOrderType(rawType)
 	if *this.SafeBool(marketResolved, "contract", false) {
 		typeVar = nil
 	}
@@ -677,8 +674,8 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 			"currency": this.SafeCurrencyCode(this.SafeString(order, "N")),
 			"amount":   this.OmitZero(this.SafeString(order, "n")),
 		},
-		"reduceOnly": reduceOnly,
-		"postOnly":   postOnly,
+		"reduceOnly": this.ParseOrderReduceOnlyValue(rawSide),
+		"postOnly":   this.ParseOrderPostOnlyValue(rawType, rawTimeInForce),
 		"info":       order,
 	}, marketResolved))
 }
@@ -1125,19 +1122,17 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	//
 	var event *string = this.SafeString(message, "e")
 	var data []any = ccxt.SafeListTyped(message, "B")
-	var balanceUpdate map[string]any = ccxt.SafeMapTyped(data, 0)
+	var balanceUpdate map[string]any
+	if 0 < len(data) {
+		balanceUpdate, _ = data[0].(map[string]any)
+	}
 	var isSpot bool = (event != nil && *event == "outboundAccountInfo")
 	var typeVar string = "swap"
 	if isSpot {
 		typeVar = "spot"
 	}
-	if _, ok := this.Balance[typeVar]; !ok {
-		this.Balance[typeVar] = map[string]any{}
-	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		entry["info"] = message
-	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	ccxt.AddElementToObject(balance, "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()

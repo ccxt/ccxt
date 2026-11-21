@@ -1304,7 +1304,7 @@ func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		orders = OrdersToList(r.Value)
 	}
 	var ordersById map[string]any = this.IndexBy(orders, "id")
-	var found map[string]any = SafeMapTyped(ordersById, id)
+	var found, _ = ordersById[id].(map[string]any)
 	if found != nil {
 
 		ch <- AsyncResult[Order]{Value: OrderFromMap(found)}
@@ -1697,10 +1697,10 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var typeVar string
 	var status *string = nil
 	var fee map[string]any = nil
-	if InOp(transaction, "fee") {
+	var feeCost *string = this.SafeString(transaction, "fee")
+	if feeCost != nil {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)
-		var feeCost *string = this.SafeString(transaction, "fee")
 		var additionalFee *string = this.SafeString(transaction, "additional_fee")
 		fee = map[string]any{
 			"currency": code,

@@ -433,7 +433,13 @@ func (this *Whitebit) HandleTicker(client any, message map[string]any) map[strin
 	var marketId *string = this.SafeString(tickers, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var rawTicker map[string]any = this.SafeDictMap(tickers, 1, map[string]any{})
+	var rawTicker map[string]any
+	if 1 < len(tickers) {
+		rawTicker, _ = tickers[1].(map[string]any)
+	}
+	if rawTicker == nil {
+		rawTicker = map[string]any{}
+	}
 	var messageHash string = "ticker" + ":" + *symbol
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
 	if symbol != nil {
@@ -1129,7 +1135,7 @@ func (this *Whitebit) HandleBalance(client any, message map[string]any) {
 			}
 			for j := 0; j < len(keys); j++ {
 				var currencyId string = keys[j]
-				var rawBalance map[string]any = ccxt.SafeMapTyped(balanceDict, currencyId)
+				var rawBalance, _ = balanceDict[currencyId].(map[string]any)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account map[string]any = this.Account()
 				account["free"] = this.SafeString(rawBalance, "available")

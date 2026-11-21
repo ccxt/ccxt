@@ -1804,12 +1804,10 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		"symbol": market["id"],
 	}
 	request["interval"] = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var requestLimit int64 = this.ParseToInt(func() any {
-		if limit == nil {
-			return 500
-		}
-		return mathMin(limit, maxLimit)
-	}())
+	var requestLimit int64 = 500
+	if limit != nil {
+		requestLimit = this.ParseToInt(mathMin(limit, maxLimit))
+	}
 	if since != nil {
 		request["startTime"] = max(*since-1, 0)
 	}
@@ -1840,9 +1838,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		// bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
 		// the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
 		timeZone, paramsTimeZone := this.HandleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0)
-		if !IsEqual(timeZone, nil) {
-			request["timeZone"] = timeZone
-		}
+		request["timeZone"] = timeZone
 
 		r2 := <-this.SpotV1PublicGetMarketKline(this.Extend(request, paramsTimeZone))
 		if r2.Err != nil {
@@ -2253,10 +2249,11 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		amount = this.SafeStringN(trade, []any{"qty", "amount", "q"})
 	}
-	if (market != nil) && (*this.SafeBool(market, "swap", false)) && (InOp(trade, "volume")) {
+	var volume *string = this.SafeString(trade, "volume")
+	if (market != nil) && (*this.SafeBool(market, "swap", false)) && (volume != nil) {
 		// Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
 		// safeTrade applies contractSize when calculating inverse cost.
-		amount = this.SafeString(trade, "volume")
+		amount = volume
 	}
 	var price *string
 	if isSpotExecution {
@@ -2678,11 +2675,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes190519 []any = r1.Value
-		if retRes190519 == nil {
+		var retRes190719 []any = r1.Value
+		if retRes190719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes190519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes190719)}
 		}
 		return nil
 	}
@@ -2802,11 +2799,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes198219 []any = r1.Value
-		if retRes198219 == nil {
+		var retRes198419 []any = r1.Value
+		if retRes198419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes198219)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes198419)}
 		}
 		return nil
 	}
@@ -3361,6 +3358,25 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r1.Err)
 		}
 		response = r1.Value
+
+		//
+		// {
+		//     "code": 0,
+		//     "msg": "",
+		//     "timestamp": 1728577213289,
+		//     "data": [
+		//         {
+		//             "symbol": "ETH-USD",
+		//             "lastFundingRate": "0.0001",
+		//             "markPrice": "2402.68",
+		//             "indexPrice": "2404.92",
+		//             "nextFundingTime": 1728604800000
+		//         }
+		//     ]
+		// }
+		//
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response["data"], 0, map[string]any{}), market)}
+		return nil
 	} else {
 
 		r2 := <-this.SwapV2PublicGetQuotePremiumIndex(this.Extend(request, paramsSubType))
@@ -3368,11 +3384,6 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r2.Err)
 		}
 		response = r2.Value
-	}
-	if IsArray(response["data"]) {
-
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response["data"], 0, map[string]any{}), market)}
-		return nil
 	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(GetValue(response, "data"), market)}
@@ -3746,7 +3757,10 @@ func (this *Bingx) ParseBalance(response map[string]any) map[string]any {
 		"info": response,
 	}
 	var contractBalances []any = SafeListTyped(response, "data")
-	var firstContractBalances map[string]any = SafeMapTyped(contractBalances, 0)
+	var firstContractBalances map[string]any
+	if 0 < len(contractBalances) {
+		firstContractBalances, _ = contractBalances[0].(map[string]any)
+	}
 	var isContract bool = (firstContractBalances != nil)
 	var spotData, _ = response["data"].(map[string]any)
 	var spotBalances []any = SafeList2Typed(spotData, "balances", "assets")
@@ -3768,7 +3782,7 @@ func (this *Bingx) ParseBalance(response map[string]any) map[string]any {
 		}
 	} else {
 		for i := 0; i < len(spotBalances); i++ {
-			var balance map[string]any = SafeMapTyped(spotBalances, i)
+			var balance, _ = spotBalances[i].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "asset")
 			var code *string = this.SafeCurrencyCode(currencyId)
 			var account map[string]any = this.Account()
@@ -5226,12 +5240,11 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		marketType = "spot"
 	}
 	var marketId *string = this.SafeString2(orderData, "symbol", "s")
-	var marketResolved map[string]any = this.SafeMarket(func() any {
-		if market == nil {
-			return marketId
-		}
-		return nil
-	}(), market, nil, marketType)
+	var marketIdOrUndefined *string = nil
+	if market == nil {
+		marketIdOrUndefined = marketId
+	}
+	var marketResolved map[string]any = this.SafeMarket(marketIdOrUndefined, market, nil, marketType)
 	var side *string = this.SafeStringLower2(orderData, "side", "S")
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
 	var transactTime string = *this.SafeString(orderData, "transactTime", "")
@@ -5731,9 +5744,9 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
-	var ternaryStr467420 string = "CLOSE"
+	var ternaryStr467820 string = "CLOSE"
 	if isActive {
-		ternaryStr467420 = "ACTIVATE"
+		ternaryStr467820 = "ACTIVATE"
 	}
 	var timeOutValue int64
 	if isActive {
@@ -5742,7 +5755,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		timeOutValue = int64(0)
 	}
 	var request map[string]any = map[string]any{
-		"type":    ternaryStr467420,
+		"type":    ternaryStr467820,
 		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
@@ -6638,11 +6651,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553419 []any = r1.Value
-		if retRes553419 == nil {
+		var retRes553819 []any = r1.Value
+		if retRes553819 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553419)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553819)}
 		}
 		return nil
 	}
@@ -7108,7 +7121,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	// deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
 	var rawType *string = this.SafeString(transaction, "transferType")
 	var typeVar string = "withdrawal"
-	if (rawType != nil && *rawType == "0") || (InOp(transaction, "insertTime")) {
+	if (rawType != nil && *rawType == "0") || (this.SafeInteger(transaction, "insertTime") != nil) {
 		typeVar = "deposit"
 	}
 	var internal any = nil
@@ -7421,14 +7434,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var ternaryStr610620 string = "reduce"
+	var ternaryStr611020 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		ternaryStr610620 = "add"
+		ternaryStr611020 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       ternaryStr610620,
+		"type":       ternaryStr611020,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -7747,7 +7760,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 	if networksLength != 0 {
 		for i := 0; i < networksLength; i++ {
 			var networkCode string = networkCodes[i]
-			var network map[string]any = SafeMapTyped(networks, networkCode)
+			var network, _ = networks[networkCode].(map[string]any)
 			networkFees[networkCode] = map[string]any{
 				"deposit": map[string]any{
 					"fee":        nil,
@@ -7815,7 +7828,7 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]D
 	for i := 0; i < len(responseCodes); i++ {
 		var code string = responseCodes[i]
 		if (codes == nil) || (this.InArray(code, codes)) {
-			var entry map[string]any = SafeMapTyped(response, code)
+			var entry, _ = response[code].(map[string]any)
 			depositWithdrawFees[code] = this.ParseDepositWithdrawFee(entry)
 		}
 	}
@@ -8861,16 +8874,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal743415 map[string]any = map[string]any{
+	var literal743815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal743415["body"] = *requestBody
+		literal743815["body"] = *requestBody
 	}
-	return literal743415
+	return literal743815
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

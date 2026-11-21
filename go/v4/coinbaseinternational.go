@@ -1194,7 +1194,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], 
 		"instrument_name": market["id"],
 		"resolution":      this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	if this.IsNativeDeribitCredentials() && (*this.SafeBool2(marketInfo, "is_cbe_routed", "is_csr", false)) {
 		panic(NotSupported(this.Id + " fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments"))
 	}
