@@ -982,7 +982,8 @@ public class Phemex extends PhemexApi
         {
             inverse = true;
             // some unhandled cases
-            if (!(market.containsKey("baseCurrency")) && java.util.Objects.equals(base, quote))
+            String marketBaseCurrency = this.safeString(market, "baseCurrency");
+            if ((java.util.Objects.equals(marketBaseCurrency, null)) && java.util.Objects.equals(base, quote))
             {
                 base = settle;
             }
@@ -3237,7 +3238,12 @@ public class Phemex extends PhemexApi
             request.put("qtyType", qtyType);
             if (java.util.Objects.equals(qtyType, "ByQuote"))
             {
-                Object cost = this.safeNumber(orderParams, "cost", (Object) null);
+                Double costParam = this.safeNumber(orderParams, "cost", (Object) null);
+                Object cost = amount;
+                if (!java.util.Objects.equals(costParam, null))
+                {
+                    cost = this.safeNumber(orderParams, "cost", (Object) null);
+                }
                 orderParams = this.omit(orderParams, "cost");
                 if (Boolean.TRUE.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false)))
                 {
@@ -3247,12 +3253,11 @@ public class Phemex extends PhemexApi
                         String priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
                         cost = this.parseNumber(quoteAmount);
-                    } else if (java.util.Objects.equals(cost, null))
+                    } else if (java.util.Objects.equals(costParam, null))
                     {
                         throw new ArgumentsRequired((((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
-                cost = (((java.util.Objects.equals(cost, null)))) ? amount : cost;
                 String costString = this.costToPrecision(symbol, cost);
                 request.put("quoteQtyEv", this.toEv(costString, market));
             } else

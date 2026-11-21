@@ -1675,7 +1675,7 @@ public class Aster extends AsterApi
         String id = this.safeString2(trade, "id", "a");
         String marketId = this.safeString(trade, "symbol");
         String marketType = "spot";
-        if (((Map<?, ?>)trade).containsKey("positionSide"))
+        if (!java.util.Objects.equals(this.safeString(trade, "positionSide"), null))
         {
             marketType = "swap";
         }
@@ -1993,14 +1993,14 @@ public class Aster extends AsterApi
         String baseVolume = this.safeString(ticker, "volume");
         String high = this.safeString(ticker, "highPrice");
         String low = this.safeString(ticker, "lowPrice");
-        Boolean isTickerResponse = (((Map<?, ?>)ticker).containsKey("priceChange"));
+        Boolean isTickerResponse = (!java.util.Objects.equals(this.safeString(ticker, "priceChange"), null));
         String marketType = null;
         if (Boolean.TRUE.equals(isTickerResponse))
         {
-            marketType = (((((Map<?, ?>)ticker).containsKey("baseAsset")))) ? "spot" : "swap";
+            marketType = (((!java.util.Objects.equals(this.safeString(ticker, "baseAsset"), null)))) ? "spot" : "swap";
         } else
         {
-            marketType = (((((Map<?, ?>)ticker).containsKey("lastUpdateId")))) ? "swap" : "spot";
+            marketType = (((!java.util.Objects.equals(this.safeInteger(ticker, "lastUpdateId"), null)))) ? "swap" : "spot";
         }
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
@@ -4424,7 +4424,7 @@ public class Aster extends AsterApi
         Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
         String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        Boolean linear = (position.containsKey("notional"));
+        Boolean linear = (!java.util.Objects.equals(this.safeString(position, "notional"), null));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral

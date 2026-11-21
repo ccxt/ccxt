@@ -338,12 +338,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         for (var i = 0; i < tickers.size(); i++)
         {
-            Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            String symbol = this.safeString(ticker, "symbol", "");
+            String symbol = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol", "");
             String messageHash = ("ticker:" + symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
-            ((Map<String, Object>)ticker).put("timestamp", timestamp);
-            ((Map<String, Object>)ticker).put("datetime", this.iso8601(timestamp));
+            Map<String, Object> ticker = this.extend((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+                put( "datetime", Phemex.this.iso8601(timestamp) );
+            }});
             this.tickers.put(symbol, ticker);
             client.resolve(ticker, messageHash);
         }

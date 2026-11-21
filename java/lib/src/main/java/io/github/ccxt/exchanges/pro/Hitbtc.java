@@ -1257,17 +1257,18 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Long limit = this.safeInteger(this.options, "ordersLimit");
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object data = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
-        if ((data instanceof List))
+        Map<String, Object> dataDict = this.safeDict(message, "params", null);
+        if (!java.util.Objects.equals(dataDict, null))
         {
-            for (var i = 0; i < ((List<?>)data).size(); i++)
-            {
-                Map<String, Object> order = (Map<String, Object>) ((data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)));
-                this.handleOrderHelper(client, message, order);
-            }
+            this.handleOrderHelper(client, message, dataDict);
         } else
         {
-            this.handleOrderHelper(client, message, (Map<String, Object>) (data));
+            List<Object> data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < data.size(); i++)
+            {
+                Map<String, Object> order = (Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                this.handleOrderHelper(client, message, order);
+            }
         }
         return message;
     }
@@ -1757,9 +1758,11 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         if ((result instanceof List))
         {
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            List<Object> rows = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+            Integer rowsLength = rows.size();
+            for (var i = 0; (rowsLength != null && i < rowsLength); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((result == null || i < 0 || i >= ((List<?>)result).size() ? null : ((List<?>)result).get(i))), (Map<String, Object>) null);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
@@ -1856,7 +1859,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 // to do improve this, not very reliable right now
                 Map<String, Object> first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
-                Integer arrayLength = ((List<?>)result).size();
+                List<Object> rows = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+                Integer arrayLength = rows.size();
                 if ((java.util.Objects.equals(arrayLength, 0)) || (first.containsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);

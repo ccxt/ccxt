@@ -445,11 +445,12 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> currency = this.currency(code);
             String currencyId = this.safeString(currency, "id", "");
             String free = (currencyId + "_balance");
-            if (response.containsKey(free))
+            String freeValue = this.safeString(response, free);
+            if (!java.util.Objects.equals(freeValue, null))
             {
                 Map<String, Object> account = this.account();
                 String used = (currencyId + "_lock");
-                account.put("free", this.safeString(response, free));
+                account.put("free", freeValue);
                 account.put("used", this.safeString(response, used));
                 result.put(code, account);
             }

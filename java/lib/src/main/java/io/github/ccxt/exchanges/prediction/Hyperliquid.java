@@ -2789,11 +2789,14 @@ public class Hyperliquid extends HyperliquidApi
     {
         if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
         {
-            Object type = ((Map<String, Object>)parameters).get("type");
+            String type = this.safeString(parameters, "type");
             Object byType = config.get("byType");
-            if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
+            if (!java.util.Objects.equals(type, null))
             {
-                return Helpers.GetValue(byType, type);
+                if (((Map<?, ?>)byType).containsKey(type))
+                {
+                    return this.safeInteger(byType, type);
+                }
             }
         }
         return this.safeValue(config, "cost", 1);

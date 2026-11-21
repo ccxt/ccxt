@@ -2715,7 +2715,7 @@ public class Htx extends HtxApi
             String settleId = null;
             Object id = null;
             Object lowercaseId = null;
-            Boolean contract = (((Map<?, ?>)market).containsKey("contract_code"));
+            Boolean contract = (!java.util.Objects.equals(this.safeString(market, "contract_code"), null));
             Boolean spot = !Boolean.TRUE.equals(contract);
             Boolean swap = false;
             Boolean future = false;
@@ -2979,13 +2979,10 @@ public class Htx extends HtxApi
             Boolean marketLinear = (Boolean) this.safeBool(market, "linear", false);
             String marketSymbol = this.safeString(market, "symbol", "");
             // see comment on formats a bit above
-            String constructedId = null;
+            String constructedId = ((marketBase + "_") + contractSuffix);
             if (Boolean.TRUE.equals(marketLinear))
             {
                 constructedId = ((((marketBase + "-") + marketQuote) + "-") + contractSuffix);
-            } else
-            {
-                constructedId = ((marketBase + "_") + contractSuffix);
             }
             if (java.util.Objects.equals(constructedId, symbolOrMarketId))
             {
@@ -4633,9 +4630,10 @@ public class Htx extends HtxApi
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
         Map<String, Object> uniqueNetworkIds = this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
-        if (uniqueNetworkIds.containsKey(networkCode))
+        String uniqueNetworkId = this.safeString(uniqueNetworkIds, networkCode);
+        if (!java.util.Objects.equals(uniqueNetworkId, null))
         {
-            return (String) (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
+            return uniqueNetworkId;
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -6640,17 +6638,18 @@ public class Htx extends HtxApi
             request.put("source", "c2c-margin-api");
         }
         Boolean isMarketBuy = (java.util.Objects.equals(orderType, "market")) && (java.util.Objects.equals(sideStr, "buy"));
-        List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "createMarketBuyOrderRequiresPrice", true);
-        Double cost = this.safeNumber(((List<Object>)requiresPriceAndParams).get(1), "cost", (Object) null);
-        Object paramsCost = paramsPostOnly;
+        Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPricerequiresPriceParamsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsPostOnly), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+        Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.first();
+        Map<String, Object> requiresPriceParams = createMarketBuyOrderRequiresPricerequiresPriceParamsVariable.second();
+        Double cost = this.safeNumber(requiresPriceParams, "cost", (Object) null);
+        Map<String, Object> paramsCost = paramsPostOnly;
         if (Boolean.TRUE.equals(isMarketBuy))
         {
-            paramsCost = this.omit(((List<Object>)requiresPriceAndParams).get(1), "cost");
+            paramsCost = this.omit(requiresPriceParams, "cost");
         }
         if (Boolean.TRUE.equals(isMarketBuy))
         {
             String quoteAmount = null;
-            Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>)requiresPriceAndParams).get(0);
             if (!java.util.Objects.equals(cost, null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
@@ -6685,7 +6684,7 @@ public class Htx extends HtxApi
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        Object paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
+        Map<String, Object> paramsOmitted = this.omit(paramsCost, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce")));
         return this.extend(request, paramsOmitted);
 
     }
@@ -7209,7 +7208,7 @@ public class Htx extends HtxApi
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         String symbol = null;
         Map<String, Object> market = null;
-        Object marginMode = null;
+        String marginMode = null;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
@@ -7226,11 +7225,11 @@ public class Htx extends HtxApi
             }
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-            List<Object> marginResult = (List<Object>) this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
-            String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
+            Pair<String, Map<String, Object>> currentMarginModeVariable = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
+            String currentMarginMode = currentMarginModeVariable.first();
             if (!java.util.Objects.equals(currentMarginMode, null))
             {
                 if (java.util.Objects.equals(marginMode, null))
@@ -7861,7 +7860,7 @@ public class Htx extends HtxApi
         }
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
-            Object order = (success == null || i < 0 || i >= ((List<?>)success).size() ? null : ((List<?>)success).get(i));
+            String order = this.safeString(success, i);
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
@@ -9618,13 +9617,13 @@ public class Htx extends HtxApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v20 -> j39v20.contains("status"); case Map<?, ?> j39v19 -> j39v19.containsKey("status"); case null, default -> false; }))
+        String status = this.safeString(response, "status");
+        if (!java.util.Objects.equals(status, null))
         {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            String status = this.safeString(response, "status");
             if (java.util.Objects.equals(status, "error"))
             {
                 String codeError = this.safeString2(response, "err-code", "err_code");
@@ -9636,12 +9635,13 @@ public class Htx extends HtxApi
                 throw new ExchangeError(feedback) ;
             }
         }
-        if ((switch ((Object)(response)) { case List<?> j39v18 -> j39v18.contains("code"); case Map<?, ?> j39v17 -> j39v17.containsKey("code"); case null, default -> false; }))
+        String responseCode = this.safeString(response, "code");
+        if (!java.util.Objects.equals(responseCode, null))
         {
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
-            String codeError = this.safeString(response, "code");
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
+            String codeError = responseCode;
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (codeError), feedback);
         }
         Map<String, Object> data = this.safeDict(response, "data", null);
         List<Object> errorsList = this.safeList(data, "errors", null);
@@ -9799,8 +9799,8 @@ public class Htx extends HtxApi
         Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            List<Object> marginModeAndParams = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
-            String marginMode = (String) ((List<Object>)marginModeAndParams).get(0);
+            Pair<String, Map<String, Object>> marginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            String marginMode = marginModeVariable.first();
             request.put("margin_mode", marginMode);
             response = (this.contractPrivatePostV5PositionLever(this.extend(request, query))).join();
         } else

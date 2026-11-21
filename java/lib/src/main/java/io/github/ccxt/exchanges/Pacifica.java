@@ -3013,10 +3013,10 @@ public class Pacifica extends PacificaApi
         {
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
             {
-                Map<String, Object> first = (Map<String, Object>) (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
-                first.put("next_cursor", paginationCursor);
-                first.put("has_more", hasMore);
-                data.set(0, first);
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("next_cursor", paginationCursor);
+                j39v1.put("has_more", hasMore);
+                data.set(0, this.extend((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), j39v1));
             }
         }
         return data;
@@ -4627,7 +4627,7 @@ public class Pacifica extends PacificaApi
         if (Boolean.TRUE.equals(this.isDictionary(value)))
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
             Object sortedKeys = this.sort(keys);
             for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {

@@ -1249,18 +1249,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 subscription = new HashMap<String, Object>() {{}};
             }
         }
-        Map<String, Object> subscriptionMarketId = this.safeDict(subscription, marketId, null);
-        if (java.util.Objects.equals(subscriptionMarketId, null))
+        Map<String, Object> marketTimeframes = this.safeDict(subscription, marketId, new HashMap<String, Object>() {{}});
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), null))
         {
-            if (!java.util.Objects.equals(marketId, null))
-            {
-                subscription.put(marketId, new HashMap<String, Object>() {{}});
-            }
+            marketTimeframes.put((String)java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
         }
-        if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), null)))
-        {
-            Helpers.addElementToObject((subscription == null || marketId == null ? null : subscription.get(marketId)), java.util.Objects.requireNonNullElse(timeframe, "1m"), true);
-        }
+        subscription.put(marketId, marketTimeframes);
         List<Object> properties = new ArrayList<Object>(Arrays.asList());
         List<String> marketIds = new ArrayList<String>(subscription.keySet());
         for (var i = 0; i < marketIds.size(); i++)
@@ -1358,12 +1352,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             throw new ArgumentsRequired((this.id + " findTimeframe() timeframes is required")) ;
         }
+        String unit = this.safeString(timeframe, "unit");
+        String period = this.safeString(timeframe, "period");
         List<String> keys = new ArrayList<String>(timeframesResolved.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Map<String, Object> timeframeResolved = this.safeDict(timeframesResolved, key, new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(timeframeResolved.get("unit"), Helpers.GetValue(timeframe, "unit")) && Helpers.isEqual(timeframeResolved.get("period"), Helpers.GetValue(timeframe, "period")))
+            if (java.util.Objects.equals(this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "unit"), unit) && java.util.Objects.equals(this.safeString((timeframesResolved == null || key == null ? null : timeframesResolved.get(key)), "period"), period))
             {
                 return key;
             }

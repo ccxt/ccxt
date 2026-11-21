@@ -1340,7 +1340,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
     put( "currency", Poloniex.this.safeString(trade.get("fee"), "currency") );
 }});
                     }
-                    if ((!java.util.Objects.equals(Helpers.GetValue(previousOrder.get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
+                    if ((!java.util.Objects.equals(this.safeString(previousOrder.get("fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(trade.get("fee"), "cost", (Object) null), null)))
                     {
                         String stringOrderCost = this.numberToString(Helpers.GetValue(previousOrder.get("fee"), "cost"));
                         String stringTradeCost = this.numberToString(this.safeNumber(trade.get("fee"), "cost", (Object) null));

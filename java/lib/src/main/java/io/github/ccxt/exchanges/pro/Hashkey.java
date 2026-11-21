@@ -567,18 +567,12 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String marketId = this.safeString(order, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = this.safeInteger(order, "O");
-        Object side = this.safeStringLower(order, "S");
-        Object reduceOnly = null;
-        var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
-        side = ((List<Object>) sidereduceOnlyVariable).get(0);
-        reduceOnly = ((List<Object>) sidereduceOnlyVariable).get(1);
-        Object type = this.parseOrderType(this.safeString(order, "o"));
-        Object timeInForce = this.safeString(order, "f");
-        Object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly((String) (type), (String) (timeInForce));
-        type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
-        timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
-        postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
+        String rawSide = this.safeStringLower(order, "S");
+        String side = this.parseOrderSideValue((String) (rawSide));
+        String rawType = this.parseOrderType(this.safeString(order, "o"));
+        String rawTimeInForce = this.safeString(order, "f");
+        String timeInForce = this.parseOrderTimeInForceValue((String) (rawType), (String) (rawTimeInForce));
+        String type = this.parseOrderType((String) (rawType));
         if (Boolean.TRUE.equals(this.safeBool(marketResolved, "contract", false)))
         {
             type = null;
@@ -610,8 +604,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N"), (Map<String, Object>) null) );
                 put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "n")) );
             }});
-        mapLiteral1.put("reduceOnly", reduceOnly);
-        mapLiteral1.put("postOnly", postOnly);
+        mapLiteral1.put("reduceOnly", this.parseOrderReduceOnlyValue((String) (rawSide)));
+        mapLiteral1.put("postOnly", this.parseOrderPostOnlyValue((String) (rawType), (String) (rawTimeInForce)));
         mapLiteral1.put("info", order);
         return this.safeOrder(mapLiteral1, marketResolved);
     }
@@ -986,12 +980,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             type = "spot";
         }
-        if (!(((Map<?, ?>)this.balance).containsKey(type)))
-        {
-            this.balance.put(type, new HashMap<String, Object>() {{}});
-        }
-        Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
+        balance.put("info", message);
         String currencyId = this.safeString(balanceUpdate, "a");
         String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
         Map<String, Object> account = this.account();

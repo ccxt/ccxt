@@ -474,10 +474,13 @@ public class Delta extends DeltaApi
         }
         String optionType = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 3 : 0, "");
         String rawExpiry = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 1 : 3, "");
-        Object expiry = Helpers.add(Helpers.add((rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length()))), (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())))), (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length()))));
+        Object expiryYear = (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length())));
+        String expiryMonth = (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())));
+        String expiryDay = (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length())));
+        String expiry = ((expiryYear + expiryMonth) + expiryDay);
         String settle = quote;
         String strike = this.safeString(optionParts, 2, "");
-        String datetime = (String) this.convertExpireDate((String) (expiry));
+        String datetime = (String) this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
         String optionTypeUnified = "put";
         if (java.util.Objects.equals(optionType, "C"))
@@ -1076,10 +1079,12 @@ public class Delta extends DeltaApi
             String symbol = ((base + "/") + quote);
             if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
             {
-                symbol = ((symbol + ":") + settle);
+                String settleCode = ((String)this.safeCurrencyCode(settleId, (Map<String, Object>) null));
+                symbol = ((symbol + ":") + settleCode);
                 if (Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                 {
-                    symbol = ((symbol + "-") + this.yymmdd(expiry));
+                    String expiryCode = this.yymmdd(expiry);
+                    symbol = ((symbol + "-") + expiryCode);
                     if (Boolean.TRUE.equals(option))
                     {
                         type = "option";
@@ -1094,7 +1099,8 @@ public class Delta extends DeltaApi
                             letter = "M";
                             optionType = "move";
                         }
-                        symbol = ((((symbol + "-") + strike) + "-") + letter);
+                        String strikeString = this.safeString(market, "strike_price", "");
+                        symbol = ((((symbol + "-") + strikeString) + "-") + letter);
                     } else
                     {
                         type = "future";
@@ -1105,38 +1111,38 @@ public class Delta extends DeltaApi
                 }
             }
             String state = this.safeString(market, "state");
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("numericId", numericId);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", settle);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", settleId);
-            j39v1.put("type", type);
-            j39v1.put("spot", spot);
-            j39v1.put("margin", false);
-            j39v1.put("swap", swap);
-            j39v1.put("future", future);
-            j39v1.put("option", option);
-            j39v1.put("active", (java.util.Objects.equals(state, "live")));
-            j39v1.put("contract", !Boolean.TRUE.equals(spot));
-            j39v1.put("linear", ((Boolean.TRUE.equals(spot))) ? null : linear);
-            j39v1.put("inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear));
-            j39v1.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
-            j39v1.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
-            j39v1.put("contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize);
-            j39v1.put("expiry", expiry);
-            j39v1.put("expiryDatetime", this.iso8601(expiry));
-            j39v1.put("strike", this.parseNumber(strike));
-            j39v1.put("optionType", optionType);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("amount", amountPrecision);
-            j39v2.put("price", this.safeNumber(market, "tick_size", (Object) null));
-            j39v1.put("precision", j39v2);
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            Map<String, Object> marketStructure = new HashMap<String, Object>();
+            marketStructure.put("id", id);
+            marketStructure.put("numericId", numericId);
+            marketStructure.put("symbol", symbol);
+            marketStructure.put("base", base);
+            marketStructure.put("quote", quote);
+            marketStructure.put("settle", settle);
+            marketStructure.put("baseId", baseId);
+            marketStructure.put("quoteId", quoteId);
+            marketStructure.put("settleId", settleId);
+            marketStructure.put("type", type);
+            marketStructure.put("spot", spot);
+            marketStructure.put("margin", false);
+            marketStructure.put("swap", swap);
+            marketStructure.put("future", future);
+            marketStructure.put("option", option);
+            marketStructure.put("active", (java.util.Objects.equals(state, "live")));
+            marketStructure.put("contract", !Boolean.TRUE.equals(spot));
+            marketStructure.put("linear", null);
+            marketStructure.put("inverse", null);
+            marketStructure.put("taker", this.safeNumber(market, "taker_commission_rate", (Object) null));
+            marketStructure.put("maker", this.safeNumber(market, "maker_commission_rate", (Object) null));
+            marketStructure.put("contractSize", null);
+            marketStructure.put("expiry", expiry);
+            marketStructure.put("expiryDatetime", this.iso8601(expiry));
+            marketStructure.put("strike", this.parseNumber(strike));
+            marketStructure.put("optionType", optionType);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("amount", amountPrecision);
+            mapLiteral3.put("price", this.safeNumber(market, "tick_size", (Object) null));
+            marketStructure.put("precision", mapLiteral3);
+            marketStructure.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -1154,9 +1160,15 @@ public class Delta extends DeltaApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", this.parse8601(this.safeString(market, "launch_time")));
-            j39v1.put("info", market);
-            ((List<Object>)result).add(this.safeMarketStructure(j39v1));
+            marketStructure.put("created", this.parse8601(this.safeString(market, "launch_time")));
+            marketStructure.put("info", market);
+            if (!Boolean.TRUE.equals(spot))
+            {
+                marketStructure.put("linear", linear);
+                marketStructure.put("inverse", !Boolean.TRUE.equals(linear));
+                marketStructure.put("contractSize", contractSize);
+            }
+            ((List<Object>)result).add(this.safeMarketStructure(marketStructure));
         }
         return result;
 
@@ -1782,21 +1794,21 @@ public class Delta extends DeltaApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("id", id);
-        mapLiteral3.put("order", orderId);
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", type);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("price", priceString);
-        mapLiteral3.put("amount", amountString);
-        mapLiteral3.put("cost", null);
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("fee", fee);
-        mapLiteral3.put("info", trade);
-        return this.safeTrade(mapLiteral3, market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("order", orderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", priceString);
+        mapLiteral4.put("amount", amountString);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("info", trade);
+        return this.safeTrade(mapLiteral4, market);
     }
 
     /**
@@ -2139,34 +2151,34 @@ public class Delta extends DeltaApi
                 side = "short";
             }
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", position);
-        mapLiteral4.put("id", null);
-        mapLiteral4.put("symbol", symbol);
-        mapLiteral4.put("notional", null);
-        mapLiteral4.put("marginMode", this.safeString(position, "margin_mode"));
-        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
-        mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
-        mapLiteral4.put("unrealizedPnl", null);
-        mapLiteral4.put("percentage", null);
-        mapLiteral4.put("contracts", this.parseNumber(sizeString));
-        mapLiteral4.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral4.put("markPrice", null);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("hedged", null);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("maintenanceMargin", null);
-        mapLiteral4.put("maintenanceMarginPercentage", null);
-        mapLiteral4.put("positionMargin", this.safeNumber(position, "margin", (Object) null));
-        mapLiteral4.put("collateral", null);
-        mapLiteral4.put("initialMargin", null);
-        mapLiteral4.put("initialMarginPercentage", null);
-        mapLiteral4.put("leverage", null);
-        mapLiteral4.put("marginRatio", null);
-        mapLiteral4.put("stopLossPrice", null);
-        mapLiteral4.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral4);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", position);
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("notional", null);
+        mapLiteral5.put("marginMode", this.safeString(position, "margin_mode"));
+        mapLiteral5.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral5.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral5.put("unrealizedPnl", null);
+        mapLiteral5.put("percentage", null);
+        mapLiteral5.put("contracts", this.parseNumber(sizeString));
+        mapLiteral5.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral5.put("markPrice", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("hedged", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("maintenanceMargin", null);
+        mapLiteral5.put("maintenanceMarginPercentage", null);
+        mapLiteral5.put("positionMargin", this.safeNumber(position, "margin", (Object) null));
+        mapLiteral5.put("collateral", null);
+        mapLiteral5.put("initialMargin", null);
+        mapLiteral5.put("initialMarginPercentage", null);
+        mapLiteral5.put("leverage", null);
+        mapLiteral5.put("marginRatio", null);
+        mapLiteral5.put("stopLossPrice", null);
+        mapLiteral5.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral5);
     }
 
     public String parseOrderStatus(String status)
@@ -2294,26 +2306,26 @@ public class Delta extends DeltaApi
                 fee = hx4NewMap1;
             }
         }
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", order);
-        mapLiteral5.put("id", id);
-        mapLiteral5.put("clientOrderId", clientOrderId);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("lastTradeTimestamp", null);
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("type", type);
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("price", price);
-        mapLiteral5.put("amount", amount);
-        mapLiteral5.put("cost", null);
-        mapLiteral5.put("average", average);
-        mapLiteral5.put("filled", null);
-        mapLiteral5.put("remaining", remaining);
-        mapLiteral5.put("status", status);
-        mapLiteral5.put("fee", fee);
-        mapLiteral5.put("trades", null);
-        return this.safeOrder(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("average", average);
+        mapLiteral6.put("filled", null);
+        mapLiteral6.put("remaining", remaining);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", null);
+        return this.safeOrder(mapLiteral6, ((Map<String, Object>) (switch ((Object) (marketValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     /**
@@ -2951,23 +2963,23 @@ public class Delta extends DeltaApi
         String after = this.safeString(item, "balance");
         String before = Precise.stringMax("0", Precise.stringSub(after, amount));
         String status = "ok";
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", item);
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("direction", direction);
-        mapLiteral6.put("account", account);
-        mapLiteral6.put("referenceId", referenceId);
-        mapLiteral6.put("referenceAccount", referenceAccount);
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("currency", code);
-        mapLiteral6.put("amount", this.parseNumber(amount));
-        mapLiteral6.put("before", this.parseNumber(before));
-        mapLiteral6.put("after", this.parseNumber(after));
-        mapLiteral6.put("status", status);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral6, ((Map<String, Object>) (switch ((Object) (currencyValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", item);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", account);
+        mapLiteral7.put("referenceId", referenceId);
+        mapLiteral7.put("referenceAccount", referenceAccount);
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("currency", code);
+        mapLiteral7.put("amount", this.parseNumber(amount));
+        mapLiteral7.put("before", this.parseNumber(before));
+        mapLiteral7.put("after", this.parseNumber(after));
+        mapLiteral7.put("status", status);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, ((Map<String, Object>) (switch ((Object) (currencyValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     /**

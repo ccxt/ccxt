@@ -238,7 +238,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Long requestId(String url)
     {
-        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
+        Map<String, Object> options = this.safeDict(this.options, "requestId", new HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         options.put(url, newValue);
@@ -253,7 +253,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public String stream(String type, String subscriptionHash, Long numSubscriptions)
     {
-        Map<String, Object> streamBySubscriptionsHash = (Map<String, Object>) this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
+        Map<String, Object> streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", new HashMap<String, Object>() {{}});
         String stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (java.util.Objects.equals(stream, null))
         {
@@ -281,7 +281,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 throw new BadRequest((this.id + " reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.")) ;
             }
-            Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("numSubscriptionsByStream")), stream, newNumSubscriptions);
+            Map<String, Object> numSubscriptionsByStream = this.safeDict(this.options, "numSubscriptionsByStream", new HashMap<String, Object>() {{}});
+            numSubscriptionsByStream.put(stream, newNumSubscriptions);
+            this.options.put("numSubscriptionsByStream", numSubscriptionsByStream);
         }
         return stream;
     }
@@ -367,7 +369,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
     {
         Map<String, Object> market = this.market(symbol);
         String base = this.safeString2(market, "base", "id");
-        return (((java.util.Objects.equals(base, null)))) ? null : ((String)base).toLowerCase();
+        if (java.util.Objects.equals(base, null))
+        {
+            return null;
+        }
+        return base.toLowerCase();
     }
 
     public String getStockUnifiedSymbol(String stockSymbol, Object quote)
@@ -1910,7 +1916,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         String marketId = this.safeString(trade, "s");
         String fallbackType = "spot";
-        if (trade.containsKey("ps"))
+        if (!java.util.Objects.equals(this.safeString(trade, "ps"), null))
         {
             fallbackType = "contract";
         }
@@ -1923,13 +1929,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        if (trade.containsKey("m"))
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
             {
-                side = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Boolean.TRUE.equals(isMaker))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "n");
@@ -3467,8 +3474,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 tickerFallbackType = "spot";
             }
-            Object tickerMarketType = (((!java.util.Objects.equals(tickerMarketById, null)))) ? this.safeValue(tickerMarketById, "type") : tickerFallbackType;
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, (String) (tickerMarketType));
+            String tickerMarketType = tickerFallbackType;
+            if (!java.util.Objects.equals(tickerMarketById, null))
+            {
+                tickerMarketType = this.safeString(tickerMarketById, "type");
+            }
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsTicker(ticker, tickerMarketType);
             String symbol = (String) parsedTicker.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -5771,7 +5782,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String marketId = this.safeString(order, "s");
         // futures user-data events carry the position side field, spot ones do not
         String marketType = "spot";
-        if (order.containsKey("ps"))
+        if (!java.util.Objects.equals(this.safeString(order, "ps"), null))
         {
             marketType = "contract";
         }
@@ -5789,7 +5800,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             lastTradeTimestamp = T;
         }
-        Boolean isAlgoOrder = (order.containsKey("aid")); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        Boolean isAlgoOrder = (!java.util.Objects.equals(this.safeString(order, "aid"), null)); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if (Boolean.TRUE.equals(isAlgoOrder) && (java.util.Objects.equals(timestamp, null)))
         {
             String algoStatus = this.safeString(order, "X");
@@ -5988,15 +5999,15 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
             messageValue = (Map<String, Object>) this.safeDict(message, "o", message);
-            if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && !(messageValue.containsKey("T")))
+            if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && (java.util.Objects.equals(this.safeInteger(messageValue, "T"), null)))
             {
                 messageValue.put("T", this.safeInteger(message, "T")); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
-            Object oField = this.safeValue(message, "o");
-            if ((oField instanceof List))
+            List<Object> oField = this.safeList(message, "o", null);
+            if (!java.util.Objects.equals(oField, null))
             {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate(client, message);
@@ -6760,7 +6771,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> symbolParams = new HashMap<String, Object>() {{}};
         if ((!java.util.Objects.equals(symbolResolved, null)) && (!java.util.Objects.equals(market, null)))
         {
-            messageHash = (messageHash + (":" + symbolResolved));
+            String symbolString = this.symbol(symbol);
+            messageHash = ((messageHash + ":") + symbolString);
             {
                 HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
                 hx4NewMap3.put("type", market.get("type"));
@@ -7190,7 +7202,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if ((messageValue instanceof List))
         {
             Map<String, Object> arrayMessage = this.safeDict(messageValue, 0, null);
-            eventVar = (this.safeString(arrayMessage, "e") + "@arr");
+            String arrayEvent = this.safeString(arrayMessage, "e", "");
+            eventVar = (arrayEvent + "@arr");
         }
         method = this.safeValue(methods, eventVar);
         if (java.util.Objects.equals(method, null))
@@ -7212,7 +7225,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && (messageValue.containsKey("a")) && (messageValue.containsKey("b")))
+            if (java.util.Objects.equals(eventVar, null) && (!java.util.Objects.equals(this.safeString(messageValue, "a"), null)) && (!java.util.Objects.equals(this.safeString(messageValue, "b"), null)))
             {
                 this.handleBidsAsks(client, messageValue);
             }

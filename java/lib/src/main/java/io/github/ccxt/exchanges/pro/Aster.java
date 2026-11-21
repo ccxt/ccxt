@@ -1077,13 +1077,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        if (trade.containsKey("m"))
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
             {
-                side = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((Boolean.TRUE.equals(isMaker))) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "m", false))))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Map<String, Object> fee = null;
         String feeCost = this.safeString(trade, "n");

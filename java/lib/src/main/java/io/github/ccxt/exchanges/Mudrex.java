@@ -416,13 +416,21 @@ public class Mudrex extends MudrexApi
         Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : limit;
         Long now = this.seconds();
         Long windowLength = (((long) duration) * requestLimit);
-        Object defaultStart = (now - windowLength);
-        Long startTime = this.parseToInt((((!java.util.Objects.equals(since, null)))) ? ((((double) since) / ((double) 1000))) : defaultStart);
+        Long defaultStart = (now - windowLength);
+        Long startTime = this.parseToInt(defaultStart);
+        if (!java.util.Objects.equals(since, null))
+        {
+            startTime = this.parseToInt((((double) since) / ((double) 1000)));
+        }
         Long windowEnd = this.parseToInt((startTime + (((long) duration) * requestLimit)));
         Long until = this.safeInteger(parameters, "until");
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
         Long cappedEnd = ((((windowEnd != null && (now == null || windowEnd > now))))) ? now : windowEnd;
-        Long endTime = this.parseToInt((((!java.util.Objects.equals(until, null)))) ? ((((double) until) / ((double) 1000))) : cappedEnd);
+        Long endTime = this.parseToInt(cappedEnd);
+        if (!java.util.Objects.equals(until, null))
+        {
+            endTime = this.parseToInt((((double) until) / ((double) 1000)));
+        }
         request.put("start_time", startTime);
         request.put("end_time", endTime);
         Map<String, Object> response = null;
@@ -616,25 +624,25 @@ public class Mudrex extends MudrexApi
             mapLiteral2.put("offset", offset);
             Map<String, Object> q = this.extend(mapLiteral2, parameters);
             Map<String, Object> response = (this.privateGetFutures(q)).join();
-            Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
+            Map<String, Object> dataDict = this.safeDict(response, "data", null);
             List<Object> items = new ArrayList<Object>(Arrays.asList());
-            if ((data instanceof Map) && !(data instanceof List))
+            if (!java.util.Objects.equals(dataDict, null))
             {
-                items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+                items = (List<Object>) this.safeList(dataDict, "items", new ArrayList<Object>(Arrays.asList()));
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 Integer itemsLength = items.size();
                 if (java.util.Objects.equals(itemsLength, 0))
                 {
-                    items = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+                    items = (List<Object>) this.safeList(dataDict, "results", new ArrayList<Object>(Arrays.asList()));
                     itemsLength = items.size();
                 }
-                if ((java.util.Objects.equals(itemsLength, 0)) && ((switch ((Object)(data)) { case List<?> j39v2 -> j39v2.contains("symbol"); case Map<?, ?> j39v1 -> j39v1.containsKey("symbol"); case null, default -> false; })))
+                if ((java.util.Objects.equals(itemsLength, 0)) && (dataDict.containsKey("symbol")))
                 {
-                    items = new ArrayList<Object>(Arrays.asList(data));
+                    items = new ArrayList<Object>(Arrays.asList(dataDict));
                 }
             } else
             {
-                items = this.toArray(data);
+                items = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             Integer numItems = items.size();
             if (java.util.Objects.equals(numItems, 0))
@@ -1694,7 +1702,7 @@ public class Mudrex extends MudrexApi
                 if (java.util.Objects.equals(this.safeString(entry, "fee_type"), "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), market.get("id"))))
+                    if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), this.safeString(market, "id"))))
                     {
                         transactionsCount = (transactionsCount + 1L);
                     }
@@ -1752,9 +1760,9 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
             } else
             {
-                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-                j39v3.put("rebate_amount", rebate);
-                ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), j39v3));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("rebate_amount", rebate);
+                ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), j39v1));
             }
         }
         return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});

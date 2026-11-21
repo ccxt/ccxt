@@ -786,7 +786,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolString = this.safeString(data, 0, "");
             Map<String, Object> market = this.market(symbolString);
-            if (!java.util.Objects.equals(market.get("type"), firstMarket.get("type")))
+            if (!java.util.Objects.equals(this.safeString(market, "type"), this.safeString(firstMarket, "type")))
             {
                 throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -881,7 +881,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
             String symbolString = this.safeString(data, 0, "");
             Map<String, Object> market = this.market(symbolString);
-            if (!java.util.Objects.equals(market.get("type"), firstMarket.get("type")))
+            if (!java.util.Objects.equals(this.safeString(market, "type"), this.safeString(firstMarket, "type")))
             {
                 throw new BadRequest((((this.id + " ") + callerMethodName) + " market symbols must be of the same type")) ;
             }
@@ -1344,9 +1344,9 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(symbol, null))
         {
             this.bidsasks.put(symbol, ticker);
+            String messageHash = ("bidask::" + symbol);
+            client.resolve(ticker, messageHash);
         }
-        String messageHash = ("bidask::" + symbol);
-        client.resolve(ticker, messageHash);
     }
 
     public Object parseWsBidAsk(Map<String, Object> message, Map<String, Object> market)

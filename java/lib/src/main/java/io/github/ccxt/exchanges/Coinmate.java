@@ -610,7 +610,7 @@ public class Coinmate extends CoinmateApi
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            Map<String, Object> balance = this.safeDict(balances, currencyId, null);
+            Map<String, Object> balance = this.safeDict(balances, currencyId, new HashMap<String, Object>() {{}});
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "reserved"));
@@ -722,7 +722,7 @@ public class Coinmate extends CoinmateApi
         //         }
         //     }
         //
-        Map<String, Object> data = this.safeDict(response, "data", null);
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return this.parseTicker(data, market);
 
     }
@@ -1561,7 +1561,7 @@ public class Coinmate extends CoinmateApi
             market = this.market(symbol);
         }
         Map<String, Object> response = (this.privatePostOrderById(this.extend(request, parameters))).join();
-        Map<String, Object> data = this.safeDict(response, "data", null);
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return this.parseOrder(data, market);
 
     }
@@ -1599,7 +1599,7 @@ public class Coinmate extends CoinmateApi
         //        }
         //    }
         //
-        Map<String, Object> data = this.safeDict(response, "data", null);
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         return this.parseOrder(data, (Map<String, Object>) null);
 
     }

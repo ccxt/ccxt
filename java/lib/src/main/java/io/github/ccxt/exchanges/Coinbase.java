@@ -822,9 +822,9 @@ public class Coinbase extends CoinbaseApi
         String cursor = this.safeString(pagination, "next_starting_after");
         List<Object> accounts = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Integer length = accounts.size();
-        Long lastIndex = (((long) length) - 1L);
-        if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+        if (((length != null && length > 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
         {
+            Long lastIndex = (((long) length) - 1L);
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("next_starting_after", cursor);
             accounts.set((int) (long) (lastIndex), this.extend(this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral1));

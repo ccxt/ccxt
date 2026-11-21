@@ -687,9 +687,10 @@ public class Kalshi extends KalshiApi
         }
         for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
         {
-            if (!this.hasOutcome((String) ((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))))
+            String pendingSymbol = this.safeString(outcomeSymbols, i, "");
+            if (!this.hasOutcome((String) (pendingSymbol)))
             {
-                (this.fetchOutcome((outcomeSymbols == null || i < 0 || i >= ((List<?>)outcomeSymbols).size() ? null : ((List<?>)outcomeSymbols).get(i)))).join();
+                (this.fetchOutcome(pendingSymbol)).join();
             }
         }
         return this.outcomes;
@@ -3075,7 +3076,7 @@ public class Kalshi extends KalshiApi
                     }
                 }
                 Map<String, Object> request = new HashMap<String, Object>();
-                request.put("series_ticker", (seriesTickers == null || si < 0 || si >= ((List<?>)seriesTickers).size() ? null : ((List<?>)seriesTickers).get(si)));
+                request.put("series_ticker", this.safeString(seriesTickers, si));
                 request.put("status", status);
                 request.put("with_nested_markets", true);
                 request.put("limit", reqLimit);

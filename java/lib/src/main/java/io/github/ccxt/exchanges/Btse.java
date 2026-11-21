@@ -2715,14 +2715,7 @@ public class Btse extends BtseApi
             }
             response = (this.privatePostFuturesApiV3TradeOrdersAlgo(this.extend(request, query))).join();
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        Map<String, Object> order = response;
-        if ((response instanceof List))
-        {
-            order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-        }
-        return this.parseOrder(order, market);
+        return this.parseOrder(response, market);
 
     }
 

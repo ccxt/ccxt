@@ -487,7 +487,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbols, null))
         {
-            market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
+            market = this.market(this.safeString(symbols, 0));
         }
         if (!java.util.Objects.equals(name, null))
         {
@@ -1606,7 +1606,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         String marketId = this.safeString(trade, "s");
         String tradeType = "spot";
-        if (trade.containsKey("symbol"))
+        if (!java.util.Objects.equals(this.safeString(trade, "symbol"), null))
         {
             tradeType = "contract";
         }
@@ -1679,7 +1679,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         String marketId = this.safeString2(order, "s", "symbol");
         String tradeType = "spot";
-        if (order.containsKey("symbol"))
+        if (!java.util.Objects.equals(this.safeString(order, "symbol"), null))
         {
             tradeType = "contract";
         }

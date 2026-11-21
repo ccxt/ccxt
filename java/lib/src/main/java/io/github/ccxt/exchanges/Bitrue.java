@@ -3897,10 +3897,12 @@ public class Bitrue extends BitrueApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("noSymbol")) && !(((Map<?, ?>)parameters).containsKey("symbol")))
+        String paramsSymbol = this.safeString(parameters, "symbol");
+        String paramsLimit = this.safeString(parameters, "limit");
+        if ((config.containsKey("noSymbol")) && (java.util.Objects.equals(paramsSymbol, null)))
         {
             return config.get("noSymbol");
-        } else if ((config.containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
+        } else if ((config.containsKey("byLimit")) && (!java.util.Objects.equals(paramsLimit, null)))
         {
             Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

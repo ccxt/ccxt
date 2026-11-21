@@ -1672,7 +1672,12 @@ public class Digifinex extends DigifinexApi
         String amountString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "volume", "size")));
         String marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, (String) null);
+        String marketIdResolved = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            marketIdResolved = marketId;
+        }
+        Map<String, Object> marketResolved = this.safeMarket(marketIdResolved, market, (String) null, (String) null);
         Long timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         String type = null;

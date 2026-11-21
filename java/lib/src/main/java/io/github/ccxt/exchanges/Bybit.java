@@ -2554,8 +2554,8 @@ public class Bybit extends BybitApi
                 quote = "USDT";
             }
         }
-        String strike = this.safeString(optionParts, 2);
-        String optionType = this.safeString(optionParts, 3);
+        String strike = this.safeString(optionParts, 2, "");
+        String optionType = this.safeString(optionParts, 3, "");
         String datetime = (String) this.convertExpireDate(expiry);
         Double amountPrecision = null;
         Double pricePrecision = null;
@@ -2955,7 +2955,7 @@ public class Bybit extends BybitApi
         }
         for (var i = 0; i < ((List<?>)types).size(); i++)
         {
-            Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
+            String marketType = this.safeString(types, i);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 promisesUnresolved.add(this.fetchSpotMarkets(parameters));
@@ -4234,11 +4234,14 @@ public class Bybit extends BybitApi
         Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> tickerList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(response, "time");
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < tickerList.size(); i++)
         {
-            Helpers.addElementToObject((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), "timestamp", timestamp); // will be removed inside the parser
+            ((List<Object>)rows).add(this.extend((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }})); // will be removed inside the parser
         }
-        return this.parseFundingRates(tickerList, symbolsNormalized);
+        return this.parseFundingRates(rows, symbolsNormalized);
 
     }
 
@@ -4514,7 +4517,8 @@ public class Bybit extends BybitApi
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execId", "id", "tradeId")));
         String marketId = this.safeString(trade, "symbol");
         String marketType = "spot";
-        if (((Map<?, ?>)trade).containsKey("createType"))
+        String createType = this.safeString(trade, "createType");
+        if (!java.util.Objects.equals(createType, null))
         {
             marketType = "contract";
         }
@@ -5325,7 +5329,8 @@ public class Bybit extends BybitApi
             }
         }
         String marketId = this.safeString(order, "symbol");
-        Boolean isContract = (((Map<?, ?>)order).containsKey("tpslMode"));
+        String tpslMode = this.safeString(order, "tpslMode");
+        Boolean isContract = (!java.util.Objects.equals(tpslMode, null));
         String marketType = null;
         if (!java.util.Objects.equals(market, null))
         {
@@ -6011,8 +6016,8 @@ public class Bybit extends BybitApi
             orderSymbols.add(marketId);
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             orderRequest.remove("category");
@@ -6264,8 +6269,8 @@ public class Bybit extends BybitApi
             String id = this.safeString(rawOrder, "id");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
             orderRequest.remove("category");
@@ -8031,7 +8036,8 @@ public class Bybit extends BybitApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee", (Object) null);
         String type = "withdrawal";
-        if (transaction.containsKey("depositFee"))
+        String depositFee = this.safeString(transaction, "depositFee");
+        if (!java.util.Objects.equals(depositFee, null))
         {
             type = "deposit";
         }
@@ -12515,7 +12521,9 @@ public class Bybit extends BybitApi
                 {
                     signature = this.hmac(this.encode(authFull), this.encode(this.secret), sha256());
                 }
-                ((Map<String, Object>)requestHeaders).put("X-BAPI-SIGN", signature);
+                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                mapLiteral12.put("X-BAPI-SIGN", signature);
+                requestHeaders = this.extend(requestHeaders, mapLiteral12);
             } else
             {
                 HashMap<String, Object> j39v13 = new HashMap<String, Object>();
@@ -12536,9 +12544,9 @@ public class Bybit extends BybitApi
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
                     Boolean isSpot = ((String)baseUrl).indexOf("spot") >= 0;
-                    HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                    mapLiteral12.put("sign", signature);
-                    Map<String, Object> extendedQuery = this.extend(query, mapLiteral12);
+                    HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                    mapLiteral13.put("sign", signature);
+                    Map<String, Object> extendedQuery = this.extend(query, mapLiteral13);
                     if (Boolean.TRUE.equals(isSpot))
                     {
                         requestBody = this.urlencode(extendedQuery);

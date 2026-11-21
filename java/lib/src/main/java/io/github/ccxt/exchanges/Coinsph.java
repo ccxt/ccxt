@@ -848,7 +848,7 @@ public class Coinsph extends CoinsphApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        Boolean hasSymbolParam = (((Map<?, ?>)parameters).containsKey("symbol"));
+        Boolean hasSymbolParam = (!java.util.Objects.equals(this.safeString(parameters, "symbol"), null));
         Boolean hasSymbolsParam = (((Map<?, ?>)parameters).containsKey("symbols"));
         Long limit = this.safeInteger(parameters, "limit");
         if ((config.containsKey("noSymbol")) && !Boolean.TRUE.equals(hasSymbolParam))

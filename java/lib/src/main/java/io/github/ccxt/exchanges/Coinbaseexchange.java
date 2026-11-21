@@ -1637,7 +1637,11 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end");
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        Long cappedLimit = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(limit, 300));
+        Long cappedLimit = 300L;
+        if (!java.util.Objects.equals(limit, null))
+        {
+            cappedLimit = this.parseToInt(Math.min(limit, 300));
+        }
         Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
         if (!java.util.Objects.equals(since, null))
         {
@@ -2470,13 +2474,15 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //        }
             //    ]
             //
-            response = this.toArray(transfers);
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            List<Object> transferRows = this.toArray(transfers);
+            response = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < transferRows.size(); i++)
             {
-                String account_id = this.safeString((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), "account_id");
+                Map<String, Object> row = this.extend(new HashMap<String, Object>() {{}}, (transferRows == null || i < 0 || i >= transferRows.size() ? null : transferRows.get(i)));
+                String account_id = this.safeString(row, "account_id");
                 Map<String, Object> account = this.safeDict(this.accountsById, account_id, null);
-                String codeInner = this.safeString(account, "code");
-                Helpers.addElementToObject((response == null || i < 0 || i >= response.size() ? null : response.get(i)), "currency", codeInner);
+                row.put("currency", this.safeString(account, "code"));
+                ((List<Object>)response).add(row);
             }
         } else
         {
@@ -2507,10 +2513,13 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //        }
             //    ]
             //
-            response = this.toArray(accountTransfers);
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            List<Object> transferRows = this.toArray(accountTransfers);
+            response = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < transferRows.size(); i++)
             {
-                Helpers.addElementToObject((response == null || i < 0 || i >= response.size() ? null : response.get(i)), "currency", code);
+                Map<String, Object> row = this.extend(new HashMap<String, Object>() {{}}, (transferRows == null || i < 0 || i >= transferRows.size() ? null : transferRows.get(i)));
+                row.put("currency", code);
+                ((List<Object>)response).add(row);
             }
         }
         return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});

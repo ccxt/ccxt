@@ -101,7 +101,9 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Boolean subChecksum = (Boolean) this.safeBool(sub, "checksum", false);
             if ((!java.util.Objects.equals(sub, null)) && !Boolean.TRUE.equals(subChecksum))
             {
-                Helpers.addElementToObject((client.subscriptions == null || messageHash == null ? null : client.subscriptions.get(messageHash)), "checksum", true);
+                Map<String, Object> subUpdated = this.extend(new HashMap<String, Object>() {{}}, sub);
+                subUpdated.put("checksum", true);
+                client.subscriptions.put(messageHash, subUpdated);
                 (client.send(new HashMap<String, Object>() {{
                     put( "event", "conf" );
                     put( "flags", 131072 );

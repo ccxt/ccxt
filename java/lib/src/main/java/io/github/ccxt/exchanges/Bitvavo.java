@@ -3063,7 +3063,7 @@ public class Bitvavo extends BitvavoApi
             }
         }
         String type = null;
-        if ((transaction.containsKey("success")) || (transaction.containsKey("address")))
+        if ((!java.util.Objects.equals(this.safeBool(transaction, "success", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(transaction, "address"), null)))
         {
             type = "withdrawal";
         } else

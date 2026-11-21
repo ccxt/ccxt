@@ -185,7 +185,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             throw new ArgumentsRequired((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
-        Map<String, Object> watchTradesDict = this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
+        Map<String, Object> watchTradesDict = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}}));
         watchTradesDict.put("symbol", symbol);
         this.options.put("watchTrades", watchTradesDict);
         if (java.util.Objects.equals(this.markets, null))
@@ -921,15 +921,16 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             // market comes from safeMarket, so the parser never takes its undefined returns here
             order = this.parseWsOrderUpdate(data, market);
         }
-        ((Map<String, Object>)order).put("remaining", remains);
+        Map<String, Object> orderUpdate = new HashMap<String, Object>() {{}};
+        orderUpdate.put("remaining", remains);
         Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
         if (Boolean.TRUE.equals(canceled))
         {
-            ((Map<String, Object>)order).put("status", "canceled");
+            orderUpdate.put("status", "canceled");
         }
         if (Boolean.TRUE.equals(isTransaction))
         {
-            ((Map<String, Object>)order).put("status", "closed");
+            orderUpdate.put("status", "closed");
         }
         Double fee = this.safeNumber(data, "fee", (Object) null);
         if (!java.util.Objects.equals(fee, null))
@@ -938,13 +939,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             mapLiteral4.put("cost", fee);
             mapLiteral4.put("currency", quote);
             mapLiteral4.put("rate", null);
-            ((Map<String, Object>)order).put("fee", mapLiteral4);
+            orderUpdate.put("fee", mapLiteral4);
         }
         Long timestamp = this.safeInteger(data, "time");
-        ((Map<String, Object>)order).put("timestamp", timestamp);
-        ((Map<String, Object>)order).put("datetime", this.iso8601(timestamp));
-        // a fresh map copy: the cached entry is untyped
-        Order parsedOrder = this.safeOrder((Map<String, Object>) (this.extend(order, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
+        orderUpdate.put("timestamp", timestamp);
+        orderUpdate.put("datetime", this.iso8601(timestamp));
+        Order parsedOrder = this.safeOrder((Map<String, Object>) (this.extend(order, orderUpdate)), (Map<String, Object>) null);
         storedOrders.append(parsedOrder);
         String messageHash = ("orders:" + symbol);
         client.resolve(storedOrders, messageHash);

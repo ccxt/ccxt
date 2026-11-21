@@ -673,7 +673,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString2(trade, "executedPrice", "price");
         String amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
@@ -1003,7 +1003,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String orderId = this.safeString(order, "orderId");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.market(marketId);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "cost", Woofipro.this.safeString(order, "totalFee") );
@@ -1364,7 +1364,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> position = this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
-            String positionSymbol = (String) market.get("symbol");
+            String positionSymbol = this.safeString(market, "symbol", "");
             String messageHash = ("positions::" + positionSymbol);
             client.resolve(position, messageHash);
         }

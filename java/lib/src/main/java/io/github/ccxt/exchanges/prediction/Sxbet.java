@@ -399,11 +399,11 @@ public class Sxbet extends SxbetApi
         //     }
         //
         String marketHash = this.safeString(raw, "marketHash", "");
-        String teamOneName = this.safeString(raw, "teamOneName");
-        String teamTwoName = this.safeString(raw, "teamTwoName");
+        String teamOneName = this.safeString(raw, "teamOneName", "");
+        String teamTwoName = this.safeString(raw, "teamTwoName", "");
         String outcomeOneName = this.safeString(raw, "outcomeOneName");
         String outcomeTwoName = this.safeString(raw, "outcomeTwoName");
-        String eventSlug = this.shortenSlug((String) (((teamOneName + " ") + teamTwoName)));
+        String eventSlug = this.shortenSlug(((teamOneName + " ") + teamTwoName));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,

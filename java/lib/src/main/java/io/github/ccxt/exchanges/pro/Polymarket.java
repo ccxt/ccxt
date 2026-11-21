@@ -121,7 +121,8 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         Boolean willSend = false;
         for (var i = 0; i < hashesToCheck.size(); i++)
         {
-            if (!(client.subscriptions.containsKey((hashesToCheck == null || i < 0 || i >= hashesToCheck.size() ? null : hashesToCheck.get(i)))))
+            String hashToCheck = this.safeString(hashesToCheck, i, "");
+            if (!(client.subscriptions.containsKey(hashToCheck)))
             {
                 willSend = true;
             }

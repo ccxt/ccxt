@@ -573,7 +573,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         Map<String, Object> options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
-        Long limitResolved = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? this.safeInteger(options, "depth", 150) : limit);
+        Long limitValue = limit;
+        if (java.util.Objects.equals(limit, null))
+        {
+            limitValue = this.safeInteger(options, "depth", 150);
+        }
+        Long limitResolved = this.parseToInt(limitValue);
         if (!this.inArray(limitResolved, allowedLimits))
         {
             throw new ExchangeError((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
@@ -1880,7 +1885,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         }
         Map<String, Object> market = null;
         String messageHash = "";
-        if ((!this.isEmpty(symbols)) && (!java.util.Objects.equals(symbols, null)))
+        Boolean hasMarket = (!this.isEmpty(symbols)) && (!java.util.Objects.equals(symbols, null));
+        if (Boolean.TRUE.equals(hasMarket))
         {
             market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
             messageHash = ("::" + String.join(",", (List<String>)symbols));
@@ -1888,7 +1894,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String type = null;
         String subType = null;
         Map<String, Object> paramsSubType = new HashMap<String, Object>() {{}};
-        if (!java.util.Objects.equals(market, null))
+        if (Boolean.TRUE.equals(hasMarket))
         {
             type = this.safeString(market, "type");
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
@@ -1909,7 +1915,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             paramsSubType = subTypeparamsSubTypeVariable.second();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        Map<String, Object> paramsPositions = (((!java.util.Objects.equals(market, null)))) ? parameters : paramsSubType;
+        Map<String, Object> paramsPositions = ((Boolean.TRUE.equals(hasMarket))) ? parameters : paramsSubType;
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();

@@ -3287,7 +3287,7 @@ public class Cryptocom extends CryptocomApi
         String type = null;
         String rawStatus = this.safeString(transaction, "status");
         String status = null;
-        if (transaction.containsKey("client_wid"))
+        if (!java.util.Objects.equals(this.safeString(transaction, "client_wid"), null))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);

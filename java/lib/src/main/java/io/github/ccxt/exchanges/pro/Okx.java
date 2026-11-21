@@ -2341,7 +2341,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             market = this.market(symbol);
             symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
             type = this.safeString(market, "type");
-            messageHash = ((messageHash + "::") + symbolResolved);
+            messageHash = ((messageHash + "::") + this.safeString(market, "symbol", ""));
         }
         if (java.util.Objects.equals(type, "future"))
         {
@@ -2423,7 +2423,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         if (this.newUpdates)
         {
-            return (((java.util.Objects.equals(newPositions, null)))) ? new ArrayList<Object>(Arrays.asList()) : newPositions;
+            if (java.util.Objects.equals(newPositions, null))
+            {
+                return new ArrayList<Object>(Arrays.asList());
+            }
+            return newPositions;
         }
         return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
 

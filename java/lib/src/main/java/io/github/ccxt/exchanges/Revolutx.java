@@ -1957,11 +1957,7 @@ public class Revolutx extends RevolutxApi
                 return null;
             }
             String feedback = ((this.id + " ") + body);
-            String errorMessage = null;
-            if ((response instanceof Map))
-            {
-                errorMessage = this.safeString2(response, "message", "error");
-            }
+            String errorMessage = this.safeString2(response, "message", "error");
             if (!java.util.Objects.equals(errorMessage, null))
             {
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);

@@ -211,7 +211,7 @@ public Map<String, Object> describe()
         String sort = this.safeString(parameters, "sort");
         if (!java.util.Objects.equals(sort, null))
         {
-            String sortKey = null;
+            String sortKey = "";
             if (java.util.Objects.equals(sort, "volume"))
             {
                 sortKey = "volume";
@@ -222,7 +222,7 @@ public Map<String, Object> describe()
             {
                 sortKey = "created";
             }
-            if (!java.util.Objects.equals(sortKey, null))
+            if (!java.util.Objects.equals(sortKey, ""))
             {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
@@ -240,10 +240,11 @@ public Map<String, Object> describe()
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             Integer resultLength = ((List<?>)result).size();
-            Object sliceEnd = limit;
-            if ((sliceEnd != null && (resultLength == null || ((Number) sliceEnd).doubleValue() > resultLength)))
+            Long limitValue = this.safeInteger(parameters, "limit", 0);
+            Object sliceEnd = resultLength;
+            if ((resultLength != null && (limitValue == null || limitValue < resultLength)))
             {
-                sliceEnd = resultLength;
+                sliceEnd = limitValue;
             }
             result = this.arraySlice(result, 0, sliceEnd);
         }

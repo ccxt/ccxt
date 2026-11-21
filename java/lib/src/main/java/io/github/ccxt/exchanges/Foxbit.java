@@ -794,7 +794,7 @@ public class Foxbit extends FoxbitApi
             Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(entry, "market_symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             result.put(symbol, this.parseTradingFee(entry, market));
         }
         return result;

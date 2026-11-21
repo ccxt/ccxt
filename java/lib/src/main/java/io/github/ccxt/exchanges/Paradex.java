@@ -1173,11 +1173,11 @@ public class Paradex extends ParadexApi
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         Integer partsLength = parts.size();
         String base = null;
-        String quote = null;
+        String quote = "";
         String settle = null;
         String expiryDate = null;
         String strike = null;
-        String optionType = null;
+        String optionType = "";
         if (((String)symbol).indexOf("/") > -1)
         {
             if (!java.util.Objects.equals(partsLength, 4))
@@ -1189,11 +1189,11 @@ public class Paradex extends ParadexApi
             base = this.safeString(pairParts, 0);
             String quoteAndSettle = this.safeString(pairParts, 1, "");
             List<Object> quoteParts = new ArrayList<Object>(Arrays.asList(((String)quoteAndSettle).split(java.util.regex.Pattern.quote(":"))));
-            quote = this.safeString(quoteParts, 0);
+            quote = this.safeString(quoteParts, 0, "");
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
             strike = this.safeString(parts, 2);
-            optionType = this.safeString(parts, 3);
+            optionType = this.safeString(parts, 3, "");
         } else
         {
             if (!java.util.Objects.equals(partsLength, 5))
@@ -1201,12 +1201,12 @@ public class Paradex extends ParadexApi
                 throw new BadSymbol(((this.id + " does not have market symbol ") + symbol)) ;
             }
             base = this.safeString(parts, 0);
-            quote = this.safeString(parts, 1);
+            quote = this.safeString(parts, 1, "");
             settle = "USDC"; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
             Object strikeId = (parts == null || 3 >= parts.size() ? null : parts.get(3));
             strike = (strikeId == null ? null : ((String)strikeId).replaceFirst("_", "."));
-            optionType = this.safeString(parts, 4);
+            optionType = this.safeString(parts, 4, "");
         }
         // the id carries the day without a leading zero, 6NOV26
         Object idDate = ((String)this.convertExpireDateToMarketIdDate(expiryDate));
@@ -1594,7 +1594,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-        if (java.util.Objects.equals(request.get("market"), "ALL"))
+        if (java.util.Objects.equals(this.safeString(request, "market"), "ALL"))
         {
             return this.parseTickers(this.filterLoadedSummaries(data, (String) null), symbolsNormalized, new HashMap<String, Object>() {{}});
         }
@@ -1798,7 +1798,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if (java.util.Objects.equals(request.get("market"), "ALL"))
+        if (java.util.Objects.equals(this.safeString(request, "market"), "ALL"))
         {
             return this.parseFundingRates(this.filterLoadedSummaries(data, "swap"), symbolsNormalized);
         }
@@ -4533,7 +4533,7 @@ public class Paradex extends ParadexApi
         //
         List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if (java.util.Objects.equals(request.get("market"), "ALL"))
+        if (java.util.Objects.equals(this.safeString(request, "market"), "ALL"))
         {
             return this.parseAllGreeks(this.filterLoadedSummaries(results, "option"), symbolsNormalized, new HashMap<String, Object>() {{}});
         }
@@ -4932,10 +4932,11 @@ public class Paradex extends ParadexApi
             List<Object> paginationCallsparamsCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10L);
             Long paginationCalls = (Long) ((List<Object>) paginationCallsparamsCallsVariable).get(0);
             Map<String, Object> paramsCalls = (Map<String, Object>) ((List<Object>) paginationCallsparamsCallsVariable).get(1);
-            Object endAt = this.safeInteger(paramsCalls, "until");
-            if (java.util.Objects.equals(endAt, null))
+            Long until = this.safeInteger(paramsCalls, "until");
+            Object endAt = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.milliseconds(), this.sum(since, Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing)));
+            if (!java.util.Objects.equals(until, null))
             {
-                endAt = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.milliseconds(), this.sum(since, Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing)));
+                endAt = until;
             }
             HashMap<String, Object> j39v2 = new HashMap<String, Object>();
             j39v2.put("end_at", endAt);

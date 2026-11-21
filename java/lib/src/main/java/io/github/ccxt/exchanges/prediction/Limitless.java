@@ -1794,19 +1794,20 @@ public class Limitless extends LimitlessApi
                 bucketOrder.add(key);
             } else
             {
-                Object candle = (candles == null || key == null ? null : candles.get(key));
-                Double prevHigh = this.safeNumber(candle, 2, (Object) null);
-                if ((java.util.Objects.equals(prevHigh, null)) || ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
+                Double prevHigh = this.safeNumber((candles == null || key == null ? null : candles.get(key)), 2, pPrice);
+                Double prevLow = this.safeNumber((candles == null || key == null ? null : candles.get(key)), 3, pPrice);
+                Long openTs = this.safeInteger((candles == null || key == null ? null : candles.get(key)), 0);
+                Double openPrice = this.safeNumber((candles == null || key == null ? null : candles.get(key)), 1, (Object) null);
+                if ((!java.util.Objects.equals(prevHigh, null)) && ((pPrice != null && (prevHigh == null || pPrice > prevHigh))))
                 {
-                    Helpers.addElementToObject(candle, 2, pPrice);
-                }
-                Double prevLow = this.safeNumber(candle, 3, (Object) null);
-                if ((java.util.Objects.equals(prevLow, null)) || ((prevLow != null && (pPrice == null || prevLow > pPrice))))
+                    candles.put(key, new ArrayList<Object>(Arrays.asList(openTs, openPrice, pPrice, prevLow, pPrice, 0)));
+                } else if ((!java.util.Objects.equals(prevLow, null)) && ((prevLow != null && (pPrice == null || prevLow > pPrice))))
                 {
-                    Helpers.addElementToObject(candle, 3, pPrice);
+                    candles.put(key, new ArrayList<Object>(Arrays.asList(openTs, openPrice, prevHigh, pPrice, pPrice, 0)));
+                } else
+                {
+                    candles.put(key, new ArrayList<Object>(Arrays.asList(openTs, openPrice, prevHigh, prevLow, pPrice, 0)));
                 }
-                Helpers.addElementToObject(candle, 4, pPrice);
-                candles.put(key, candle); // php arrays are value types - write the mutation back
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());

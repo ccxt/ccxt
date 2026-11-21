@@ -4001,7 +4001,7 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "transactTime", "time");
         String status = this.safeString(order, "status");
-        Object type = this.safeString(order, "type");
+        String type = this.safeString(order, "type");
         String priceType = this.safeString(order, "priceType");
         if (java.util.Objects.equals(priceType, "MARKET"))
         {
@@ -4018,22 +4018,16 @@ public class Hashkey extends HashkeyApi
                 type = "limit";
             }
         }
-        Object timeInForce = this.safeString(order, "timeInForce");
-        Object postOnly = null;
-        var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly((String) (type), (String) (timeInForce));
-        type = ((List<Object>) typetimeInForcepostOnlyVariable).get(0);
-        timeInForce = ((List<Object>) typetimeInForcepostOnlyVariable).get(1);
-        postOnly = ((List<Object>) typetimeInForcepostOnlyVariable).get(2);
+        String rawTimeInForce = this.safeString(order, "timeInForce");
+        String timeInForce = this.parseOrderTimeInForceValue(type, rawTimeInForce);
+        String typeParsed = this.parseOrderType(type);
         String average = this.omitZero(this.safeString(order, "avgPrice"));
         if (java.util.Objects.equals(price, null))
         {
             price = average;
         }
-        Object side = this.safeStringLower(order, "side");
-        Object reduceOnly = null;
-        var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
-        side = ((List<Object>) sidereduceOnlyVariable).get(0);
-        reduceOnly = ((List<Object>) sidereduceOnlyVariable).get(1);
+        String rawSide = this.safeStringLower(order, "side");
+        String side = this.parseOrderSideValue(rawSide);
         String feeCurrncyId = this.safeString(order, "feeCoin");
         if (java.util.Objects.equals(feeCurrncyId, ""))
         {
@@ -4048,7 +4042,7 @@ public class Hashkey extends HashkeyApi
         mapLiteral11.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
         mapLiteral11.put("status", this.parseOrderStatus(status));
         mapLiteral11.put("symbol", marketResolved.get("symbol"));
-        mapLiteral11.put("type", type);
+        mapLiteral11.put("type", typeParsed);
         mapLiteral11.put("timeInForce", timeInForce);
         mapLiteral11.put("side", side);
         mapLiteral11.put("price", price);
@@ -4065,26 +4059,37 @@ public class Hashkey extends HashkeyApi
         mapLiteral12.put("currency", this.safeCurrencyCode(feeCurrncyId, (Map<String, Object>) null));
         mapLiteral12.put("cost", this.omitZero(this.safeString(order, "feeAmount")));
         mapLiteral11.put("fee", mapLiteral12);
-        mapLiteral11.put("reduceOnly", reduceOnly);
-        mapLiteral11.put("postOnly", postOnly);
+        mapLiteral11.put("reduceOnly", this.parseOrderReduceOnlyValue(rawSide));
+        mapLiteral11.put("postOnly", this.parseOrderPostOnlyValue(type, rawTimeInForce));
         mapLiteral11.put("info", order);
         return this.safeOrder(mapLiteral11, marketResolved);
     }
 
-    public Object parseOrderSideAndReduceOnly(Object unparsed)
+    public String parseOrderSideValue(String unparsed)
     {
-        List<Object> parts = (List<Object>) Helpers.split(unparsed, "_");
-        Object side = (parts == null || 0 >= parts.size() ? null : parts.get(0));
-        String secondPart = this.safeString(parts, 1);
+        if (java.util.Objects.equals(unparsed, null))
+        {
+            return null;
+        }
+        return this.safeString(new ArrayList<Object>(Arrays.asList(((String)unparsed).split(java.util.regex.Pattern.quote("_")))), 0);
+    }
+
+    public Boolean parseOrderReduceOnlyValue(String unparsed)
+    {
+        if (java.util.Objects.equals(unparsed, null))
+        {
+            return null;
+        }
+        String secondPart = this.safeString(new ArrayList<Object>(Arrays.asList(((String)unparsed).split(java.util.regex.Pattern.quote("_")))), 1);
         if (java.util.Objects.equals(secondPart, "open"))
         {
-            return new ArrayList<Object>(Arrays.asList(side, false));
+            return false;
         }
         if (java.util.Objects.equals(secondPart, "close"))
         {
-            return new ArrayList<Object>(Arrays.asList(side, true));
+            return true;
         }
-        return new ArrayList<Object>(Arrays.asList(side, null));
+        return null;
     }
 
     public String parseOrderStatus(String status)
@@ -4103,20 +4108,24 @@ public class Hashkey extends HashkeyApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderTypeTimeInForceAndPostOnly(String type, String timeInForce)
+    public String parseOrderTimeInForceValue(String type, String timeInForce)
     {
         Boolean isMakerTimeInForce = (java.util.Objects.equals(timeInForce, "LIMIT_MAKER")) || (java.util.Objects.equals(timeInForce, "MAKER"));
-        String timeInForceParsed = timeInForce;
         if ((!java.util.Objects.equals(type, "LIMIT_MAKER")) && Boolean.TRUE.equals(isMakerTimeInForce))
         {
-            timeInForceParsed = "PO";
+            return "PO";
         }
-        String typeValue = this.parseOrderType((String) (type));
+        return timeInForce;
+    }
+
+    public Boolean parseOrderPostOnlyValue(String type, String timeInForce)
+    {
+        Boolean isMakerTimeInForce = (java.util.Objects.equals(timeInForce, "LIMIT_MAKER")) || (java.util.Objects.equals(timeInForce, "MAKER"));
         if ((java.util.Objects.equals(type, "LIMIT_MAKER")) || Boolean.TRUE.equals(isMakerTimeInForce))
         {
-            return new ArrayList<Object>(Arrays.asList(typeValue, timeInForceParsed, true));
+            return true;
         }
-        return new ArrayList<Object>(Arrays.asList(typeValue, timeInForceParsed, null));
+        return null;
     }
 
     public String parseOrderType(String type)
@@ -4341,7 +4350,8 @@ public class Hashkey extends HashkeyApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        return (this.fetchPositionsForSymbol((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), this.extend(new HashMap<String, Object>() {{
+        String firstSymbol = this.safeString(symbols, 0, "");
+        return (this.fetchPositionsForSymbol(firstSymbol, this.extend(new HashMap<String, Object>() {{
             put( "methodName", "fetchPositions" );
         }}, parameters))).join();
 
@@ -4927,7 +4937,8 @@ public class Hashkey extends HashkeyApi
         {
             Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
-            result.put((String)((String)parsedFee.get("symbol")), parsedFee);
+            String feeSymbol = this.safeString(parsedFee, "symbol", "");
+            result.put(feeSymbol, parsedFee);
         }
         return result;
 

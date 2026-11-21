@@ -1998,7 +1998,7 @@ public class Derive extends DeriveApi
         for (var i = 0; i < tradesArray.size(); i++)
         {
             Object rawTrade = (tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i));
-            Boolean isFetchTrades = !(((Map<?, ?>)rawTrade).containsKey("order_id"));
+            Boolean isFetchTrades = (java.util.Objects.equals(this.safeString(rawTrade, "order_id"), null));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (Boolean.TRUE.equals(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
             {

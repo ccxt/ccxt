@@ -1888,9 +1888,15 @@ public class Predictfun extends PredictfunApi
         {
             String feeType = this.safeString(rawFee, "type");
             String feeCost = this.safeString(rawFee, "amount");
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            String feeCurrency = null;
+            if (java.util.Objects.equals(feeType, "COLLATERAL"))
+            {
+                feeCurrency = "USDT";
+            }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
-                hx4NewMap0.put("currency", (((java.util.Objects.equals(feeType, "COLLATERAL")))) ? "USDT" : null);
+                hx4NewMap0.put("currency", feeCurrency);
                 hx4NewMap0.put("cost", this.parseNumber(Precise.stringDiv(feeCost, "1000000000000000000")));
                 fee = hx4NewMap0;
             }
@@ -4317,9 +4323,15 @@ public class Predictfun extends PredictfunApi
         if (!java.util.Objects.equals(rawFee, null))
         {
             String feeType = this.safeString(rawFee, "type");
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            String feeCurrency = null;
+            if (java.util.Objects.equals(feeType, "COLLATERAL"))
+            {
+                feeCurrency = "USDT";
+            }
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                hx4NewMap1.put("currency", (((java.util.Objects.equals(feeType, "COLLATERAL")))) ? "USDT" : null);
+                hx4NewMap1.put("currency", feeCurrency);
                 hx4NewMap1.put("cost", this.parseNumber(Precise.stringDiv(this.safeString(rawFee, "amountWei"), "1000000000000000000")));
                 fee = hx4NewMap1;
             }

@@ -839,8 +839,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeValue(delta, 1);
-        Object amount = this.safeValue(delta, 2);
+        Double price = this.safeNumber(delta, 1, (Object) null);
+        Double amount = this.safeNumber(delta, 2, (Object) null);
         String action = this.safeString(delta, 0);
         if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {

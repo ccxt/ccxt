@@ -131,7 +131,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object symbol = subscription.get("symbol");
+        String symbol = this.safeString(subscription, "symbol", "");
         Map<String, Object> market = this.market(symbol);
         String symbolValue = (String) market.get("symbol");
         String messageHash = ("trades:" + symbolValue);

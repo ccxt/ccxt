@@ -1066,7 +1066,11 @@ public class Apex extends ApexApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Apex.this.safeString(market, "id2") );
         }};
-        request.put("limit", (((java.util.Objects.equals(limit, null)))) ? 100 : limit); // max 100, default 100
+        request.put("limit", 100); // max 100, default 100
+        if (!java.util.Objects.equals(limit, null))
+        {
+            request.put("limit", limit);
+        }
         Map<String, Object> response = (this.publicGetV3Depth(this.extend(request, parameters))).join();
         //
         // {
@@ -1513,7 +1517,7 @@ public class Apex extends ApexApi
                     Integer numMarkets = markets.size();
                     for (var i = 0; (numMarkets != null && i < numMarkets); i++)
                     {
-                        if (((i == 0)) && (java.util.Objects.equals(((Map<String, Object>)(markets == null || i < 0 || i >= markets.size() ? null : markets.get(i))).get("id2"), marketId)))
+                        if (((i == 0)) && (java.util.Objects.equals(this.safeString((markets == null || i < 0 || i >= markets.size() ? null : markets.get(i)), "id2"), marketId)))
                         {
                             marketResolved = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                         }

@@ -1268,7 +1268,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; (symbolsAndTimeframesLength != null && i < symbolsAndTimeframesLength); i++)
         {
             Object current = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-            String currentTimeframe = this.safeString(current, 1);
+            String currentTimeframe = this.safeString(current, 1, "");
             String resolution = this.safeString(this.timeframes, currentTimeframe, currentTimeframe);
             Map<String, Object> market = this.market(this.safeString(current, 0));
             channels.add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));
@@ -1341,7 +1341,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; (symbolsAndTimeframesLength != null && i < symbolsAndTimeframesLength); i++)
         {
             Object current = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
-            String timeframe = this.safeString(current, 1);
+            String timeframe = this.safeString(current, 1, "");
             String resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Map<String, Object> market = this.market(this.safeString(current, 0));
             channels.add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));

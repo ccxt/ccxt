@@ -3182,13 +3182,13 @@ public class Ndax extends NdaxApi
         {
             throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template for ") + currency.get("code"))) ;
         }
-        Object withdrawTemplate = Helpers.parseJson(template);
-        ((Map<String, Object>)withdrawTemplate).put("ExternalAddress", address);
+        Map<String, Object> withdrawTemplate = this.extend(new HashMap<String, Object>() {{}}, Helpers.parseJson(template));
+        withdrawTemplate.put("ExternalAddress", address);
         if (!java.util.Objects.equals(tagWithdrawTag, null))
         {
-            if ((switch ((Object)(withdrawTemplate)) { case List<?> j39v8 -> j39v8.contains("Memo"); case Map<?, ?> j39v7 -> j39v7.containsKey("Memo"); case null, default -> false; }))
+            if (withdrawTemplate.containsKey("Memo"))
             {
-                ((Map<String, Object>)withdrawTemplate).put("Memo", tagWithdrawTag);
+                withdrawTemplate.put("Memo", tagWithdrawTag);
             }
         }
         Map<String, Object> withdrawPayload = new HashMap<String, Object>() {{

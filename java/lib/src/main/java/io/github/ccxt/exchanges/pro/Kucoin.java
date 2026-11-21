@@ -2878,9 +2878,9 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             symbolResolved = this.safeString(market, "symbol");
         }
-        if (!java.util.Objects.equals(market, null))
+        if (!java.util.Objects.equals(symbolResolved, null))
         {
-            messageHash = ((messageHash + ":") + market.get("symbol"));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
@@ -4304,7 +4304,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         // elementName can be 'ticker', 'bidask', ...
         if (!java.util.Objects.equals(symbol, null))
         {
-            return (String) (((elementName + ":") + symbol));
+            return ((elementName + ":") + symbol);
         } else
         {
             return (elementName + "s@all");

@@ -3416,11 +3416,19 @@ public class Polymarket extends PolymarketApi
     {
         if (java.util.Objects.equals(path, "account/orders"))
         {
-            return ((((switch ((Object)(parameters)) { case List<?> j39v7 -> j39v7.contains("order_id"); case Map<?, ?> j39v6 -> j39v6.containsKey("order_id"); case null, default -> false; })))) ? 1 : 10;
+            if (!java.util.Objects.equals(this.safeString(parameters, "order_id"), null))
+            {
+                return 1;
+            }
+            return 10;
         }
         if (java.util.Objects.equals(path, "account/open-orders"))
         {
-            return ((((switch ((Object)(parameters)) { case List<?> j39v5 -> j39v5.contains("instrument_id"); case Map<?, ?> j39v4 -> j39v4.containsKey("instrument_id"); case null, default -> false; })))) ? 1 : 20;
+            if (!java.util.Objects.equals(this.safeString(parameters, "instrument_id"), null))
+            {
+                return 1;
+            }
+            return 20;
         }
         if ((java.util.Objects.equals(path, "trade/orders")) || (java.util.Objects.equals(path, "trade/orders-coid")))
         {

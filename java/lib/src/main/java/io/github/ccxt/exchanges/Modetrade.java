@@ -2496,8 +2496,8 @@ public class Modetrade extends ModetradeApi
             }
             String type = this.safeString(rawOrder, "type", "");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = this.safeDict(orderParams, "stopLoss", null);

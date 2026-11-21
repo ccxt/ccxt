@@ -3665,6 +3665,7 @@ public class Gate extends GateApi
                 withdrawFees = this.safeNumber(entry, "withdraw_fix", (Object) null);
             } else
             {
+                Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
                 List<String> networkIds = new ArrayList<String>(withdrawFixOnChains.keySet());
                 for (var j = 0; j < networkIds.size(); j++)
                 {
@@ -3672,9 +3673,10 @@ public class Gate extends GateApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        ((Map<String, Object>)withdrawFees).put(networkCode, this.parseNumber((withdrawFixOnChains == null || networkId == null ? null : withdrawFixOnChains.get(networkId))));
+                        networkFees.put(networkCode, this.safeNumber(withdrawFixOnChains, networkId, (Object) null));
                     }
                 }
+                withdrawFees = networkFees;
             }
             HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
             mapLiteral7.put("withdraw", withdrawFees);
@@ -4195,7 +4197,7 @@ public class Gate extends GateApi
         //
         String marketId = this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("currency_pair", "contract", "name")));
         String marketType = "spot";
-        if (((Map<?, ?>)ticker).containsKey("mark_price"))
+        if (!java.util.Objects.equals(this.safeString(ticker, "mark_price"), null))
         {
             marketType = "contract";
         }
@@ -4314,9 +4316,10 @@ public class Gate extends GateApi
         account.put("used", this.safeString2(entry, "freeze", "locked"));
         account.put("free", this.safeString(entry, "available"));
         account.put("total", this.safeString(entry, "total"));
-        if (entry.containsKey("borrowed"))
+        String borrowed = this.safeString(entry, "borrowed");
+        if (!java.util.Objects.equals(borrowed, null))
         {
-            account.put("debt", this.safeString(entry, "borrowed"));
+            account.put("debt", borrowed);
         }
         return account;
     }
@@ -4617,7 +4620,7 @@ public class Gate extends GateApi
             for (var i = 0; i < keys.size(); i++)
             {
                 String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Map<String, Object> content = (Map<String, Object>) ((balances == null || currencyId == null ? null : balances.get(currencyId)));
+                Map<String, Object> content = this.extend(new HashMap<String, Object>() {{}}, (balances == null || currencyId == null ? null : balances.get(currencyId)));
                 content.put("currency", currencyId);
                 ((List<Object>)flatBalances).add(content);
             }
@@ -4694,11 +4697,6 @@ public class Gate extends GateApi
         Long maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "contract", false))))) ? 1999L : 1000L;
         Long limitValue = (((java.util.Objects.equals(limit, null)))) ? maxLimit : Math.min(limit, maxLimit);
         Long untilMs = this.safeInteger(paramsRequest, "until");
-        Long until = null;
-        if (!java.util.Objects.equals(untilMs, null))
-        {
-            until = this.parseToInt((((double) untilMs) / ((double) 1000)));
-        }
         Object paramsOmitted = this.omit(paramsRequest, "until");
         if (!java.util.Objects.equals(since, null))
         {
@@ -4709,18 +4707,24 @@ public class Gate extends GateApi
             Long toTimestamp = this.sum(fromTimestamp, distance);
             Long currentTimestamp = this.seconds();
             Long to = Math.min(toTimestamp, currentTimestamp);
-            if (!java.util.Objects.equals(until, null))
+            if (!java.util.Objects.equals(untilMs, null))
             {
-                ((Map<String, Object>)request).put("to", Math.min(to, until));
+                Long untilSeconds = this.parseToInt((((double) untilMs) / ((double) 1000)));
+                Long toValue = to;
+                if ((to != null && (untilSeconds == null || untilSeconds < to)))
+                {
+                    toValue = untilSeconds;
+                }
+                ((Map<String, Object>)request).put("to", toValue);
             } else
             {
                 ((Map<String, Object>)request).put("to", to);
             }
         } else
         {
-            if (!java.util.Objects.equals(until, null))
+            if (!java.util.Objects.equals(untilMs, null))
             {
-                ((Map<String, Object>)request).put("to", until);
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) untilMs) / ((double) 1000))));
             }
             ((Map<String, Object>)request).put("limit", limitValue);
         }
@@ -4731,7 +4735,8 @@ public class Gate extends GateApi
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
             if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
             {
-                ((Map<String, Object>)request).put("contract", ((price + "_") + market.get("id")));
+                String marketId = this.safeString(market, "id", "");
+                ((Map<String, Object>)request).put("contract", ((price + "_") + marketId));
             }
             Object paramsContract = paramsOmitted;
             if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
@@ -5375,7 +5380,7 @@ public class Gate extends GateApi
         }
         String marketId = this.safeString2(trade, "currency_pair", "contract");
         String marketType = "spot";
-        if (((Map<?, ?>)trade).containsKey("contract"))
+        if (!java.util.Objects.equals(this.safeString(trade, "contract"), null))
         {
             marketType = "contract";
         }
@@ -5941,8 +5946,8 @@ public class Gate extends GateApi
             orderSymbols.add(marketId);
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             boolean triggerValue = (this.safeValueN(orderParams, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")))) != null;
@@ -6815,7 +6820,7 @@ public class Gate extends GateApi
             }
         }
         String marketType = "contract";
-        if ((((Map<?, ?>)order).containsKey("currency_pair")) || (((Map<?, ?>)order).containsKey("market")))
+        if ((!java.util.Objects.equals(this.safeString(order, "currency_pair"), null)) || (!java.util.Objects.equals(this.safeString(order, "market"), null)))
         {
             marketType = "spot";
         }
@@ -6942,11 +6947,23 @@ public class Gate extends GateApi
         String type = typequeryVariable.first();
         Map<String, Object> query = typequeryVariable.second();
         Boolean contract = (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "option"));
-        var requestrequestParamsVariable = ((Boolean.TRUE.equals(contract))) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
+        if (Boolean.TRUE.equals(contract))
+        {
+            var contractRequestcontractParamsVariable = this.prepareRequest(market, type, query);
+            var contractRequest = ((List<Object>) contractRequestcontractParamsVariable).get(0);
+            var contractParams = ((List<Object>) contractRequestcontractParamsVariable).get(1);
+            HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+            j39v7.put("order_id", String.valueOf(orderId));
+            Map<String, Object> contractOrder = this.extend(contractRequest, j39v7);
+            return new ArrayList<Object>(Arrays.asList(contractOrder, contractParams));
+        }
+        var requestrequestParamsVariable = this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((List<Object>) requestrequestParamsVariable).get(0);
         var requestParams = ((List<Object>) requestrequestParamsVariable).get(1);
-        ((Map<String, Object>)request).put("order_id", String.valueOf(orderId));
-        return new ArrayList<Object>(Arrays.asList(request, requestParams));
+        HashMap<String, Object> mapLiteral20 = new HashMap<String, Object>();
+        mapLiteral20.put("order_id", orderId);
+        Map<String, Object> spotOrder = this.extend(request, mapLiteral20);
+        return new ArrayList<Object>(Arrays.asList(spotOrder, requestParams));
     }
 
     /**
@@ -7162,7 +7179,12 @@ public class Gate extends GateApi
         {
             request = this.omit(request, "account");
         }
-        Helpers.addElementToObject(request, "status", (((java.util.Objects.equals(status, "closed")))) ? "finished" : status);
+        String requestStatus = status;
+        if (java.util.Objects.equals(status, "closed"))
+        {
+            requestStatus = "finished";
+        }
+        Helpers.addElementToObject(request, "status", requestStatus);
         if (!java.util.Objects.equals(limit, null))
         {
             ((Map<String, Object>)request).put("limit", limit);
@@ -8166,36 +8188,36 @@ public class Gate extends GateApi
         {
             timestamp = null;
         }
-        HashMap<String, Object> mapLiteral20 = new HashMap<String, Object>();
-        mapLiteral20.put("info", position);
-        mapLiteral20.put("id", null);
-        mapLiteral20.put("symbol", this.safeString(marketResolved, "symbol"));
-        mapLiteral20.put("timestamp", timestamp);
-        mapLiteral20.put("datetime", this.iso8601(timestamp));
-        mapLiteral20.put("lastUpdateTimestamp", this.safeTimestamp2(position, "update_time", "time"));
-        mapLiteral20.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral20.put("initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)));
-        mapLiteral20.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
-        mapLiteral20.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)));
-        mapLiteral20.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
-        mapLiteral20.put("notional", this.parseNumber(notional));
-        mapLiteral20.put("leverage", this.safeNumber(position, "leverage", (Object) null));
-        mapLiteral20.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
-        mapLiteral20.put("realizedPnl", this.safeNumber2(position, "realised_pnl", "pnl", (Object) null));
-        mapLiteral20.put("contracts", this.parseNumber(Precise.stringAbs(size)));
-        mapLiteral20.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral20.put("marginRatio", null);
-        mapLiteral20.put("liquidationPrice", this.parseNumber(liqPriceString));
-        mapLiteral20.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
-        mapLiteral20.put("lastPrice", null);
-        mapLiteral20.put("positionMargin", this.parseNumber(marginBalance));
-        mapLiteral20.put("collateral", this.parseNumber(collateral));
-        mapLiteral20.put("marginMode", marginMode);
-        mapLiteral20.put("side", side);
-        mapLiteral20.put("percentage", null);
-        mapLiteral20.put("stopLossPrice", null);
-        mapLiteral20.put("takeProfitPrice", null);
-        return this.safePosition(mapLiteral20);
+        HashMap<String, Object> mapLiteral21 = new HashMap<String, Object>();
+        mapLiteral21.put("info", position);
+        mapLiteral21.put("id", null);
+        mapLiteral21.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral21.put("timestamp", timestamp);
+        mapLiteral21.put("datetime", this.iso8601(timestamp));
+        mapLiteral21.put("lastUpdateTimestamp", this.safeTimestamp2(position, "update_time", "time"));
+        mapLiteral21.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral21.put("initialMarginPercentage", this.parseNumber(Precise.stringDiv(initialMarginString, notional)));
+        mapLiteral21.put("maintenanceMargin", this.parseNumber(maintenanceMarginString));
+        mapLiteral21.put("maintenanceMarginPercentage", this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)));
+        mapLiteral21.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral21.put("notional", this.parseNumber(notional));
+        mapLiteral21.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral21.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
+        mapLiteral21.put("realizedPnl", this.safeNumber2(position, "realised_pnl", "pnl", (Object) null));
+        mapLiteral21.put("contracts", this.parseNumber(Precise.stringAbs(size)));
+        mapLiteral21.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral21.put("marginRatio", null);
+        mapLiteral21.put("liquidationPrice", this.parseNumber(liqPriceString));
+        mapLiteral21.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral21.put("lastPrice", null);
+        mapLiteral21.put("positionMargin", this.parseNumber(marginBalance));
+        mapLiteral21.put("collateral", this.parseNumber(collateral));
+        mapLiteral21.put("marginMode", marginMode);
+        mapLiteral21.put("side", side);
+        mapLiteral21.put("percentage", null);
+        mapLiteral21.put("stopLossPrice", null);
+        mapLiteral21.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral21);
     }
 
     /**
@@ -8479,7 +8501,11 @@ public class Gate extends GateApi
             throw new BadRequest((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
         Long requestedLimit = this.safeInteger(requestParams, "limit", 100);
-        Long limit = this.parseToInt((((java.util.Objects.equals(requestedLimit, null)))) ? 100 : ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(1, Math.min(requestedLimit, 100)));
+        Long limit = 100L;
+        if (!java.util.Objects.equals(requestedLimit, null))
+        {
+            limit = this.parseToInt(Math.max(1, Math.min(requestedLimit, 100)));
+        }
         Object offset = this.safeInteger(requestParams, "offset", 0);
         String contract = this.safeString(requestParams, "contract", "");
         Object paramsOmitted = this.omit(requestParams, new ArrayList<Object>(Arrays.asList("limit", "offset")));
@@ -8589,16 +8615,16 @@ public class Gate extends GateApi
         while (Precise.stringLt(floor, riskLimitMax))
         {
             String cap = Precise.stringAdd(floor, riskLimitStep);
-            HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-            j39v7.put("tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)));
-            j39v7.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
-            j39v7.put("currency", this.safeString(market, "settle"));
-            j39v7.put("minNotional", this.parseNumber(floor));
-            j39v7.put("maxNotional", this.parseNumber(cap));
-            j39v7.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
-            j39v7.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRatio)));
-            j39v7.put("info", info);
-            ((List<Object>)tiers).add(j39v7);
+            HashMap<String, Object> j39v8 = new HashMap<String, Object>();
+            j39v8.put("tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)));
+            j39v8.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+            j39v8.put("currency", this.safeString(market, "settle"));
+            j39v8.put("minNotional", this.parseNumber(floor));
+            j39v8.put("maxNotional", this.parseNumber(cap));
+            j39v8.put("maintenanceMarginRate", this.parseNumber(maintenanceMarginRate));
+            j39v8.put("maxLeverage", this.parseNumber(Precise.stringDiv("1", initialMarginRatio)));
+            j39v8.put("info", info);
+            ((List<Object>)tiers).add(j39v8);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
             floor = cap;
@@ -8629,16 +8655,16 @@ public class Gate extends GateApi
         {
             Map<String, Object> item = this.safeDict(info, i, null);
             Double maxNotional = this.safeNumber(item, "risk_limit", (Object) null);
-            HashMap<String, Object> j39v8 = new HashMap<String, Object>();
-            j39v8.put("tier", this.sum(i, 1));
-            j39v8.put("symbol", this.safeString(market, "symbol"));
-            j39v8.put("currency", this.safeString(market, "settle"));
-            j39v8.put("minNotional", minNotional);
-            j39v8.put("maxNotional", maxNotional);
-            j39v8.put("maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null));
-            j39v8.put("maxLeverage", this.safeNumber(item, "leverage_max", (Object) null));
-            j39v8.put("info", item);
-            ((List<Object>)tiers).add(j39v8);
+            HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+            j39v9.put("tier", this.sum(i, 1));
+            j39v9.put("symbol", this.safeString(market, "symbol"));
+            j39v9.put("currency", this.safeString(market, "settle"));
+            j39v9.put("minNotional", minNotional);
+            j39v9.put("maxNotional", maxNotional);
+            j39v9.put("maintenanceMarginRate", this.safeNumber(item, "maintenance_rate", (Object) null));
+            j39v9.put("maxLeverage", this.safeNumber(item, "leverage_max", (Object) null));
+            j39v9.put("info", item);
+            ((List<Object>)tiers).add(j39v9);
             minNotional = maxNotional;
         }
         return tiers;
@@ -9868,23 +9894,23 @@ public class Gate extends GateApi
         String balanceString = this.safeString(item, "balance");
         String changeString = this.safeString(item, "change");
         Double before = this.parseNumber(Precise.stringSub(balanceString, changeString));
-        HashMap<String, Object> mapLiteral21 = new HashMap<String, Object>();
-        mapLiteral21.put("info", item);
-        mapLiteral21.put("id", this.safeString(item, "id"));
-        mapLiteral21.put("direction", direction);
-        mapLiteral21.put("account", null);
-        mapLiteral21.put("referenceAccount", null);
-        mapLiteral21.put("referenceId", null);
-        mapLiteral21.put("type", this.parseLedgerEntryType(type));
-        mapLiteral21.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
-        mapLiteral21.put("amount", this.parseNumber(amount));
-        mapLiteral21.put("timestamp", timestamp);
-        mapLiteral21.put("datetime", this.iso8601(timestamp));
-        mapLiteral21.put("before", before);
-        mapLiteral21.put("after", this.safeNumber(item, "balance", (Object) null));
-        mapLiteral21.put("status", null);
-        mapLiteral21.put("fee", null);
-        return this.safeLedgerEntry(mapLiteral21, currencyResolved);
+        HashMap<String, Object> mapLiteral22 = new HashMap<String, Object>();
+        mapLiteral22.put("info", item);
+        mapLiteral22.put("id", this.safeString(item, "id"));
+        mapLiteral22.put("direction", direction);
+        mapLiteral22.put("account", null);
+        mapLiteral22.put("referenceAccount", null);
+        mapLiteral22.put("referenceId", null);
+        mapLiteral22.put("type", this.parseLedgerEntryType(type));
+        mapLiteral22.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
+        mapLiteral22.put("amount", this.parseNumber(amount));
+        mapLiteral22.put("timestamp", timestamp);
+        mapLiteral22.put("datetime", this.iso8601(timestamp));
+        mapLiteral22.put("before", before);
+        mapLiteral22.put("after", this.safeNumber(item, "balance", (Object) null));
+        mapLiteral22.put("status", null);
+        mapLiteral22.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral22, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -10259,18 +10285,18 @@ public class Gate extends GateApi
                 }
             }
         }
-        HashMap<String, Object> mapLiteral22 = new HashMap<String, Object>();
-        mapLiteral22.put("info", liquidation);
-        mapLiteral22.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-        mapLiteral22.put("contracts", this.parseNumber(contractsString));
-        mapLiteral22.put("contractSize", this.parseNumber(contractSizeString));
-        mapLiteral22.put("price", this.parseNumber(priceString));
-        mapLiteral22.put("side", side);
-        mapLiteral22.put("baseValue", this.parseNumber(baseValueString));
-        mapLiteral22.put("quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)));
-        mapLiteral22.put("timestamp", timestamp);
-        mapLiteral22.put("datetime", this.iso8601(timestamp));
-        return this.safeLiquidation(mapLiteral22, (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral23 = new HashMap<String, Object>();
+        mapLiteral23.put("info", liquidation);
+        mapLiteral23.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral23.put("contracts", this.parseNumber(contractsString));
+        mapLiteral23.put("contractSize", this.parseNumber(contractSizeString));
+        mapLiteral23.put("price", this.parseNumber(priceString));
+        mapLiteral23.put("side", side);
+        mapLiteral23.put("baseValue", this.parseNumber(baseValueString));
+        mapLiteral23.put("quoteValue", this.parseNumber(Precise.stringAbs(quoteValueString)));
+        mapLiteral23.put("timestamp", timestamp);
+        mapLiteral23.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral23, (Map<String, Object>) null);
     }
 
     /**

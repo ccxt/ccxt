@@ -197,19 +197,23 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
         Map<String, Object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new HashMap<String, Object>() {{}});
         bookParams.put("bookSubscriptionType", bookSubscriptionType2);
-        ((Map<String, Object>)paramsBookSubscriptionType2).put("params", bookParams);
-        Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
+        Map<String, Object> paramsWithBook = this.extend(paramsBookSubscriptionType2, new HashMap<String, Object>() {{
+            put( "params", bookParams );
+        }});
+        Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency", (String) null);
         String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
         Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
         Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
         Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
+        Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(bookUpdateFrequency2, null))
         {
-            Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
             frequencyParams.put("bookSubscriptionType", bookUpdateFrequency2);
-            ((Map<String, Object>)paramsBookUpdateFrequency2).put("params", frequencyParams);
         }
+        Map<String, Object> paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, new HashMap<String, Object>() {{
+            put( "params", frequencyParams );
+        }});
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -218,7 +222,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             messageHashes.add(("orderbook:" + market.get("symbol")));
             topics.add(((("book." + this.safeString(market, "id", "")) + ".") + limitString));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, paramsBookUpdateFrequency2)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, paramsWithFrequency)).join();
         return orderbook.limit();
 
     }
@@ -265,19 +269,23 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Map<String, Object> paramsBookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.second();
         Map<String, Object> bookParams = this.safeDict(paramsBookSubscriptionType2, "params", new HashMap<String, Object>() {{}});
         bookParams.put("bookSubscriptionType", bookSubscriptionType2);
-        ((Map<String, Object>)paramsBookSubscriptionType2).put("params", bookParams);
-        Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType2), "watchOrderBook", "bookUpdateFrequency", (String) null);
+        Map<String, Object> paramsWithBook = this.extend(paramsBookSubscriptionType2, new HashMap<String, Object>() {{
+            put( "params", bookParams );
+        }});
+        Pair<String, Map<String, Object>> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsWithBook, "watchOrderBook", "bookUpdateFrequency", (String) null);
         String bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.first();
         Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
         Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
         Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
+        Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(bookUpdateFrequency2, null))
         {
-            Map<String, Object> frequencyParams = this.safeDict(paramsBookUpdateFrequency2, "params", new HashMap<String, Object>() {{}});
             frequencyParams.put("bookSubscriptionType", bookUpdateFrequency2);
-            ((Map<String, Object>)paramsBookUpdateFrequency2).put("params", frequencyParams);
         }
+        Map<String, Object> paramsWithFrequency = this.extend(paramsBookUpdateFrequency2, new HashMap<String, Object>() {{
+            put( "params", frequencyParams );
+        }});
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
@@ -286,7 +294,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             messageHashes.add(("unsubscribe:orderbook:" + market.get("symbol")));
             topics.add(((("book." + this.safeString(market, "id", "")) + ".") + String.valueOf(limit)));
         }
-        return (this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2, new HashMap<String, Object>() {{}})).join();
+        return (this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsWithFrequency, new HashMap<String, Object>() {{}})).join();
 
     }
 

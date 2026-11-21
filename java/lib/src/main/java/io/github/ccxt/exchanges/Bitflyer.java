@@ -1439,16 +1439,18 @@ public class Bitflyer extends BitflyerApi
         String type = null;
         String status = null;
         Map<String, Object> fee = null;
-        if (transaction.containsKey("fee"))
+        String feeCost = this.safeString(transaction, "fee");
+        if (!java.util.Objects.equals(feeCost, null))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
-            String feeCost = this.safeString(transaction, "fee");
             String additionalFee = this.safeString(transaction, "additional_fee");
-            fee = new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "cost", Bitflyer.this.parseNumber(Precise.stringAdd(feeCost, additionalFee)) );
-            }};
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", this.parseNumber(Precise.stringAdd(feeCost, additionalFee)));
+                fee = hx4NewMap1;
+            }
         } else
         {
             type = "deposit";
@@ -1588,12 +1590,12 @@ public class Bitflyer extends BitflyerApi
                 }
             }
             {
-                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
-                hx4NewMap1.put("ACCESS-KEY", this.apiKey);
-                hx4NewMap1.put("ACCESS-TIMESTAMP", nonce);
-                hx4NewMap1.put("ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
-                hx4NewMap1.put("Content-Type", "application/json");
-                headersSigned = hx4NewMap1;
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("ACCESS-KEY", this.apiKey);
+                hx4NewMap2.put("ACCESS-TIMESTAMP", nonce);
+                hx4NewMap2.put("ACCESS-SIGN", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
+                hx4NewMap2.put("Content-Type", "application/json");
+                headersSigned = hx4NewMap2;
             }
         }
         Map<String, Object> headersResolved = headersSigned;

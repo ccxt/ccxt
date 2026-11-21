@@ -5408,7 +5408,7 @@ public class Binance extends BinanceApi
         String baseId = this.safeString(market, "baseAsset", optionBase);
         String quoteId = this.safeString(market, "quoteAsset");
         Boolean stock = false;
-        if (((Map<?, ?>)market).containsKey("tradability"))
+        if (!java.util.Objects.equals(this.safeString(market, "tradability"), null))
         {
             quoteId = "USDC";
             stock = true;
@@ -5461,8 +5461,10 @@ public class Binance extends BinanceApi
                 symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry));
             } else if (Boolean.TRUE.equals(option))
             {
+                String strikeString = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
+                String optionType = this.safeString(optionParts, 3, "");
                 strike = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
-                symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + this.safeString(optionParts, 3));
+                symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strikeString) + "-") + optionType);
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
@@ -6387,19 +6389,19 @@ public class Binance extends BinanceApi
         //
         Long timestamp = (Long) this.safeInteger2(ticker, "closeTime", "time");
         String marketType = null;
-        if ((((Map<?, ?>)ticker).containsKey("time")))
+        if (!java.util.Objects.equals(this.safeInteger(ticker, "time"), null))
         {
             marketType = "contract";
         }
         if (java.util.Objects.equals(marketType, null))
         {
-            marketType = (((((Map<?, ?>)ticker).containsKey("bidQty")))) ? "spot" : "contract";
+            marketType = (((!java.util.Objects.equals(this.safeString(ticker, "bidQty"), null)))) ? "spot" : "contract";
         }
         String marketId = this.safeString(ticker, "symbol");
         String symbol = this.safeSymbol(marketId, market, (String) null, marketType);
         String last = this.safeString(ticker, "lastPrice");
         String wAvg = this.safeString(ticker, "weightedAvgPrice");
-        Boolean isCoinm = (((Map<?, ?>)ticker).containsKey("baseVolume"));
+        Boolean isCoinm = (!java.util.Objects.equals(this.safeString(ticker, "baseVolume"), null));
         String baseVolume = null;
         String quoteVolume = null;
         if (Boolean.TRUE.equals(isCoinm))
@@ -6866,7 +6868,8 @@ public class Binance extends BinanceApi
         List<Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
-            response = (this.eapiPublicGetMark(this.extend(request, paramsSubType))).join();
+            List<Object> optionResponse = (this.eapiPublicGetMark(this.extend(request, paramsSubType))).join();
+            return this.parseTicker(this.safeDict(optionResponse, 0, new HashMap<String, Object>() {{}}), market);
         } else if (this.isLinear(type, subType))
         {
             response = (this.fapiPublicGetPremiumIndex(this.extend(request, paramsSubType))).join();
@@ -6876,10 +6879,6 @@ public class Binance extends BinanceApi
         } else
         {
             throw new NotSupported((((this.id + " fetchMarkPrice() does not support ") + type) + " markets yet")) ;
-        }
-        if ((response instanceof List))
-        {
-            return this.parseTicker(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), market);
         }
         if (java.util.Objects.equals(response, null))
         {
@@ -7169,7 +7168,7 @@ public class Binance extends BinanceApi
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        if (((Map<?, ?>)trade).containsKey("isDustTrade"))
+        if (!java.util.Objects.equals(this.safeBool(trade, "isDustTrade", (Object) null), null))
         {
             return this.parseDustTrade((Map<String, Object>) (trade), market);
         }
@@ -7389,7 +7388,7 @@ public class Binance extends BinanceApi
         String amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         String marketId = this.safeString(trade, "symbol");
-        Boolean isSpotTrade = (((Map<?, ?>)trade).containsKey("isIsolated")) || (((Map<?, ?>)trade).containsKey("M")) || (((Map<?, ?>)trade).containsKey("orderListId")) || (((Map<?, ?>)trade).containsKey("isMaker"));
+        Boolean isSpotTrade = (!java.util.Objects.equals(this.safeBool(trade, "isIsolated", (Object) null), null)) || (!java.util.Objects.equals(this.safeBool(trade, "M", (Object) null), null)) || (!java.util.Objects.equals(this.safeInteger(trade, "orderListId"), null)) || (!java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), null));
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpotTrade))
         {
@@ -7403,37 +7402,37 @@ public class Binance extends BinanceApi
         if (!java.util.Objects.equals(buyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy"; // this is reversed intentionally
-        } else if (((Map<?, ?>)trade).containsKey("side"))
+        } else if (!java.util.Objects.equals(this.safeString(trade, "side"), null))
         {
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (((Map<?, ?>)trade).containsKey("isBuyer"))
+            if (!java.util.Objects.equals(this.safeBool(trade, "isBuyer", (Object) null), null))
             {
                 side = ((Boolean.TRUE.equals((this.safeBool(trade, "isBuyer", false))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
-        if (((Map<?, ?>)trade).containsKey("commission"))
+        if (!java.util.Objects.equals(this.safeString(trade, "commission"), null))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Binance.this.safeString(trade, "commission") );
                 put( "currency", Binance.this.safeCurrencyCode(Binance.this.safeString(trade, "commissionAsset"), (Map<String, Object>) null) );
             }};
         }
-        if (((Map<?, ?>)trade).containsKey("isMaker"))
+        if (!java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "isMaker", false))))) ? "maker" : "taker";
         }
-        if (((Map<?, ?>)trade).containsKey("maker"))
+        if (!java.util.Objects.equals(this.safeBool(trade, "maker", (Object) null), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
-        if ((((Map<?, ?>)trade).containsKey("optionSide")) || Boolean.TRUE.equals((this.safeBool(marketResolved, "option", false))))
+        if ((!java.util.Objects.equals(this.safeString(trade, "optionSide"), null)) || Boolean.TRUE.equals((this.safeBool(marketResolved, "option", false))))
         {
             String settle = this.safeCurrencyCode(this.safeString(trade, "quoteAsset", "USDT"), (Map<String, Object>) null);
             takerOrMaker = this.safeStringLower(trade, "liquidity");
-            if (((Map<?, ?>)trade).containsKey("fee"))
+            if (!java.util.Objects.equals(this.safeString(trade, "fee"), null))
             {
                 fee = new HashMap<String, Object>() {{
                     put( "cost", Binance.this.safeString(trade, "fee") );
@@ -7444,7 +7443,7 @@ public class Binance extends BinanceApi
             {
                 side = (((java.util.Objects.equals(side, "1")))) ? "buy" : "sell";
             }
-            if (((Map<?, ?>)trade).containsKey("optionSide"))
+            if (!java.util.Objects.equals(this.safeString(trade, "optionSide"), null))
             {
                 if (!java.util.Objects.equals(side, "buy"))
                 {
@@ -7548,7 +7547,14 @@ public class Binance extends BinanceApi
             Boolean isFutureOrSwap = (java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true));
             Boolean isHistoricalEndpoint = (!java.util.Objects.equals(method, null)) && (((String)method).indexOf("GetHistoricalTrades") >= 0);
             Long maxLimitForContractHistorical = ((Boolean.TRUE.equals(isHistoricalEndpoint))) ? 500L : 1000L;
-            request.put("limit", ((Boolean.TRUE.equals(isFutureOrSwap))) ? Math.min(limit, maxLimitForContractHistorical) : limit); // default = 500, maximum = 1000
+            // default = 500, maximum = 1000
+            if (Boolean.TRUE.equals(isFutureOrSwap))
+            {
+                request.put("limit", Math.min(limit, maxLimitForContractHistorical));
+            } else
+            {
+                request.put("limit", limit);
+            }
         }
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until", "fetchTradesMethod")));
         if (java.util.Objects.equals(method, null))
@@ -8123,8 +8129,8 @@ public class Binance extends BinanceApi
             String id = this.safeString(rawOrder, "id");
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Boolean isPortfolioMargin = null;
             Pair<Boolean, Map<String, Object>> isPortfolioMarginorderParamsVariable = this.handleOptionBoolAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
@@ -8851,7 +8857,7 @@ public class Binance extends BinanceApi
         }
         String status = this.parseOrderStatus(this.safeStringN(order, new ArrayList<Object>(Arrays.asList("status", "strategyStatus", "algoStatus"))));
         String marketId = this.safeString(order, "symbol");
-        Boolean isContract = (((Map<?, ?>)order).containsKey("positionSide")) || (((Map<?, ?>)order).containsKey("cumQuote"));
+        Boolean isContract = (!java.util.Objects.equals(this.safeString(order, "positionSide"), null)) || (!java.util.Objects.equals(this.safeString(order, "cumQuote"), null));
         String marketType = "spot";
         if (Boolean.TRUE.equals(isContract))
         {
@@ -8874,7 +8880,7 @@ public class Binance extends BinanceApi
             }
         }
         Long lastTradeTimestamp = null;
-        if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))
+        if ((!java.util.Objects.equals(this.safeInteger(order, "transactTime"), null)) || (!java.util.Objects.equals(this.safeInteger(order, "updateTime"), null)) || (!java.util.Objects.equals(this.safeInteger(order, "updatedAt"), null)))
         {
             Long timestampValue = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("updateTime", "transactTime", "updatedAt")));
             if (java.util.Objects.equals(status, "open"))
@@ -8989,8 +8995,8 @@ public class Binance extends BinanceApi
             orderSymbols.add(marketId);
             String type = this.safeString(rawOrder, "type");
             String side = this.safeString(rawOrder, "side");
-            Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double amount = this.safeNumber(rawOrder, "amount", (Object) null);
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderMarket = this.market(marketId);
             if (Boolean.TRUE.equals((this.safeBool(orderMarket, "linear", false))) && (!Boolean.TRUE.equals(this.safeBool(orderMarket, "option", false))) && this.isConditionalOrder(orderParams))
@@ -12113,8 +12119,9 @@ public class Binance extends BinanceApi
             List<Object> logs = this.safeList((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "userAssetDribbletDetails", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < logs.size(); j++)
             {
-                ((Map<String, Object>)(logs == null || j < 0 || j >= logs.size() ? null : logs.get(j))).put("isDustTrade", true);
-                ((List<Object>)data).add((logs == null || j < 0 || j >= logs.size() ? null : logs.get(j)));
+                ((List<Object>)data).add(this.extend((logs == null || j < 0 || j >= logs.size() ? null : logs.get(j)), new HashMap<String, Object>() {{
+                    put( "isDustTrade", true );
+                }}));
             }
         }
         List<Object> trades = this.parseTrades(data, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
@@ -13165,20 +13172,21 @@ public class Binance extends BinanceApi
             String currencyId = this.safeString(entry, "coin");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             List<Object> networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
-            if (!java.util.Objects.equals(code, null))
-            {
-                withdrawFees.put(code, new HashMap<String, Object>() {{}});
-            }
+            Map<String, Object> networkFees = new HashMap<String, Object>() {{}};
             for (var j = 0; j < networkList.size(); j++)
             {
                 Map<String, Object> networkEntry = this.safeDict(networkList, j, null);
                 String networkId = this.safeString(networkEntry, "network");
                 String networkCode = this.networkIdToCode(networkId, code);
                 Double fee = this.safeNumber(networkEntry, "withdrawFee", (Object) null);
-                if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(networkCode, null)))
+                if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject((withdrawFees == null || code == null ? null : withdrawFees.get(code)), networkCode, fee);
+                    networkFees.put(networkCode, fee);
                 }
+            }
+            if (!java.util.Objects.equals(code, null))
+            {
+                withdrawFees.put(code, networkFees);
             }
         }
         return new HashMap<String, Object>() {{
@@ -14201,7 +14209,7 @@ public class Binance extends BinanceApi
             }
         }
         // as oppose to notionalValue
-        Boolean usdm = (position.containsKey("notional"));
+        Boolean usdm = (!java.util.Objects.equals(this.safeString(position, "notional"), null));
         String maintenanceMarginString = this.safeString(position, "maintMargin");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String entryPriceString = this.safeString(position, "entryPrice");
@@ -14506,7 +14514,7 @@ public class Binance extends BinanceApi
         Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
         String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
-        Boolean linear = (position.containsKey("notional"));
+        Boolean linear = (!java.util.Objects.equals(this.safeString(position, "notional"), null));
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
@@ -15767,33 +15775,31 @@ public class Binance extends BinanceApi
         Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (paramsSubType), "fetchLeverages", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
         Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
-        Object response = null;
+        List<Object> leverages = new ArrayList<Object>(Arrays.asList());
         if (this.isLinear(type, subType))
         {
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
-                response = (this.papiGetUmAccount(paramsPapi)).join();
+                Map<String, Object> response = (this.papiGetUmAccount(paramsPapi)).join();
+                leverages = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                response = (this.fapiPrivateGetSymbolConfig(paramsPapi)).join();
+                leverages = (this.fapiPrivateGetSymbolConfig(paramsPapi)).join();
             }
         } else if (this.isInverse(type, subType))
         {
             if (Boolean.TRUE.equals(isPortfolioMargin))
             {
-                response = (this.papiGetCmAccount(paramsPapi)).join();
+                Map<String, Object> response = (this.papiGetCmAccount(paramsPapi)).join();
+                leverages = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                response = (this.dapiPrivateGetAccount(paramsPapi)).join();
+                Map<String, Object> response = (this.dapiPrivateGetAccount(paramsPapi)).join();
+                leverages = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             }
         } else
         {
             throw new NotSupported((this.id + " fetchLeverages() supports linear and inverse contracts only")) ;
-        }
-        List<Object> leverages = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-        if ((response instanceof List))
-        {
-            leverages = this.toArray(response);
         }
         return this.parseLeverages(leverages, symbols, "symbol", null);
 
@@ -16724,15 +16730,15 @@ public class Binance extends BinanceApi
             return config.get("noPoolId");
         } else if ((config.containsKey("byLimit")) && (((Map<?, ?>)parameters).containsKey("limit")))
         {
-            Object limit = ((Map<String, Object>)parameters).get("limit");
+            Long limit = this.safeInteger(parameters, "limit");
             // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
             List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, Helpers.GetValue(entry, 0)))
+                if (!java.util.Objects.equals(limit, null) && ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, this.safeInteger(entry, 0, 0)))
                 {
-                    return Helpers.GetValue(entry, 1);
+                    return this.safeInteger(entry, 1);
                 }
             }
         }
@@ -18414,21 +18420,17 @@ public class Binance extends BinanceApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Object response = null;
+        List<Object> assets = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(subType, "linear"))
         {
-            response = (this.fapiPrivateGetSymbolConfig(paramsSubType)).join();
+            assets = (this.fapiPrivateGetSymbolConfig(paramsSubType)).join();
         } else if (java.util.Objects.equals(subType, "inverse"))
         {
-            response = (this.dapiPrivateGetAccount(paramsSubType)).join();
+            Map<String, Object> response = (this.dapiPrivateGetAccount(paramsSubType)).join();
+            assets = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         } else
         {
             throw new BadRequest((this.id + " fetchMarginModes () supports linear and inverse subTypes only")) ;
-        }
-        List<Object> assets = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
-        if ((response instanceof List))
-        {
-            assets = this.toArray(response);
         }
         return this.parseMarginModes(assets, symbolsNormalized, "symbol", "swap");
 
@@ -18672,7 +18674,7 @@ public class Binance extends BinanceApi
             response = (this.dapiPrivateGetPositionMarginHistory(this.extend(request, paramsOmitted))).join();
         } else
         {
-            throw new BadRequest(((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type ") + market.get("type"))) ;
+            throw new BadRequest(((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type ") + this.safeString(market, "type", ""))) ;
         }
         //
         //    [
@@ -19218,7 +19220,7 @@ public class Binance extends BinanceApi
             response = (this.fapiDataGetGlobalLongShortAccountRatio(this.extend(requestUntil, paramsSubType))).join();
         } else if (java.util.Objects.equals(subType, "inverse"))
         {
-            requestUntil.put("pair", Helpers.GetValue(market.get("info"), "pair"));
+            requestUntil.put("pair", this.safeString(market.get("info"), "pair"));
             response = (this.dapiDataGetGlobalLongShortAccountRatio(this.extend(requestUntil, paramsSubType))).join();
         } else
         {

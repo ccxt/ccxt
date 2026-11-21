@@ -1492,12 +1492,16 @@ public class Extended extends ExtendedApi
         String side = (((!java.util.Objects.equals(sideRaw, null)))) ? ((String)sideRaw).toLowerCase() : null;
         String feeCost = this.safeString(trade, "fee");
         Map<String, Object> fee = null;
-        if (!((((java.util.Objects.equals(feeCost, null))))))
+        if (!java.util.Objects.equals(feeCost, null))
         {
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("cost", feeCost);
-            j39v1.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
-            fee = j39v1;
+            Map<String, Object> feeDict = new HashMap<String, Object>();
+            feeDict.put("cost", feeCost);
+            feeDict.put("currency", null);
+            if (!java.util.Objects.equals(marketResolved, null))
+            {
+                feeDict.put("currency", marketResolved.get("settle"));
+            }
+            fee = feeDict;
         }
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;

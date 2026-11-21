@@ -2029,7 +2029,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add((("positions" + ":") + symbol));
-                topics.add(("account.positionUpdate." + this.marketId(symbol)));
+                String marketId = this.safeString(this.market(symbol), "id", "");
+                topics.add(("account.positionUpdate." + marketId));
             }
         } else
         {
@@ -2075,7 +2076,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add((("unsubscribe:positions" + ":") + symbol));
-                topics.add(("account.positionUpdate." + this.marketId(symbol)));
+                String marketId = this.safeString(this.market(symbol), "id", "");
+                topics.add(("account.positionUpdate." + marketId));
             }
         } else
         {

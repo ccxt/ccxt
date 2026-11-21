@@ -1045,7 +1045,11 @@ public class Bitopro extends BitoproApi
         }};
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        Long limitResolved = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? 500 : Math.min(limit, 75000));
+        Long limitResolved = 500L;
+        if (!java.util.Objects.equals(limit, null))
+        {
+            limitResolved = this.parseToInt(Math.min(limit, 75000));
+        }
         int timeframeInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
         Object alignedSince = null;
         if (java.util.Objects.equals(since, null))
@@ -1209,7 +1213,11 @@ public class Bitopro extends BitoproApi
             put( "4", "canceled" );
             put( "6", "canceled" );
         }};
-        return (((java.util.Objects.equals(status, null)))) ? null : this.safeString(statuses, status);
+        if (java.util.Objects.equals(status, null))
+        {
+            return null;
+        }
+        return this.safeString(statuses, status);
     }
 
     public Order parseOrder(Object order, Map<String, Object> market)

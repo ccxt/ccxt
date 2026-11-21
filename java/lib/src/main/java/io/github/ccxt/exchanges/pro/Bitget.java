@@ -669,7 +669,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             messageHash = ("kline:" + symbolValue);
         } else
         {
-            args.put("channel", ("candle" + interval));
+            String intervalValue = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), "");
+            args.put("channel", ("candle" + intervalValue));
             args.put("instId", market.get("id"));
             messageHash = ((("candles:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue);
         }
@@ -1648,7 +1649,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             defaultType = (((!java.util.Objects.equals(posMode, null)))) ? "contract" : "spot";
         }
-        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? instId : null, market, (String) null, defaultType);
+        String instIdResolved = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            instIdResolved = instId;
+        }
+        Map<String, Object> marketResolved = this.safeMarket(instIdResolved, market, (String) null, defaultType);
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("uTime", "cTime", "ts", "T", "execTime")));
         List<Object> feeDetail = this.safeList(trade, "feeDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(feeDetail, 0, null);
@@ -2096,7 +2102,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (!java.util.Objects.equals(marginMode, null))
         {
             instType = "MARGIN";
-            messageHash = ((messageHash + ":") + marginMode);
+            String marginModeValue = marginMode;
+            messageHash = ((messageHash + ":") + marginModeValue);
             if (java.util.Objects.equals(marginMode, "isolated"))
             {
                 channel = "orders-isolated";
@@ -2470,8 +2477,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //         "stpMode": "none"
         //     }
         //
-        Boolean isSpot = !(order.containsKey("posMode"));
-        Boolean isMargin = (order.containsKey("loanType"));
+        Boolean isSpot = (java.util.Objects.equals(this.safeString(order, "posMode"), null));
+        Boolean isMargin = (!java.util.Objects.equals(this.safeString(order, "loanType"), null));
         String category = this.safeStringLower(order, "category");
         if (java.util.Objects.equals(category, "spot"))
         {
@@ -2639,7 +2646,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
-            messageHash = ((messageHash + ":") + symbolResolved);
+            String symbolValue = this.safeString(market, "symbol", "");
+            messageHash = ((messageHash + ":") + symbolValue);
         }
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
         String type = typeparamsMarketTypeVariable.first();
@@ -3071,7 +3079,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                     account.put("debt", Precise.stringAdd(borrow, interest));
                 }
                 String freeQuery = "available";
-                if (((Map<?, ?>)rawBalance).containsKey("maxTransferOut"))
+                if (!java.util.Objects.equals(this.safeString(rawBalance, "maxTransferOut"), null))
                 {
                     freeQuery = "maxTransferOut";
                 }

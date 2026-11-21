@@ -1314,7 +1314,8 @@ public class Backpack extends BackpackApi
         {
             throw new BadRequest((this.id + " fetchStockIndicativeQuote() requires buy or sell")) ;
         }
-        if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        String amountString = this.numberToString(amount);
+        if ((java.util.Objects.equals(amountString, null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new InvalidOrder((this.id + " fetchStockIndicativeQuote() requires a positive base share quantity")) ;
         }
@@ -1551,7 +1552,8 @@ public class Backpack extends BackpackApi
             Object accepted = (this.acceptRfqQuote((String) (id), quoteId, (String) (this.safeSymbol(null, market, (String) null, (String) null)), acceptParams)).join();
             return this.parseConversion((Map<String, Object>) (accepted), this.currency((String) (fromCode)), this.currency((String) (toCode)));
         }
-        if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        String amountString = this.numberToString(amount);
+        if ((java.util.Objects.equals(amountString, null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new ArgumentsRequired((this.id + " createConvertTrade() requires a positive amount")) ;
         }
@@ -3176,7 +3178,8 @@ public class Backpack extends BackpackApi
         {
             throw new InvalidOrder((this.id + " createOrder() requires buy or sell")) ;
         }
-        if ((java.util.Objects.equals(amount, null)) || !Precise.stringGt(this.numberToString(amount), "0"))
+        String amountString = this.numberToString(amount);
+        if ((java.util.Objects.equals(amountString, null)) || !Precise.stringGt(amountString, "0"))
         {
             throw new InvalidOrder((this.id + " createOrder() RFQs require a positive base quantity")) ;
         }

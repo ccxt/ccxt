@@ -1063,7 +1063,11 @@ public class Bit2me extends Bit2meApi
         {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-            Long end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
+            Long end = this.milliseconds();
+            if (!java.util.Objects.equals(until, null))
+            {
+                end = until;
+            }
             request.put("startTime", (end - (requestLimit * duration)));
         }
         if (!java.util.Objects.equals(until, null))
@@ -1284,7 +1288,13 @@ public class Bit2me extends Bit2meApi
             String stopLossLimit = stopLimitPrice;
             if (java.util.Objects.equals(stopLossLimit, null))
             {
-                stopLossLimit = (((!java.util.Objects.equals(price, null)))) ? this.numberToString(price) : stopLossPrice;
+                if (!java.util.Objects.equals(price, null))
+                {
+                    stopLossLimit = this.numberToString(price);
+                } else
+                {
+                    stopLossLimit = stopLossPrice;
+                }
             }
             request.put("stopLimitPrice", this.priceToPrecision(symbol, stopLossLimit));
         } else if (Boolean.TRUE.equals(isMarketOrder))

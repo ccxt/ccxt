@@ -1044,7 +1044,7 @@ public class Bullish extends BullishApi
                 List<Object> idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 String datePart = this.safeString(idParts, 2);
                 String dateYmd = (datePart == null ? null : ((String)datePart).substring(Math.min(2, ((String)datePart).length())));
-                symbol = (symbol + ("-" + dateYmd));
+                symbol = ((((((base + "/") + quote) + ":") + settle) + "-") + dateYmd);
                 if (java.util.Objects.equals(type, "future"))
                 {
                     future = true;
@@ -1053,7 +1053,7 @@ public class Bullish extends BullishApi
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = (symbol + ((("-" + this.numberToString(strike)) + "-") + this.safeString(idParts, 4)));
+                    symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
                 }
             }
         }
@@ -2771,28 +2771,29 @@ public class Bullish extends BullishApi
         Pair<String, Map<String, Object>> tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
         String tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.first();
         Map<String, Object> paramsTradingAccountId = tradingAccountIdOptionparamsTradingAccountIdVariable.second();
-        String tradingAccountId = tradingAccountIdOption;
-        if (java.util.Objects.equals(tradingAccountId, null))
+        if (!java.util.Objects.equals(tradingAccountIdOption, null))
         {
-            List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
-            List<Object> accounts = this.toArray(response);
-            for (var i = 0; i < accounts.size(); i++)
+            this.options.put("tradingAccountId", tradingAccountIdOption);
+            return this.safeString(this.options, "tradingAccountId");
+        }
+        List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
+        List<Object> accounts = this.toArray(response);
+        for (var i = 0; i < accounts.size(); i++)
+        {
+            Map<String, Object> account = this.safeDict(accounts, i, null);
+            String name = this.safeString(account, "tradingAccountName");
+            if (java.util.Objects.equals(name, "Primary Account"))
             {
-                Map<String, Object> account = this.safeDict(accounts, i, null);
-                String name = this.safeString(account, "tradingAccountName");
-                if (java.util.Objects.equals(name, "Primary Account"))
+                String primaryAccountId = this.safeString(account, "tradingAccountId");
+                if (!java.util.Objects.equals(primaryAccountId, null))
                 {
-                    tradingAccountId = this.safeString(account, "tradingAccountId");
-                    break;
+                    this.options.put("tradingAccountId", primaryAccountId);
+                    return this.safeString(this.options, "tradingAccountId");
                 }
+                break;
             }
         }
-        if (java.util.Objects.equals(tradingAccountId, null))
-        {
-            throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
-        }
-        this.options.put("tradingAccountId", tradingAccountId);
-        return this.safeString(this.options, "tradingAccountId");
+        throw new ArgumentsRequired((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
 
     }
 

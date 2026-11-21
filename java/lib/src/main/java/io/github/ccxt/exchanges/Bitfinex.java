@@ -837,7 +837,7 @@ public class Bitfinex extends BitfinexApi
     public Boolean isFiat(Object code)
     {
         Map<String, Object> fiat = this.safeDict(this.options, "fiat", new HashMap<String, Object>() {{}});
-        return ((code != null && fiat.containsKey(code)));
+        return !java.util.Objects.equals(this.safeString(fiat, code), null);
     }
 
     public String getCurrencyName(String code)
@@ -3400,7 +3400,9 @@ public class Bitfinex extends BitfinexApi
                 put( "percentage", true );
                 put( "tierBased", true );
             }};
-            if (fiat.containsKey(market.get("quote")))
+            String quote = this.safeString(market, "quote");
+            String fiatQuote = this.safeString(fiat, quote);
+            if (!java.util.Objects.equals(fiatQuote, null))
             {
                 fee.put("maker", makerFeeFiat);
                 fee.put("taker", takerFeeFiat);

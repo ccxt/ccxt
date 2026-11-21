@@ -986,7 +986,7 @@ public class Gemini extends GeminiApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < fetchUsdtMarkets.size(); i++)
         {
-            Object marketId = (fetchUsdtMarkets == null || i < 0 || i >= fetchUsdtMarkets.size() ? null : fetchUsdtMarkets.get(i));
+            String marketId = this.safeString(fetchUsdtMarkets, i, "");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", marketId );
             }};
@@ -1039,7 +1039,7 @@ public class Gemini extends GeminiApi
             List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             for (var i = 0; i < marketIds.size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = this.safeString(marketIds, i, "");
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", marketId );
                 }};
@@ -1063,7 +1063,7 @@ public class Gemini extends GeminiApi
                 Map<String,Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (var i = 0; i < marketIds.size(); i++)
                 {
-                    String marketId = (String) (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                    String marketId = this.safeString(marketIds, i, "");
                     List<Object> pairInfo = this.safeList(indexedTradingPairs, marketId.toUpperCase(), null);
                     if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                     {

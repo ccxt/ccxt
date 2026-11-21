@@ -257,7 +257,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             } else if ((java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")))
             {
                 String subType = (String) ((List<Object>)this.handleSubTypeAndParams(methodValue, market, parameters, "linear")).get(0);
-                url = (accessibilityUrls == null || subType == null ? null : accessibilityUrls.get(subType));
+                url = this.safeString(accessibilityUrls, subType);
             } else
             {
                 // option

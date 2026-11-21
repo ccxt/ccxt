@@ -325,7 +325,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)topics).size(); i++)
         {
-            if (!(client.subscriptions.containsKey((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)))))
+            String messageHash = this.safeString(messageHashes, i, "");
+            if (!(client.subscriptions.containsKey(messageHash)))
             {
                 ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
             }

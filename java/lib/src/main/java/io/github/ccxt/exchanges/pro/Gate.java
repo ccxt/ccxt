@@ -1163,11 +1163,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             marketType = "contract";
         }
-        Object result = this.safeValue(message, "result");
+        List<Object> resultList = this.safeList(message, "result", null);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        if ((result instanceof List))
+        if (!java.util.Objects.equals(resultList, null))
         {
-            results = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+            results = resultList;
         } else
         {
             Map<String, Object> rawTicker = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
@@ -1518,14 +1518,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             marketType = "spot";
         }
-        Object rawResult = this.safeValue(message, "result");
+        List<Object> resultList = this.safeList(message, "result", null);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        if ((rawResult instanceof List))
+        if (!java.util.Objects.equals(resultList, null))
         {
             result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         } else
         {
-            result = new ArrayList<Object>(Arrays.asList(rawResult));
+            result = new ArrayList<Object>(Arrays.asList(this.safeValue(message, "result")));
         }
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < result.size(); i++)
@@ -1808,9 +1808,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //
         List<Object> result = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         this.balance.put("info", result);
-        for (var i = 0; i < result.size(); i++)
+        List<Object> rows = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+        Integer rowsLength = rows.size();
+        for (var i = 0; (rowsLength != null && i < rowsLength); i++)
         {
-            Map<String, Object> rawBalance = this.safeDict(result, i, null);
+            Map<String, Object> rawBalance = this.safeDict(rows, i, null);
             Map<String, Object> account = this.account();
             String currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
@@ -2226,22 +2228,23 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<Object> parsedOrders = this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         for (var i = 0; i < parsedOrders.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             // inject order status
-            Map<String, Object> info = this.safeDict(parsed, "info", null);
+            Map<String, Object> info = this.safeDict((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), "info", null);
             String eventVar = this.safeString(info, "event");
+            Map<String, Object> statusUpdate = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(eventVar, "put") || java.util.Objects.equals(eventVar, "update"))
             {
-                parsed.put("status", "open");
+                statusUpdate.put("status", "open");
             } else if (java.util.Objects.equals(eventVar, "finish"))
             {
-                String status = this.safeString(parsed, "status");
+                String status = this.safeString((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), "status");
                 if (java.util.Objects.equals(status, null))
                 {
                     String left = this.safeString(info, "left");
-                    parsed.put("status", ((Precise.stringEquals(left, "0"))) ? "closed" : "canceled");
+                    statusUpdate.put("status", ((Precise.stringEquals(left, "0"))) ? "closed" : "canceled");
                 }
             }
+            Map<String, Object> parsed = this.extend((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), statusUpdate);
             stored.append(parsed);
             String symbol = this.safeString(parsed, "symbol");
             Map<String, Object> market = this.market(symbol);

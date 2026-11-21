@@ -1760,7 +1760,11 @@ public class Bingx extends BingxApi
             put( "symbol", market.get("id") );
         }};
         request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
-        Long requestLimit = this.parseToInt((((java.util.Objects.equals(limit, null)))) ? 500 : (limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit))));
+        Long requestLimit = 500L;
+        if (!java.util.Objects.equals(limit, null))
+        {
+            requestLimit = this.parseToInt((limit == null || maxLimit == null ? null : (((Number) limit).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limit) : (Object) (maxLimit))));
+        }
         if (!java.util.Objects.equals(since, null))
         {
             request.put("startTime", Math.max((since - 1L), 0));
@@ -1794,10 +1798,7 @@ public class Bingx extends BingxApi
             List<Object> timeZoneparamsTimeZoneVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0L);
             Long timeZone = (Long) ((List<Object>) timeZoneparamsTimeZoneVariable).get(0);
             Map<String, Object> paramsTimeZone = (Map<String, Object>) ((List<Object>) timeZoneparamsTimeZoneVariable).get(1);
-            if (!java.util.Objects.equals(timeZone, null))
-            {
-                request.put("timeZone", timeZone);
-            }
+            request.put("timeZone", timeZone);
             response = (this.spotV1PublicGetMarketKline(this.extend(request, paramsTimeZone))).join();
         } else
         {
@@ -2143,11 +2144,12 @@ public class Bingx extends BingxApi
             takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         String amount = ((Boolean.TRUE.equals(isSpotExecution))) ? this.safeString(trade, "l") : this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
-        if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))) && (((Map<?, ?>)trade).containsKey("volume")))
+        String volume = this.safeString(trade, "volume");
+        if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "swap", false))) && (!java.util.Objects.equals(volume, null)))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = this.safeString(trade, "volume");
+            amount = volume;
         }
         String price = ((Boolean.TRUE.equals(isSpotExecution))) ? this.safeString(trade, "L") : this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
         if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals((this.safeBool(market, "linear", false))) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
@@ -3053,13 +3055,26 @@ public class Bingx extends BingxApi
         if (java.util.Objects.equals(subType, "inverse"))
         {
             response = (this.cswapV1PublicGetMarketPremiumIndex(this.extend(request, paramsSubType))).join();
+            //
+            // {
+            //     "code": 0,
+            //     "msg": "",
+            //     "timestamp": 1728577213289,
+            //     "data": [
+            //         {
+            //             "symbol": "ETH-USD",
+            //             "lastFundingRate": "0.0001",
+            //             "markPrice": "2402.68",
+            //             "indexPrice": "2404.92",
+            //             "nextFundingTime": 1728604800000
+            //         }
+            //     ]
+            // }
+            //
+            return this.parseTicker(this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}}), market);
         } else
         {
             response = (this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType))).join();
-        }
-        if ((((Map<String, Object>)response).get("data") instanceof List))
-        {
-            return this.parseTicker(this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}}), market);
         }
         return this.parseTicker(((Map<String, Object>)response).get("data"), market);
 
@@ -4821,7 +4836,12 @@ public class Bingx extends BingxApi
             marketType = "spot";
         }
         String marketId = this.safeString2(orderData, "symbol", "s");
-        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, marketType);
+        String marketIdOrUndefined = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            marketIdOrUndefined = marketId;
+        }
+        Map<String, Object> marketResolved = this.safeMarket(marketIdOrUndefined, market, (String) null, marketType);
         String side = this.safeStringLower2(orderData, "side", "S");
         Long timestamp = this.safeIntegerN(orderData, new ArrayList<Object>(Arrays.asList("time", "transactTime", "E", "createdTime")));
         String transactTime = this.safeString(orderData, "transactTime", "");
@@ -6437,7 +6457,7 @@ public class Bingx extends BingxApi
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         String rawType = this.safeString(transaction, "transferType");
         String type = "withdrawal";
-        if ((java.util.Objects.equals(rawType, "0")) || (transaction.containsKey("insertTime")))
+        if ((java.util.Objects.equals(rawType, "0")) || (!java.util.Objects.equals(this.safeInteger(transaction, "insertTime"), null)))
         {
             type = "deposit";
         }

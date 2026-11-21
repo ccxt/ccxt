@@ -5640,8 +5640,11 @@ public Map<String, Object> describe()
             {
                 continue;
             }
-            String code = (String) ((Map<String, Object>)parsed).get("code");
-            result.put(code, parsed);
+            String code = this.safeString(parsed, "code");
+            if (!java.util.Objects.equals(code, null))
+            {
+                result.put(code, parsed);
+            }
         }
         return result;
     }
@@ -10496,7 +10499,7 @@ public Map<String, Object> describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        String marketSymbol = this.safeString(market, "symbol");
+        String marketSymbol = this.safeString(market, "symbol", "");
         String result = this.decimalToPrecision(price, ROUND, ((Map<String, Object>)market.get("precision")).get("price"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {
@@ -10517,7 +10520,7 @@ public Map<String, Object> describe()
             return null;
         }
         Map<String, Object> market = this.market(symbol);
-        String marketSymbol = this.safeString(market, "symbol");
+        String marketSymbol = this.safeString(market, "symbol", "");
         String result = this.decimalToPrecision(amount, TRUNCATE, ((Map<String, Object>)market.get("precision")).get("amount"), this.precisionMode, this.paddingMode);
         if (java.util.Objects.equals(result, "0"))
         {

@@ -677,7 +677,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            messageHash = ("trades." + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            messageHash = ("trades." + marketId);
         }
         String url = this.getWsUrl();
         (this.waitForPendingUnsubscribe(url, new ArrayList<Object>(Arrays.asList(messageHash)))).join();
@@ -728,7 +729,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            channels.add(("trades." + market.get("id")));
+            String marketId = this.safeString(market, "id", "");
+            channels.add(("trades." + marketId));
         }
         String url = this.getWsUrl();
         // handleTrade resolves the channel of each market
@@ -796,7 +798,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            channels.add(("trades." + market.get("id")));
+            String marketId = this.safeString(market, "id", "");
+            channels.add(("trades." + marketId));
         }
         // the watchers of a market wait on its channel
         return (this.unsubscribeChannels((String) (this.getWsUrl()), "trades", channels, channels, symbolsNormalized, parameters)).join();
@@ -827,7 +830,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String channel = ("trades." + market.get("id"));
+        String marketId = this.safeString(market, "id", "");
+        String channel = ("trades." + marketId);
         String messageHash = ("liquidations:" + market.get("symbol"));
         String url = this.getWsUrl();
         List<Object> liquidations = (List<Object>) (this.subscribeChannels(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
@@ -1200,9 +1204,9 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return;
             }
-            Object storedNonce = (stored == null ? null : stored.get("nonce"));
+            Long storedNonce = this.safeInteger(stored, "nonce");
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
-            if ((java.util.Objects.equals(storedNonce, null)) || (java.util.Objects.equals(nonce, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(nonce, storedNonce)))
+            if ((java.util.Objects.equals(storedNonce, null)) || (java.util.Objects.equals(nonce, null)) || ((nonce == null || (storedNonce != null && nonce <= storedNonce))))
             {
                 return;
             }
@@ -1536,7 +1540,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-            pendingHashes.add(((channel + ".") + market.get("id")));
+            String pendingId = this.safeString(market, "id", "");
+            pendingHashes.add(((channel + ".") + pendingId));
         }
         (this.waitForPendingUnsubscribe(url, pendingHashes)).join();
         Client client = this.client(url);
@@ -1675,7 +1680,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
-                channels.add(("bbo." + market.get("id")));
+                String marketId = this.safeString(market, "id", "");
+                channels.add(("bbo." + marketId));
                 messageHashes.add(("bidask:" + market.get("symbol")));
             }
         } else
@@ -1729,7 +1735,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
-                channels.add(("bbo." + market.get("id")));
+                String marketId = this.safeString(market, "id", "");
+                channels.add(("bbo." + marketId));
                 subMessageHashes.add(("bidask:" + market.get("symbol")));
                 ((List<Object>)bidAskSymbols).add(market.get("symbol"));
             }
@@ -1819,7 +1826,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            channel = ("orders." + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            channel = ("orders." + marketId);
             messageHash = ("orders:" + symbolResolved);
         }
         String url = this.getWsUrl();
@@ -1915,7 +1923,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            channel = ("fills." + market.get("id"));
+            String marketId = this.safeString(market, "id", "");
+            channel = ("fills." + marketId);
             messageHash = ("myTrades:" + symbolResolved);
         }
         String url = this.getWsUrl();
@@ -2271,7 +2280,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         Map<String, Object> market = this.market(symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        String channel = ("funding_data." + market.get("id"));
+        String marketId = this.safeString(market, "id", "");
+        String channel = ("funding_data." + marketId);
         String url = this.getWsUrl();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         String messageHash = ("fundingRate:" + market.get("symbol"));
@@ -2301,7 +2311,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String channel = ("funding_data." + market.get("id"));
+        String marketId = this.safeString(market, "id", "");
+        String channel = ("funding_data." + marketId);
         String messageHash = ("fundingRate:" + market.get("symbol"));
         return (this.unsubscribeChannels((String) (this.getWsUrl()), "fundingRate", new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(market.get("symbol"))), parameters)).join();
 
@@ -2798,15 +2809,23 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Boolean isSnapshot = ((pkgType != null && pkgType == 0));
-        return new HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "seq_no", Paradex.this.sbeReadInt64(frameHex, 16) );
             put( "market", Paradex.this.safeString(strings, 0) );
             put( "last_updated_at", Paradex.this.sbeReadTimestamp(frameHex, 8) );
             put( "update_type", ((Boolean.TRUE.equals(isSnapshot))) ? "s" : "d" );
-            put( "inserts", ((Boolean.TRUE.equals(isSnapshot))) ? levels : new ArrayList<Object>(Arrays.asList()) );
-            put( "updates", ((Boolean.TRUE.equals(isSnapshot))) ? new ArrayList<Object>(Arrays.asList()) : levels );
+            put( "inserts", new ArrayList<Object>(Arrays.asList()) );
+            put( "updates", new ArrayList<Object>(Arrays.asList()) );
             put( "deletes", new ArrayList<Object>(Arrays.asList()) );
         }};
+        if (Boolean.TRUE.equals(isSnapshot))
+        {
+            result.put("inserts", levels);
+        } else
+        {
+            result.put("updates", levels);
+        }
+        return result;
     }
 
     public Map<String, Object> parseSbeMarketSummary(Client client, String frameHex, Object blockLength, Object frameLength)
@@ -2986,9 +3005,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; i < names.size(); i++)
         {
             Long bit = this.parseToInt((((double) bits) % ((double) 2)));
-            if (((bit != null && bit == 1)) && (!java.util.Objects.equals((names == null || i < 0 || i >= names.size() ? null : names.get(i)), "")))
+            String name = this.safeString(names, i, "");
+            if (((bit != null && bit == 1)) && (!java.util.Objects.equals(name, "")))
             {
-                ((List<Object>)flags).add((names == null || i < 0 || i >= names.size() ? null : names.get(i)));
+                ((List<Object>)flags).add(name);
             }
             bits = this.parseToInt((((double) bits) / ((double) 2)));
         }
