@@ -1432,6 +1432,9 @@ VENUE_TYPED_CORES['dydx']['fetchDydxAccount'] = 'IDictionary<string, object>';
 VENUE_TYPED_CORES['coinbase'] = { 'fetchCurrenciesFromCache': 'IDictionary<string, object>' };
 VENUE_TYPED_CORES['binance'] = { 'fetchWallet': 'IDictionary<string, object>' };
 // ===== end h29-C03 venue rows
+// ===== h30-C03 rows: prediction fetchOutcome returns the cached outcome row (outcome / safeOutcome / outcomes_by_id)
+PREDICTION_TYPED_CORES['fetchOutcome'] = 'IDictionary<string, object>';
+// ===== end h30-C03 rows
 
 // sync cores whose runtime value already is the named type (market / currency rows and their
 // builders): every declaration is retyped and each return funnelled through ToDict (`as`, identity)
@@ -2479,6 +2482,7 @@ function csharpRetMethodBindings (methodLines: string[]): Map<string, string[]> 
 
 // whether wrapping `expr` in the helper materialising `targetType` only renames its type
 function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: string, methodLines: string[], prediction = false): boolean {
+    const h30c03 = h30C03OutcomeReturnIsTyped (expr, targetType); if (h30c03 !== undefined) return h30c03
     const h29c03 = h29C03IDictReturnIsTyped (expr, targetType, methodLines); if (h29c03 !== undefined) return h29c03
     if (CSHARP_RET_TARGETS.indexOf (targetType) === -1) {
         return false
@@ -10961,3 +10965,18 @@ function h29C03IDictReturnIsTyped (expr: string, targetType: string, methodLines
     return false
 }
 // ===== end h29-C03
+// ===== h30-C03
+// an IDictionary<string, object> return that is one whole call of a hand-written outcome reader
+// (outcome / safeOutcome, declared IDictionary in PredictionExchange.cs) or the base fetchOutcome
+function h30C03OutcomeReturnIsTyped (expr: string, targetType: string): boolean | undefined {
+    if (targetType !== 'IDictionary<string, object>') {
+        return undefined
+    }
+    const value = expr.trim ()
+    const m = /^(?:await base\.FetchOutcome|this\.outcome|this\.safeOutcome)\(/.exec (value)
+    if (m === null) {
+        return undefined
+    }
+    return csharpMatchingClose (value, m[0].length - 1, '(', ')', '"') === value.length - 1 ? true : undefined
+}
+// ===== end h30-C03
