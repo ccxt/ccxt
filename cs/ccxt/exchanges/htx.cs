@@ -7316,20 +7316,13 @@ public partial class htx : Exchange
         Dictionary<string, object> response = null;
         if ((marketType == "spot"))
         {
-            object clientOrderIds = this.safeValue2(query, "client-order-id", "clientOrderId");
-            clientOrderIds = this.safeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds);
+            List<object> clientOrderIds = this.safeStringList(query, new List<object>() {"client-order-ids", "clientOrderIds", "client-order-id", "clientOrderId"});
             if ((clientOrderIds == null))
             {
                 request["order-ids"] = ids;
             } else
             {
-                if ((clientOrderIds is string))
-                {
-                    request["client-order-ids"] = new List<object>() {clientOrderIds};
-                } else
-                {
-                    request["client-order-ids"] = clientOrderIds;
-                }
+                request["client-order-ids"] = clientOrderIds;
                 query = this.omit(query, new List<object>() {"client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"});
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, query));

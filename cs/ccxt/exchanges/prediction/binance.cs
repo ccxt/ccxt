@@ -1219,7 +1219,7 @@ public partial class binance : PredictionExchange
         {
             request["limit"] = limit;
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest);
+        IDictionary<string, object> wallet = await this.FetchWallet("fetchOpenOrders", paramsMaxEntriesPerRequest);
         request["walletAddress"] = this.safeString(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
@@ -1320,7 +1320,7 @@ public partial class binance : PredictionExchange
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOrders", paramsOmitted);
+        IDictionary<string, object> wallet = await this.FetchWallet("fetchOrders", paramsOmitted);
         request["walletAddress"] = this.safeString(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
@@ -1388,7 +1388,7 @@ public partial class binance : PredictionExchange
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
             }
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchPositions", parameters);
+        IDictionary<string, object> wallet = await this.FetchWallet("fetchPositions", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.safeString(wallet, "walletAddress") },
         };
@@ -1483,7 +1483,7 @@ public partial class binance : PredictionExchange
             Dictionary<string, object> market = this.market(this.safeString(outcomeObj, "market"));
             request["marketTopicId"] = getValue((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchOrders", parameters);
+        IDictionary<string, object> wallet = await this.FetchWallet("fetchOrders", parameters);
         request["walletAddress"] = this.safeString(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetPositionFilter(this.extend(request, parameters));
         //
@@ -1608,7 +1608,7 @@ public partial class binance : PredictionExchange
         {
             request["endDate"] = this.yyyymmdd(until);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("fetchMyTrades", paramsOmitted);
+        IDictionary<string, object> wallet = await this.FetchWallet("fetchMyTrades", paramsOmitted);
         request["walletAddress"] = this.safeString(wallet, "walletAddress");
         Dictionary<string, object> response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
@@ -1743,13 +1743,13 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public async virtual Task<Dictionary<string, object>> FetchWallet(string methodName, IDictionary<string, object> parameters = null)
+    public async virtual Task<IDictionary<string, object>> FetchWallet(string methodName, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> cachedWallet = this.safeDict(this.options, "wallet");
         if ((cachedWallet != null))
         {
-            return ccxt.BaseExchange.ToDict(cachedWallet);
+            return cachedWallet;
         }
         string? walletAddress = this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress).Item1;
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();
@@ -1768,7 +1768,7 @@ public partial class binance : PredictionExchange
         if ((walletAddress == null))
         {
             this.options["wallet"] = this.safeDict(wallets, 0);
-            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
+            return this.safeDict(this.options, "wallet");
         }
         int walletLength = wallets.Count;
         for (int i = 0; i < walletLength; i++)
@@ -1777,7 +1777,7 @@ public partial class binance : PredictionExchange
             if ((w == walletAddress))
             {
                 this.options["wallet"] = (wallets != null && i < wallets.Count ? wallets[i] : null);
-                return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "wallet"));
+                return this.safeDict(this.options, "wallet");
             }
         }
         throw new NotSupported (((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
@@ -1888,7 +1888,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> market = this.market(marketSymbol);
         string typeUpper = type.ToUpper();
         string sideUpper = side.ToUpper();
-        Dictionary<string, object> wallet = await this.FetchWallet("createOrder", parameters);
+        IDictionary<string, object> wallet = await this.FetchWallet("createOrder", parameters);
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         string? slippage = this.safeString(parameters, "slippage", defaultSlippage);
         string? cost = this.safeString(parameters, "cost");
@@ -2016,7 +2016,7 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
         }
-        Dictionary<string, object> wallet = await this.FetchWallet("cancelOrders", parameters);
+        IDictionary<string, object> wallet = await this.FetchWallet("cancelOrders", parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "walletAddress", this.safeString(wallet, "walletAddress") },
             { "walletId", this.safeString(wallet, "walletId") },

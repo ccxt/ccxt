@@ -2949,7 +2949,7 @@ public partial class hyperliquid : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
-        object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
+        List<object> clientOrderIds = this.safeStringList(parameters, new List<object>() {"clientOrderId", "client_id"});
         bool? fast = this.safeBool(parameters, "fast", false);
         IDictionary<string, object> params2 = this.omit(parameters, new List<object>() {"clientOrderId", "client_id", "fast"});
         Int64? nonce = this.incrementingNonce();
@@ -2962,18 +2962,14 @@ public partial class hyperliquid : Exchange
             { "cancels", new List<object>() {} },
         };
         object baseId = this.parseToNumeric((market.ContainsKey("baseId") ? market["baseId"] : null));
-        if ((clientOrderId != null))
+        if ((clientOrderIds != null))
         {
-            if (!((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-            {
-                clientOrderId = new List<object>() {clientOrderId};
-            }
             cancelAction["type"] = "cancelByCloid";
-            for (int i = 0; i < getArrayLength(clientOrderId); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", baseId },
-                    { "cloid", this.safeString(clientOrderId, i) },
+                    { "cloid", this.safeString(clientOrderIds, i) },
                 });
             }
         } else

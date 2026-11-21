@@ -2816,7 +2816,7 @@ public partial class hashkey : Exchange
             throw new NotSupported ((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
         }
         Dictionary<string, object> request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         bool? test = this.safeBool(parameters, "test", false);
         if ((test == true))
         {

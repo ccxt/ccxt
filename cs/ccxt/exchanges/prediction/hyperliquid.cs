@@ -1556,22 +1556,21 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> outcomeInfo = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         Int64? nonce = this.incrementingNonce();
-        object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
+        List<object> clientOrderIds = this.safeStringList(parameters, new List<object>() {"clientOrderId", "client_id"});
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         List<object> cancelReq = new List<object>() {};
         Dictionary<string, object> cancelAction = new Dictionary<string, object>() {
             { "type", "cancel" },
             { "cancels", new List<object>() {} },
         };
-        if ((clientOrderId != null))
+        if ((clientOrderIds != null))
         {
-            List<object> cloids = ((List<object>)(((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? clientOrderId : new List<object>() {clientOrderId}));
             cancelAction["type"] = "cancelByCloid";
-            for (int i = 0; i < (cloids?.Count ?? 0); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
-                    { "cloid", cloids[i] },
+                    { "cloid", clientOrderIds[i] },
                 });
             }
         } else
@@ -1603,16 +1602,10 @@ public partial class hyperliquid : PredictionExchange
         IDictionary<string, object> data = this.safeDict(innerResponse, "data");
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
-        object requestIds = ids;
-        if ((clientOrderId != null))
+        IList<object> requestIds = ids;
+        if ((clientOrderIds != null))
         {
-            if (((clientOrderId is IList<object>) || (clientOrderId.GetType().IsGenericType && clientOrderId.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-            {
-                requestIds = clientOrderId;
-            } else
-            {
-                requestIds = new List<object>() {clientOrderId};
-            }
+            requestIds = clientOrderIds;
         }
         List<object> orders = new List<object>() {};
         for (int i = 0; i < statuses.Count; i++)
@@ -1631,7 +1624,7 @@ public partial class hyperliquid : PredictionExchange
             string? requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             Dictionary<string, object> order = new Dictionary<string, object>() {
                 { "id", requestId },
-                { "clientOrderId", ((clientOrderId != null)) ? requestId : null },
+                { "clientOrderId", ((clientOrderIds != null)) ? requestId : null },
                 { "info", status },
                 { "status", "canceled" },
                 { "outcome", outcomeSymbol },

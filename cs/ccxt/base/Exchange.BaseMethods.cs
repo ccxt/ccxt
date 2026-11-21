@@ -545,6 +545,22 @@ public partial class BaseExchange
         return defaultValue as List<object>;
     }
 
+    public virtual List<object> safeStringList(object dictionaryOrList, IList<object> keys)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */
+        string? str = this.safeStringN(dictionaryOrList, keys);
+        if ((str != null))
+        {
+            return ((List<object>)((object)(new List<object>() {str})));
+        }
+        return this.safeListN(dictionaryOrList, keys);
+    }
+
     public virtual List<object> safeList(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
@@ -6746,12 +6762,12 @@ public partial class BaseExchange
         return this.indexBy(this.filterByArray(result, "symbol", symbols, false), "symbol");
     }
 
-    public virtual object parseOpenInterestsHistory(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseOpenInterestsHistory(IList<object> response, IDictionary<string, object> market = null, object since = null, object limit = null)
     {
         List<object> interests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            interests.Add(this.parseOpenInterest(getValue(response, i), market));
+            interests.Add(this.parseOpenInterest((response != null && i < response.Count ? response[i] : null), market));
         }
         List<object> sorted = this.sortBy(interests, "timestamp");
         string? symbol = this.safeString(market, "symbol");
@@ -7809,22 +7825,34 @@ public partial class BaseExchange
         // the value of greeks is either a dict or a list
         //
         parameters ??= new Dictionary<string, object>();
-        List<object> results = new List<object>() {};
         if (((greeks is IList<object>) || (greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < (greeks?.Count ?? 0); i++)
-            {
-                results.Add(this.extend(this.parseGreeks((greeks != null && i < greeks.Count ? greeks[i] : null)), parameters));
-            }
-        } else
+            return this.parseAllGreeksList(greeks, symbols, parameters);
+        }
+        return this.parseAllGreeksDict(greeks, symbols, parameters);
+    }
+
+    public virtual object parseAllGreeksList(IList<object> greeks, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> results = new List<object>() {};
+        for (int i = 0; i < (greeks?.Count ?? 0); i++)
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
-            for (int i = 0; i < marketIds.Count; i++)
-            {
-                string? marketId = ((string)marketIds[i]);
-                Dictionary<string, object> market = this.safeMarket(marketId);
-                results.Add(this.extend(this.parseGreeks(getValue(greeks, marketId), market), parameters));
-            }
+            results.Add(this.extend(this.parseGreeks((greeks != null && i < greeks.Count ? greeks[i] : null)), parameters));
+        }
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
+    }
+
+    public virtual object parseAllGreeksDict(object greeks, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> results = new List<object>() {};
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
+        for (int i = 0; i < marketIds.Count; i++)
+        {
+            string? marketId = ((string)marketIds[i]);
+            Dictionary<string, object> market = this.safeMarket(marketId);
+            results.Add(this.extend(this.parseGreeks(getValue(greeks, marketId), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }

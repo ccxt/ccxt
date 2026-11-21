@@ -4457,10 +4457,10 @@ public partial class binanceusdm : binance
     }
 
     /// <summary>Calls the eapiPublicGetOpenInterest endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> eapiPublicGetOpenInterest (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> eapiPublicGetOpenInterest (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("eapiPublicGetOpenInterest",parameters);
+        return await this.callAsync<List<object>> ("eapiPublicGetOpenInterest",parameters);
     }
 
     /// <summary>Calls the eapiPrivateGetAccount endpoint.</summary>

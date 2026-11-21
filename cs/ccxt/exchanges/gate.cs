@@ -2744,9 +2744,9 @@ public partial class gate : Exchange
         */
         trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (trigger != true)
         {
@@ -2774,9 +2774,9 @@ public partial class gate : Exchange
         */
         trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(trigger, parameters);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", marginMode },
         };
@@ -2794,7 +2794,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual List<object> getMarginMode(bool? trigger, object parameters)
+    public virtual (string?, IDictionary<string, object>) getMarginMode(bool? trigger, object parameters)
     {
         /**
          * @ignore
@@ -2837,7 +2837,7 @@ public partial class gate : Exchange
         {
             marginMode = "unified";
         }
-        return new List<object>() {marginMode, paramsUnifiedAccount};
+        return (marginMode, paramsUnifiedAccount);
     }
 
     public virtual List<object> getSettlementCurrencies(string? type, string? method)
@@ -4167,9 +4167,9 @@ public partial class gate : Exchange
         var requestrequestParamsVariable = this.prepareRequest(null, type, query);
         Dictionary<string, object> request = (Dictionary<string, object>)requestrequestParamsVariable[0];
         IDictionary<string, object> requestParams = ((IDictionary<string, object>)requestrequestParamsVariable[1]);
-        var marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
-        string? marginMode = (string)marginModerequestQueryVariable[0];
-        IDictionary<string, object> requestQuery = ((IDictionary<string, object>)marginModerequestQueryVariable[1]);
+        (string?, IDictionary<string, object>) marginModerequestQueryVariable = this.getMarginMode(false, requestParams);
+        string? marginMode = marginModerequestQueryVariable.Item1;
+        IDictionary<string, object> requestQuery = (marginModerequestQueryVariable.Item2);
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -4929,9 +4929,9 @@ public partial class gate : Exchange
             {
                 request["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null); // Should always be set for non-trigger
             }
-            var marginModequeryVariable = this.getMarginMode(false, paramsMarketType);
-            marginMode = (string)marginModequeryVariable[0];
-            query = marginModequeryVariable[1];
+            (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(false, paramsMarketType);
+            marginMode = marginModequeryVariable.Item1;
+            query = marginModequeryVariable.Item2;
             request["account"] = marginMode;
         }
         if ((limit != null))
@@ -5887,9 +5887,9 @@ public partial class gate : Exchange
             } else
             {
                 object marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(false, query);
-                marginMode = marginModequeryVariable[0];
-                query = (IDictionary<string, object>)marginModequeryVariable[1];
+                (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(false, query);
+                marginMode = marginModequeryVariable.Item1;
+                query = marginModequeryVariable.Item2;
                 // spot order
                 request = new Dictionary<string, object>() {
                     { "currency_pair", (market.ContainsKey("id") ? market["id"] : null) },
@@ -6038,9 +6038,9 @@ public partial class gate : Exchange
                 // spot conditional order
                 IDictionary<string, object> options = this.safeDict(this.options, "createOrder", new Dictionary<string, object>() {});
                 object marginMode = null;
-                var marginModequeryVariable = this.getMarginMode(true, query);
-                marginMode = marginModequeryVariable[0];
-                query = (IDictionary<string, object>)marginModequeryVariable[1];
+                (string?, IDictionary<string, object>) marginModequeryVariable = this.getMarginMode(true, query);
+                marginMode = marginModequeryVariable.Item1;
+                query = marginModequeryVariable.Item2;
                 if ((timeInForce == null))
                 {
                     timeInForce = "gtc";

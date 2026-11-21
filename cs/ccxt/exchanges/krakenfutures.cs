@@ -1625,7 +1625,7 @@ public partial class krakenfutures : Exchange
         //         }
         //     }
         //
-        object sendStatus = this.safeValue(response, "sendStatus");
+        IDictionary<string, object> sendStatus = this.safeDict(response, "sendStatus");
         string? status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new List<object>() {"filled"});
         return this.parseOrder(sendStatus, market);

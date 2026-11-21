@@ -4382,8 +4382,11 @@ public partial class xt : Exchange
         //     }
         //
         bool isContractResponse = (((subType != null)) || ((type == "swap")) || ((type == "future")));
-        IDictionary<string, object> order = isContractResponse ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        if (isContractResponse)
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -6734,8 +6737,11 @@ public partial class xt : Exchange
             request["quantity"] = this.amountToPrecision(symbol, amount);
             response = await this.privateSpotPutOrderOrderId(this.extend(request, paramsOmitted));
         }
-        IDictionary<string, object> result = (this.safeBool(market, "swap", false) == true) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        if ((this.safeBool(market, "swap", false) == true))
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new Dictionary<string, object>() {}), market);
     }
 
     public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

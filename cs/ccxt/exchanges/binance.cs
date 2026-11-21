@@ -17215,11 +17215,23 @@ public partial class binance : Exchange
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Dictionary<string, object> response = null;
         if ((this.safeBool(market, "option", false) == true))
         {
-            response = await this.eapiPublicGetOpenInterest(this.extend(request, parameters));
-        } else if ((this.safeBool(market, "inverse", false) == true))
+            List<object> optionResponse = await this.eapiPublicGetOpenInterest(this.extend(request, parameters));
+            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            List<object> result = ((List<object>)this.parseOpenInterestsHistory(optionResponse, market));
+            for (int i = 0; i < (result?.Count ?? 0); i++)
+            {
+                IDictionary<string, object> item = this.safeDict(result, i);
+                if ((this.safeString(item, "symbol") == symbolValue))
+                {
+                    return ccxt.BaseExchange.ToOpenInterest(item);
+                }
+            }
+            throw new NullResponse (((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
+        }
+        Dictionary<string, object> response = null;
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             response = await this.dapiPublicGetOpenInterest(this.extend(request, parameters));
         } else
@@ -17256,23 +17268,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        if ((this.safeBool(market, "option", false) == true))
-        {
-            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            List<object> result = ((List<object>)this.parseOpenInterestsHistory(response, market));
-            for (int i = 0; i < (result?.Count ?? 0); i++)
-            {
-                IDictionary<string, object> item = this.safeDict(result, i);
-                if ((this.safeString(item, "symbol") == symbolValue))
-                {
-                    return ccxt.BaseExchange.ToOpenInterest(item);
-                }
-            }
-            throw new NullResponse (((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
-        } else
-        {
-            return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(response, market));
-        }
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(response, market));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

@@ -1495,7 +1495,7 @@ public partial class toobit : Exchange
             // without an end time the exchange returns the latest candles, not the ones starting at since
             Int64 durationMs = (this.parseTimeframe(timeframeVar) * 1000L);
             // last ms of the window: since + durationMs * limit - 1 (no `+`: PHP would print string concat)
-            request["endTime"] = mathMin((since - ((1 - (durationMs * limit)))), this.milliseconds());
+            request["endTime"] = Math.Min((since.Value - (1 - (durationMs * limit.Value))), this.milliseconds());
         }
         if ((limit != null))
         {

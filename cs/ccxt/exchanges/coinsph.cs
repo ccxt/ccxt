@@ -1685,7 +1685,7 @@ public partial class coinsph : Exchange
         }
         request["newOrderRespType"] = newOrderRespType;
         object paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         if ((testOrder == true))
         {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr111984 && ((hxArr111984 is IList<object>) || (hxArr111984.GetType().IsGenericType && hxArr111984.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr111999 && ((hxArr111999 is IList<object>) || (hxArr111999.GetType().IsGenericType && hxArr111999.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

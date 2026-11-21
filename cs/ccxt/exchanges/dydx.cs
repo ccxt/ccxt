@@ -1459,14 +1459,14 @@ public partial class dydx : Exchange
         return credentials;
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchDydxAccount()
+    public async virtual Task<IDictionary<string, object>> FetchDydxAccount()
     {
         // required in js
         await this.loadDydxProtos();
         IDictionary<string, object> dydxAccount = this.safeDict(this.options, "dydxAccount");
         if ((dydxAccount != null))
         {
-            return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
+            return this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {});
         }
         if ((this.walletAddress == null))
         {
@@ -1499,7 +1499,7 @@ public partial class dydx : Exchange
             { "key", (pubKey != null && pubKey.ContainsKey("key") ? pubKey["key"] : null) },
         };
         this.options["dydxAccount"] = account;
-        return ccxt.BaseExchange.ToDict(this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {}));
+        return this.safeDict(this.options, "dydxAccount", new Dictionary<string, object>() {});
     }
 
     public virtual string? pow(string? n, object m)
@@ -1756,7 +1756,7 @@ public partial class dydx : Exchange
             await this.loadMarkets();
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
-        Dictionary<string, object> account = await this.FetchDydxAccount();
+        IDictionary<string, object> account = await this.FetchDydxAccount();
         Int64 lastBlockHeight = await this.FetchLatestBlockHeight();
         // params['latestBlockHeight'] = lastBlockHeight;
         Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -1869,7 +1869,7 @@ public partial class dydx : Exchange
             }
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
-        Dictionary<string, object> account = await this.FetchDydxAccount();
+        IDictionary<string, object> account = await this.FetchDydxAccount();
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         Dictionary<string, object> cancelPayload = new Dictionary<string, object>() {
             { "orderId", new Dictionary<string, object>() {
@@ -1947,7 +1947,7 @@ public partial class dydx : Exchange
             goodTillBlock = (latestBlockHeight + 20);
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
-        Dictionary<string, object> account = await this.FetchDydxAccount();
+        IDictionary<string, object> account = await this.FetchDydxAccount();
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         Dictionary<string, object> cancelOrders = new Dictionary<string, object>() {
             { "clientIds", clientOrderIds },
@@ -2226,7 +2226,7 @@ public partial class dydx : Exchange
             }
         }
         IDictionary<string, object> credentials = this.retrieveCredentials();
-        Dictionary<string, object> account = await this.FetchDydxAccount();
+        IDictionary<string, object> account = await this.FetchDydxAccount();
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = null;
         Dictionary<string, object> signingPayload = new Dictionary<string, object>() {};
@@ -2458,7 +2458,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         IDictionary<string, object> credentials = this.retrieveCredentials();
-        Dictionary<string, object> account = await this.FetchDydxAccount();
+        IDictionary<string, object> account = await this.FetchDydxAccount();
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "sender", new Dictionary<string, object>() {
