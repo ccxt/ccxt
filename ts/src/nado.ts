@@ -3239,11 +3239,14 @@ export default class nado extends Exchange {
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
-        if (('byType' in config) && ('type' in params)) {
-            const queryType = params['type'];
+        if ('byType' in config) {
             const byType = config['byType'] as Dict;
-            if (queryType in byType) {
-                return byType[queryType];
+            const queryType = this.safeString (params, 'type');
+            if (queryType !== undefined) {
+                const typeCost = this.safeInteger (byType, queryType);
+                if (typeCost !== undefined) {
+                    return typeCost;
+                }
             }
         }
         const byQuery = this.safeDict (config, 'byQuery');
