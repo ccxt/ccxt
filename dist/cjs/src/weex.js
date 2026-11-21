@@ -1065,7 +1065,11 @@ class weex extends weex$1["default"] {
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        const fees = this.safeDict(this.fees, isSpot ? 'spot' : 'contract', {});
+        let feesKey = 'contract';
+        if (isSpot) {
+            feesKey = 'spot';
+        }
+        const fees = this.safeDict(this.fees, feesKey, {});
         if (id === undefined) {
             throw new errors.ExchangeError(this.id + ' method() missing id');
         }
@@ -3433,7 +3437,6 @@ class weex extends weex$1["default"] {
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountType = this.safeString(accountsByType, marketType, marketType);
         const request = {};
-        let items = undefined;
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -3450,7 +3453,8 @@ class weex extends weex$1["default"] {
             }
             const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
             const contractResponse = await this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil));
-            items = this.safeList(contractResponse, 'items', []);
+            const contractItems = this.safeList(contractResponse, 'items', []);
+            return this.parseLedger(contractItems, currency, since, limit);
         }
         else if (accountType === 'funding') {
             if (since !== undefined) {
@@ -3461,7 +3465,8 @@ class weex extends weex$1["default"] {
             }
             const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, paramsMarketType);
             const fundingResponse = await this.privatePostApiV3AccountFundingBills(this.extend(requestUntil, paramsUntil));
-            items = this.safeList(fundingResponse, 'items', []);
+            const fundingItems = this.safeList(fundingResponse, 'items', []);
+            return this.parseLedger(fundingItems, currency, since, limit);
         }
         else {
             if (since !== undefined) {
@@ -3472,9 +3477,9 @@ class weex extends weex$1["default"] {
             }
             const [requestUntil, paramsUntil] = this.handleUntilOption('before', request, paramsMarketType);
             const billsResponse = await this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil));
-            items = this.toArray(billsResponse);
+            const billsItems = this.toArray(billsResponse);
+            return this.parseLedger(billsItems, currency, since, limit);
         }
-        return this.parseLedger(items, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -4383,7 +4388,7 @@ class weex extends weex$1["default"] {
             const timestamp = this.numberToString(this.nonce());
             let payload = timestamp + method + '/' + endpoint;
             if (hasJsonBody) {
-                payload += requestBody;
+                payload = payload + this.json(query);
             }
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'base64');
             requestHeaders = {

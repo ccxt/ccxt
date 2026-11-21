@@ -1812,29 +1812,46 @@ class aster extends aster$1["default"] {
                         // accumulate order fees
                         const fees = this.safeList(order, 'fees', []);
                         const fee = this.safeDict(order, 'fee');
+                        const tradeFeeCurrency = this.safeString(tradeFee, 'currency');
+                        const tradeFeeCost = this.safeNumber(tradeFee, 'cost');
                         if (!this.isEmpty(fees)) {
                             let insertNewFeeCurrency = true;
+                            const newFees = [];
                             for (let i = 0; i < fees.length; i++) {
-                                const orderFee = fees[i];
-                                if (this.safeString(orderFee, 'currency') === this.safeString(tradeFee, 'currency')) {
-                                    const feeCost = this.sum(tradeFee['cost'], orderFee['cost']);
-                                    const feeCostString = this.currencyToPrecision(tradeFee['currency'], feeCost);
-                                    order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat(feeCostString);
+                                const orderFee = this.extend({}, fees[i]);
+                                if (insertNewFeeCurrency && this.safeString(orderFee, 'currency') === tradeFeeCurrency) {
+                                    const feeCost = this.sum(tradeFeeCost, this.safeNumber(orderFee, 'cost'));
+                                    const feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                    if (feeCostString !== undefined) {
+                                        orderFee['cost'] = parseFloat(feeCostString);
+                                    }
+                                    else {
+                                        orderFee['cost'] = undefined;
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.push(orderFee);
                             }
                             if (insertNewFeeCurrency) {
-                                order['fees'].push(tradeFee);
+                                newFees.push(tradeFee);
                             }
+                            order['fees'] = newFees;
                         }
                         else if (fee !== undefined) {
-                            if (this.safeString(fee, 'currency') === this.safeString(tradeFee, 'currency')) {
-                                const feeCost = this.sum(fee['cost'], tradeFee['cost']);
-                                const feeCostString = this.currencyToPrecision(tradeFee['currency'], feeCost);
-                                order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat(feeCostString);
+                            const feeCurrency = this.safeString(fee, 'currency');
+                            if (feeCurrency === tradeFeeCurrency) {
+                                const feeCost = this.sum(this.safeNumber(fee, 'cost'), tradeFeeCost);
+                                const feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                const newFee = this.extend({}, fee);
+                                if (feeCostString !== undefined) {
+                                    newFee['cost'] = parseFloat(feeCostString);
+                                }
+                                else {
+                                    newFee['cost'] = undefined;
+                                }
+                                order['fee'] = newFee;
                             }
-                            else if (this.safeString(fee, 'currency') === undefined) {
+                            else if (feeCurrency === undefined) {
                                 order['fee'] = tradeFee;
                             }
                             else {

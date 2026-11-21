@@ -2203,7 +2203,7 @@ class grvt extends grvt$1["default"] {
         return this.parseOrder(data, market);
     }
     convertToBigIntCustom(x) {
-        return parseInt(this.numberToString(x));
+        return this.parseToInt(x);
     }
     eipMessageForOrder(order, structureType) {
         const priceMultiplier = 1000000000;
@@ -2221,7 +2221,7 @@ class grvt extends grvt$1["default"] {
             const sizeParts = size.split('.');
             const sizeDec = this.safeString(sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
-            const sizeDigits = parseInt(size.replace('.', ''));
+            const sizeDigits = this.parseToInt(size.replace('.', ''));
             let denominator = Math.pow(10, sizeDecLength);
             const sizeInteger = sizeDigits * sizeMultiplier / denominator;
             const legOrder = {
@@ -2235,7 +2235,7 @@ class grvt extends grvt$1["default"] {
                 const limitParts = price.split('.');
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
-                const priceDigits = parseInt(price.replace('.', ''));
+                const priceDigits = this.parseToInt(price.replace('.', ''));
                 denominator = Math.pow(10, limitDecLength);
                 const priceInteger = priceDigits * priceMultiplier / denominator;
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
@@ -2258,7 +2258,7 @@ class grvt extends grvt$1["default"] {
         };
         if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool(this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt(this.convertToBigIntCustom(this.feeAmountMultiplier()) * parseFloat(this.safeString(order, 'builder_fee'))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = this.parseToInt(Precise["default"].stringMul(this.numberToString(this.feeAmountMultiplier()), this.safeString(order, 'builder_fee', '0')));
         }
         return returnValue;
     }
@@ -3003,7 +3003,7 @@ class grvt extends grvt$1["default"] {
         //        "ack": true
         //    }
         //
-        if ('ack' in order) {
+        if (this.safeBool(order, 'ack') !== undefined) {
             return this.safeOrder({
                 'info': order,
                 'id': undefined,
@@ -3184,7 +3184,7 @@ class grvt extends grvt$1["default"] {
         const requestSignature = this.safeDict(request, 'signature', {});
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
-            const amountInt = request['num_tokens'] * amountMultiplier;
+            const amountInt = Precise["default"].stringMul(this.safeString(request, 'num_tokens', '0'), this.numberToString(amountMultiplier));
             if (currencyObj === undefined) {
                 throw new errors.ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
             }
@@ -3208,7 +3208,7 @@ class grvt extends grvt$1["default"] {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
-                'numTokens': this.parseToInt(request['num_tokens'] * amountMultiplier),
+                'numTokens': this.parseToInt(Precise["default"].stringMul(this.safeString(request, 'num_tokens', '0'), this.numberToString(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };
@@ -3221,8 +3221,8 @@ class grvt extends grvt$1["default"] {
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_futures_fee_rate')) * amountMultiplier),
-                'maxSpotFeeRate': this.parseToInt(parseFloat(this.safeString(request, 'max_spot_fee_rate')) * amountMultiplier),
+                'maxFutureFeeRate': this.parseToInt(Precise["default"].stringMul(this.safeString(request, 'max_futures_fee_rate', '0'), this.numberToString(amountMultiplier))),
+                'maxSpotFeeRate': this.parseToInt(Precise["default"].stringMul(this.safeString(request, 'max_spot_fee_rate', '0'), this.numberToString(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             };

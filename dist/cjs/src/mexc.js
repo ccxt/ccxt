@@ -1701,7 +1701,8 @@ class mexc extends mexc$1["default"] {
         let costString = undefined;
         let marketResolved = undefined;
         // if swap
-        if ('v' in trade) {
+        const swapVolume = this.safeString(trade, 'v');
+        if (swapVolume !== undefined) {
             //
             // swap: fetchTrades
             //
@@ -1780,7 +1781,8 @@ class mexc extends mexc$1["default"] {
             priceString = this.safeString2(trade, 'price', 'p');
             orderId = this.safeString(trade, 'orderId');
             // if swap
-            if ('positionMode' in trade) {
+            const positionMode = this.safeString(trade, 'positionMode');
+            if (positionMode !== undefined) {
                 timestamp = this.safeInteger(trade, 'timestamp');
                 amountString = this.safeString(trade, 'vol');
                 side = this.parseContractOrderSide(this.safeString(trade, 'side'));

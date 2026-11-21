@@ -1503,7 +1503,10 @@ class deribit extends deribit$1["default"] {
         const defaultLimit = 1000;
         const windowLimit = (limit === undefined) ? defaultLimit : limit;
         const limitResolved = ((since === undefined) && (limit === undefined)) ? defaultLimit : limit;
-        const sinceResolved = (since === undefined) ? undefined : Math.max(since - 1, 0);
+        let sinceResolved = undefined;
+        if (since !== undefined) {
+            sinceResolved = Math.max(since - 1, 0);
+        }
         if (since === undefined) {
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000;
             request['end_timestamp'] = now;

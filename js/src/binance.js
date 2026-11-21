@@ -5244,7 +5244,7 @@ export default class binance extends Exchange {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': limitValue,
         };
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         if (marketId === undefined) {
             throw new ExchangeError(this.id + ' fetchOHLCV() missing marketId');
         }
@@ -5566,7 +5566,7 @@ export default class binance extends Exchange {
             marketType = 'spot';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let side = undefined;
         const buyerMaker = this.safeBool2(trade, 'm', 'isBuyerMaker');
         let takerOrMaker = undefined;
@@ -6904,7 +6904,7 @@ export default class binance extends Exchange {
             marketType = 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const filled = this.safeStringN(order, ['executedQty', 'filledQty', 'actualQty'], '0'); // actualQty: algo orders
         let timestamp = this.safeInteger2(order, 'time', 'createTime'); // order of the keys matters here
         if (timestamp === undefined) {
@@ -11224,7 +11224,7 @@ export default class binance extends Exchange {
             const fees = this.toArray(response);
             for (let i = 0; i < fees.length; i++) {
                 const fee = this.parseTradingFee(fees[i]);
-                const symbol = fee['symbol'];
+                const symbol = this.safeString(fee, 'symbol');
                 if (symbol !== undefined) {
                     spotFees[symbol] = fee;
                 }
@@ -12437,7 +12437,7 @@ export default class binance extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'swap');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeStringLower(position, 'side');
         let quantity = this.safeString(position, 'quantity');
         if (side !== 'long') {

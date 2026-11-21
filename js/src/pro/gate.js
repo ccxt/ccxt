@@ -180,7 +180,7 @@ export default class gate extends gateRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_place';
         const url = this.getUrlByMarket(market);
@@ -1089,7 +1089,7 @@ export default class gate extends gateRest {
         // todo add options support
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1121,7 +1121,7 @@ export default class gate extends gateRest {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.candlesticks';
@@ -1694,9 +1694,9 @@ export default class gate extends gateRest {
         }
         let payload = ['!' + 'all'];
         if (market !== undefined) {
-            messageHash += ':' + market['id'];
-            const mid = market['id'];
+            const mid = this.safeString(market, 'id');
             if (mid !== undefined) {
+                messageHash += ':' + mid;
                 payload = [mid];
             }
         }

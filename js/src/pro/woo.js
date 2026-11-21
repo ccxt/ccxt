@@ -1587,8 +1587,8 @@ export default class woo extends wooRest {
         const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
         const unsubMessageHashes = this.safeList(subscription, 'unsubMessageHashes', []);
         for (let i = 0; i < subMessageHashes.length; i++) {
-            const subHash = subMessageHashes[i];
-            const unsubHash = unsubMessageHashes[i];
+            const subHash = this.safeString(subMessageHashes, i);
+            const unsubHash = this.safeString(unsubMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

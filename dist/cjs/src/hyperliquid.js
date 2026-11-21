@@ -929,7 +929,8 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
             const pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            const baseId = this.numberToString(index + 10000);
+            const indexInt = this.safeInteger(market, 'index', 0);
+            const baseId = this.numberToString(indexInt + 10000);
             const entry = {
                 'id': marketName,
                 'symbol': mappedSymbol,
@@ -3536,7 +3537,10 @@ class hyperliquid extends hyperliquid$1["default"] {
             postOnly = (tif === 'ALO');
         }
         const isTrigger = this.safeBool(entry, 'isTrigger', false);
-        const triggerPx = isTrigger ? this.safeNumber(entry, 'triggerPx') : undefined;
+        let triggerPx = undefined;
+        if (isTrigger) {
+            triggerPx = this.safeNumber(entry, 'triggerPx');
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         const orderTypeRaw = this.safeStringLower(entry, 'orderType', '');

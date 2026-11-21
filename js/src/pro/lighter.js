@@ -1076,7 +1076,7 @@ export default class lighter extends lighterRest {
             const assetIds = Object.keys(assets);
             for (let i = 0; i < assetIds.length; i++) {
                 const assetId = assetIds[i];
-                const asset = this.safeDict(assets, assetId);
+                const asset = this.safeDict(assets, assetId, {});
                 const codeId = this.safeString(asset, 'symbol');
                 const code = this.safeCurrencyCode(codeId);
                 const account = this.account();
@@ -1543,8 +1543,8 @@ export default class lighter extends lighterRest {
             for (let i = 0; i < subscriptionHashes.length; i++) {
                 const subscriptionHash = subscriptionHashes[i];
                 if (subscriptionHash.startsWith('ticker')) {
-                    const subscription = this.safeDict(client.subscriptions, subscriptionHash);
-                    const subscriptionParams = this.safeDict(subscription, 'params');
+                    const subscription = this.safeDict(client.subscriptions, subscriptionHash, {});
+                    const subscriptionParams = this.safeDict(subscription, 'params', {});
                     const subscribedChannel = this.safeString(subscriptionParams, 'channel');
                     if (subscribedChannel === 'market_stats/all') {
                         delete client.subscriptions[subscriptionHash];

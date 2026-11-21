@@ -1538,7 +1538,7 @@ export default class phemex extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.000001);
         const last = this.fromEp(this.safeString2(ticker, 'lastEp', 'closeRp'), marketResolved);
         const quoteVolume = this.fromEr(this.safeString2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved);
@@ -1928,7 +1928,7 @@ export default class phemex extends Exchange {
         let feeCurrencyCode = undefined;
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         let orderId = undefined;
         let takerOrMaker = undefined;
         if (Array.isArray(trade)) {
@@ -2432,7 +2432,7 @@ export default class phemex extends Exchange {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.fromEp(this.safeString(order, 'priceEp'), marketResolved);
         const amount = this.fromEv(this.safeString(order, 'baseQtyEv'), marketResolved);
         const remaining = this.omitZero(this.fromEv(this.safeString(order, 'leavesBaseQtyEv'), marketResolved));
@@ -4216,7 +4216,7 @@ export default class phemex extends Exchange {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const collateral = this.safeString2(position, 'positionMargin', 'positionMarginRv');
         const notionalString = this.safeString2(position, 'value', 'valueRv');
         const maintenanceMarginPercentageString = this.safeString2(position, 'maintMarginReq', 'maintMarginReqRr');

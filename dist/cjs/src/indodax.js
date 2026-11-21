@@ -916,13 +916,10 @@ class indodax extends indodax$1["default"] {
         }
         const response = await this.privatePostOpenOrders(this.extend(request, params));
         const openOrdersResult = this.safeDict(response, 'return', {});
-        const rawOrders = openOrdersResult['orders'];
         // { success: 1, return: { orders: null }} if no orders
-        if ((rawOrders === undefined) || (rawOrders === null)) {
-            return [];
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if (symbol !== undefined) {
+            const rawOrders = this.safeList(openOrdersResult, 'orders', []);
             return this.parseOrders(rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched

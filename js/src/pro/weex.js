@@ -137,7 +137,9 @@ export default class weex extends weexRest {
         const timestamp = this.nonce().toString();
         const payload = timestamp + '/v3/ws/private';
         const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
-        const originalHeaders = this.safeDict(this.options['ws']['options'], 'headers');
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict(wsOptions, 'options', {});
+        const originalHeaders = this.safeDict(wsInnerOptions, 'headers', {});
         const userAgent = this.safeString(originalHeaders, 'User-Agent', 'ccxt');
         const extendedOptions = {
             'ws': {
@@ -340,11 +342,8 @@ export default class weex extends weexRest {
         const timestamp = this.safeInteger(ticker, 'C');
         const close = this.safeString(ticker, 'c');
         let symbol = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        }
-        else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString(market, 'symbol');
         }
         return this.safeTicker({
             'symbol': symbol,
@@ -538,11 +537,8 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger(trade, 'T');
         let symbol = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        }
-        else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString(market, 'symbol');
         }
         const isBuyerMaker = this.safeBool(trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let side = undefined;
@@ -1062,7 +1058,7 @@ export default class weex extends weexRest {
             return;
         }
         const ticker = this.parseWsBidAsk(message, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
         }
@@ -1072,11 +1068,8 @@ export default class weex extends weexRest {
     parseWsBidAsk(message, market = undefined) {
         const timestamp = this.safeInteger(message, 'E');
         let symbol = undefined;
-        if (market === undefined) {
-            symbol = undefined;
-        }
-        else {
-            symbol = market['symbol'];
+        if (market !== undefined) {
+            symbol = this.safeString(market, 'symbol');
         }
         return this.safeTicker({
             'symbol': symbol,

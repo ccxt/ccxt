@@ -2741,7 +2741,6 @@ class blofin extends blofin$1["default"] {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds(ids);
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push({
@@ -2750,16 +2749,16 @@ class blofin extends blofin$1["default"] {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
+            for (let i = 0; i < ids.length; i++) {
                 if (trigger === true) {
                     request.push({
-                        'tpslId': this.safeString(orderIds, i),
+                        'tpslId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }
                 else {
                     request.push({
-                        'orderId': this.safeString(orderIds, i),
+                        'orderId': this.safeString(ids, i),
                         'instId': market['id'],
                     });
                 }

@@ -2426,8 +2426,8 @@ class coinbase extends coinbase$1["default"] {
         let ask = this.safeNumber(ticker, 'ask');
         let bidVolume = undefined;
         let askVolume = undefined;
-        if (('bids' in ticker)) {
-            const bids = this.safeList(ticker, 'bids', []);
+        const bids = this.safeList(ticker, 'bids');
+        if (bids !== undefined) {
             const asks = this.safeList(ticker, 'asks', []);
             const firstBid = this.safeDict(bids, 0, {});
             const firstAsk = this.safeDict(asks, 0, {});
@@ -3471,7 +3471,13 @@ class coinbase extends coinbase$1["default"] {
             postOnly = this.safeBool(target, 'post_only');
         }
         else if (isStop) {
-            const stopTarget = (stopLimitGTC !== undefined) ? stopLimitGTC : stopLimitGTD;
+            let stopTarget = undefined;
+            if (stopLimitGTC !== undefined) {
+                stopTarget = stopLimitGTC;
+            }
+            else {
+                stopTarget = stopLimitGTD;
+            }
             price = this.safeString(stopTarget, 'limit_price');
             amount = this.safeString(stopTarget, 'base_size');
             postOnly = this.safeBool(stopTarget, 'post_only');

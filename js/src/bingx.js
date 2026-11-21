@@ -3677,18 +3677,19 @@ export default class bingx extends Exchange {
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const fixedMembers = {};
         const stopLossDict = this.safeDict(result, 'stopLoss');
         const stopLoss = this.safeString(result, 'stopLoss');
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if ((stopLossDict === undefined) && (stopLoss !== undefined) && (stopLoss.indexOf('{') === 0)) {
-            result['stopLoss'] = this.parseJson(stopLoss);
+            fixedMembers['stopLoss'] = this.parseJson(stopLoss);
         }
         const takeProfit = this.safeString(result, 'takeProfit');
         if ((takeProfit !== undefined) && (takeProfit.indexOf('{') === 0)) {
-            result['takeProfit'] = this.parseJson(takeProfit);
+            fixedMembers['takeProfit'] = this.parseJson(takeProfit);
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(result, fixedMembers), market);
     }
     /**
      * @method

@@ -3111,12 +3111,10 @@ class deepcoin extends deepcoin$1["default"] {
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
         }
-        const errorList = this.safeList(data, 'errorList');
-        if (errorList !== undefined) {
-            for (let i = 0; i < errorList.length; i++) {
-                const entry = this.safeDict(errorList, i, {});
-                errorCode = this.safeString(entry, 'errorCode');
-            }
+        const errorList = this.safeList(data, 'errorList', []);
+        for (let i = 0; i < errorList.length; i++) {
+            const entry = this.safeDict(errorList, i, {});
+            errorCode = this.safeString(entry, 'errorCode');
         }
         const feedback = this.id + ' ' + body;
         if ((sCode === undefined) && (errorCode !== undefined)) {

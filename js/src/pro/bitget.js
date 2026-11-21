@@ -581,9 +581,9 @@ export default class bitget extends bitgetRest {
         }
         const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
-        let channel = undefined;
+        let channel = '';
         const market = this.market(symbol);
-        let messageHash = undefined;
+        let messageHash = '';
         const values = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'uta', false);
         const uta = values[0];
         const isStock = market['stock'];
@@ -821,7 +821,8 @@ export default class bitget extends bitgetRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
+        const marketSymbol = this.safeString(market, 'symbol', '');
+        const messageHash = 'unsubscribe:' + messageHashTopic + ':' + marketSymbol;
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, methodName, 'uta', false);
         const [privateChannel, paramsPrivateChannel] = this.handleOptionBoolAndParams(paramsUta, methodName, 'privateChannel', false);
         const [instType, paramsInstType] = this.getInstType(methodName, market, uta, paramsPrivateChannel);
@@ -1689,7 +1690,8 @@ export default class bitget extends bitgetRest {
             market = this.market(symbol);
             symbolResolved = this.safeString(market, 'symbol');
             marketId = this.safeString(market, 'id');
-            messageHash = messageHash + ':' + symbolResolved;
+            const marketSymbol = this.safeString(market, 'symbol', '');
+            messageHash = messageHash + ':' + marketSymbol;
         }
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsTrigger, 'watchOrders', 'uta', false);
         const productType = this.safeString(paramsUta, 'productType');
@@ -1717,7 +1719,8 @@ export default class bitget extends bitgetRest {
             [instType, paramsInstType] = this.getInstType('watchOrders', market, uta, paramsSubType);
         }
         if (type === 'spot' && (symbolResolved !== undefined)) {
-            subscriptionHash = subscriptionHash + ':' + symbolResolved;
+            const resolvedSymbol = symbolResolved;
+            subscriptionHash = subscriptionHash + ':' + resolvedSymbol;
         }
         if (isTrigger === true) {
             subscriptionHash = subscriptionHash + ':stop'; // we don't want to re-use the same subscription hash for stop orders
@@ -1901,7 +1904,7 @@ export default class bitget extends bitgetRest {
             const market = this.safeMarket(marketId, undefined, undefined, marketType);
             const parsed = this.parseWsOrder(order, market);
             stored.append(parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 marketSymbols[symbol] = true;
             }

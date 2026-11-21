@@ -196,7 +196,7 @@ export default class binance extends binanceRest {
     };
     requestId(url: string): int;
     isSpotUrl(client: Client): boolean;
-    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): Str;
+    stream(type: Str, subscriptionHash: Str, numSubscriptions?: Int): string;
     getWsUrl(type: string, category: string): string;
     getFutureWsCategory(channel: Str): string;
     getPrivateWsUrl(type: Str, listenKey: Str): string;

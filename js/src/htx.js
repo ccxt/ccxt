@@ -2501,10 +2501,10 @@ export default class htx extends Exchange {
             throw new NullResponse(this.id + ' fetchOrderBook() returned empty response');
         }
         if ('tick' in response) {
-            if (this.safeValue(response, 'tick') === undefined) {
+            const tick = this.safeDict(response, 'tick');
+            if (tick === undefined) {
                 throw new BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeDict(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');

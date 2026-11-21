@@ -306,7 +306,7 @@ class pacifica extends pacifica$1["default"] {
         const results = this.safeList(data, 'results', []);
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
-            const order = this.safeDict(results, i);
+            const order = this.safeDict(results, i, {});
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             const marketId = this.safeString(order, 'symbol');
@@ -560,7 +560,7 @@ class pacifica extends pacifica$1["default"] {
         const entry = this.safeDict(message, 'data', {});
         const marketId = this.safeString(entry, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const levels = this.safeList(entry, 'l', []);
         const result = {
             'bids': this.safeList(levels, 0, []),
@@ -784,7 +784,7 @@ class pacifica extends pacifica$1["default"] {
             const info = data[i];
             const marketId = this.safeString(info, 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const ticker = this.parseWsTicker(info, market);
             this.tickers[symbol] = ticker;
             parsedTickers.push(ticker);
@@ -835,7 +835,7 @@ class pacifica extends pacifica$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade(rawTrade);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -866,7 +866,7 @@ class pacifica extends pacifica$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
@@ -908,7 +908,7 @@ class pacifica extends pacifica$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
@@ -954,7 +954,7 @@ class pacifica extends pacifica$1["default"] {
         const first = this.safeDict(entry, 0, {});
         const marketId = this.safeString(first, 's');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1009,7 +1009,7 @@ class pacifica extends pacifica$1["default"] {
         const amount = this.safeString(trade, 'a');
         const marketId = this.safeString(trade, 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'h');
         const fee = this.safeString(trade, 'f');
         let side = this.safeString2(trade, 'ts', 'd');
@@ -1068,7 +1068,7 @@ class pacifica extends pacifica$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const isTestnet = this.isSandboxModeEnabled;
         const parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
         let urlKey = 'api';
@@ -1113,7 +1113,7 @@ class pacifica extends pacifica$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {

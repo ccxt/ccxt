@@ -334,7 +334,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                         else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        return questionUnderlying.toUpperCase() + '_' + bucketLabel + questionExpiryPart;
+                        const upperUnderlying = questionUnderlying.toUpperCase();
+                        return upperUnderlying + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf('fallback') >= 0) || (nameLower.indexOf('other') >= 0);

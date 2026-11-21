@@ -7007,13 +7007,14 @@ class BaseExchange {
             return undefined;
         }
         const market = this.market(symbol);
+        const marketSymbol = this.safeString(market, 'symbol');
         const result = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const pricePrecision = this.numberToString(market['precision']['price']);
             if (pricePrecision === undefined) {
-                throw new errors.BadSymbol(this.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision');
+                throw new errors.BadSymbol(this.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision');
             }
-            throw new errors.InvalidOrder(this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision);
+            throw new errors.InvalidOrder(this.id + ' price of ' + marketSymbol + ' must be greater than minimum price precision of ' + pricePrecision);
         }
         return result;
     }
@@ -7022,13 +7023,14 @@ class BaseExchange {
             return undefined;
         }
         const market = this.market(symbol);
+        const marketSymbol = this.safeString(market, 'symbol');
         const result = this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const amountPrecision = this.numberToString(market['precision']['amount']);
             if (amountPrecision === undefined) {
-                throw new errors.BadSymbol(this.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision');
+                throw new errors.BadSymbol(this.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision');
             }
-            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision);
+            throw new errors.InvalidOrder(this.id + ' amount of ' + marketSymbol + ' must be greater than minimum amount precision of ' + amountPrecision);
         }
         return result;
     }
@@ -7333,8 +7335,9 @@ class BaseExchange {
         const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate(response[i]);
-            if (parsed['symbol'] !== undefined) {
-                fundingRates[parsed['symbol']] = parsed;
+            const symbol = this.safeString(parsed, 'symbol');
+            if (symbol !== undefined) {
+                fundingRates[symbol] = parsed;
             }
         }
         return this.indexBy(this.filterByArray(fundingRates, 'symbol', symbols, false), 'symbol');
@@ -7501,8 +7504,9 @@ class BaseExchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseOpenInterest(response[i]);
-            if (parsed['symbol'] !== undefined) {
-                result[parsed['symbol']] = parsed;
+            const symbol = this.safeString(parsed, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
             }
         }
         return this.indexBy(this.filterByArray(result, 'symbol', symbols, false), 'symbol');
@@ -7876,8 +7880,9 @@ class BaseExchange {
     }
     createOHLCVObject(symbol, timeframe, data) {
         const res = {};
-        res[symbol] = {};
-        res[symbol][timeframe] = data;
+        const inner = {};
+        inner[timeframe] = data;
+        res[symbol] = inner;
         return res;
     }
     handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest = undefined, params = {}) {
@@ -9297,10 +9302,10 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' fetchOrderBook() is not supported yet');
     }
     async fetchRestOrderBookSafe(symbol, limit = undefined, params = {}) {
-        const fetchSnapshotMaxRetries = this.handleOption('watchOrderBook', 'maxRetries', 3);
+        const [fetchSnapshotMaxRetries, fetchParams] = this.handleOptionIntegerAndParams(params, 'watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
-                const orderBook = await this.fetchOrderBook(symbol, limit, params);
+                const orderBook = await this.fetchOrderBook(symbol, limit, fetchParams);
                 return orderBook;
             }
             catch (e) {

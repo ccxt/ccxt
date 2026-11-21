@@ -387,7 +387,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'ticker:' + symbolValue;
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchTicker', params);
         const paramsValue = this.cleanParams(params);
@@ -754,7 +754,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const market = this.market(data[0]);
-            const symbolString = market['symbol'];
+            const symbolString = this.safeString(market, 'symbol', '');
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
@@ -793,7 +793,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             const market = this.market(data[0]);
-            const symbolString = market['symbol'];
+            const symbolString = this.safeString(market, 'symbol', '');
             const unfiedTimeframe = data[1];
             const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             const marketId = this.safeString(market, 'id', '');
@@ -860,7 +860,7 @@ export default class bybit extends bybitRest {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -1069,7 +1069,7 @@ export default class bybit extends bybitRest {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const timestamp = this.safeInteger(message, 'ts');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook();
@@ -1237,7 +1237,7 @@ export default class bybit extends bybitRest {
         }
         const marketId = this.safeString(parts, 1);
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -1284,7 +1284,7 @@ export default class bybit extends bybitRest {
         //     }
         //
         const id = this.safeStringN(trade, ['i', 'T', 'v']);
-        const isContract = ('BT' in trade);
+        const isContract = (this.safeBool(trade, 'BT') !== undefined);
         let marketType = 'spot';
         if (isContract) {
             marketType = 'contract';
@@ -1294,7 +1294,7 @@ export default class bybit extends bybitRest {
         }
         const marketId = this.safeString(trade, 's');
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const timestamp = this.safeInteger2(trade, 't', 'T');
         let side = this.safeStringLower(trade, 'S');
         let takerOrMaker = undefined;
@@ -1549,7 +1549,7 @@ export default class bybit extends bybitRest {
                 }
                 parsed = this.parseTrade(rawTrade);
             }
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol === undefined) {
                 continue;
             }
@@ -1767,7 +1767,7 @@ export default class bybit extends bybitRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const url = await this.getUrlByMarketType(symbolValue, false, 'watchLiquidations', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(this.cleanParams(params), 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbolValue;
@@ -1815,7 +1815,7 @@ export default class bybit extends bybitRest {
                 const rawLiquidation = this.safeDict(rawLiquidations, i);
                 const marketId = this.safeString(rawLiquidation, 's');
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
-                const symbol = market['symbol'];
+                const symbol = this.safeString(market, 'symbol', '');
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if (this.liquidations === undefined) {
                     const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -1831,7 +1831,7 @@ export default class bybit extends bybitRest {
             const rawLiquidation = this.safeDict(message, 'data', {});
             const marketId = this.safeString(rawLiquidation, 'symbol');
             const market = this.safeMarket(marketId, undefined, '', 'contract');
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
@@ -2088,7 +2088,7 @@ export default class bybit extends bybitRest {
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             if (symbol === undefined) {
                 continue;
             }

@@ -350,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): Transaction[];
+    parseTransactionsByType(type: string, transactions: Dict[], code?: Str, since?: Int, limit?: Int): Transaction[];
     /**
      * @method
      * @name kraken#fetchDeposits

@@ -4341,7 +4341,7 @@ class kucoin extends kucoin$1["default"] {
             }
             const sizeString = this.amountToPrecision(symbol, amount);
             if (sizeString !== undefined) {
-                request['size'] = parseInt(sizeString);
+                request['size'] = this.parseToInt(sizeString);
             }
         }
         this.checkTriggerPrices(paramsOmitted);
@@ -6369,7 +6369,7 @@ class kucoin extends kucoin$1["default"] {
         const tradeType = this.safeString(order, 'tradeType');
         const utaTradeTypes = ['SPOT', 'CROSS', 'ISOLATED', 'FUTURES']; // tradeType specific for uta endpoint
         let isUtaOrder = this.inArray(tradeType, utaTradeTypes);
-        if ('sizeUnit' in order) { // property specific for uta endpoint
+        if (this.safeString(order, 'sizeUnit') !== undefined) { // property specific for uta endpoint
             isUtaOrder = true;
         }
         if (isUtaOrder) {
@@ -7311,7 +7311,7 @@ class kucoin extends kucoin$1["default"] {
         return this.parseTrades(tradesList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
-        if ('liquidityRole' in trade) { // property specific to myTrades from uta endpoint
+        if (this.safeString(trade, 'liquidityRole') !== undefined) { // property specific to myTrades from uta endpoint
             return this.parseMyUtaTrade(trade, market);
         }
         const marketId = this.safeString(trade, 'symbol');
@@ -7420,7 +7420,7 @@ class kucoin extends kucoin$1["default"] {
         const createdAt = this.safeInteger(trade, 'createdAt');
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         let timestamp = createdAt;
-        if (('dealValue' in trade) && (createdAt !== undefined)) {
+        if ((this.safeString(trade, 'dealValue') !== undefined) && (createdAt !== undefined)) {
             timestamp = createdAt * 1000;
         }
         if (nanoseconds !== undefined) {
@@ -7549,7 +7549,7 @@ class kucoin extends kucoin$1["default"] {
         const createdAt = this.safeInteger(trade, 'createdAt');
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         let timestamp = createdAt;
-        if (('dealValue' in trade) && (createdAt !== undefined)) {
+        if ((this.safeString(trade, 'dealValue') !== undefined) && (createdAt !== undefined)) {
             timestamp = createdAt * 1000;
         }
         if (nanoseconds !== undefined) {
@@ -10174,7 +10174,7 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
-            'leverage': leverage.toString(),
+            'leverage': this.numberToString(leverage),
         };
         const uta = await this.isUTAEnabled();
         const [utaOption, paramsUta] = this.handleOptionBoolAndParams(paramsMarginMode, 'setLeverage', 'uta', uta);
@@ -11076,10 +11076,10 @@ class kucoin extends kucoin$1["default"] {
         }
         let lastUpdateTimestamp = this.safeInteger(position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
-            if ('closingTime' in position) {
+            if (this.safeString(position, 'closingTime') !== undefined) {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, 'closingTime', 0.000001);
             }
-            else if ('updateTime' in position) {
+            else if (this.safeString(position, 'updateTime') !== undefined) {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, 'updateTime', 0.000001);
             }
         }

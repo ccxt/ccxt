@@ -918,7 +918,7 @@ class woo extends woo$1["default"] {
         //         "isMaker": 0
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const isFromFetchOrder = (this.safeString(trade, 'id') !== undefined);
         const timestampString = this.safeString2(trade, 'executed_timestamp', 'executedTimestamp');
         let timestamp = undefined;
         if (timestampString !== undefined) {

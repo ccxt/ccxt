@@ -1007,7 +1007,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             const marketId = marketIds[i];
             const entry = this.safeList(response, marketId, []);
             const market = this.safeMarket(marketId, undefined, delimiter);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             result[symbol] = this.parseTickerList(this.safeList(entry, 0, []), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -1122,7 +1122,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         }
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'size');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeTrade({
             'id': id,
             'order': orderId,
@@ -1641,7 +1641,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                 request['funds'] = this.costToPrecision(symbol, costParam);
             }
             else if (price !== undefined) {
-                request['funds'] = this.costToPrecision(symbol, amount * price);
+                request['funds'] = this.costToPrecision(symbol, Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price)));
             }
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
@@ -2255,10 +2255,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
     async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
         const response = await this.fetch2(path, api, method, params, config);
-        if (typeof response !== 'string') {
-            if ('message' in response) {
-                throw new errors.ExchangeError(this.id + ' ' + this.json(response));
-            }
+        const message = this.safeString(response, 'message');
+        if (message !== undefined) {
+            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
         }
         return response;
     }
