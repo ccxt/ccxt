@@ -6822,6 +6822,8 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_events_by_query',
     'custom_parse_bid_ask',
     'fetch_securities',
+    'separate_bids_or_asks',
+    'fetch_hip3_markets',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
