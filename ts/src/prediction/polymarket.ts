@@ -2524,9 +2524,11 @@ export default class polymarket extends Exchange {
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            effectiveParams = this.extend ({}, params);
-            effectiveParams['status'] = this.safeString (params, 'status', 'active');
-            effectiveParams['searchIn'] = this.safeString (params, 'searchIn', 'title');
+            const defaults: Dict = {
+                'status': this.safeString (params, 'status', 'active'),
+                'searchIn': this.safeString (params, 'searchIn', 'title'),
+            };
+            effectiveParams = this.extend (params, defaults);
         }
         return this.applyEventFetchParams (result, effectiveParams, queries);
     }
