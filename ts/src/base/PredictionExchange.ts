@@ -1694,6 +1694,9 @@ export default class PredictionExchange extends BaseExchange {
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         const byteLength = this.parseToInt (hex.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength === 0) {
             return '80';
         }
@@ -1718,6 +1721,9 @@ export default class PredictionExchange extends BaseExchange {
             concatenated = concatenated + this.safeString (items, i, '');
         }
         const byteLength = this.parseToInt (concatenated.length / 2);
+        if (byteLength === undefined) {
+            return '';
+        }
         if (byteLength < 56) {
             return this.intToBase16 (192 + byteLength) + concatenated;
         }

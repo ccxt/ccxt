@@ -7860,6 +7860,9 @@ export class BaseExchange {
             return undefined;
         }
         const precisionNumber = parseInt (precision);
+        if (precisionNumber === undefined) {
+            return undefined;
+        }
         if (precisionNumber === 0) {
             return '1';
         }
@@ -7897,6 +7900,9 @@ export class BaseExchange {
                 return undefined;
             }
             const positivePrecision = parseInt (positivePrecisionString);
+            if (positivePrecision === undefined) {
+                return undefined;
+            }
             let parsedPrecision = '1';
             for (let i = 0; i < positivePrecision - 1; i++) {
                 parsedPrecision = parsedPrecision + '0';
