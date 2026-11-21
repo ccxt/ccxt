@@ -5347,7 +5347,7 @@ export class BaseExchange {
         return result;
     }
 
-    invertFlatStringDictionary (dict: any): Dict {
+    invertFlatStringDictionary (dict: Dict): Dict {
         const reversed: Dict = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
