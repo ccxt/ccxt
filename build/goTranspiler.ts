@@ -581,6 +581,11 @@ function goChanSendType (expr: string, fnMasked: string, signature: string, ownC
     const decls = fnMasked.match (new RegExp ('(?<![.\\w])var ' + name + ' [^\\n=]+(?= =|\\n)', 'g')) || [];
     const shortDecl = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=').test (fnMasked);
     const closureParam = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked);
+    // `var x, _ = e.(T)` (a comma-ok row read) declares x as T
+    const commaOk = (decls.length === 0) ? new RegExp ('(?<![.\\w])var ' + name + ', _ = [^\\n]*\\.\\(((?:map\\[string\\]any|\\[\\]any))\\)\\n', 'g').exec (fnMasked) : null;
+    if ((commaOk !== null) && !param && !shortDecl && !closureParam) {
+        return { 'type': commaOk[1] };
+    }
     if (shortDecl || closureParam || (decls.length + (param ? 1 : 0) !== 1)) {
         return { 'reason': 'local-untyped' };
     }
@@ -9118,9 +9123,13 @@ function goAccessEscape (name: string): string {
 
 // the Go type of `name` when the func text declares it exactly once (a `var` or a parameter
 // of the top-level signature), with its initializer text for a `var`; undefined otherwise
+// `var x, _ = e.(T)`: a comma-ok assertion declares x as T
+const GO_COMMA_OK_DECL_HEAD = '\\bvar\\s+';
+const GO_COMMA_OK_DECL_TAIL = ', _ = [^\\n]*\\.\\((map\\[string\\]any|\\[\\]any)\\)(?=\\n|$)';
 function goAccessSingleDeclaration (maskedFunc: string, signature: string, name: string): any {
     const n = goAccessEscape (name);
-    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
+    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ]
+        .concat ([ ...maskedFunc.matchAll (new RegExp (GO_COMMA_OK_DECL_HEAD + n + GO_COMMA_OK_DECL_TAIL, 'g')) ]);
     const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
     const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1]));
     const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
@@ -16764,6 +16773,13 @@ function goJoinedDeclarationType (lines: string[], k: number, name: string): Reg
     return ((m !== null) && /^\s*if .* \{$/.test (lines[k + 1] ?? '') && store (k + 2) && (lines[k + 3] === m[1] + '} else {') && store (k + 4)
         && /^\}(?:\s*\/\/.*)?$/.test ((lines[k + 5] ?? '').substring (m[1].length))) ? m : null;
 }
+// `var x map[string]any` / `if <bound> {` / `x, _ = e.(map[string]any)` / `}`, then `if x == nil { x = map[string]any{} }`
+function goBoundedRowDeclarationType (lines: string[], k: number, name: string): RegExpExecArray | null {
+    const m = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any)$').exec (lines[k]);
+    const at = (j: number, text: string) => (lines[k + j] ?? '') === ((m === null) ? '' : m[1]) + text;
+    return ((m !== null) && /^\s*if .* \{$/.test (lines[k + 1] ?? '') && new RegExp ('^\\s*' + name + ', _ = [^\\n]*\\.\\(map\\[string\\]any\\)$').test (lines[k + 2] ?? '')
+        && at (3, '}') && at (4, 'if ' + name + ' == nil {') && at (5, '\t' + name + ' = map[string]any{}') && at (6, '}')) ? m : null;
+}
 function goNearestLocalType (lines: string[], funcStart: number, at: number, name: string): string | undefined {
     const decl = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any|\\S+) = ');
     const rebind = new RegExp ('\\b' + name + '(?:, \\w+)* :=|, ' + name + ' :=|func\\([^)]*\\b' + name + ' ');
@@ -16773,7 +16789,8 @@ function goNearestLocalType (lines: string[], funcStart: number, at: number, nam
         if ((k < at) && (lines[k].trim () !== '')) {
             floor = Math.min (floor, indent (lines[k]));
         }
-        const m = decl.exec (lines[k]) ?? goJoinedDeclarationType (lines, k, name);
+        const m = decl.exec (lines[k]) ?? goJoinedDeclarationType (lines, k, name) ?? new RegExp ('^(\\s*)var ' + name + GO_COMMA_OK_DECL_TAIL).exec (lines[k])
+            ?? goBoundedRowDeclarationType (lines, k, name);
         if ((m !== null) && (k < at)) {
             return (m[1].length <= floor) ? m[2] : undefined;
         }
