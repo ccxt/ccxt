@@ -4532,6 +4532,7 @@ function auditSelfTest (): string[] {
         javaR93j8LocalsSelfTest,
         javaH26J03AsDictReaderSelfTest,
         h27J05HoistPureValuesSelfTest,
+        h28J05HoistSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -7931,6 +7932,7 @@ function containerOpsHoistPrefix (): RegExp {
 function containerOpsHoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
     const h27 = h27J05HoistPureValues (t, at, close, args, lineStart, indent, fresh); if (h27 !== undefined) return h27;
+    const h28 = h28J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h28 !== undefined) return h28;
     const prefix = t.slice (lineStart, at);
     if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
@@ -9712,3 +9714,30 @@ function h27J05HoistPureValuesSelfTest (): string[] {
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h27-J05 hoist self test: ${name}\n${out}`);
 }
 // ===== end h27-J05
+
+// ===== h28-J05: a newMap value may also be parseNumber of a local/literal: a static, side-effect-free reader
+// of its own argument, so after the earlier calls it returns the same value as in place.
+function h28J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const pn = /^(?:this|BaseExchange)\.parseNumber\(([A-Za-z_]\w*|"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?[LD]?)\)$/;
+    const plain = args.map ((a, i) => (i % 2 === 1 ? pn.exec (containerOpsUnparen (a))?.[1] ?? a : a));
+    if (plain.every ((a, i) => a === args[i])) return undefined;
+    const h = h27J05HoistPureValues (t, at, close, plain, lineStart, indent, fresh);
+    if (h === undefined) return undefined;
+    const n = /HashMap<String, Object> (\w+) = /.exec (h.text)![1];
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${t.slice (lineStart, at)}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h28J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'parseNumber of a param', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(o), "b", s));', '        j39v1.put("a", this.parseNumber(o));\n        j39v1.put("b", s);\n        return this.extend(this.f(p), j39v1);' ],
+        // negatives: parseNumber of a call or a field, another method on a local
+        [ 'parseNumber of a call', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(this.g())));', 'switch (0)' ],
+        [ 'parseNumber of a field', '        return this.extend(this.f(p), Helpers.newMap("a", this.parseNumber(this.x)));', 'switch (0)' ],
+        [ 'other reader', '        return this.extend(this.f(p), Helpers.newMap("a", this.safeString(p, "k")));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h28-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h28-J05
