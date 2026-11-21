@@ -357,7 +357,10 @@ export default class delta extends Exchange {
         }
         const optionType = this.safeString (optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3, '');
-        const expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
+        const expiryYear: string = rawExpiry.slice (4);
+        const expiryMonth: string = rawExpiry.slice (2, 4);
+        const expiryDay: string = rawExpiry.slice (0, 2);
+        const expiry: string = expiryYear + expiryMonth + expiryDay;
         const settle = quote;
         const strike = this.safeString (optionParts, 2, '');
         const datetime = this.convertExpireDate (expiry);
@@ -898,9 +901,11 @@ export default class delta extends Exchange {
             let optionType: Str = undefined;
             let symbol: string = base + '/' + quote;
             if (swap || future || option) {
-                symbol = symbol + ':' + settle;
+                const settleCode: string = this.safeCurrencyCode (settleId) as string;
+                symbol = symbol + ':' + settleCode;
                 if (future || option) {
-                    symbol = symbol + '-' + this.yymmdd (expiry);
+                    const expiryCode: string = this.yymmdd (expiry);
+                    symbol = symbol + '-' + expiryCode;
                     if (option) {
                         type = 'option';
                         let letter = 'C';
@@ -912,7 +917,8 @@ export default class delta extends Exchange {
                             letter = 'M';
                             optionType = 'move';
                         }
-                        symbol = symbol + '-' + strike + '-' + letter;
+                        const strikeString: string = this.safeString (market, 'strike_price', '');
+                        symbol = symbol + '-' + strikeString + '-' + letter;
                     } else {
                         type = 'future';
                     }
