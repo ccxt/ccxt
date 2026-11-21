@@ -18499,6 +18499,8 @@ const CORE_LIST_ARGS_H27_C02 = { 'parseAccounts': 0, 'parseADLRanks': 0, 'parseC
 for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_H27_C02)) {
     CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
 }
+// base parseTransfers: every caller passes a List<object> (mexc via safeList); no override
+CORE_LIST_ARGS['parseTransfers'] = Object.assign ({}, CORE_LIST_ARGS['parseTransfers'] ?? {}, { 0: 'IList<object>' });
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
