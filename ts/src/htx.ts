@@ -5207,15 +5207,14 @@ export default class htx extends Exchange {
             request['source'] = 'c2c-margin-api';
         }
         const isMarketBuy = (orderType === 'market') && (sideStr === 'buy');
-        const requiresPriceAndParams = this.handleOptionBoolAndParams (paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-        const cost = this.safeNumber (requiresPriceAndParams[1], 'cost');
+        const [ createMarketBuyOrderRequiresPrice, requiresPriceParams ] = this.handleOptionBoolAndParams (paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+        const cost = this.safeNumber (requiresPriceParams, 'cost');
         let paramsCost: Dict = paramsPostOnly;
         if (isMarketBuy) {
-            paramsCost = this.omit (requiresPriceAndParams[1], 'cost');
+            paramsCost = this.omit (requiresPriceParams, 'cost');
         }
         if (isMarketBuy) {
             let quoteAmount: Str = undefined;
-            const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
             if (cost !== undefined) {
                 quoteAmount = this.amountToPrecision (symbol, cost);
             } else if (createMarketBuyOrderRequiresPrice) {
@@ -5685,8 +5684,7 @@ export default class htx extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const marginResult = this.handleMarginModeAndParams ('createOrders', orderParams);
-            const currentMarginMode = marginResult[0];
+            const [ currentMarginMode ] = this.handleMarginModeAndParams ('createOrders', orderParams);
             if (currentMarginMode !== undefined) {
                 if (marginMode === undefined) {
                     marginMode = currentMarginMode;
@@ -7946,8 +7944,7 @@ export default class htx extends Exchange {
         }
         let response: Dict | undefined = undefined;
         if (this.safeBool (market, 'linear', false)) {
-            const marginModeAndParams = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
-            const marginMode: Str = marginModeAndParams[0];
+            const [ marginMode ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
             request['margin_mode'] = marginMode;
             response = await this.contractPrivatePostV5PositionLever (this.extend (request, query));
             //
