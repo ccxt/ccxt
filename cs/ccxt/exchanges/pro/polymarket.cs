@@ -485,14 +485,14 @@ public partial class polymarket : ccxt.polymarket
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))
@@ -790,7 +790,7 @@ public partial class polymarket : ccxt.polymarket
         //
         object data = this.safeValue(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList33504))
         {
             rows = ((List<object>)data);
         } else
@@ -894,14 +894,14 @@ public partial class polymarket : ccxt.polymarket
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data");
+        List<object> dataList = this.safeList(message, "data");
         List<object> rows = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            rows = ((List<object>)data);
+            rows = dataList;
         } else
         {
-            rows.Add(data);
+            rows.Add(this.safeValue(message, "data"));
         }
         int rowsLength = (rows?.Count ?? 0);
         if ((rowsLength == 0))

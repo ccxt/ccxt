@@ -5278,7 +5278,8 @@ public partial class hyperliquid : Exchange
         //     }
         // ]
         //
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, null, since, limit));
+        List<object> rows = this.infoList(response);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, null, since, limit));
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)

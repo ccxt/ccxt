@@ -15359,12 +15359,12 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((this.id + " fetchLeverages() supports linear and inverse contracts only")) ;
         }
-        object leverages = this.safeList(response, "positions", new List<object>() {});
+        IList<object> leverages = this.safeList(response, "positions", new List<object>() {});
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            leverages = response;
+            leverages = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(this.toArray(leverages), symbols, "symbol"));
+        return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "symbol"));
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -17824,12 +17824,12 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((this.id + " fetchMarginModes () supports linear and inverse subTypes only")) ;
         }
-        object assets = this.safeList(response, "positions", new List<object>() {});
+        IList<object> assets = this.safeList(response, "positions", new List<object>() {});
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            assets = response;
+            assets = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(this.toArray(assets), symbolsNormalized, "symbol", "swap"));
+        return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(assets, symbolsNormalized, "symbol", "swap"));
     }
 
     /**

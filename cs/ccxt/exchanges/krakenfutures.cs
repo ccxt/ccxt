@@ -1749,15 +1749,17 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> response = await this.privatePostCancelorder(this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
-        }, parameters));
-        string? status = this.safeString(this.safeDict(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
+        };
+        Dictionary<string, object> response = await this.privatePostCancelorder(this.extend(request, parameters));
+        IDictionary<string, object> cancelStatus = this.safeDict(response, "cancelStatus");
+        string? status = this.safeString(cancelStatus, "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         Dictionary<string, object> order = new Dictionary<string, object>() {};
-        if (response.ContainsKey("cancelStatus"))
+        if ((cancelStatus != null))
         {
-            order = ccxt.BaseExchange.FromOrder(this.parseOrder(response["cancelStatus"]));
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(cancelStatus));
         }
         return ccxt.BaseExchange.ToOrder(this.extend(new Dictionary<string, object>() {             { "info", response },         }, order));
     }

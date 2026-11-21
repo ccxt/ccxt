@@ -1019,7 +1019,7 @@ public partial class PredictionExchange : BaseExchange
         return String.Join(" ", words.ToArray());
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
+    public async virtual Task<IDictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         // fetch just one outcome on demand — never through a bulk listing download. the base has
         // no generic by-id endpoint, so it derives a search query from the handle and resolves it
@@ -1044,7 +1044,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (this.hasOutcome(outcomeSymbol))
             {
-                return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
+                return this.safeOutcome(outcomeSymbol);
             }
         }
         throw new BadSymbol ((((this.id + " could not resolve outcome ") + (outcomeSymbol)) + " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")) ;

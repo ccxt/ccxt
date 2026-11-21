@@ -267,9 +267,9 @@ public partial class gate : ccxt.gate
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = ((type == "spot")) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = ((type == "spot")) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = requestrequestParamsVariable.Item2;
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(request, requestParams), channelOption);
         return this.parseOrders(rawOrders, market);
@@ -307,9 +307,9 @@ public partial class gate : ccxt.gate
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted);
         string? type = (string)typequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)typequeryVariable[1]);
-        var requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
-        var request = ((IList<object>) requestrequestParamsVariable)[0];
-        var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
+        (Dictionary<string, object>, IDictionary<string, object>) requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
+        Dictionary<string, object> request = requestrequestParamsVariable.Item1;
+        IDictionary<string, object> requestParams = requestrequestParamsVariable.Item2;
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".order_cancel");
         string? url = this.getUrlByMarket(market);
@@ -1207,7 +1207,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if (((rawResult is IList<object>) || (rawResult.GetType().IsGenericType && rawResult.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((rawResult is IList<object> hxList52968))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -1367,7 +1367,7 @@ public partial class gate : ccxt.gate
         }
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if (((rawResult is IList<object>) || (rawResult.GetType().IsGenericType && rawResult.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((rawResult is IList<object> hxList60018))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else

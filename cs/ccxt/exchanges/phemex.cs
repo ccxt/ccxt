@@ -3660,9 +3660,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList170467))
         {
-            int numOrders = getArrayLength(data);
+            int numOrders = hxList170467.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

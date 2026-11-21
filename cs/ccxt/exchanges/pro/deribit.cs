@@ -866,13 +866,14 @@ public partial class deribit : ccxt.deribit
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel", "");
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        List<object> dataList = this.safeList(parameters, "data");
         IList<object> orders = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(dataList));
         } else
         {
+            object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
             ccxt.Order order = this.parseOrder(data);
             orders = new List<object>() {ccxt.BaseExchange.FromOrder(order)};
         }
@@ -926,7 +927,7 @@ public partial class deribit : ccxt.deribit
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39660 && ((hxArr39660 is IList<object>) || (hxArr39660.GetType().IsGenericType && hxArr39660.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr39727 && ((hxArr39727 is IList<object>) || (hxArr39727.GetType().IsGenericType && hxArr39727.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

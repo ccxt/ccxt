@@ -3030,7 +3030,7 @@ public partial class htx : ccxt.htx
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
-                if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if ((data is IList<object> hxList122347))
                 {
                     List<object> dataList = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; i < dataList.Count; i++)

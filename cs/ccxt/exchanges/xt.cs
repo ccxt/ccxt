@@ -3278,7 +3278,7 @@ public partial class xt : Exchange
             }
             request["positionSide"] = requestType;
         }
-        Dictionary<string, object> response = new Dictionary<string, object>() {};
+        Dictionary<string, object> response = null;
         double? triggerPrice = this.safeNumber2(paramsOmitted4, "triggerPrice", "stopPrice");
         double? stopLoss = this.safeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice");
         double? takeProfit = this.safeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice");

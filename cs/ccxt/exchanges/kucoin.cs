@@ -7032,10 +7032,10 @@ public partial class kucoin : Exchange
                 response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
             }
         }
-        object responseData = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (((responseData is IList<object>) || (responseData.GetType().IsGenericType && responseData.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        IDictionary<string, object> responseData = this.safeDict(response, "data");
+        if ((responseData == null))
         {
-            responseData = this.safeDict(responseData, 0, new Dictionary<string, object>() {});
+            responseData = this.safeDict(this.safeList(response, "data", new List<object>() {}), 0, new Dictionary<string, object>() {});
         }
         return this.parseOrder(responseData, market);
     }

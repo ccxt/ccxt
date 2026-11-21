@@ -1149,11 +1149,11 @@ public partial class hitbtc : ccxt.hitbtc
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         List<object> data = ((List<object>)this.safeValue(message, "params", new List<object>() {}));
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data is IList<object> hxList49580))
         {
-            for (int i = 0; i < (data?.Count ?? 0); i++)
+            for (int i = 0; i < hxList49580.Count; i++)
             {
-                object order = data[i];
+                object order = hxList49580[i];
                 this.handleOrderHelper(client, message, order);
             }
         } else
@@ -1615,12 +1615,12 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((result is IList<object> hxList69410))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < getArrayLength(result); i++)
+            for (int i = 0; i < hxList69410.Count; i++)
             {
-                ccxt.Order parsedOrder = this.parseWsOrder(getValue(result, i));
+                ccxt.Order parsedOrder = this.parseWsOrder(hxList69410[i]);
                 parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
             }
             client.resolve(parsedOrders, messageHash);
@@ -1689,11 +1689,11 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((result is IList<object> hxList72009))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
-                int arrayLength = getArrayLength(result);
+                int arrayLength = hxList72009.Count;
                 if (((arrayLength == 0)) || (first.ContainsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);

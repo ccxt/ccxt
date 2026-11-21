@@ -3396,7 +3396,7 @@ public partial class blofin : Exchange
         if ((symbols != null))
         {
             int symbolsLength = symbols?.Count ?? 0;
-            if ((symbolsLength == 0))
+            if (symbolsLength > 0)
             {
                 market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["instId"] = (market.ContainsKey("id") ? market["id"] : null);

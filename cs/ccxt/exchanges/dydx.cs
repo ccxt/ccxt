@@ -2125,8 +2125,9 @@ public partial class dydx : Exchange
         {
             currency = this.currency(code);
         }
-        List<Dictionary<string, object>> response = await this.FetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"));
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(response, currency, since, limit));
+        List<object> rows = new List<object>() {};
+        rows = ccxt.BaseExchange.FromDictList(await this.FetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName")));
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit));
     }
 
     public async virtual Task<Dictionary<string, object>> estimateTxFee(IDictionary<string, object> message, string? memo, IDictionary<string, object> account)

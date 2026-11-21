@@ -857,10 +857,10 @@ public partial class paradex : ccxt.paradex
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> deltasOptionparamsDeltasVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = deltasOptionparamsDeltasVariable[0];
-        IDictionary<string, object> paramsDeltas = ((IDictionary<string, object>)deltasOptionparamsDeltasVariable[1]);
-        bool deltas = ((deltasOption is true)) || (((limit != null)) && ((limit > 15)));
+        (bool?, IDictionary<string, object>) deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
+        bool? deltasOption = deltasOptionparamsDeltasVariable.Item1;
+        IDictionary<string, object> paramsDeltas = (deltasOptionparamsDeltasVariable.Item2);
+        bool deltas = ((deltasOption == true)) || (((limit != null)) && ((limit > 15)));
         string? url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
         List<object> feeds = new List<object>() {};
@@ -939,9 +939,9 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> deltasOptionparamsDeltasVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = deltasOptionparamsDeltasVariable[0];
-        IDictionary<string, object> paramsDeltas = ((IDictionary<string, object>)deltasOptionparamsDeltasVariable[1]);
+        (bool?, IDictionary<string, object>) deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
+        bool? deltasOption = deltasOptionparamsDeltasVariable.Item1;
+        IDictionary<string, object> paramsDeltas = (deltasOptionparamsDeltasVariable.Item2);
         string? url = this.getWsUrl();
         var client = this.client(url);
         List<object> channels = new List<object>() {};
@@ -952,7 +952,7 @@ public partial class paradex : ccxt.paradex
             // the feed the market is on, a market is on one of them at a time
             string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
-            string? channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
+            string? channel = ((deltasOption == true)) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             string requestedHash = (deltasChannel + ":requested");
             if (((client.subscriptions != null && deltasChannel != null && client.subscriptions.ContainsKey(deltasChannel))) || ((client.subscriptions != null && requestedHash != null && client.subscriptions.ContainsKey(requestedHash))))

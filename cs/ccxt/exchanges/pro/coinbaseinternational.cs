@@ -495,13 +495,14 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? channel = this.safeString(parameters, "channel");
-        object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
+        List<object> dataList = this.safeList(parameters, "data");
         IList<object> orders = new List<object>() {};
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((dataList != null))
         {
-            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(data));
+            orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(dataList));
         } else
         {
+            object data = this.safeValue(parameters, "data", new Dictionary<string, object>() {});
             orders = new List<object> {ccxt.BaseExchange.FromOrder(this.parseOrder(data))};
         }
         int ordersLength = (orders?.Count ?? 0);
@@ -1075,7 +1076,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49641 && ((hxArr49641 is IList<object>) || (hxArr49641.GetType().IsGenericType && hxArr49641.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49708 && ((hxArr49708 is IList<object>) || (hxArr49708.GetType().IsGenericType && hxArr49708.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }

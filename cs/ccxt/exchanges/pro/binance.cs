@@ -1899,10 +1899,10 @@ public partial class binance : ccxt.binance
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        IList<object> stockparamsStockVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
-        var stock = stockparamsStockVariable[0];
-        IDictionary<string, object> paramsStock = ((IDictionary<string, object>)stockparamsStockVariable[1]);
-        if ((stock is true))
+        (bool?, IDictionary<string, object>) stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "stock", false);
+        bool? stock = stockparamsStockVariable.Item1;
+        IDictionary<string, object> paramsStock = (stockparamsStockVariable.Item2);
+        if ((stock == true))
         {
             if ((!(timeframeVar == "5m")) && (!(timeframeVar == "1h")) && (!(timeframeVar == "1d")) && (!(timeframeVar == "1w")) && (!(timeframeVar == "1M")))
             {
@@ -3929,7 +3929,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr189356 && ((hxArr189356 is IList<object>) || (hxArr189356.GetType().IsGenericType && hxArr189356.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr189367 && ((hxArr189367 is IList<object>) || (hxArr189367.GetType().IsGenericType && hxArr189367.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -5650,7 +5650,7 @@ public partial class binance : ccxt.binance
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
             object oField = this.safeValue(message, "o");
-            if (((oField is IList<object>) || (oField.GetType().IsGenericType && oField.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((oField is IList<object> hxList270244))
             {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate(client, (Dictionary<string, object>)message);

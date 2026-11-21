@@ -275,14 +275,14 @@ public partial class opinion : PredictionExchange
      * @param {string} outcomeSymbol the outcome handle or token id
      * @returns {object} the outcome cache
      */
-    public async override Task<Dictionary<string, object>> FetchOutcome(object outcomeSymbol)
+    public async override Task<IDictionary<string, object>> FetchOutcome(object outcomeSymbol)
     {
         if ((this.outcomeSearchQuery(outcomeSymbol) == null))
         {
             await this.loadOutcomes();
             if (this.hasOutcome(outcomeSymbol))
             {
-                return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
+                return this.safeOutcome(outcomeSymbol);
             }
         }
         return await base.FetchOutcome(outcomeSymbol);

@@ -2805,14 +2805,14 @@ public partial class limitless : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object paramsValue = parameters;
+        IDictionary<string, object> paramsValue = parameters;
         if ((outcome != null))
         {
-            bool warn = true;
-            IList<object> warnparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-            warn = (bool)warnparamsValueVariable[0];
-            paramsValue = warnparamsValueVariable[1];
-            if (warn)
+            (bool?, IDictionary<string, object>) warnparamsWarnVariable = this.handleOptionBoolAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", true);
+            bool? warn = warnparamsWarnVariable.Item1;
+            IDictionary<string, object> paramsWarn = (warnparamsWarnVariable.Item2);
+            paramsValue = paramsWarn;
+            if ((warn == true))
             {
                 throw new BadRequest ((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
             }
@@ -2857,16 +2857,14 @@ public partial class limitless : PredictionExchange
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, "outcome");
         }
-        bool paginate = false;
         int maxLimit = 100;
-        IDictionary<string, object> paramsValue = parameters;
-        IList<object> paginateparamsValueVariable = (IList<object>)this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
-        paginate = (bool)paginateparamsValueVariable[0];
-        paramsValue = (IDictionary<string, object>)paginateparamsValueVariable[1];
-        if (paginate)
+        (bool?, IDictionary<string, object>) paginateparamsValueVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsValueVariable.Item1;
+        IDictionary<string, object> paramsValue = (paginateparamsValueVariable.Item2);
+        if ((paginate == true))
         {
-            paramsValue = this.omit(paramsValue, "paginate");
-            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", null, maxLimit));
+            Dictionary<string, object> paramsCursor = this.omit(paramsValue, "paginate");
+            return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsCursor, "nextCursor", "cursor", null, maxLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))

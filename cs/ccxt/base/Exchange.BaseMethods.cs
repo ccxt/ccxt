@@ -4507,11 +4507,11 @@ public partial class BaseExchange
         return this.filterByCurrencySinceLimit(result,code, since, limit);
     }
 
-    public virtual IList<object> parseLedger(object data, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parseLedger(IList<object> data, IDictionary<string, object> currency = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
-        IList<object> arrayData = this.toArray(data);
+        IList<object> arrayData = data;
         for (int i = 0; i < (arrayData?.Count ?? 0); i++)
         {
             Dictionary<string, object> itemOrItems = this.parseLedgerEntry(arrayData[i], currency);
@@ -6379,22 +6379,34 @@ public partial class BaseExchange
         //     ]
         //
         parameters ??= new Dictionary<string, object>();
+        if ((pricesData is IList<object> pricesDataAsList))
+        {
+            return this.parseLastPricesList(pricesDataAsList, symbols, parameters);
+        }
+        return this.parseLastPricesDict(pricesData, symbols, parameters);
+    }
+
+    public virtual object parseLastPricesList(IList<object> pricesData, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        if (((pricesData is IList<object>) || (pricesData.GetType().IsGenericType && pricesData.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        for (int i = 0; i < (pricesData?.Count ?? 0); i++)
         {
-            for (int i = 0; i < getArrayLength(pricesData); i++)
-            {
-                results.Add(this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters));
-            }
-        } else
+            results.Add(this.extend(this.parseLastPrice((pricesData != null && i < pricesData.Count ? pricesData[i] : null)), parameters));
+        }
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
+    }
+
+    public virtual object parseLastPricesDict(object pricesData, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> results = new List<object>() {};
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)pricesData).Keys);
+        for (int i = 0; i < marketIds.Count; i++)
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)pricesData).Keys);
-            for (int i = 0; i < marketIds.Count; i++)
-            {
-                string? marketId = ((string)marketIds[i]);
-                Dictionary<string, object> market = this.safeMarket(marketId);
-                results.Add(this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters));
-            }
+            string? marketId = ((string)marketIds[i]);
+            Dictionary<string, object> market = this.safeMarket(marketId);
+            results.Add(this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -6424,24 +6436,36 @@ public partial class BaseExchange
         //     ]
         //
         parameters ??= new Dictionary<string, object>();
-        List<object> results = new List<object>() {};
-        if (((tickers is IList<object>) || (tickers.GetType().IsGenericType && tickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((tickers is IList<object> tickersAsList))
         {
-            for (int i = 0; i < getArrayLength(tickers); i++)
-            {
-                results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(tickers, i))), parameters));
-            }
-        } else
-        {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            for (int i = 0; i < marketIds.Count; i++)
-            {
-                string? marketId = ((string)marketIds[i]);
-                Dictionary<string, object> market = this.safeMarket(marketId);
-                results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(tickers, marketId), market)), parameters));
-            }
+            return new ccxt.Tickers(this.parseTickersList(tickersAsList, symbols, parameters)).tickers;
         }
-        return new ccxt.Tickers(this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols))).tickers;
+        return new ccxt.Tickers(this.parseTickersDict(tickers, symbols, parameters)).tickers;
+    }
+
+    public virtual object parseTickersList(IList<object> tickers, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> results = new List<object>() {};
+        for (int i = 0; i < (tickers?.Count ?? 0); i++)
+        {
+            results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker((tickers != null && i < tickers.Count ? tickers[i] : null))), parameters));
+        }
+        return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols));
+    }
+
+    public virtual object parseTickersDict(object tickers, IList<object> symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        List<object> results = new List<object>() {};
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        for (int i = 0; i < marketIds.Count; i++)
+        {
+            string? marketId = ((string)marketIds[i]);
+            Dictionary<string, object> market = this.safeMarket(marketId);
+            results.Add(this.extend(ccxt.BaseExchange.FromTicker(this.parseTicker(getValue(tickers, marketId), market)), parameters));
+        }
+        return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols));
     }
 
     public virtual object parseDepositAddresses(IList<object> addresses, IList<object> codes = null, bool? indexed = null, IDictionary<string, object> parameters = null)

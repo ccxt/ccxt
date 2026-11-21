@@ -990,22 +990,22 @@ public partial class woofipro : ccxt.woofipro
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeValue(message, "data");
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(message, "data");
+        if ((dataList != null))
         {
             // algoexecutionreport
-            for (int i = 0; i < getArrayLength(data); i++)
+            for (int i = 0; i < dataList.Count; i++)
             {
-                object order = getValue(data, i);
-                string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
+                string? tradeId = ((string)this.omitZero(this.safeString(dataList, "tradeId")));
                 if ((tradeId != null))
                 {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, (dataList != null && i < dataList.Count ? dataList[i] : null));
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, (dataList != null && i < dataList.Count ? dataList[i] : null), topic);
             }
         } else
         {
+            object data = this.safeValue(message, "data");
             // executionreport
             string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if ((tradeId != null))
