@@ -8525,6 +8525,7 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     if (text === '""') {
         return true;
     }
+    if (/^"(?:[^"\\\n]|\\.)*" \+ /.test (text)) { return true; } // Go `"lit" + x` compiles only as a string: never a pointer box
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
         return !boxOnly;
     }
@@ -8947,6 +8948,8 @@ function goStringLiteralSelfTest (ok: SelfTestOk): void {
     ];
     keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, "a")') >= 0, 'unproven write must keep the helper #' + index));
     ok (f ('\tif IsEqual(p, "a") {\n\t}\n').indexOf ('IsEqual(p, "a")') >= 0, 'an any parameter keeps the helper');
+    ok (f ('\tvar e any = "/a/" + this.Implode(p)\n\tif true {\n\t\te = Add(e, "?")\n\t}\n\tif IsEqual(e, "/a/b") {\n\t}\n').indexOf ('if (e == "/a/b") {') >= 0, 'a literal-led string concat write compares natively');
+    ok (f ('\tvar e any = "/a/" + this.Implode(p)\n\te = this.SafeString(p, "x")\n\tif IsEqual(e, "/a/b") {\n\t}\n').indexOf ('IsEqual(e, "/a/b")') >= 0, 'a concat local also written by a *string producer keeps the helper');
     const ws = goStringLiteralNativeCompares ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tapi := ccxt.GetArg(optionalArgs, 0, "public")\n\tif ccxt.IsEqual(api, "x") {\n\t}\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (api == "x") {') >= 0, 'the package-qualified helper is rewritten');
     ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
