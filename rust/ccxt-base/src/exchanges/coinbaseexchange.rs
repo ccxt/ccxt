@@ -2354,7 +2354,10 @@ impl Coinbaseexchange {
         let until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]).as_i64();
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsPaginate, &["until"], &[]);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        let cappedLimit: Option<i64> = self.parse_to_int((if (limit.is_none()) { Value::Int(300) } else { crate::runtime::Math::min(&Value::from(limit), &Value::Int(300)) }));
+        let mut cappedLimit: Option<i64> = Some(300);
+        if (limit.is_some()) {
+            cappedLimit = self.parse_to_int(crate::runtime::Math::min(&Value::from(limit), &Value::Int(300)));
+        }
         let limitResolved: Option<i64> = (if (since.is_some()) { cappedLimit } else { limit });
         if (since.is_some()) {
             request.insert("start".into(), self.iso8601(&Value::from(since)));
@@ -3067,15 +3070,20 @@ impl Coinbaseexchange {
             //        }
             //    ]
             //
-            response = self.to_array(&transfers);
+            let transferRows: crate::value::List = self.to_array_t(&transfers);
+            response = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_6: bool = true;
-                while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (response.len() as i64) } {
-                let account_id: Option<String> = self.safe_string_k_opt(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "account_id", &[]);
+                while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (transferRows.len() as i64) } {
+                let mut row: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[crate::value::KeyRead::read(&&transferRows, &Value::Int(i))]);
+                let account_id: Option<String> = self.safe_string_k_opt(&row, "account_id", &[]);
                 let account: crate::value::Dict = self.safe_dict_t(self.accountsById.clone(), account_id.map(Value::from).unwrap_or(Value::Null));
-                let codeInner: Option<String> = self.safe_string_k_opt(&account, "code", &[]);
-                if let Value::Arr(__a) = &mut response { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(codeInner.map(Value::from).unwrap_or(Value::Null))); } }
+                std::sync::Arc::make_mut(&mut row).insert("currency".into(), self.safe_string_k(&account, "code", &[]));
+                if let Value::Arr(__a) = &mut response { std::sync::Arc::make_mut(__a).push(Value::Dict(row)); };
             }
             }
         }  else {
@@ -3107,12 +3115,18 @@ impl Coinbaseexchange {
             //        }
             //    ]
             //
-            response = self.to_array(&accountTransfers);
+            let transferRows: crate::value::List = self.to_array_t(&accountTransfers);
+            response = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_7: bool = true;
-                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (response.len() as i64) } {
-                if let Value::Arr(__a) = &mut response { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(code.clone())); } }
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (transferRows.len() as i64) } {
+                let mut row: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[crate::value::KeyRead::read(&&transferRows, &Value::Int(i))]);
+                std::sync::Arc::make_mut(&mut row).insert("currency".into(), code.clone());
+                if let Value::Arr(__a) = &mut response { std::sync::Arc::make_mut(__a).push(Value::Dict(row)); };
             }
             }
         }

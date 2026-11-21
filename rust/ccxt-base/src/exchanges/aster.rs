@@ -100,12 +100,12 @@ impl crate::exchange::DerivedExchange for Aster {
         let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume", &[]);
         let high: Option<String> = self.safe_string_k_opt(&ticker, "highPrice", &[]);
         let low: Option<String> = self.safe_string_k_opt(&ticker, "lowPrice", &[]);
-        let isTickerResponse: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("priceChange"));
+        let isTickerResponse: bool = self.safe_string_k(&ticker, "priceChange", &[]) != Value::Null;
         let mut marketType: Option<String> = None;
         if isTickerResponse {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseAsset"))) { Some("spot".to_string()) } else { Some("swap".to_string()) });
+            marketType = (if (self.safe_string_k(&ticker, "baseAsset", &[]) != Value::Null) { Some("spot".to_string()) } else { Some("swap".to_string()) });
         }  else {
-            marketType = (if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("lastUpdateId"))) { Some("swap".to_string()) } else { Some("spot".to_string()) });
+            marketType = (if (self.safe_integer_k(&ticker, "lastUpdateId", &[]) != Value::Null) { Some("swap".to_string()) } else { Some("spot".to_string()) });
         }
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
@@ -192,7 +192,7 @@ impl crate::exchange::DerivedExchange for Aster {
         let id: Option<String> = self.safe_string2_opt(&trade, Value::Str("id".into()), Value::Str("a".into()), &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let mut marketType: String = "spot".to_string();
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("positionSide"))) {
+        if (self.safe_string_k(&trade, "positionSide", &[]) != Value::Null) {
             marketType = "swap".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(marketType)]);
@@ -4977,7 +4977,7 @@ impl Aster {
         let contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
-        let linear: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
+        let linear: bool = self.safe_string_k(&position, "notional", &[]) != Value::Null;
         if (marginMode.as_deref() == Some("cross")) {
             // calculate collateral
             let precision: crate::value::Dict = self.safe_dict_k_t(&marketResolved, "precision");

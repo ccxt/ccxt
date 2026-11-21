@@ -199,7 +199,11 @@ impl crate::exchange::DerivedExchange for Digifinex {
         let amountString: Option<String> = self.safe_string_n_opt(&trade, Value::from(vec![Value::Str("amount".into()), Value::Str("volume".into()), Value::Str("size".into())]), &[]);
         let marketId: Option<String> = self.safe_string_upper2_opt(&trade, Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { marketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[]);
+        let mut marketIdResolved: Option<String> = None;
+        if (market.is_none()) {
+            marketIdResolved = marketId;
+        }
+        let marketResolved: crate::types::Market = self.safe_market(marketIdResolved.as_deref(), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp2(&trade, Value::Str("date".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string2_opt(&trade, Value::Str("type".into()), Value::Str("side".into()), &[]);
         let mut type_var: Option<String> = None;

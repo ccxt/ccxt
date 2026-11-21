@@ -1662,9 +1662,9 @@ impl Weex {
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            let messageHash: String = format!("{}{}", "bidask::", symbol.as_deref().unwrap_or("null"));
+            client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
-        let messageHash: String = format!("{}{}", "bidask::", symbol.as_deref().unwrap_or("null"));
-        client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
     pub fn parse_ws_bid_ask(&self, mut message: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {

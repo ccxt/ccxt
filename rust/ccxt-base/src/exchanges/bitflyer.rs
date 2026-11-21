@@ -281,10 +281,10 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         let mut type_var: Option<String> = None;
         let mut status: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee"))) {
+        let feeCost: Option<String> = self.safe_string_k_opt(&transaction, "fee", &[]);
+        if (feeCost.is_some()) {
             type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.as_deref());
-            let feeCost: Option<String> = self.safe_string_k_opt(&transaction, "fee", &[]);
             let additionalFee: Option<String> = self.safe_string_k_opt(&transaction, "additional_fee", &[]);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();

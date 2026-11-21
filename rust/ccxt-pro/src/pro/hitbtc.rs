@@ -1532,26 +1532,26 @@ impl Hitbtc {
             let limit: Option<i64> = self.safe_integer_k(&self.options, "ordersLimit", &[]).as_i64();
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let data: Value = (match __pro_message.get("params").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::from(vec![]), Some(__v) => __v, None => Value::from(vec![]) });
-        if (matches!(&data, Value::Arr(_))) {
+        let mut dataDict: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "params");
+        if (dataDict.is_some()) {
+            self.handle_order_helper(client, &message, dataDict.map_or(Value::Null, Value::Dict));
+        }  else {
+            let data: crate::value::List = __pro_message.key_list("params");
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-                let order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
                 self.handle_order_helper(client, &message, order);
             }
             }
-        }  else {
-            self.handle_order_helper(client, &message, data);
         }
         return message;
 
     Value::Null
 }
 
-    pub fn handle_order_helper(&self, client: &Value, message: &Value, order: impl Into<crate::Value>) {
-        let order: Value = order.into();
+    pub fn handle_order_helper(&self, client: &Value, message: &Value, mut order: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         if (self.orders.is_none()) {
@@ -2066,11 +2066,13 @@ impl Hitbtc {
 }) });
         if (matches!(&result, Value::Arr(_))) {
             let mut parsedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
+            let rows: crate::value::List = __pro_message.key_list("result");
+            let rowsLength: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_13: bool = true;
-                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (result.len() as i64) } {
-                let parsedOrder: crate::value::Dict = self.parse_ws_order(result.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None);
+                while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < rowsLength } {
+                let parsedOrder: crate::value::Dict = self.parse_ws_order(rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut parsedOrders).push(Value::Dict(parsedOrder));
             }
             }
@@ -2138,7 +2140,8 @@ impl Hitbtc {
             if (matches!(&result, Value::Arr(_))) {
                 // to do improve this, not very reliable right now
                 let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
-                let arrayLength: i64 = result.len() as i64;
+                let rows: crate::value::List = __pro_message.key_list("result");
+                let arrayLength: i64 = rows.len() as i64;
                 if (arrayLength == 0) || (first.contains_key("client_order_id")) {
                     self.handle_order_request(&client, message);
                 }

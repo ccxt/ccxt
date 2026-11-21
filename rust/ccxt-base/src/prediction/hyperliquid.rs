@@ -3170,10 +3170,12 @@ if _try_result.is_err() {
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
         if (config.contains_key("byType")) && (params.contains_key("type")) {
-            let type_var: Value = params.get("type").cloned().unwrap_or(Value::Null);
+            let type_var: Option<String> = (match params.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
-            if (matches!((&byType, &type_var), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return get_value(&byType, &type_var);
+            if (type_var.is_some()) {
+                if (matches!((&byType, type_var.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    return self.safe_integer(&byType, type_var.map(Value::from).unwrap_or(Value::Null), &[]);
+                }
             }
         }
         return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });

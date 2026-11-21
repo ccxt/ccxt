@@ -594,14 +594,14 @@ impl crate::exchange::DerivedExchange for Bullish {
                 let idParts: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                 let datePart: Option<String> = self.safe_string_opt(&idParts, Value::Int(2), &[]);
                 let dateYmd: Option<String> = (if let Some(__s) = datePart.as_deref() { Some(__s.chars().skip(2).collect::<String>()) } else { None });
-                symbol.push_str(&format!("{}{}", "-", dateYmd.as_deref().unwrap_or("null")));
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), dateYmd.as_deref().unwrap_or("null"));
                 if (type_var.as_deref() == Some("future")) {
                     future = true;
                 }  else if (type_var.as_deref() == Some("option")) {
                     option = true;
                     optionType = self.safe_string_lower_k_opt(&market, "optionType", &[]);
                     strike = self.parse_to_numeric(self.safe_string_k(&market, "optionStrikePrice", &[]));
-                    symbol.push_str(&format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("-".into()), Value::from(self.number_to_string(&strike))).into()), "-").into()), self.safe_string(&idParts, Value::Int(4), &[])));
+                    symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", settle.as_deref().unwrap_or("null"), "-", dateYmd.map(Value::from).unwrap_or(Value::Null), "-", Value::from(self.number_to_string(&strike)), "-", self.safe_string(&idParts, Value::Int(4), &[]));
                 }
             }
         }
@@ -3429,28 +3429,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let tradingAccountIdOptionparamsTradingAccountIdVariable = self.handle_option_string_and_params(params, Value::Str("loadAccount".into()), Value::Str("tradingAccountId".into()), &[]);
         let tradingAccountIdOption: Option<String> = tradingAccountIdOptionparamsTradingAccountIdVariable.0.as_str().map(str::to_owned);
         let paramsTradingAccountId: crate::value::Dict = tradingAccountIdOptionparamsTradingAccountIdVariable.1;
-        let mut tradingAccountId: Option<String> = tradingAccountIdOption;
-        if (tradingAccountId.is_none()) {
-            let response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[&Value::Dict(paramsTradingAccountId)]).await.unwrap_or_default();
-            let accounts: crate::value::List = self.to_array_t(&response);
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_1: bool = true;
-                while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (accounts.len() as i64) } {
-                let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
-                let name: Option<String> = self.safe_string_k_opt(&account, "tradingAccountName", &[]);
-                if (name.as_deref() == Some("Primary Account")) {
-                    tradingAccountId = self.safe_string_k_opt(&account, "tradingAccountId", &[]);
-                    break;
+        if (tradingAccountIdOption.is_some()) {
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountIdOption.map(Value::from).unwrap_or(Value::Null)); }
+            return self.safe_string_k(&self.options, "tradingAccountId", &[]);
+        }
+        let response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[&Value::Dict(paramsTradingAccountId)]).await.unwrap_or_default();
+        let accounts: crate::value::List = self.to_array_t(&response);
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_1: bool = true;
+            while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (accounts.len() as i64) } {
+            let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+            let name: Option<String> = self.safe_string_k_opt(&account, "tradingAccountName", &[]);
+            if (name.as_deref() == Some("Primary Account")) {
+                let primaryAccountId: Option<String> = self.safe_string_k_opt(&account, "tradingAccountId", &[]);
+                if (primaryAccountId.is_some()) {
+                    { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), primaryAccountId.map(Value::from).unwrap_or(Value::Null)); }
+                    return self.safe_string_k(&self.options, "tradingAccountId", &[]);
                 }
-            }
+                break;
             }
         }
-        if (tradingAccountId.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")));
         }
-        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null)); }
-        return self.safe_string_k(&self.options, "tradingAccountId", &[]);
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")));
 
     Value::Null
 }

@@ -1439,10 +1439,10 @@ impl Gate {
         if (rawMarketType.as_deref() == Some("futures")) {
             marketType = "contract".to_string();
         }
-        let result: Option<crate::value::List> = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null }).into_opt_list();
+        let resultList: Option<crate::value::List> = (match message.get("result") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (result.is_some()) {
-            results = (match message.get("result") { Some(Value::Arr(__a)) => __a.clone(), _ => std::sync::Arc::new(Vec::new()) });
+        if (resultList.is_some()) {
+            results = resultList.unwrap_or_default();
         }  else {
             let rawTicker: crate::value::Dict = message.key_dict("result");
             results = std::sync::Arc::new(vec![Value::Dict(rawTicker)]);
@@ -1828,12 +1828,12 @@ impl Gate {
         if (rawMarketType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let rawResult: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let resultList: Option<crate::value::List> = (match message.get("result") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&rawResult, Value::Arr(_))) {
+        if (resultList.is_some()) {
             result = (match message.get("result") { Some(Value::Arr(__a)) => __a.clone(), _ => std::sync::Arc::new(Vec::new()) });
         }  else {
-            result = std::sync::Arc::new(vec![rawResult]);
+            result = std::sync::Arc::new(vec![(match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null })]);
         }
         let mut marketIds: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2135,12 +2135,14 @@ impl Gate {
         //   }
         //
         let result: crate::value::List = message.key_list("result");
-        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(result.clone())); }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(result)); }
+        let rows: crate::value::List = message.key_list("result");
+        let rowsLength: i64 = rows.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
-            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (result.len() as i64) } {
-            let rawBalance: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < rowsLength } {
+            let rawBalance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             let currencyId: String = self.safe_string_k(&rawBalance, "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string(); // when not present it is USDT
             let code: Option<String> = self.safe_currency_code(Some(currencyId.as_str()), None);
@@ -2547,20 +2549,24 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (parsedOrders.len() as i64) } {
-            let mut parsed: Option<crate::value::Dict> = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             // inject order status
-            let info: crate::value::Dict = self.safe_dict_k_t(&parsed, "info");
+            let info: crate::value::Dict = self.safe_dict_k_t(parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null), "info");
             let event: Option<String> = self.safe_string_k_opt(&info, "event", &[]);
+            let mut statusUpdate: indexmap::IndexMap<String, Value> = ({
+                let m = indexmap::IndexMap::new();
+                m
+            });
             if (event.as_deref() == Some("put")) || (event.as_deref() == Some("update")) {
-                if let Some(__rdm) = &mut parsed { std::sync::Arc::make_mut(__rdm).insert("status".to_string(), Value::Str("open".into())); }
+                statusUpdate.insert("status".into(), Value::Str("open".into()));
             }  else if (event.as_deref() == Some("finish")) {
-                let status: Option<String> = self.safe_string_k_opt(&parsed, "status", &[]);
+                let status: Option<String> = self.safe_string_k_opt(parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]);
                 if (status.is_none()) {
                     let left: Option<String> = self.safe_string_k_opt(&info, "left", &[]);
-                    if let Some(__rdm) = &mut parsed { std::sync::Arc::make_mut(__rdm).insert("status".to_string(), Value::from((if crate::precise::Precise::stringEquals(&left, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }))); }
+                    statusUpdate.insert("status".into(), (if crate::precise::Precise::stringEquals(&left, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
                 }
             }
-            stored.append(parsed.clone().map_or(Value::Null, Value::Dict));
+            let parsed: crate::value::Dict = self.extend_t(parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map(statusUpdate)]);
+            stored.append(Value::from(&parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);

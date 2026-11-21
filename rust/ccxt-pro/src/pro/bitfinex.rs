@@ -207,7 +207,7 @@ impl Bitfinex {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        let messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), marketId).into());
+        let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), marketId);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
@@ -216,17 +216,22 @@ impl Bitfinex {
             m
         });
         let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        let result: Value = self.watch(url.as_deref(), &messageHash, __ws_arg_0, &messageHash, Value::Map({
+        let result: Value = self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("checksum".to_string(), Value::Bool(false));
             m
         })).await;
         let checksum: bool = self.safe_bool_k_opt(&self.options, "checksum", &[Value::Bool(true)]).unwrap_or(true);
         if checksum && (channel == "book") {
-            let sub: Value = client.get_subscription(&messageHash);
+            let sub: Value = client.get_subscription(messageHash.as_str());
             let subChecksum: bool = self.safe_bool_k_opt(&sub, "checksum", &[Value::Bool(false)]).unwrap_or(false);
             if (sub != Value::Null) && !subChecksum {
-                add_element_to_object(get_value_mut(&mut (client).subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
+                let mut subUpdated: Value = self.extend(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[sub]);
+                if let Value::Dict(__rda) = &mut subUpdated { std::sync::Arc::make_mut(__rda).insert("checksum".to_string(), Value::Bool(true)); }
+                client.add_subscription(messageHash.as_str(), subUpdated);
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("event".to_string(), Value::Str("conf".into()));

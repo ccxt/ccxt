@@ -257,7 +257,8 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            if !(client.has_subscription(&hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
+            let hashToCheck: String = self.safe_string(&hashesToCheck, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if !(client.has_subscription(hashToCheck.as_str())) {
                 willSend = true;
             }
         }

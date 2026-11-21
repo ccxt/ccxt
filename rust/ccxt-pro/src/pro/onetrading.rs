@@ -1443,18 +1443,14 @@ impl Onetrading {
                 });
             }
         }
-        let subscriptionMarketId: Option<crate::value::Dict> = self.safe_dict_o(&subscription, &marketId);
-        if (subscriptionMarketId.is_none()) {
-            if (marketId != Value::Null) {
-                add_element_to_object(&mut subscription, &marketId, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-            }
+        let mut marketTimeframes: indexmap::IndexMap<String, Value> = self.safe_dict(&subscription, marketId.clone(), &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        if (timeframe != Value::Null) {
+            marketTimeframes.insert(crate::runtime::stringify_param(&timeframe), Value::Bool(true));
         }
-        if (marketId != Value::Null) && (timeframe != Value::Null) {
-            add_element_to_object(get_value_mut(&mut subscription, &marketId), &timeframe, Value::Bool(true));
-        }
+        add_element_to_object(&mut subscription, &marketId, Value::Map(marketTimeframes));
         let mut properties: Vec<Value> = Vec::new();
         let marketIds: Vec<Value> = object_keys(&subscription).as_array().cloned().unwrap_or_default();
         {
@@ -1571,17 +1567,16 @@ impl Onetrading {
         if (timeframesResolved == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " findTimeframe() timeframes is required")));
         }
+        let unit: Option<String> = self.safe_string_k_opt(&timeframe, "unit", &[]);
+        let period: Option<String> = self.safe_string_k_opt(timeframe, "period", &[]);
         let mut keys: Vec<&str> = timeframesResolved.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (keys.len() as i64) } {
             let key: Option<String> = keys.get(i as usize).copied().map(str::to_owned);
-            let timeframeResolved: indexmap::IndexMap<String, Value> = self.safe_dict(&timeframesResolved, key.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]).as_map().cloned().unwrap_or_default();
-            if is_equal(&timeframeResolved.get("unit").cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&timeframe, "unit")) && is_equal(&timeframeResolved.get("period").cloned().unwrap_or(Value::Null), &crate::value::get_value_k(&timeframe, "period")) {
+            if ((unit.as_deref() == self.safe_string((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("unit".into()), &[]).as_str())) && ((period.as_deref() == self.safe_string((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(),
+                key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("period".into()), &[]).as_str())) {
                 return key;
             }
         }

@@ -2403,8 +2403,8 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetAccount` implicit endpoint.
-    pub async fn dapi_private_get_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("dapi_private_get_account".into()), optional_args).await
+    pub async fn dapi_private_get_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("dapi_private_get_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `dapiPrivateGetPositionMarginHistory` implicit endpoint.
@@ -3868,13 +3868,13 @@ impl Binance {
     }
 
     /// Auto-generated wrapper for the `papiGetUmAccount` implicit endpoint.
-    pub async fn papi_get_um_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_um_account".into()), optional_args).await
+    pub async fn papi_get_um_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("papi_get_um_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `papiGetCmAccount` implicit endpoint.
-    pub async fn papi_get_cm_account(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("papi_get_cm_account".into()), optional_args).await
+    pub async fn papi_get_cm_account(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("papi_get_cm_account", optional_args).await
     }
 
     /// Auto-generated wrapper for the `papiGetRepayFuturesSwitch` implicit endpoint.

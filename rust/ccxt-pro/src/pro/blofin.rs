@@ -1387,7 +1387,7 @@ impl Blofin {
                 let mut channel: String = channelName.to_string();
                 if isOHLCV {
                     market = Some(match self.market(current.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                    let tf: Option<String> = self.safe_string_opt(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[]);
+                    let tf: String = self.safe_string(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     let interval: Option<String> = self.safe_string_opt(&self.timeframes, &tf, &[&tf]);
                     channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
                 }  else {
@@ -1467,7 +1467,7 @@ impl Blofin {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut channel: String = channelName.to_string();
             if isOHLCV {
-                let tf: Option<String> = self.safe_string_opt(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[]);
+                let tf: String = self.safe_string(self.safe_list(&symbolsArray, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let interval: Option<String> = self.safe_string_opt(&self.timeframes, &tf, &[&tf]);
                 channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
             }

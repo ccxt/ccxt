@@ -89,9 +89,14 @@ impl crate::exchange::DerivedExchange for Predictfun {
         if (rawFee.is_some()) {
             let feeType: Option<String> = self.safe_string_k_opt(&rawFee, "type", &[]);
             let feeCost: Option<String> = self.safe_string_k_opt(&rawFee, "amount", &[]);
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let mut feeCurrency: Option<String> = None;
+            if (feeType.as_deref() == Some("COLLATERAL")) {
+                feeCurrency = Some("USDT".to_string());
+            }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
+                    m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&feeCost, &Value::Str("1000000000000000000".into())), &[]));
                 m
             }));
@@ -4862,9 +4867,14 @@ impl Predictfun {
         let mut fee: Option<crate::value::Dict> = None;
         if (rawFee.is_some()) {
             let feeType: Option<String> = self.safe_string_k_opt(&rawFee, "type", &[]);
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            let mut feeCurrency: Option<String> = None;
+            if (feeType.as_deref() == Some("COLLATERAL")) {
+                feeCurrency = Some("USDT".to_string());
+            }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), (if (feeType.as_deref() == Some("COLLATERAL")) { Value::Str("USDT".into()) } else { Value::Null }));
+                    m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&rawFee, "amountWei", &[]), &Value::Str("1000000000000000000".into())), &[]));
                 m
             }));

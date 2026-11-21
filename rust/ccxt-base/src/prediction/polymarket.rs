@@ -1880,13 +1880,13 @@ impl Polymarket {
                                 let mut oi: i64 = 0;
                 let mut __for_first_17: bool = true;
                 while { if !__for_first_17 { oi += 1; } __for_first_17 = false; oi < (outcomeLabels.len() as i64) } {
-                let outcomeLabel: Value = outcomeLabels.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
-                let clobTokenId: Value = clobTokenIds.as_array().map(Vec::as_slice).unwrap_or_default().get(oi as usize).cloned().unwrap_or(Value::Null);
+                let outcomeLabel: Option<String> = self.safe_string_opt(&outcomeLabels, Value::Int(oi), &[]);
+                let clobTokenId: Option<String> = self.safe_string_opt(&clobTokenIds, Value::Int(oi), &[]);
                 let outcomePrice: Option<f64> = self.safe_number(&outcomePrices, Value::Int(oi), &[]).as_f64();
-                if (clobTokenId == Value::Null) || (clobTokenId.as_str() == Some("")) {
+                if (clobTokenId.is_none()) || (clobTokenId.as_deref() == Some("")) {
                     continue;
                 }
-                let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.as_deref()), outcomeLabel.clone()).as_str().map(str::to_owned);
+                let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.as_deref()), outcomeLabel.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 let mut winnerRaw: Option<bool> = None;
                 let mut settleFractionRaw: Option<i64> = None;
                 if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice.is_some()) {
@@ -1910,9 +1910,9 @@ impl Polymarket {
                 outcomes.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("outcomeId".to_string(), clobTokenId);
+                        m.insert("outcomeId".to_string(), clobTokenId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
-                        m.insert("label".to_string(), outcomeLabel);
+                        m.insert("label".to_string(), outcomeLabel.map(Value::from).unwrap_or(Value::Null));
                         m.insert("price".to_string(), Value::from(outcomePrice));
                         m.insert("active".to_string(), Value::Bool((active && !(closed))));
                         m.insert("winner".to_string(), winner);
@@ -2252,7 +2252,7 @@ impl Polymarket {
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenIds: Value = Value::from(vec![]);
+        let mut tokenIds: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
@@ -2261,7 +2261,7 @@ impl Polymarket {
             let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) && !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
                 outcomesByTokenId.insert(tokenId.as_deref().unwrap_or("null").to_string(), crate::Value::from(outcomeObj.as_ref()));
-                if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(tokenId.map(Value::from).unwrap_or(Value::Null)); }
+                std::sync::Arc::make_mut(&mut tokenIds).push(tokenId.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -2284,7 +2284,7 @@ impl Polymarket {
                 while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < endIndex } {
                 bookParams.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("token_id".to_string(), get_value(&tokenIds, &Value::Int(i)));
+                        m.insert("token_id".to_string(), self.safe_string(&tokenIds, Value::Int(i), &[]));
                     m
                 }));
             }
@@ -4161,12 +4161,13 @@ impl Polymarket {
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            effectiveParams = self.extend(Value::Map({
-                let m = indexmap::IndexMap::new();
+            let defaults: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("status".to_string(), self.safe_string_k(&params, "status", &[Value::Str("active".into())]));
+                    m.insert("searchIn".to_string(), self.safe_string_k(&params, "searchIn", &[Value::Str("title".into())]));
                 m
-            }), &[&params]);
-            add_element_to_object(&mut effectiveParams, &Value::Str("status".into()), self.safe_string_k(&params, "status", &[Value::Str("active".into())]));
-            add_element_to_object(&mut effectiveParams, &Value::Str("searchIn".into()), self.safe_string_k(params, "searchIn", &[Value::Str("title".into())]));
+            });
+            effectiveParams = self.extend(params, &[Value::Map(defaults)]);
         }
         return self.apply_event_fetch_params(Value::from(result), &[effectiveParams, Value::Arr(queries)]);
         Value::Null
@@ -4973,8 +4974,8 @@ if _try_result.is_err() {
         m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
         m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
         m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
-        m.insert("timestamp".to_string(), orderbook.book_field("timestamp"));
-        m.insert("datetime".to_string(), orderbook.book_field("datetime"));
+        m.insert("timestamp".to_string(), self.safe_integer_k(Value::from(&orderbook), "timestamp", &[]));
+        m.insert("datetime".to_string(), self.safe_string_k(Value::from(&orderbook), "datetime", &[]));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::from(bestBid));

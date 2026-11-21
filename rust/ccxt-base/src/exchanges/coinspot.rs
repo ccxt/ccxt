@@ -1311,9 +1311,9 @@ impl Coinspot {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             if (market).spot {
-                let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+                let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let ticker: crate::value::Dict = prices.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict));
+                result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict));
             }
         }
         }

@@ -697,15 +697,14 @@ impl Hashkey {
         let marketId: Option<String> = self.safe_string_k_opt(&order, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&order, "O", &[]).as_i64();
-        let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "S", &[]);
-        let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_side_and_reduce_only(Value::from(&side)).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
-        let mut type_var: Option<String> = self.parent.parse_order_type(self.safe_string_k(&order, "o", &[]).as_str());
-        let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "f", &[]);
-        let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parent.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_deref()).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); timeInForce = __destr_tmp.get(1).and_then(Value::as_str).map(str::to_owned); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
+        let rawSide: Option<String> = self.safe_string_lower_k_opt(&order, "S", &[]);
+        let side: Option<String> = self.parent.parse_order_side_value(rawSide.as_deref());
+        let rawType: Option<String> = self.parent.parse_order_type(self.safe_string_k(&order, "o", &[]).as_str());
+        let rawTimeInForce: Option<String> = self.safe_string_k_opt(&order, "f", &[]);
+        let timeInForce: Option<String> = self.parent.parse_order_time_in_force_value(rawType.as_deref(), rawTimeInForce.as_deref());
+        let mut type_var: Value = self.parent.parse_order_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (marketResolved).contract {
-            type_var = None;
+            type_var = Value::Null;
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -717,7 +716,7 @@ impl Hashkey {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&order, "X", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), type_var);
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(&order, "p", &[]));
@@ -737,8 +736,8 @@ impl Hashkey {
         m.insert("amount".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "n", &[]))));
     m
 }));
-        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
+        m.insert("reduceOnly".to_string(), self.parent.parse_order_reduce_only_value(rawSide.as_deref()));
+        m.insert("postOnly".to_string(), self.parent.parse_order_post_only_value(rawType.as_deref(), rawTimeInForce.as_deref()));
         m.insert("info".to_string(), order);
     m
 }), Some(&marketResolved));
@@ -1125,17 +1124,11 @@ impl Hashkey {
         if isSpot {
             type_var = "spot".to_string();
         }
-        if !(self.balance.contains_key(type_var.as_str())) {
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})); }
-        }
-        { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(type_var.to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
         let mut balance: indexmap::IndexMap<String, Value> = self.balance.get(type_var.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })).as_map().cloned().unwrap_or_default();
+        balance.insert("info".into(), message);
         let currencyId: Option<String> = self.safe_string_k_opt(&balanceUpdate, "a", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

@@ -2770,7 +2770,7 @@ impl Okx {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string();
             type_var = self.safe_string_k_opt(&market, "type", &[]);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         if (type_var.as_deref() == Some("future")) {
             type_var = Some("futures".to_string());
@@ -2860,7 +2860,10 @@ impl Okx {
             newPositions = self.subscribe_multiple("private", channel.as_str(), &[&symbolsNormalized.clone().map_or(Value::Null, Value::Arr), &__ws_arg_2]).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
-            return (if (newPositions == Value::Null) { Value::from(vec![]) } else { newPositions });
+            if (newPositions == Value::Null) {
+                return Value::from(vec![]);
+            }
+            return newPositions;
         }
         return Value::Arr(self.filter_by_symbols_since_limit(&self.positions, &symbolsNormalized, since, limit, &[Value::Bool(true)]));
         Value::Null

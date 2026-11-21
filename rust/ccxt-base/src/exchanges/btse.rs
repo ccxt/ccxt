@@ -3473,7 +3473,7 @@ impl Btse {
             }
             query = self.omit_t(Value::Dict(query), &["takeProfit", "stopLoss"], &[]);
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if !isAlgoOrder {
             request.insert("orderType".into(), Value::from(typeValue.clone()));
             if isLimitOrder {
@@ -3565,16 +3565,7 @@ impl Btse {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&query]);
             response = self.private_post_futures_api_v3_trade_orders_algo(&[&__ws_arg_15]).await;
         }
-        // the normal futures endpoint responds with a single order dict, keep a
-        // one element array guard in case a gateway wraps it
-        let mut order: Option<crate::value::Dict> = response.clone().into_opt_dict();
-        if (matches!(&response, Value::Arr(_))) {
-            order = self.safe_dict_or_o(&response, Value::Int(0), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

@@ -343,16 +343,15 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 type_var = Some("limit".to_string());
             }
         }
-        let mut timeInForce: Option<String> = self.safe_string_k_opt(&order, "timeInForce", &[]);
-        let mut postOnly: Option<bool> = None;
-        { let __destr_tmp = self.parse_order_type_time_in_force_and_post_only(type_var.as_deref(), timeInForce.as_deref()).into_list(); type_var = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); timeInForce = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); postOnly = __destr_tmp.get(2).and_then(Value::as_bool); }
+        let rawTimeInForce: Option<String> = self.safe_string_k_opt(&order, "timeInForce", &[]);
+        let timeInForce: Option<String> = self.parse_order_time_in_force_value(type_var.as_deref(), rawTimeInForce.as_deref());
+        let typeParsed: Option<String> = self.parse_order_type(type_var.as_deref());
         let average: Option<String> = self.omit_zero(self.safe_string_k(&order, "avgPrice", &[]));
         if (price.is_none()) {
             price = average.clone();
         }
-        let mut side: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
-        let mut reduceOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.parse_order_side_and_reduce_only(Value::from(&side)).as_array().cloned().unwrap_or_default(); side = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); reduceOnly = __destr_tmp.get(1).and_then(Value::as_bool); }
+        let rawSide: Option<String> = self.safe_string_lower_k_opt(&order, "side", &[]);
+        let side: Option<String> = self.parse_order_side_value(rawSide.as_deref());
         let mut feeCurrncyId: Option<String> = self.safe_string_k_opt(&order, "feeCoin", &[]);
         if (feeCurrncyId.as_deref() == Some("")) {
             feeCurrncyId = None;
@@ -367,7 +366,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(&order, "updateTime", &[]));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), typeParsed.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -386,8 +385,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "feeAmount", &[]))));
     m
 }));
-        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
+        m.insert("reduceOnly".to_string(), self.parse_order_reduce_only_value(rawSide.as_deref()));
+        m.insert("postOnly".to_string(), self.parse_order_post_only_value(type_var.as_deref(), rawTimeInForce.as_deref()));
         m.insert("info".to_string(), order);
     m
 }), Some(&marketResolved)));
@@ -1494,8 +1493,8 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_order_side_and_reduce_only" => self.parse_order_side_and_reduce_only(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_order_type_time_in_force_and_post_only" => self.parse_order_type_time_in_force_and_post_only(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
+                "parse_order_post_only_value" => self.parse_order_post_only_value(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
+                "parse_order_reduce_only_value" => self.parse_order_reduce_only_value(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_swap_balance" => self.parse_swap_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4742,18 +4741,25 @@ impl Hashkey {
 }
 
 
-    pub fn parse_order_side_and_reduce_only(&self, unparsed: impl Into<crate::Value>) -> Value {
-        let unparsed: Value = unparsed.into();
-        let parts: Value = split(&unparsed, &Value::Str("_".into()));
-        let side: Value = get_value(&parts, &Value::Int(0));
-        let secondPart: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
+    pub fn parse_order_side_value(&self, unparsed: Option<&str>) -> Option<String> {
+        if (unparsed.is_none()) {
+            return None;
+        }
+        return self.safe_string_opt(Value::Array(if let Some(__s) = unparsed { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[]);
+}
+
+    pub fn parse_order_reduce_only_value(&self, unparsed: Option<&str>) -> Value {
+        if (unparsed.is_none()) {
+            return Value::Null;
+        }
+        let secondPart: Option<String> = self.safe_string_opt(Value::Array(if let Some(__s) = unparsed { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[]);
         if (secondPart.as_deref() == Some("open")) {
-            return Value::from(vec![side, Value::Bool(false)]);
+            return Value::Bool(false);
         }
         if (secondPart.as_deref() == Some("close")) {
-            return Value::from(vec![side, Value::Bool(true)]);
+            return Value::Bool(true);
         }
-        return Value::from(vec![side, Value::Null]);
+        return Value::Null;
 
     Value::Null
 }
@@ -4775,17 +4781,20 @@ impl Hashkey {
         return self.safe_string_opt(&statuses, &status, &[&status]);
 }
 
-    pub fn parse_order_type_time_in_force_and_post_only(&self, type_var: Option<&str>, timeInForce: Option<&str>) -> Value {
+    pub fn parse_order_time_in_force_value(&self, type_var: Option<&str>, timeInForce: Option<&str>) -> Option<String> {
         let isMakerTimeInForce: bool = (timeInForce == Some("LIMIT_MAKER")) || (timeInForce == Some("MAKER"));
-        let mut timeInForceParsed: Value = Value::from(timeInForce);
         if (type_var != Some("LIMIT_MAKER")) && isMakerTimeInForce {
-            timeInForceParsed = Value::Str("PO".into());
+            return Value::Str("PO".into()).as_str().map(str::to_owned);
         }
-        let typeValue: Option<String> = self.parse_order_type(type_var);
+        return timeInForce.map(str::to_owned);
+}
+
+    pub fn parse_order_post_only_value(&self, type_var: Option<&str>, timeInForce: Option<&str>) -> Value {
+        let isMakerTimeInForce: bool = (timeInForce == Some("LIMIT_MAKER")) || (timeInForce == Some("MAKER"));
         if (type_var == Some("LIMIT_MAKER")) || isMakerTimeInForce {
-            return Value::from(vec![Value::from(typeValue.as_deref()), timeInForceParsed.clone(), Value::Bool(true)]);
+            return Value::Bool(true);
         }
-        return Value::from(vec![typeValue.map(Value::from).unwrap_or(Value::Null), timeInForceParsed, Value::Null]);
+        return Value::Null;
 
     Value::Null
 }
@@ -4973,21 +4982,21 @@ impl Hashkey {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let symbols: Option<Vec<String>> = symbols;
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let methodName: String = "fetchPositions".to_string();
-        if (symbols == Value::Null) {
+        if (symbols.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() requires a symbol argument with one single market symbol")));
         }  else {
-            let symbolsLength: i64 = symbols.len() as i64;
+            let symbolsLength: i64 = symbols.as_ref().map_or(0, Vec::len) as i64;
             if (symbolsLength != 1) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() is supported for a symbol argument with one single market symbol only")));
             }
@@ -4995,12 +5004,13 @@ impl Hashkey {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
+        let firstSymbol: String = self.safe_string(Value::from(symbols), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let __ws_arg_36 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("methodName".to_string(), Value::Str("fetchPositions".into()));
     m
 }), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), __ws_arg_36).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(firstSymbol.as_str(), __ws_arg_36).await);
         Value::Null
         }).await?))
     }
@@ -5424,8 +5434,9 @@ impl Hashkey {
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
             let fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
-            let parsedFee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(&fee, None));
-            result.insert(crate::runtime::stringify_param(&(parsedFee.get("symbol").cloned().unwrap_or(Value::Null))), Value::Map(parsedFee));
+            let parsedFee: crate::value::Dict = self.parse_trading_fee(&fee, None);
+            let feeSymbol: String = self.safe_string_k(&parsedFee, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(feeSymbol, Value::Dict(parsedFee));
         }
         }
         return Value::Map(result);

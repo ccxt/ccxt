@@ -277,8 +277,8 @@ impl Luno {
         if (length == 0) {
             return;
         }
-        let symbol: Value = subscription.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let symbol: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = (market).symbol.clone();
         let messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbolValue);

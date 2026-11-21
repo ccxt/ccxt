@@ -792,7 +792,11 @@ impl Htx {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrderBook");
-        let limitResolved: Option<i64> = self.parse_to_int((if (limit.is_none()) { self.safe_integer_k(&options, "depth", &[Value::Int(150)]) } else { Value::from(limit) }));
+        let mut limitValue: Option<i64> = limit;
+        if (limit.is_none()) {
+            limitValue = self.safe_integer_k(&options, "depth", &[Value::Int(150)]).as_i64();
+        }
+        let limitResolved: Option<i64> = self.parse_to_int(Value::from(limitValue));
         if !self.in_array(&limitResolved, &allowedLimits) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")));
         }
@@ -2087,7 +2091,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut market: Value = Value::Null;
         let mut messageHash: String = "".to_string();
-        if (!(self.is_empty(symbols.clone()).as_bool() == Some(true))) && (symbols != Value::Null) {
+        let hasMarket: bool = (!(self.is_empty(symbols.clone()).as_bool() == Some(true))) && (symbols != Value::Null);
+        if hasMarket {
             market = crate::types::IntoRaw::into_raw(self.get_market_from_symbols(symbols.as_array()));
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
@@ -2097,7 +2102,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let m = indexmap::IndexMap::new();
             m
         });
-        if (market != Value::Null) {
+        if hasMarket {
             type_var = self.safe_string_k(&market, "type", &[]);
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 subType = Some("linear".to_string());
@@ -2112,7 +2117,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             { let __destr_tmp = self.handle_option_string_and_params(&paramsMarketType, Value::Str("watchPositions".into()), Value::Str("subType".into()), &[Value::from(&subType)]); subType = __destr_tmp.0.as_str().map(str::to_owned); paramsSubType = Value::Dict(__destr_tmp.1); }
         }
         let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
-        let paramsPositions: Value = (if (market != Value::Null) { params } else { paramsSubType });
+        let paramsPositions: Value = (if hasMarket { params } else { paramsSubType });
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("watchPositions".into()), &[&paramsPositions, &Value::Str("cross".into())]);
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;

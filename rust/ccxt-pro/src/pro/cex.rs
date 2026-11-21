@@ -353,12 +353,16 @@ impl Cex {
         if (currentSymbol.is_some()) && (currentSymbol.as_deref() != Some(symbol.as_str().unwrap_or_default().to_string().as_str())) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")));
         }
-        let mut watchTradesDict: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "watchTrades", &[Value::Map({
+        let __ws_arg_0 = self.safe_dict_k(&self.options, "watchTrades", &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        })]).as_map().cloned().unwrap_or_default();
-        watchTradesDict.insert("symbol".into(), symbol.clone());
-        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("watchTrades".into(), Value::Map(watchTradesDict)); }
+        })]);
+        let mut watchTradesDict: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_0]);
+        std::sync::Arc::make_mut(&mut watchTradesDict).insert("symbol".into(), symbol.clone());
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("watchTrades".into(), Value::Dict(watchTradesDict)); }
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1131,33 +1135,33 @@ impl Cex {
             // market comes from safeMarket, so the parser never takes its undefined returns here
             order = self.parse_ws_order_update(&data, Some(&market));
         }
-        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("remaining".into(), remains.map(Value::from).unwrap_or(Value::Null)); }
+        let mut orderUpdate: indexmap::IndexMap<String, Value> = ({
+            let m = indexmap::IndexMap::new();
+            m
+        });
+        orderUpdate.insert("remaining".into(), remains.map(Value::from).unwrap_or(Value::Null));
         let canceled: bool = self.safe_bool_k_opt(&data, "cancel", &[Value::Bool(false)]).unwrap_or(false);
         if canceled {
-            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }
+            orderUpdate.insert("status".into(), Value::Str("canceled".into()));
         }
         if isTransaction {
-            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }
+            orderUpdate.insert("status".into(), Value::Str("closed".into()));
         }
         let fee: Option<f64> = self.safe_number_k(&data, "fee", &[]).as_f64();
         if (fee.is_some()) {
-            if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map({
+            orderUpdate.insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::from(fee));
         m.insert("currency".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("rate".to_string(), Value::Null);
     m
-})); }
+}));
         }
         let timestamp: Option<i64> = self.safe_integer_k(&data, "time", &[]).as_i64();
-        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
-        if let Some(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("datetime".into(), self.iso8601(timestamp)); }
-        // a fresh map copy: the cached entry is untyped
-        let __ws_arg_0 = self.extend(order, &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]);
-        let parsedOrder: Value = Value::Dict(self.safe_order(__ws_arg_0, None));
+        orderUpdate.insert("timestamp".into(), Value::from(timestamp));
+        orderUpdate.insert("datetime".into(), self.iso8601(timestamp));
+        let __ws_arg_1 = self.extend(order, &[Value::Map(orderUpdate)]);
+        let parsedOrder: Value = Value::Dict(self.safe_order(__ws_arg_1, None));
         self.orders.append(parsedOrder);
         let messageHash: String = format!("{}{}", "orders:", symbol);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
@@ -1567,8 +1571,8 @@ impl Cex {
                 m.insert("rooms".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "pair-", baseId).into()), "-").into()), quoteId).into())]));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
@@ -2188,8 +2192,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 }));
                 m
             });
-            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-            self.watch(url.as_str(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
+            let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+            self.watch(url.as_str(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

@@ -2839,17 +2839,21 @@ impl Hyperliquid {
             }
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["until"], &[]);
+        let mut req: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("coin".to_string(), Value::from((market).id.as_deref()));
+                m.insert("interval".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
+                m.insert("startTime".to_string(), startTime);
+                m.insert("endTime".to_string(), Value::from(until));
+            m
+        });
+        if (market).swap {
+            req.insert("coin".into(), self.safe_string_k(&market, "baseName", &[]));
+        }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("candleSnapshot".into()));
-                m.insert("req".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("coin".to_string(), (if (market).swap { self.safe_string_k(&market, "baseName", &[]) } else { Value::from((market).id.as_deref()) }));
-        m.insert("interval".to_string(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
-        m.insert("startTime".to_string(), startTime);
-        m.insert("endTime".to_string(), Value::from(until));
-    m
-}));
+                m.insert("req".to_string(), Value::Map(req));
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -3852,7 +3856,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (statuses.len() as i64) } {
             let order: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (order.as_str() == Some("waitingForTrigger")) {
+            if (self.safe_string(&statuses, Value::Int(i), &[]).as_str() == Some("waitingForTrigger")) {
                 ordersToBeParsed.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), order.clone());
@@ -6049,18 +6053,22 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let defaultDex: String = (if ((transferType.as_deref() == Some("swap")) || (transferType.as_deref() == Some("perp"))) { "".to_string() } else { "spot".to_string() });
             let sourceDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "sourceDex", &[&defaultDex]);
             let destinationDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "destinationDex", &[&defaultDex]);
-            let sendAssetPayload: indexmap::IndexMap<String, Value> = ({
+            let mut sendAssetPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                    m.insert("destination".to_string(), (if isDeposit { subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null) } else { masterAddress.map(Value::from).unwrap_or(Value::Null) }));
+                    m.insert("destination".to_string(), masterAddress.map(Value::from).unwrap_or(Value::Null));
                     m.insert("sourceDex".to_string(), Value::from(sourceDex.as_deref()));
                     m.insert("destinationDex".to_string(), Value::from(destinationDex.as_deref()));
                     m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(&amount)));
-                    m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null) }));
+                    m.insert("fromSubAccount".to_string(), subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
+            if isDeposit {
+                sendAssetPayload.insert("destination".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null));
+                sendAssetPayload.insert("fromSubAccount".into(), Value::Str("".into()));
+            }
             let sendAssetSig: crate::value::Dict = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone())).into_dict();
             let sendAssetRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -6902,11 +6910,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let params = params.as_map().unwrap_or(&__params_empty);
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
-        if (config.contains_key("byType")) && (params.contains_key("type")) {
-            let type_var: Value = params.get("type").cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = (match params.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        if (config.contains_key("byType")) && (type_var.is_some()) {
             let byType: crate::value::Dict = config.key_dict("byType");
-            if (matches!(&type_var, Value::Str(__k) if byType.contains_key(__k.as_ref()))) {
-                return crate::value::KeyRead::read(&&byType, &type_var);
+            if (matches!(type_var.as_deref(), Some(__k) if byType.contains_key(__k))) {
+                return crate::value::KeyRead::read(&&byType, &Value::from(type_var.as_deref()));
             }
         }
         return (match config.get("cost") { Some(Value::Float(__f)) => Value::Float(*__f), Some(Value::Int(__n)) => Value::Float(*__n as f64), Some(Value::Str(__s)) => __s.parse::<f64>().map_or(Value::Int(1), Value::Float), _ => Value::Int(1) });

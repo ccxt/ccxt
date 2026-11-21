@@ -4103,10 +4103,16 @@ impl Polymarket {
     m
 }));
         if (path.as_str() == Some("account/orders")) {
-            return (if (in_op(&params, &Value::Str("order_id".into()))) { Value::Int(1) } else { Value::Int(10) });
+            if (self.safe_string_k(&params, "order_id", &[]) != Value::Null) {
+                return Value::Int(1);
+            }
+            return Value::Int(10);
         }
         if (path.as_str() == Some("account/open-orders")) {
-            return (if (in_op(&params, &Value::Str("instrument_id".into()))) { Value::Int(1) } else { Value::Int(20) });
+            if (self.safe_string_k(&params, "instrument_id", &[]) != Value::Null) {
+                return Value::Int(1);
+            }
+            return Value::Int(20);
         }
         if (path.as_str() == Some("trade/orders")) || (path.as_str() == Some("trade/orders-coid")) {
             let op: crate::value::Dict = self.safe_dict_k_t(&params, "op");

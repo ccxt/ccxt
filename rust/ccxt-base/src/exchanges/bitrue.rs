@@ -4134,9 +4134,11 @@ impl Bitrue {
 }));
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
-        if (config.contains_key("noSymbol")) && !(matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
+        let paramsSymbol: Option<String> = self.safe_string_k_opt(&params, "symbol", &[]);
+        let paramsLimit: Option<String> = self.safe_string_k_opt(&params, "limit", &[]);
+        if (config.contains_key("noSymbol")) && (paramsSymbol.is_none()) {
             return config.get("noSymbol").cloned().unwrap_or(Value::Null);
-        }  else if (config.contains_key("byLimit")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("limit"))) {
+        }  else if (config.contains_key("byLimit")) && (paramsLimit.is_some()) {
             let limit: Option<i64> = self.safe_integer_k(params, "limit", &[]).as_i64();
             let byLimit: crate::value::List = config.key_list("byLimit");
             {

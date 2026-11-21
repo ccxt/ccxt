@@ -336,10 +336,14 @@ impl crate::exchange::DerivedExchange for Bitget {
             let feeCostString: Option<String> = self.safe_string2_opt(&feeStructure, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]);
             let deductionString: Option<String> = self.safe_string_k_opt(&feeStructure, "deduction", &[]);
             let deduction: bool = deductionString.as_deref() == Some("yes");
+            let mut feeCostSigned: Option<String> = feeCostString.clone();
+            if !deduction {
+                feeCostSigned = crate::precise::Precise::stringNeg(&feeCostString).as_str().map(str::to_owned);
+            }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), currencyCode.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("cost".to_string(), (if deduction { feeCostString.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringNeg(&feeCostString) }));
+                    m.insert("cost".to_string(), feeCostSigned.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
         }
@@ -10211,7 +10215,11 @@ if _try_result.is_err() {
         }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             let mut productType: Option<String> = None;
             { let __destr_tmp = self.handle_product_type_and_params(None, &[Value::from(&paramsMarginMode)]); productType = __destr_tmp.0.as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.1; }
-            std::sync::Arc::make_mut(&mut paramsMarginMode).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            paramsMarginMode = self.extend_t(&paramsMarginMode, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("productType".to_string(), productType.map(Value::from).unwrap_or(Value::Null));
+    m
+})]);
             response = self.call_method_o("public_mix_get_v2_mix_market_contracts", &[&Value::Dict(paramsMarginMode)]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " market")));

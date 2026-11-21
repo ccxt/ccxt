@@ -2784,7 +2784,8 @@ impl Phemex {
         if (settleId != quoteId) {
             inverse = true;
             // some unhandled cases
-            if !(matches!(&market, Value::Dict(__d) if __d.contains_key("baseCurrency"))) && (base == quote) {
+            let marketBaseCurrency: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
+            if (marketBaseCurrency.is_none()) && (base == quote) {
                 base = settle.clone();
             }
         }
@@ -4615,7 +4616,11 @@ impl Phemex {
             }
             request.insert("qtyType".into(), Value::from(qtyType.clone()));
             if (qtyType == "ByQuote") {
-                let mut cost: Option<f64> = self.safe_number_k(&orderParams, "cost", &[]).as_f64();
+                let costParam: Option<f64> = self.safe_number_k(&orderParams, "cost", &[]).as_f64();
+                let mut cost: Option<f64> = Some(amount);
+                if (costParam.is_some()) {
+                    cost = self.safe_number_k(&orderParams, "cost", &[]).as_f64();
+                }
                 orderParams = self.omit(orderParams, Value::Str("cost".into()), &[]);
                 if matches!(self.safe_bool_k(&self.options, "createOrderByQuoteRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (price.is_some()) {
@@ -4623,11 +4628,10 @@ impl Phemex {
                         let priceString: Option<String> = self.number_to_string(&price);
                         let quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                         cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
-                    }  else if (cost.is_none()) {
+                    }  else if (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() ").into()), qtyType).into()), " requires a price argument or a cost parameter")));
                     }
                 }
-                cost = (if (cost.is_none()) { Some(amount) } else { cost });
                 let costString: Option<String> = self.cost_to_precision(symbol.as_str(), cost);
                 request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[&(market).raw]));
             }  else {

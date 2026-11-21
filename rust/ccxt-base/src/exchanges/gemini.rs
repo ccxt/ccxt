@@ -2141,10 +2141,10 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (fetchUsdtMarkets.len() as i64) } {
-            let marketId: Option<String> = fetchUsdtMarkets.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let marketId: String = self.safe_string(&fetchUsdtMarkets, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("symbol".to_string(), Value::from(marketId));
                 m
             });
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
@@ -2177,7 +2177,7 @@ impl Gemini {
         let mut result: Vec<Value> = Vec::new();
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarketsFromAPI");
         let brokenPairs: crate::value::List = self.safe_list_k_t(&self.options, "brokenPairs");
-        let mut marketIds: Vec<Value> = Vec::new();
+        let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut allMarketIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketIdsRaw.is_some()) {
             allMarketIds = marketIdsRaw.unwrap_or_default();
@@ -2187,7 +2187,7 @@ impl Gemini {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (allMarketIds.len() as i64) } {
             if !self.in_array(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&brokenPairs)) {
-                marketIds.push(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut marketIds).push(allMarketIds.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -2197,10 +2197,10 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (marketIds.len() as i64) } {
-                let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+                let marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), Value::from(marketId.as_deref()));
+                        m.insert("symbol".to_string(), Value::from(marketId));
                     m
                 });
                 let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
@@ -2227,9 +2227,9 @@ impl Gemini {
                                         let mut i: i64 = 0;
                     let mut __for_first_5: bool = true;
                     while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (marketIds.len() as i64) } {
-                    let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-                    let mut pairInfo: Option<crate::value::List> = self.safe_list_o(&indexedTradingPairs, marketId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
-                    if (pairInfo.is_some()) && !self.in_array(Value::from(marketId.as_deref()), Value::from(&brokenPairs)) {
+                    let marketId: String = self.safe_string(&marketIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut pairInfo: Option<crate::value::List> = self.safe_list_o(&indexedTradingPairs, Value::from(marketId.to_uppercase()));
+                    if (pairInfo.is_some()) && !self.in_array(&marketId, Value::from(&brokenPairs)) {
                         let parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, pairInfo.map_or(Value::Null, Value::Arr));
                         if (parsed != Value::Null) {
                             result.push(parsed.clone());

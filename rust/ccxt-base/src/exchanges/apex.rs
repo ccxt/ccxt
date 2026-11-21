@@ -1666,7 +1666,10 @@ impl Apex {
                 m.insert("symbol".to_string(), self.safe_string_k(&market, "id2", &[]));
             m
         });
-        request.insert("limit".into(), (if (limit.is_none()) { Value::Int(100) } else { Value::from(limit) })); // max 100, default 100
+        request.insert("limit".into(), Value::Int(100)); // max 100, default 100
+        if (limit.is_some()) {
+            request.insert("limit".into(), Value::from(limit));
+        }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_v3_depth(&[&__ws_arg_2]).await.unwrap_or_default();
         //
@@ -1966,7 +1969,7 @@ impl Apex {
                                                 let mut i: i64 = 0;
                         let mut __for_first_3: bool = true;
                         while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < numMarkets } {
-                        if (i == 0) && (markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id2")).cloned().unwrap_or(Value::Null).as_str() == marketId) {
+                        if (i == 0) && (self.safe_string_k(markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "id2", &[]).as_str() == marketId) {
                             marketResolved = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                         }
                     }

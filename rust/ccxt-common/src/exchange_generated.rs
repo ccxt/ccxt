@@ -1538,8 +1538,10 @@ pub trait ExchangeBase:
             if (parsed == Value::Null) {
                 continue;
             }
-            let code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
-            result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+            let code: Option<String> = self.safe_string_k_opt(&parsed, "code", &[]);
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+            }
         }
         }
         return Value::Map(result);
@@ -7702,14 +7704,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return None;
         }
         let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let marketSymbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+        let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let result: Option<String> = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         if (result.as_deref() == Some("0")) {
             let pricePrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
             if (pricePrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " priceToPrecision() market ").into()), marketSymbol.as_deref().unwrap_or("null")).into()), " has no price precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " priceToPrecision() market ").into()), marketSymbol).into()), " has no price precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " price of ").into()), marketSymbol.as_deref().unwrap_or("null")).into()), " must be greater than minimum price precision of ").into()), pricePrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " price of ").into()), marketSymbol).into()), " must be greater than minimum price precision of ").into()), pricePrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -7720,14 +7722,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return None;
         }
         let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let marketSymbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+        let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let result: Option<String> = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]).as_str().map(str::to_owned);
         if (result.as_deref() == Some("0")) {
             let amountPrecision: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
             if (amountPrecision.is_none()) {
-                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " amountToPrecision() market ").into()), marketSymbol.as_deref().unwrap_or("null")).into()), " has no amount precision")));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " amountToPrecision() market ").into()), marketSymbol).into()), " has no amount precision")));
             }
-            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " amount of ").into()), marketSymbol.as_deref().unwrap_or("null")).into()), " must be greater than minimum amount precision of ").into()), amountPrecision.as_deref().unwrap_or("null"))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " amount of ").into()), marketSymbol).into()), " must be greater than minimum amount precision of ").into()), amountPrecision.as_deref().unwrap_or("null"))));
         }
         return result;
 }
@@ -9166,7 +9168,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let until: Option<i64> = self.safe_integer_n(Value::from(&paramsPaginationDirection), Value::from(vec![Value::Str("until".into()), Value::Str("untill".into()), Value::Str("till".into())]), &[]).as_i64(); // do not omit it from params here
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = self.handle_max_entries_per_request_and_params(method.clone(), &[&maxEntriesPerRequest, &Value::from(&paramsPaginationDirection)]);
         let maxEntriesPerRequestOption: Option<i64> = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.0.as_i64();
-        let mut paramsMaxEntriesPerRequest: Value = Value::Dict(maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.1);
+        let mut paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.1;
         if (paginationDirection.as_deref() == Some("forward")) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " pagination requires a since argument when paginationDirection set to forward")));
@@ -9183,10 +9185,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (paginationTimestamp != Value::Null) {
-                        if let Value::Dict(__d) = &mut paramsMaxEntriesPerRequest { std::sync::Arc::make_mut(__d).insert("until".into(), (match (&(paginationTimestamp), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-                            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); }
+                        std::sync::Arc::make_mut(&mut paramsMaxEntriesPerRequest).insert("until".into(), (match (&(paginationTimestamp), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
+                            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
                     }
-                    let response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
+                    let response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), Value::from(&paramsMaxEntriesPerRequest)]).await;
                     let responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
                         let mut backwardMessage: String = format!("{}{}{}{}{}{}", Value::Str("Dynamic pagination call ".into()), (Value::Int((i + 1))), " method ", method, " response length ", responseLength);
@@ -9213,7 +9215,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }  else {
                     // do it forwards, starting from the since
-                    let response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), (paramsMaxEntriesPerRequest).clone()]).await;
+                    let response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (Value::from(maxEntriesPerRequestOption)).clone(), Value::from(&paramsMaxEntriesPerRequest)]).await;
                     let responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                     if self.verbose.as_bool() == Some(true) {
                         let mut forwardMessage: String = format!("{}{}{}{}{}{}", Value::Str("Dynamic pagination call ".into()), (Value::Int((i + 1))), " method ", method, " response length ", responseLength);
@@ -9270,14 +9272,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let maxRetries: i64 = 3;
         let maxRetriesOptionparamsMaxRetriesVariable = self.handle_option_integer_and_params(params, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]);
         let maxRetriesOption: Option<i64> = maxRetriesOptionparamsMaxRetriesVariable.0;
-        let paramsMaxRetries: Value = Value::Dict(maxRetriesOptionparamsMaxRetriesVariable.1);
+        let paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.1;
         let mut errors: i64 = 0;
         while Some(errors) <= maxRetriesOption {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 if ((timeframe != Value::Null) && (timeframe.as_str() != Some(""))) && (method.as_str() != Some("fetchFundingRateHistory")) {
-                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (timeframe).clone(), (since).clone(), (limit).clone(), (paramsMaxRetries).clone()]).await;
+                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (timeframe).clone(), (since).clone(), (limit).clone(), Value::from(&paramsMaxRetries)]).await;
                 }  else {
-                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (limit).clone(), (paramsMaxRetries).clone()]).await;
+                    return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (limit).clone(), Value::from(&paramsMaxRetries)]).await;
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 

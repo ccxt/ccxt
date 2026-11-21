@@ -1540,7 +1540,10 @@ impl Bitopro {
         });
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        let limitResolved: Option<i64> = self.parse_to_int((if (limit.is_none()) { Value::Int(500) } else { crate::runtime::Math::min(&Value::from(limit), &Value::Int(75000)) }));
+        let mut limitResolved: Option<i64> = Some(500);
+        if (limit.is_some()) {
+            limitResolved = self.parse_to_int(crate::runtime::Math::min(&Value::from(limit), &Value::Int(75000)));
+        }
         let timeframeInSeconds: i64 = self.parse_timeframe(&timeframe);
         let mut alignedSince: Option<i64> = None;
         if (since.is_none()) {
@@ -1698,7 +1701,10 @@ impl Bitopro {
                 m.insert("6".to_string(), Value::Str("canceled".into()));
             m
         });
-        return (if (status.is_none()) { Value::Null } else { self.safe_string(&statuses, Value::from(status), &[]) }).as_str().map(str::to_owned);
+        if (status.is_none()) {
+            return None;
+        }
+        return self.safe_string_opt(&statuses, Value::from(status), &[]);
 }
 
 

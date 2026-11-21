@@ -1387,7 +1387,7 @@ impl Coinmate {
         //         }
         //     }
         //
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2020,7 +2020,7 @@ impl Coinmate {
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_order_by_id(&[&__ws_arg_8]).await.unwrap_or_default();
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, market.as_ref());
         None
         }).await?))
@@ -2066,7 +2066,7 @@ impl Coinmate {
         //        }
         //    }
         //
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, None);
         None
         }).await?))

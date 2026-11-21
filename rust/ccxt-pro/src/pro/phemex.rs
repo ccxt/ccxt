@@ -468,12 +468,16 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (tickers.len() as i64) } {
-            let mut ticker: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
-            let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let symbol: String = self.safe_string_k(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let messageHash: String = format!("{}{}", "ticker:", symbol);
             let timestamp: Option<i64> = self.safe_integer_product_k(&message, "timestamp", Value::Float(0.000001), &[]).as_i64();
-            add_element_to_object(&mut ticker, &Value::Str("timestamp".into()), Value::from(timestamp));
-            add_element_to_object(&mut ticker, &Value::Str("datetime".into()), self.iso8601(timestamp));
+            let __ws_arg_0 = self.iso8601(timestamp);
+            let ticker: Value = self.extend(tickers.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
+                    m.insert("datetime".to_string(), __ws_arg_0);
+                m
+            })]);
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }
             client.resolve(ticker, messageHash.as_str());
         }
@@ -1033,8 +1037,8 @@ impl Phemex {
                 m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
             m
         })]);
-        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_0, &messageHash[..], &unsubscription).await;
+        let __ws_arg_1 = self.deep_extend(Value::Map(request), &[params]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], &unsubscription).await;
 
     Value::Null
 }
@@ -1317,8 +1321,8 @@ impl Phemex {
                 m
             });
         }
-        let __ws_arg_1 = self.extend(params, &[Value::Map(settleRequest)]);
-        let type_varparamsTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&__ws_arg_1]);
+        let __ws_arg_2 = self.extend(params, &[Value::Map(settleRequest)]);
+        let type_varparamsTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&__ws_arg_2]);
         let type_var: Option<String> = type_varparamsTypeVariable.0.as_str().map(str::to_owned);
         let paramsType: crate::value::Dict = type_varparamsTypeVariable.1;
         if (symbol == Value::Null) {
@@ -1530,8 +1534,8 @@ impl Phemex {
                 m
             });
         }
-        let __ws_arg_2 = self.extend(params, &[Value::Map(settleRequest)]);
-        let type_varparamsTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[&__ws_arg_2]);
+        let __ws_arg_3 = self.extend(params, &[Value::Map(settleRequest)]);
+        let type_varparamsTypeVariable = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[&__ws_arg_3]);
         let type_var: Option<String> = type_varparamsTypeVariable.0.as_str().map(str::to_owned);
         let paramsType: crate::value::Dict = type_varparamsTypeVariable.1;
         let isUSDTSettled: bool = self.safe_string_k(&paramsType, "settle", &[]).as_str() == Some("USDT");

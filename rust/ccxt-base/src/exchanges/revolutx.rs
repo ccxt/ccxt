@@ -517,10 +517,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
                 return Value::Null;
             }
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            let mut errorMessage: Option<String> = None;
-            if matches!(&response, Value::Dict(_)) {
-                errorMessage = self.safe_string2_opt(response, Value::Str("message".into()), Value::Str("error".into()), &[]);
-            }
+            let errorMessage: Option<String> = self.safe_string2_opt(response, Value::Str("message".into()), Value::Str("error".into()), &[]);
             if (errorMessage.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, Value::from(feedback));
             }

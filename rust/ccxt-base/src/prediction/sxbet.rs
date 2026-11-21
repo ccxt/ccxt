@@ -772,11 +772,11 @@ impl Sxbet {
         //     }
         //
         let mut marketHash: String = self.safe_string_k(&raw, "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let teamOneName: Option<String> = self.safe_string_k_opt(&raw, "teamOneName", &[]);
-        let teamTwoName: Option<String> = self.safe_string_k_opt(&raw, "teamTwoName", &[]);
+        let teamOneName: String = self.safe_string_k(&raw, "teamOneName", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let teamTwoName: String = self.safe_string_k(&raw, "teamTwoName", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let outcomeOneName: Option<String> = self.safe_string_k_opt(&raw, "outcomeOneName", &[]);
         let outcomeTwoName: Option<String> = self.safe_string_k_opt(&raw, "outcomeTwoName", &[]);
-        let eventSlug: String = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName.as_deref().unwrap_or("null"), " ").into()), teamTwoName.as_deref().unwrap_or("null")).into()));
+        let eventSlug: String = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, " ").into()), teamTwoName).into()));
         // one fixture carries many markets (moneyline, several spread/total lines, quarter/half
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,

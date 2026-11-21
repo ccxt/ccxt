@@ -2127,11 +2127,8 @@ impl Bitfinex {
 }
 
     pub fn is_fiat(&self, mut code: Value) -> Value {
-        let fiat: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "fiat", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
-        return (Value::Bool(matches!(&code, Value::Str(__k) if fiat.contains_key(__k.as_ref()))));
+        let fiat: crate::value::Dict = self.safe_dict_k_t(&self.options, "fiat");
+        return Value::Bool(self.safe_string(&fiat, code, &[]) != Value::Null);
 
     Value::Null
 }
@@ -4571,10 +4568,7 @@ impl Bitfinex {
             let m = indexmap::IndexMap::new();
             m
         });
-        let fiat: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "fiat", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let fiat: crate::value::Dict = self.safe_dict_k_t(&self.options, "fiat");
         let feeData: crate::value::List = self.safe_list_t(&response, Value::Int(4));
         let makerData: crate::value::List = self.safe_list_t(&feeData, Value::Int(0));
         let takerData: crate::value::List = self.safe_list_t(&feeData, Value::Int(1));
@@ -4598,7 +4592,9 @@ impl Bitfinex {
                     m.insert("tierBased".to_string(), Value::Bool(true));
                 m
             });
-            if (matches!(&Value::from((market).quote.clone()), Value::Str(__k) if fiat.contains_key(__k.as_ref()))) {
+            let quote: Option<String> = self.safe_string_k_opt(&market, "quote", &[]);
+            let fiatQuote: Option<String> = self.safe_string_opt(&fiat, quote.map(Value::from).unwrap_or(Value::Null), &[]);
+            if (fiatQuote.is_some()) {
                 fee.insert("maker".into(), Value::from(makerFeeFiat));
                 fee.insert("taker".into(), Value::from(takerFeeFiat));
             }  else if (market).contract {

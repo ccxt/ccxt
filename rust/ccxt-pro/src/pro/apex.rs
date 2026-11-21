@@ -81,7 +81,7 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_tickers" => crate::types::IntoRaw::into_raw(self.watch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "watch_topics" => self.watch_topics(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "watch_topics" => self.watch_topics(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_trades_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -290,7 +290,7 @@ impl Apex {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&params]).await;
+        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&params]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -471,13 +471,13 @@ impl Apex {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let mut orderbook: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&params]).await;
+        let mut orderbook: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
     }
 
-    pub async fn watch_topics(&mut self, url: &str, messageHashes: &[crate::Value], topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub async fn watch_topics(&mut self, url: &str, mut messageHashes: Value, topics: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
         let mut topics: Value = topics.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -496,7 +496,8 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (topics.len() as i64) } {
-            if !(client.has_subscription(&messageHashes.get(i as usize).cloned().unwrap_or(Value::Null))) {
+            let messageHash: String = self.safe_string(&messageHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if !(client.has_subscription(messageHash.as_str())) {
                 newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -512,7 +513,7 @@ impl Apex {
             });
             message = self.extend(Value::Map(request), &[params]);
         }
-        return self.watch_multiple(url, messageHashes, message, messageHashes, Value::Null).await;
+        return self.watch_multiple(url, &messageHashes, message, &messageHashes, Value::Null).await;
 
     Value::Null
 }
@@ -653,7 +654,7 @@ impl Apex {
         let messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topics: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instrumentInfo", ".H.").into()), marketId).into())]);
-        return self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &topics, &[&params]).await;
+        return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -697,7 +698,7 @@ impl Apex {
             messageHashes.push(Value::from(messageHash));
         }
         }
-        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(topics), &[&params]).await;
+        let ticker: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(topics), &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -845,7 +846,7 @@ impl Apex {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", (market).symbol).into()), "::").into()), unfiedTimeframe).into()));
         }
         }
-        let symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), &messageHashes, Value::from(rawHashes), &[&params]).await;
+        let symboltimeframestoredVariable = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(messageHashes), Value::from(rawHashes), &[&params]).await;
         let symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -959,7 +960,7 @@ impl Apex {
         }
         let url: Option<String> = self.get_ws_private_url();
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
-        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], Value::from(vec![Value::Str("myTrades".into())]), &[&params]).await;
+        let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::Str("myTrades".into())]), &[&params]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -1017,7 +1018,7 @@ impl Apex {
             return Value::Arr(self.filter_by_symbols_since_limit(&snapshot, symbolsNormalized2, since, limit, &[Value::Bool(true)]));
         }
         let topics: crate::value::List = std::sync::Arc::new(vec![Value::Str("positions".into())]);
-        let newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &topics, &[&params]).await;
+        let newPositions: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&params]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1062,7 +1063,7 @@ impl Apex {
         let url: Option<String> = self.get_ws_private_url();
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let topics: crate::value::List = std::sync::Arc::new(vec![Value::Str("orders".into())]);
-        let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), &[Value::from(messageHash)], &topics, &[&params]).await;
+        let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[&params]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);

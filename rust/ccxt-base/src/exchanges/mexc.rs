@@ -72,7 +72,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut prevClose: Option<String> = None;
         let isSwap: bool = self.safe_bool_k_opt(&marketResolved, "swap", &[Value::Bool(false)]).unwrap_or(false);
         // if swap
-        if isSwap || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))) {
+        if isSwap || (self.safe_string_k(&ticker, "timestamp", &[]) != Value::Null) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -1393,7 +1393,7 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "create_spot_order" => self.create_spot_order(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "create_spot_order_request" => Value::Dict(self.create_spot_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(),
-                    args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                    args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_text).as_deref(), &args[6.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_swap_order" => self.create_swap_order(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_text).as_deref(), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "custom_parse_balance" => self.custom_parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -4639,10 +4639,8 @@ impl Mexc {
         }).await?))
     }
 
-    pub fn create_spot_order_request(&self, market: Option<&crate::types::Market>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let marginMode = get_arg(optional_args, 1, Value::Null);
-        let params = get_arg(optional_args, 2, Value::Map({
+    pub fn create_spot_order_request(&self, market: Option<&crate::types::Market>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, marginMode: Option<&str>, optional_args: &[&Value]) -> crate::value::Dict {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -4663,20 +4661,20 @@ impl Mexc {
             if (cost.is_some()) {
                 request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Some(symbol.as_str()), cost)));
             }  else {
-                if (price == Value::Null) {
-                    request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(symbol.as_str()), &amount)));
+                if (price.is_none()) {
+                    request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(symbol.as_str()), Value::from(amount))));
                 }  else {
-                    let amountString: Option<String> = self.number_to_string(&amount);
-                    let priceString: Option<String> = self.number_to_string(&price);
+                    let amountString: Option<String> = self.number_to_string(Value::from(amount));
+                    let priceString: Option<String> = self.number_to_string(Value::from(price));
                     let quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     request.insert("quoteOrderQty".into(), Value::from(self.cost_to_precision(Some(symbol.as_str()), quoteAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }
         }  else {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(symbol.as_str()), amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(symbol.as_str()), Value::from(amount))));
         }
-        if (price != Value::Null) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Some(symbol.as_str()), price)));
+        if (price.is_some()) {
+            request.insert("price".into(), Value::from(self.price_to_precision(Some(symbol.as_str()), Value::from(price))));
         }
         let paramsWithoutCost: crate::value::Dict = self.omit_t(&params, if (type_var == Some("market")) { Value::Str("cost".into()) } else { Value::Null }, &[]);
         let clientOrderId: Option<String> = self.safe_string_k_opt(&paramsWithoutCost, "clientOrderId", &[]);
@@ -4684,9 +4682,9 @@ impl Mexc {
             request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let paramsWithoutClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit_t(&paramsWithoutCost, &["type", "clientOrderId"], &[]) } else { paramsWithoutCost });
-        if (marginMode != Value::Null) {
-            if (marginMode.as_str() != Some("isolated")) {
-                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support marginMode ").into()), marginMode).into()), " for spot-margin trading")));
+        if (marginMode.is_some()) {
+            if (marginMode != Some("isolated")) {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support marginMode ").into()), Value::from(marginMode)).into()), " for spot-margin trading")));
             }
         }
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(type_var == Some("market")), Value::Bool(type_var == Some("LIMIT_MAKER")), &[Value::from(&paramsWithoutClientOrderId)]);
@@ -4737,7 +4735,7 @@ impl Mexc {
         }
         let test: bool = self.safe_bool_k_opt(&params, "test", &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("test".into()), &[]);
-        let request: crate::value::Dict = self.create_spot_order_request(market, Some(type_var), Some(side), amount.clone(), &[&price, &marginMode, &Value::Dict(paramsOmitted)]);
+        let request: crate::value::Dict = self.create_spot_order_request(market, Some(type_var), Some(side), amount.as_f64(), price.as_f64(), marginMode.as_str(), &[&Value::Dict(paramsOmitted)]);
         let mut response: Option<crate::value::Dict> = None;
         if test {
             response = self.spot_private_post_order_test(&[&Value::from(&request)]).await;
@@ -4988,12 +4986,12 @@ impl Mexc {
             }
             let type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
             let side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
-            let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
-            let price: Value = self.safe_value_k(&rawOrder, "price", &[]);
+            let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let mut marginMode: Option<String> = None;
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::from(&paramsLoop)]); marginMode = __destr_tmp.0.as_str().map(str::to_owned); paramsLoop = __destr_tmp.1; }
-            let orderRequest: crate::value::Dict = self.create_spot_order_request(Some(&market), type_var.as_deref(), side.as_deref(), amount, &[&price, &marginMode.map(Value::from).unwrap_or(Value::Null), &Value::Dict(orderParams)]);
+            let orderRequest: crate::value::Dict = self.create_spot_order_request(Some(&market), type_var.as_deref(), side.as_deref(), amount, price, marginMode.as_deref(), &[&Value::Dict(orderParams)]);
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }

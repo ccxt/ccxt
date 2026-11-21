@@ -3031,8 +3031,8 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (tradesArray.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = self.safe_dict_t(&tradesArray, Value::Int(i));
-            let isFetchTrades: bool = !(rawTrade.contains_key("order_id"));
+            let rawTrade: crate::value::Dict = self.safe_dict_t(&tradesArray, Value::Int(i));
+            let isFetchTrades: bool = self.safe_string_k(&rawTrade, "order_id", &[]) == Value::Null;
             let liquidityRole: Option<String> = self.safe_string_k_opt(&rawTrade, "liquidity_role", &[]);
             if isFetchTrades && (liquidityRole.as_deref() == Some("maker")) {
                 continue;

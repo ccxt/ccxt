@@ -134,11 +134,11 @@ impl crate::exchange::DerivedExchange for Woofipro {
         //         "is_maker": "1"
         //     }
         //
-        let isFromFetchOrder: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("id"));
+        let isFromFetchOrder: bool = self.safe_string_k(&trade, "id", &[]) != Value::Null;
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "executed_timestamp", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string_k_opt(&trade, "executed_price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&trade, "executed_quantity", &[]);
         let order_id: Option<String> = self.safe_string_k_opt(&trade, "order_id", &[]);
@@ -222,7 +222,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let clientOrderId: Option<String> = self.omit_zero(self.safe_string2(&order, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[])); // Somehow, this always returns 0 for limit order
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string2_opt(&order, Value::Str("order_price".into()), Value::Str("price".into()), &[]);
         let amount: Option<String> = self.safe_string2_opt(&order, Value::Str("order_quantity".into()), Value::Str("quantity".into()), &[]); // This is base amount
         let cost: Option<String> = self.safe_string2_opt(&order, Value::Str("order_amount".into()), Value::Str("amount".into()), &[]); // This is quote amount

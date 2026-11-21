@@ -209,7 +209,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         }
         let sort: Option<String> = (match params.get("sort") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (sort.is_some()) {
-            let mut sortKey: Value = Value::Null;
+            let mut sortKey: Value = Value::Str("".into());
             if (sort.as_deref() == Some("volume")) {
                 sortKey = Value::Str("volume".into());
             }  else if (sort.as_deref() == Some("liquidity")) {
@@ -217,7 +217,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }  else if (sort.as_deref() == Some("newest")) {
                 sortKey = Value::Str("created".into());
             }
-            if (sortKey != Value::Null) {
+            if (sortKey.as_str() != Some("")) {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_3: bool = true;
@@ -233,9 +233,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             let resultLength: i64 = result.len() as i64;
-            let mut sliceEnd: Option<i64> = limit;
-            if sliceEnd > Some(resultLength) {
-                sliceEnd = Some(resultLength);
+            let limitValue: i64 = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
+            let mut sliceEnd: i64 = resultLength;
+            if limitValue < resultLength {
+                sliceEnd = limitValue;
             }
             result = Value::Arr(self.array_slice(result, Value::Int(0), &[Value::from(sliceEnd)]));
         }

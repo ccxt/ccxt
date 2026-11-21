@@ -2291,7 +2291,8 @@ impl Backpack {
                 while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", "positions", ":").into()), symbol.as_deref().unwrap_or("null")).into()));
-                topics.push(Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol.as_deref())).into()));
+                let marketId: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                topics.push(Value::Str(format!("{}{}", "account.positionUpdate.", marketId).into()));
             }
             }
         }  else {
@@ -2340,7 +2341,8 @@ impl Backpack {
                 while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:positions", ":").into()), symbol.as_deref().unwrap_or("null")).into()));
-                topics.push(Value::Str(format!("{}{}", Value::Str("account.positionUpdate.".into()), self.market_id(symbol.as_deref())).into()));
+                let marketId: String = self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                topics.push(Value::Str(format!("{}{}", "account.positionUpdate.", marketId).into()));
             }
             }
         }  else {

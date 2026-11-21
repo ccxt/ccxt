@@ -1049,13 +1049,13 @@ impl Deribit {
 }
 
     pub fn handle_delta(&self, bookside: &mut crate::pro::order_book::Side, mut delta: Value) {
-        let price: Value = self.safe_value(&delta, Value::Int(1), &[]);
-        let amount: Value = self.safe_value(&delta, Value::Int(2), &[]);
+        let price: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
+        let amount: Option<f64> = self.safe_number(&delta, Value::Int(2), &[]).as_f64();
         let action: Option<String> = self.safe_string_opt(delta, Value::Int(0), &[]);
         if (action.as_deref() == Some("new")) || (action.as_deref() == Some("change")) {
-            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
+            bookside.store_array(Value::from(vec![Value::from(price), Value::from(amount), Value::Int(1)]));
         }  else if (action.as_deref() == Some("delete")) {
-            bookside.store_array(Value::from(vec![price, amount, Value::Int(0)]));
+            bookside.store_array(Value::from(vec![Value::from(price), Value::from(amount), Value::Int(0)]));
         }
 }
 

@@ -881,7 +881,7 @@ impl Woofipro {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let price: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedPrice".into()), Value::Str("price".into()), &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("executedQuantity".into()), Value::Str("size".into()), &[]);
         let cost: Option<String> = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
@@ -1240,7 +1240,7 @@ impl Woofipro {
         let orderId: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
         let marketResolved: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbol: String = (marketResolved).symbol.clone();
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&order, "timestamp", &[]).as_i64();
         let fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1271,7 +1271,7 @@ impl Woofipro {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);
-        m.insert("symbol".to_string(), Value::from(symbol));
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1599,8 +1599,8 @@ impl Woofipro {
             let position: crate::value::Dict = self.parse_ws_position(Value::Dict(rawPosition), Some(&market));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::from(&position));
-            let positionSymbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let messageHash: String = format!("{}{}", "positions::", positionSymbol.as_deref().unwrap_or("null"));
+            let positionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let messageHash: String = format!("{}{}", "positions::", positionSymbol);
             client.resolve(Value::Dict(position), messageHash.as_str());
         }
         }

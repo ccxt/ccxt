@@ -3167,8 +3167,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (market.is_some()) {
             symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
         }
-        if (market.is_some()) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), crate::value::KeyRead::key_read(&&market, "symbol"));
+        if (symbolResolved.is_some()) {
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
         let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);

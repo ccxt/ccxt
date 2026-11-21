@@ -930,12 +930,18 @@ impl Mudrex {
         let now: i64 = self.seconds();
         let windowLength: i64 = (duration * requestLimit);
         let defaultStart: i64 = (now - windowLength);
-        let startTime: Option<i64> = self.parse_to_int((if (since.is_some()) { ((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::from(defaultStart) }));
+        let mut startTime: Option<i64> = self.parse_to_int(Value::from(defaultStart));
+        if (since.is_some()) {
+            startTime = self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        }
         let windowEnd: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = startTime { Some(__l + ((duration * requestLimit))) } else { None })));
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["price", "until"], &[]);
         let cappedEnd: Option<i64> = (if (windowEnd > Some(now)) { Some(now) } else { windowEnd });
-        let endTime: Option<i64> = self.parse_to_int((if (until.is_some()) { (Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))) } else { Value::from(cappedEnd) }));
+        let mut endTime: Option<i64> = self.parse_to_int(Value::from(cappedEnd));
+        if (until.is_some()) {
+            endTime = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })));
+        }
         request.insert("start_time".into(), Value::from(startTime));
         request.insert("end_time".into(), Value::from(endTime));
         let mut response: Option<crate::value::Dict> = None;
@@ -1133,21 +1139,21 @@ impl Mudrex {
                 m
             }), &[&params]);
             let response: crate::value::Dict = self.private_get_futures(&[&Value::Dict(q)]).await.unwrap_or_default();
-            let data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
+            let mut dataDict: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
             let mut items: crate::value::List = std::sync::Arc::new(Vec::new());
-            if matches!(&data, Value::Dict(_)) && !(matches!(&data, Value::Arr(_))) {
-                items = self.safe_list_k_t(&data, "items");
+            if (dataDict.is_some()) {
+                items = self.safe_list_k_t(&dataDict, "items");
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let mut itemsLength: i64 = items.len() as i64;
                 if (itemsLength == 0) {
-                    items = self.safe_list_k_t(&data, "results");
+                    items = self.safe_list_k_t(&dataDict, "results");
                     itemsLength = items.len() as i64;
                 }
-                if (itemsLength == 0) && (in_op(&data, &Value::Str("symbol".into()))) {
-                    items = std::sync::Arc::new(vec![data.clone()]);
+                if (itemsLength == 0) && (matches!(dataDict.as_deref(), Some(__d) if __d.contains_key("symbol"))) {
+                    items = std::sync::Arc::new(vec![dataDict.map_or(Value::Null, Value::Dict)]);
                 }
             }  else {
-                items = self.to_array_t(data);
+                items = self.safe_list_k_t(&response, "data");
             }
             let numItems: i64 = items.len() as i64;
             if (numItems == 0) {
@@ -2090,7 +2096,7 @@ impl Mudrex {
                 allRows.push(Value::from(&entry));
                 if (self.safe_string_k(&entry, "fee_type", &[]).as_str() == Some("TRANSACTION")) {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (market.is_none()) || (self.safe_string_k(&entry, "symbol", &[]).as_str() == crate::value::KeyRead::key_read(&&market, "id").as_str()) {
+                    if (market.is_none()) || (self.safe_string_k(&entry, "symbol", &[]).as_str() == self.safe_string_k(&market, "id", &[]).as_str()) {
                         transactionsCount = (transactionsCount + 1);
                     }
                 }

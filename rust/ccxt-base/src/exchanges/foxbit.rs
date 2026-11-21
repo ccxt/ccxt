@@ -1536,8 +1536,8 @@ impl Foxbit {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "market_symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_trading_fee(Value::Dict(entry), Some(&market))));
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            result.insert(symbol, Value::Dict(self.parse_trading_fee(Value::Dict(entry), Some(&market))));
         }
         }
         return Value::Map(result);

@@ -739,7 +739,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                 "fetch_outcomes" => self.fetch_outcomes(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_raw_event_by_ticker" => Value::Dict(self.fetch_raw_event_by_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
-                "fetch_series_events" => Value::Arr(self.fetch_series_events(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_series_events" => Value::Arr(self.fetch_series_events(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_settlements" => crate::types::IntoRaw::into_raw(self.fetch_settlements(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1564,8 +1564,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} the outcome cache
  */
     pub async fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> Value {
-        let __outcomeSymbols_empty = Vec::new();
-        let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         let mut tickers: Vec<Value> = Vec::new();
         let mut seen: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -1576,7 +1574,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < outcomeSymbolsLength } {
-            let outcomeSymbol: Option<String> = outcomeSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let outcomeSymbol: Option<String> = outcomeSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if outcomeSymbol.as_deref().unwrap_or_default().contains(":") {
                 continue;
             }
@@ -1633,8 +1631,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < outcomeSymbolsLength } {
-            if !(self.has_outcome((outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
-                self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
+            let pendingSymbol: String = self.safe_string(&outcomeSymbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if !(self.has_outcome(Some(pendingSymbol.as_str())).as_bool() == Some(true)) {
+                self.fetch_outcome(Value::from(pendingSymbol)).await;
             }
         }
         }
@@ -3340,7 +3339,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (seriesTickersLength == 0) {
                 self.require_event_query(&[&Value::from(&paramsOmitted)]);
             }
-            rawEvents = self.fetch_series_events(&seriesTickers, status.as_deref(), Value::from(fetchCap), &[&Value::Dict(rest)]).await;
+            rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[&Value::Dict(rest)]).await;
         }
         let rawEventsLength: i64 = rawEvents.len() as i64;
         let mut result: Vec<Value> = Vec::new();
@@ -3599,7 +3598,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-    pub async fn fetch_series_events(&mut self, seriesTickers: &[crate::Value], status: Option<&str>, mut limit: Value, optional_args: &[&Value]) -> crate::value::List {
+    pub async fn fetch_series_events(&mut self, mut seriesTickers: Value, status: Option<&str>, mut limit: Value, optional_args: &[&Value]) -> crate::value::List {
         let rest = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3637,7 +3636,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("series_ticker".to_string(), seriesTickers.get(si as usize).cloned().unwrap_or(Value::Null));
+                        m.insert("series_ticker".to_string(), self.safe_string(&seriesTickers, Value::Int(si), &[]));
                         m.insert("status".to_string(), Value::from(status));
                         m.insert("with_nested_markets".to_string(), Value::Bool(true));
                         m.insert("limit".to_string(), Value::from(reqLimit));

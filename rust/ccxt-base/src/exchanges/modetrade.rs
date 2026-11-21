@@ -995,7 +995,7 @@ impl crate::exchange_generated::ExchangeBase for Modetrade {
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_order_request" => Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -3252,9 +3252,8 @@ impl Modetrade {
         return self.safe_string_lower_opt(&types, Value::from(type_var), &[Value::from(type_var)]);
 }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -3326,13 +3325,13 @@ impl Modetrade {
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
-        if (price != Value::Null) {
-            request.insert(priceKey, Value::from(self.price_to_precision(symbol, price)));
+        if (price.is_some()) {
+            request.insert(priceKey, Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
         if isMarket && !isConditional {
-            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(symbol, &amount)));
+            request.insert(orderQtyKey.clone(), Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
-            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, amount)));
+            request.insert(orderQtyKey, Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }
         let clientOrderId: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId.is_some()) {
@@ -3434,7 +3433,7 @@ impl Modetrade {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]);
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let stopLoss: Value = self.safe_value_k(&params, "stopLoss", &[]);
         let takeProfit: Value = self.safe_value_k(&params, "takeProfit", &[]);
@@ -3493,8 +3492,8 @@ impl Modetrade {
             }
             let type_var: String = self.safe_string_k(&rawOrder, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let side: Option<String> = self.safe_string_k_opt(&rawOrder, "side", &[]);
-            let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
-            let price: Value = self.safe_value_k(&rawOrder, "price", &[]);
+            let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
+            let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
             let triggerPrice: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
             let stopLoss: Option<crate::value::Dict> = self.safe_dict_k_o(&orderParams, "stopLoss");
@@ -3504,7 +3503,7 @@ impl Modetrade {
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrders() only support non-stop order")));
             }
-            let orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), Some(type_var.as_str()), side.as_deref(), amount, &[&price, &Value::Dict(orderParams)]);
+            let orderRequest: crate::value::Dict = self.create_order_request(marketId.as_deref(), Some(type_var.as_str()), side.as_deref(), amount, price, &[&Value::Dict(orderParams)]);
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }

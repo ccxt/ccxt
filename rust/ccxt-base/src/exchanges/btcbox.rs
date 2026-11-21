@@ -279,10 +279,11 @@ impl crate::exchange::DerivedExchange for Btcbox {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             let currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let free: String = format!("{}{}", currencyId, "_balance");
-            if (matches!((&response, Some(free.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            let freeValue: Option<String> = self.safe_string_opt(&response, Value::from(free), &[]);
+            if (freeValue.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
                 let used: String = format!("{}{}", currencyId, "_lock");
-                account.insert("free".into(), self.safe_string(&response, Value::from(free), &[]));
+                account.insert("free".into(), freeValue.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(&response, Value::from(used), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }

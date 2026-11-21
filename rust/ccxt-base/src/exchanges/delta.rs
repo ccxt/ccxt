@@ -1225,7 +1225,10 @@ impl crate::exchange::DerivedExchange for Delta {
         }
         let optionType: String = self.safe_string(&optionParts, (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut rawExpiry: String = self.safe_string(&optionParts, (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let expiry: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(rawExpiry.chars().skip(4).collect::<String>()), Value::from(rawExpiry.chars().skip(2).take(2).collect::<String>())).into()), Value::from(rawExpiry.chars().skip(0).take(2).collect::<String>()));
+        let expiryYear: String = rawExpiry.chars().skip(4).collect::<String>();
+        let expiryMonth: String = rawExpiry.chars().skip(2).take(2).collect::<String>();
+        let expiryDay: String = rawExpiry.chars().skip(0).take(2).collect::<String>();
+        let expiry: String = format!("{}{}", Value::Str(format!("{}{}", expiryYear, expiryMonth).into()), expiryDay);
         let settle: String = quote.clone();
         let strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let datetime: Option<String> = self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned);
@@ -2569,9 +2572,11 @@ impl Delta {
             let mut optionType: Option<String> = None;
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             if swap || future || option {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
+                let settleCode: Option<String> = self.safe_currency_code(settleId.as_deref(), None);
+                symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settleCode.as_deref().unwrap_or("null"));
                 if future || option {
-                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
+                    let expiryCode: Option<String> = self.yymmdd(Value::from(expiry), &[]).as_str().map(str::to_owned);
+                    symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), expiryCode.as_deref().unwrap_or("null"));
                     if option {
                         type_var = Some("option".to_string());
                         let mut letter: String = "C".to_string();
@@ -2583,7 +2588,8 @@ impl Delta {
                             letter = "M".to_string();
                             optionType = Some("move".to_string());
                         }
-                        symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), strike.as_deref().unwrap_or("null")).into()), "-").into()), letter);
+                        let strikeString: String = self.safe_string_k(&market, "strike_price", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), strikeString).into()), "-").into()), letter);
                     }  else {
                         type_var = Some("future".to_string());
                     }
@@ -2592,41 +2598,41 @@ impl Delta {
                 }
             }
             let state: Option<String> = self.safe_string_k_opt(&market, "state", &[]);
-            result.push(self.safe_market_structure(&[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("numericId".to_string(), Value::from(numericId));
-        m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), Value::Bool(spot));
-        m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(swap));
-        m.insert("future".to_string(), Value::Bool(future));
-        m.insert("option".to_string(), Value::Bool(option));
-        m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
-        m.insert("contract".to_string(), Value::Bool(!spot));
-        m.insert("linear".to_string(), (if spot { Value::Null } else { Value::Bool(linear) }));
-        m.insert("inverse".to_string(), (if spot { Value::Null } else { Value::Bool(!linear) }));
-        m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission_rate", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission_rate", &[]));
-        m.insert("contractSize".to_string(), (if spot { Value::Null } else { Value::from(contractSize) }));
-        m.insert("expiry".to_string(), Value::from(expiry));
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
-        m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
-        m.insert("precision".to_string(), Value::Map({
+            let mut marketStructure: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("numericId".to_string(), Value::from(numericId));
+                    m.insert("symbol".to_string(), Value::from(symbol));
+                    m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("spot".to_string(), Value::Bool(spot));
+                    m.insert("margin".to_string(), Value::Bool(false));
+                    m.insert("swap".to_string(), Value::Bool(swap));
+                    m.insert("future".to_string(), Value::Bool(future));
+                    m.insert("option".to_string(), Value::Bool(option));
+                    m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
+                    m.insert("contract".to_string(), Value::Bool(!spot));
+                    m.insert("linear".to_string(), Value::Null);
+                    m.insert("inverse".to_string(), Value::Null);
+                    m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission_rate", &[]));
+                    m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission_rate", &[]));
+                    m.insert("contractSize".to_string(), Value::Null);
+                    m.insert("expiry".to_string(), Value::from(expiry));
+                    m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
+                    m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("optionType".to_string(), optionType.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amountPrecision));
         m.insert("price".to_string(), self.safe_number_k(&market, "tick_size", &[]));
     m
 }));
-        m.insert("limits".to_string(), Value::Map({
+                    m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2654,10 +2660,16 @@ impl Delta {
 }));
     m
 }));
-        m.insert("created".to_string(), Value::from(self.parse8601(self.safe_string_k(&market, "launch_time", &[]))));
-        m.insert("info".to_string(), Value::from(&market));
-    m
-})]));
+                    m.insert("created".to_string(), Value::from(self.parse8601(self.safe_string_k(&market, "launch_time", &[]))));
+                    m.insert("info".to_string(), Value::from(&market));
+                m
+            });
+            if !spot {
+                marketStructure.insert("linear".into(), Value::Bool(linear));
+                marketStructure.insert("inverse".into(), Value::Bool(!linear));
+                marketStructure.insert("contractSize".into(), Value::from(contractSize));
+            }
+            result.push(self.safe_market_structure(&[Value::Map(marketStructure)]));
         }
         }
         return Value::from(result);

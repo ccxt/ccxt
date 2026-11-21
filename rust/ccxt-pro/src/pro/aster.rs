@@ -1329,11 +1329,12 @@ impl Aster {
         let mut side: Option<String> = self.safe_string_lower_k_opt(&trade, "S", &[]);
         let mut takerOrMaker: Option<String> = None;
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "i", &[]);
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("m"))) {
+        let isMaker: Option<bool> = self.safe_bool_k_opt(&trade, "m", &[]);
+        if (isMaker.is_some()) {
             if (side.is_none()) {
-                side = (if matches!((self.safe_bool_k(&trade, "m", &[Value::Bool(false)])), Value::Bool(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
+                side = (if (isMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
             }
-            takerOrMaker = (if matches!((self.safe_bool_k(&trade, "m", &[Value::Bool(false)])), Value::Bool(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut fee: Option<crate::value::Dict> = None;
         let feeCost: Option<String> = self.safe_string_k_opt(&trade, "n", &[]);

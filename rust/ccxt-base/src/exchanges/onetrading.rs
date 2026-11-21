@@ -1683,10 +1683,10 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawTickers.len() as i64) } {
-            let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, rawTickers.get(i as usize).cloned().unwrap_or(Value::Null), None).unwrap_or_default();
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }

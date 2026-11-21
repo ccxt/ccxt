@@ -3448,11 +3448,14 @@ impl Ndax {
         if (template.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() could not find a withdraw template for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }
-        let mut withdrawTemplate: Value = json_parse(&template.map(Value::from).unwrap_or(Value::Null));
-        add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".into()), address);
+        let mut withdrawTemplate: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[json_parse(&template.map(Value::from).unwrap_or(Value::Null))]);
+        std::sync::Arc::make_mut(&mut withdrawTemplate).insert("ExternalAddress".into(), address);
         if (tagWithdrawTag.is_some()) {
-            if (in_op(&withdrawTemplate, &Value::Str("Memo".into()))) {
-                add_element_to_object(&mut withdrawTemplate, &Value::Str("Memo".into()), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
+            if (withdrawTemplate.contains_key("Memo")) {
+                std::sync::Arc::make_mut(&mut withdrawTemplate).insert("Memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
             }
         }
         let withdrawPayload: indexmap::IndexMap<String, Value> = ({

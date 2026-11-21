@@ -2589,7 +2589,7 @@ impl Limitless {
             let first: crate::value::Dict = self.safe_dict_t(&rawHistory, Value::Int(0));
             let firstPrices: Option<crate::value::List> = self.safe_list_k_o(&first, "prices");
             if (firstPrices.is_some()) {
-                let mut selectedSeries: crate::value::Dict = std::sync::Arc::clone(&first);
+                let mut selectedSeries: crate::value::Dict = first;
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_18: bool = true;
@@ -2600,7 +2600,7 @@ impl Limitless {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOHLCV() missing title")));
                     }
                     if (outcomeLabel.is_some()) && (((if let (Some(__h), Some(__n)) = (Some(title.as_str()), outcomeLabel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
-                        selectedSeries = std::sync::Arc::clone(&series);
+                        selectedSeries = series;
                         break;
                     }
                 }
@@ -2668,17 +2668,17 @@ impl Limitless {
                 candles.insert(crate::runtime::stringify_param(&key), Value::from(vec![Value::from(bucket), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::Int(0)]));
                 bucketOrder.push(key);
             }  else {
-                let mut candle: Value = candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                let prevHigh: Option<f64> = self.safe_number(&candle, Value::Int(2), &[]).as_f64();
-                if (prevHigh.is_none()) || ((pPrice.is_some() && prevHigh.is_some() && pPrice > prevHigh)) {
-                    add_element_to_object(&mut candle, &Value::Int(2), Value::from(pPrice));
+                let prevHigh: Option<f64> = self.safe_number(candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Int(2), &[Value::from(pPrice)]).as_f64();
+                let prevLow: Option<f64> = self.safe_number(candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Int(3), &[Value::from(pPrice)]).as_f64();
+                let openTs: Option<i64> = self.safe_integer(candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_i64();
+                let openPrice: Option<f64> = self.safe_number(candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
+                if (prevHigh.is_some()) && ((pPrice.is_some() && prevHigh.is_some() && pPrice > prevHigh)) {
+                    candles.insert(crate::runtime::stringify_param(&key), Value::from(vec![Value::from(openTs), Value::from(openPrice), Value::from(pPrice), Value::from(prevLow), Value::from(pPrice), Value::Int(0)]));
+                }  else if (prevLow.is_some()) && ((prevLow.is_some() && pPrice.is_some() && prevLow > pPrice)) {
+                    candles.insert(crate::runtime::stringify_param(&key), Value::from(vec![Value::from(openTs), Value::from(openPrice), Value::from(prevHigh), Value::from(pPrice), Value::from(pPrice), Value::Int(0)]));
+                }  else {
+                    candles.insert(crate::runtime::stringify_param(&key), Value::from(vec![Value::from(openTs), Value::from(openPrice), Value::from(prevHigh), Value::from(prevLow), Value::from(pPrice), Value::Int(0)]));
                 }
-                let prevLow: Option<f64> = self.safe_number(&candle, Value::Int(3), &[]).as_f64();
-                if (prevLow.is_none()) || ((prevLow.is_some() && pPrice.is_some() && prevLow > pPrice)) {
-                    add_element_to_object(&mut candle, &Value::Int(3), Value::from(pPrice));
-                }
-                add_element_to_object(&mut candle, &Value::Int(4), Value::from(pPrice));
-                candles.insert(crate::runtime::stringify_param(&key), candle); // php arrays are value types - write the mutation back
             }
         }
         }

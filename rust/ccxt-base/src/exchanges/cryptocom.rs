@@ -611,7 +611,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let mut type_var: Option<String> = None;
         let rawStatus: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
         let mut status: Option<String> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid"))) {
+        if (self.safe_string_k(&transaction, "client_wid", &[]) != Value::Null) {
             type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.as_deref());
         }  else {

@@ -523,8 +523,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrders` implicit endpoint.
-    pub async fn private_post_futures_api_v3_trade_orders(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_api_v3_trade_orders".into()), optional_args).await
+    pub async fn private_post_futures_api_v3_trade_orders(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_api_v3_trade_orders", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrdersCancelAllAfter` implicit endpoint.
@@ -533,8 +533,8 @@ impl Btse {
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeOrdersAlgo` implicit endpoint.
-    pub async fn private_post_futures_api_v3_trade_orders_algo(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_post_futures_api_v3_trade_orders_algo".into()), optional_args).await
+    pub async fn private_post_futures_api_v3_trade_orders_algo(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_post_futures_api_v3_trade_orders_algo", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFuturesApiV3TradeSettleIn` implicit endpoint.

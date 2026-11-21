@@ -643,7 +643,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: Option<crate::types::Market> = None;
         if (symbols != Value::Null) {
-            market = Some(match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            market = Some(match self.market((self.safe_string(&symbols, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         if (name.is_some()) {
             let tickers: Value = self.subscribe(name.map(Value::from).unwrap_or(Value::Null), "public", "watchTickers", market.as_ref(), &[symbols.clone(), params]).await;
@@ -1808,7 +1808,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
         let mut tradeType: String = "spot".to_string();
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("symbol"))) {
+        if (self.safe_string_k(&trade, "symbol", &[]) != Value::Null) {
             tradeType = "contract".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(tradeType)]);
@@ -1886,7 +1886,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut tradeType: String = "spot".to_string();
-        if (matches!(&order, Value::Dict(__d) if __d.contains_key("symbol"))) {
+        if (self.safe_string_k(&order, "symbol", &[]) != Value::Null) {
             tradeType = "contract".to_string();
         }
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::from(tradeType)]);

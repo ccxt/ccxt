@@ -2698,8 +2698,8 @@ impl Coinbase {
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "next_starting_after", &[]);
         let mut accounts: crate::value::List = self.safe_list_k_t(&response, "data");
         let length: i64 = accounts.len() as i64;
-        let lastIndex: i64 = (length - 1);
-        if (cursor.is_some()) && (cursor.as_deref() != Some("")) {
+        if (length > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
+            let lastIndex: i64 = (length - 1);
             let __ws_arg_1 = self.safe_dict(&accounts, lastIndex, &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2708,7 +2708,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
         m.insert("next_starting_after".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); }
+})]); std::sync::Arc::make_mut(&mut accounts)[lastIndex as usize] = Value::from(__be_tmp); }
         }
         return self.parse_accounts(&data, &[Value::Dict(paramsPaginate)]);
 

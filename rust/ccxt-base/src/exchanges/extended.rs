@@ -157,12 +157,19 @@ impl crate::exchange::DerivedExchange for Extended {
         let sideRaw: Option<String> = self.safe_string2_opt(&trade, Value::Str("S".into()), Value::Str("side".into()), &[]);
         let side: Option<String> = (if (sideRaw.is_some()) { sideRaw.as_deref().map(str::to_lowercase) } else { None });
         let feeCost: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
-        let fee: Value = (if (feeCost.is_none()) { Value::Null } else { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), (if (false) { Value::Null } else { crate::value::KeyRead::key_read(&&marketResolved, "settle") }));
-    m
-}) });
+        let mut fee: Option<crate::value::Dict> = None;
+        if (feeCost.is_some()) {
+            let mut feeDict: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("cost".to_string(), feeCost.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::Null);
+                m
+            });
+            if (true) {
+                feeDict.insert("currency".into(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
+            }
+            fee = Some(crate::value::Dict::new(feeDict));
+        }
         let isTaker: Option<bool> = self.safe_bool_k_opt(&trade, "isTaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isTaker.is_some()) {
@@ -182,7 +189,7 @@ impl crate::exchange::DerivedExchange for Extended {
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_string_k(trade, "value", &[]));
-        m.insert("fee".to_string(), fee);
+        m.insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict));
     m
 }), Some(&marketResolved)));
 

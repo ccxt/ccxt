@@ -1661,7 +1661,7 @@ impl Coinsph {
 }));
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
-        let hasSymbolParam: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"));
+        let hasSymbolParam: bool = self.safe_string_k(&params, "symbol", &[]) != Value::Null;
         let hasSymbolsParam: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("symbols"));
         let limit: Option<i64> = self.safe_integer_k(&params, "limit", &[]).as_i64();
         if (config.contains_key("noSymbol")) && !hasSymbolParam {

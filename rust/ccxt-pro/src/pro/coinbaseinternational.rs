@@ -1631,7 +1631,7 @@ impl Coinbaseinternational {
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < symbolsAndTimeframesLength } {
             let current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            let currentTimeframe: Option<String> = self.safe_string_opt(&current, Value::Int(1), &[]);
+            let currentTimeframe: String = self.safe_string(&current, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let resolution: Option<String> = self.safe_string_opt(&self.timeframes, &currentTimeframe, &[&currentTimeframe]);
             let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), resolution.as_deref().unwrap_or("null")).into()));
@@ -1716,7 +1716,7 @@ impl Coinbaseinternational {
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < symbolsAndTimeframesLength } {
             let current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            let timeframe: Option<String> = self.safe_string_opt(&current, Value::Int(1), &[]);
+            let timeframe: String = self.safe_string(&current, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
             let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), resolution.as_deref().unwrap_or("null")).into()));

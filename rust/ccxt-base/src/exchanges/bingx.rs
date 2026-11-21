@@ -320,10 +320,11 @@ impl crate::exchange::DerivedExchange for Bingx {
             takeOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut amount: Option<String> = (if isSpotExecution { self.safe_string_k_opt(&trade, "l", &[]) } else { self.safe_string_n_opt(&trade, Value::from(vec![Value::Str("qty".into()), Value::Str("amount".into()), Value::Str("q".into())]), &[]) });
-        if (market.is_some()) && matches!((self.safe_bool_k(&market, "swap", &[Value::Bool(false)])), Value::Bool(true)) && (matches!(&trade, Value::Dict(__d) if __d.contains_key("volume"))) {
+        let volume: Option<String> = self.safe_string_k_opt(&trade, "volume", &[]);
+        if (market.is_some()) && matches!((self.safe_bool_k(&market, "swap", &[Value::Bool(false)])), Value::Bool(true)) && (volume.is_some()) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            amount = self.safe_string_k_opt(&trade, "volume", &[]);
+            amount = volume;
         }
         let mut price: Option<String> = (if isSpotExecution { self.safe_string_k_opt(&trade, "L", &[]) } else { self.safe_string_n_opt(&trade, Value::from(vec![Value::Str("price".into()), Value::Str("p".into()), Value::Str("tradePrice".into())]), &[]) });
         if (market.is_some()) && matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) && (self.safe_string_k(&trade, "x", &[]).as_str() == Some("TRADE")) {
@@ -652,7 +653,11 @@ impl crate::exchange::DerivedExchange for Bingx {
             marketType = "spot".to_string();
         }
         let marketId: Option<String> = self.safe_string2_opt(&orderData, Value::Str("symbol".into()), Value::Str("s".into()), &[]);
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { marketId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[Value::Null, Value::from(marketType.clone())]);
+        let mut marketIdOrUndefined: Option<String> = None;
+        if (market.is_none()) {
+            marketIdOrUndefined = marketId.clone();
+        }
+        let marketResolved: crate::types::Market = self.safe_market(marketIdOrUndefined.as_deref(), market, &[Value::Null, Value::from(marketType.clone())]);
         let side: Option<String> = self.safe_string_lower2_opt(&orderData, Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(&orderData, Value::from(vec![Value::Str("time".into()), Value::Str("transactTime".into()), Value::Str("E".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let transactTime: Value = self.safe_string_k(&orderData, "transactTime", &[Value::Str("".into())]);
@@ -1587,7 +1592,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         let rawType: Option<String> = self.safe_string_k_opt(&transaction, "transferType", &[]);
         let mut type_var: String = "withdrawal".to_string();
-        if (rawType.as_deref() == Some("0")) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("insertTime"))) {
+        if (rawType.as_deref() == Some("0")) || (self.safe_integer_k(&transaction, "insertTime", &[]) != Value::Null) {
             type_var = "deposit".to_string();
         }
         let mut internal: Option<bool> = None;
@@ -4306,7 +4311,10 @@ impl Bingx {
             m
         });
         request.insert("interval".into(), self.safe_string(&self.timeframes, &timeframe, std::slice::from_ref(&timeframe)));
-        let requestLimit: Value = Value::from(self.parse_to_int((if (limit.is_none()) { Value::Int(500) } else { Value::from((if let Some(__m0) = limit { Some(i64::min(__m0, maxLimit)) } else { None })) })));
+        let mut requestLimit: Value = Value::Int(500);
+        if (limit.is_some()) {
+            requestLimit = Value::from(self.parse_to_int(Value::from((if let Some(__m0) = limit { Some(i64::min(__m0, maxLimit)) } else { None }))));
+        }
         if (since.is_some()) {
             request.insert("startTime".into(), crate::runtime::Math::max(&(match (&(Value::from(since)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                 Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)));
@@ -4335,9 +4343,7 @@ impl Bingx {
             let timeZoneparamsTimeZoneVariable = self.handle_option_integer_and_params(&paramsUntil, Value::Str("fetchOHLCV".into()), Value::Str("timeZone".into()), &[Value::Int(0)]);
             let timeZone: Option<i64> = timeZoneparamsTimeZoneVariable.0;
             let paramsTimeZone: crate::value::Dict = timeZoneparamsTimeZoneVariable.1;
-            if (timeZone.is_some()) {
-                request.insert("timeZone".into(), Value::from(timeZone));
-            }
+            request.insert("timeZone".into(), Value::from(timeZone));
             let __ws_arg_0 = self.extend(&request, &[&paramsTimeZone]);
             response = self.call_method_o("spot_v1_public_get_market_kline", &[&__ws_arg_0]).await;
         }  else {
@@ -5274,15 +5280,13 @@ impl Bingx {
         if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_20 = self.extend(&request, &[&paramsSubType]);
             response = self.cswap_v1_public_get_market_premium_index(&[&__ws_arg_20]).await;
-        }  else {
-            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.swap_v2_public_get_quote_premium_index(&[&__ws_arg_21]).await;
-        }
-        if (matches!(&crate::value::KeyRead::key_read(&&response, "data"), Value::Arr(_))) {
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(crate::value::KeyRead::key_read(&&response, "data"), Value::Int(0), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market)).map_or(Value::Null, Value::Dict);
+        }  else {
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.swap_v2_public_get_quote_premium_index(&[&__ws_arg_21]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, crate::value::KeyRead::key_read(&&response, "data"), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null

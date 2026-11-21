@@ -1556,7 +1556,10 @@ impl Bit2me {
         }  else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             let duration: i64 = ((self.parse_timeframe(&timeframe)) * 1000);
-            let end: Option<i64> = (if (until.is_some()) { until } else { Some(self.milliseconds()) });
+            let mut end: Option<i64> = Some(self.milliseconds());
+            if (until.is_some()) {
+                end = until;
+            }
             request.insert("startTime".into(), Value::from((if let (Some(__l), Some(__r)) = (end, ((if let Some(__l) = requestLimit { Some(__l * duration) } else { None }))) { Some(__l - __r) } else { None })));
         }
         if (until.is_some()) {
@@ -1741,7 +1744,11 @@ impl Bit2me {
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(Some(symbol), &stopLossPrice)));
             let mut stopLossLimit: Option<String> = stopLimitPrice;
             if (stopLossLimit.is_none()) {
-                stopLossLimit = (if (price.is_some()) { self.number_to_string(Value::from(price)) } else { stopLossPrice });
+                if (price.is_some()) {
+                    stopLossLimit = self.number_to_string(Value::from(price));
+                }  else {
+                    stopLossLimit = stopLossPrice;
+                }
             }
             request.insert("stopLimitPrice".into(), Value::from(self.price_to_precision(Some(symbol), stopLossLimit.map(Value::from).unwrap_or(Value::Null))));
         }  else if isMarketOrder {

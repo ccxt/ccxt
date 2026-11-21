@@ -474,8 +474,8 @@ impl Bybit {
             if (isSpot == Some(true)) {
                 url = accessibilityUrls.get("spot").cloned().unwrap_or(Value::Null);
             }  else if (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
-                let subType: Value = (self.handle_sub_type_and_params(methodValue, market.as_ref(), &[&params, &Value::Str("linear".into())])).0;
-                url = accessibilityUrls.get(subType.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let subType: Option<String> = (self.handle_sub_type_and_params(methodValue, market.as_ref(), &[&params, &Value::Str("linear".into())])).0.as_str().map(str::to_owned);
+                url = self.safe_string(&accessibilityUrls, subType.map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
                 // option
                 url = accessibilityUrls.get("option").cloned().unwrap_or(Value::Null);
@@ -543,7 +543,7 @@ impl Bybit {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let orderRequest: crate::value::Dict = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params, &Value::Bool(true)]);
+        let orderRequest: crate::value::Dict = self.parent.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), price, &[&params, &Value::Bool(true)]);
         let url: Option<String> = self.implode_hostname(self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "private"), Value::Str("trade".into()), &[Value::Str("".into())])).as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let requestId: String = format!("{}", self.request_id());

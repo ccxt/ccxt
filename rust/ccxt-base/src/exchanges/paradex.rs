@@ -962,11 +962,11 @@ impl crate::exchange::DerivedExchange for Paradex {
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let partsLength: i64 = parts.len() as i64;
         let mut base: Option<String> = None;
-        let mut quote: Option<String> = None;
+        let mut quote: String = "".to_string();
         let mut settle: Option<String> = None;
         let mut expiryDate: Option<String> = None;
         let mut strike: Option<String> = None;
-        let mut optionType: Option<String> = None;
+        let mut optionType: String = "".to_string();
         if symbol.as_str().unwrap_or("").contains("/") {
             if (partsLength != 4) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have market symbol ").into()), symbol)));
@@ -976,22 +976,22 @@ impl crate::exchange::DerivedExchange for Paradex {
             base = self.safe_string_opt(&pairParts, Value::Int(0), &[]);
             let quoteAndSettle: String = self.safe_string(&pairParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let quoteParts: crate::value::List = crate::value::List::new(quoteAndSettle.split(":").map(Value::from).collect());
-            quote = self.safe_string_opt(&quoteParts, Value::Int(0), &[]);
+            quote = self.safe_string(&quoteParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             settle = self.safe_string_opt(&quoteParts, Value::Int(1), &[&quote]);
             expiryDate = self.safe_string_opt(&parts, Value::Int(1), &[]);
             strike = self.safe_string_opt(&parts, Value::Int(2), &[]);
-            optionType = self.safe_string_opt(&parts, Value::Int(3), &[]);
+            optionType = self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }  else {
             if (partsLength != 5) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have market symbol ").into()), symbol)));
             }
             base = self.safe_string_opt(&parts, Value::Int(0), &[]);
-            quote = self.safe_string_opt(&parts, Value::Int(1), &[]);
+            quote = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             settle = Some("USDC".to_string()); // every option on the venue settles in USDC
             expiryDate = self.convert_market_id_expire_date(self.safe_string(&parts, Value::Int(2), &[]).as_str()).as_str().map(str::to_owned);
             let strikeId: Option<String> = parts.get(3).and_then(Value::as_str).map(str::to_owned);
             strike = (if let Some(__s) = strikeId.as_deref() { Some(__s.replace("_", ".")) } else { None });
-            optionType = self.safe_string_opt(&parts, Value::Int(4), &[]);
+            optionType = self.safe_string(&parts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         // the id carries the day without a leading zero, 6NOV26
         let mut idDate: Value = self.convert_expire_date_to_market_id_date(expiryDate.as_deref());
@@ -1011,13 +1011,13 @@ impl crate::exchange::DerivedExchange for Paradex {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "-", quote.as_deref().unwrap_or("null"), "-", idDate, "-", strikeInId.map(Value::from).unwrap_or(Value::Null), "-", optionType.as_deref().unwrap_or("null")).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", settle.as_deref().unwrap_or("null"), "-", expiryDate.as_deref().unwrap_or("null"), "-", strike.as_deref().unwrap_or("null"), "-", optionType.as_deref().unwrap_or("null")).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "-", quote, "-", idDate, "-", strikeInId.map(Value::from).unwrap_or(Value::Null), "-", optionType).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote, ":", settle.as_deref().unwrap_or("null"), "-", expiryDate.as_deref().unwrap_or("null"), "-", strike.as_deref().unwrap_or("null"), "-", optionType).into()));
         m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), Value::from(quote));
         m.insert("settleId".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("option".into()));
@@ -1033,7 +1033,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
         m.insert("expiry".to_string(), timestamp);
         m.insert("expiryDatetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("optionType".to_string(), (if (optionType.as_deref() == Some("C")) { Value::Str("call".into()) } else { Value::Str("put".into()) }));
+        m.insert("optionType".to_string(), (if (optionType == "C") { Value::Str("call".into()) } else { Value::Str("put".into()) }));
         m.insert("strike".to_string(), self.parse_number(strike.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2909,7 +2909,7 @@ impl Paradex {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "results");
-        if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) {
+        if (self.safe_string_k(&request, "market", &[]).as_str() == Some("ALL")) {
             return self.parse_tickers(self.filter_loaded_summaries(&data, None), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         return self.parse_tickers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -3072,7 +3072,7 @@ impl Paradex {
         let response: crate::value::Dict = self.public_get_markets_summary(&[&__ws_arg_4]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "results");
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) {
+        if (self.safe_string_k(&request, "market", &[]).as_str() == Some("ALL")) {
             return self.parse_funding_rates(self.filter_loaded_summaries(&data, Some("swap")), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         return self.parse_funding_rates(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -5464,7 +5464,7 @@ impl Paradex {
         //
         let results: crate::value::List = self.safe_list_k_t(&response, "results");
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if (request.get("market").cloned().unwrap_or(Value::Null).as_str() == Some("ALL")) {
+        if (self.safe_string_k(&request, "market", &[]).as_str() == Some("ALL")) {
             return self.parse_all_greeks(self.filter_loaded_summaries(&results, Some("option")), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         }
         return self.parse_all_greeks(&results, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -5799,9 +5799,10 @@ impl Paradex {
             let paginationCallsparamsCallsVariable = self.handle_option_integer_and_params(&paramsPaginate, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]);
             let paginationCalls: Option<i64> = paginationCallsparamsCallsVariable.0;
             let paramsCalls: crate::value::Dict = paginationCallsparamsCallsVariable.1;
-            let mut endAt: Option<i64> = self.safe_integer_k(&paramsCalls, "until", &[]).as_i64();
-            if (endAt.is_none()) {
-                endAt = (if let Some(__m1) = ((if let (Some(__m0), Some(__m1)) = (since, ((if let Some(__l) = ((if let Some(__l) = paginationCalls { Some(__l * 5000) } else { None })) { Some(__l * rowSpacing) } else { None }))) { Some((__m0 + __m1)) } else { None })) { Some(i64::min((self.milliseconds()), __m1)) } else { None });
+            let until: Option<i64> = self.safe_integer_k(&paramsCalls, "until", &[]).as_i64();
+            let mut endAt: Option<i64> = (if let Some(__m1) = ((if let (Some(__m0), Some(__m1)) = (since, ((if let Some(__l) = ((if let Some(__l) = paginationCalls { Some(__l * 5000) } else { None })) { Some(__l * rowSpacing) } else { None }))) { Some((__m0 + __m1)) } else { None })) { Some(i64::min((self.milliseconds()), __m1)) } else { None });
+            if (until.is_some()) {
+                endAt = until;
             }
             let __ws_arg_32 = self.omit(&paramsPaginate, Value::Str("until".into()), &[]);
             let paramsEndAt: crate::value::Dict = self.extend_t(__ws_arg_32, &[Value::Map({

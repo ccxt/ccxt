@@ -875,7 +875,8 @@ impl Bitget {
             args.insert("interval".into(), interval.map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", "kline:", symbolValue));
         }  else {
-            args.insert("channel".into(), Value::Str(format!("{}{}", "candle", interval.as_deref().unwrap_or("null")).into()));
+            let intervalValue: String = self.safe_string(&timeframes, &timeframe, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            args.insert("channel".into(), Value::Str(format!("{}{}", "candle", intervalValue).into()));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolValue));
         }
@@ -1869,7 +1870,11 @@ impl Bitget {
         }  else {
             defaultType = (if (posMode.is_some()) { Some("contract".to_string()) } else { Some("spot".to_string()) });
         }
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { instId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]);
+        let mut instIdResolved: Option<String> = None;
+        if (market.is_none()) {
+            instIdResolved = instId;
+        }
+        let marketResolved: crate::types::Market = self.safe_market(instIdResolved.as_deref(), market, &[Value::Null, defaultType.map(Value::from).unwrap_or(Value::Null)]);
         let timestamp: Option<i64> = self.safe_integer_n(&trade, Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]).as_i64();
         let feeDetail: crate::value::List = self.safe_list_k_t(&trade, "feeDetail");
         let first: Option<crate::value::Dict> = self.safe_dict_o(&feeDetail, Value::Int(0));
@@ -2687,8 +2692,8 @@ impl Bitget {
         //         "stpMode": "none"
         //     }
         //
-        let mut isSpot: bool = !(matches!(&order, Value::Dict(__d) if __d.contains_key("posMode")));
-        let mut isMargin: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("loanType"));
+        let mut isSpot: bool = (self.safe_string_k(&order, "posMode", &[]) == Value::Null);
+        let mut isMargin: bool = (self.safe_string_k(&order, "loanType", &[]) != Value::Null);
         let category: Option<String> = self.safe_string_lower_k_opt(&order, "category", &[]);
         if (category.as_deref() == Some("spot")) {
             isSpot = true;
@@ -2849,7 +2854,8 @@ impl Bitget {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
+            let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolValue);
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
@@ -3276,7 +3282,7 @@ impl Bitget {
                     account.insert("debt".into(), crate::precise::Precise::stringAdd(&borrow, &interest));
                 }
                 let mut freeQuery: String = "available".to_string();
-                if (rawBalance.contains_key("maxTransferOut")) {
+                if (self.safe_string_k(&rawBalance, "maxTransferOut", &[]) != Value::Null) {
                     freeQuery = "maxTransferOut".to_string();
                 }
                 account.insert("free".into(), self.safe_string(&rawBalance, Value::from(freeQuery), &[]));

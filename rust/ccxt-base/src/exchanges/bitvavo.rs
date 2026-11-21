@@ -591,7 +591,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
             }));
         }
         let mut type_var: Option<String> = None;
-        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("success"))) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))) {
+        if (self.safe_bool_k(&transaction, "success", &[]) != Value::Null) || (self.safe_string_k(&transaction, "address", &[]) != Value::Null) {
             type_var = Some("withdrawal".to_string());
         }  else {
             type_var = Some("deposit".to_string());

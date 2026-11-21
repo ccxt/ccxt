@@ -2559,7 +2559,8 @@ impl Backpack {
         if (side != "buy") && (side != "sell") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchStockIndicativeQuote() requires buy or sell")));
         }
-        if (false) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(Value::from(amount))), &Value::Str("0".into())).as_bool() == Some(true)) {
+        let amountString: Option<String> = self.number_to_string(Value::from(amount));
+        if (amountString.is_none()) || !(crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchStockIndicativeQuote() requires a positive base share quantity")));
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -2771,7 +2772,8 @@ impl Backpack {
             let accepted: Option<crate::value::Dict> = self.accept_rfq_quote(id.as_str().unwrap_or_default(), quoteId.as_deref().unwrap_or_default(), self.safe_symbol(None, Some(&market), &[]).as_str().unwrap_or_default(), &[&Value::Dict(acceptParams)]).await;
             return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &accepted, Some(&self.currency(fromCode.as_str())), Some(&self.currency(toCode.as_str())));
         }
-        if (amount.is_none()) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(&amount)), &Value::Str("0".into())).as_bool() == Some(true)) {
+        let amountString: Option<String> = self.number_to_string(&amount);
+        if (amountString.is_none()) || !(crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createConvertTrade() requires a positive amount")));
         }
         let fromIsBase: bool = fromCode.as_str() == self.safe_string_k(&market, "base", &[]).as_str();
@@ -4078,7 +4080,8 @@ impl Backpack {
         if (side != "buy") && (side != "sell") {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires buy or sell")));
         }
-        if (amount == Value::Null) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(&amount)), &Value::Str("0".into())).as_bool() == Some(true)) {
+        let amountString: Option<String> = self.number_to_string(&amount);
+        if (amountString.is_none()) || !(crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() RFQs require a positive base quantity")));
         }
         let unsupported: crate::value::List = std::sync::Arc::new(vec![Value::Str("cost".into()), Value::Str("quoteQuantity".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()),
