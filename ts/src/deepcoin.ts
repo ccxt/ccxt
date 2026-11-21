@@ -994,7 +994,7 @@ export default class deepcoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeList (response, 'data', []) as List;
+        const balances: Dict[] = this.safeList (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i);
             const symbol = this.safeString (balance, 'ccy');
@@ -1640,13 +1640,13 @@ export default class deepcoin extends Exchange {
             request['clOrdId'] = clientOrderId;
             keysToOmit.push ('clientOrderId');
         }
-        const stopLoss = this.safeDict (paramsOrderType, 'stopLoss', {});
+        const stopLoss: Dict = this.safeDict (paramsOrderType, 'stopLoss', {});
         const stopLossPrice = this.safeString (stopLoss, 'triggerPrice');
         if (stopLossPrice !== undefined) {
             keysToOmit.push ('stopLoss');
             request['slTriggerPx'] = this.priceToPrecision (symbol, stopLossPrice);
         }
-        const takeProfit = this.safeDict (paramsOrderType, 'takeProfit', {});
+        const takeProfit: Dict = this.safeDict (paramsOrderType, 'takeProfit', {});
         const takeProfitPrice = this.safeString (takeProfit, 'triggerPrice');
         if (takeProfitPrice !== undefined) {
             keysToOmit.push ('takeProfit');
@@ -3152,12 +3152,10 @@ export default class deepcoin extends Exchange {
         if ((msg !== undefined) && (msg === '') && (sMsg !== undefined)) {
             msg = sMsg;
         }
-        const errorList = this.safeList (data, 'errorList');
-        if (errorList !== undefined) {
-            for (let i = 0; i < errorList.length; i++) {
-                const entry = this.safeDict (errorList, i, {});
-                errorCode = this.safeString (entry, 'errorCode');
-            }
+        const errorList: Dict[] = this.safeList (data, 'errorList', []);
+        for (let i = 0; i < errorList.length; i++) {
+            const entry: Dict = this.safeDict (errorList, i, {});
+            errorCode = this.safeString (entry, 'errorCode');
         }
         const feedback = this.id + ' ' + body;
         if ((sCode === undefined) && (errorCode !== undefined)) {
@@ -3174,7 +3172,7 @@ export default class deepcoin extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
             throw new ExchangeError (feedback);
         } else {
-            const list = this.safeList (data, 'list', []);
+            const list: Dict[] = this.safeList (data, 'list', []);
             if (('list' in data) && (list === undefined)) {
                 throw new NullResponse (feedback);
             }
