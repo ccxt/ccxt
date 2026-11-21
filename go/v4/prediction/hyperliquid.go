@@ -344,7 +344,8 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 					} else {
 						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, index-1)), "_"), ccxt.GetValue(thresholds, index))
 					}
-					return ccxt.Add(ccxt.Add(strings.ToUpper(*questionUnderlying)+"_", bucketLabel), questionExpiryPart)
+					var upperUnderlying string = strings.ToUpper(*questionUnderlying)
+					return ccxt.Add(ccxt.Add(upperUnderlying+"_", bucketLabel), questionExpiryPart)
 				}
 			}
 			var isFallbackLike bool = (rawDescription == "other") || (strings.Index(nameLower, "fallback") >= 0) || (strings.Index(nameLower, "other") >= 0)
@@ -2637,7 +2638,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	} else {
 		endValue = firstExpiry
 	}
-	var literal203028 map[string]any = map[string]any{
+	var literal203128 map[string]any = map[string]any{
 		"id":               parentSymbol,
 		"slug":             parentSymbol,
 		"event":            parentSymbol,
@@ -2656,9 +2657,9 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		"info":             raw,
 	}
 	if expiryDatetime != nil {
-		literal203028["endDatetime"] = *expiryDatetime
+		literal203128["endDatetime"] = *expiryDatetime
 	}
-	return this.Extend(literal203028)
+	return this.Extend(literal203128)
 }
 func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2809,12 +2810,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var ternaryStr218632 string = "Mainnet"
+	var ternaryStr218732 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr218632 = "Testnet"
+		ternaryStr218732 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr218632,
+		"hyperliquidChain": ternaryStr218732,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,
@@ -2951,16 +2952,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var literal227515 map[string]any = map[string]any{
+	var literal227615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal227515["body"] = *bodyValue
+		literal227615["body"] = *bodyValue
 	}
-	return literal227515
+	return literal227615
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

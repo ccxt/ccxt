@@ -7203,7 +7203,7 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":    limitValue,
 	}
-	var marketId *string = SafeStringPtr(market["id"])
+	var marketId *string = this.SafeString(market, "id")
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing marketId"))
 	}
@@ -7569,7 +7569,7 @@ func (this *Binance) ParseTrade(trade any, optionalArgs ...any) Trade {
 		marketType = "spot"
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var side *string = nil
 	var buyerMaker *bool = this.SafeBool2(trade, "m", "isBuyerMaker")
 	var takerOrMaker *string = nil
@@ -9129,7 +9129,7 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
 		marketType = "contract"
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var filled *string = this.SafeStringN(order, []any{"executedQty", "filledQty", "actualQty"}, "0") // actualQty: algo orders
 	var timestamp *int64 = this.SafeInteger2(order, "time", "createTime")                             // order of the keys matters here
 	if timestamp == nil {
@@ -14365,7 +14365,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var fees []any = this.ToArray(response)
 		for i := 0; i < len(fees); i++ {
 			var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
-			var symbol *string = SafeStringPtr(fee["symbol"])
+			var symbol *string = this.SafeString(fee, "symbol")
 			if symbol != nil {
 				spotFees[*symbol] = fee
 			}

@@ -2183,7 +2183,7 @@ func (this *Bitvavo) EditOrderRequest(id string, symbol string, typeVar string, 
 	if clientOrderId == nil {
 		request["orderId"] = id
 	}
-	var operatorId any = GetValue(TupleSlice(this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId")), 0)
+	operatorId, _ := this.HandleOptionAndParams(paramsOmitted, "editOrder", "operatorId")
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {

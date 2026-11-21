@@ -420,9 +420,8 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var symbolValue string = this.Symbol(symbol)
 	var name string = "user"
 	var messageHash string = "myTrades"
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.SubscribeAsync(name, symbolValue, messageHash, this.Extend(params, authentication))
+	r1 := <-this.SubscribeAsync(name, symbolValue, messageHash, this.Extend(params, this.Authenticate()))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -470,9 +469,8 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResu
 	}
 	var name string = "user"
 	var messageHash string = "myTrades"
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.SubscribeMultipleAsync(name, symbolsNormalized, messageHash, this.Extend(params, authentication))
+	r1 := <-this.SubscribeMultipleAsync(name, symbolsNormalized, messageHash, this.Extend(params, this.Authenticate()))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -528,9 +526,8 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var name string = "user"
 	var messageHash string = "orders"
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.SubscribeMultipleAsync(name, symbolsNormalized, messageHash, this.Extend(params, authentication))
+	r1 := <-this.SubscribeMultipleAsync(name, symbolsNormalized, messageHash, this.Extend(params, this.Authenticate()))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -591,9 +588,8 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Or
 	var symbolValue string = this.Symbol(symbol)
 	var name string = "user"
 	var messageHash string = "orders"
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.SubscribeAsync(name, symbolValue, messageHash, this.Extend(params, authentication))
+	r1 := <-this.SubscribeAsync(name, symbolValue, messageHash, this.Extend(params, this.Authenticate()))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -659,9 +655,8 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 		"marketIds":   marketIds,
 		"limit":       limit,
 	}
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, authentication), messageHashes, subscription)
+	r1 := <-this.WatchMultiple(url, messageHashes, this.Extend(request, this.Authenticate()), messageHashes, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -701,7 +696,6 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = name + ":" + *this.SafeString(market, "id", "")
 	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
@@ -712,13 +706,12 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	var request map[string]any = this.Extend(subscribe, params)
 	var subscription map[string]any = map[string]any{
 		"messageHash": messageHash,
-		"symbol":      symbolValue,
+		"symbol":      this.SafeString(market, "symbol"),
 		"marketId":    market["id"],
 		"limit":       limit,
 	}
-	var authentication map[string]any = this.Authenticate()
 
-	r1 := <-this.Watch(url, messageHash, this.Extend(request, authentication), messageHash, subscription)
+	r1 := <-this.Watch(url, messageHash, this.Extend(request, this.Authenticate()), messageHash, subscription)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -745,7 +738,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) ma
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var trade map[string]any = this.ParseWsTrade(message)
-		var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
+		var symbol *string = this.SafeString(trade, "symbol")
 		// the exchange sends type = 'match'
 		// but requires 'matches' upon subscribing
 		// therefore we resolve 'matches' here instead of 'match'
@@ -869,7 +862,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 			parsed["order"] = nil
 		}
 	}
-	var parsedSymbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+	var parsedSymbol string = *this.SafeString(parsed, "symbol", "")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(parsedSymbol))
 	var feeCurrency *string
 	if marketResolved.QuoteCurrency != "" {
@@ -1182,7 +1175,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) m
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
-		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -1287,16 +1280,14 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var name string = "level2"
 	var messageHash string = name + ":" + *this.SafeString(market, "id", "")
 	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if typeVar != nil && *typeVar == "snapshot" {
-		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-			}
+		if !(this.Orderbooks[*symbol] != nil) {
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol)

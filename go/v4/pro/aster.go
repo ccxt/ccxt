@@ -2728,39 +2728,46 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 					// accumulate order fees
 					var fees []any = ccxt.SafeListTyped(order, "fees")
 					var fee map[string]any = this.SafeDictMap(order, "fee")
+					var tradeFeeCurrency *string = this.SafeString(tradeFee, "currency")
+					var tradeFeeCost *float64 = this.SafeNumber(tradeFee, "cost")
 					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
+						var newFees []any = []any{}
 						for i := 0; i < len(fees); i++ {
-							var orderFee map[string]any = ccxt.MapTyped(fees[i])
-							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
-								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
-								var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
-								ccxt.AddElementToObject(ccxt.GetValue(order["fees"], i), "cost", func() any {
-									if feeCostString == nil {
-										return nil
-									}
-									return ccxt.ParseFloat(feeCostString)
-								}())
+							var orderFee map[string]any = this.Extend(map[string]any{}, fees[i])
+							if insertNewFeeCurrency && (this.SafeString(orderFee, "currency") == tradeFeeCurrency || (this.SafeString(orderFee, "currency") != nil && tradeFeeCurrency != nil && *this.SafeString(orderFee, "currency") == *tradeFeeCurrency)) {
+								var feeCost any = this.Sum(tradeFeeCost, this.SafeNumber(orderFee, "cost"))
+								var feeCostString *string = this.CurrencyToPrecision(tradeFeeCurrency, feeCost)
+								if feeCostString != nil {
+									orderFee["cost"] = ccxt.ParseFloat(feeCostString)
+								} else {
+									orderFee["cost"] = nil
+								}
 								insertNewFeeCurrency = false
-								break
 							}
+							newFees = append(newFees, orderFee)
 						}
 						if insertNewFeeCurrency {
-							retRes186532 := order["fees"]
-							ccxt.AppendToArray(&retRes186532, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes186532)
+							newFees = append(newFees, tradeFee)
+						}
+						if order != nil {
+							order["fees"] = newFees
 						}
 					} else if fee != nil {
-						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {
-							var feeCost any = this.Sum(fee["cost"], tradeFee["cost"])
-							var feeCostString *string = this.CurrencyToPrecision(tradeFee["currency"], feeCost)
-							ccxt.AddElementToObject(order["fee"], "cost", func() any {
-								if feeCostString == nil {
-									return nil
-								}
-								return ccxt.ParseFloat(feeCostString)
-							}())
-						} else if this.SafeString(fee, "currency") == nil {
+						var feeCurrency *string = this.SafeString(fee, "currency")
+						if feeCurrency == tradeFeeCurrency || (feeCurrency != nil && tradeFeeCurrency != nil && *feeCurrency == *tradeFeeCurrency) {
+							var feeCost any = this.Sum(this.SafeNumber(fee, "cost"), tradeFeeCost)
+							var feeCostString *string = this.CurrencyToPrecision(tradeFeeCurrency, feeCost)
+							var newFee map[string]any = this.Extend(map[string]any{}, fee)
+							if feeCostString != nil {
+								newFee["cost"] = ccxt.ParseFloat(feeCostString)
+							} else {
+								newFee["cost"] = nil
+							}
+							if order != nil {
+								order["fee"] = newFee
+							}
+						} else if feeCurrency == nil {
 							if order != nil {
 								order["fee"] = tradeFee
 							}

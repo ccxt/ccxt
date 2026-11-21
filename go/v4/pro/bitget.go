@@ -749,9 +749,9 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	}
 	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe)
-	var channel any = nil
+	var channel any = ""
 	var market map[string]any = this.Market(symbol)
-	var messageHash any = nil
+	var messageHash any = ""
 	utaValue, _ := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
 	uta := &utaValue
 	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
@@ -1057,7 +1057,8 @@ func (this *Bitget) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), market["symbol"]))
+	var marketSymbol string = *this.SafeString(market, "symbol", "")
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), marketSymbol))
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, methodName, "uta", false)
 	privateChannel, paramsPrivateChannel := this.HandleOptionBoolAndParams(paramsUta, methodName, "privateChannel", false)
 	instType, paramsInstType := this.GetInstType(methodName, market, uta, paramsPrivateChannel)
@@ -2149,7 +2150,8 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		} else {
 			marketId = nil
 		}
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
+		var marketSymbol string = *this.SafeString(market, "symbol", "")
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), marketSymbol)
 	}
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false)
 	var productType *string = this.SafeString(paramsUta, "productType")
@@ -2179,7 +2181,8 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		}
 	}
 	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
-		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbolResolved)
+		var resolvedSymbol *string = symbolResolved
+		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), resolvedSymbol)
 	}
 	if isTrigger == true {
 		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
@@ -2376,7 +2379,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
 		var parsed map[string]any = this.ParseWsOrder(data[i], market)
 		stored.Append(parsed)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			marketSymbols[*symbol] = true
 		}
@@ -2653,7 +2656,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	var literal218731 map[string]any = map[string]any{
+	var literal219031 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2677,18 +2680,18 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"trades":             nil,
 	}
 	if totalAmount != nil {
-		literal218731["amount"] = *totalAmount
+		literal219031["amount"] = *totalAmount
 	}
 	if cost != nil {
-		literal218731["cost"] = *cost
+		literal219031["cost"] = *cost
 	}
 	if filledAmount != nil {
-		literal218731["filled"] = *filledAmount
+		literal219031["filled"] = *filledAmount
 	}
 	if remaining != nil {
-		literal218731["remaining"] = *remaining
+		literal219031["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal218731, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal219031, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

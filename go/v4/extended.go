@@ -4490,8 +4490,6 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var response map[string]any = nil
-	var order map[string]any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	if clientOrderId != nil {
@@ -4503,9 +4501,12 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Value
-		var data []any = SafeListTyped(response, "data")
-		order = this.SafeDictMap(data, 0, map[string]any{})
+		var response map[string]any = r1.Value
+		var data []any
+		data, _ = response["data"].([]any)
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+		return nil
 	} else {
 		if false {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires an id argument"))
@@ -4518,12 +4519,16 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Value
-		order = this.SafeDictMap(response, "data", map[string]any{})
-	}
+		var response map[string]any = r2.Value
+		var order map[string]any
+		order, _ = response["data"].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
-	return nil
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+		return nil
+	}
 }
 
 /**
@@ -4648,11 +4653,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322919 []any = r1.Value
-		if retRes322919 == nil {
+		var retRes322719 []any = r1.Value
+		if retRes322719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322719)}
 		}
 		return nil
 	}
@@ -5042,16 +5047,16 @@ func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
-	var literal361315 map[string]any = map[string]any{
+	var literal361115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal361315["body"] = *requestBody
+		literal361115["body"] = *requestBody
 	}
-	return literal361315
+	return literal361115
 }
 
 func NewExtended(userConfig map[string]any) *Extended {

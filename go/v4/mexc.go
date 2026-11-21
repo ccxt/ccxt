@@ -2186,7 +2186,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var costString *string = nil
 	var marketResolved map[string]any = nil
 	// if swap
-	if InOp(trade, "v") {
+	var swapVolume *string = this.SafeString(trade, "v")
+	if swapVolume != nil {
 		//
 		// swap: fetchTrades
 		//
@@ -2269,7 +2270,8 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		priceString = this.SafeString2(trade, "price", "p")
 		orderId = this.SafeString(trade, "orderId")
 		// if swap
-		if InOp(trade, "positionMode") {
+		var positionMode *string = this.SafeString(trade, "positionMode")
+		if positionMode != nil {
 			timestamp = this.SafeInteger(trade, "timestamp")
 			amountString = this.SafeString(trade, "vol")
 			side = this.ParseContractOrderSide(this.SafeString(trade, "side"))
@@ -2333,7 +2335,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if IsEqual(id, nil) && (*this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
-	var literal182431 map[string]any = map[string]any{
+	var literal182631 map[string]any = map[string]any{
 		"id":           id,
 		"order":        nil,
 		"timestamp":    timestamp,
@@ -2349,18 +2351,18 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"info":         trade,
 	}
 	if orderId != nil {
-		literal182431["order"] = *orderId
+		literal182631["order"] = *orderId
 	}
 	if priceString != nil {
-		literal182431["price"] = *priceString
+		literal182631["price"] = *priceString
 	}
 	if amountString != nil {
-		literal182431["amount"] = *amountString
+		literal182631["amount"] = *amountString
 	}
 	if costString != nil {
-		literal182431["cost"] = *costString
+		literal182631["cost"] = *costString
 	}
-	return this.SafeTrade(literal182431, marketResolved)
+	return this.SafeTrade(literal182631, marketResolved)
 }
 
 /**
@@ -2417,11 +2419,11 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes186619 []any = r1.Value
-		if retRes186619 == nil {
+		var retRes186819 []any = r1.Value
+		if retRes186819 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes186619)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes186819)}
 		}
 		return nil
 	}
@@ -2595,11 +2597,11 @@ func (this *Mexc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		var symbolsElem200334 *string = nil
+		var symbolsElem200534 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem200334 = &symbols[0]
+			symbolsElem200534 = &symbols[0]
 		}
-		market = this.Market(symbolsElem200334)
+		market = this.Market(symbolsElem200534)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var tickers any = nil
@@ -2848,7 +2850,7 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		changePcnt = this.SafeString(ticker, "priceChangePercent")
 		changePcnt = Precise.StringMul(changePcnt, "100")
 	}
-	var literal226032 map[string]any = map[string]any{
+	var literal226232 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -2870,36 +2872,36 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if open != nil {
-		literal226032["open"] = *open
+		literal226232["open"] = *open
 	}
 	if high != nil {
-		literal226032["high"] = *high
+		literal226232["high"] = *high
 	}
 	if low != nil {
-		literal226032["low"] = *low
+		literal226232["low"] = *low
 	}
 	if bid != nil {
-		literal226032["bid"] = *bid
+		literal226232["bid"] = *bid
 	}
 	if bidVolume != nil {
-		literal226032["bidVolume"] = *bidVolume
+		literal226232["bidVolume"] = *bidVolume
 	}
 	if ask != nil {
-		literal226032["ask"] = *ask
+		literal226232["ask"] = *ask
 	}
 	if askVolume != nil {
-		literal226032["askVolume"] = *askVolume
+		literal226232["askVolume"] = *askVolume
 	}
 	if prevClose != nil {
-		literal226032["previousClose"] = *prevClose
+		literal226232["previousClose"] = *prevClose
 	}
 	if changeValue != nil {
-		literal226032["change"] = *changeValue
+		literal226232["change"] = *changeValue
 	}
 	if changePcnt != nil {
-		literal226032["percentage"] = *changePcnt
+		literal226232["percentage"] = *changePcnt
 	}
-	return this.SafeTicker(literal226032, marketResolved)
+	return this.SafeTicker(literal226232, marketResolved)
 }
 
 /**
@@ -2935,11 +2937,11 @@ func (this *Mexc) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		var symbolsElem230134 *string = nil
+		var symbolsElem230334 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem230134 = &symbols[0]
+			symbolsElem230334 = &symbols[0]
 		}
-		market = this.Market(symbolsElem230134)
+		market = this.Market(symbolsElem230334)
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var tickers any = nil
@@ -4212,12 +4214,12 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes326515Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes326515 []any = retRes326515Recv
-	if retRes326515 == nil {
+	retRes326715Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes326715 []any = retRes326715Recv
+	if retRes326715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes326715)}
 	}
 	return nil
 }
@@ -4256,12 +4258,12 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes328215Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes328215 []any = retRes328215Recv
-	if retRes328215 == nil {
+	retRes328415Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes328415 []any = retRes328415Recv
+	if retRes328415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes328415)}
 	}
 	return nil
 }
@@ -4303,11 +4305,11 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes329919 []any = OrdersToList(r1.Value)
-		if retRes329919 == nil {
+		var retRes330119 []any = OrdersToList(r1.Value)
+		if retRes330119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes329919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes330119)}
 		}
 		return nil
 	}
@@ -5674,11 +5676,11 @@ func (this *Mexc) reduceMarginBody(ch chan AsyncResult[map[string]any], symbol s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes445415 map[string]any = r.Value
-	if retRes445415 == nil {
+	var retRes445615 map[string]any = r.Value
+	if retRes445615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes445415}
+		ch <- AsyncResult[map[string]any]{Value: retRes445615}
 	}
 	return nil
 }
@@ -5708,11 +5710,11 @@ func (this *Mexc) addMarginBody(ch chan AsyncResult[map[string]any], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes446815 map[string]any = r.Value
-	if retRes446815 == nil {
+	var retRes447015 map[string]any = r.Value
+	if retRes447015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes446815}
+		ch <- AsyncResult[map[string]any]{Value: retRes447015}
 	}
 	return nil
 }
@@ -8419,16 +8421,16 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal649415 map[string]any = map[string]any{
+	var literal649615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal649415["body"] = *requestBody
+		literal649615["body"] = *requestBody
 	}
-	return literal649415
+	return literal649615
 }
 func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

@@ -4751,19 +4751,20 @@ func (this *Bingx) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		result = data
 	}
 	// when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+	var fixedMembers map[string]any = map[string]any{}
 	var stopLossDict map[string]any = SafeMapTyped(result, "stopLoss")
 	var stopLoss *string = this.SafeString(result, "stopLoss")
 	// for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
 	// so we need trick to check if it's non-parsed string yet
 	if (stopLossDict == nil) && (stopLoss != nil) && (strings.Index(*stopLoss, "{") == 0) {
-		AddElementToObject(result, "stopLoss", this.ParseJson(stopLoss))
+		fixedMembers["stopLoss"] = this.ParseJson(stopLoss)
 	}
 	var takeProfit *string = this.SafeString(result, "takeProfit")
 	if (takeProfit != nil) && (strings.Index(*takeProfit, "{") == 0) {
-		AddElementToObject(result, "takeProfit", this.ParseJson(takeProfit))
+		fixedMembers["takeProfit"] = this.ParseJson(takeProfit)
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(result, fixedMembers), market)}
 	return nil
 }
 
@@ -5730,9 +5731,9 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
-	var ternaryStr467320 string = "CLOSE"
+	var ternaryStr467420 string = "CLOSE"
 	if isActive {
-		ternaryStr467320 = "ACTIVATE"
+		ternaryStr467420 = "ACTIVATE"
 	}
 	var timeOutValue int64
 	if isActive {
@@ -5741,7 +5742,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		timeOutValue = int64(0)
 	}
 	var request map[string]any = map[string]any{
-		"type":    ternaryStr467320,
+		"type":    ternaryStr467420,
 		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
@@ -6637,11 +6638,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553319 []any = r1.Value
-		if retRes553319 == nil {
+		var retRes553419 []any = r1.Value
+		if retRes553419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553419)}
 		}
 		return nil
 	}
@@ -7420,14 +7421,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var ternaryStr610520 string = "reduce"
+	var ternaryStr610620 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		ternaryStr610520 = "add"
+		ternaryStr610620 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       ternaryStr610520,
+		"type":       ternaryStr610620,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -8860,16 +8861,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal743315 map[string]any = map[string]any{
+	var literal743415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal743315["body"] = *requestBody
+		literal743415["body"] = *requestBody
 	}
-	return literal743315
+	return literal743415
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

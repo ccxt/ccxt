@@ -176,7 +176,7 @@ func (this *Htx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol")
 	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var topic *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (topic != nil && *topic == "market.{marketId}.ticker") && (market["type"] != "spot") {
@@ -289,7 +289,7 @@ func (this *Htx) HandleTicker(client any, message map[string]any) map[string]any
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
-	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
@@ -332,7 +332,7 @@ func (this *Htx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol")
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".trade.detail"
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"])
@@ -424,14 +424,12 @@ func (this *Htx) HandleTrades(client any, message map[string]any) map[string]any
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var tradesCache ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var tradesCache ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesCache
-		}
+		this.Trades[symbol] = tradesCache
 	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
@@ -479,7 +477,7 @@ func (this *Htx) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var marketId string = *this.SafeString(market, "id", "")
 	var messageHash string = "market." + marketId + ".kline." + *interval
@@ -569,14 +567,14 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
+	if this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && timeframe != nil {
+	if timeframe != nil {
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
@@ -626,7 +624,7 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue *string = this.SafeString(market, "symbol")
 	var allowedLimits []any = []any{5, 20, 150, 400}
 	// 2) 5-level/20-level incremental MBP is a tick by tick feed,
 	// which means whenever there is an order book change at that level, it pushes an update
@@ -983,11 +981,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var parts []string = strings.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string
-	if market.Symbol != "" {
-		symbol = &market.Symbol
-	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var symbol string = market.Symbol
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
@@ -1003,7 +998,7 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	if (prevSeqNum != nil) && (*prevSeqNum > orderbookNonce) {
 		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
-			panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
+			panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(&symbol)))
 		}
 	}
 	var spotConditon bool = (market.Spot == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
@@ -3088,7 +3083,7 @@ func (this *Htx) HandleErrorMessage(client any, message map[string]any) any {
 						}
 					}()
 					// try block:
-					this.ThrowExactlyMatchedException(wsExceptions["exact"], errorCode, this.Json(message))
+					this.ThrowExactlyMatchedException(this.SafeDict(wsExceptions, "exact", map[string]any{}), errorCode, this.Json(message))
 					panic(ccxt.ExchangeError(this.Json(message)))
 
 				}(this)

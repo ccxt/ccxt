@@ -3175,8 +3175,10 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 		var parsedMarkets []any = ccxt.ArrayTyped(parsedEvent["markets"])
 		var parsedMarketsLength int = len(parsedMarkets)
 		for mi := 0; mi < parsedMarketsLength; mi++ {
-			var m any = parsedMarkets[mi]
-			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
+			var marketKey *string = this.SafeString(parsedMarkets[mi], "market")
+			if marketKey != nil {
+				this.AddMarketsEntry(marketKey, parsedMarkets[mi])
+			}
 		}
 	}
 	this.PopulateOutcomes()
@@ -3673,7 +3675,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal260928 map[string]any = map[string]any{
+	var literal261128 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3696,9 +3698,9 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal260928["event"] = *eventSlug
+		literal261128["event"] = *eventSlug
 	}
-	return this.Extend(literal260928)
+	return this.Extend(literal261128)
 }
 
 /**

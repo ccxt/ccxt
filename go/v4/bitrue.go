@@ -2105,7 +2105,8 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 		side = &sideStr2 // this is a true side
 	}
 	var fee map[string]any = nil
-	if InOp(trade, "commission") {
+	var commission *string = this.SafeString(trade, "commission")
+	if commission != nil {
 		fee = map[string]any{
 			"cost":     this.SafeString2(trade, "commission", "fee"),
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "commissionAssert")),
@@ -2284,16 +2285,19 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) Order {
 	var filled *string = this.SafeString(order, "executedQty")
 	var timestamp *int64 = nil
 	var lastTradeTimestamp *int64 = nil
-	if InOp(order, "time") {
-		timestamp = this.SafeInteger(order, "time")
-	} else if InOp(order, "transactTime") {
-		timestamp = this.SafeInteger(order, "transactTime")
-	} else if InOp(order, "updateTime") {
+	var time *int64 = this.SafeInteger(order, "time")
+	var transactTime *int64 = this.SafeInteger(order, "transactTime")
+	var updateTime *int64 = this.SafeInteger(order, "updateTime")
+	if time != nil {
+		timestamp = time
+	} else if transactTime != nil {
+		timestamp = transactTime
+	} else if updateTime != nil {
 		if status != nil && *status == "open" {
 			if Precise.StringGt(filled, "0") {
-				lastTradeTimestamp = this.SafeInteger(order, "updateTime")
+				lastTradeTimestamp = updateTime
 			} else {
-				timestamp = this.SafeInteger(order, "updateTime")
+				timestamp = updateTime
 			}
 		}
 	}
@@ -3497,10 +3501,10 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var txid *string = this.SafeString(transaction, "txid")
 	var timestamp *int64 = this.SafeInteger(transaction, "createdAt")
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
-	var payAmount bool = (InOp(transaction, "payAmount"))
-	var ctime bool = (InOp(transaction, "ctime"))
+	var payAmount *string = this.SafeString(transaction, "payAmount")
+	var ctime *string = this.SafeString(transaction, "ctime")
 	var typeVar string = "deposit"
-	if payAmount || ctime {
+	if (payAmount != nil) || (ctime != nil) {
 		typeVar = "withdrawal"
 	}
 	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
@@ -3744,7 +3748,7 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
-	var literal305515 map[string]any = map[string]any{
+	var literal305915 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -3756,12 +3760,12 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      "ok",
 	}
 	if fromAccount != nil {
-		literal305515["fromAccount"] = *fromAccount
+		literal305915["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal305515["toAccount"] = *toAccount
+		literal305915["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal305515)
+	return TransferEntryFromMap(literal305915)
 }
 
 /**

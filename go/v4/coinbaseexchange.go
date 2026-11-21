@@ -1331,10 +1331,8 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan AsyncResult[map[string]Ti
 		var marketId string = marketIds[i]
 		var entry []any = SafeListTyped(response, marketId)
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
-		var symbol *string = SafeStringPtr(market["symbol"])
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTickerList(this.SafeList(entry, 0, []any{}), market))
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		result[symbol] = TickerToMap(this.ParseTickerList(this.SafeList(entry, 0, []any{}), market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -1490,7 +1488,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var literal113731 map[string]any = map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -2312,7 +2310,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 		if costParam != nil {
 			request["funds"] = this.CostToPrecision(symbol, costParam)
 		} else if price != nil {
-			request["funds"] = this.CostToPrecision(symbol, Multiply(amount, price))
+			request["funds"] = this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
 		} else {
 			request["size"] = this.AmountToPrecision(symbol, amount)
 		}
@@ -3242,10 +3240,9 @@ func (this *Coinbaseexchange) requestBody(ch chan AsyncResult[any], path any, op
 		panic(r.Err)
 	}
 	response := r.Value
-	if !IsString(response) {
-		if InOp(response, "message") {
-			panic(ExchangeError(this.Id + " " + this.Json(response)))
-		}
+	var message *string = this.SafeString(response, "message")
+	if message != nil {
+		panic(ExchangeError(this.Id + " " + this.Json(response)))
 	}
 
 	ch <- AsyncResult[any]{Value: response}

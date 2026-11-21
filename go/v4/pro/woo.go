@@ -2271,11 +2271,8 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {
-		var subHash *string = ccxt.SafeStringPtr(subMessageHashes[i])
-		var unsubHash *string = nil
-		if i >= 0 && i < len(unsubMessageHashes) {
-			unsubHash = ccxt.SafeStringPtr(unsubMessageHashes[i])
-		}
+		var subHash *string = this.SafeString(subMessageHashes, i)
+		var unsubHash *string = this.SafeString(unsubMessageHashes, i)
 		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)

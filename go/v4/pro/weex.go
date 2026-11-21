@@ -185,7 +185,9 @@ func (this *Weex) Authenticate(url string) {
 	var timestamp string = strconv.FormatInt(this.Nonce(), 10)
 	var payload string = timestamp + "/v3/ws/private"
 	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
-	var originalHeaders map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(this.Options["ws"], "options"), "headers")
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
+	var wsInnerOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
+	var originalHeaders map[string]any = ccxt.SafeMapTyped(wsInnerOptions, "headers")
 	var userAgent *string = this.SafeString(originalHeaders, "User-Agent", "ccxt")
 	var extendedOptions map[string]any = map[string]any{
 		"ws": map[string]any{
@@ -491,14 +493,12 @@ func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "C")
 	var close *string = this.SafeString(ticker, "c")
-	var symbol any = nil
-	if market == nil {
-		symbol = nil
-	} else {
-		symbol = market["symbol"]
+	var symbol *string = nil
+	if market != nil {
+		symbol = this.SafeString(market, "symbol")
 	}
-	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+	var literal35832 map[string]any = map[string]any{
+		"symbol":        nil,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"high":          this.SafeString(ticker, "h"),
@@ -520,7 +520,11 @@ func (this *Weex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[
 		"markPrice":     this.SafeString(ticker, "m"),
 		"indexPrice":    this.SafeString(ticker, "i"),
 		"info":          ticker,
-	}, market))
+	}
+	if symbol != nil {
+		literal35832["symbol"] = *symbol
+	}
+	return ccxt.TickerToMap(this.SafeTicker(literal35832, market))
 }
 
 /**
@@ -794,11 +798,9 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "T")
-	var symbol any = nil
-	if market == nil {
-		symbol = nil
-	} else {
-		symbol = market["symbol"]
+	var symbol *string = nil
+	if market != nil {
+		symbol = this.SafeString(market, "symbol")
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "m") // m is the isBuyerMaker flag of the REST trades, true means the taker sold
 	var side *string = nil
@@ -814,12 +816,12 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		takerOrMakerStr := "taker"
 		takerOrMaker = &takerOrMakerStr // a public trade is reported from the aggressor's side, same as parseTrade
 	}
-	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
+	var literal56631 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "t"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       symbol,
+		"symbol":       nil,
 		"order":        nil,
 		"type":         nil,
 		"side":         side,
@@ -828,7 +830,11 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"amount":       this.SafeString(trade, "q"),
 		"cost":         this.SafeString(trade, "v"),
 		"fee":          nil,
-	}, market))
+	}
+	if symbol != nil {
+		literal56631["symbol"] = *symbol
+	}
+	return ccxt.TradeToMap(this.SafeTrade(literal56631, market))
 }
 
 /**
@@ -1609,25 +1615,27 @@ func (this *Weex) HandleBidAsk(client any, message map[string]any) {
 		return
 	}
 	var ticker map[string]any = this.ParseWsBidAsk(message, market)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol *string = this.SafeString(market, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 	}
-	var messageHash string = "bidask::" + *symbol
+	var messageHash *string = nil
+	if symbol != nil {
+		messageHashValue := "bidask::" + *symbol
+		messageHash = &messageHashValue
+	}
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	var symbol any = nil
-	if market == nil {
-		symbol = nil
-	} else {
-		symbol = market["symbol"]
+	var symbol *string = nil
+	if market != nil {
+		symbol = this.SafeString(market, "symbol")
 	}
-	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
-		"symbol":    symbol,
+	var literal110432 map[string]any = map[string]any{
+		"symbol":    nil,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"ask":       this.SafeString(message, "a"),
@@ -1635,7 +1643,11 @@ func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map
 		"bid":       this.SafeString(message, "b"),
 		"bidVolume": this.SafeString(message, "B"),
 		"info":      message,
-	}, market))
+	}
+	if symbol != nil {
+		literal110432["symbol"] = *symbol
+	}
+	return ccxt.TickerToMap(this.SafeTicker(literal110432, market))
 }
 
 /**
@@ -2246,7 +2258,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	} else if (rawType != nil && *rawType == "STOP_LOSS") || (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") {
 		stopLossPrice = triggerPrice
 	}
-	var literal160631 map[string]any = map[string]any{
+	var literal160231 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "id"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
 		"symbol":              marketResolved["symbol"],
@@ -2274,12 +2286,12 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"info":                order,
 	}
 	if stopLossPrice != nil {
-		literal160631["stopLossPrice"] = *stopLossPrice
+		literal160231["stopLossPrice"] = *stopLossPrice
 	}
 	if takeProfitPrice != nil {
-		literal160631["takeProfitPrice"] = *takeProfitPrice
+		literal160231["takeProfitPrice"] = *takeProfitPrice
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal160631, marketValue))
+	return ccxt.OrderToMap(this.SafeOrder(literal160231, marketValue))
 }
 
 /**

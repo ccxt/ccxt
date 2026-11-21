@@ -116,7 +116,7 @@ func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) 
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marketValue map[string]any = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var lastString any = this.FromEp(this.SafeString(ticker, "close"), marketValue)
 	var last *float64 = this.ParseNumber(lastString)
@@ -179,7 +179,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, 0)
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marketValue map[string]any = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var lastString any = this.FromEp(this.SafeString(ticker, 4), marketValue)
 	var last *float64 = this.ParseNumber(lastString)
 	var quoteVolume *float64 = this.ParseNumber(this.FromEv(this.SafeString(ticker, 6), marketValue))
@@ -476,15 +476,13 @@ func (this *Phemex) HandleTrades(client any, message map[string]any) {
 	var name string = "trade"
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = name + ":" + *symbol
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = name + ":" + symbol
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
 	var trades []any = ccxt.SafeList2Typed(message, "trades", "trades_p", []any{})
 	var parsed []any = this.ParseTrades(trades, market)
@@ -527,26 +525,26 @@ func (this *Phemex) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var candles []any = ccxt.SafeList2Typed(message, "kline", "kline_p", []any{})
 	var first []any = ccxt.SafeListTyped(candles, 0)
 	var interval *string = this.SafeString(first, 1)
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe != nil {
-		var messageHash string = "kline:" + *timeframe + ":" + *symbol
+		var messageHash string = "kline:" + *timeframe + ":" + symbol
 		var ohlcvs []any = this.ParseOHLCVs(candles, market)
-		if symbol != nil && this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
+		if this.Ohlcvs[symbol] == nil {
+			this.Ohlcvs[symbol] = map[string]any{}
 		}
 		var stored ccxt.WsArrayCache
-		if symbol != nil && timeframe != nil {
-			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
+		if timeframe != nil {
+			stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			if symbol != nil && this.Ohlcvs[*symbol] != nil {
-				this.Ohlcvs[*symbol][*timeframe] = stored
+			if this.Ohlcvs[symbol] != nil {
+				this.Ohlcvs[symbol][*timeframe] = stored
 			}
 		}
 		for i := 0; i < len(ohlcvs); i++ {
@@ -1136,31 +1134,29 @@ func (this *Phemex) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var typeVar *string = this.SafeString(message, "type")
 	var depth *int64 = this.SafeInteger(message, "depth")
 	var name string = "orderbook"
-	var messageHash string = name + ":" + *symbol
+	var messageHash string = name + ":" + symbol
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
 		var book map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p", map[string]any{})
-		var snapshot map[string]any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
+		var snapshot map[string]any = this.CustomParseOrderBook(book, &symbol, timestamp, "bids", "asks", 0, 1, market)
 		snapshot["nonce"] = nonce
 		// reset the existing orderbook instead of replacing it: a consumer
 		// holds a reference to the old object and would never see updates
 		// after a re-subscription snapshot
-		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, depth)
-			}
+		if !(this.Orderbooks[symbol] != nil) {
+			this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, depth)
 		}
-		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 		orderbook.Reset(snapshot)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		if symbol != nil && this.Orderbooks[*symbol] != nil {
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		if this.Orderbooks[symbol] != nil {
+			var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			var changes map[string]any = ccxt.SafeDict2Typed(message, "book", "orderbook_p")
 			var asks []any = this.SafeListSlice(changes, "asks", []any{})
 			var bids []any = this.SafeListSlice(changes, "bids", []any{})
@@ -1169,9 +1165,7 @@ func (this *Phemex) HandleOrderBook(client any, message map[string]any) {
 			orderbook.SetNonce(nonce)
 			orderbook.SetTimestamp(timestamp)
 			orderbook.SetDatetime(this.Iso8601(timestamp))
-			if symbol != nil {
-				this.Orderbooks[*symbol] = orderbook
-			}
+			this.Orderbooks[symbol] = orderbook
 			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 		}
 	}
@@ -1365,7 +1359,7 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		var market map[string]any = this.SafeMarket(marketId)
 		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
 		cachedTrades.Append(parsed)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if typeVar == nil {
 			var marketSettle *string = this.SafeString(market, "settle")
 			if marketSettle != nil && *marketSettle == "USDT" {
@@ -1673,7 +1667,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	for i := 0; i < len(parsedOrders); i++ {
 		var parsed any = parsedOrders[i]
 		stored.Append(parsed)
-		var symbol any = ccxt.GetValue(parsed, "symbol")
+		var symbol string = *this.SafeString(parsed, "symbol", "")
 		var market map[string]any = this.Market(symbol)
 		if typeVar == nil {
 			var isUsdt bool = (market["settle"] == "USDT")
@@ -1683,7 +1677,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 				typeVar = market["type"]
 			}
 		}
-		ccxt.AddElementToObject(marketIds, symbol, true)
+		marketIds[symbol] = true
 	}
 	var keys []string = nil
 	if marketIds != nil {
@@ -1833,7 +1827,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var marketValue map[string]any = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "ordStatus"))
 	var side *string = this.SafeStringLower(order, "side")
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "ordType"))

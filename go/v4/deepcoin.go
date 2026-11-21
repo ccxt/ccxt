@@ -1359,7 +1359,8 @@ func (this *Deepcoin) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances []any = SafeListTyped(response, "data")
+	var balances []any
+	balances, _ = response["data"].([]any)
 	for i := 0; i < len(balances); i++ {
 		var balance, _ = balances[i].(map[string]any)
 		var symbol *string = this.SafeString(balance, "ccy")
@@ -4428,11 +4429,9 @@ func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method
 		msg = sMsg
 	}
 	var errorList []any = SafeListTyped(data, "errorList")
-	if errorList != nil {
-		for i := 0; i < len(errorList); i++ {
-			var entry map[string]any = SafeMapTyped(errorList, i)
-			errorCode = this.SafeString(entry, "errorCode")
-		}
+	for i := 0; i < len(errorList); i++ {
+		var entry map[string]any = SafeMapTyped(errorList, i)
+		errorCode = this.SafeString(entry, "errorCode")
 	}
 	var feedback string = this.Id + " " + body
 	if (sCode == nil) && (errorCode != nil) {

@@ -1219,21 +1219,20 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	}
 	var response map[string]any = r1.Value
 	var openOrdersResult, _ = response["return"].(map[string]any)
-	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
-	if IsEqual(rawOrders, nil) {
-
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{})}
-		return nil
-	}
 	// { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
 	if symbol != nil {
+		var rawOrders []any
+		rawOrders, _ = openOrdersResult["orders"].([]any)
+		if rawOrders == nil {
+			rawOrders = []any{}
+		}
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rawOrders, market, since, limit))}
 		return nil
 	}
 	// { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-	var ordersDict map[string]any = SafeMapTyped(openOrdersResult, "orders")
+	var ordersDict, _ = openOrdersResult["orders"].(map[string]any)
 	var marketIds []string = nil
 	if ordersDict != nil {
 		marketIds = make([]string, 0, len(ordersDict))
@@ -1870,9 +1869,9 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) Tran
 			"rate":     nil,
 		}
 	}
-	var ternaryStr141020 string = "deposit"
+	var ternaryStr140720 string = "deposit"
 	if depositId == nil {
-		ternaryStr141020 = "withdraw"
+		ternaryStr140720 = "withdraw"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString2(transaction, "withdraw_id", "deposit_id"),
@@ -1884,7 +1883,7 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) Tran
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type":        ternaryStr141020,
+		"type":        ternaryStr140720,
 		"currency":    this.SafeCurrencyCode(nil, currency),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,

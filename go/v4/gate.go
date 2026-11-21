@@ -6287,7 +6287,7 @@ func (this *Gate) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var isTakeProfitOrder bool = (takeProfitPrice != nil)
 	var isTpsl bool = isStopLossOrder || isTakeProfitOrder
 	var nonTriggerOrder bool = !isTpsl && (trigger == nil)
-	var orderRequest map[string]any = this.CreateOrderRequest(symbol, &typeVar, &side, amount, price, params)
+	var orderRequest map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var response map[string]any = nil
 	if (*this.SafeBool(market, "spot", false)) || (*this.SafeBool(market, "margin", false)) {
 		if nonTriggerOrder {
@@ -6517,14 +6517,14 @@ func (this *Gate) IsGateFuturesContractWithDecimalSize(market map[string]any) bo
 	var enableDecimal *bool = this.SafeBool(info, "enable_decimal", false)
 	return (isSwap != nil && *isSwap) && (enableDecimal != nil && *enableDecimal)
 }
-func (this *Gate) GetGateFuturesSignedAmount(symbol any, side string, amount any) *string {
+func (this *Gate) GetGateFuturesSignedAmount(symbol *string, side string, amount any) *string {
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	if side == "sell" {
 		return Precise.StringNeg(amountString)
 	}
 	return amountString
 }
-func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
+func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6913,7 +6913,7 @@ func (this *Gate) EditOrderRequest(id string, symbol string, typeVar string, sid
 		if *this.SafeBool(market, "spot", false) {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		} else {
-			var signedAmount *string = this.GetGateFuturesSignedAmount(symbol, side, amount)
+			var signedAmount *string = this.GetGateFuturesSignedAmount(&symbol, side, amount)
 			if this.IsGateFuturesContractWithDecimalSize(market) {
 				request["size"] = signedAmount
 			} else {

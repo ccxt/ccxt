@@ -770,10 +770,7 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	var entry, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(entry, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string
-	if market.Symbol != "" {
-		symbol = &market.Symbol
-	}
+	var symbol string = market.Symbol
 	var levels, _ = entry["l"].([]any)
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -785,14 +782,12 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	if (nonce != nil) && (nonce == nil || *nonce != 0) {
 		snapshot["nonce"] = nonce
 	}
-	var messageHash string = "orderbook:" + *symbol
-	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
+	var messageHash string = "orderbook:" + symbol
+	if !(this.Orderbooks[symbol] != nil) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks[symbol] = ob
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -1137,11 +1132,9 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 		var info, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(info, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var ticker map[string]any = this.ParseWsTicker(data[i], market)
-		if symbol != nil {
-			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-		}
+		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}
 	var tickers map[string]any = this.IndexBy(parsedTickers, "symbol")
@@ -1192,7 +1185,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawTrade, _ = data[i].(map[string]any)
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
@@ -1247,8 +1240,8 @@ func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbolValue
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -1310,8 +1303,8 @@ func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var subMessageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var subMessageHash string = "trade:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
@@ -1377,19 +1370,14 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(first, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string
-	if market.Symbol != "" {
-		symbol = &market.Symbol
-	}
-	var messageHash string = "trade:" + *symbol
-	if !(symbol != nil && this.Trades[*symbol] != nil) {
+	var symbol string = market.Symbol
+	var messageHash string = "trade:" + symbol
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[*symbol]
+	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < len(entry); i++ {
 		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = this.ParseWsTrade(data)
@@ -1439,7 +1427,7 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	var amount *string = this.SafeString(trade, "a")
 	var marketId *string = this.SafeString(trade, "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString(trade, "h")
 	var fee *string = this.SafeString(trade, "f")
 	var side *string = this.SafeString2(trade, "ts", "d")
@@ -1526,7 +1514,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var parsedTf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var urlKey string = "api"
@@ -1547,7 +1535,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 			"interval": parsedTf,
 		},
 	}
-	var messageHash string = "candles:" + *parsedTf + ":" + *symbolValue
+	var messageHash string = "candles:" + *parsedTf + ":" + symbolValue
 	var message map[string]any = this.Extend(request, params)
 
 	r1 := <-this.Watch(url, messageHash, message, messageHash)
@@ -1594,7 +1582,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {
@@ -1614,7 +1602,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 			"interval": timeframe,
 		},
 	}
-	var subMessageHash string = "candles:" + timeframe + ":" + *symbolValue
+	var subMessageHash string = "candles:" + timeframe + ":" + symbolValue
 	var messagehash string = "unsubscribe:" + subMessageHash
 	var message map[string]any = this.Extend(request, params)
 

@@ -6705,13 +6705,22 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
+	var marketSymbol *string = this.SafeString(market, "symbol")
 	var result string = this.DecimalToPrecision(price, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		var pricePrecision *string = this.NumberToString(GetValue(market["precision"], "price"))
 		if pricePrecision == nil {
-			panic(BadSymbol(Add(Add(this.Id+" priceToPrecision() market ", market["symbol"]), " has no price precision")))
+			if marketSymbol != nil {
+				messageText := this.Id + " priceToPrecision() market " + *marketSymbol + " has no price precision"
+				panic(BadSymbol(messageText))
+			}
+			panic(BadSymbol(nil))
 		}
-		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", market["symbol"]), " must be greater than minimum price precision of "), pricePrecision)))
+		if marketSymbol != nil {
+			messageText := this.Id + " price of " + *marketSymbol + " must be greater than minimum price precision of " + *pricePrecision
+			panic(InvalidOrder(messageText))
+		}
+		panic(InvalidOrder(nil))
 	}
 	return &result
 }
@@ -6721,13 +6730,22 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
+	var marketSymbol *string = this.SafeString(market, "symbol")
 	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(market["precision"], "amount"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		var amountPrecision *string = this.NumberToString(GetValue(market["precision"], "amount"))
 		if amountPrecision == nil {
-			panic(BadSymbol(Add(Add(this.Id+" amountToPrecision() market ", market["symbol"]), " has no amount precision")))
+			if marketSymbol != nil {
+				messageText := this.Id + " amountToPrecision() market " + *marketSymbol + " has no amount precision"
+				panic(BadSymbol(messageText))
+			}
+			panic(BadSymbol(nil))
 		}
-		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", market["symbol"]), " must be greater than minimum amount precision of "), amountPrecision)))
+		if marketSymbol != nil {
+			messageText := this.Id + " amount of " + *marketSymbol + " must be greater than minimum amount precision of " + *amountPrecision
+			panic(InvalidOrder(messageText))
+		}
+		panic(InvalidOrder(nil))
 	}
 	return &result
 }
@@ -7148,8 +7166,9 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	for i := 0; i < len(response); i++ {
 
 		var parsed map[string]any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(response[i]))
-		if !IsEqual(parsed["symbol"], nil) {
-			AddElementToObject(fundingRates, parsed["symbol"], parsed)
+		var symbol *string = this.SafeString(parsed, "symbol")
+		if symbol != nil {
+			fundingRates[*symbol] = parsed
 		}
 	}
 	return this.IndexBy(this.FilterByArray(fundingRates, "symbol", symbols, false), "symbol")
@@ -7356,8 +7375,9 @@ func (this *BaseExchange) ParseOpenInterests(response []any, optionalArgs ...any
 	for i := 0; i < len(response); i++ {
 
 		var parsed map[string]any = OpenInterestToMap(this.DerivedExchange.ParseOpenInterest(GetValue(response, i)))
-		if !IsEqual(parsed["symbol"], nil) {
-			AddElementToObject(result, parsed["symbol"], parsed)
+		var symbol *string = this.SafeString(parsed, "symbol")
+		if symbol != nil {
+			result[*symbol] = parsed
 		}
 	}
 	return this.IndexBy(this.FilterByArray(result, "symbol", symbols, false), "symbol")
@@ -7908,8 +7928,9 @@ func (this *BaseExchange) FilterByArrayADLRanks(objects any, key any, optionalAr
 }
 func (this *BaseExchange) CreateOHLCVObject(symbol any, timeframe any, data any) any {
 	var res map[string]any = map[string]any{}
-	AddElementToObject(res, symbol, map[string]any{})
-	AddElementToObject(GetValue(res, symbol), timeframe, data)
+	var inner map[string]any = map[string]any{}
+	AddElementToObject(inner, timeframe, data)
+	AddElementToObject(res, symbol, inner)
 	return res
 }
 func (this *BaseExchange) FetchPaginatedCallDynamicAsync(method string, optionalArgs ...any) <-chan AsyncResult[[]any] {
@@ -10564,8 +10585,8 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[OrderBook],
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var fetchSnapshotMaxRetries any = this.HandleOption("watchOrderBook", "maxRetries", 3)
-	for i := 0; IsLessThan(i, fetchSnapshotMaxRetries); i++ {
+	fetchSnapshotMaxRetries, fetchParams := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "maxRetries", 3)
+	for i := 0; int64(i) < fetchSnapshotMaxRetries; i++ {
 
 		{
 			func(this *Exchange) (ret_ any) {
@@ -10585,7 +10606,7 @@ func (this *Exchange) fetchRestOrderBookSafeBody(ch chan AsyncResult[OrderBook],
 				}()
 				// try block:
 
-				r := <-this.DerivedExchange.(IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol), limit, params)
+				r := <-this.DerivedExchange.(IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol), limit, fetchParams)
 				if r.Err != nil {
 					panic(r.Err)
 				}
@@ -11513,12 +11534,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1051915Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1051915 []any = retRes1051915Recv
-	if retRes1051915 == nil {
+	retRes1052415Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1052415 []any = retRes1052415Recv
+	if retRes1052415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1051915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1052415)}
 	}
 	return nil
 }

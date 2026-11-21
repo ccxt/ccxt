@@ -636,9 +636,9 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	// ]
 	//
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var rawfr any = this.SafeDict(data, i)
+		var rawfr, _ = data[i].(map[string]any)
 		var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(rawfr))
 		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
 		if symbol != nil {
@@ -1363,7 +1363,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
+	var rawLiquidations, _ = message["data"].([]any)
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation any = rawLiquidations[i]
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
@@ -1503,7 +1503,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 	//        }]
 	//    }
 	//
-	var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
+	var rawLiquidations, _ = message["data"].([]any)
 	for i := 0; i < len(rawLiquidations); i++ {
 		var rawLiquidation, _ = rawLiquidations[i].(map[string]any)
 		var eventType *string = this.SafeString(rawLiquidation, "eventType")
@@ -3737,9 +3737,9 @@ func (this *Okx) HandleErrorMessage(client any, message map[string]any) any {
 				if messageString != nil {
 					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], messageString, feedback)
 				} else {
-					var data []any = ccxt.SafeListTyped(message, "data")
+					var data, _ = message["data"].([]any)
 					for i := 0; i < len(data); i++ {
-						var d map[string]any = ccxt.SafeMapTyped(data, i)
+						var d, _ = data[i].(map[string]any)
 						errorCode = this.SafeString(d, "sCode")
 						if errorCode != nil {
 							this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

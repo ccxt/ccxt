@@ -3615,10 +3615,10 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if _, ok := response["tick"]; ok {
-		if IsEqual(this.SafeValue(response, "tick"), nil) {
+		var tick map[string]any = SafeMapTyped(response, "tick")
+		if tick == nil {
 			panic(BadSymbol(this.Id + " fetchOrderBook() returned empty response: " + this.Json(response)))
 		}
-		var tick map[string]any = SafeMapTyped(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
 		var result map[string]any = this.ParseOrderBook(tick, symbol, timestamp)
 		result["nonce"] = this.SafeInteger(tick, "version")

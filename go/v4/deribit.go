@@ -2082,11 +2082,10 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	} else {
 		limitResolved = limit
 	}
-	var sinceResolved any
-	if since == nil {
-		sinceResolved = nil
-	} else {
-		sinceResolved = max(*since-1, 0)
+	var sinceResolved *int64 = nil
+	if since != nil {
+		sinceResolvedValue := max(*since-1, 0)
+		sinceResolved = &sinceResolvedValue
 	}
 	if since == nil {
 		request["start_timestamp"] = now - (windowLimit-1)*duration*1000
@@ -4312,7 +4311,7 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var account *string = this.SafeString(transfer, "other_side")
 	var direction *string = this.SafeString(transfer, "direction")
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var literal314115 map[string]any = map[string]any{
+	var literal314415 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        this.SafeString(transfer, "id"),
 		"status":    this.ParseTransferStatus(status),
@@ -4322,16 +4321,16 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 		"datetime":  this.Iso8601(timestamp),
 	}
 	if direction == nil || *direction != "payment" {
-		literal314115["fromAccount"] = account
+		literal314415["fromAccount"] = account
 	} else {
-		literal314115["fromAccount"] = nil
+		literal314415["fromAccount"] = nil
 	}
 	if direction != nil && *direction == "payment" {
-		literal314115["toAccount"] = account
+		literal314415["toAccount"] = account
 	} else {
-		literal314115["toAccount"] = nil
+		literal314415["toAccount"] = nil
 	}
-	return TransferEntryFromMap(literal314115)
+	return TransferEntryFromMap(literal314415)
 }
 func (this *Deribit) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4594,11 +4593,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332419 []any = r1.Value
-		if retRes332419 == nil {
+		var retRes332719 []any = r1.Value
+		if retRes332719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332719)}
 		}
 		return nil
 	}
@@ -4767,11 +4766,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344619 []any = r1.Value
-		if retRes344619 == nil {
+		var retRes344919 []any = r1.Value
+		if retRes344919 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344619)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344919)}
 		}
 		return nil
 	}

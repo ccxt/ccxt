@@ -205,12 +205,12 @@ func (this *Gate) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".order_place"
 	var url string = this.GetUrlByMarket(market)
 	params["textIsRequired"] = true
-	var request map[string]any = this.CreateOrderRequest(symbolValue, &typeVar, &side, amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(&symbolValue, &typeVar, &side, amount, price, params)
 
 	r1 := <-this.AuthenticateAsync(url, messageType)
 	if r1.Err != nil {
@@ -1631,19 +1631,16 @@ func (this *Gate) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	// todo add options support
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var marketId string = *this.SafeString(market, "id", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".candlesticks"
 	messageHashStr := "candles:" + *interval + ":" + market["symbol"].(string)
 	var messageHash *string = &messageHashStr
 	var url string = this.GetUrlByMarket(market)
-	var payload []any = []any{nil, nil}
+	var payload []any = []any{nil, marketId}
 	if interval != nil {
 		payload[0] = *interval
-	}
-	if marketId != nil {
-		payload[1] = *marketId
 	}
 
 	r1 := <-this.SubscribePublicAsync(&url, *messageHash, payload, channel, params)
@@ -1693,7 +1690,7 @@ func (this *Gate) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var marketId string = *this.SafeString(market, "id", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".candlesticks"
@@ -2484,15 +2481,15 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		}
 	}
 	var channel string = typeId + suffix
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if isTrigger == true {
 		messageHash = "triggerOrders"
 	}
 	var payload []any = []any{"!" + "all"}
 	if market != nil {
-		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
-		var mid *string = ccxt.SafeStringPtr(market["id"])
+		var mid *string = this.SafeString(market, "id")
 		if mid != nil {
+			messageHash += ":" + *mid
 			payload = []any{mid}
 		}
 	}

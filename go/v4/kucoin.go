@@ -5647,7 +5647,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, si
 		}
 		var sizeString *string = this.AmountToPrecision(symbol, amount)
 		if sizeString != nil {
-			request["size"] = ParseInt(sizeString)
+			request["size"] = this.ParseToInt(sizeString)
 		}
 	}
 	this.CheckTriggerPrices(paramsOmitted)
@@ -8649,7 +8649,7 @@ func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) Order {
 	var tradeType *string = this.SafeString(order, "tradeType")
 	var utaTradeTypes []string = []string{"SPOT", "CROSS", "ISOLATED", "FUTURES"} // tradeType specific for uta endpoint
 	var isUtaOrder bool = this.InArray(tradeType, utaTradeTypes)
-	if InOp(order, "sizeUnit") {
+	if this.SafeString(order, "sizeUnit") != nil {
 		isUtaOrder = true
 	}
 	if isUtaOrder {
@@ -9869,7 +9869,7 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if InOp(trade, "liquidityRole") {
+	if this.SafeString(trade, "liquidityRole") != nil {
 		return TradeFromMap(this.ParseMyUtaTrade(trade, market))
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
@@ -9979,7 +9979,7 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 	var createdAt *int64 = this.SafeInteger(trade, "createdAt")
 	// if it's a historical v1 trade, the exchange returns timestamp in seconds
 	var timestamp any = createdAt
-	if (InOp(trade, "dealValue")) && (createdAt != nil) {
+	if (this.SafeString(trade, "dealValue") != nil) && (createdAt != nil) {
 		timestamp = *createdAt * 1000
 	}
 	if nanoseconds != nil {
@@ -10117,7 +10117,7 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	var createdAt *int64 = this.SafeInteger(trade, "createdAt")
 	// if it's a historical v1 trade, the exchange returns timestamp in seconds
 	var timestamp any = createdAt
-	if (InOp(trade, "dealValue")) && (createdAt != nil) {
+	if (this.SafeString(trade, "dealValue") != nil) && (createdAt != nil) {
 		timestamp = *createdAt * 1000
 	}
 	if nanoseconds != nil {
@@ -13688,7 +13688,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan AsyncResult[Leverage], lever
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
-		"leverage": ToString(leverage),
+		"leverage": this.NumberToString(leverage),
 	}
 
 	r1 := <-this.IsUTAEnabledAsync()
@@ -14840,9 +14840,9 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) Position {
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "closeTime")
 	if lastUpdateTimestamp == nil {
-		if InOp(position, "closingTime") {
+		if this.SafeString(position, "closingTime") != nil {
 			lastUpdateTimestamp = this.SafeIntegerProduct(position, "closingTime", 0.000001)
-		} else if InOp(position, "updateTime") {
+		} else if this.SafeString(position, "updateTime") != nil {
 			lastUpdateTimestamp = this.SafeIntegerProduct(position, "updateTime", 0.000001)
 		}
 	}

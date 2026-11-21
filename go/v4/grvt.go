@@ -3065,7 +3065,7 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	return nil
 }
 func (this *Grvt) ConvertToBigIntCustom(x any) any {
-	return ParseInt(this.NumberToString(x))
+	return this.ParseToInt(x)
 }
 func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string) map[string]any {
 	var priceMultiplier int = 1000000000
@@ -3083,7 +3083,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 		var sizeParts []string = strings.Split(*size, ".")
 		var sizeDec string = *this.SafeString(sizeParts, 1, "")
 		var sizeDecLength int = len(sizeDec) + 0 // php tr
-		var sizeDigits int64 = ParseInt(strings.Replace(*size, ".", "", 1))
+		var sizeDigits int64 = this.ParseToInt(strings.Replace(*size, ".", "", 1))
 		var denominator float64 = math.Pow(10, float64(sizeDecLength))
 		var sizeInteger any = ((float64(sizeDigits) * sizeMultiplier) / denominator)
 		var legOrder map[string]any = map[string]any{
@@ -3097,7 +3097,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 			var limitParts []string = strings.Split(*price, ".")
 			var limitDec string = *this.SafeString(limitParts, 1, "")
 			var limitDecLength int = len(limitDec) + 0 // php tr
-			var priceDigits int64 = ParseInt(strings.Replace(*price, ".", "", 1))
+			var priceDigits int64 = this.ParseToInt(strings.Replace(*price, ".", "", 1))
 			denominator = math.Pow(10, float64(limitDecLength))
 			var priceInteger any = (float64((priceDigits * int64(priceMultiplier))) / denominator)
 			legOrder["limitPrice"] = this.ParseToInt(priceInteger)
@@ -3119,7 +3119,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 	}
 	if (structureType == "EIP712_ORDER_WITH_BUILDER_TYPE") && (*this.SafeBool(this.Options, "builderFee", true)) {
 		returnValue["builder"] = order["builder"]
-		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(this.SafeString(order, "builder_fee")))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+		returnValue["builderFee"] = this.ParseToInt(Precise.StringMul(this.NumberToString(this.FeeAmountMultiplier()), this.SafeString(order, "builder_fee", "0")))
 	}
 	return returnValue
 }
@@ -4155,7 +4155,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	if InOp(order, "ack") {
+	if this.SafeBool(order, "ack") != nil {
 		return this.SafeOrder(map[string]any{
 			"info": order,
 			"id":   nil,
@@ -4432,7 +4432,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	var requestSignature map[string]any = SafeMapTyped(request, "signature")
 	if structureType == "EIP712_TRANSFER_TYPE" {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
-		var amountInt any = Multiply(request["num_tokens"], amountMultiplier)
+		var amountInt *string = Precise.StringMul(this.SafeString(request, "num_tokens", "0"), this.NumberToString(amountMultiplier))
 		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
 		}
@@ -4455,7 +4455,7 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 			"fromAccount":   request["from_account_id"],
 			"toEthAddress":  request["to_eth_address"],
 			"tokenCurrency": currencyObj["numericId"],
-			"numTokens":     this.ParseToInt(Multiply(request["num_tokens"], amountMultiplier)),
+			"numTokens":     this.ParseToInt(Precise.StringMul(this.SafeString(request, "num_tokens", "0"), this.NumberToString(amountMultiplier))),
 			"nonce":         requestSignature["nonce"],
 			"expiration":    requestSignature["expiration"],
 		}
@@ -4466,8 +4466,8 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 		messageData = map[string]any{
 			"mainAccountID":    request["main_account_id"],
 			"builderAccountID": request["builder_account_id"],
-			"maxFutureFeeRate": this.ParseToInt(Multiply(ParseFloat(this.SafeString(request, "max_futures_fee_rate")), amountMultiplier)),
-			"maxSpotFeeRate":   this.ParseToInt(Multiply(ParseFloat(this.SafeString(request, "max_spot_fee_rate")), amountMultiplier)),
+			"maxFutureFeeRate": this.ParseToInt(Precise.StringMul(this.SafeString(request, "max_futures_fee_rate", "0"), this.NumberToString(amountMultiplier))),
+			"maxSpotFeeRate":   this.ParseToInt(Precise.StringMul(this.SafeString(request, "max_spot_fee_rate", "0"), this.NumberToString(amountMultiplier))),
 			"nonce":            requestSignature["nonce"],
 			"expiration":       requestSignature["expiration"],
 		}

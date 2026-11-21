@@ -1282,7 +1282,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder bool = (InOp(trade, "id"))
+	var isFromFetchOrder bool = (this.SafeString(trade, "id") != nil)
 	var timestampString *string = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
 	var timestamp *int64 = nil
 	if timestampString != nil {

@@ -1283,17 +1283,17 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var ternaryStr107147 string = "contract"
+	var feesKey string = "contract"
 	if isSpot {
-		ternaryStr107147 = "spot"
+		feesKey = "spot"
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, ternaryStr107147)
+	var fees, _ = this.Fees[feesKey].(map[string]any)
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}
-	var ternaryStr108620 string = "swap"
+	var ternaryStr109020 string = "swap"
 	if isSpot {
-		ternaryStr108620 = "spot"
+		ternaryStr109020 = "spot"
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -1306,7 +1306,7 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           ternaryStr108620,
+		"type":           ternaryStr109020,
 		"spot":           isSpot,
 		"margin":         false,
 		"swap":           !isSpot,
@@ -1938,11 +1938,11 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154519 []any = OHLCVsToList(r1.Value)
-		if retRes154519 == nil {
+		var retRes154919 []any = OHLCVsToList(r1.Value)
+		if retRes154919 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes154519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes154919)}
 		}
 		return nil
 	} else {
@@ -1951,11 +1951,11 @@ func (this *Weex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes154719 []any = OHLCVsToList(r2.Value)
-		if retRes154719 == nil {
+		var retRes155119 []any = OHLCVsToList(r2.Value)
+		if retRes155119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes154719)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes155119)}
 		}
 		return nil
 	}
@@ -2066,11 +2066,11 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes160419 []any = r1.Value
-		if retRes160419 == nil {
+		var retRes160819 []any = r1.Value
+		if retRes160819 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes160419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes160819)}
 		}
 		return nil
 	}
@@ -2810,11 +2810,11 @@ func (this *Weex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes213919 []any = r1.Value
-		if retRes213919 == nil {
+		var retRes214319 []any = r1.Value
+		if retRes214319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes213919)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes214319)}
 		}
 		return nil
 	}
@@ -3695,11 +3695,11 @@ func (this *Weex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes277019 []any = r1.Value
-		if retRes277019 == nil {
+		var retRes277419 []any = r1.Value
+		if retRes277419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes277019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes277419)}
 		}
 		return nil
 	}
@@ -4025,11 +4025,11 @@ func (this *Weex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297519 []any = r1.Value
-		if retRes297519 == nil {
+		var retRes297919 []any = r1.Value
+		if retRes297919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes297519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes297919)}
 		}
 		return nil
 	}
@@ -4128,11 +4128,11 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes304119 []any = r1.Value
-		if retRes304119 == nil {
+		var retRes304519 []any = r1.Value
+		if retRes304519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes304119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes304519)}
 		}
 		return nil
 	}
@@ -4335,7 +4335,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	if stopLossPrice == nil {
 		stopLossPrice = this.OmitZero(this.SafeString(order, "slTriggerPrice")) // attached stop loss of a regular or conditional order
 	}
-	var literal322431 map[string]any = map[string]any{
+	var literal322831 map[string]any = map[string]any{
 		"id":                  this.SafeStringN(order, []any{"orderId", "algoId", "successOrderId"}),
 		"clientOrderId":       this.SafeStringN(order, []any{"clientOrderId", "origClientOrderId", "clientAlgoId"}),
 		"symbol":              this.SafeString(marketResolved, "symbol"),
@@ -4363,12 +4363,12 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":                order,
 	}
 	if stopLossPrice != nil {
-		literal322431["stopLossPrice"] = *stopLossPrice
+		literal322831["stopLossPrice"] = *stopLossPrice
 	}
 	if takeProfitPrice != nil {
-		literal322431["takeProfitPrice"] = *takeProfitPrice
+		literal322831["takeProfitPrice"] = *takeProfitPrice
 	}
-	return this.SafeOrder(literal322431, marketResolved)
+	return this.SafeOrder(literal322831, marketResolved)
 }
 func (this *Weex) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4464,11 +4464,11 @@ func (this *Weex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes331515 []any = TradesToList(r1.Value)
-	if retRes331515 == nil {
+	var retRes331915 []any = TradesToList(r1.Value)
+	if retRes331915 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes331515)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes331915)}
 	}
 	return nil
 }
@@ -4527,11 +4527,11 @@ func (this *Weex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes334819 []any = r1.Value
-		if retRes334819 == nil {
+		var retRes335219 []any = r1.Value
+		if retRes335219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes334819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes335219)}
 		}
 		return nil
 	}
@@ -4653,11 +4653,11 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes343219 []any = r1.Value
-		if retRes343219 == nil {
+		var retRes343619 []any = r1.Value
+		if retRes343619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes343219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes343619)}
 		}
 		return nil
 	}
@@ -4665,7 +4665,6 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountType *string = this.SafeString(accountsByType, marketType, marketType)
 	var request map[string]any = map[string]any{}
-	var items []any = nil
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4687,7 +4686,14 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			panic(r2.Err)
 		}
 		var contractResponse map[string]any = r2.Value
-		items = this.SafeListSlice(contractResponse, "items", []any{})
+		var contractItems []any
+		contractItems, _ = contractResponse["items"].([]any)
+		if contractItems == nil {
+			contractItems = []any{}
+		}
+
+		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(contractItems, currency, since, limit))}
+		return nil
 	} else if accountType != nil && *accountType == "funding" {
 		if since != nil {
 			request["startTime"] = *since
@@ -4702,7 +4708,14 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			panic(r3.Err)
 		}
 		var fundingResponse map[string]any = r3.Value
-		items = this.SafeListSlice(fundingResponse, "items", []any{})
+		var fundingItems []any
+		fundingItems, _ = fundingResponse["items"].([]any)
+		if fundingItems == nil {
+			fundingItems = []any{}
+		}
+
+		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(fundingItems, currency, since, limit))}
+		return nil
 	} else {
 		if since != nil {
 			request["after"] = *since
@@ -4717,11 +4730,11 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 			panic(billsResponseRecv.Err)
 		}
 		var billsResponse []any = billsResponseRecv.Value
-		items = this.ToArray(billsResponse)
-	}
+		var billsItems []any = this.ToArray(billsResponse)
 
-	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
-	return nil
+		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(billsItems, currency, since, limit))}
+		return nil
+	}
 }
 func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	//
@@ -4872,11 +4885,11 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes360319 []any = r1.Value
-		if retRes360319 == nil {
+		var retRes360819 []any = r1.Value
+		if retRes360819 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes360319)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes360819)}
 		}
 		return nil
 	}
@@ -5092,12 +5105,12 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes374119 []any = PositionsToList(r1.Value)
+		var retRes374619 []any = PositionsToList(r1.Value)
 		// the demo trading API does not provide a single-position endpoint
-		if retRes374119 == nil {
+		if retRes374619 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes374119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes374619)}
 		}
 		return nil
 	}
@@ -6089,9 +6102,10 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var isPrivate bool = (apiName == "private") || (apiName == "contractPrivate")
 	var hasJsonBody bool = isPrivate && ((method == "POST") || isBatch)
-	var requestBody any = nil
+	var requestBody *string = nil
 	if hasJsonBody {
-		requestBody = this.Json(query)
+		jsonText := this.Json(query)
+		requestBody = &jsonText
 	}
 	var requestHeaders map[string]any = map[string]any{}
 	if isPrivate {
@@ -6101,9 +6115,9 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
-		var payload any = *timestamp + method + "/" + endpoint
+		var payload string = *timestamp + method + "/" + endpoint
 		if hasJsonBody {
-			payload = Add(payload, requestBody)
+			payload = payload + this.Json(query)
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		requestHeaders = map[string]any{
@@ -6126,12 +6140,16 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + endpoint
-	return map[string]any{
+	var literal444215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal444215["body"] = *requestBody
+	}
+	return literal444215
 }
 func (this *Weex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	//

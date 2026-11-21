@@ -4216,11 +4216,14 @@ func (this *Nado) CalculateRateLimiterCost(api any, method string, path string, 
 	// body, and every archive weight grows with the number of rows requested
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["byType"]; ok && (InOp(params, "type")) {
-		var queryType any = GetValue(params, "type")
+	if _, ok := config["byType"]; ok {
 		var byType any = config["byType"]
-		if InOp(byType, queryType) {
-			return GetValue(byType, queryType)
+		var queryType *string = this.SafeString(params, "type")
+		if queryType != nil {
+			var typeCost *int64 = this.SafeInteger(byType, queryType)
+			if typeCost != nil {
+				return typeCost
+			}
 		}
 	}
 	var byQuery map[string]any = SafeMapTyped(config, "byQuery")

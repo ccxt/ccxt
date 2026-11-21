@@ -3852,7 +3852,6 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		method = "privatePostTradeCancelTpsl"
 	}
 	if IsEqual(clientOrderIds, nil) {
-		var orderIds any = this.ParseIds(ids)
 		if !IsEqual(tpslIds, nil) {
 			for i := 0; i < GetArrayLength(tpslIds); i++ {
 				request = append(request, map[string]any{
@@ -3861,15 +3860,15 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 				})
 			}
 		}
-		for i := 0; i < GetArrayLength(orderIds); i++ {
+		for i := 0; i < len(ids); i++ {
 			if trigger != nil && *trigger == true {
 				request = append(request, map[string]any{
-					"tpslId": this.SafeString(orderIds, i),
+					"tpslId": this.SafeString(ids, i),
 					"instId": market["id"],
 				})
 			} else {
 				request = append(request, map[string]any{
-					"orderId": this.SafeString(orderIds, i),
+					"orderId": this.SafeString(ids, i),
 					"instId":  market["id"],
 				})
 			}
@@ -4690,11 +4689,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332919 []any = r1.Value
-		if retRes332919 == nil {
+		var retRes332819 []any = r1.Value
+		if retRes332819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332919)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332819)}
 		}
 		return nil
 	}
@@ -4934,12 +4933,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr346928 string = "net_mode"
+	var ternaryStr346828 string = "net_mode"
 	if hedged {
-		ternaryStr346928 = "long_short_mode"
+		ternaryStr346828 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr346928,
+		"positionMode": ternaryStr346828,
 	}
 
 	//

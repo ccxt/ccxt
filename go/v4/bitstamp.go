@@ -1894,7 +1894,8 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	// if it is a private trade
-	if InOp(trade, "id") {
+	var tradeId *string = this.SafeString(trade, "id")
+	if tradeId != nil {
 		if amountString != nil {
 			var isAmountNeg bool = Precise.StringLt(amountString, "0")
 			if isAmountNeg {
@@ -1924,7 +1925,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrency,
 		}
 	}
-	var literal126531 map[string]any = map[string]any{
+	var literal126631 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1940,9 +1941,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if symbol != nil {
-		literal126531["symbol"] = *symbol
+		literal126631["symbol"] = *symbol
 	}
-	return this.SafeTrade(literal126531, marketResolved)
+	return this.SafeTrade(literal126631, marketResolved)
 }
 
 /**
@@ -3050,11 +3051,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes197919 []any = r.Value
-		if retRes197919 == nil {
+		var retRes198019 []any = r.Value
+		if retRes198019 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes197919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes198019)}
 		}
 		return nil
 	}
@@ -3325,8 +3326,9 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var feeCost *string = this.SafeString(transaction, "fee")
 	var feeCurrency any = nil
 	var amount *string = nil
-	if InOp(transaction, "amount") {
-		amount = this.SafeString(transaction, "amount")
+	var transactionAmount *string = this.SafeString(transaction, "amount")
+	if transactionAmount != nil {
+		amount = transactionAmount
 	} else if currency != nil {
 		amount = this.SafeString(transaction, currency["id"])
 		feeCurrency = currency["code"]
@@ -3339,13 +3341,14 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		amount = Precise.StringAbs(amount)
 	}
 	var status any = "ok"
-	if InOp(transaction, "status") {
-		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var rawStatus *string = this.SafeString(transaction, "status")
+	if rawStatus != nil {
+		status = this.ParseTransactionStatus(rawStatus)
 	}
 	var typeVar *string = nil
-	if InOp(transaction, "type") {
+	var rawType *string = this.SafeString(transaction, "type")
+	if rawType != nil {
 		// from fetchDepositsWithdrawals
-		var rawType *string = this.SafeString(transaction, "type")
 		if rawType != nil && *rawType == "0" {
 			typeVarStr := "deposit"
 			typeVar = &typeVarStr
@@ -3610,14 +3613,14 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		var parsedTransaction map[string]any = TransactionToMap(this.ParseTransaction(item, currency))
 		var direction any = nil
 		var transactionCurrency *string = this.SafeString(parsedTransaction, "currency")
-		var hasTransactionCurrency bool = !(InOp(item, "amount")) && (transactionCurrency != nil)
+		var itemAmount *string = this.SafeString(item, "amount")
+		var hasTransactionCurrency bool = (itemAmount == nil) && (transactionCurrency != nil)
 		var currencyResolved map[string]any = currency
 		if hasTransactionCurrency {
 			currencyResolved = this.Currency(this.SafeString(parsedTransaction, "currency"))
 		}
-		if InOp(item, "amount") {
-			var amount *string = this.SafeString(item, "amount")
-			if Precise.StringGt(amount, "0") {
+		if itemAmount != nil {
+			if Precise.StringGt(itemAmount, "0") {
 				direction = "in"
 			} else {
 				direction = "out"
@@ -4151,16 +4154,16 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = privateHeaders
 	}
-	var literal283415 map[string]any = map[string]any{
+	var literal283715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal283415["body"] = *requestBody
+		literal283715["body"] = *requestBody
 	}
-	return literal283415
+	return literal283715
 }
 func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
