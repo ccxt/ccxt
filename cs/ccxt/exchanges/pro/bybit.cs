@@ -408,7 +408,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("ticker:" + symbolValue);
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchTicker", parameters);
         object paramsValue = this.cleanParams(parameters);
@@ -821,7 +821,7 @@ public partial class bybit : ccxt.bybit
         {
             object data = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             Dictionary<string, object> market = this.market(getValue(data, 0));
-            string? symbolString = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbolString = this.safeString(market, "symbol", "");
             object unfiedTimeframe = getValue(data, 1);
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             string? marketId = this.safeString(market, "id", "");
@@ -869,7 +869,7 @@ public partial class bybit : ccxt.bybit
         {
             object data = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             Dictionary<string, object> market = this.market(getValue(data, 0));
-            string? symbolString = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbolString = this.safeString(market, "symbol", "");
             object unfiedTimeframe = getValue(data, 1);
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             string? marketId = this.safeString(market, "id", "");
@@ -945,8 +945,8 @@ public partial class bybit : ccxt.bybit
             marketType = "spot";
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
+        string? symbol = this.safeString(market, "symbol", "");
+        if (!(((symbol != null) && (this.ohlcvs != null && this.ohlcvs.ContainsKey(symbol)))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
@@ -1178,9 +1178,9 @@ public partial class bybit : ccxt.bybit
             marketType = "spot";
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         Int64? timestamp = this.safeInteger(message, "ts");
-        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -1375,7 +1375,7 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -1426,7 +1426,7 @@ public partial class bybit : ccxt.bybit
         //     }
         //
         string? id = this.safeStringN(trade, new List<object>() {"i", "T", "v"});
-        bool isContract = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("BT")));
+        bool isContract = (!(this.safeBool(trade, "BT") == null));
         string? marketType = "spot";
         if (isContract)
         {
@@ -1438,7 +1438,7 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;
@@ -1725,7 +1725,7 @@ public partial class bybit : ccxt.bybit
                 }
                 parsed = ccxt.BaseExchange.FromTrade(this.parseTrade(rawTrade));
             }
-            string? symbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+            string? symbol = this.safeString(parsed, "symbol");
             if ((symbol == null))
             {
                 continue;
@@ -1981,7 +1981,7 @@ public partial class bybit : ccxt.bybit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters);
         (string?, IDictionary<string, object>) methodparamsMethodVariable = this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
         string method = methodparamsMethodVariable.Item1;
@@ -2028,7 +2028,7 @@ public partial class bybit : ccxt.bybit
         //         ]
         //     }
         //
-        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88232 && ((hxArr88232 is IList<object>) || (hxArr88232.GetType().IsGenericType && hxArr88232.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((((message != null && message.ContainsKey("data") ? message["data"] : null)) is var hxArr88502 && ((hxArr88502 is IList<object>) || (hxArr88502.GetType().IsGenericType && hxArr88502.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; i < rawLiquidations.Count; i++)
@@ -2036,7 +2036,7 @@ public partial class bybit : ccxt.bybit
                 IDictionary<string, object> rawLiquidation = this.safeDict(rawLiquidations, i);
                 string? marketId = this.safeString(rawLiquidation, "s");
                 Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if ((this.liquidations == null))
                 {
@@ -2053,7 +2053,7 @@ public partial class bybit : ccxt.bybit
             IDictionary<string, object> rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? marketId = this.safeString(rawLiquidation, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "", "contract");
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if ((this.liquidations == null))
             {

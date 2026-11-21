@@ -1810,8 +1810,8 @@ public partial class woo : ccxt.woo
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
         for (int i = 0; i < subMessageHashes.Count; i++)
         {
-            string? subHash = ((string)subMessageHashes[i]);
-            string? unsubHash = ((string)(unsubMessageHashes != null && i < unsubMessageHashes.Count ? unsubMessageHashes[i] : null));
+            string? subHash = this.safeString(subMessageHashes, i);
+            string? unsubHash = this.safeString(unsubMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);

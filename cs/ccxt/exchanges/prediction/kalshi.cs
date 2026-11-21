@@ -2641,8 +2641,11 @@ public partial class kalshi : PredictionExchange
             int parsedMarketsLength = getArrayLength(parsedMarkets);
             for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
-                object m = getValue(parsedMarkets, mi);
-                this.markets[(string)getValue(m, "market")] = m;
+                string? marketKey = this.safeString(getValue(parsedMarkets, mi), "market");
+                if ((marketKey != null))
+                {
+                    this.markets[(string)marketKey] = getValue(parsedMarkets, mi);
+                }
             }
         }
         this.populateOutcomes();

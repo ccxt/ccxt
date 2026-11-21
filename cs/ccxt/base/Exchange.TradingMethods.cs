@@ -631,12 +631,14 @@ public partial class Exchange
     public async virtual Task<ccxt.OrderBook> FetchRestOrderBookSafe(object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fetchSnapshotMaxRetries = this.handleOption("watchOrderBook", "maxRetries", 3);
-        for (int i = 0; isLessThan(i, fetchSnapshotMaxRetries); i++)
+        (Int64?, object) fetchSnapshotMaxRetriesfetchParamsVariable = this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "maxRetries", 3);
+        Int64? fetchSnapshotMaxRetries = fetchSnapshotMaxRetriesfetchParamsVariable.Item1;
+        IDictionary<string, object> fetchParams = ((IDictionary<string, object>)fetchSnapshotMaxRetriesfetchParamsVariable.Item2);
+        for (int i = 0; (i < fetchSnapshotMaxRetries); i++)
         {
             try
             {
-                Dictionary<string, object> orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+                Dictionary<string, object> orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), fetchParams));
                 return ccxt.BaseExchange.ToOrderBook(orderBook);
             } catch(Exception e)
             {

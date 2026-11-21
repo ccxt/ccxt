@@ -4147,20 +4147,21 @@ public partial class bingx : Exchange
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        Dictionary<string, object> fixedMembers = new Dictionary<string, object>() {};
         IDictionary<string, object> stopLossDict = this.safeDict(result, "stopLoss");
         string? stopLoss = this.safeString(result, "stopLoss");
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (((stopLossDict == null)) && ((stopLoss != null)) && ((stopLoss.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
+            fixedMembers["stopLoss"] = this.parseJson(stopLoss);
         }
         string? takeProfit = this.safeString(result, "takeProfit");
         if (((takeProfit != null)) && ((takeProfit.IndexOf("{", StringComparison.Ordinal) == 0)))
         {
-            ((IDictionary<string,object>)result)["takeProfit"] = this.parseJson(takeProfit);
+            fixedMembers["takeProfit"] = this.parseJson(takeProfit);
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(result, fixedMembers), market);
     }
 
     /**

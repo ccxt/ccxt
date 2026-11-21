@@ -2101,33 +2101,52 @@ public partial class aster : ccxt.aster
                         // accumulate order fees
                         List<object> fees = this.safeList(order, "fees", new List<object>() {});
                         IDictionary<string, object> fee = this.safeDict(order, "fee");
+                        string? tradeFeeCurrency = this.safeString(tradeFee, "currency");
+                        double? tradeFeeCost = this.safeNumber(tradeFee, "cost");
                         if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
+                            List<object> newFees = new List<object>() {};
                             for (int i = 0; i < fees.Count; i++)
                             {
-                                IDictionary<string, object> orderFee = ((IDictionary<string, object>)fees[i]);
-                                if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
+                                Dictionary<string, object> orderFee = this.extend(new Dictionary<string, object>() {}, fees[i]);
+                                if (insertNewFeeCurrency && (this.safeString(orderFee, "currency") == tradeFeeCurrency))
                                 {
-                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), (orderFee != null && orderFee.ContainsKey("cost") ? orderFee["cost"] : null));
-                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : JsParse.parseFloat(feeCostString);
+                                    object feeCost = this.sum(tradeFeeCost, this.safeNumber(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                    if ((feeCostString != null))
+                                    {
+                                        orderFee["cost"] = JsParse.parseFloat(feeCostString);
+                                    } else
+                                    {
+                                        orderFee["cost"] = null;
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.Add(orderFee);
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
+                                newFees.Add(tradeFee);
                             }
+                            order["fees"] = newFees;
                         } else if ((fee != null))
                         {
-                            if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
+                            string? feeCurrency = this.safeString(fee, "currency");
+                            if ((feeCurrency == tradeFeeCurrency))
                             {
-                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
-                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
-                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((feeCostString == null)) ? null : JsParse.parseFloat(feeCostString);
-                            } else if ((this.safeString(fee, "currency") == null))
+                                object feeCost = this.sum(this.safeNumber(fee, "cost"), tradeFeeCost);
+                                string? feeCostString = this.currencyToPrecision(tradeFeeCurrency, feeCost);
+                                Dictionary<string, object> newFee = this.extend(new Dictionary<string, object>() {}, fee);
+                                if ((feeCostString != null))
+                                {
+                                    newFee["cost"] = JsParse.parseFloat(feeCostString);
+                                } else
+                                {
+                                    newFee["cost"] = null;
+                                }
+                                order["fee"] = newFee;
+                            } else if ((feeCurrency == null))
                             {
                                 order["fee"] = tradeFee;
                             } else

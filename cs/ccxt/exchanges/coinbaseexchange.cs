@@ -1202,7 +1202,7 @@ public partial class coinbaseexchange : Exchange
             string? marketId = ((string)marketIds[i]);
             List<object> entry = this.safeList(response, marketId, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             result[(string)symbol] = this.parseTickerList(this.safeList(entry, 0, new List<object>() {}), market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -1328,7 +1328,7 @@ public partial class coinbaseexchange : Exchange
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1909,7 +1909,7 @@ public partial class coinbaseexchange : Exchange
                 request["funds"] = this.costToPrecision(symbol, costParam);
             } else if ((price != null))
             {
-                request["funds"] = this.costToPrecision(symbol, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(amount, price));
+                request["funds"] = this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
             } else
             {
                 request["size"] = this.amountToPrecision(symbol, amount);
@@ -2612,12 +2612,10 @@ public partial class coinbaseexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
         object response = await this.fetch2(path, api, method, parameters, config);
-        if (!(response is string))
+        string? message = this.safeString(response, "message");
+        if ((message != null))
         {
-            if (inOp(response, "message"))
-            {
-                throw new ExchangeError (((this.id + " ") + this.json(response))) ;
-            }
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return response;
     }

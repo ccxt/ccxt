@@ -4980,7 +4980,7 @@ public partial class kucoin : Exchange
             string? sizeString = this.amountToPrecision(symbol, amount);
             if ((sizeString != null))
             {
-                request["size"] = JsParse.parseInt(sizeString);
+                request["size"] = this.parseToInt(sizeString);
             }
         }
         this.checkTriggerPrices(paramsOmitted);
@@ -7257,7 +7257,7 @@ public partial class kucoin : Exchange
         string? tradeType = this.safeString(order, "tradeType");
         List<object> utaTradeTypes = new List<object>() {"SPOT", "CROSS", "ISOLATED", "FUTURES"}; // tradeType specific for uta endpoint
         bool isUtaOrder = this.inArray(tradeType, utaTradeTypes);
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("sizeUnit")))
+        if ((this.safeString(order, "sizeUnit") != null))
         {
             isUtaOrder = true;
         }
@@ -8300,7 +8300,7 @@ public partial class kucoin : Exchange
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
     {
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("liquidityRole")))
+        if ((this.safeString(trade, "liquidityRole") != null))
         {
             return new ccxt.Trade(this.parseMyUtaTrade(trade, market));
         }
@@ -8413,7 +8413,7 @@ public partial class kucoin : Exchange
         Int64? createdAt = this.safeInteger(trade, "createdAt");
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         Int64? timestamp = createdAt;
-        if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("dealValue"))) && ((createdAt != null)))
+        if (((this.safeString(trade, "dealValue") != null)) && ((createdAt != null)))
         {
             timestamp = (createdAt * 1000);
         }
@@ -8549,7 +8549,7 @@ public partial class kucoin : Exchange
         Int64? createdAt = this.safeInteger(trade, "createdAt");
         // if it's a historical v1 trade, the exchange returns timestamp in seconds
         Int64? timestamp = createdAt;
-        if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("dealValue"))) && ((createdAt != null)))
+        if (((this.safeString(trade, "dealValue") != null)) && ((createdAt != null)))
         {
             timestamp = (createdAt * 1000);
         }
@@ -11490,7 +11490,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "leverage", leverage.ToString() },
+            { "leverage", this.numberToString(leverage) },
         };
         bool uta = await this.isUTAEnabled();
         (bool?, IDictionary<string, object>) utaOptionparamsUtaVariable = this.handleOptionBoolAndParams(paramsMarginMode, "setLeverage", "uta", uta);
@@ -12441,10 +12441,10 @@ public partial class kucoin : Exchange
         Int64? lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if ((lastUpdateTimestamp == null))
         {
-            if ((position != null && ((IDictionary<string, object>)position).ContainsKey("closingTime")))
+            if ((this.safeString(position, "closingTime") != null))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
-            } else if ((position != null && ((IDictionary<string, object>)position).ContainsKey("updateTime")))
+            } else if ((this.safeString(position, "updateTime") != null))
             {
                 lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
             }

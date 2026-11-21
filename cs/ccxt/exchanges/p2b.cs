@@ -395,7 +395,7 @@ public partial class p2b : Exchange
         {
             return null;
         }
-        IDictionary<string, object> limits = this.safeDict(market, "limits");
+        IDictionary<string, object> limits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
         return new Dictionary<string, object>() {
@@ -920,7 +920,7 @@ public partial class p2b : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? currencyId = ((string)keys[i]);
-            IDictionary<string, object> balance = this.safeDict(response, currencyId);
+            IDictionary<string, object> balance = this.safeDict(response, currencyId, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currencyId);
             string? used = this.safeString(balance, "freeze");
             string? available = this.safeString(balance, "available");

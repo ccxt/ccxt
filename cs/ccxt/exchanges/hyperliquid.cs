@@ -975,7 +975,8 @@ public partial class hyperliquid : Exchange
             }
             string? pricePrecisionStr = this.numberToString(pricePrecision);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            string? baseId = this.numberToString((index + 10000));
+            Int64? indexInt = this.safeInteger(market, "index", 0);
+            string? baseId = this.numberToString((indexInt + 10000));
             Dictionary<string, object> entry = new Dictionary<string, object>() {
                 { "id", marketName },
                 { "symbol", mappedSymbol },
@@ -3970,7 +3971,11 @@ public partial class hyperliquid : Exchange
             postOnly = (tif == "ALO");
         }
         bool? isTrigger = this.safeBool(entry, "isTrigger", false);
-        double? triggerPx = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
+        double? triggerPx = null;
+        if ((isTrigger == true))
+        {
+            triggerPx = this.safeNumber(entry, "triggerPx");
+        }
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         string orderTypeRaw = this.safeStringLower(entry, "orderType", "");

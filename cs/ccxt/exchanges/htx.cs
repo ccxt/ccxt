@@ -3401,11 +3401,11 @@ public partial class htx : Exchange
         }
         if (response.ContainsKey("tick"))
         {
-            if ((this.safeValue(response, "tick") == null))
+            IDictionary<string, object> tick = this.safeDict(response, "tick");
+            if ((tick == null))
             {
                 throw new BadSymbol (((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
-            IDictionary<string, object> tick = this.safeDict(response, "tick");
             Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
             ccxt.OrderBook result = this.parseOrderBook(tick, symbol, timestamp);
             result.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(tick, "version"));

@@ -3217,7 +3217,6 @@ public partial class blofin : Exchange
         }
         if ((clientOrderIds == null))
         {
-            object orderIds = this.parseIds(ids);
             if ((tpslIds != null))
             {
                 for (int i = 0; i < getArrayLength(tpslIds); i++)
@@ -3228,18 +3227,18 @@ public partial class blofin : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(orderIds); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 if ((trigger == true))
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", this.safeString(orderIds, i) },
+                        { "tpslId", this.safeString(ids, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "orderId", this.safeString(orderIds, i) },
+                        { "orderId", this.safeString(ids, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }

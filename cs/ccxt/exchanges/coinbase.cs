@@ -2708,9 +2708,9 @@ public partial class coinbase : Exchange
         double? ask = this.safeNumber(ticker, "ask");
         double? bidVolume = null;
         double? askVolume = null;
-        if (((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bids"))))
+        List<object> bids = this.safeList(ticker, "bids");
+        if ((bids != null))
         {
-            List<object> bids = this.safeList(ticker, "bids", new List<object>() {});
             List<object> asks = this.safeList(ticker, "asks", new List<object>() {});
             IDictionary<string, object> firstBid = this.safeDict(bids, 0, new Dictionary<string, object>() {});
             IDictionary<string, object> firstAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
@@ -3865,7 +3865,14 @@ public partial class coinbase : Exchange
             postOnly = this.safeBool(target, "post_only");
         } else if (isStop)
         {
-            IDictionary<string, object> stopTarget = ((stopLimitGTC != null)) ? stopLimitGTC : stopLimitGTD;
+            IDictionary<string, object> stopTarget = null;
+            if ((stopLimitGTC != null))
+            {
+                stopTarget = stopLimitGTC;
+            } else
+            {
+                stopTarget = stopLimitGTD;
+            }
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
             postOnly = this.safeBool(stopTarget, "post_only");

@@ -182,7 +182,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".order_place");
         string? url = this.getUrlByMarket(market);
@@ -1207,7 +1207,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList52968))
+        if ((rawResult is IList<object> hxList52990))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -1261,7 +1261,7 @@ public partial class gate : ccxt.gate
         // todo add options support
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".candlesticks");
@@ -1300,7 +1300,7 @@ public partial class gate : ccxt.gate
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageType = this.getTypeByMarket(market);
         string channel = (messageType + ".candlesticks");
@@ -1367,7 +1367,7 @@ public partial class gate : ccxt.gate
         }
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList60018))
+        if ((rawResult is IList<object> hxList60100))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -1952,10 +1952,10 @@ public partial class gate : ccxt.gate
         List<object> payload = new List<object>() {("!" + "all")};
         if ((market != null))
         {
-            messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
-            string? mid = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? mid = this.safeString(market, "id");
             if ((mid != null))
             {
+                messageHash = messageHash + (":" + mid);
                 payload = new List<object>() {mid};
             }
         }

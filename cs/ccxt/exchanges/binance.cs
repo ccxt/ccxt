@@ -6923,7 +6923,7 @@ public partial class binance : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitValue },
         };
-        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+        string? marketId = this.safeString(market, "id");
         if ((marketId == null))
         {
             throw new ExchangeError ((this.id + " fetchOHLCV() missing marketId")) ;
@@ -7259,7 +7259,7 @@ public partial class binance : Exchange
             marketType = "spot";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? side = null;
         bool? buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         string? takerOrMaker = null;
@@ -8695,7 +8695,7 @@ public partial class binance : Exchange
             marketType = "contract";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? filled = this.safeStringN(order, new List<object>() {"executedQty", "filledQty", "actualQty"}, "0"); // actualQty: algo orders
         Int64? timestamp = this.safeInteger2(order, "time", "createTime"); // order of the keys matters here
         if ((timestamp == null))
@@ -13291,7 +13291,7 @@ public partial class binance : Exchange
             for (int i = 0; i < (fees?.Count ?? 0); i++)
             {
                 Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
-                string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+                string? symbol = this.safeString(fee, "symbol");
                 if ((symbol != null))
                 {
                     spotFees[(string)symbol] = fee;
@@ -14639,7 +14639,7 @@ public partial class binance : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "swap");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "quantity");
         if (side != "long")

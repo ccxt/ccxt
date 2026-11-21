@@ -1783,7 +1783,8 @@ public partial class bitstamp : Exchange
             }
         }
         // if it is a private trade
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")))
+        string? tradeId = this.safeString(trade, "id");
+        if ((tradeId != null))
         {
             if ((amountString != null))
             {
@@ -2850,9 +2851,10 @@ public partial class bitstamp : Exchange
         string? feeCost = this.safeString(transaction, "fee");
         object feeCurrency = null;
         string? amount = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("amount")))
+        string? transactionAmount = this.safeString(transaction, "amount");
+        if ((transactionAmount != null))
         {
-            amount = this.safeString(transaction, "amount");
+            amount = transactionAmount;
         } else if ((currency != null))
         {
             amount = this.safeString(transaction, (currency != null && currency.ContainsKey("id") ? currency["id"] : null));
@@ -2868,15 +2870,16 @@ public partial class bitstamp : Exchange
             amount = Precise.stringAbs(amount);
         }
         string? status = "ok";
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("status")))
+        string? rawStatus = this.safeString(transaction, "status");
+        if ((rawStatus != null))
         {
-            status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+            status = this.parseTransactionStatus(rawStatus);
         }
         string? type = null;
-        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("type")))
+        string? rawType = this.safeString(transaction, "type");
+        if ((rawType != null))
         {
             // from fetchDepositsWithdrawals
-            string? rawType = this.safeString(transaction, "type");
             if (rawType == "0")
             {
                 type = "deposit";
@@ -3143,16 +3146,16 @@ public partial class bitstamp : Exchange
             Dictionary<string, object> parsedTransaction = this.parseTransaction(item, currency);
             string? direction = null;
             string? transactionCurrency = this.safeString(parsedTransaction, "currency");
-            bool hasTransactionCurrency = !((item != null && ((IDictionary<string, object>)item).ContainsKey("amount"))) && ((transactionCurrency != null));
+            string? itemAmount = this.safeString(item, "amount");
+            bool hasTransactionCurrency = ((itemAmount == null)) && ((transactionCurrency != null));
             IDictionary<string, object> currencyResolved = currency;
             if (hasTransactionCurrency)
             {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, "currency"));
             }
-            if ((item != null && ((IDictionary<string, object>)item).ContainsKey("amount")))
+            if ((itemAmount != null))
             {
-                string? amount = this.safeString(item, "amount");
-                direction = Precise.stringGt(amount, "0") ? "in" : "out";
+                direction = Precise.stringGt(itemAmount, "0") ? "in" : "out";
             } else if ((transactionCurrency != null))
             {
                 string? amount = this.safeString(item, this.safeString(currencyResolved, "id"));

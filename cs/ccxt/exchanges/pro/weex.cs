@@ -156,7 +156,9 @@ public partial class weex : ccxt.weex
         string timestamp = this.nonce().ToString();
         string payload = (timestamp + "/v3/ws/private");
         string signature = this.hmac(payload, this.secret, sha256, "base64");
-        IDictionary<string, object> originalHeaders = this.safeDict((this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null), "headers");
+        IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
+        IDictionary<string, object> originalHeaders = this.safeDict(wsInnerOptions, "headers", new Dictionary<string, object>() {});
         string? userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Dictionary<string, object> extendedOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
@@ -383,12 +385,9 @@ public partial class weex : ccxt.weex
         Int64? timestamp = this.safeInteger(ticker, "C");
         string? close = this.safeString(ticker, "c");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -606,12 +605,9 @@ public partial class weex : ccxt.weex
         //
         Int64? timestamp = this.safeInteger(trade, "T");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;
@@ -1211,7 +1207,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol");
         if ((symbol != null))
         {
             this.bidsasks[(string)symbol] = ticker;
@@ -1224,12 +1220,9 @@ public partial class weex : ccxt.weex
     {
         Int64? timestamp = this.safeInteger(message, "E");
         string? symbol = null;
-        if ((market == null))
+        if ((market != null))
         {
-            symbol = null;
-        } else
-        {
-            symbol = ((string)(market != null && market.ContainsKey("symbol") ? market["symbol"] : null));
+            symbol = this.safeString(market, "symbol");
         }
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },

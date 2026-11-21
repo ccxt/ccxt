@@ -1212,7 +1212,12 @@ public partial class weex : Exchange
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
-        IDictionary<string, object> fees = this.safeDict(this.fees, isSpot ? "spot" : "contract", new Dictionary<string, object>() {});
+        string feesKey = "contract";
+        if (isSpot)
+        {
+            feesKey = "spot";
+        }
+        IDictionary<string, object> fees = this.safeDict(this.fees, feesKey, new Dictionary<string, object>() {});
         if ((id == null))
         {
             throw new ExchangeError ((this.id + " method() missing id")) ;
@@ -3953,7 +3958,6 @@ public partial class weex : Exchange
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? accountType = this.safeString(accountsByType, marketType, marketType);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> items = null;
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
@@ -3977,7 +3981,8 @@ public partial class weex : Exchange
             var requestUntil = requestUntilparamsUntilVariable[0];
             IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
             Dictionary<string, object> contractResponse = await this.contractPrivatePostCapiV3AccountIncome(this.extend(requestUntil, paramsUntil));
-            items = this.safeList(contractResponse, "items", new List<object>() {});
+            List<object> contractItems = this.safeList(contractResponse, "items", new List<object>() {});
+            return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(contractItems, currency, since, limit));
         } else if (accountType == "funding")
         {
             if ((since != null))
@@ -3992,7 +3997,8 @@ public partial class weex : Exchange
             var requestUntil = requestUntilparamsUntilVariable[0];
             IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
             Dictionary<string, object> fundingResponse = await this.privatePostApiV3AccountFundingBills(this.extend(requestUntil, paramsUntil));
-            items = this.safeList(fundingResponse, "items", new List<object>() {});
+            List<object> fundingItems = this.safeList(fundingResponse, "items", new List<object>() {});
+            return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(fundingItems, currency, since, limit));
         } else
         {
             if ((since != null))
@@ -4007,9 +4013,9 @@ public partial class weex : Exchange
             var requestUntil = requestUntilparamsUntilVariable[0];
             IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
             List<object> billsResponse = await this.privatePostApiV3AccountBills(this.extend(requestUntil, paramsUntil));
-            items = billsResponse;
+            IList<object> billsItems = billsResponse;
+            return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(billsItems, currency, since, limit));
         }
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items, currency, since, limit));
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, IDictionary<string, object> currency = null)
@@ -5062,7 +5068,7 @@ public partial class weex : Exchange
             string payload = (((timestamp + method) + "/") + endpoint);
             if (hasJsonBody)
             {
-                payload = payload + requestBody;
+                payload = (payload + this.json(query));
             }
             string signature = this.hmac(payload, this.secret, sha256, "base64");
             requestHeaders = new Dictionary<string, object>() {

@@ -653,9 +653,9 @@ public partial class bitget : ccxt.bitget
         }
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
-        string? channel = null;
+        string channel = "";
         Dictionary<string, object> market = this.market(symbol);
-        string? messageHash = null;
+        string messageHash = "";
         (bool?, IDictionary<string, object>) values = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         bool? uta = values.Item1;
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
@@ -922,7 +922,8 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = ((("unsubscribe:" + (messageHashTopic)) + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string? marketSymbol = this.safeString(market, "symbol", "");
+        string messageHash = ((("unsubscribe:" + (messageHashTopic)) + ":") + marketSymbol);
         (bool?, IDictionary<string, object>) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, methodName, "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = (utaparamsUtaVariable.Item2);
@@ -1912,7 +1913,8 @@ public partial class bitget : ccxt.bitget
             market = this.market(symbol);
             symbolResolved = this.safeString(market, "symbol");
             marketId = this.safeString(market, "id");
-            messageHash = ((messageHash + ":") + symbolResolved);
+            string? marketSymbol = this.safeString(market, "symbol", "");
+            messageHash = ((messageHash + ":") + marketSymbol);
         }
         (bool?, IDictionary<string, object>) utaparamsUtaVariable = this.handleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
@@ -1952,7 +1954,8 @@ public partial class bitget : ccxt.bitget
         }
         if ((type == "spot") && ((symbolResolved != null)))
         {
-            subscriptionHash = ((subscriptionHash + ":") + symbolResolved);
+            string? resolvedSymbol = symbolResolved;
+            subscriptionHash = ((subscriptionHash + ":") + resolvedSymbol);
         }
         if ((isTrigger == true))
         {

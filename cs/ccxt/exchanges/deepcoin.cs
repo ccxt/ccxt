@@ -1192,7 +1192,7 @@ public partial class deepcoin : Exchange
             { "datetime", null },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < (balances?.Count ?? 0); i++)
+        for (int i = 0; i < balances.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
             string? symbol = this.safeString(balance, "ccy");
@@ -3637,14 +3637,11 @@ public partial class deepcoin : Exchange
         {
             msg = sMsg;
         }
-        List<object> errorList = this.safeList(data, "errorList");
-        if ((errorList != null))
+        List<object> errorList = this.safeList(data, "errorList", new List<object>() {});
+        for (int i = 0; i < errorList.Count; i++)
         {
-            for (int i = 0; i < errorList.Count; i++)
-            {
-                IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
-                errorCode = this.safeString(entry, "errorCode");
-            }
+            IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
+            errorCode = this.safeString(entry, "errorCode");
         }
         string feedback = ((this.id + " ") + (body));
         if (((sCode == null)) && ((errorCode != null)))

@@ -1867,7 +1867,8 @@ public partial class bitvavo : Exchange
         {
             request["orderId"] = id;
         }
-        object operatorId = this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId")[0];
+        IList<object> operatorIdVariable = (IList<object>)this.handleOptionAndParams(paramsOmitted, "editOrder", "operatorId");
+        var operatorId = operatorIdVariable[0];
         if ((operatorId != null))
         {
             request["operatorId"] = this.parseToInt(operatorId);

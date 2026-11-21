@@ -548,9 +548,9 @@ public partial class lighter : Exchange
 
     public virtual object getLighterPrivateKey(string? strAccountIndex, string? strApiKeyIndex)
     {
-        IDictionary<string, object> auths = this.safeDict(this.options, "auths");
-        IDictionary<string, object> accountAuths = this.safeDict(auths, strAccountIndex);
-        IDictionary<string, object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex);
+        IDictionary<string, object> auths = this.safeDict(this.options, "auths", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountAuths = this.safeDict(auths, strAccountIndex, new Dictionary<string, object>() {});
+        IDictionary<string, object> apiKeyAuths = this.safeDict(accountAuths, strApiKeyIndex, new Dictionary<string, object>() {});
         return this.safeString(apiKeyAuths, "lighterPrivateKey");
     }
 
@@ -709,9 +709,9 @@ public partial class lighter : Exchange
             List<object> res = this.handleOptionAndParams2(new Dictionary<string, object>() {}, "createAuth", "accountIndex", "account_index");
             accountIndex = this.safeString(res, 0);
         }
-        IDictionary<string, object> auths = this.safeDict(this.options, "auths");
-        IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex);
-        IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
+        IDictionary<string, object> auths = this.safeDict(this.options, "auths", new Dictionary<string, object>() {});
+        IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex, new Dictionary<string, object>() {});
+        IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex, new Dictionary<string, object>() {});
         Int64? cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         Int64? minimumRemaining = this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60);
         if (((cachedDeadline != null)) && ((minimumRemaining != null)) && (((cachedDeadline - minimumRemaining) >= this.seconds())))
@@ -2221,13 +2221,13 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            IDictionary<string, object> account = this.safeDict(accounts, i);
+            IDictionary<string, object> account = this.safeDict(accounts, i, new Dictionary<string, object>() {});
             if (type == "spot")
             {
                 List<object> assets = this.safeList(account, "assets", new List<object>() {});
                 for (int j = 0; j < assets.Count; j++)
                 {
-                    IDictionary<string, object> asset = this.safeDict(assets, j);
+                    IDictionary<string, object> asset = this.safeDict(assets, j, new Dictionary<string, object>() {});
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
                     Dictionary<string, object> balance = this.extend(this.account(), this.safeDict(result, code, new Dictionary<string, object>() {}));
@@ -2350,7 +2350,7 @@ public partial class lighter : Exchange
         List<object> accounts = this.safeList(response, "accounts", new List<object>() {});
         for (int i = 0; i < accounts.Count; i++)
         {
-            IDictionary<string, object> account = this.safeDict(accounts, i);
+            IDictionary<string, object> account = this.safeDict(accounts, i, new Dictionary<string, object>() {});
             List<object> positions = this.safeList(account, "positions", new List<object>() {});
             for (int j = 0; j < positions.Count; j++)
             {

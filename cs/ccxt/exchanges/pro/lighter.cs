@@ -1219,7 +1219,7 @@ public partial class lighter : ccxt.lighter
             for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)assetIds[i]);
-                IDictionary<string, object> asset = this.safeDict(assets, assetId);
+                IDictionary<string, object> asset = this.safeDict(assets, assetId, new Dictionary<string, object>() {});
                 string? codeId = this.safeString(asset, "symbol");
                 string? code = this.safeCurrencyCode(codeId);
                 Dictionary<string, object> account = this.account();
@@ -1766,8 +1766,8 @@ public partial class lighter : ccxt.lighter
                 string? subscriptionHash = ((string)subscriptionHashes[i]);
                 if (subscriptionHash.StartsWith("ticker"))
                 {
-                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
-                    IDictionary<string, object> subscriptionParams = this.safeDict(subscription, "params");
+                    IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash, new Dictionary<string, object>() {});
+                    IDictionary<string, object> subscriptionParams = this.safeDict(subscription, "params", new Dictionary<string, object>() {});
                     string? subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (subscribedChannel == "market_stats/all")
                     {

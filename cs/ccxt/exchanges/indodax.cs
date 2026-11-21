@@ -1002,15 +1002,11 @@ public partial class indodax : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOpenOrders(this.extend(request, parameters));
         IDictionary<string, object> openOrdersResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        object rawOrders = (openOrdersResult != null && openOrdersResult.ContainsKey("orders") ? openOrdersResult["orders"] : null);
         // { success: 1, return: { orders: null }} if no orders
-        if (((rawOrders == null)) || ((rawOrders == null)))
-        {
-            return ccxt.BaseExchange.ToOrderList(new List<object>() {});
-        }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if ((symbol != null))
         {
+            List<object> rawOrders = this.safeList(openOrdersResult, "orders", new List<object>() {});
             return this.parseOrders(rawOrders, market, since, limit);
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched

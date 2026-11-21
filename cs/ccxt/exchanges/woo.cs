@@ -1193,7 +1193,7 @@ public partial class woo : Exchange
         //         "isMaker": 0
         //     }
         //
-        bool isFromFetchOrder = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")));
+        bool isFromFetchOrder = ((this.safeString(trade, "id") != null));
         string? timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
         Int64? timestamp = null;
         if ((timestampString != null))

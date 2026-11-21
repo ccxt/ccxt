@@ -483,7 +483,7 @@ public partial class bitopro : ccxt.bitopro
         this.extendExchangeOptions(defaultOptions);
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> wsInnerOptions = this.safeDict(wsOptions, "options", new Dictionary<string, object>() {});
-        object originalHeaders = (wsInnerOptions != null && wsInnerOptions.ContainsKey("headers") ? wsInnerOptions["headers"] : null);
+        IDictionary<string, object> originalHeaders = this.safeDict(wsInnerOptions, "headers");
         Dictionary<string, object> headers = new Dictionary<string, object>() {
             { "X-BITOPRO-API", "ccxt" },
             { "X-BITOPRO-APIKEY", this.apiKey },

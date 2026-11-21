@@ -3521,8 +3521,6 @@ public partial class extended : Exchange
         {
             market = this.market(symbol);
         }
-        Dictionary<string, object> response = null;
-        IDictionary<string, object> order = null;
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
         if ((clientOrderId != null))
@@ -3530,9 +3528,9 @@ public partial class extended : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "externalId", clientOrderId },
             };
-            response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
+            Dictionary<string, object> response = await this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted));
             List<object> data = this.safeList(response, "data", new List<object>() {});
-            order = this.safeDict(data, 0, new Dictionary<string, object>() {});
+            return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
         } else
         {
             if ((id == null))
@@ -3542,10 +3540,10 @@ public partial class extended : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },
             };
-            response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
-            order = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            Dictionary<string, object> response = await this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted));
+            IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            return this.parseOrder(order, market);
         }
-        return this.parseOrder(order, market);
     }
 
     /**

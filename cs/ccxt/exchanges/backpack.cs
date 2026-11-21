@@ -683,9 +683,9 @@ public partial class backpack : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> selection = this.handleStockParams("fetchCurrencies", parameters);
-        bool? stock = this.safeBool(selection, 0, false);
-        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "stock", false);
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         List<object> response = await this.publicGetApiV1Assets(query);
         //
         //     [
@@ -714,7 +714,7 @@ public partial class backpack : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> currency = this.parseCurrency(this.safeDict(response, i, new Dictionary<string, object>() {}));
-            if (stock != true || ((this.safeString(currency, "type") == "stock")))
+            if (!(stock == true) || ((this.safeString(currency, "type") == "stock")))
             {
                 currencies[(string)(currency.ContainsKey("code") ? currency["code"] : null)] = currency;
             }
@@ -812,9 +812,9 @@ public partial class backpack : Exchange
         {
             await this.loadTimeDifference();
         }
-        List<object> selection = this.handleStockParams("fetchMarkets", parameters);
-        bool? stock = this.safeBool(selection, 0, false);
-        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         string? marketType = this.safeString(query, "marketType");
         List<object> defaultTypes = new List<object>() {};
         if ((marketType != null))
@@ -849,7 +849,7 @@ public partial class backpack : Exchange
         }
         bool includeRfq = this.inArray("RFQ", marketTypes);
         Dictionary<string, object> marketQuery = this.omit(query, "marketType");
-        if (query.ContainsKey("marketType"))
+        if ((query != null && query.ContainsKey("marketType")))
         {
             marketQuery["marketType"] = marketTypes;
         }
@@ -883,7 +883,7 @@ public partial class backpack : Exchange
                     continue;
                 }
                 marketIds[(string)marketId] = true;
-                if (stock != true || (this.safeBool(market, "stock", false) == true))
+                if (!(stock == true) || (this.safeBool(market, "stock", false) == true))
                 {
                     markets.Add(market);
                 }
@@ -1679,9 +1679,9 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        List<object> selection = this.handleStockParams("fetchTickers", parameters);
-        bool? stockOnly = this.safeBool(selection, 0, false);
-        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        (bool?, IDictionary<string, object>) stockOnlyqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchTickers", "stock", false);
+        bool? stockOnly = stockOnlyqueryVariable.Item1;
+        IDictionary<string, object> query = (stockOnlyqueryVariable.Item2);
         string? source = this.safeString(query, "source", "Venue");
         int symbolsLength = 0;
         if ((symbols != null))
@@ -2494,9 +2494,9 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
-        List<object> selection = this.handleStockParams("fetchBalance", parameters);
-        bool? stock = this.safeBool(selection, 0, false);
-        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         Dictionary<string, object> response = await this.privateGetApiV1Capital(query);
         if ((stock == true))
         {
@@ -3106,14 +3106,14 @@ public partial class backpack : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> selection = this.handleStockParams("createOrders", parameters);
-        IDictionary<string, object> query = this.safeDict(selection, 1, new Dictionary<string, object>() {});
+        (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, "createOrders", "stock", false);
+        bool? stock = stockqueryVariable.Item1;
+        IDictionary<string, object> query = (stockqueryVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        bool? stock = this.safeBool(selection, 0, false);
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);

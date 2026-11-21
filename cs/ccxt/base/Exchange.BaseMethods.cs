@@ -6112,15 +6112,16 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol");
         string result = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
             string? pricePrecision = this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"));
             if ((pricePrecision == null))
             {
-                throw new BadSymbol ((((this.id + " priceToPrecision() market ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " has no price precision")) ;
+                throw new BadSymbol ((((this.id + " priceToPrecision() market ") + marketSymbol) + " has no price precision")) ;
             }
-            throw new InvalidOrder (((((this.id + " price of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum price precision of ") + pricePrecision)) ;
+            throw new InvalidOrder (((((this.id + " price of ") + marketSymbol) + " must be greater than minimum price precision of ") + pricePrecision)) ;
         }
         return result;
     }
@@ -6132,15 +6133,16 @@ public partial class BaseExchange
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? marketSymbol = this.safeString(market, "symbol");
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
             string? amountPrecision = this.numberToString(getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"));
             if ((amountPrecision == null))
             {
-                throw new BadSymbol ((((this.id + " amountToPrecision() market ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " has no amount precision")) ;
+                throw new BadSymbol ((((this.id + " amountToPrecision() market ") + marketSymbol) + " has no amount precision")) ;
             }
-            throw new InvalidOrder (((((this.id + " amount of ") + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
+            throw new InvalidOrder (((((this.id + " amount of ") + marketSymbol) + " must be greater than minimum amount precision of ") + amountPrecision)) ;
         }
         return result;
     }
@@ -6558,9 +6560,10 @@ public partial class BaseExchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = this.parseFundingRate((response != null && i < response.Count ? response[i] : null));
-            if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
+            string? symbol = this.safeString(parsed, "symbol");
+            if ((symbol != null))
             {
-                fundingRates[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
+                fundingRates[(string)symbol] = parsed;
             }
         }
         return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
@@ -6778,9 +6781,10 @@ public partial class BaseExchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = this.parseOpenInterest((response != null && i < response.Count ? response[i] : null));
-            if (!((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null) == null))
+            string? symbol = this.safeString(parsed, "symbol");
+            if ((symbol != null))
             {
-                result[(string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null)] = parsed;
+                result[(string)symbol] = parsed;
             }
         }
         return this.indexBy(this.filterByArray(result, "symbol", symbols, false), "symbol");
@@ -7247,8 +7251,9 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> createOHLCVObject(object symbol, string timeframe, IList<object> data)
     {
         Dictionary<string, object> res = new Dictionary<string, object>() {};
-        res[(string)symbol] = new Dictionary<string, object>() {};
-        ((IDictionary<string,object>)(res != null && symbol != null && res.ContainsKey((string)symbol) ? res[(string)symbol] : null))[timeframe] = data;
+        Dictionary<string, object> inner = new Dictionary<string, object>() {};
+        inner[timeframe] = data;
+        res[(string)symbol] = inner;
         return res;
     }
 
