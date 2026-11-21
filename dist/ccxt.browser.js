@@ -404386,12 +404386,9 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         const transferType = this.safeString(params, 'type');
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        let transferMethod = undefined;
-        let query = params;
-        [transferMethod, query] = this.handleOptionStringAndParams(query, 'transfer', 'method');
-        let masterAddress = undefined;
-        masterAddress = this.safeString(this.handlePublicAddress('transfer', query), 0);
-        query = this.safeDict(this.handlePublicAddress('transfer', query), 1, {});
+        const [transferMethod, paramsMethod] = this.handleOptionStringAndParams(params, 'transfer', 'method');
+        const [masterAddress, paramsAddress] = this.handlePublicAddress('transfer', paramsMethod);
+        let query = paramsAddress;
         let useSendAsset = transferMethod === 'sendAsset';
         if (transferMethod === undefined) {
             let isUnified = undefined;
