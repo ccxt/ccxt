@@ -18611,7 +18611,14 @@ function goTypedRewriteLine (line: string, own: Set<string>): string | undefined
     }
     const code = line.slice (0, at).replace (/\s+$/, '');
     const out = goTypedRewriteCode (code, own);
-    return ((out !== undefined) && !out.includes ('\n')) ? out + line.slice (code.length) : undefined;
+    if ((out === undefined) || !out.includes ('\n')) {
+        return (out !== undefined) ? out + line.slice (code.length) : undefined;
+    }
+    // a statement form keeps the comment on its `if derefPtr` header line
+    const lines = out.split ('\n');
+    const at2 = lines.findIndex ((l) => l.trimStart ().startsWith ('if derefPtr := '));
+    lines[at2] += line.slice (code.length);
+    return lines.join ('\n');
 }
 
 function goTypedRewriteCode (line: string, own: Set<string>): string | undefined {
@@ -18639,7 +18646,9 @@ function goTypedRewriteCode (line: string, own: Set<string>): string | undefined
         return (ret !== undefined) ? ind + 'return ' + read : ((decl !== undefined) ? ind + 'var ' + name + ' ' + declType + ' = ' + read : ind + name + ' = ' + read);
     }
     // the operand must not read the name it writes (a `var` would shadow it) nor the temporary
-    if (((name !== undefined) && new RegExp ('\\b' + name + '\\b').test (inner)) || /\bderefPtr\b/.test (inner)) {
+    // (string literals are keys, not reads; an assignment evaluates the operand before it writes)
+    const code = inner.replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
+    if (((decl !== undefined) && new RegExp ('\\b' + name + '\\b').test (code)) || /\bderefPtr\b/.test (code) || (name === 'derefPtr')) {
         return undefined;
     }
     if (ret !== undefined) {
@@ -18669,8 +18678,12 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
     ok (f ('\t\ts = DerefScalar(this.SafeBool2(m, "a", "b", false))') === '\t\ts = (*this.SafeBool2(m, "a", "b", false))', 'two-key literal default');
     ok (f ('\ts = DerefScalar(this.SafeString(m, "k", d))').includes ('derefPtr'), 'a non-literal default keeps the nil branch');
     ok (f ('\ts = DerefScalar(this.SafeString(s, "k", "d"))') === '\ts = (*this.SafeString(s, "k", "d"))', 'a literal default needs no temporary');
-    ok (f ('\ts = DerefScalar(this.SafeString(s, "k"))') === '\ts = DerefScalar(this.SafeString(s, "k"))', 'a read of the written name without a default keeps the wrap');
-    ok (f ('\ts = DerefScalar(this.SafeString(m, "s"))') === '\ts = DerefScalar(this.SafeString(m, "s"))', 'a key spelled like the written name keeps the wrap');
+    ok (f ('\ts = DerefScalar(this.SafeString(s, "k"))') === '\tif derefPtr := this.SafeString(s, "k"); derefPtr != nil {\n\t\ts = *derefPtr\n\t} else {\n\t\ts = nil\n\t}', 'an assignment reads the written name before it writes');
+    ok (f ('\ts = DerefScalar(this.SafeString(m, "s"))') === '\tif derefPtr := this.SafeString(m, "s"); derefPtr != nil {\n\t\ts = *derefPtr\n\t} else {\n\t\ts = nil\n\t}', 'a key spelled like the written name is no read');
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "s"))') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "s"); derefPtr != nil {\n\t\ts = *derefPtr\n\t}', 'var form with a key spelled like the name');
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "k")) // note') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil { // note\n\t\ts = *derefPtr\n\t}', 'var form keeps its trailing comment');
+    ok (f ('\ts = DerefScalar(this.SafeString(m, "k", s))') === '\tif derefPtr := this.SafeString(m, "k", s); derefPtr != nil {\n\t\ts = *derefPtr\n\t} else {\n\t\ts = nil\n\t}', 'a default read of the written name');
+    ok (f ('\ts = DerefScalar(this.SafeString(m, "k")) // c') === '\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil { // c\n\t\ts = *derefPtr\n\t} else {\n\t\ts = nil\n\t}', 'a trailing comment rides on the header');
     ok (f ('func (this *X) SafeString(a any, b any, c ...any) *string {\n\treturn nil\n}\n\ts = DerefScalar(this.SafeString(m, "k", "d"))').includes ('derefPtr'), 'a file-local accessor keeps the nil branch');
     ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "k"))') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil {\n\t\ts = *derefPtr\n\t}', 'var form');
     ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k"))') === '\t\tif derefPtr := this.SafeInteger(m, "k"); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
@@ -18680,8 +18693,8 @@ export function goTypedDerefSelfTest (ok: SelfTestOk): void {
         '\tvar s any = DerefScalar(this.SafeIntegerOmitZero(m, "k"))',
         'var s any = DerefScalar(this.SafeString(m, "k"))',
         '\tvar s any = DerefScalar(this.SafeValue(m, "k"))',
-        '\ts = DerefScalar(this.SafeString(m, "k", s))',
-        '\tvar s any = DerefScalar(this.SafeString(m, "k")) // note',
+        '\tvar s any = DerefScalar(this.SafeString(m, s))',
+        '\tderefPtr = DerefScalar(this.SafeString(m, "k"))',
         '\ts = DerefScalar(this.SafeString(func() any {',
         '\tvar p *float64 = this.ParseNumber(s)',
         '\tvar p *float64 = Float64PtrTyped(GetValue(t, 0))',
