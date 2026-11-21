@@ -2279,16 +2279,22 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const isSnapshot = (pkgType === 0);
-        return {
+        const result: Dict = {
             'seq_no': this.sbeReadInt64 (frameHex, 16),
             'market': this.safeString (strings, 0),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 8),
             'update_type': (isSnapshot) ? 's' : 'd',
-            'inserts': (isSnapshot) ? levels : [],
+            'inserts': [],
             // a delta does not tell an insert from an update, a removal is a size of 0 among them
-            'updates': (isSnapshot) ? [] : levels,
+            'updates': [],
             'deletes': [],
         };
+        if (isSnapshot) {
+            result['inserts'] = levels;
+        } else {
+            result['updates'] = levels;
+        }
+        return result;
     }
 
     parseSbeMarketSummary (client: Client, frameHex: string, blockLength: number, frameLength: number): NullableDict {

@@ -927,7 +927,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString (market, 'state');
-            result.push (this.safeMarketStructure ({
+            const marketStructure: Dict = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -945,11 +945,11 @@ export default class delta extends Exchange {
                 'option': option,
                 'active': (state === 'live'),
                 'contract': !spot,
-                'linear': spot ? undefined : linear,
-                'inverse': spot ? undefined : !linear,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': this.safeNumber (market, 'taker_commission_rate'),
                 'maker': this.safeNumber (market, 'maker_commission_rate'),
-                'contractSize': spot ? undefined : contractSize,
+                'contractSize': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry), // do not use raw expiry string
                 'strike': this.parseNumber (strike),
@@ -978,7 +978,13 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
-            }));
+            };
+            if (!spot) {
+                marketStructure['linear'] = linear;
+                marketStructure['inverse'] = !linear;
+                marketStructure['contractSize'] = contractSize;
+            }
+            result.push (this.safeMarketStructure (marketStructure));
         }
         return result;
     }

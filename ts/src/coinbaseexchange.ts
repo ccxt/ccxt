@@ -1326,7 +1326,10 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeInteger2 (paramsPaginate, 'until', 'end');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'until' ]);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit = this.parseToInt ((limit === undefined) ? 300 : Math.min (limit, 300));
+        let cappedLimit = 300;
+        if (limit !== undefined) {
+            cappedLimit = this.parseToInt (Math.min (limit, 300));
+        }
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);

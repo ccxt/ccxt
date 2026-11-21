@@ -1245,7 +1245,10 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const requestLimit = this.parseToInt ((limit === undefined) ? 500 : Math.min (limit, maxLimit));
+        let requestLimit = 500;
+        if (limit !== undefined) {
+            requestLimit = this.parseToInt (Math.min (limit, maxLimit));
+        }
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);
         }
@@ -4103,7 +4106,11 @@ export default class bingx extends Exchange {
             marketType = 'spot';
         }
         const marketId = this.safeString2 (orderData, 'symbol', 's');
-        const marketResolved: Market = this.safeMarket ((market === undefined) ? marketId : undefined, market, undefined, marketType);
+        let marketIdOrUndefined: Str = undefined;
+        if (market === undefined) {
+            marketIdOrUndefined = marketId;
+        }
+        const marketResolved: Market = this.safeMarket (marketIdOrUndefined, market, undefined, marketType);
         const side = this.safeStringLower2 (orderData, 'side', 'S');
         let timestamp = this.safeIntegerN (orderData, [ 'time', 'transactTime', 'E', 'createdTime' ]);
         const transactTime = this.safeString (orderData, 'transactTime', '') as string;
