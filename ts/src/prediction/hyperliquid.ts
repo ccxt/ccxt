@@ -333,7 +333,7 @@ export default class hyperliquid extends Exchange {
                     const thresholdsLength = thresholds.length;
                     const index = this.parseToInt (indexStr);
                     if (thresholdsLength > 0) {
-                        let bucketLabel = '';
+                        let bucketLabel: string = '';
                         if (index <= 0) {
                             bucketLabel = 'BELOW_' + thresholds[0];
                         } else if (index >= thresholdsLength) {
@@ -342,7 +342,8 @@ export default class hyperliquid extends Exchange {
                         } else {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
-                        return questionUnderlying.toUpperCase () + '_' + bucketLabel + questionExpiryPart;
+                        const upperUnderlying: string = questionUnderlying.toUpperCase ();
+                        return upperUnderlying + '_' + bucketLabel + questionExpiryPart;
                     }
                 }
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf ('fallback') >= 0) || (nameLower.indexOf ('other') >= 0);
