@@ -692,10 +692,10 @@ export default class whitebit extends Exchange {
         const code = this.safeCurrencyCode (id);
         const hasProvider = ('providers' in rawCurrency);
         const networks: Dict = {};
-        const rawNetworks = this.safeDict (rawCurrency, 'networks', {});
+        const rawNetworks: Dict = this.safeDict (rawCurrency, 'networks', {});
         const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
         const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
-        const networkLimits = this.safeDict (rawCurrency, 'limits', {});
+        const networkLimits: Dict = this.safeDict (rawCurrency, 'limits', {});
         const depositLimits = this.safeDict (networkLimits, 'deposit', {});
         const withdrawLimits = this.safeDict (networkLimits, 'withdraw', {});
         const allNetworks = this.arrayConcat (depositsNetworks, withdrawsNetworks);
@@ -1642,7 +1642,7 @@ export default class whitebit extends Exchange {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (this.safeValue (response, marketId), market);
-            const symbol = ticker['symbol'];
+            const symbol: Str = ticker['symbol'];
             result[(symbol as string)] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
@@ -1856,7 +1856,7 @@ export default class whitebit extends Exchange {
         const amount = this.safeString2 (trade, 'amount', 'quote_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
-        const symbol = marketResolved['symbol'];
+        const symbol: string = marketResolved['symbol'];
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker: Str = undefined;
         if (role !== undefined) {
@@ -2646,7 +2646,7 @@ export default class whitebit extends Exchange {
         //
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol: string = marketResolved['symbol'];
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
         let remaining = this.safeString (order, 'left');
