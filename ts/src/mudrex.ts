@@ -451,21 +451,21 @@ export default class mudrex extends Exchange {
         while (paging) {
             const q = this.extend ({ 'limit': pageLimit, 'offset': offset }, params);
             const response = await this.privateGetFutures (q);
-            const data = this.safeValue (response, 'data', []);
+            const dataDict = this.safeDict (response, 'data');
             let items: Dict[] = [];
-            if (typeof data === 'object' && !Array.isArray (data)) {
-                items = this.safeList (data, 'items', []);
+            if (dataDict !== undefined) {
+                items = this.safeList (dataDict, 'items', []);
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 let itemsLength = items.length;
                 if (itemsLength === 0) {
-                    items = this.safeList (data, 'results', []);
+                    items = this.safeList (dataDict, 'results', []);
                     itemsLength = items.length;
                 }
-                if ((itemsLength === 0) && ('symbol' in data)) {
-                    items = [ data ];
+                if ((itemsLength === 0) && ('symbol' in dataDict)) {
+                    items = [ dataDict ];
                 }
             } else {
-                items = this.toArray (data);
+                items = this.safeList (response, 'data', []);
             }
             const numItems = items.length;
             if (numItems === 0) {
