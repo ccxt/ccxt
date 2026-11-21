@@ -75,6 +75,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 put( "watchTradesForSymbols", true );
                 put( "unWatchTicker", true );
                 put( "unWatchTickers", true );
+                put( "unWatchBidsAsks", true );
                 put( "unWatchOHLCV", true );
                 put( "unWatchOHLCVForSymbols", true );
                 put( "unWatchOrderBook", true );
@@ -769,6 +770,43 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             return this.filterByArray(this.bidsasks, "symbol", symbolsValue, true);
         }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name bybit#unWatchBidsAsks
+     * @description unWatches best bid & ask for symbols
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsValue = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> messageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
+            List<String> marketIds = this.marketIds(symbolsValue);
+            List<String> topics = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; i < marketIds.size(); i++)
+            {
+                String marketId = this.safeString(marketIds, i, "");
+                String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
+                topics.add(("orderbook.1." + marketId));
+                subMessageHashes.add(("bidask:" + symbol));
+                messageHashes.add(("unsubscribe:bidask:" + symbol));
+            }
+            String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchBidsAsks", parameters)).join();
+            return (this.unWatchTopics(url, "bidsasks", symbolsValue, messageHashes, subMessageHashes, topics, parameters, new HashMap<String, Object>() {{}})).join();
+        });
 
     }
 

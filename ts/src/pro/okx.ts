@@ -39,6 +39,8 @@ export default class okx extends okxRest {
                 'watchFundingRates': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchMarkPrice': true,
+                'unWatchMarkPrices': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
                 'unWatchOrderBook': true,
@@ -559,6 +561,56 @@ export default class okx extends okxRest {
             return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchMarkPrices ([ symbol ], params);
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
+        const channel = this.handleOptionStringAndParams (params, 'watchMarkPrices', 'channel', 'mark-price')[0];
+        const topics: List = [];
+        const messageHashes: List = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
+            messageHashes.push ('unsubscribe:mark-price:' + symbol);
+            const marketId = this.marketId (symbol);
+            const topic: Dict = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+        }
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl (channel, 'public');
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     /**
@@ -2819,6 +2871,15 @@ export default class okx extends okxRest {
         }
     }
 
+    handleUnsubscriptionMarkPrice (client: Client, symbol: string, channel: string) {
+        const subMessageHash = channel + '::' + symbol;
+        const messageHash = 'unsubscribe:mark-price:' + symbol;
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
+
     handleUnsubscription (client: Client, message: Dict) {
         //
         // {
@@ -2844,6 +2905,8 @@ export default class okx extends okxRest {
             this.handleUnSubscriptionTrades (client, symbol, channel);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
             this.handleUnsubscriptionOrderBook (client, symbol, channel);
+        } else if (channel === 'mark-price') {
+            this.handleUnsubscriptionMarkPrice (client, symbol, channel);
         } else if (channel.indexOf ('tickers') > -1) {
             this.handleUnsubscriptionTicker (client, symbol, channel);
         } else if (channel.startsWith ('candle')) {

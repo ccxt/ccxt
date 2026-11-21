@@ -476,6 +476,7 @@ class poloniex(Exchange, ImplicitAPI):
             'exceptions': {
                 'exact': {
                     # General
+                    '401': PermissionDenied,  # {"code":401,"message":"Illegal of ip"}
                     '500': ExchangeNotAvailable,  # Internal System Error
                     '603': RequestTimeout,  # Internal Request Timeout
                     '601': BadRequest,  # Invalid Parameter
@@ -624,6 +625,10 @@ class poloniex(Exchange, ImplicitAPI):
                     '21001': OperationRejected,  # POSITION_NOT_EXIST
                 },
                 'broad': {
+                    # the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': AuthenticationError,
+                    'ApiKey not exist': AuthenticationError,
+                    'Illegal of ip': PermissionDenied,
                 },
             },
         })
@@ -3858,7 +3863,7 @@ class poloniex(Exchange, ImplicitAPI):
         if (responseCode is not None) and (responseCode != '200'):
             message = self.safe_string_2(response, 'message', 'msg')
             feedback = self.id + ' ' + body
-            self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], responseCode, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None

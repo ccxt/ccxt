@@ -35,6 +35,8 @@ public partial class okx : ccxt.okx
                 { "watchFundingRates", true },
                 { "unWatchTicker", true },
                 { "unWatchTickers", true },
+                { "unWatchMarkPrice", true },
+                { "unWatchMarkPrices", true },
                 { "unWatchOHLCV", true },
                 { "unWatchOHLCVForSymbols", true },
                 { "unWatchOrderBook", true },
@@ -623,6 +625,62 @@ public partial class okx : ccxt.okx
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrice
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches a mark price
+     * @param {string} symbol unified symbol of the market to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchMarkPrice(string? symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchMarkPrices(new List<object>() {symbol}, parameters);
+    }
+
+    /**
+     * @method
+     * @name okx#unWatchMarkPrices
+     * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+     * @description unWatches mark prices
+     * @param {string[]} [symbols] unified symbols of the markets to stop watching the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to unsubscribe from, mark-price by default
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchMarkPrices(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        string? channel = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price").Item1;
+        List<object> topics = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
+        for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
+        {
+            string? symbol = ((string)symbolsNormalized[i]);
+            messageHashes.Add(("unsubscribe:mark-price:" + symbol));
+            string? marketId = this.marketId(symbol);
+            Dictionary<string, object> topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            topics.Add(topic);
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", topics },
+        };
+        string? url = this.getUrl(channel, "public");
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
     /**
@@ -3151,6 +3209,17 @@ public partial class okx : ccxt.okx
         }
     }
 
+    public virtual void handleUnsubscriptionMarkPrice(WebSocketClient client, object symbol, object channel)
+    {
+        string? subMessageHash = ((string)(add(add(channel, "::"), symbol)));
+        string messageHash = ("unsubscribe:mark-price:" + (symbol));
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if ((this.tickers != null && symbol is string inOpKey3 && this.tickers.ContainsKey(inOpKey3)))
+        {
+            this.tickers.Remove((string)symbol);
+        }
+    }
+
     public virtual void handleUnsubscription(WebSocketClient client, Dictionary<string, object> message)
     {
         //
@@ -3181,6 +3250,9 @@ public partial class okx : ccxt.okx
         } else if (channel.StartsWith("bbo") || channel.StartsWith("book"))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
+        } else if (channel == "mark-price")
+        {
+            this.handleUnsubscriptionMarkPrice(client, symbol, channel);
         } else if (channel.IndexOf("tickers", StringComparison.Ordinal) > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);

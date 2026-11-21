@@ -3926,7 +3926,7 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	_ = params
 	var operationType string = "update_leverage"
 	if symbol == nil {
-		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
+		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
 	if this.Markets == nil {
 

@@ -57,6 +57,7 @@ func (this *Bybit) DescribeData() any {
 			"watchTradesForSymbols":         true,
 			"unWatchTicker":                 true,
 			"unWatchTickers":                true,
+			"unWatchBidsAsks":               true,
 			"unWatchOHLCV":                  true,
 			"unWatchOHLCVForSymbols":        true,
 			"unWatchOrderBook":              true,
@@ -907,6 +908,66 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsValue)}
+	return nil
+}
+
+/**
+ * @method
+ * @name bybit#unWatchBidsAsks
+ * @description unWatches best bid & ask for symbols
+ * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+ * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Bybit) UnWatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
+	go this.unWatchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Bybit) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsValue []string = this.MarketSymbols(symbols, nil, false)
+	var messageHashes []any = []any{}
+	var subMessageHashes []any = []any{}
+	var marketIds []any = this.MarketIdsSlice(symbolsValue)
+	var topics []any = []any{}
+	for i := 0; i < len(marketIds); i++ {
+		var marketId string = *this.SafeString(marketIds, i, "")
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsValue) {
+				return symbolsValue[i]
+			}
+			return nil
+		}())
+		topics = append(topics, "orderbook.1."+marketId)
+		subMessageHashes = append(subMessageHashes, "bidask:"+*symbol)
+		messageHashes = append(messageHashes, "unsubscribe:bidask:"+*symbol)
+	}
+
+	r1 := <-this.GetUrlByMarketTypeAsync(symbolsValue[0], false, "watchBidsAsks", params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	url := r1.Value
+
+	r2 := <-this.UnWatchTopicsAsync(url, "bidsasks", symbolsValue, messageHashes, subMessageHashes, topics, params)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
 	return nil
 }
 func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) map[string]any {
@@ -4055,6 +4116,29 @@ func (this *Bybit) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tic
 	}
 	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
 	return res, nil
+}
+
+/**
+ * @method
+ * @name bybit#unWatchBidsAsks
+ * @description unWatches best bid & ask for symbols
+ * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+ * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Bybit) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.UnWatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	return r.Value, nil
 }
 
 /**

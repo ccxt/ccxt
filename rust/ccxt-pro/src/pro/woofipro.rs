@@ -539,8 +539,8 @@ impl Woofipro {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (data.len() as i64) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (data.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let __ws_arg_0 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
@@ -619,8 +619,8 @@ impl Woofipro {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_729: bool = true;
-            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (data.len() as i64) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (data.len() as i64) } {
             let __ws_arg_1 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ts".to_string(), Value::from(timestamp));
@@ -1333,8 +1333,8 @@ impl Woofipro {
         if (matches!(&data, Value::Arr(_))) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_730: bool = true;
-                while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (data.len() as i64) } {
+                let mut __for_first_733: bool = true;
+                while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
                 if (tradeId.is_some()) {
@@ -1470,8 +1470,8 @@ impl Woofipro {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_731: bool = true;
-                while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_734: bool = true;
+                while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 if (symbolsNormalized.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchPositions() symbols is required")));
                 }
@@ -1534,8 +1534,8 @@ impl Woofipro {
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (positions.len() as i64) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (positions.len() as i64) } {
             let mut position: Option<&crate::types::Position> = positions.get(i as usize);
             let mut contracts: String = self.safe_string_k(&position, "contracts", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1597,8 +1597,8 @@ impl Woofipro {
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -1767,8 +1767,8 @@ impl Woofipro {
         { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (keys.len() as i64) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: crate::value::Dict = self.safe_dict(&balances, Value::from(key.as_deref()), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);

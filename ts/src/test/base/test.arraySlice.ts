@@ -1,0 +1,23 @@
+
+import ccxt from '../../../ccxt.js';
+import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
+
+function testArraySlice () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    const arr = [ 'a', 'b', 'c', 'd', 'e', 'f' ];
+    // the second argument is the end index (exclusive), not a length
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 0, 2), [ 'a', 'b' ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 2, 4), [ 'c', 'd' ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 3, 6), [ 'd', 'e', 'f' ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 2), [ 'c', 'd', 'e', 'f' ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, -2), [ 'e', 'f' ]);
+    // an end index of 0 is a valid (empty) range, not "no end index"
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 0, 0), []);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testArraySlice', exchange.arraySlice (arr, 3, 3), []);
+}
+
+export default testArraySlice;

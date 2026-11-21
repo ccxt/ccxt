@@ -4095,7 +4095,7 @@ class woo extends woo$1["default"] {
         }
         else {
             const marketType = this.safeString(market, 'type', '');
-            throw new errors.NotSupported(this.id + ' fetchLeverage() is not supported for ' + marketType + ' markets');
+            throw new errors.NotSupported(this.id + ' setLeverage() is not supported for ' + marketType + ' markets');
         }
     }
     /**

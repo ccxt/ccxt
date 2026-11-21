@@ -1801,6 +1801,10 @@ public partial class blofin : Exchange
         string? symbol = this.safeSymbol(marketId, marketResolved, "-");
         string? filled = this.safeString(order, "filledSize");
         string? price = this.safeStringN(order, new List<object>() {"px", "price", "orderPrice"});
+        if (price == "-1")
+        {
+            price = null; // trigger orders send orderPrice -1 for market execution
+        }
         string? average = this.safeString(order, "averagePrice");
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
         string? feeCostString = this.safeString(order, "fee");
@@ -1852,6 +1856,7 @@ public partial class blofin : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
+            { "triggerPrice", this.safeNumber(order, "triggerPrice") },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", average },

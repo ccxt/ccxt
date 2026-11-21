@@ -271,62 +271,142 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ## How to use the Lighter Exchange in CCXT?
 
-Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+Lighter is available as part of CCXT and works like any other CCXT exchange, with two particularities:
 
+1. **Credentials** — Lighter does not use an `apiKey`/`secret` pair. You authenticate either with your L1 (Ethereum) private key, or with a Lighter API key created in the Lighter UI.
+2. **Signing library** — except in Go, you have to tell CCXT where the Lighter signing binary is (`libraryPath`).
 
-After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
+### Which credentials do I need?
 
-### Credentials requirements
+| Your situation | What to provide | Section |
+|---|---|---|
+| You can export the L1 private key of your wallet | `privateKey` | [Using the L1 private key](#using-the-l1-private-key) |
+| You use Ledger, MetaMask or another wallet whose private key you can't (or don't want to) export | `accountIndex`, `apiKeyIndex` and the Lighter API private key inside `options['auths']` | [How to use Ledger/MetaMask or Lighter API keys](#how-to-use-ledgermetamask-or-lighter-api-keys) |
 
-Lighter requires the following :
-- `privateKey`: the L1 private key **mandatory**
-- `accountIndex` (an integer) in `exchange.options`: — **optional** CCXT will fetch it if not available, set it if using a subAccount
-- `apiKeyIndex` (an integer) in `exchange.options`: **optional**  CCXT will use a default value (254)
+In both cases you also need the [signing library](#dependencies-requirements).
 
-Example
+### Using the L1 private key
+
+This is the simplest setup: the L1 private key is enough, and CCXT derives everything else from it.
+
+- `privateKey`: the L1 private key — **mandatory**
+- `accountIndex` (an integer) in `exchange.options` — **optional**, CCXT fetches it from your wallet address. Set it if you are using a sub-account.
+- `apiKeyIndex` (an integer between 4 and 254) in `exchange.options` — **optional**, CCXT uses `254` by default.
 
 ```Python
 lighter = ccxt.lighter({
-	'privateKey': 'XXXXXXX', # l1 private key
+    'privateKey': '0x...',  # L1 private key
+    'options': {
+        'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+    }
 })
 ```
+
+With this setup CCXT generates a new Lighter API key for the chosen `apiKeyIndex` and registers it on your account, replacing whatever key was stored at that index. Pick an `apiKeyIndex` that is not used by another application.
+
+### How to use Ledger/MetaMask or Lighter API keys
+
+If you can't get the L1 private key (hardware wallets like Ledger never expose it, and you may not want to export it from MetaMask), create an API key in the Lighter UI and give that to CCXT instead:
+
+1. Go to https://app.lighter.xyz/apikeys and create an API key, signing with your wallet as usual.
+2. Write down the three values shown there:
+   - the **account index**
+   - the **API key index**
+   - the **private key** of the API key — it is shown only when the key is created, so save it right away
+3. Pass them to CCXT as shown below. Do **not** set `privateKey` — that field is reserved for the L1 key.
+
+```Python
+import ccxt
+
+exchange = ccxt.lighter({
+    'options': {
+        'accountIndex': 123456,       # account index from the Lighter UI
+        'apiKeyIndex': 5,             # API key index from the Lighter UI
+        'libraryPath': r'C:\lighter\lighter-signer-windows-amd64.dll',
+        'builderFee': False,
+        'auths': {
+            '123456': {               # accountIndex, as a string
+                '5': {                # apiKeyIndex, as a string
+                    'lighterPrivateKey': 'YOUR_LIGHTER_API_PRIVATE_KEY',  # private key shown at app.lighter.xyz/apikeys when you created the API key
+                },
+            },
+        },
+    },
+})
+
+balances = exchange.fetch_balance()
+```
+
+```Javascript
+const exchange = new ccxt.lighter ({
+    'options': {
+        'accountIndex': 123456,
+        'apiKeyIndex': 5,
+        'libraryPath': '/path/to/lighter.wasm',
+        'wasmExecPath': '/path/to/wasm_exec.js',
+        'builderFee': false,
+        'auths': {
+            '123456': {
+                '5': {
+                    'lighterPrivateKey': 'YOUR_LIGHTER_API_PRIVATE_KEY',
+                },
+            },
+        },
+    },
+});
+```
+
+Things that commonly go wrong:
+
+- **The keys of `auths` must match `accountIndex` and `apiKeyIndex` exactly, written as strings** (`'123456'` and `'5'` above). If they don't match, CCXT can't find the key and fails with an authentication error.
+- **`lighterPrivateKey` goes inside `auths`, not at the top level** of the constructor or of `options`.
+- **`apiKeyIndex` must be between 4 and 254.** Any other value is silently replaced by `254`, which then won't match your `auths` entry.
+- **`accountIndex` is required here.** Without the L1 key CCXT can't work out your wallet address to look it up (alternatively set `walletAddress` and CCXT will fetch the index for you).
+- **Set `'builderFee': False`.** Approving the builder fee needs a signature from the L1 key, which is not available in this setup.
+- For the same reason, CCXT can't create or rotate Lighter API keys for you in this setup — manage them in the Lighter UI.
 
 ### Dependencies requirements
 
-Since the signing algorithms and structs are not supported natively in all languages CCXT is using the officially distributed binaries and interacting with them in order to do the signing process (via FFI/WASM), so depending on the language you need to provide a path for that binary.
+Since the signing algorithms and structs are not supported natively in all languages, CCXT uses the officially distributed binaries for signing (via FFI/WASM). Depending on the language, you need to provide the path to that binary.
 
-### Python/C#/PHP users:
+#### Python/C#/PHP users
 
 - The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
-- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
-- The path to the binary needs to be provided as `libraryPath`
-- You need to choose the binary according to your OS/architecture
+- Choose the binary that matches your OS and architecture (`.so` for Linux, `.dylib` for macOS, `.dll` for Windows).
+- If your OS/architecture is not available, you can clone and build the library from lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
+- Provide the path to the binary as `libraryPath`.
 
 ```Python
 lighter = ccxt.lighter({
-	'options': {
-		'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
-	}
+    'options': {
+        'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+    }
 })
 ```
 
-### Javascript/Typescript users
+#### Javascript/Typescript users
 
-- CCXT is using the WASM binary built from the official package and it can be downloaded here https://github.com/ccxt/lighter-wasm or built from the source
-- You also need to provide the path to `exec_wasm.js`, you can either download it from the same repo or check the path to your local file (assuming Go is installed)
+- CCXT uses the WASM binary built from the official package. It can be downloaded here https://github.com/ccxt/lighter-wasm or built from source.
+- You also need to provide the path to `wasm_exec.js`. You can download it from the same repo, or point to your local file if Go is installed.
 
-```Javacript
-lighter = ccxt.lighter({
-	'options': {
-		'libraryPath': '/user/cjg/Git/lighter-wasm/lighter.wasm',
-		'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js'
-	}
+```Javascript
+const lighter = new ccxt.lighter ({
+    'options': {
+        'libraryPath': '/path/to/lighter-wasm/lighter.wasm',
+        'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js',
+    }
 })
 ```
 
-### GO users
+#### GO users
 
-- Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+- Nothing is required: CCXT consumes the official Go package, so you only need to provide the credentials.
+
+### Troubleshooting
+
+- **`could not load the signer, set options["libraryPath"]...`** — `libraryPath` is missing or wrong, or (when using a Lighter API key) the `auths` entry doesn't match your `accountIndex`/`apiKeyIndex`.
+- **`requires "privateKey" credential`** — no usable credentials were found. Either set the L1 `privateKey`, or check the `auths` block described in [How to use Ledger/MetaMask or Lighter API keys](#how-to-use-ledgermetamask-or-lighter-api-keys).
+- **`after the latest update (v4.5.50), CCXT now expects the l1 private key...`** — you put the Lighter API private key in `privateKey`. Move it to `options['auths'][accountIndex][apiKeyIndex]['lighterPrivateKey']`.
 
 
 ## How to use the DyDx Exchange in CCXT?

@@ -742,6 +742,11 @@ impl Myokx {
         self.call_method(Value::Str("private_get_asset_deposit_withdraw_status".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAssetTravelRuleGetLocked` implicit endpoint.
+    pub async fn private_get_asset_travel_rule_get_locked(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_asset_travel_rule_get_locked".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAssetMonthlyStatement` implicit endpoint.
     pub async fn private_get_asset_monthly_statement(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_asset_monthly_statement".into()), optional_args).await
@@ -1705,6 +1710,11 @@ impl Myokx {
     /// Auto-generated wrapper for the `privatePostAssetCancelWithdrawal` implicit endpoint.
     pub async fn private_post_asset_cancel_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_asset_cancel_withdrawal".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAssetTravelRuleUnlock` implicit endpoint.
+    pub async fn private_post_asset_travel_rule_unlock(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_asset_travel_rule_unlock".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAssetConvertDustAssets` implicit endpoint.

@@ -226,5 +226,5 @@ export default class blofin extends blofinRest {
     getSubscriptionRequest(args: List): Dict;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;
-    authenticate(params?: Dict): Promise<void>;
+    authenticate(params?: Dict): Promise<any>;
 }

@@ -7,6 +7,7 @@ var FunctionsMap = map[string]any{
 	"afterConstructor":                TestAfterConstructor,
 	"aggregate":                       TestAggregate,
 	"arrayConcat":                     TestArrayConcat,
+	"arraySlice":                      TestArraySlice,
 	"arraysConcat":                    TestArraysConcat,
 	"base16ToBinary":                  TestBase16ToBinary,
 	"base58ToBinary":                  TestBase58ToBinary,

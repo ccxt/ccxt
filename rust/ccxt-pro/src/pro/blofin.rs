@@ -1116,14 +1116,40 @@ impl Blofin {
         if (trigger == Some(true)) {
             channel = "orders-algo".to_string();
         }
-        let mut orders: Value = self.watch_multiple_wrapper(false, channel.as_str(), "watchOrdersForSymbols", &[symbols, Value::Dict(paramsOmitted)]).await;
-        let mut first: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
+        let mut orders: Value = self.watch_multiple_wrapper(false, channel.as_str(), "watchOrdersForSymbols", &[symbols.clone(), Value::Dict(paramsOmitted)]).await;
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        let mut requestedSymbols: Value = Value::Null;
+        let mut countSymbol: Option<String> = None;
+        let mut unifiedSymbols: Option<crate::value::List> = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]).into_opt_list();
+        if (unifiedSymbols.is_some()) {
+            let mut symbolsLength: i64 = unifiedSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 0 {
+                requestedSymbols = unifiedSymbols.clone().map_or(Value::Null, Value::Arr);
+            }
+            if (symbolsLength == 1) {
+                countSymbol = unifiedSymbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
+            }
+        }
+        let mut newest: Value = orders.clone();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = orders.get_limit(tradeSymbol.as_deref(), limit.as_i64());
+            if (countSymbol.is_some()) {
+                limitResolved = orders.get_limit(countSymbol.as_deref(), limit.as_i64());
+            }  else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                let mut newCount: Value = Value::from(orders.get_limit(None::<&str>, None::<i64>));
+                if (match &(newCount) { Value::Int(__x) => *__x == 0, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) }) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = Value::from(vec![]);
+                }  else {
+                    newest = self.filter_by_since_limit(orders, None, newCount.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
+                }
+            }
         }
-        return self.filter_by_since_limit(orders, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        let mut requested: crate::value::List = self.filter_by_array(newest, Value::Str("symbol".into()), requestedSymbols, &[Value::Bool(false)]).into_list();
+        return self.filter_by_since_limit(&requested, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -1148,6 +1174,7 @@ impl Blofin {
         let mut arg: crate::value::Dict = message.get("arg").cloned().unwrap_or_default().into_dict();
         let mut channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
+        let mut symbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_175: bool = true;
@@ -1157,8 +1184,15 @@ impl Blofin {
                 m
             })]), None).into_dict();
             orders.append(Value::from(&order));
+            symbols.push(self.safe_string_k(&order, "symbol", &[Value::Str("".into())]));
+        }
+        }
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_176: bool = true;
+            while { if !__for_first_176 { i += 1; } __for_first_176 = false; i < (symbols.len() as i64) } {
             if (channelName.is_some()) {
-                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), self.safe_string_k(&order, "symbol", &[Value::Str("".into())])).into())));
+                client.resolve(Value::from(&orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbols.get(i as usize).cloned().unwrap_or(Value::Null)).into())));
             }
             client.resolve(Value::from(&orders), channelName.as_deref());
         }
@@ -1230,8 +1264,8 @@ impl Blofin {
         let mut newPositions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_176: bool = true;
-            while { if !__for_first_176 { i += 1; } __for_first_176 = false; i < (data.len() as i64) } {
+            let mut __for_first_177: bool = true;
+            while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (data.len() as i64) } {
             let mut position: crate::value::Dict = self.parse_ws_position(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1360,11 +1394,12 @@ impl Blofin {
         }
         let mut rawSubscriptions: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (symbols.is_some()) && (((symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) as f64) > ((0i64) as f64)) {
+        let mut symbolsLength: i64 = (if (symbols.is_none()) { 0 } else { symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64 });
+        if symbolsLength > 0 {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_177: bool = true;
-                while { if !__for_first_177 { i += 1; } __for_first_177 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_178: bool = true;
+                while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (symbols.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut current: Option<String> = symbols.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut market: Option<crate::types::Market> = None;
                 let mut channel: String = channelName.as_str().unwrap_or_default().to_string();
@@ -1450,8 +1485,8 @@ impl Blofin {
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_178: bool = true;
-            while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_179: bool = true;
+            while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut channel: String = channelName.as_str().unwrap_or_default().to_string();
             if isOHLCV {
@@ -1601,16 +1636,26 @@ impl Blofin {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut milliseconds: i64 = self.milliseconds();
         let mut messageHash: String = "authenticate_hash".to_string();
-        let mut timestamp: String = format!("{}", milliseconds);
-        let mut nonce: String = format!("{}{}", "n_", timestamp);
-        let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/users/self/verify", "GET").into()), timestamp).into()), "").into()), nonce);
-        let mut signature: String = self.string_to_base64(Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])), &[]);
-        let mut request: indexmap::IndexMap<String, Value> = ({
+        let mut marketType: String = "swap".to_string(); // for now
+        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("op".to_string(), Value::Str("login".into()));
-                m.insert("args".to_string(), Value::from(vec![Value::Map({
+            m
+        })]).into_dict();
+        let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
+        let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
+            let mut milliseconds: i64 = self.milliseconds();
+            let mut timestamp: String = format!("{}", milliseconds);
+            let mut nonce: String = format!("{}{}", "n_", timestamp);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/users/self/verify", "GET").into()), timestamp).into()), "").into()), nonce);
+            let mut signature: String = self.string_to_base64(Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])), &[]);
+            let mut request: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("op".to_string(), Value::Str("login".into()));
+                    m.insert("args".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("passphrase".to_string(), self.password.clone());
@@ -1619,16 +1664,12 @@ impl Blofin {
         m.insert("sign".to_string(), Value::from(signature));
     m
 })]));
-            m
-        });
-        let mut marketType: String = "swap".to_string(); // for now
-        let mut typeUrls: crate::value::Dict = self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(marketType), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
-        let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
-        self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
+                m
+            });
+            let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
+        }
+        return crate::exchange_stubs::ws_await_flight(&future).await;
 
     Value::Null
 }

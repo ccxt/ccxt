@@ -591,12 +591,33 @@ class blofin(ccxt.async_support.blofin):
         if trigger is True:
             channel = 'orders-algo'
         orders = await self.watch_multiple_wrapper(False, channel, 'watchOrdersForSymbols', symbols, paramsOmitted)
-        first = self.safe_dict(orders, 0)
-        tradeSymbol = self.safe_string(first, 'symbol')
+        # every symbol shares one orders cache, so filter by the requested symbols and count
+        # per symbol only when exactly one is requested
+        requestedSymbols = None
+        countSymbol = None
+        unifiedSymbols = self.market_symbols(symbols, None, True)
+        if unifiedSymbols is not None:
+            symbolsLength = len(unifiedSymbols)
+            if symbolsLength > 0:
+                requestedSymbols = unifiedSymbols
+            if symbolsLength == 1:
+                countSymbol = unifiedSymbols[0]
+        newest = orders
         limitResolved = limit
         if self.newUpdates:
-            limitResolved = orders.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp', True)
+            if countSymbol is not None:
+                limitResolved = orders.getLimit(countSymbol, limit)
+            else:
+                # updated orders move to the end of the shared cache, so the newest entries across all
+                # symbols are exactly this read's updates; take them before filtering by symbol
+                newCount = orders.getLimit(None, None)
+                if newCount == 0:
+                    # another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = []
+                else:
+                    newest = self.filter_by_since_limit(orders, None, newCount, 'timestamp', True)
+        requested = self.filter_by_array(newest, 'symbol', requestedSymbols, False)
+        return self.filter_by_since_limit(requested, since, limitResolved, 'timestamp', True)
 
     def handle_orders(self, client: Client, message: dict):
         #
@@ -615,11 +636,15 @@ class blofin(ccxt.async_support.blofin):
         arg = self.safe_dict(message, 'arg')
         channelName = self.safe_string(arg, 'channel')
         data = self.safe_list(message, 'data')
+        symbols = []
         for i in range(0, len(data)):
             order = self.parse_ws_order(self.safe_dict(data, i, {}))
             orders.append(order)
+            symbols.append(self.safe_string(order, 'symbol', ''))
+        # resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for i in range(0, len(symbols)):
             if channelName is not None:
-                client.resolve(orders, channelName + ':' + self.safe_string(order, 'symbol', ''))
+                client.resolve(orders, channelName + ':' + symbols[i])
             client.resolve(orders, channelName)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:
@@ -737,7 +762,8 @@ class blofin(ccxt.async_support.blofin):
             raise NotSupported(self.id + ' ' + callerMethodNameOption + '() does not support ' + marketType + ' markets yet')
         rawSubscriptions = []
         messageHashes = []
-        if (symbols is not None) and (len(symbols) > 0):
+        symbolsLength = 0 if (symbols is None) else len(symbols)
+        if symbolsLength > 0:
             for i in range(0, len(symbols)):
                 current = symbols[i]
                 market = None
@@ -891,25 +917,30 @@ class blofin(ccxt.async_support.blofin):
 
     async def authenticate(self, params: dict = {}):
         self.check_required_credentials()
-        milliseconds = self.milliseconds()
         messageHash = 'authenticate_hash'
-        timestamp = str(milliseconds)
-        nonce = 'n_' + timestamp
-        auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce
-        signature = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256))
-        request = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': self.apiKey,
-                    'passphrase': self.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature,
-                },
-            ],
-        }
         marketType = 'swap'  # for now
         typeUrls = self.safe_dict(self.urls['api']['ws'], marketType, {})
         url = self.safe_string(typeUrls, 'private')
-        await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        client = self.client(url)
+        future = client.reusableFuture(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
+            milliseconds = self.milliseconds()
+            timestamp = str(milliseconds)
+            nonce = 'n_' + timestamp
+            auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce
+            signature = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256))
+            request = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': self.apiKey,
+                        'passphrase': self.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature,
+                    },
+                ],
+            }
+            self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
+        return await future
