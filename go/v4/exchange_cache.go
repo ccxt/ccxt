@@ -359,7 +359,8 @@ func (c *ArrayCache) appendOwned(item any) {
 		// share an order id (binance uses per-symbol id sequences), and matching on
 		// id alone would move the wrong row, see ccxt/ccxt#26092
 		for i, v := range c.Data {
-			if (GetValue(v, "id") == GetValue(item, "id")) && (GetValue(v, keyField) == GetValue(item, keyField)) {
+			row, isRow := v.(map[string]any)
+			if isRow && cacheKeyOf(row, "id") == id && cacheKeyOf(row, keyField) == symbol {
 				// remove from current position
 				c.Data = append(c.Data[:i], c.Data[i+1:]...)
 				// append to the end
@@ -436,7 +437,11 @@ func (c *ArrayCache) getLimitOwned(symbol any, limit any) *int64 {
 	if newUpdatesValue == nil {
 		return Int64PtrTyped(limit)
 	} else if limit != nil {
-		return Int64PtrTyped(MathMin(*newUpdatesValue, limit))
+		count := int64(*newUpdatesValue)
+		if bound := Int64PtrTyped(limit); bound != nil && *bound < count {
+			count = *bound
+		}
+		return &count
 	} else {
 		count := int64(*newUpdatesValue)
 		return &count
@@ -632,7 +637,11 @@ func (c *ArrayCacheByTimestamp) getLimitOwned(symbol any, limit any) *int64 {
 	if derefScalar(limit) == nil {
 		return Int64PtrTyped(c.newUpdates)
 	}
-	return Int64PtrTyped(MathMin(c.newUpdates, limit))
+	count := int64(c.newUpdates)
+	if bound := Int64PtrTyped(limit); bound != nil && *bound < count {
+		count = *bound
+	}
+	return &count
 }
 
 // Remove removes all items with the given symbol from the timestamp cache

@@ -791,10 +791,22 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 		} else if v == "false" {
 			return &f
 		}
-	case int, int64, float64:
-		if n := ToFloat64(v); n == 1 {
+	case int:
+		if v == 1 {
 			return &t
-		} else if n == 0 {
+		} else if v == 0 {
+			return &f
+		}
+	case int64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
+			return &f
+		}
+	case float64:
+		if v == 1 {
+			return &t
+		} else if v == 0 {
 			return &f
 		}
 	}
