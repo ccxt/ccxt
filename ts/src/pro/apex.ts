@@ -252,7 +252,8 @@ export default class apex extends apexRest {
         const client = this.client (url);
         const newTopics: string[] = [];
         for (let i = 0; i < topics.length; i++) {
-            if (!(messageHashes[i] in client.subscriptions)) {
+            const messageHash = this.safeString (messageHashes, i, '');
+            if (!(messageHash in client.subscriptions)) {
                 newTopics.push (topics[i]);
             }
         }

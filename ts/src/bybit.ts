@@ -1958,7 +1958,7 @@ export default class bybit extends Exchange {
             types = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType = this.safeString (types, i);
             if (marketType === 'spot') {
                 promisesUnresolved.push (this.fetchSpotMarkets (params));
             } else if (marketType === 'linear') {

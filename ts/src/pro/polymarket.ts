@@ -94,7 +94,8 @@ export default class polymarket extends polymarketRest {
         const hashesToCheck = (checkHashes === undefined) ? messageHashes : checkHashes;
         let willSend = false;
         for (let i = 0; i < hashesToCheck.length; i++) {
-            if (!(hashesToCheck[i] in client.subscriptions)) {
+            const hashToCheck = this.safeString (hashesToCheck, i, '');
+            if (!(hashToCheck in client.subscriptions)) {
                 willSend = true;
             }
         }
