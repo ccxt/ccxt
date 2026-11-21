@@ -10037,6 +10037,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // container locals under a literal key, as the typed-container pass always printed them
     } else if ((valueType === 'map[string]any') && goMapWriteLocalNeverNil (maskedFunc, declOf (value), value, declOf)) {
         valueOut = value; // the helper would store a typed-nil map as untyped nil
+    } else if ((valueType === 'map[string]any') && goOptionsDefaultedDictLocal (maskedFunc, declOf (value), value)) {
+        valueOut = value; // the `{}`-defaulted comma-ok read is never nil
     } else if ((valueType === 'map[string]any') && goNeverNilMapValue (lines, maskedFunc, declOf (value), value)) {
         valueOut = value; // a TickerToMap/OrderToMap/producer-call local is a fresh non-nil map, the helper stores it unchanged
     } else if (guardedPointer (value)) {
@@ -20706,14 +20708,14 @@ function goAnnotatedReturnSelfTest (ok: SelfTestOk): void {
     ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
 }
 
-// `var x map[string]any` then the one `x, _ = this.Options[K].(map[string]any)` read with its `{}` nil fallback
+// `var x map[string]any` then the one `x, _ = this.Options[K].(map[string]any)` (or `F["lit"]` frame) read with its `{}` nil fallback
 // (the Go printer's defaulted Options read) and no other write or address of x: x is never nil
 function goOptionsDefaultedDictLocal (maskedFunc: string, decl: any, name: string): boolean {
     const n = goAccessEscape (name);
     if ((decl === undefined) || (decl.line === undefined) || !new RegExp ('^\\s*var ' + n + ' map\\[string\\]any\\s*$').test (decl.line)) {
         return false;
     }
-    const read = new RegExp ('^[ \\t]*' + n + ', _ = this\\.Options\\[[^\\]\\n]*\\]\\.\\(map\\[string\\]any\\)\\n[ \\t]*if ' + n + ' == nil \\{\\n[ \\t]*' + n + ' = map\\[string\\]any\\{\\}\\n[ \\t]*\\}$', 'gm');
+    const read = new RegExp ('^[ \\t]*' + n + ', _ = (?:this\\.Options\\[[^\\]\\n]*\\]|\\w+\\["[^"\\\\\\n]*"\\])\\.\\(map\\[string\\]any\\)\\n[ \\t]*if ' + n + ' == nil \\{\\n[ \\t]*' + n + ' = map\\[string\\]any\\{\\}\\n[ \\t]*\\}$', 'gm');
     const reads = maskedFunc.match (read) ?? [];
     const rest = (reads.length === 1) ? maskedFunc.replace (reads[0], ' '.repeat (reads[0].length)) : '';
     return (reads.length === 1) && !goMapLocalRebound (rest, n) && !new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)', 'm').test (rest);
