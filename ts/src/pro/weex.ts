@@ -1091,9 +1091,9 @@ export default class weex extends weexRest {
         const symbol = this.safeString (market, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = ticker;
+            const messageHash = 'bidask::' + symbol;
+            client.resolve (ticker, messageHash);
         }
-        const messageHash = 'bidask::' + symbol;
-        client.resolve (ticker, messageHash);
     }
 
     parseWsBidAsk (message: Dict, market: Market = undefined): Ticker {
