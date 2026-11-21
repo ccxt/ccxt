@@ -28820,6 +28820,7 @@ function h26j01PushIsMap (printer, arg) {
     if (ts.isObjectLiteralExpression (value)) {
         return true;
     }
+    const h27 = h27j01PushIsMap (printer, value); if (h27 !== undefined) return h27;
     if (!ts.isIdentifier (value) || printer.printNode (value, 0) !== value.text) {
         return false;
     }
@@ -28978,3 +28979,27 @@ function j3j6MapOverloadCall (printer, node, family) {
     const declared = String (printer.javaDeclaredTypeOf (last) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
     return declared === 'Map<String,Object>' && printer.printNode (last, 0) === last.text;
 }
+
+// ===== h27-J01 map-row accumulator pushes =====
+// a push of `this.parseX (..)` whose generated Java declaration returns Map<String, Object>
+// (printed or native return) is a Map element, so the row list stays typed
+function h27j01PushIsMap (printer, value) {
+    if (!isThisCall (value)) {
+        return undefined;
+    }
+    try {
+        const d = printer.getChecker ().getResolvedSignature (value)?.declaration?.resolve?.();
+        if (d === undefined || !ts.isMethodDeclaration (d) || d.body === undefined
+            || (typeof printer.isAsyncFunction === 'function' && printer.isAsyncFunction (d))) {
+            return false;
+        }
+        const norm = (t) => String (t ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+        const printed = norm (printer.printFunctionType (d));
+        return printed === 'Map<String,Object>' || (printed === 'Object' && typeof printer.javaNativeReturnType === 'function'
+            && norm (printer.javaNativeReturnType (d)) === 'Map<String,Object>');
+    } catch (e) {
+        return false;
+    }
+}
+
+// ===== end h27-J01
