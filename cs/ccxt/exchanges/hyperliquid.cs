@@ -4863,9 +4863,8 @@ public partial class hyperliquid : Exchange
         transferMethod = transferMethodqueryVariable.Item1;
         query = transferMethodqueryVariable.Item2;
         string? masterAddress = null;
-        IList<object> masterAddressqueryVariable = (IList<object>)this.handlePublicAddress("transfer", query);
-        masterAddress = (string)masterAddressqueryVariable[0];
-        query = masterAddressqueryVariable[1];
+        masterAddress = this.safeString(this.handlePublicAddress("transfer", query), 0);
+        query = this.safeDict(this.handlePublicAddress("transfer", query), 1, new Dictionary<string, object>() {});
         bool useSendAsset = (transferMethod == "sendAsset");
         if ((transferMethod == null))
         {
