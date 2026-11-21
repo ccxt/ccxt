@@ -4,79 +4,10 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
 import { ts, urlsDescribeStringProducer, isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { typedReturnTable, qualifyJavaType } from './javaTypedCore.js';
 import { shortenJavaReferences } from './javaUtilImports.js';
-
-// ===== safeString rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
-// One JSONL event per safeString-family local, appended per worker under CCXT_SS15_CENSUS_DIR
-// (default /tmp/ss15-census); aggregated by build/ss15-census-report.py.
-export const SS15_CENSUS = process.env.CCXT_SS15_CENSUS === '1';
-const SS15_CENSUS_DIR = process.env.CCXT_SS15_CENSUS_DIR || '/tmp/ss15-census';
-const SS15_SAFESTRING_CALL = /^safeString(2|N|Upper(2|N)?|Lower(2|N)?)?$/;
-let ss15WriterWarned = false;
-let ss15DirReady = false;
-
-export function ss15Record (record) {
-    if (!SS15_CENSUS) {
-        return;
-    }
-    try {
-        if (!ss15DirReady) {
-            fs.mkdirSync (SS15_CENSUS_DIR, { recursive: true });
-            ss15DirReady = true;
-        }
-        fs.appendFileSync (path.join (SS15_CENSUS_DIR, `census-${process.pid}-${threadId}.jsonl`),
-            JSON.stringify (record) + '\n');
-    } catch (e) {
-        if (!ss15WriterWarned) {
-            ss15WriterWarned = true;
-            process.stderr.write ('[ss15-census] write failed: ' + String (e && e.message) + '\n');
-        }
-    }
-}
-
-// source file + 1-based line of a printed declaration (shared by the hook recorder)
-export function ss15TsPosition (declaration) {
-    const sourceFile = declaration.getSourceFile ();
-    const at = sourceFile.getLineAndCharacterOfPosition (declaration.getStart (sourceFile));
-    return { ts: sourceFile.fileName, line: at.line + 1 };
-}
-
-// outermost declaration wrapper, installed last, so the token it reads is the one the whole
-// family-wrapper chain produced (tells a `String` accept from an `Object` reject)
-function patchJavaSs15CensusWrapper (printer) {
-    if (printer._javaSs15CensusPatched) {
-        return;
-    }
-    const original = printer.printVariableDeclarationList.bind (printer);
-    printer.printVariableDeclarationList = function (node, identation) {
-        const printed = original (node, identation);
-        const declaration = node?.declarations?.[0];
-        if (declaration === undefined || declaration.initializer === undefined) {
-            return printed;
-        }
-        const initializer = unwrapParens (declaration.initializer);
-        if (initializer === undefined || !isThisCall (initializer)) {
-            return printed;
-        }
-        const call = String (initializer.expression.name.text);
-        if (!SS15_SAFESTRING_CALL.test (call)) {
-            return printed;
-        }
-        const printedName = String (printer.printNode (declaration.name));
-        const at = printed.lastIndexOf (printedName + ' = ');
-        const head = at === -1 ? printed : printed.slice (0, at);
-        const token = /String\s*$/.test (head) ? 'String' : (/Object\s*$/.test (head) ? 'Object' : 'other');
-        const name = ts.isIdentifier (declaration.name) ? String (declaration.name.text) : printedName;
-        const position = ss15TsPosition (declaration);
-        ss15Record ({ k: 'module', ts: position.ts, line: position.line, name, pname: printedName, call, token });
-        return printed;
-    };
-    printer._javaSs15CensusPatched = true;
-}
 
 // ===== tables =====
 
@@ -8031,11 +7962,6 @@ export function installJavaNumericLocalTypes (transpiler) {
         const m = tail.match (/^(\(?)(-?\d+)(\)?)$/);
         return m === null || m[2] !== literal ? printed : printed.slice (0, at + marker.length) + m[1] + m[2] + 'L' + m[3];
     };
-    // the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
-    // installed after every family wrapper so it reads the token the whole chain produced
-    if (SS15_CENSUS) {
-        patchJavaSs15CensusWrapper (printer);
-    }
     printer._javaNumericTypesPatched = true;
 }
 
@@ -8086,14 +8012,6 @@ function javaStatementPrintsTernary (node) {
 // the AST declaration nodes whose FINAL emitted Java declaration spells `String <name> =`
 const javaEmittedStringLocals = new WeakSet ();
 
-const STRING_RECEIVER_DEBUG = process.env['CCXT_JAVA_STRING_RECEIVER_DEBUG'] === '1';
-
-function stringReceiverDebug (message) {
-    if (STRING_RECEIVER_DEBUG) {
-        console.error ('[java-string-receiver] ' + message);
-    }
-}
-
 // install the slice: (1) the declaration observer, (2) the receiver slots on
 // printAsExpression + the ten cast-emitting call methods + the length path.
 // Safe to call more than once (guard flag); chains with every other patcher.
@@ -8111,10 +8029,6 @@ export function patchJavaStringReceiverCasts (transpiler) {
         const clean = (node !== undefined && isJavaStringMethodReceiver (node))
             ? javaEmittedStringReceiverText (printer, node, undefined)
             : undefined;
-        if (STRING_RECEIVER_DEBUG && ts.isAsExpression (node) && node.type?.kind === ts.SyntaxKind.StringKeyword) {
-            const parent = node.parent;
-            stringReceiverDebug (`as-string ${node.expression?.text} parent=${parent === undefined ? 'none' : ts.SyntaxKind[parent.kind]} receiver=${isJavaStringMethodReceiver (node)} clean=${clean}`);
-        }
         if (clean !== undefined) {
             return printer.printNode (node.expression, identation);
         }
