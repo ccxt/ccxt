@@ -7782,13 +7782,14 @@ export class BaseExchange {
             return undefined;
         }
         const market = this.market (symbol);
+        const marketSymbol = this.safeString (market, 'symbol');
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const pricePrecision = this.numberToString (market['precision']['price']);
             if (pricePrecision === undefined) {
-                throw new BadSymbol (this.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision');
+                throw new BadSymbol (this.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision');
             }
-            throw new InvalidOrder (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision);
+            throw new InvalidOrder (this.id + ' price of ' + marketSymbol + ' must be greater than minimum price precision of ' + pricePrecision);
         }
         return result;
     }
@@ -7798,13 +7799,14 @@ export class BaseExchange {
             return undefined;
         }
         const market = this.market (symbol);
+        const marketSymbol = this.safeString (market, 'symbol');
         const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
             const amountPrecision = this.numberToString (market['precision']['amount']);
             if (amountPrecision === undefined) {
-                throw new BadSymbol (this.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision');
+                throw new BadSymbol (this.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision');
             }
-            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision);
+            throw new InvalidOrder (this.id + ' amount of ' + marketSymbol + ' must be greater than minimum amount precision of ' + amountPrecision);
         }
         return result;
     }
