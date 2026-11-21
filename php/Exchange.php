@@ -4463,11 +4463,12 @@ class BaseExchange {
                 if ($marketType === 'spot') {
                     $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType);
                 } else {
-                    $this->features[$marketType] = array();
+                    $subTypeFeatures = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
                         $subType = $subTypes[$j];
-                        $this->features[$marketType][$subType] = $this->features_mapper($initialFeatures, $marketType, $subType);
+                        $subTypeFeatures[$subType] = $this->features_mapper($initialFeatures, $marketType, $subType);
                     }
+                    $this->features[$marketType] = $subTypeFeatures;
                 }
             }
         }
@@ -5188,10 +5189,7 @@ class BaseExchange {
             }
             $reducedLength = count($reducedFees);
             for ($i = 0; $i < $reducedLength; $i++) {
-                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
-                if (is_array($reducedFees[$i]) && array_key_exists('rate' ?? '', $reducedFees[$i])) {
-                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
-                }
+                $reducedFees[$i] = $this->parse_fee_numeric($reducedFees[$i]);
             }
             if (!$parseFee && ($reducedLength === 0)) {
                 // copy fee to avoid modification by reference
@@ -5597,7 +5595,7 @@ class BaseExchange {
         return $result;
     }
 
-    public function invert_flat_string_dictionary(mixed $dict) {
+    public function invert_flat_string_dictionary(array $dict) {
         $reversed = array();
         $keys = is_array($dict) ? array_keys($dict) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -8043,6 +8041,9 @@ class BaseExchange {
             return null;
         }
         $precisionNumber = intval($precision);
+        if ($precisionNumber === null) {
+            return null;
+        }
         if ($precisionNumber === 0) {
             return '1';
         }
@@ -8079,6 +8080,9 @@ class BaseExchange {
                 return null;
             }
             $positivePrecision = intval($positivePrecisionString);
+            if ($positivePrecision === null) {
+                return null;
+            }
             $parsedPrecision = '1';
             for ($i = 0; $i < $positivePrecision - 1; $i++) {
                 $parsedPrecision = $parsedPrecision . '0';

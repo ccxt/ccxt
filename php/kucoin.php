@@ -4713,9 +4713,8 @@ class kucoin extends Exchange {
         }
         $isSpot = false;
         $isContract = false;
-        $ordersList = $this->to_array($orders);
-        for ($i = 0; $i < count($ordersList); $i++) {
-            $order = $this->safe_dict($ordersList, $i);
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($order, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -4757,9 +4756,8 @@ class kucoin extends Exchange {
         }
         $ordersRequests = array();
         $symbol = null;
-        $ordersList = $this->to_array($orders);
-        for ($i = 0; $i < count($ordersList); $i++) {
-            $rawOrder = $this->safe_dict($ordersList, $i);
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             if ($marketId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
@@ -4847,9 +4845,8 @@ class kucoin extends Exchange {
             $this->load_markets();
         }
         $ordersRequests = array();
-        $ordersList = $this->to_array($orders);
-        for ($i = 0; $i < count($ordersList); $i++) {
-            $rawOrder = $this->safe_dict($ordersList, $i);
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $this->safe_dict($orders, $i);
             $symbol = $this->safe_string($rawOrder, 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');

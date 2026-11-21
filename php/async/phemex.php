@@ -3394,13 +3394,13 @@ class phemex extends Exchange {
             }
             throw $e;
         }
-        $data = $this->safe_value($response, 'data', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            return $this->parse_orders($data, $market, $since, $limit);
-        } else {
-            $rows = $this->safe_list($data, 'rows', array());
-            return $this->parse_orders($rows, $market, $since, $limit);
+        $dataList = $this->safe_list($response, 'data');
+        if ($dataList !== null) {
+            return $this->parse_orders($dataList, $market, $since, $limit);
         }
+        $dataDict = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($dataDict, 'rows', array());
+        return $this->parse_orders($rows, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3485,13 +3485,13 @@ class phemex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            return $this->parse_orders($data, $market, $since, $limit);
-        } else {
-            $rows = $this->safe_list($data, 'rows', array());
-            return $this->parse_orders($rows, $market, $since, $limit);
+        $dataList = $this->safe_list($response, 'data');
+        if ($dataList !== null) {
+            return $this->parse_orders($dataList, $market, $since, $limit);
         }
+        $dataDict = $this->safe_dict($response, 'data');
+        $rows = $this->safe_list($dataDict, 'rows', array());
+        return $this->parse_orders($rows, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

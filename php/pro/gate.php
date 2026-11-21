@@ -216,7 +216,7 @@ class gate extends \ccxt\async\gate {
          *
          * @see https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
          *
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, type, side, amount, price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -224,8 +224,13 @@ class gate extends \ccxt\async\gate {
             Async\await($this->load_markets());
         }
         $request = $this->createOrdersRequest($orders, $params);
-        $firstOrder = $orders[0];
-        $market = $this->market($firstOrder['symbol']);
+        $symbol = null;
+        for ($i = 0; $i < count($orders); $i++) {
+            if ($i === 0) {
+                $symbol = $this->safe_string($orders[$i], 'symbol');
+            }
+        }
+        $market = $this->market($symbol);
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' createOrdersWs is not supported for swap markets');
         }

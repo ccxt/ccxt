@@ -523,7 +523,7 @@ class lighter extends Exchange {
             // }
             //
             $subAccounts = $this->safe_list($res, 'sub_accounts');
-            if ((gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
+            if ($subAccounts !== null) {
                 $account = $this->safe_dict($subAccounts, 0);
                 if ($account === null) {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter');

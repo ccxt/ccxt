@@ -523,7 +523,7 @@ class p2b extends Exchange {
         return $this->parse_ticker($result, $market);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null) {
+    public function parse_ticker(?array $ticker, ?array $market = null): array {
         //
         // parseTickers
         //

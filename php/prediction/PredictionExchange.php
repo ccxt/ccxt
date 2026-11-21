@@ -1663,6 +1663,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         $byteLength = $this->parse_to_int(strlen($hex) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength === 0) {
             return '80';
         }
@@ -1687,6 +1690,9 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $concatenated = $concatenated . $this->safe_string($items, $i, '');
         }
         $byteLength = $this->parse_to_int(strlen($concatenated) / 2);
+        if ($byteLength === null) {
+            return '';
+        }
         if ($byteLength < 56) {
             return $this->int_to_base16(192 . $byteLength) . $concatenated;
         }

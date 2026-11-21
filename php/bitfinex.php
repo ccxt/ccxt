@@ -1201,7 +1201,7 @@ class bitfinex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker_list(array $ticker, ?array $market = null): array {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1379,7 +1379,11 @@ class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        return $this->parse_tickers($tickers, $symbolsNormalized);
+        $results = array();
+        for ($i = 0; $i < count($tickers); $i++) {
+            $results[] = $this->parse_ticker_list($this->safe_list($tickers, $i, array()));
+        }
+        return $this->filter_by_array_tickers($results, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): array {
@@ -1400,7 +1404,7 @@ class bitfinex extends Exchange {
             'symbol' => $market['id'],
         );
         $ticker = $this->publicGetTickerSymbol($this->extend($request, $params));
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker_list($ticker, $market);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

@@ -6262,8 +6262,7 @@ class bitget extends Exchange {
             $this->load_markets();
         }
         $ordersRequests = array();
-        $firstOrder = $this->safe_dict($orders, 0);
-        $symbol = $this->safe_string($firstOrder, 'symbol');
+        $symbol = null;
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);
@@ -6338,8 +6337,7 @@ class bitget extends Exchange {
             return $this->create_uta_orders($orders, $paramsUTA);
         }
         $ordersRequests = array();
-        $firstOrder = $this->safe_dict($orders, 0);
-        $symbol = $this->safe_string($firstOrder, 'symbol');
+        $symbol = null;
         $marginMode = null;
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $this->safe_dict($orders, $i);

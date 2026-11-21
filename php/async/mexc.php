@@ -5835,7 +5835,6 @@ class mexc extends Exchange {
         } else {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        $resultList = array();
         if ($marketType === 'spot') {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -5865,14 +5864,14 @@ class mexc extends Exchange {
             //     ],
             //     "total": 1
             // }
-            $resultList = $this->safe_list($response, 'rows', array());
+            return $this->parse_transfers($this->safe_list($response, 'rows', array()), $currency, $since, $limit);
         } elseif ($marketType === 'swap') {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
             $response = Async\await($this->contractPrivateGetAccountTransferRecord($this->extend($request, $paramsToAccountType)));
             $data = $this->safe_dict($response, 'data');
-            $resultList = $this->safe_value($data, 'resultList');
+            return $this->parse_transfers($this->safe_list($data, 'resultList', array()), $currency, $since, $limit);
             //
             //     {
             //         "success": true,
@@ -5898,7 +5897,7 @@ class mexc extends Exchange {
             //     }
             //
         }
-        return $this->parse_transfers($resultList, $currency, $since, $limit);
+        return $this->parse_transfers(array(), $currency, $since, $limit);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {

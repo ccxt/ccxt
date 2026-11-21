@@ -855,7 +855,7 @@ class coinbaseexchange extends Exchange {
         return $orderbook;
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTickers
         //
@@ -899,18 +899,14 @@ class coinbaseexchange extends Exchange {
         $open = null;
         $volume = null;
         $symbol = $this->safe_string($market, 'symbol');
-        if ((gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker)))) {
-            $last = $this->safe_string($ticker, 4);
-        } else {
-            $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
-            $bid = $this->safe_string($ticker, 'bid');
-            $ask = $this->safe_string($ticker, 'ask');
-            $high = $this->safe_string($ticker, 'high');
-            $low = $this->safe_string($ticker, 'low');
-            $open = $this->safe_string($ticker, 'open');
-            $last = $this->safe_string_2($ticker, 'price', 'last');
-            $volume = $this->safe_string($ticker, 'volume');
-        }
+        $timestamp = $this->parse8601($this->safe_string($ticker, 'time'));
+        $bid = $this->safe_string($ticker, 'bid');
+        $ask = $this->safe_string($ticker, 'ask');
+        $high = $this->safe_string($ticker, 'high');
+        $low = $this->safe_string($ticker, 'low');
+        $open = $this->safe_string($ticker, 'open');
+        $last = $this->safe_string_2($ticker, 'price', 'last');
+        $volume = $this->safe_string($ticker, 'volume');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -930,6 +926,40 @@ class coinbaseexchange extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $volume,
+            'quoteVolume' => null,
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function parse_ticker_list(array $ticker, ?array $market = null): array {
+        //
+        //      [
+        //         1639472400, // timestamp
+        //         4.26, // low
+        //         4.38, // high
+        //         4.35, // open
+        //         4.27 // close
+        //      ]
+        //
+        return $this->safe_ticker(array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => null,
+            'datetime' => null,
+            'high' => null,
+            'low' => null,
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => null,
+            'close' => $this->safe_string($ticker, 4),
+            'last' => $this->safe_string($ticker, 4),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
         ), $market);
@@ -979,7 +1009,7 @@ class coinbaseexchange extends Exchange {
             $entry = $this->safe_list($response, $marketId, array());
             $market = $this->safe_market($marketId, null, $delimiter);
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($this->safe_list($entry, 0, array()), $market);
+            $result[$symbol] = $this->parse_ticker_list($this->safe_list($entry, 0, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
