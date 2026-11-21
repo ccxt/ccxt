@@ -7415,6 +7415,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'convertOHLCVToTradingView': { 0: '[][]any' },
     // hyperliquid editOrdersRequest (orders: List): callers are editOrders and editOrderWs, both handing map rows
     'editOrdersRequest': { 0: '[]map[string]any' },
+    // PredictionExchange event filters (no override): the one caller hands the typed `[]any` event list
+    'filterEventsByStatus': { 0: '[]any' }, 'filterEventsByTags': { 0: '[]any' }, 'filterEventsBySearchIn': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -14570,6 +14572,10 @@ ${constStatements.join('\n')}
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]string');
         // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
+        // the event filters (: any[], no override) return their `[]any` events parameter or `[]any` result local
+        for (const m of [ 'FilterEventsByStatus', 'FilterEventsByTags', 'FilterEventsBySearchIn' ]) {
+            baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', m, (expr: string) => (expr === 'events') || (expr === 'result'), true, '[]any');
+        }
         // setEvents (: Dictionary<any>) has no venue override: its only return is this.events, a field the struct declares map[string]any, so loadEvents cores send map[string]any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', (expr: string) => GO_PREDICTION_MAP_FIELDS.some ((f) => expr === 'this.' + f), false);
         const methods = this.transpiledBaseMethodsBody (baseClass);
@@ -15400,7 +15406,12 @@ ${caseStatements.join('\n')}
                     return declared && (binds === 1);
                 };
                 // `nil` and a DerivedExchange.Market call (IDerivedExchange: map[string]any) need no wrap
-                const bare = (expr: string) => mapLocal (expr) || ((typed === 'MapTyped(') && ((expr === 'nil') || /^this\.DerivedExchange\.Market\(\w+\)$/.test (expr)));
+                // a parameter typed `[]any` in the head, or a body local bound once as `var x []any`, is already the list
+                const listLocal = (expr: string) => (goType === '[]any') && /^[A-Za-z_]\w*$/.test (expr)
+                    && (new RegExp ('(^|,\\s*)' + expr + ' \\[\\]any(,|$)').test (match[1].trim ())
+                        || ((new RegExp ('\\n[ \\t]*var ' + expr + ' \\[\\]any\\b').test (body))
+                            && ((body.match (new RegExp ('(?<![\\w.])' + expr + '\\b[^\\n=]*:=|(?<![\\w.])var ' + expr + '\\b', 'g')) ?? []).length === 1)));
+                const bare = (expr: string) => mapLocal (expr) || listLocal (expr) || ((typed === 'MapTyped(') && ((expr === 'nil') || /^this\.DerivedExchange\.Market\(\w+\)$/.test (expr)));
                 const scanned = this.wrapGoFunctionLevelReturns (body, (expr: string) => bare (expr) ? expr : typed + expr + ')');
                 if ((scanned === undefined) || (scanned.total === 0)) {
                     return content;
