@@ -88,7 +88,20 @@ public partial class PredictionExchange : BaseExchange
         {
             return new List<object>() {singleQuery};
         }
-        return this.safeList(parameters, "queries", new List<object>() {});
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        IList<object> rawQueries = this.safeList(parameters, "queries", new List<object>() {});
+        int rawQueriesLength = (rawQueries?.Count ?? 0);
+        List<object> queries = new List<object>() {};
+        for (int i = 0; i < rawQueriesLength; i++)
+        {
+            string? query = this.safeString(rawQueries, i);
+            if ((query == null))
+            {
+                throw new BadRequest ((this.id + " params.queries must be a list of strings")) ;
+            }
+            queries.Add(query);
+        }
+        return queries;
     }
 
     public virtual object requireEventQuery(IDictionary<string, object> parameters = null)
@@ -1980,7 +1993,7 @@ public partial class PredictionExchange : BaseExchange
         }
         if (((byteLength == null || byteLength < 56)))
         {
-            return ((string?)((object)((this.intToBase16(add(128, byteLength)) + hex))));
+            return ((string?)((object)((this.intToBase16((128 + byteLength)) + hex))));
         }
         string lengthHex = this.intToBase16(byteLength);
         int lengthHexLength = lengthHex.Length;
@@ -1989,7 +2002,7 @@ public partial class PredictionExchange : BaseExchange
             lengthHex = ("0" + lengthHex);
         }
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((string?)((object)(((this.intToBase16(add(183, lengthOfLength)) + lengthHex) + hex))));
+        return ((string?)((object)(((this.intToBase16((183 + lengthOfLength)) + lengthHex) + hex))));
     }
 
     public virtual string? rlpEncodeList(IList<object> items)
@@ -2002,7 +2015,7 @@ public partial class PredictionExchange : BaseExchange
         Int64? byteLength = this.parseToInt(((double)concatenated.Length / 2));
         if (((byteLength == null || byteLength < 56)))
         {
-            return (this.intToBase16(add(192, byteLength)) + concatenated);
+            return (this.intToBase16((192 + byteLength)) + concatenated);
         }
         string lengthHex = this.intToBase16(byteLength);
         int lengthHexLength = lengthHex.Length;
@@ -2011,7 +2024,7 @@ public partial class PredictionExchange : BaseExchange
             lengthHex = ("0" + lengthHex);
         }
         Int64? lengthOfLength = this.parseToInt(((double)lengthHex.Length / 2));
-        return ((this.intToBase16(add(247, lengthOfLength)) + lengthHex) + concatenated);
+        return ((this.intToBase16((247 + lengthOfLength)) + lengthHex) + concatenated);
     }
 
     public virtual string? intToRlpHex(object value)

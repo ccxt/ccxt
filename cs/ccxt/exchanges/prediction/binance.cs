@@ -182,7 +182,7 @@ public partial class binance : PredictionExchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> queries = (IList<object>)(this.parseSearchQueries(parameters));
+        List<object> queries = this.parseSearchQueries(parameters);
         int queriesLength = (queries?.Count ?? 0);
         if (queriesLength > 0)
         {

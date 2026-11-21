@@ -580,7 +580,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> queries = (IList<object>)(this.parseSearchQueries(parameters));
+        List<object> queries = this.parseSearchQueries(parameters);
         Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries"});
         int queriesLength = (queries?.Count ?? 0);
         List<object> rawEvents = new List<object>() {};
@@ -3347,7 +3347,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr151204 && ((hxArr151204 is IList<object>) || (hxArr151204.GetType().IsGenericType && hxArr151204.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr151195 && ((hxArr151195 is IList<object>) || (hxArr151195.GetType().IsGenericType && hxArr151195.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3885,8 +3885,8 @@ public partial class polymarket : PredictionExchange
             { "type", "market" },
         };
         object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
-        object trades = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.watch<ccxt.pro.ArrayCache>(url, messageHash, subscribeMsg, subscribeHash);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     /**

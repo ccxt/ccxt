@@ -4168,14 +4168,7 @@ public partial class mexc : Exchange
                 { "clientOrderId", this.safeString(order, "newClientOrderId") },
             });
         }
-        string? id = null;
-        if ((order is string))
-        {
-            id = ((string)order);
-        } else
-        {
-            id = this.safeString2(order, "orderId", "id");
-        }
+        string? id = this.safeString2(order, "orderId", "id");
         string? timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
         string? typeRaw = this.safeString(order, "type");
         if ((timeInForce == null))
@@ -6777,17 +6770,18 @@ public partial class mexc : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverageList(data, market));
     }
 
-    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    public virtual object parseLeverageList(IList<object> leverages, IDictionary<string, object>? market = null)
     {
         string? marginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (int i = 0; i < getArrayLength(leverage); i++)
+        int numLeverages = (leverages?.Count ?? 0);
+        for (int i = 0; i < numLeverages; i++)
         {
-            IDictionary<string, object> entry = this.safeDict(leverage, i);
+            IDictionary<string, object> entry = this.safeDict(leverages, i);
             Int64? openType = this.safeInteger(entry, "openType");
             Int64? positionType = this.safeInteger(entry, "positionType");
             if ((positionType == 1))
@@ -6800,11 +6794,23 @@ public partial class mexc : Exchange
             marginMode = ((openType == 1)) ? "isolated" : "cross";
         }
         return new Dictionary<string, object>() {
-            { "info", leverage },
+            { "info", leverages },
             { "symbol", this.safeString(market, "symbol") },
             { "marginMode", marginMode },
             { "longLeverage", longLeverage },
             { "shortLeverage", shortLeverage },
+        };
+    }
+
+    public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
+    {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return new Dictionary<string, object>() {
+            { "info", leverage },
+            { "symbol", this.safeString(market, "symbol") },
+            { "marginMode", null },
+            { "longLeverage", null },
+            { "shortLeverage", null },
         };
     }
 

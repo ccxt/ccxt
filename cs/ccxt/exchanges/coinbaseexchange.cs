@@ -2408,7 +2408,7 @@ public partial class coinbaseexchange : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         double? amountRaw = this.safeNumber(transaction, "amount");
-        object amount = amountRaw;
+        double? amount = amountRaw;
         string? type = this.safeString(transaction, "type");
         string? address = this.safeString(details, "crypto_address");
         address = this.safeString(transaction, "crypto_address", address);

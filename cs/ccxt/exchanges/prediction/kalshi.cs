@@ -2003,7 +2003,7 @@ public partial class kalshi : PredictionExchange
             centsCost = (costCents / 100);
         }
         double? cost = this.safeNumber(settlement, costDollarsKey, centsCost);
-        object pnl = null;
+        double? pnl = null;
         if (((payout != null)) && ((cost != null)))
         {
             pnl = (payout - cost);
@@ -2266,7 +2266,7 @@ public partial class kalshi : PredictionExchange
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
         double? amount = this.safeNumber2(order, "initial_count_fp", "count");
         double? filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
-        object remaining = this.safeNumber(order, "remaining_count_fp");
+        double? remaining = this.safeNumber(order, "remaining_count_fp");
         if (((remaining == null)) && ((amount != null)) && ((filled != null)))
         {
             remaining = (amount - filled);

@@ -10260,13 +10260,13 @@ public partial class okx : Exchange
             response = await this.privateGetAccountBillsArchive(this.extend(request, query));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        List<object> result = new List<object>() {};
+        List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < data.Count; i++)
         {
             result.Add(this.parseSettlement(data[i], market));
         }
-        List<object> sorted = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
+        List<Dictionary<string, object>> sorted = this.sortBy(result, "timestamp");
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
     }
 
     public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market)

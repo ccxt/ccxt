@@ -1260,10 +1260,6 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> parseTransfer(object transfer, IDictionary<string, object> currency = null)
     {
-        if ((transfer == null))
-        {
-            throw new NotSupported ((this.id + " parseTransfer() is not supported yet")) ;
-        }
         throw new NotSupported ((this.id + " parseTransfer() is not supported yet")) ;
     }
 
@@ -1715,24 +1711,26 @@ public partial class BaseExchange
         // createOrder
         if (featuresObj.ContainsKey("createOrder"))
         {
-            IDictionary<string, object> value = this.safeDict((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "attachedStopLossTakeProfit");
-            ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["stopLoss"] = value;
-            ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["takeProfit"] = value;
+            Dictionary<string, object> createOrder = this.extend(new Dictionary<string, object>() {}, (featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null));
+            IDictionary<string, object> value = this.safeDict(createOrder, "attachedStopLossTakeProfit");
+            createOrder["stopLoss"] = value;
+            createOrder["takeProfit"] = value;
             if ((marketType == "spot"))
             {
                 // default 'hedged': false
-                ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["hedged"] = false;
+                createOrder["hedged"] = false;
                 // default 'leverage': false
-                if (!(inOp((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "leverage")))
+                if (!(createOrder.ContainsKey("leverage")))
                 {
-                    ((IDictionary<string,object>)(featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null))["leverage"] = false;
+                    createOrder["leverage"] = false;
                 }
             }
             // default 'GTC' to true
-            if ((this.safeBool(getValue((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "timeInForce"), "GTC") == null))
+            if ((this.safeBool((createOrder != null && createOrder.ContainsKey("timeInForce") ? createOrder["timeInForce"] : null), "GTC") == null))
             {
-                ((IDictionary<string,object>)getValue((featuresObj != null && featuresObj.ContainsKey("createOrder") ? featuresObj["createOrder"] : null), "timeInForce"))["GTC"] = true;
+                ((IDictionary<string,object>)(createOrder != null && createOrder.ContainsKey("timeInForce") ? createOrder["timeInForce"] : null))["GTC"] = true;
             }
+            featuresObj["createOrder"] = createOrder;
         }
         // other methods
         List<object> keys = new List<object>(featuresObj.Keys);
@@ -4404,11 +4402,11 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseADLRank() is not supported yet")) ;
     }
 
-    public virtual object parseADLRanks(object ranks, IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public virtual object parseADLRanks(IList<object> ranks, IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        IList<object> ranksArray = this.toArray(ranks);
+        IList<object> ranksArray = ranks;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (ranksArray?.Count ?? 0); i++)
         {
@@ -4418,10 +4416,10 @@ public partial class BaseExchange
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
     }
 
-    public virtual List<object> parseAccounts(object accounts, object parameters = null)
+    public virtual List<object> parseAccounts(IList<object> accounts, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> accountsArray = this.toArray(accounts);
+        IList<object> accountsArray = accounts;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (accountsArray?.Count ?? 0); i++)
         {
@@ -7072,18 +7070,11 @@ public partial class BaseExchange
          */
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)getValue(fee, "networks")).Keys);
         int numNetworks = networkKeys.Count;
-        if ((numNetworks == 1))
-        {
-            IDictionary<string, object> networkFee = this.safeDict(getValue(fee, "networks"), (networkKeys != null && 0 < networkKeys.Count ? networkKeys[0] : null), new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)fee)["withdraw"] = (networkFee != null && networkFee.ContainsKey("withdraw") ? networkFee["withdraw"] : null);
-            ((IDictionary<string,object>)fee)["deposit"] = (networkFee != null && networkFee.ContainsKey("deposit") ? networkFee["deposit"] : null);
-            return fee;
-        }
         string? currencyCode = this.safeString(currency, "code");
         for (int i = 0; i < numNetworks; i++)
         {
             string? network = ((string)(networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null));
-            if ((network == currencyCode))
+            if (((numNetworks == 1)) || ((network == currencyCode)))
             {
                 IDictionary<string, object> networkFee = this.safeDict(getValue(fee, "networks"), (networkKeys != null && i < networkKeys.Count ? networkKeys[i] : null), new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)fee)["withdraw"] = (networkFee != null && networkFee.ContainsKey("withdraw") ? networkFee["withdraw"] : null);
@@ -7098,7 +7089,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseIncome () is not supported yet")) ;
     }
 
-    public virtual object parseIncomes(object incomes, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
+    public virtual object parseIncomes(IList<object> incomes, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         /**
          * @ignore
@@ -7111,9 +7102,9 @@ public partial class BaseExchange
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(incomes); i++)
+        for (int i = 0; i < (incomes?.Count ?? 0); i++)
         {
-            result.Add(this.parseIncome(getValue(incomes, i), market));
+            result.Add(this.parseIncome((incomes != null && i < incomes.Count ? incomes[i] : null), market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         string? symbol = this.safeString(market, "symbol");
@@ -7896,10 +7887,10 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseLeverage () is not supported yet")) ;
     }
 
-    public virtual object parseConversions(object conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual object parseConversions(IList<object> conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> conversionsArray = this.toArray(conversions);
+        IList<object> conversionsArray = conversions;
         List<object> result = new List<object>() {};
         IDictionary<string, object> fromCurrency = null;
         IDictionary<string, object> toCurrency = null;

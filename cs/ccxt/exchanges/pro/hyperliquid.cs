@@ -526,8 +526,9 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? userAddress = this.safeString(this.handlePublicAddress("watchMyTrades", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("watchMyTrades", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchMyTrades", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -551,7 +552,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a user address")) ;
         }
-        string subscribeHash = ("subscribe:userFills::" + userAddress.ToLower());
+        string subscribeHash = ("subscribe:userFills::" + ((string)userAddress).ToLower());
         // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
         await this.waitForPendingUnsubscribe(url, "myTrades");
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
@@ -596,8 +597,9 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<List<ccxt.Liquidation>> WatchMyLiquidationsForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? userAddress = this.safeString(this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -628,7 +630,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             throw new ArgumentsRequired ((this.id + " watchMyLiquidationsForSymbols() requires a user address")) ;
         }
         // shares the userFills subscription with watchMyTrades
-        string subscribeHash = ("subscribe:userFills::" + userAddress.ToLower());
+        string subscribeHash = ("subscribe:userFills::" + ((string)userAddress).ToLower());
         await this.waitForPendingUnsubscribe(url, "myTrades");
         object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {subscribeHash});
         if (this.newUpdates)
@@ -659,8 +661,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             throw new NotSupported ((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
-        string? userAddress = this.safeString(this.handlePublicAddress("unWatchMyTrades", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("unWatchMyTrades", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("unWatchMyTrades", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         string messageHash = "unsubscribe:myTrades";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1221,8 +1224,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        string? userAddress = this.safeString(this.handlePublicAddress("watchBalance", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("watchBalance", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchBalance", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, paramsValue);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
@@ -1283,8 +1287,9 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
-        string? userAddress = this.safeString(this.handlePublicAddress("unWatchBalance", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("unWatchBalance", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("unWatchBalance", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("unWatchBalance", null, paramsValue);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
@@ -1492,8 +1497,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        string? userAddress = this.safeString(this.handlePublicAddress("watchPositions", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("watchPositions", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchPositions", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         string topic = "clearinghouseState";
         string messageHash = (topic + "::positions");
         bool hasSymbols = ((symbols != null)) && !this.isEmpty(symbols);
@@ -1606,8 +1612,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string messageHash = "unsubscribe:clearinghouseState";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
-        string? userAddress = this.safeString(this.handlePublicAddress("unWatchPositions", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("unWatchPositions", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("unWatchPositions", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
@@ -1638,8 +1645,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             await this.loadMarkets();
         }
-        string? userAddress = this.safeString(this.handlePublicAddress("watchOrders", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("watchOrders", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("watchOrders", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         IDictionary<string, object> market = null;
         string messageHash = "order";
         if ((symbol != null))
@@ -1667,7 +1675,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a user address")) ;
         }
-        string subscribeHash = ("subscribe:orderUpdates::" + userAddress.ToLower());
+        string subscribeHash = ("subscribe:orderUpdates::" + ((string)userAddress).ToLower());
         // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
         await this.waitForPendingUnsubscribe(url, "order");
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
@@ -1702,8 +1710,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string messageHash = "unsubscribe:order";
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
-        string? userAddress = this.safeString(this.handlePublicAddress("unWatchOrders", parameters), 0);
-        IDictionary<string, object> paramsValue = this.safeDict(this.handlePublicAddress("unWatchOrders", parameters), 1, parameters);
+        IList<object> userAddressparamsValueVariable = (IList<object>)this.handlePublicAddress("unWatchOrders", parameters);
+        var userAddress = userAddressparamsValueVariable[0];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)userAddressparamsValueVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {

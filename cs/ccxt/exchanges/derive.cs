@@ -4316,13 +4316,13 @@ public partial class derive : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(result, "interest_rate_history", new List<object>() {});
-        List<object> rates = new List<object>() {};
+        List<Dictionary<string, object>> rates = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < rows.Count; i++)
         {
             // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
             rates.Add(this.parseBorrowRate(this.safeDict(rows, i, new Dictionary<string, object>() {}), currency));
         }
-        List<object> sorted = this.sortBy(rates, "timestamp");
+        List<Dictionary<string, object>> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterByCurrencySinceLimit(sorted,code, since, limit));
     }
 

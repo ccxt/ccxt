@@ -2215,7 +2215,7 @@ public partial class foxbit : Exchange
         {
             throw new ExchangeError ((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        object before = null;
+        double? before = null;
         if ((amount != null) && (balance != null))
         {
             before = (balance - amount);
