@@ -1375,7 +1375,7 @@ export default class kraken extends Exchange {
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = ledger[key];
+            const value: Dict = this.extend ({}, ledger[key]);
             value['id'] = key;
             items.push (value);
         }
@@ -1406,7 +1406,7 @@ export default class kraken extends Exchange {
         const items: List = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = result[key];
+            const value: Dict = this.extend ({}, result[key]);
             value['id'] = key;
             items.push (value);
         }
@@ -1903,7 +1903,7 @@ export default class kraken extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
         };
-        const delistedMarketsByIdDict = this.safeDict (this.options, 'delistedMarketsById', {});
+        const delistedMarketsByIdDict: Dict = this.safeDict (this.options, 'delistedMarketsById', {});
         delistedMarketsByIdDict[id] = market;
         this.options['delistedMarketsById'] = delistedMarketsByIdDict;
         return market;
@@ -2549,10 +2549,14 @@ export default class kraken extends Exchange {
             //
             const rawTrades = this.safeValue (response, 'result');
             const ids = Object.keys (rawTrades);
+            const rawTradesWithIds: Dict = {};
             for (let i = 0; i < ids.length; i++) {
-                rawTrades[ids[i]]['id'] = ids[i];
+                const rawTradeId: string = ids[i];
+                const rawTradeWithId: Dict = this.extend ({}, rawTrades[rawTradeId]);
+                rawTradeWithId['id'] = rawTradeId;
+                rawTradesWithIds[rawTradeId] = rawTradeWithId;
             }
-            const trades = this.parseTrades (rawTrades, undefined, since, limit);
+            const trades = this.parseTrades (this.toArray (rawTradesWithIds), undefined, since, limit);
             const tradesFilteredBySymbol = this.filterBySymbol (trades, symbolResolved);
             result = this.arrayConcat (result, tradesFilteredBySymbol);
         }
@@ -2654,14 +2658,18 @@ export default class kraken extends Exchange {
         const tradesResult = this.safeDict (response, 'result', {});
         const trades = this.safeDict (tradesResult, 'trades', {});
         const ids = Object.keys (trades);
+        const tradesWithIds: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            trades[ids[i]]['id'] = ids[i];
+            const tradeId: string = ids[i];
+            const tradeWithId: Dict = this.extend ({}, trades[tradeId]);
+            tradeWithId['id'] = tradeId;
+            tradesWithIds[tradeId] = tradeWithId;
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const tradesList = this.toArray (trades);
+        const tradesList = this.toArray (tradesWithIds);
         return this.parseTrades (tradesList, market, since, limit);
     }
 
@@ -3293,7 +3301,7 @@ export default class kraken extends Exchange {
         const data = this.safeList (result, 'withdrawals', []);
         const dataLength = data.length;
         if (cursor !== undefined && dataLength > 0) {
-            const last = data[dataLength - 1];
+            const last: Dict = this.extend ({}, data[dataLength - 1]);
             last['next_cursor'] = cursor;
             data[dataLength - 1] = last;
         }
