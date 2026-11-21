@@ -1300,9 +1300,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var shouldRefresh bool = (this.SafeString2(params, "user", "address") != nil) && (this.SafeBool(params, "enableUnifiedMargin") == nil)
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchBalance", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchBalance", params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	r := <-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode)
@@ -1959,9 +1957,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol st
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchTrades", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchTrades", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2524,9 +2520,11 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan AsyncResult[[]any], method
 	var publicAddress any = nil
 	var paramsPublicAddress map[string]any = map[string]any{}
 	if address == nil {
-		publicAddressparamsPublicAddressVariable := this.HandlePublicAddress("isUnifiedEnabled", params)
-		publicAddress = GetValue(publicAddressparamsPublicAddressVariable, 0)
-		paramsPublicAddress = MapTyped(publicAddressparamsPublicAddressVariable[1])
+		var publicAddressPtr *string = nil
+		publicAddressPtr, paramsPublicAddress = this.HandlePublicAddress("isUnifiedEnabled", params)
+		if publicAddressPtr != nil {
+			publicAddress = *publicAddressPtr
+		}
 	}
 	var userAddress any = func() any {
 		if address != nil {
@@ -2625,9 +2623,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan AsyncResult[map[string]a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("setUserAbstraction", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("setUserAbstraction", params)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userSetAbstraction")
@@ -2692,9 +2688,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan AsyncResult[map[st
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("enableUserDexAbstraction", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("enableUserDexAbstraction", params)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var typeVar *string = this.SafeString(paramsPublicAddress, "type", "userDexAbstraction")
@@ -4217,9 +4211,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optio
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOpenOrders", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchOpenOrders", params)
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders")
 	if this.Markets == nil {
 
@@ -4442,9 +4434,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchOrders", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchOrders", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4548,9 +4538,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, o
 	_ = params
 	var userAddress *string = nil
 	var params2 map[string]any = nil
-	userAddressparams2Variable := this.HandlePublicAddress("fetchOrder", params)
-	userAddress = SafeStringPtr(userAddressparams2Variable[0])
-	params2 = MapTyped(userAddressparams2Variable[1])
+	userAddress, params2 = this.HandlePublicAddress("fetchOrder", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4861,9 +4849,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optiona
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyTrades", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchMyTrades", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -5027,9 +5013,7 @@ func (this *Hyperliquid) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidati
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchMyLiquidations", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchMyLiquidations", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -5232,9 +5216,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan AsyncResult[[]Position], opt
 			panic(r.Err)
 		}
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchPositions", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchPositions", params)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
 		"type": "clearinghouseState",
@@ -5820,16 +5802,9 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 	var transferType *string = this.SafeString(params, "type")
 	// subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
 	// unified account is active", a unified account has to move balances with sendAsset instead
-	var transferMethod *string = nil
-	var query any = params
-	transferMethod, query = this.HandleOptionStringAndParams(query, "transfer", "method")
-	var masterAddress any = nil
-	if derefPtr := this.SafeString(this.HandlePublicAddress("transfer", query), 0); derefPtr != nil {
-		masterAddress = *derefPtr
-	} else {
-		masterAddress = nil
-	}
-	query = this.SafeDict(this.HandlePublicAddress("transfer", query), 1, map[string]any{})
+	transferMethod, paramsMethod := this.HandleOptionStringAndParams(params, "transfer", "method")
+	masterAddress, paramsAddress := this.HandlePublicAddress("transfer", paramsMethod)
+	var query any = paramsAddress
 	var useSendAsset bool = (transferMethod != nil && *transferMethod == "sendAsset")
 	if transferMethod == nil {
 		var isUnified any = nil
@@ -5858,12 +5833,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
-		var ternaryStr441336 string = "Mainnet"
+		var ternaryStr441036 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			ternaryStr441336 = "Testnet"
+			ternaryStr441036 = "Testnet"
 		}
 		var sendAssetPayload map[string]any = map[string]any{
-			"hyperliquidChain": ternaryStr441336,
+			"hyperliquidChain": ternaryStr441036,
 			"destination": func() any {
 				if isDeposit {
 					return subAccountAddress
@@ -6045,12 +6020,12 @@ func (this *Hyperliquid) withdrawBody(ch chan AsyncResult[Transaction], code str
 		sig = this.SignL1Action(action, nonce)
 	} else {
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-		var ternaryStr455236 string = "Mainnet"
+		var ternaryStr454936 string = "Mainnet"
 		if isSandboxMode != nil && *isSandboxMode {
-			ternaryStr455236 = "Testnet"
+			ternaryStr454936 = "Testnet"
 		}
 		var payload map[string]any = map[string]any{
-			"hyperliquidChain": ternaryStr455236,
+			"hyperliquidChain": ternaryStr454936,
 			"destination":      address,
 			"amount":           this.NumberToString(amount),
 			"time":             nonce,
@@ -6163,9 +6138,7 @@ func (this *Hyperliquid) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInter
 			panic(r.Err)
 		}
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchTradingFee", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchTradingFee", params)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type": "userFees",
@@ -6306,9 +6279,7 @@ func (this *Hyperliquid) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], opt
 	}
 	var userAddress *string = nil
 	var params2 map[string]any = nil
-	userAddressparams2Variable := this.HandlePublicAddress("fetchLedger", params)
-	userAddress = SafeStringPtr(userAddressparams2Variable[0])
-	params2 = MapTyped(userAddressparams2Variable[1])
+	userAddress, params2 = this.HandlePublicAddress("fetchLedger", params)
 	var request map[string]any = map[string]any{
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
@@ -6434,9 +6405,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan AsyncResult[[]Transaction], o
 	}
 	var userAddress *string = nil
 	var params2 map[string]any = nil
-	userAddressparams2Variable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
-	userAddress = SafeStringPtr(userAddressparams2Variable[0])
-	params2 = MapTyped(userAddressparams2Variable[1])
+	userAddress, params2 = this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 	var request map[string]any = map[string]any{
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
@@ -6539,9 +6508,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	}
 	var userAddress *string = nil
 	var params2 map[string]any = nil
-	userAddressparams2Variable := this.HandlePublicAddress("fetchDepositsWithdrawals", params)
-	userAddress = SafeStringPtr(userAddressparams2Variable[0])
-	params2 = MapTyped(userAddressparams2Variable[1])
+	userAddress, params2 = this.HandlePublicAddress("fetchDepositsWithdrawals", params)
 	var request map[string]any = map[string]any{
 		"type": "userNonFundingLedgerUpdates",
 		"user": userAddress,
@@ -6763,9 +6730,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHi
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	userAddressparamsPublicAddressVariable := this.HandlePublicAddress("fetchFundingHistory", params)
-	var userAddress *string = SafeStringPtr(userAddressparamsPublicAddressVariable[0])
-	var paramsPublicAddress map[string]any = MapTyped(userAddressparamsPublicAddressVariable[1])
+	userAddress, paramsPublicAddress := this.HandlePublicAddress("fetchFundingHistory", params)
 	var request map[string]any = map[string]any{
 		"user": userAddress,
 		"type": "userFunding",
@@ -6951,14 +6916,14 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	}
 	return address
 }
-func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) []any {
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*string, map[string]any) {
 	userAux, paramsUser := this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {
-		return []any{user, paramsAddress}
+		return user, paramsAddress
 	}
 	if this.WalletAddress != "" {
-		return []any{this.WalletAddress, paramsAddress}
+		return SafeStringPtr(this.WalletAddress), paramsAddress
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the wallet address set"))
 }

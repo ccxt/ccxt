@@ -819,9 +819,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	userAddressparamsValueVariable := this.HandlePublicAddress("watchMyTrades", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("watchMyTrades", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -935,9 +933,7 @@ func (this *Hyperliquid) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncRes
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	userAddressparamsValueVariable := this.HandlePublicAddress("watchMyLiquidationsForSymbols", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("watchMyLiquidationsForSymbols", params)
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -1031,9 +1027,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], opt
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only"))
 	}
-	userAddressparamsValueVariable := this.HandlePublicAddress("unWatchMyTrades", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("unWatchMyTrades", params)
 	var messageHash string = "unsubscribe:myTrades"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var request map[string]any = map[string]any{
@@ -1752,9 +1746,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 			panic(r.Err)
 		}
 	}
-	userAddressparamsValueVariable := this.HandlePublicAddress("watchBalance", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("watchBalance", params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
 
 	r1 := <-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)
@@ -1833,9 +1825,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 		}
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
-	userAddressparamsValueVariable := this.HandlePublicAddress("unWatchBalance", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("unWatchBalance", params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
 
 	r1 := <-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)
@@ -2082,9 +2072,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 			panic(r.Err)
 		}
 	}
-	userAddressparamsValueVariable := this.HandlePublicAddress("watchPositions", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("watchPositions", params)
 	var topic string = "clearinghouseState"
 	var messageHash string = topic + "::positions"
 	var hasSymbols bool = (symbols != nil) && !this.IsEmpty(symbols)
@@ -2219,9 +2207,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan ccxt.AsyncResult[bool], op
 	}
 	var messageHash string = "unsubscribe:clearinghouseState"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
-	userAddressparamsValueVariable := this.HandlePublicAddress("unWatchPositions", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("unWatchPositions", params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
@@ -2286,9 +2272,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 			panic(r.Err)
 		}
 	}
-	userAddressparamsValueVariable := this.HandlePublicAddress("watchOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("watchOrders", params)
 	var market map[string]any = nil
 	var messageHash string = "order"
 	if symbol != nil {
@@ -2375,9 +2359,7 @@ func (this *Hyperliquid) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optio
 	}
 	var messageHash string = "unsubscribe:order"
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
-	userAddressparamsValueVariable := this.HandlePublicAddress("unWatchOrders", params)
-	var userAddress *string = ccxt.SafeStringPtr(userAddressparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(userAddressparamsValueVariable[1])
+	userAddress, paramsValue := this.HandlePublicAddress("unWatchOrders", params)
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
