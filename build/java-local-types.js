@@ -2000,7 +2000,29 @@ const VENUE_RETURN_KINDS = {
     'infoList': [ 'java.util.List<Object>' ],
     // hyperliquid `infoDict (..): Dict` (one declaration per class): returns the arg when it is neither String nor List, else {}
     'infoDict': [ JAVA_ARRAY_TYPE_MAP () ],
+    // venue `parseWsPosition (..): Position` / `parseMyTrade (..): Trade` (no base declaration): return this.safePosition / safeTrade / a literal
+    'parseWsPosition': [ JAVA_ARRAY_TYPE_MAP () ], 'parseMyTrade': [ JAVA_ARRAY_TYPE_MAP () ],
 };
+const H29T07_MAP_VIEW_RETURNS = new Set ([ 'safePosition', 'safeTrade' ]);
+// these rows hold only when every return is a literal, null or one of the calls above (never a box)
+const H29T07_UNCAST_RETURN_METHODS = new Set ([ 'parseWsPosition', 'parseMyTrade' ]);
+function h29t07ReturnsUncast (method) {
+    let ok = true;
+    const visit = (n) => {
+        if (n !== method && ts.isFunctionLike (n)) {
+            return;
+        }
+        if (ts.isReturnStatement (n)) {
+            const e = n.expression === undefined ? undefined : unwrapParens (n.expression);
+            ok = ok && e !== undefined && (ts.isObjectLiteralExpression (e) || e.kind === ts.SyntaxKind.NullKeyword
+                || (ts.isIdentifier (e) && e.text === 'undefined')
+                || (isThisOrSuperCall (e) && H29T07_MAP_VIEW_RETURNS.has (e.expression.name.text)));
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return ok;
+}
 
 function JAVA_ARRAY_TYPE_MAP () {
     return 'java.util.Map<String, Object>';
@@ -2015,6 +2037,9 @@ function venueAnnotationJavaType (printer, node) {
     }
     const kinds = VENUE_RETURN_KINDS[node.name?.text];
     if (kinds === undefined) {
+        return undefined;
+    }
+    if (H29T07_UNCAST_RETURN_METHODS.has (node.name.text) && !h29t07ReturnsUncast (node)) {
         return undefined;
     }
     let type;
@@ -2119,6 +2144,10 @@ function venueReturnCast (printer, node, method, javaType) {
     }
     // a const local fed by this.market/safeMarket is already declared Map<String, Object>: no cast
     if (javaType === JAVA_ARRAY_TYPE_MAP () && constMapCallLocal (printer, expression)) {
+        return undefined;
+    }
+    // a this.safePosition / safeTrade (..) call already prints a Map or a TypedMap view: no checkcast
+    if (javaType === JAVA_ARRAY_TYPE_MAP () && isThisOrSuperCall (expression) && H29T07_MAP_VIEW_RETURNS.has (expression.expression.name.text)) {
         return undefined;
     }
     // ral-87j5: a local the printer / layer already declares with the method's own type needs no checkcast

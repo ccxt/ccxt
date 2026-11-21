@@ -5327,7 +5327,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position: NullableDict, market: Market = undefined) {
+    parseWsPosition (position: NullableDict, market: Market = undefined): Position {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
