@@ -9130,18 +9130,27 @@ export class BaseExchange {
         //
         // the value of greeks is either a dict or a list
         //
-        const results: Dict[] = [];
         if (Array.isArray (greeks)) {
-            for (let i = 0; i < greeks.length; i++) {
-                results.push (this.extend (this.parseGreeks (greeks[i]), params));
-            }
-        } else {
-            const marketIds = Object.keys (greeks);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const market = this.safeMarket (marketId);
-                results.push (this.extend (this.parseGreeks (greeks[marketId], market), params));
-            }
+            return this.parseAllGreeksList (greeks, symbols, params);
+        }
+        return this.parseAllGreeksDict (greeks, symbols, params);
+    }
+
+    parseAllGreeksList (greeks: Dict[], symbols: Strings = undefined, params: Dict = {}): AllGreeks {
+        const results: Dict[] = [];
+        for (let i = 0; i < greeks.length; i++) {
+            results.push (this.extend (this.parseGreeks (greeks[i]), params));
+        }
+        return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol') as AllGreeks;
+    }
+
+    parseAllGreeksDict (greeks: Dict, symbols: Strings = undefined, params: Dict = {}): AllGreeks {
+        const results: Dict[] = [];
+        const marketIds = Object.keys (greeks);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            results.push (this.extend (this.parseGreeks (greeks[marketId], market), params));
         }
         return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol') as AllGreeks;
     }
