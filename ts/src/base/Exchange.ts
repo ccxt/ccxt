@@ -3855,8 +3855,10 @@ export class BaseExchange {
             if (parsed === undefined) {
                 continue;
             }
-            const code = parsed['code'];
-            result[code] = parsed;
+            const code = this.safeString (parsed, 'code');
+            if (code !== undefined) {
+                result[code] = parsed;
+            }
         }
         return result;
     }
