@@ -472,7 +472,7 @@ type IDerivedExchange interface {
 	ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[string]any
 	ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]
-	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any
+	ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) []any
 	FetchLeveragesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]Leverage]
 	SafeMarket(optionalArgs ...any) map[string]any
 	Sign(path string, optionalArgs ...any) map[string]any

@@ -12217,7 +12217,8 @@ function goProvenListMethods (): string[] {
         'ParsePredictionPositions',
         'ParseDepositAddresses',
         'ParseDepositMethodIds', 'ParsePortfolioDetails',
-        'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList' ];
+        'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList',
+        'ParseOrderBookBidsAsks' ];
 }
 
 // dict producers beyond the single-structure parsers (Balances/Tickers/FundingRates/Dictionary<..>). SafeBalance stays
