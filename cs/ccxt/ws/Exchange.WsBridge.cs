@@ -310,6 +310,12 @@ public partial class BaseExchange
         return await future;
     }
 
+    // the generator proves T from every resolve that can meet the watched hash
+    public async Task<T> watch<T>(object url2, object messageHash2, object message = null, object subscribeHash2 = null, object subscription = null)
+    {
+        return (T)(await this.watch(url2, messageHash2, message, subscribeHash2, subscription));
+    }
+
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();

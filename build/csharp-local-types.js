@@ -15759,6 +15759,7 @@ export function installCsharpLocalTypes (transpiler) {
             }
             return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }
+        const h27c01 = h27c01WatchCacheDeclaration (csharp, declaration, printed, identation); if (h27c01 !== undefined) return h27c01;
         const info = csharpLocalDeclaration (csharp, declaration);
         if (info === undefined) {
             // 87c1: the emitted line keeps `object`; a later read must not answer another type
@@ -24125,3 +24126,97 @@ export function installCsharpIntIndexAccumulators (csharp) {
     csharp._intIndexAccumulatorsPatched = true;
 }
 
+
+// ===== h27-H27-C01
+// `const xs = await this.watch (url, hash, ...)` read once, as the list argument of
+// filterBySinceLimit / filterBySymbolSinceLimit: every settle that can meet the watched hash
+// stores one ArrayCache-family box (the same resolve proof as wsResolvedCacheWatchType), so the
+// local is declared that cache through the generic `watch<T>` (cs/ccxt/ws/Exchange.WsBridge.cs);
+// the filters still copy the live cache through SlimConcurrentList.ToArray.
+const H27C01_FILTERS = [ 'filterBySinceLimit', 'filterBySymbolSinceLimit' ];
+
+function h27c01OnlyFilterUse (scope, declaration) {
+    const name = declaration.name.text;
+    let uses = 0;
+    let ok = true;
+    const visit = (n) => {
+        if (!ok || (n !== scope && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== declaration.name) {
+            uses++;
+            const call = n.parent;
+            ok = call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.[0] === n
+                && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && H27C01_FILTERS.includes (call.expression.name?.text);
+            return;
+        }
+        n?.forEachChild (visit);
+    };
+    scope?.forEachChild (visit);
+    return ok && uses === 1;
+}
+
+function h27c01WatchCacheType (csharp, declaration) {
+    if (wsWatchAwaitMethodName (declaration) !== 'watch' || declaration.type !== undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || !(declaration.parent?.flags & ts.NodeFlags.Const)) {
+        return undefined;
+    }
+    const source = declaration.getSourceFile?.();
+    const fileName = (source?.fileName ?? '').replace (/\\/g, '/');
+    if (!fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/')) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (!h27c01OnlyFilterUse (scope, declaration)) {
+        return undefined;
+    }
+    const watched = wsWrapperWatchedPrefixes (declaration.initializer.expression, scope, undefined, 0);
+    if (watched === undefined) {
+        return undefined;
+    }
+    const boxes = new Set ();
+    let meets = 0;
+    for (const rel of wsHandlerFiles (source)) {
+        if (!wsResolveProofCache.has (rel)) {
+            const full = path.join (process.cwd (), rel);
+            const file = (path.resolve (full) === path.resolve (source.fileName)) ? source : tupleDictSourceFile (full);
+            wsResolveProofCache.set (rel, (file === undefined) ? undefined : wsFileSettles (csharp, file));
+        }
+        const settles = wsResolveProofCache.get (rel);
+        if (settles === undefined) {
+            return undefined;
+        }
+        for (const settle of settles) {
+            if (!settle.hashes.some ((h) => watched.some ((w) => wsPrefixesMeet (h, w)))) {
+                continue;
+            }
+            meets++;
+            const box = (settle.value === undefined) ? undefined : wsResolvedCacheBox (csharp, settle.value, 0);
+            if (box === undefined) {
+                return undefined;
+            }
+            boxes.add (box);
+        }
+    }
+    const joined = (meets === 0) ? undefined : wsJoinCacheBoxes (boxes);
+    return (joined === undefined) ? undefined : ('ccxt.pro.' + joined);
+}
+
+// rewrites the printer's `object xs = await this.watch(` declaration; undefined = not this family
+function h27c01WatchCacheDeclaration (csharp, declaration, printed, identation) {
+    const type = h27c01WatchCacheType (csharp, declaration);
+    if (type === undefined) {
+        return undefined;
+    }
+    const iden = csharp.getIden (identation);
+    const printedName = csharp.printNode (declaration.name, 0);
+    const prefix = iden + csharp.VAR_TOKEN + ' ' + printedName + ' = await this.watch(';
+    if (!printed.startsWith (prefix)) {
+        return undefined;
+    }
+    retypedDeclarationTypes.set (declaration, type);
+    return iden + type + ' ' + printedName + ' = await this.watch<' + type + '>(' + printed.slice (prefix.length);
+}
+// ===== end h27-H27-C01
