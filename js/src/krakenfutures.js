@@ -1562,12 +1562,14 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privatePostCancelorder(this.extend({ 'order_id': id }, params));
-        const status = this.safeString(this.safeDict(response, 'cancelStatus', {}), 'status');
+        const request = { 'order_id': id };
+        const response = await this.privatePostCancelorder(this.extend(request, params));
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const status = this.safeString(cancelStatus, 'status');
         this.verifyOrderActionSuccess(status, 'cancelOrder');
         let order = {};
-        if ('cancelStatus' in response) {
-            order = this.parseOrder(response['cancelStatus']);
+        if (cancelStatus !== undefined) {
+            order = this.parseOrder(cancelStatus);
         }
         return this.extend({ 'info': response }, order);
     }

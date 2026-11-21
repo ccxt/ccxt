@@ -8535,12 +8535,13 @@ class bitget extends bitget$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
+            const data = this.safeDict(response, 'data', {});
             const bills = this.safeList(data, 'bills', []);
             return this.parseLedger(bills, currency, since, limit);
         }
-        return this.parseLedger(data, currency, since, limit);
+        const rows = this.safeList(response, 'data', []);
+        return this.parseLedger(rows, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //

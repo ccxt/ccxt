@@ -1324,7 +1324,7 @@ class bithumb extends bithumb$1["default"] {
         let response = undefined;
         let data = [];
         if (generation === 2) {
-            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
             }

@@ -773,12 +773,13 @@ export default class deribit extends deribitRest {
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel', '');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         }
         else {
+            const data = this.safeValue(params, 'data', {});
             const order = this.parseOrder(data);
             orders = [order];
         }

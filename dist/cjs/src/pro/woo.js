@@ -1193,19 +1193,19 @@ class woo extends woo$1["default"] {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
+        const dataList = this.safeList(message, 'data');
+        if (dataList !== undefined) {
             // algoexecutionreportv2
-            for (let i = 0; i < data.length; i++) {
-                const order = data[i];
-                const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+            for (let i = 0; i < dataList.length; i++) {
+                const tradeId = this.omitZero(this.safeString(dataList, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, dataList[i]);
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, dataList[i], topic);
             }
         }
         else {
+            const data = this.safeValue(message, 'data');
             // executionreport
             const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
             if (tradeId !== undefined) {

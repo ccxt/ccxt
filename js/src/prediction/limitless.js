@@ -2438,8 +2438,8 @@ export default class limitless extends Exchange {
     async cancelAllOrders(outcome = undefined, params = {}) {
         let paramsValue = params;
         if (outcome !== undefined) {
-            let warn = true;
-            [warn, paramsValue] = this.handleOptionAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            const [warn, paramsWarn] = this.handleOptionBoolAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', true);
+            paramsValue = paramsWarn;
             if (warn) {
                 throw new BadRequest(this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
@@ -2479,13 +2479,11 @@ export default class limitless extends Exchange {
             const outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, 'outcome');
         }
-        let paginate = false;
         const maxLimit = 100;
-        let paramsValue = params;
-        [paginate, paramsValue] = this.handleOptionAndParams(paramsValue, 'fetchMyTrades', 'paginate', paginate);
+        const [paginate, paramsValue] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            paramsValue = this.omit(paramsValue, 'paginate');
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
+            const paramsCursor = this.omit(paramsValue, 'paginate');
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request = {};
         if (limit !== undefined) {

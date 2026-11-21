@@ -183726,18 +183726,25 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         //         ...
         //     ]
         //
-        const results = [];
         if (Array.isArray(pricesData)) {
-            for(let i = 0; i < pricesData.length; i++){
-                results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
-            }
-        } else {
-            const marketIds = Object.keys(pricesData);
-            for(let i = 0; i < marketIds.length; i++){
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
-            }
+            return this.parseLastPricesList(pricesData, symbols, params);
+        }
+        return this.parseLastPricesDict(pricesData, symbols, params);
+    }
+    parseLastPricesList(pricesData, symbols = undefined, params = {}) {
+        const results = [];
+        for(let i = 0; i < pricesData.length; i++){
+            results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
+        }
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
+    }
+    parseLastPricesDict(pricesData, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(pricesData);
+        for(let i = 0; i < marketIds.length; i++){
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -183764,18 +183771,25 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         //         ...
         //     ]
         //
-        const results = [];
         if (Array.isArray(tickers)) {
-            for(let i = 0; i < tickers.length; i++){
-                results.push(this.extend(this.parseTicker(tickers[i]), params));
-            }
-        } else {
-            const marketIds = Object.keys(tickers);
-            for(let i = 0; i < marketIds.length; i++){
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
-            }
+            return this.parseTickersList(tickers, symbols, params);
+        }
+        return this.parseTickersDict(tickers, symbols, params);
+    }
+    parseTickersList(tickers, symbols = undefined, params = {}) {
+        const results = [];
+        for(let i = 0; i < tickers.length; i++){
+            results.push(this.extend(this.parseTicker(tickers[i]), params));
+        }
+        return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
+    }
+    parseTickersDict(tickers, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(tickers);
+        for(let i = 0; i < marketIds.length; i++){
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
         }
         return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
     }
@@ -215250,7 +215264,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         let leverages = this.safeList(response, 'positions', []);
         if (Array.isArray(response)) {
-            leverages = response;
+            leverages = this.toArray(response);
         }
         return this.parseLeverages(leverages, symbols, 'symbol');
     }
@@ -217420,7 +217434,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         }
         let assets = this.safeList(response, 'positions', []);
         if (Array.isArray(response)) {
-            assets = response;
+            assets = this.toArray(response);
         }
         return this.parseMarginModes(assets, symbolsNormalized, 'symbol', 'swap');
     }
@@ -248554,12 +248568,13 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data');
         if (marketType === 'swap' || marketType === 'future') {
+            const data = this.safeDict(response, 'data', {});
             const bills = this.safeList(data, 'bills', []);
             return this.parseLedger(bills, currency, since, limit);
         }
-        return this.parseLedger(data, currency, since, limit);
+        const rows = this.safeList(response, 'data', []);
+        return this.parseLedger(rows, currency, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -253959,7 +253974,7 @@ class bithumb extends _abstract_bithumb_js__rspack_import_0/* ["default"] */.A {
         let response = undefined;
         let data = [];
         if (generation === 2) {
-            const [paginate, paramsPaginate] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
+            const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
             if (paginate) {
                 return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
             }
@@ -279559,7 +279574,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         let market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
-            if (symbolsLength === 0) {
+            if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
                 request['instId'] = market['id'];
             }
@@ -352744,8 +352759,9 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
-        return this.parseLedger(response, currency, since, limit);
+        let rows = [];
+        rows = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
+        return this.parseLedger(rows, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
         const txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, 'sequence'), this.safeDict(account, 'pub_key', {}));
@@ -404832,7 +404848,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         //     }
         // ]
         //
-        return this.parseLedger(response, undefined, since, limit);
+        const rows = this.infoList(response);
+        return this.parseLedger(rows, undefined, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //
@@ -414066,14 +414083,16 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this.privatePostCancelorder(this.extend({
+        const request = {
             'order_id': id
-        }, params));
-        const status = this.safeString(this.safeDict(response, 'cancelStatus', {}), 'status');
+        };
+        const response = await this.privatePostCancelorder(this.extend(request, params));
+        const cancelStatus = this.safeDict(response, 'cancelStatus');
+        const status = this.safeString(cancelStatus, 'status');
         this.verifyOrderActionSuccess(status, 'cancelOrder');
         let order = {};
-        if ('cancelStatus' in response) {
-            order = this.parseOrder(response['cancelStatus']);
+        if (cancelStatus !== undefined) {
+            order = this.parseOrder(cancelStatus);
         }
         return this.extend({
             'info': response
@@ -423404,9 +423423,9 @@ class kucoin extends _abstract_kucoin_js__rspack_import_0/* ["default"] */.A {
                 response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
             }
         }
-        let responseData = this.safeValue(response, 'data', {});
-        if (Array.isArray(responseData)) {
-            responseData = this.safeDict(responseData, 0, {});
+        let responseData = this.safeDict(response, 'data');
+        if (responseData === undefined) {
+            responseData = this.safeDict(this.safeList(response, 'data', []), 0, {});
         }
         return this.parseOrder(responseData, market);
     }
@@ -506982,8 +507001,8 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
      */ async cancelAllOrders(outcome = undefined, params = {}) {
         let paramsValue = params;
         if (outcome !== undefined) {
-            let warn = true;
-            [warn, paramsValue] = this.handleOptionAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn);
+            const [warn, paramsWarn] = this.handleOptionBoolAndParams(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', true);
+            paramsValue = paramsWarn;
             if (warn) {
                 throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.');
             }
@@ -507025,13 +507044,11 @@ class limitless extends _abstract_prediction_limitless_js__rspack_import_0/* ["d
             const outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, 'outcome');
         }
-        let paginate = false;
         const maxLimit = 100;
-        let paramsValue = params;
-        [paginate, paramsValue] = this.handleOptionAndParams(paramsValue, 'fetchMyTrades', 'paginate', paginate);
+        const [paginate, paramsValue] = this.handleOptionBoolAndParams(params, 'fetchMyTrades', 'paginate', false);
         if (paginate) {
-            paramsValue = this.omit(paramsValue, 'paginate');
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', undefined, maxLimit);
+            const paramsCursor = this.omit(paramsValue, 'paginate');
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', undefined, maxLimit);
         }
         const request = {};
         if (limit !== undefined) {
@@ -508171,8 +508188,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
                 'state': state,
                 'limit': limit
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = responseIsArray ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for(let j = 0; j < found.length; j++){
                 const raw = found[j];
                 const networkId = this.safeString(raw, 'networkId', '');
@@ -508222,8 +508238,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
                 'page': page,
                 'trading_model': tradingModel
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawMarkets = responseIsArray ? response : this.safeList(response, 'data', []);
+            const rawMarkets = this.safeList(response, 'data', []);
             const rawMarketsLength = rawMarkets.length;
             if (rawMarketsLength === 0) {
                 break;
@@ -508345,8 +508360,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
                 'keyword': q,
                 'limit': limit
             }, rest));
-            const responseIsArray = Array.isArray(response);
-            const found = responseIsArray ? response : this.safeList(response, 'data', []);
+            const found = this.safeList(response, 'data', []);
             for(let j = 0; j < found.length; j++){
                 const raw = found[j];
                 const questionId = this.safeString(raw, 'id');
@@ -508390,8 +508404,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
                 request['state'] = state;
             }
             const response = await this.myriadPublicGetQuestions(this.extend(request, rest));
-            const responseIsArray = Array.isArray(response);
-            const rawQuestions = responseIsArray ? response : this.safeList(response, 'data', []);
+            const rawQuestions = this.safeList(response, 'data', []);
             const rawQuestionsLength = rawQuestions.length;
             if (rawQuestionsLength === 0) {
                 break;
@@ -510935,8 +510948,7 @@ class myriad extends _abstract_prediction_myriad_js__rspack_import_0/* ["default
         //         ]
         //     }
         //
-        const responseIsArray = Array.isArray(response);
-        const rows = responseIsArray ? response : this.safeList(response, 'data', []);
+        const rows = this.safeList(response, 'data', []);
         const trades = [];
         for(let i = 0; i < rows.length; i++){
             const row = this.safeDict(rows, i);
@@ -532855,7 +532867,7 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const symbolValue = market['symbol'];
-        const [stock, paramsStock] = this.handleOptionAndParams(params, 'watchOHLCV', 'stock');
+        const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'stock', false);
         if (stock === true) {
             if (timeframe !== '5m' && timeframe !== '1h' && timeframe !== '1d' && timeframe !== '1w' && timeframe !== '1M') {
                 throw new _base_errors_js__rspack_import_1.BadRequest(this.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes');
@@ -561068,11 +561080,12 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         } else {
+            const data = this.safeValue(params, 'data', {});
             orders = [
                 this.parseOrder(data)
             ];
@@ -566889,11 +566902,12 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
         }
         const params = this.safeDict(message, 'params', {});
         const channel = this.safeString(params, 'channel', '');
-        const data = this.safeValue(params, 'data', {});
+        const dataList = this.safeList(params, 'data');
         let orders = [];
-        if (Array.isArray(data)) {
-            orders = this.parseOrders(data);
+        if (dataList !== undefined) {
+            orders = this.parseOrders(dataList);
         } else {
+            const data = this.safeValue(params, 'data', {});
             const order = this.parseOrder(data);
             orders = [
                 order
@@ -607238,7 +607252,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
         if (symbolsLength === 0) {
             throw new _base_errors_js__rspack_import_1.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const deltas = deltasOption === true || limit !== undefined && limit > 15;
         const url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -607307,7 +607321,7 @@ class paradex extends _paradex_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const url = this.getWsUrl();
         const client = this.client(url);
         const channels = [];
@@ -613031,12 +613045,12 @@ class polymarket extends _polymarket_js__rspack_import_0/* ["default"] */.A {
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         } else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -613410,12 +613424,12 @@ class polymarket extends _polymarket_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        const data = this.safeValue(message, 'data');
+        const dataList = this.safeList(message, 'data');
         let rows = [];
-        if (Array.isArray(data)) {
-            rows = data;
+        if (dataList !== undefined) {
+            rows = dataList;
         } else {
-            rows.push(data);
+            rows.push(this.safeValue(message, 'data'));
         }
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -620216,18 +620230,18 @@ class woo extends _woo_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
+        const dataList = this.safeList(message, 'data');
+        if (dataList !== undefined) {
             // algoexecutionreportv2
-            for(let i = 0; i < data.length; i++){
-                const order = data[i];
-                const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+            for(let i = 0; i < dataList.length; i++){
+                const tradeId = this.omitZero(this.safeString(dataList, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, dataList[i]);
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, dataList[i], topic);
             }
         } else {
+            const data = this.safeValue(message, 'data');
             // executionreport
             const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
             if (tradeId !== undefined) {
@@ -621638,18 +621652,18 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const topic = this.safeString(message, 'topic');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
+        const dataList = this.safeList(message, 'data');
+        if (dataList !== undefined) {
             // algoexecutionreport
-            for(let i = 0; i < data.length; i++){
-                const order = data[i];
-                const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
+            for(let i = 0; i < dataList.length; i++){
+                const tradeId = this.omitZero(this.safeString(dataList, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade(client, order);
+                    this.handleMyTrade(client, dataList[i]);
                 }
-                this.handleOrder(client, order, topic);
+                this.handleOrder(client, dataList[i], topic);
             }
         } else {
+            const data = this.safeValue(message, 'data');
             // executionreport
             const tradeId = this.omitZero(this.safeString(data, 'tradeId'));
             if (tradeId !== undefined) {
@@ -660198,7 +660212,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             }
             request['positionSide'] = requestType;
         }
-        let response = {};
+        let response = undefined;
         const triggerPrice = this.safeNumber2(paramsOmitted4, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeNumber2(paramsOmitted4, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice');

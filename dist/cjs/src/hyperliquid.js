@@ -4712,7 +4712,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         //     }
         // ]
         //
-        return this.parseLedger(response, undefined, since, limit);
+        const rows = this.infoList(response);
+        return this.parseLedger(rows, undefined, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //

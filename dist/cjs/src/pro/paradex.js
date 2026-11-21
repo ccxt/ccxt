@@ -749,7 +749,7 @@ class paradex extends paradex$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const deltas = (deltasOption === true) || ((limit !== undefined) && (limit > 15));
         const url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -818,7 +818,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const [deltasOption, paramsDeltas] = this.handleOptionAndParams(params, 'watchOrderBook', 'deltas', false);
+        const [deltasOption, paramsDeltas] = this.handleOptionBoolAndParams(params, 'watchOrderBook', 'deltas', false);
         const url = this.getWsUrl();
         const client = this.client(url);
         const channels = [];

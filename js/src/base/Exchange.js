@@ -7194,19 +7194,25 @@ export class BaseExchange {
         //         ...
         //     ]
         //
-        const results = [];
         if (Array.isArray(pricesData)) {
-            for (let i = 0; i < pricesData.length; i++) {
-                results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
-            }
+            return this.parseLastPricesList(pricesData, symbols, params);
         }
-        else {
-            const marketIds = Object.keys(pricesData);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
-            }
+        return this.parseLastPricesDict(pricesData, symbols, params);
+    }
+    parseLastPricesList(pricesData, symbols = undefined, params = {}) {
+        const results = [];
+        for (let i = 0; i < pricesData.length; i++) {
+            results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
+        }
+        return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
+    }
+    parseLastPricesDict(pricesData, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(pricesData);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -7233,19 +7239,25 @@ export class BaseExchange {
         //         ...
         //     ]
         //
-        const results = [];
         if (Array.isArray(tickers)) {
-            for (let i = 0; i < tickers.length; i++) {
-                results.push(this.extend(this.parseTicker(tickers[i]), params));
-            }
+            return this.parseTickersList(tickers, symbols, params);
         }
-        else {
-            const marketIds = Object.keys(tickers);
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                const market = this.safeMarket(marketId);
-                results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
-            }
+        return this.parseTickersDict(tickers, symbols, params);
+    }
+    parseTickersList(tickers, symbols = undefined, params = {}) {
+        const results = [];
+        for (let i = 0; i < tickers.length; i++) {
+            results.push(this.extend(this.parseTicker(tickers[i]), params));
+        }
+        return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
+    }
+    parseTickersDict(tickers, symbols = undefined, params = {}) {
+        const results = [];
+        const marketIds = Object.keys(tickers);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            results.push(this.extend(this.parseTicker(tickers[marketId], market), params));
         }
         return this.filterByArrayTickers(results, 'symbol', this.marketSymbols(symbols));
     }

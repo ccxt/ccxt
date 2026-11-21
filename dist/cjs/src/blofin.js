@@ -2894,7 +2894,7 @@ class blofin extends blofin$1["default"] {
         let market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
-            if (symbolsLength === 0) {
+            if (symbolsLength > 0) {
                 market = this.market(symbols[0]);
                 request['instId'] = market['id'];
             }

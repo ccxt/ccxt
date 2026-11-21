@@ -13130,7 +13130,7 @@ class binance extends binance$1["default"] {
         }
         let leverages = this.safeList(response, 'positions', []);
         if (Array.isArray(response)) {
-            leverages = response;
+            leverages = this.toArray(response);
         }
         return this.parseLeverages(leverages, symbols, 'symbol');
     }
@@ -15358,7 +15358,7 @@ class binance extends binance$1["default"] {
         }
         let assets = this.safeList(response, 'positions', []);
         if (Array.isArray(response)) {
-            assets = response;
+            assets = this.toArray(response);
         }
         return this.parseMarginModes(assets, symbolsNormalized, 'symbol', 'swap');
     }

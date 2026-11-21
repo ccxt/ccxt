@@ -6173,9 +6173,9 @@ class kucoin extends kucoin$1["default"] {
                 response = await this.privateGetOrdersOrderId(this.extend(request, paramsOmitted));
             }
         }
-        let responseData = this.safeValue(response, 'data', {});
-        if (Array.isArray(responseData)) {
-            responseData = this.safeDict(responseData, 0, {});
+        let responseData = this.safeDict(response, 'data');
+        if (responseData === undefined) {
+            responseData = this.safeDict(this.safeList(response, 'data', []), 0, {});
         }
         return this.parseOrder(responseData, market);
     }

@@ -4713,7 +4713,8 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        return this.parseLedger(response, undefined, since, limit);
+        const rows = this.infoList(response);
+        return this.parseLedger(rows, undefined, since, limit);
     }
     parseLedgerEntry(item, currency = undefined) {
         //

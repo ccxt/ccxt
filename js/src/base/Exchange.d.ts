@@ -963,7 +963,11 @@ export declare class BaseExchange {
     filterByCurrencySinceLimit(array: object[] | undefined, code?: Str, since?: Int, limit?: Int, tail?: boolean): any[];
     filterBySymbolsSinceLimit(array: object[] | undefined, symbols?: Strings, since?: Int, limit?: Int, tail?: boolean): any[];
     parseLastPrices(pricesData: any, symbols?: Strings, params?: Dict): LastPrices;
+    parseLastPricesList(pricesData: Dict[], symbols?: Strings, params?: Dict): LastPrices;
+    parseLastPricesDict(pricesData: Dict, symbols?: Strings, params?: Dict): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: Dict): Tickers;
+    parseTickersList(tickers: Dict[], symbols?: Strings, params?: Dict): Tickers;
+    parseTickersDict(tickers: Dict, symbols?: Strings, params?: Dict): Tickers;
     parseDepositAddresses(addresses: List, codes?: Strings, indexed?: boolean, params?: Dict): DepositAddress[];
     parseBorrowInterests(response: List, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;

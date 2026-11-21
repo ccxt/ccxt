@@ -1855,8 +1855,9 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
-        return this.parseLedger(response, currency, since, limit);
+        let rows = [];
+        rows = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
+        return this.parseLedger(rows, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
         const txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, 'sequence'), this.safeDict(account, 'pub_key', {}));
