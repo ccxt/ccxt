@@ -18633,6 +18633,7 @@ export function installCsharpGuardedMinMax (transpiler) {
             return native;
         }
         const h28c04 = h28c04GuardedMinMaxText (csharp, node, name, parsedArg1, parsedArg2); if (h28c04 !== undefined) return h28c04;
+        const h29c04 = h29c04ChainMinMaxText (csharp, node, name); if (h29c04 !== undefined) return h29c04;
         const bothInt64 = minMaxBothInt64Text (csharp, node, name, parsedArg1, parsedArg2);
         if (bothInt64 !== undefined) {
             return bothInt64;
@@ -24820,3 +24821,33 @@ function h29c01DispatchKeyPrefixes (node, scope) {
     return h29c01HandlerKeys (scope, node.arguments[1].text);
 }
 // ===== end h29-H29-C01
+// ===== h29-C04
+// Math.min/max over two `+ - *` chains of Int64 / int / literal leaves whose Int64? leaves are null-guarded:
+// each chain is a non-null long, so mathMin hands back an Int64 box equal to Math.Min(long, long)
+function h29c04ChainText (csharp, call, node) {
+    const inner = stripParens (node);
+    const op = inner?.operatorToken?.kind;
+    if (inner?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (op)) {
+        const l = h29c04ChainText (csharp, call, inner.left);
+        const r = h29c04ChainText (csharp, call, inner.right);
+        if (l === undefined || r === undefined) return undefined;
+        const kind = (l.kind === 'Int64' || r.kind === 'Int64') ? 'Int64' : 'int';
+        return { kind, text: '(' + l.text + ' ' + inner.operatorToken.getText () + ' ' + r.text + ')' };
+    }
+    if (minMaxIntLiteral (inner)) return { kind: 'int', text: inner.text };
+    if (int64CallOperandKind (csharp, inner) === 'Int64') return { kind: 'Int64', text: csharp.printNode (inner, 0).trim () };
+    if (inner?.kind !== ts.SyntaxKind.Identifier) return undefined;
+    const kind = nativeArithmeticOperandKind (csharp, inner);
+    if (kind === 'int' || kind === 'Int64') return { kind, text: csharp.printNode (inner, 0).trim () };
+    if (kind !== 'Int64?' || typeof csharp.csharpIntegralNonNullText !== 'function') return undefined;
+    const text = csharp.csharpIntegralNonNullText (call, { kind, node: inner }, csharp.printNode (inner, 0).trim ());
+    return (text === undefined) ? undefined : { kind: 'Int64', text };
+}
+
+function h29c04ChainMinMaxText (csharp, call, name) {
+    if (call?.arguments?.length !== 2 || !csharp.csharpMinMaxResultIsPlainValue (call)) return undefined;
+    const parts = call.arguments.map ((a) => h29c04ChainText (csharp, call, a));
+    if (parts.some ((p) => p === undefined || p.kind !== 'Int64')) return undefined;
+    return 'Math.' + name + '(' + parts[0].text + ', ' + parts[1].text + ')';
+}
+// ===== end h29-C04
