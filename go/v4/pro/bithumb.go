@@ -1332,7 +1332,10 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 	var fee map[string]any = nil
 	if feeCost != nil {
 		var marketForFee ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-		var feeCurrency *string = marketForFee.QuoteCurrency
+		var feeCurrency *string
+		if marketForFee.QuoteCurrency != "" {
+			feeCurrency = &marketForFee.QuoteCurrency
+		}
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrency,

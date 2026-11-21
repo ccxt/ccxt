@@ -845,7 +845,7 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 	var expiry int = 0
 	var takerFee *float64 = this.ParseNumber("0.0002")
 	var makerFee *float64 = this.ParseNumber("0.0005")
-	return this.SafeMarketStructure(map[string]any{
+	var literal67241 map[string]any = map[string]any{
 		"id":           id,
 		"id2":          id2,
 		"symbol":       symbol,
@@ -868,12 +868,6 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 		"taker":        takerFee,
 		"maker":        makerFee,
 		"contractSize": this.SafeNumber(market, "minOrderSize"),
-		"expiry": func() any {
-			if expiry == 0 {
-				return nil
-			}
-			return expiry
-		}(),
 		"expiryDatetime": func() any {
 			if expiry == 0 {
 				return nil
@@ -906,7 +900,13 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if expiry == 0 {
+		literal67241["expiry"] = nil
+	} else {
+		literal67241["expiry"] = expiry
+	}
+	return this.SafeMarketStructure(literal67241)
 }
 func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
@@ -1846,12 +1846,12 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(r1.Err)
 	}
 	var accountId *string = r1.Value
-	var finalClientOrderId any = func() any {
-		if clientOrderId != nil {
-			return clientOrderId
-		}
-		return this.GenerateRandomClientIdOmni(accountId)
-	}()
+	var finalClientOrderId any
+	if clientOrderId != nil {
+		finalClientOrderId = clientOrderId
+	} else {
+		finalClientOrderId = this.GenerateRandomClientIdOmni(accountId)
+	}
 	var paramsOmitted3 map[string]any = this.OmitDict(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
 	var finalOrderPrice any = orderPrice // java req
 	var orderToSign map[string]any = map[string]any{
@@ -1956,7 +1956,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var accountResponse map[string]any = r2.Value
 	var accountData, _ = accountResponse["data"].(map[string]any)
-	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
+	var spotAccount, _ = accountData["spotAccount"].(map[string]any)
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
 	var subAccounts []any
@@ -2000,12 +2000,12 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var amountNumber int64 = this.ParseToInt(amountValue * mathPowResult)
 	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	var finalClientOrderId any = func() any {
-		if clientOrderId != nil {
-			return clientOrderId
-		}
-		return this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
-	}()
+	var finalClientOrderId any
+	if clientOrderId != nil {
+		finalClientOrderId = clientOrderId
+	} else {
+		finalClientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	if isContract {
 		var formattedUint32 string = "4294967295"
@@ -2043,7 +2043,11 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 			panic(r4.Err)
 		}
 		var response map[string]any = r4.Value
-		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var data map[string]any
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var currentTime int64 = this.Milliseconds()
 		var parsedAmount *float64 = this.ParseNumber(amount)
 
@@ -2096,7 +2100,11 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 			panic(r6.Err)
 		}
 		var response map[string]any = r6.Value
-		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var data map[string]any
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var currentTime int64 = this.Milliseconds()
 
 		ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, this.Currency(code))), map[string]any{
@@ -2690,12 +2698,15 @@ func (this *Apex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var leverageString *string = this.NumberToString(leverage)
 	var initialMarginRate *string = Precise.StringDiv("1", leverageString, 4)
 	var request map[string]any = map[string]any{
-		"symbol":            market["id"],
+		"symbol":            nil,
 		"initialMarginRate": initialMarginRate,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params))
@@ -2777,7 +2788,10 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")

@@ -443,7 +443,11 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -602,7 +606,11 @@ func (this *Apex) HandleTicker(client any, message map[string]any) {
 	// }
 	var topic string = *this.SafeString(message, "topic", "")
 	var updateType string = *this.SafeString(message, "type", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsed map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if updateType == "snapshot" {

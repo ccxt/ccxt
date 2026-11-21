@@ -480,9 +480,12 @@ func (this *Bit2c) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))

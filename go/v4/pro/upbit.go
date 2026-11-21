@@ -59,12 +59,12 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 			panic(r.Err)
 		}
 	}
-	var symbolsRequested any = func() any {
-		if ccxt.IsEqual(symbols, nil) {
-			return this.Symbols
-		}
-		return symbols
-	}()
+	var symbolsRequested any
+	if ccxt.IsEqual(symbols, nil) {
+		symbolsRequested = this.Symbols
+	} else {
+		symbolsRequested = symbols
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbolsRequested)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var url string = this.ImplodeParams(this.SafeString(this.Urls["api"], "ws"), map[string]any{
@@ -75,7 +75,10 @@ func (this *Upbit) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], symbol
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionsKey)
+	if subscriptions == nil {
+		subscriptions = map[string]any{}
+	}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var marketId *string = this.SafeString(marketIds, i, "")
@@ -570,7 +573,10 @@ func (this *Upbit) watchPrivateBody(ch chan ccxt.AsyncResult[any], symbol *strin
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(subscriptionsKey)) {
 		client.(ccxt.ClientInterface).SubscriptionSet(subscriptionsKey, this.CreateSafeDictionary(true))
 	}
-	var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionsKey, map[string]any{})
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionsKey)
+	if subscriptions == nil {
+		subscriptions = map[string]any{}
+	}
 	_, has2 := subscriptions[channelKey]
 	var isNewChannel bool = !has2
 	if isNewChannel {

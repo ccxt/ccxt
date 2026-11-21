@@ -894,7 +894,11 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message map[string]any) {
 	//      "time_ms":1777275365214,
 	//      "event":"update"
 	//   }
-	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+	var result map[string]any
+	result, _ = message["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var full *bool = this.SafeBool(result, "full", false)
 	var marketIdWithPrefix *string = this.SafeString(result, "s")
 	if marketIdWithPrefix == nil {
@@ -991,7 +995,7 @@ func (this *Gate) HandleOrderBook(client any, message map[string]any) {
 	if isSpot {
 		marketType = "spot"
 	}
-	var delta map[string]any = ccxt.SafeMapTyped(message, "result")
+	var delta, _ = message["result"].(map[string]any)
 	var deltaStart *int64 = this.SafeInteger(delta, "U")
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
@@ -1558,7 +1562,10 @@ func (this *Gate) HandleTrades(client any, message map[string]any) {
 	var rawResult any = this.SafeValue(message, "result")
 	var result []any = []any{}
 	if ccxt.IsArray(rawResult) {
-		result = ccxt.ArrayTyped(this.SafeList(message, "result", []any{}))
+		result, _ = message["result"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 	} else {
 		result = []any{rawResult}
 	}
@@ -1768,7 +1775,10 @@ func (this *Gate) HandleOHLCV(client any, message map[string]any) {
 	var rawResult any = this.SafeValue(message, "result")
 	var result []any = []any{}
 	if ccxt.IsArray(rawResult) {
-		result = ccxt.ArrayTyped(this.SafeList(message, "result", []any{}))
+		result, _ = message["result"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 	} else {
 		result = []any{rawResult}
 	}
@@ -2339,7 +2349,7 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var rawPosition any = data[i]
+		var rawPosition, _ = data[i].(map[string]any)
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var symbol *string = this.SafeString(position, "symbol")
 		var side *string = this.SafeString(position, "side")
@@ -2918,7 +2928,7 @@ func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 	//     }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var errs map[string]any = ccxt.SafeMapTyped(data, "errs")
+	var errs, _ = data["errs"].(map[string]any)
 	var error any = this.SafeDict(message, "error", errs)
 	var code *string = this.SafeString2(error, "code", "label")
 	var id *string = this.SafeStringN(message, []any{"id", "requestId", "request_id"})
@@ -2999,12 +3009,12 @@ func (this *Gate) HandleSubscriptionStatus(client any, message map[string]any) {
 		if _, ok := methods[*channel]; ok {
 			var subscriptionHash *string = this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), id)
 			var subscription any = client.(ccxt.ClientInterface).SubscriptionSafe(subscriptionHash)
-			var method any = func() any {
-				if channel == nil {
-					return nil
-				}
-				return methods[*channel]
-			}()
+			var method any
+			if channel == nil {
+				method = nil
+			} else {
+				method = methods[*channel]
+			}
 			ccxt.CallDynamically(method, client, message, subscription)
 		}
 	}

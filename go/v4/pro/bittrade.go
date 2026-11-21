@@ -132,7 +132,11 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) map[strin
 	//         }
 	//     }
 	//
-	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = message["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -382,7 +386,7 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)

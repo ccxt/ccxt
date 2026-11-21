@@ -240,7 +240,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
-	var delta map[string]any = ccxt.SafeMapTyped(message, "data")
+	var delta, _ = message["data"].(map[string]any)
 	var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 	if deltaNonce == nil {
 		return
@@ -472,7 +472,7 @@ func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbol
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesArray == nil {
@@ -552,7 +552,11 @@ func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 2)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data, market))
 	this.FundingRates[symbol] = fundingRate
 	client.(ccxt.ClientInterface).Resolve(fundingRate, "fundingRate:"+symbol)
@@ -802,7 +806,11 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var subscription any
 	if channel == nil {
 		subscription = nil
@@ -901,7 +909,11 @@ func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var order map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var order map[string]any
+	order, _ = message["data"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 	var subscription any
 	if channel == nil {
 		subscription = nil
@@ -1083,7 +1095,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]
 		return
 	}
 	var unsubHash string = "unsubscribe:" + *channel
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash)
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
 	if subscription == nil {
 		return
 	}

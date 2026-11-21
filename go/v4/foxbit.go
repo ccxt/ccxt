@@ -832,12 +832,12 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "market_symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		if symbol != nil {
-			result[*symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, market))
+			result[*symbol] = TradingFeeInterfaceToMap(this.ParseTradingFee(data[i], market))
 		}
 	}
 
@@ -874,10 +874,13 @@ func (this *Foxbit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if limit == nil {
 		request["depth"] = defaultLimit
@@ -1423,7 +1426,7 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 	for i := 0; i < len(orders); i++ {
 		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var typeVar *string = this.SafeStringUpper(order, "type", "")
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		if (typeVar == nil || *typeVar != "LIMIT") && (typeVar == nil || *typeVar != "MARKET") && (typeVar == nil || *typeVar != "STOP_MARKET") && (typeVar == nil || *typeVar != "STOP_LIMIT") && (typeVar == nil || *typeVar != "INSTANT") {
@@ -1433,9 +1436,12 @@ func (this *Foxbit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
 		var triggerPrice *float64 = this.SafeNumber(orderParams, "triggerPrice")
 		var request map[string]any = map[string]any{
-			"market_symbol": market["id"],
+			"market_symbol": nil,
 			"side":          this.SafeStringUpper(order, "side"),
 			"type":          typeVar,
+		}
+		if market.Id != nil {
+			request["market_symbol"] = *market.Id
 		}
 		if (typeVar != nil && *typeVar == "STOP_MARKET") || (typeVar != nil && *typeVar == "STOP_LIMIT") {
 			if triggerPrice == nil {
@@ -2316,11 +2322,14 @@ func (this *Foxbit) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency_symbol":     currency["id"],
+		"currency_symbol":     nil,
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
+	}
+	if currency.Id != nil {
+		request["currency_symbol"] = *currency.Id
 	}
 	if tagWithdrawTag != nil {
 		request["destination_tag"] = *tagWithdrawTag

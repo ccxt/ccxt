@@ -2339,8 +2339,8 @@ func (this *Bybit) EnableDemoTrading(enable bool) {
 func (this *Bybit) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Bybit) AddPaginationCursorToResult(response any) []any {
-	var result map[string]any = SafeMapTyped(response, "result")
+func (this *Bybit) AddPaginationCursorToResult(response map[string]any) []any {
+	var result, _ = response["result"].(map[string]any)
 	var data []any = this.SafeListNSliceDefault(result, []any{"list", "rows", "data", "dataList"}, []any{})
 	var paginationCursor *string = this.SafeString2(result, "nextPageCursor", "cursor")
 	var dataLength int = len(data)
@@ -3185,7 +3185,11 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 				responseInner = r3.Value
 			}
 			var dataNew, _ = responseInner["result"].(map[string]any)
-			var rawMarkets []any = this.SafeListSlice(dataNew, "list", []any{})
+			var rawMarkets []any
+			rawMarkets, _ = dataNew["list"].([]any)
+			if rawMarkets == nil {
+				rawMarkets = []any{}
+			}
 			var rawMarketsLength int = len(rawMarkets)
 			if rawMarketsLength == 0 {
 				break
@@ -3430,7 +3434,11 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 					responseInner = r3.Value
 				}
 				var dataNew, _ = responseInner["result"].(map[string]any)
-				var rawMarkets []any = this.SafeListSlice(dataNew, "list", []any{})
+				var rawMarkets []any
+				rawMarkets, _ = dataNew["list"].([]any)
+				if rawMarkets == nil {
+					rawMarkets = []any{}
+				}
 				var rawMarketsLength int = len(rawMarkets)
 				if rawMarketsLength == 0 {
 					break
@@ -3502,9 +3510,9 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		var isInverse bool = (base == settle || (base != nil && settle != nil && *base == *settle))
 		var loadExpiredOptions bool = this.HandleOption("fetchMarkets", "loadExpiredOptions") == true
 		if isActive || (loadAllOptions == true) || (loadExpiredOptions == true) {
-			result = append(result, this.SafeMarketStructure(map[string]any{
+			var literal241555 map[string]any = map[string]any{
 				"id":             id,
-				"symbol":         Add(Add(Add(Add(Add(Add(Add(*base+"/"+*quote+":", settle), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), optionLetter),
+				"symbol":         nil,
 				"base":           base,
 				"quote":          quote,
 				"settle":         settle,
@@ -3553,7 +3561,11 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 				},
 				"created": this.SafeInteger(market, "launchTime"),
 				"info":    market,
-			}))
+			}
+			if base != nil && quote != nil && settle != nil {
+				literal241555["symbol"] = *base + "/" + *quote + ":" + *settle + "-" + this.Yymmdd(expiry) + "-" + strike + "-" + optionLetter
+			}
+			result = append(result, this.SafeMarketStructure(literal241555))
 		}
 	}
 
@@ -4321,7 +4333,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         "time": 1663670053454
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
+	var data, _ = response["result"].(map[string]any)
 	var tickerList []any = this.SafeListSlice(data, "list", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	for i := 0; i < len(tickerList); i++ {
@@ -4420,9 +4432,9 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 				fundingInterval = (*fundingTimeFrameMins * 60) * 1000
 			}
 			if limit == nil {
-				request["endTime"] = this.Sum(since, 200*fundingInterval)
+				request["endTime"] = *since + 200*fundingInterval
 			} else {
-				request["endTime"] = this.Sum(since, *limit*fundingInterval)
+				request["endTime"] = *since + *limit*fundingInterval
 			}
 		}
 	}
@@ -5037,7 +5049,7 @@ func (this *Bybit) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var responseResult map[string]any = SafeMapTyped(response, "result")
+	var responseResult, _ = response["result"].(map[string]any)
 	var currencyList []any = this.SafeListNSlice(responseResult, []any{"loanAccountList", "list", "balance"})
 	if currencyList == nil {
 		// usdc wallet
@@ -5851,12 +5863,12 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	if Precise.StringGt(this.NumberToString(amount), "0") {
 		amountValue = amount
 	}
-	var amountString any = func() any {
-		if !IsEqual(amountValue, nil) {
-			return this.GetAmount(symbolValue, amountValue)
-		}
-		return nil
-	}()
+	var amountString any
+	if !IsEqual(amountValue, nil) {
+		amountString = this.GetAmount(symbolValue, amountValue)
+	} else {
+		amountString = nil
+	}
 	var priceString *string
 	if price != nil {
 		priceString = this.GetPrice(symbolValue, this.NumberToString(price))
@@ -6192,10 +6204,10 @@ func (this *Bybit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 	codes, _ = retInfo["list"].([]any)
 	// extend the error with the unsuccessful orders
 	for i := 0; i < len(codes); i++ {
-		var code any = codes[i]
+		var code, _ = codes[i].(map[string]any)
 		var retCode *int64 = this.SafeInteger(code, "code")
 		if retCode == nil || *retCode != 0 {
-			AddElementToObject(data, i, this.Extend(GetValue(data, i), code))
+			AddElementToObject(data, i, this.Extend(GetValue(data, i), codes[i]))
 		}
 	}
 
@@ -6471,10 +6483,10 @@ func (this *Bybit) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[str
 	codes, _ = retInfo["list"].([]any)
 	// extend the error with the unsuccessful orders
 	for i := 0; i < len(codes); i++ {
-		var code any = codes[i]
+		var code, _ = codes[i].(map[string]any)
 		var retCode *int64 = this.SafeInteger(code, "code")
 		if retCode == nil || *retCode != 0 {
-			AddElementToObject(data, i, this.Extend(GetValue(data, i), code))
+			AddElementToObject(data, i, this.Extend(GetValue(data, i), codes[i]))
 		}
 	}
 
@@ -7389,7 +7401,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan AsyncResult[[]Order], optional
 	//         "time": 1672221263862
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -7679,7 +7691,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 	//         "time": 1758187806376
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -7953,7 +7965,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         "time": 1758187806376
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -8125,7 +8137,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	//         "time": 1672283754510
 	//     }
 	//
-	var trades any = this.AddPaginationCursorToResult(response)
+	var trades []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -8180,9 +8192,12 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"coin": currency["id"],
+		"coin": nil,
+	}
+	if currency.Id != nil {
+		request["coin"] = *currency.Id
 	}
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	if networkCode != nil {
@@ -8214,7 +8229,11 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 	//     }
 	//
 	var result, _ = response["result"].(map[string]any)
-	var chains []any = this.SafeListSlice(result, "chains", []any{})
+	var chains []any
+	chains, _ = result["chains"].([]any)
+	if chains == nil {
+		chains = []any{}
+	}
 	var coin *string = this.SafeString(result, "coin")
 	var currencyFromResponse map[string]any = this.Currency(coin)
 	var parsed []any = this.ParseDepositAddresses(chains, []any{currencyFromResponse["code"]}, false, map[string]any{
@@ -8367,7 +8386,7 @@ func (this *Bybit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 	//         "time": 1672191992512
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -8484,7 +8503,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 	//         "time": 1672194949928
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -8801,7 +8820,7 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	//         "time": 1672132481405
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
@@ -9096,7 +9115,7 @@ func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 	//         "time": 1672280219169
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var positions []any = SafeList2Typed(result, "list", "dataList")
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var first map[string]any = this.SafeDictMap(positions, 0, map[string]any{})
@@ -9720,8 +9739,14 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 				"category":     typeVar,
 				"symbol":       market["id"],
 				"tradeMode":    tradeMode,
-				"buyLeverage":  buyLeverage,
-				"sellLeverage": sellLeverage,
+				"buyLeverage":  nil,
+				"sellLeverage": nil,
+			}
+			if buyLeverage != nil {
+				request["buyLeverage"] = *buyLeverage
+			}
+			if sellLeverage != nil {
+				request["sellLeverage"] = *sellLeverage
 			}
 
 			r4 := <-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, paramsOmitted))
@@ -9931,9 +9956,9 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan AsyncResult[[
 		// the endpoint walks backwards from endTime and ignores a lone startTime
 		var duration int64 = this.ParseTimeframe(timeframe)
 		if limit == nil {
-			request["endTime"] = this.Sum(since, (duration*50)*1000) // exchange default
+			request["endTime"] = *since + (duration*50)*1000 // exchange default
 		} else {
-			request["endTime"] = this.Sum(since, (duration**limit)*1000)
+			request["endTime"] = *since + (duration**limit)*1000
 		}
 	}
 	if limit != nil {
@@ -9968,8 +9993,8 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan AsyncResult[[
 	//         "time": 1672053548579
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var data any = this.AddPaginationCursorToResult(response)
+	var result, _ = response["result"].(map[string]any)
+	var data []any = this.AddPaginationCursorToResult(response)
 	var id *string = this.SafeString(result, "symbol")
 	var safeMarketObj map[string]any = this.SafeMarket(id, market, nil, "contract")
 
@@ -10054,7 +10079,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	//         "time": 1672053548579
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var id *string = this.SafeString(result, "symbol")
 	var safeMarketObj map[string]any = this.SafeMarket(id, market, nil, "contract")
 	var data []any = this.AddPaginationCursorToResult(response)
@@ -10120,12 +10145,15 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		}
 		return nil
 	}
-	var market map[string]any = this.Market(symbol)
-	if (*this.SafeBool(market, "spot", false)) || (*this.SafeBool(market, "option", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if (market.Spot) || (market.Option) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -10244,7 +10272,7 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate]
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var data map[string]any = SafeMapTyped(response, "result")
+	var data, _ = response["result"].(map[string]any)
 	var vipCoinList []any
 	vipCoinList, _ = data["vipCoinList"].([]any)
 	var firstVip map[string]any
@@ -10415,9 +10443,12 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var sinceResolved int64
 	if since == nil {
@@ -10554,7 +10585,11 @@ func (this *Bybit) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	// }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var transfer map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var transfer map[string]any
+	transfer, _ = response["result"].(map[string]any)
+	if transfer == nil {
+		transfer = map[string]any{}
+	}
 	var statusRaw *string = this.SafeString2(response, "retCode", "retMsg")
 	var status *string = this.ParseTransferStatus(statusRaw)
 
@@ -10661,7 +10696,7 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 	//         "time": 1670988271677
 	//     }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(data, currency, since, limit))}
 	return nil
@@ -11565,10 +11600,13 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string]a
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"category": "option",
-		"baseCoin": currency["id"],
+		"baseCoin": nil,
+	}
+	if currency.Id != nil {
+		request["baseCoin"] = *currency.Id
 	}
 
 	r1 := <-this.PublicGetV5MarketHistoricalVolatility(this.Extend(request, params))
@@ -11609,7 +11647,7 @@ func (this *Bybit) ParseVolatilityHistory(volatility []any) []any {
 	//
 	var result []any = []any{}
 	for i := 0; i < len(volatility); i++ {
-		var entry map[string]any = SafeMapTyped(volatility, i)
+		var entry, _ = volatility[i].(map[string]any)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
 		result = append(result, map[string]any{
 			"info":       volatility,
@@ -11699,7 +11737,7 @@ func (this *Bybit) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var data []any
 	data, _ = result["list"].([]any)
 	var greeks map[string]any
@@ -12514,10 +12552,13 @@ func (this *Bybit) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], 
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"category": "option",
-		"baseCoin": currency["id"],
+		"baseCoin": nil,
+	}
+	if currency.Id != nil {
+		request["baseCoin"] = *currency.Id
 	}
 
 	r1 := <-this.PublicGetV5MarketTickers(this.Extend(request, params))

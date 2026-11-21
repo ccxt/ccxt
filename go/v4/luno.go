@@ -780,14 +780,15 @@ func (this *Luno) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs
 	return nil
 }
 func (this *Luno) ParseBalance(response map[string]any) map[string]any {
-	var wallets []any = SafeListTyped(response, "balance")
+	var wallets []any
+	wallets, _ = response["balance"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(wallets); i++ {
-		var wallet map[string]any = SafeMapTyped(wallets, i)
+		var wallet, _ = wallets[i].(map[string]any)
 		var currencyId *string = this.SafeString(wallet, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
@@ -1733,9 +1734,12 @@ func (this *Luno) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	responseReply := <-this.PrivateGetFeeInfo(this.Extend(request, params))

@@ -1166,9 +1166,12 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
 	var network *string
@@ -1235,9 +1238,12 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var networkInput *string = this.SafeStringUpper(params, "network")
 	var network *string
@@ -1498,7 +1504,11 @@ func (this *Hitbtc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		var marketId string = keys[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var entry map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
+		var entry map[string]any
+		entry, _ = response[marketId].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		if symbol != nil {
 			result[*symbol] = TickerToMap(this.ParseTicker(entry, market))
 		}
@@ -1623,7 +1633,11 @@ func (this *Hitbtc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var marketInner map[string]any = this.Market(marketId)
-		var rawTrades []any = this.SafeListSlice(response, marketId, []any{})
+		var rawTrades []any
+		rawTrades, _ = response[marketId].([]any)
+		if rawTrades == nil {
+			rawTrades = []any{}
+		}
 		var parsed []any = this.ParseTrades(rawTrades, marketInner)
 		trades = this.ArrayConcat(trades, parsed)
 	}
@@ -2187,7 +2201,11 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBook
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var orderbook map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
+		var orderbook map[string]any
+		orderbook, _ = response[marketId].(map[string]any)
+		if orderbook == nil {
+			orderbook = map[string]any{}
+		}
 		var symbol *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 		if symbol != nil {
@@ -2228,9 +2246,12 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["depth"] = *limit
@@ -4482,7 +4503,11 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenIn
 	for i := 0; i < len(markets); i++ {
 		var marketId string = markets[i]
 		var marketInner map[string]any = this.SafeMarket(marketId)
-		var openInterest map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
+		var openInterest map[string]any
+		openInterest, _ = response[marketId].(map[string]any)
+		if openInterest == nil {
+			openInterest = map[string]any{}
+		}
 		results = append(results, OpenInterestToMap(this.ParseOpenInterest(openInterest, marketInner)))
 	}
 
@@ -5302,17 +5327,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	return map[string]any{
-		"url":    url,
-		"method": method,
-		"body": func() any {
-			if method == "GET" {
-				return nil
-			}
-			return bodyString
-		}(),
+	var literal394215 map[string]any = map[string]any{
+		"url":     url,
+		"method":  method,
 		"headers": headersValue,
 	}
+	if method == "GET" {
+		literal394215["body"] = nil
+	} else {
+		literal394215["body"] = bodyString
+	}
+	return literal394215
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

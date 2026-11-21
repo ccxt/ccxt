@@ -1352,7 +1352,10 @@ func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
 		var setting any = GetValue(settings, i)
 		var marketId *string = this.SafeString(setting, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
-		var symbol *string = market.Symbol
+		var symbol *string
+		if market.Symbol != "" {
+			symbol = &market.Symbol
+		}
 		if symbol != nil {
 			settingsBySymbol[*symbol] = setting
 		}
@@ -1616,7 +1619,10 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) FundingRat
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
@@ -1969,7 +1975,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//   "has_more": true   // not included to info!
 	// }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2205,10 +2211,13 @@ func (this *Pacifica) CreateOrderRequest(symbol *string, typeVar string, side *s
 	 * @param {int} [params.expiryWindow] time to live in milliseconds
 	 * @returns {object} an [order structure]
 	 */
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var sigPayload map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"side":   this.MapSide(*side),
+	}
+	if market.Id != nil {
+		sigPayload["symbol"] = *market.Id
 	}
 	var operationType string = "create_order"
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
@@ -2731,7 +2740,7 @@ func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) map[string
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var operationType string = "cancel_order"
 	if isStopOrder != nil && *isStopOrder {
@@ -2739,7 +2748,10 @@ func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) map[string
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var sigPayload map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		sigPayload["symbol"] = *market.Id
 	}
 	if clientOrderId != nil {
 		sigPayload["client_order_id"] = clientOrderId
@@ -3385,12 +3397,12 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//   "has_more": true
 	// }
 	//
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
-func (this *Pacifica) AddPaginationCursorToResult(response any) []any {
+func (this *Pacifica) AddPaginationCursorToResult(response map[string]any) []any {
 	var data []any = this.SafeListSlice(response, "data", []any{})
 	var paginationCursor *string = this.SafeString(response, "next_cursor")
 	var hasMore *bool = this.SafeBool(response, "has_more", false)
@@ -3813,7 +3825,10 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position 
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var margin *string = this.SafeString(position, "margin")
 	var rawIsolated *bool = this.SafeBool(position, "isolated")
 	var isIsolated bool = (margin != nil) && (margin == nil || *margin != "0")
@@ -3898,11 +3913,14 @@ func (this *Pacifica) setMarginModeBody(ch chan AsyncResult[map[string]any], mar
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var isIsolated bool = (marginMode == "isolated")
 	var sigPayload map[string]any = map[string]any{
-		"symbol":      market["id"],
+		"symbol":      nil,
 		"is_isolated": isIsolated,
+	}
+	if market.Id != nil {
+		sigPayload["symbol"] = *market.Id
 	}
 	var request map[string]any = this.PostActionRequest(operationType, sigPayload, params)
 
@@ -3953,10 +3971,13 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var sigPayload map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"leverage": leverage,
+	}
+	if market.Id != nil {
+		sigPayload["symbol"] = *market.Id
 	}
 	var request map[string]any = this.PostActionRequest(operationType, sigPayload, params)
 
@@ -4393,7 +4414,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	//   "next_cursor": "11114Lz77",
 	//   "has_more": true
 	// }
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, nil, since, limit))}
 	return nil
@@ -4728,7 +4749,10 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var amount *string = this.SafeString(income, "payout")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")

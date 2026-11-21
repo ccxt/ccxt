@@ -515,9 +515,9 @@ func (this *Indodax) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	return nil
 }
 func (this *Indodax) ParseBalance(response map[string]any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "return")
-	var free map[string]any = SafeMapTyped(balances, "balance")
-	var used map[string]any = SafeMapTyped(balances, "balance_hold")
+	var balances, _ = response["return"].(map[string]any)
+	var free, _ = balances["balance"].(map[string]any)
+	var used, _ = balances["balance_hold"].(map[string]any)
 	var timestamp *int64 = this.SafeTimestamp(balances, "server_time")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -1427,11 +1427,14 @@ func (this *Indodax) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"pair":     market["id"],
+		"pair":     nil,
 		"type":     side,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostCancelOrder(this.Extend(request, params))

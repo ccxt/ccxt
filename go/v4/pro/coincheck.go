@@ -124,7 +124,13 @@ func (this *Coincheck) HandleOrderBook(client any, message []any) {
 	//     ]
 	//
 	var symbol *string = this.SafeString(this.Market(this.SafeString(message, 0)), "symbol", "")
-	var data map[string]any = this.SafeDictMap(message, 1, map[string]any{})
+	var data map[string]any
+	if 1 < len(message) {
+		data, _ = message[1].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot)
@@ -203,7 +209,10 @@ func (this *Coincheck) HandleTrades(client any, message []any) {
 	//         ]
 	//     ]
 	//
-	var first []any = ccxt.SafeListTyped(message, 0)
+	var first []any
+	if 0 < len(message) {
+		first, _ = message[0].([]any)
+	}
 	var symbol string = *this.SafeString(this.Market(this.SafeString(first, 2)), "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {

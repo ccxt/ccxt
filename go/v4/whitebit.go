@@ -2290,9 +2290,12 @@ func (this *Whitebit) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit // default = 100, maximum = 100
@@ -2733,18 +2736,18 @@ func (this *Whitebit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	//
 	var status *string = this.SafeString(response, 0)
 
-	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status": func() any {
-			if status != nil && *status == "pong" {
-				return "ok"
-			}
-			return status
-		}(),
+	var literal199915 map[string]any = map[string]any{
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
-	})}
+	}
+	if status != nil && *status == "pong" {
+		literal199915["status"] = "ok"
+	} else {
+		literal199915["status"] = status
+	}
+	ch <- AsyncResult[Status]{Value: StatusFromMap(literal199915)}
 	return nil
 }
 
@@ -2885,10 +2888,13 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
 		"side":   side,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	cost, paramsCost := this.HandleParamString(params, "cost")
 	if cost != nil {
@@ -2914,7 +2920,7 @@ func (this *Whitebit) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	} else {
 		paramsOmitted = paramsCost
 	}
-	var marketType *string = this.SafeString(market, "type")
+	var marketType *string = market.Type
 	var isLimitOrder bool = (typeVar == "limit")
 	var isMarketOrder bool = (typeVar == "market")
 	var triggerPrice *float64 = this.SafeNumberN(paramsOmitted, []any{"triggerPrice", "stopPrice", "activation_price"})
@@ -3060,9 +3066,12 @@ func (this *Whitebit) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	// Handle clientOrderId vs orderId (clientOrderId takes priority)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -3147,10 +3156,13 @@ func (this *Whitebit) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":  market["id"],
+		"market":  nil,
 		"orderId": this.ParseToInt(id),
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	r1 := <-this.V4PrivatePostOrderCancel(this.Extend(request, params))
@@ -3344,14 +3356,17 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelAllOrdersAfter() requires a symbol argument in params"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var paramsOmitted map[string]any = this.OmitDict(params, "symbol")
 	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var isBiggerThanZero bool = (timeout > 0)
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if isBiggerThanZero {
 		request["timeout"] = this.NumberToString(float64(timeout) / 1000)
@@ -4076,9 +4091,12 @@ func (this *Whitebit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"ticker": currency["id"],
+		"ticker": nil,
+	}
+	if currency.Id != nil {
+		request["ticker"] = *currency.Id
 	}
 	var response map[string]any = nil
 	if this.IsFiat(code) {
@@ -5216,7 +5234,7 @@ func (this *Whitebit) ParseFundingHistories(contracts []any, optionalArgs ...any
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < len(contracts); i++ {
-		var contract map[string]any = SafeMapTyped(contracts, i)
+		var contract, _ = contracts[i].(map[string]any)
 		result = append(result, this.ParseFundingHistory(contract, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
@@ -5628,9 +5646,12 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
 		request["startDate"] = *since
@@ -5792,7 +5813,13 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 	//         }
 	//     ]
 	//
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(data, market)}
 	return nil
@@ -6037,18 +6064,17 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var headersValue map[string]any
+	var literal434015 map[string]any = map[string]any{
+		"url":    url,
+		"method": method,
+		"body":   requestBody,
+	}
 	if isPrivate {
-		headersValue = privateHeaders
+		literal434015["headers"] = privateHeaders
 	} else {
-		headersValue = publicHeaders
+		literal434015["headers"] = publicHeaders
 	}
-	return map[string]any{
-		"url":     url,
-		"method":  method,
-		"body":    requestBody,
-		"headers": headersValue,
-	}
+	return literal434015
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {

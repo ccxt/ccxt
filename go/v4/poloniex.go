@@ -2799,12 +2799,12 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var entryMarket any = func() any {
-			if i >= 0 && i < len(ordersMarkets) {
-				return ordersMarkets[i]
-			}
-			return nil
-		}()
+		var entryMarket any
+		if i >= 0 && i < len(ordersMarkets) {
+			entryMarket = ordersMarkets[i]
+		} else {
+			entryMarket = nil
+		}
 		results = append(results, OrderToMap(this.ParseOrder(entry, entryMarket)))
 	}
 
@@ -3784,8 +3784,16 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var asks []any = this.SafeListSlice(response, "asks", []any{})
-	var bids []any = this.SafeListSlice(response, "bids", []any{})
+	var asks []any
+	asks, _ = response["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = response["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	var asksResult []any = []any{}
 	var bidsResult []any = []any{}
 	for i := 0; i < len(asks); i++ {
@@ -3951,11 +3959,14 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
 	var request map[string]any = map[string]any{
-		"currency": exchangeNetworkId,
+		"currency": nil,
+	}
+	if exchangeNetworkId != nil {
+		request["currency"] = *exchangeNetworkId
 	}
 	return []any{request, query, currency, networkEntry}
 }
-func (this *Poloniex) ParseDepositAddressSpecial(response any, currency any, networkEntry any) map[string]any {
+func (this *Poloniex) ParseDepositAddressSpecial(response map[string]any, currency any, networkEntry any) map[string]any {
 	var address *string = this.SafeString(response, "address")
 	if address == nil {
 		address = this.SafeString(response, this.SafeString(networkEntry, "id"))
@@ -4835,7 +4846,7 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\""))
@@ -4849,7 +4860,10 @@ func (this *Poloniex) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	var request map[string]any = map[string]any{
 		"lever":   leverage,
 		"mgnMode": strings.ToUpper(*marginMode),
-		"symbol":  market["id"],
+		"symbol":  nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SwapPrivatePostV3PositionLeverage(this.Extend(request, paramsHedged))

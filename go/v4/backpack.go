@@ -900,7 +900,10 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var markets []any = []any{}
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var rawMarket map[string]any = this.SafeDictMap(response, i, map[string]any{})
+		var rawMarket, _ = response[i].(map[string]any)
+		if rawMarket == nil {
+			rawMarket = map[string]any{}
+		}
 		var rawType *string = this.SafeString(rawMarket, "marketType", "")
 		if !this.InArray(rawType, marketTypes) {
 			continue
@@ -1167,25 +1170,19 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	} else {
 		active = (orderBookState != nil && *orderBookState == "Open")
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type":     typeVar,
-		"spot":     (typeVar == "spot"),
-		"margin":   (typeVar == "spot") && !stock && !rfq,
-		"stock":    stock,
-		"executionModel": func() any {
-			if rfq {
-				return "rfq"
-			}
-			return nil
-		}(),
+	var literal94241 map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           (typeVar == "spot"),
+		"margin":         (typeVar == "spot") && !stock && !rfq,
+		"stock":          stock,
 		"swap":           (typeVar == "swap"),
 		"future":         false,
 		"option":         false,
@@ -1224,7 +1221,13 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		},
 		"created": this.Parse8601(this.SafeString(market, "createdAt")),
 		"info":    market,
-	})
+	}
+	if rfq {
+		literal94241["executionModel"] = "rfq"
+	} else {
+		literal94241["executionModel"] = nil
+	}
+	return this.SafeMarketStructure(literal94241)
 }
 
 /**
@@ -1396,30 +1399,27 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	var fromAmountValue *float64
-	if fromIsBase {
-		fromAmountValue = filled
-	} else {
-		fromAmountValue = cost
-	}
-	var toAmountValue *float64
-	if fromIsBase {
-		toAmountValue = cost
-	} else {
-		toAmountValue = filled
-	}
-	return ConversionFromMap(map[string]any{
+	var literal111415 map[string]any = map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"id":           this.SafeString(order, "id"),
 		"fromCurrency": this.SafeCurrencyCode(fromCode),
-		"fromAmount":   fromAmountValue,
 		"toCurrency":   this.SafeCurrencyCode(toCode),
-		"toAmount":     toAmountValue,
 		"price":        this.SafeNumber2(order, "average", "price"),
 		"fee":          this.SafeNumber(fee, "cost"),
-	})
+	}
+	if fromIsBase {
+		literal111415["fromAmount"] = filled
+	} else {
+		literal111415["fromAmount"] = cost
+	}
+	if fromIsBase {
+		literal111415["toAmount"] = cost
+	} else {
+		literal111415["toAmount"] = filled
+	}
+	return ConversionFromMap(literal111415)
 }
 
 /**
@@ -1536,28 +1536,27 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(map[string]any{
+	var literal120015 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
 		"id":           nil,
 		"fromCurrency": fromCurrency,
-		"fromAmount": func() any {
-			if fromIsBase {
-				return baseAmount
-			}
-			return quoteAmount
-		}(),
-		"toCurrency": toCurrency,
-		"toAmount": func() any {
-			if fromIsBase {
-				return quoteAmount
-			}
-			return baseAmount
-		}(),
-		"price": this.SafeNumber(quote, "price"),
-		"fee":   nil,
-	})}
+		"toCurrency":   toCurrency,
+		"price":        this.SafeNumber(quote, "price"),
+		"fee":          nil,
+	}
+	if fromIsBase {
+		literal120015["fromAmount"] = baseAmount
+	} else {
+		literal120015["fromAmount"] = quoteAmount
+	}
+	if fromIsBase {
+		literal120015["toAmount"] = quoteAmount
+	} else {
+		literal120015["toAmount"] = baseAmount
+	}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120015)}
 	return nil
 }
 
@@ -2279,7 +2278,13 @@ func (this *Backpack) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
@@ -2361,7 +2366,13 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var interest map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var interest map[string]any
+	if 0 < len(response) {
+		interest, _ = response[0].(map[string]any)
+	}
+	if interest == nil {
+		interest = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
@@ -4478,7 +4489,10 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	var id *string = this.SafeString(position, "positionId")
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
 	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")

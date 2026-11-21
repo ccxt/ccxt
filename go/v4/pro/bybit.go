@@ -804,7 +804,11 @@ func (this *Bybit) HandleTicker(client any, message map[string]any) {
 	//
 	var topic string = *this.SafeString(message, "topic", "")
 	var updateType string = *this.SafeString(message, "type", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var isSpot bool = (this.SafeString(data, "usdIndexPrice") != nil)
 	var typeVar string = "contract"
 	if isSpot {
@@ -1587,7 +1591,11 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
 	var typeVar *string = this.SafeString(message, "type")
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var marketType string = "contract"
 	if isSpot {
@@ -2476,7 +2484,7 @@ func (this *Bybit) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	var rawPositions, _ = message["data"].([]any)
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
@@ -2682,7 +2690,11 @@ func (this *Bybit) HandleLiquidation(client any, message map[string]any) {
 			client.(ccxt.ClientInterface).Resolve([]any{liquidation}, "liquidations::"+*symbol)
 		}
 	} else {
-		var rawLiquidation map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var rawLiquidation map[string]any
+		rawLiquidation, _ = message["data"].(map[string]any)
+		if rawLiquidation == nil {
+			rawLiquidation = map[string]any{}
+		}
 		var marketId *string = this.SafeString(rawLiquidation, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, "", "contract")
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2909,7 +2921,11 @@ func (this *Bybit) HandleOrderWs(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "reqId")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }

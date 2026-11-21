@@ -1400,7 +1400,7 @@ func (this *Opinion) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
 			marketOrderPrice = nil
 		}
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r1.Value.Info
 	var topicId *int64 = this.SafeInteger(info, "marketId")
 	var quoteTokenAddress *string = this.SafeString(info, "quoteToken")
 
@@ -1689,7 +1689,7 @@ func (this *Opinion) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		} else {
 			outcomeObj = ccxt.StructBox(r1.Value, ccxt.PredictionOutcomeToMap)
 		}
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info map[string]any = r1.Value.Info
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
@@ -1908,7 +1908,7 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		} else {
 			outcomeObj = ccxt.StructBox(r1.Value, ccxt.PredictionOutcomeToMap)
 		}
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info map[string]any = r1.Value.Info
 		request["marketId"] = this.SafeInteger(info, "marketId")
 	}
 
@@ -2652,7 +2652,7 @@ func (this *Opinion) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r.Value.Info
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var channel string = "market.depth.diff"
@@ -2790,7 +2790,7 @@ func (this *Opinion) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r.Value.Info
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = nil
@@ -2878,7 +2878,7 @@ func (this *Opinion) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r.Value.Info
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var sym *string = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	var messageHash *string = nil
@@ -2984,7 +2984,7 @@ func (this *Opinion) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r.Value.Info
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var messageHash string = "orders"
 
@@ -3134,7 +3134,7 @@ func (this *Opinion) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var info map[string]any = r.Value.Info
 	var marketId *int64 = this.SafeInteger(info, "marketId")
 	var messageHash string = "myTrades"
 

@@ -153,7 +153,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	} else {
 		orderbook.Reset()
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	orderbook.SetSymbol(&symbol)
 	var asks []any = this.SafeListSlice(data, "asks", []any{})
 	var bids []any = this.SafeListSlice(data, "bids", []any{})
 	this.HandleDeltas(orderbook.GetAsks(), asks)
@@ -246,7 +246,11 @@ func (this *Coinone) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsTicker(data)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
@@ -394,7 +398,11 @@ func (this *Coinone) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data)
 	var symbol string = *this.SafeString(trade, "symbol", "")
 	var stored ccxt.WsArrayCache = this.Trades[symbol]

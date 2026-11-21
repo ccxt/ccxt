@@ -1641,7 +1641,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		request["start_ts"] = *since - (duration * 1000)
 		if limit != nil {
 			var countLimit int64 = this.ParseToInt(min(*limit, 300))
-			request["end_ts"] = this.Sum(since, (duration*countLimit)*1000)
+			request["end_ts"] = *since + (duration*countLimit)*1000
 		} else {
 			request["end_ts"] = until
 		}
@@ -1715,9 +1715,12 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": market["id"],
+		"instrument_name": nil,
+	}
+	if market.Id != nil {
+		request["instrument_name"] = *market.Id
 	}
 	if (limit != nil) && (limit == nil || *limit != 0) {
 		request["depth"] = min(*limit, 50) // max 50
@@ -1759,8 +1762,9 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	return nil
 }
 func (this *Cryptocom) ParseBalance(response map[string]any) map[string]any {
-	var responseResult map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(responseResult, "data")
+	var responseResult, _ = response["result"].(map[string]any)
+	var data []any
+	data, _ = responseResult["data"].([]any)
 	var positionBalances []any = SafeListTyped(this.SafeDict(data, 0), "position_balances")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -2228,11 +2232,14 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 	// since the advanced order endpoint requires a different set of parameters
 	// namely here we don't support ref_price or spot_margin
 	// and market-buy orders need to send notional instead of quantity
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var uppercaseType string = strings.ToUpper(*typeVar)
 	var request map[string]any = map[string]any{
-		"instrument_name": market["id"],
+		"instrument_name": nil,
 		"side":            strings.ToUpper(*side),
+	}
+	if market.Id != nil {
+		request["instrument_name"] = *market.Id
 	}
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2626,10 +2633,13 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		var order map[string]any = orders[i]
 		var id *string = this.SafeString(order, "id")
 		var symbol *string = this.SafeString(order, "symbol")
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var orderItem map[string]any = map[string]any{
-			"instrument_name": market["id"],
+			"instrument_name": nil,
 			"order_id":        *id,
+		}
+		if market.Id != nil {
+			orderItem["instrument_name"] = *market.Id
 		}
 		orderRequests = append(orderRequests, orderItem)
 	}
@@ -2975,9 +2985,12 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[ma
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.SafeCurrency(code)
+	var currency Currency = CurrencyFromMap(this.SafeCurrency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	r1 := <-this.V1PrivatePostPrivateGetDepositAddress(this.Extend(request, params))
@@ -4551,10 +4564,10 @@ func (this *Cryptocom) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	positions, _ = responseResult["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var entry any = positions[i]
+		var entry, _ = positions[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "instrument_name")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		result = append(result, PositionToMap(this.ParsePosition(entry, marketInner)))
+		result = append(result, PositionToMap(this.ParsePosition(positions[i], marketInner)))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", nil))}

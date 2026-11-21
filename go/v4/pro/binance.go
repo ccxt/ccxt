@@ -1413,7 +1413,10 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 		marketType = "spot"
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var messageHash string = "orderbook::" + *symbol
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		//
@@ -2163,7 +2166,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	stock, paramsStock := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
 	if stock == true {
 		if (timeframe != "5m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
@@ -2523,7 +2526,7 @@ func (this *Binance) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	params["callerMethodName"] = "watchOHLCV"
 
 	r1 := <-this.UnWatchOHLCVForSymbolsAsync([][]any{[]any{symbolValue, timeframe}}, params)
@@ -2583,7 +2586,10 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 		marketType = "spot"
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	// coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
 	var inverse *bool = market.Inverse
 	var volumeKey string
@@ -7593,7 +7599,10 @@ func (this *Binance) HandleOrder(client any, message any) {
 		if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 			orders = byKey[*symbol]
 		}
-		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
+		var order map[string]any
+		if orderId != nil {
+			order, _ = orders[*orderId].(map[string]any)
+		}
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -7807,20 +7816,20 @@ func (this *Binance) HandleMessage(client any, message map[string]any) {
 	}
 	// handle WebSocketAPI
 	var eventMsg map[string]any = this.SafeDictMap(messageValue3, "event")
-	var messageValue2 any = func() any {
-		if eventMsg != nil {
-			return eventMsg
-		}
-		return messageValue3
-	}()
+	var messageValue2 any
+	if eventMsg != nil {
+		messageValue2 = eventMsg
+	} else {
+		messageValue2 = messageValue3
+	}
 	// handle combined stream wrapper payloads
 	var eventData map[string]any = this.SafeDictMap(messageValue2, "data")
-	var messageValue any = func() any {
-		if eventData != nil {
-			return eventData
-		}
-		return messageValue2
-	}()
+	var messageValue any
+	if eventData != nil {
+		messageValue = eventData
+	} else {
+		messageValue = messageValue2
+	}
 	var status *string = this.SafeString(messageValue, "status")
 	var error map[string]any = ccxt.SafeMapTyped(messageValue, "error")
 	if (error != nil) || ((status != nil) && (status == nil || *status != "200")) {

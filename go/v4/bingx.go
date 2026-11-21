@@ -1828,12 +1828,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		if since != nil {
 			// the exchange aligns the window to endTime, so keep it within limit candles of since
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
-			endTime = mathMin(until, this.Sum(since, duration*requestLimit))
+			endTime = mathMin(until, *since+duration*requestLimit)
 		}
 		request["endTime"] = endTime
 	} else if (*this.SafeBool(market, "inverse", false)) && (since != nil) {
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		request["endTime"] = this.Sum(since, duration*requestLimit)
+		request["endTime"] = *since + duration*requestLimit
 	}
 	var response map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
@@ -3182,19 +3182,19 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 			panic(r2.Err)
 		}
 		var response map[string]any = r2.Value
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		rows = []any{this.SafeDict(data, "book_ticker", map[string]any{})}
 	}
 	// a multi-symbol spot response holds every listed pair, the first symbol's market must not label unknown rows
-	var rowMarket any = func() any {
-		if symbolsLength == 1 {
-			return market
-		}
-		return nil
-	}()
+	var rowMarket any
+	if symbolsLength == 1 {
+		rowMarket = market
+	} else {
+		rowMarket = nil
+	}
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		results = append(results, TickerToMap(this.ParseTicker(DerefScalar(rows[i]), rowMarket)))
+		results = append(results, TickerToMap(this.ParseTicker(rows[i], rowMarket)))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(results, "symbol", symbolsNormalized))}
@@ -3729,11 +3729,11 @@ func (this *Bingx) ParseBalance(response map[string]any) map[string]any {
 	var contractBalances []any = SafeListTyped(response, "data")
 	var firstContractBalances map[string]any = SafeMapTyped(contractBalances, 0)
 	var isContract bool = (firstContractBalances != nil)
-	var spotData map[string]any = SafeMapTyped(response, "data")
+	var spotData, _ = response["data"].(map[string]any)
 	var spotBalances []any = SafeList2Typed(spotData, "balances", "assets")
 	if isContract {
 		for i := 0; i < len(contractBalances); i++ {
-			var balance map[string]any = SafeMapTyped(contractBalances, i)
+			var balance, _ = contractBalances[i].(map[string]any)
 			var currencyId *string = this.SafeString(balance, "asset")
 			if currencyId == nil {
 				break
@@ -5190,12 +5190,12 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var newOrder map[string]any = this.SafeDict2Map(order, "newOrderResponse", "orderOpenResponse")
-	var orderData any = func() any {
-		if newOrder != nil {
-			return newOrder
-		}
-		return order
-	}()
+	var orderData any
+	if newOrder != nil {
+		orderData = newOrder
+	} else {
+		orderData = order
+	}
 	var positionSide *string = this.SafeString2(orderData, "positionSide", "ps")
 	var marketType string = "swap"
 	if positionSide == nil {
@@ -6474,7 +6474,7 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
 	var fromIdMapped *string = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -6486,8 +6486,11 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 		swapId = "USDTMPerp"
 	}
 	var request map[string]any = map[string]any{
-		"asset":  currency["id"],
+		"asset":  nil,
 		"amount": this.CurrencyToPrecision(code, amount),
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 	if fromAccount == "swap" {
 		request["fromAccount"] = swapId
@@ -6505,7 +6508,7 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 		panic(responseReply.Err)
 	}
 	var response map[string]any = responseReply.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
 	//
@@ -6637,7 +6640,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 	//         ]
 	//     }
 	//
-	var rows []any = this.SafeListSlice(response, "rows", []any{})
+	var rows []any
+	rows, _ = response["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit))}
 	return nil
@@ -7323,8 +7330,11 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"amount": amountString,
+		"amount": nil,
 		"type":   typeVar,
+	}
+	if amountString != nil {
+		request["amount"] = *amountString
 	}
 	var response map[string]any = nil
 	if market["inverse"] == true {

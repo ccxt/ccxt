@@ -1971,15 +1971,18 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var response map[string]any = nil
 	if limit != nil {
 		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
 	}
-	if *this.SafeBool(market, "swap", false) {
+	if market.Swap {
 
 		r1 := <-this.FapiPublicGetV3Depth(this.Extend(request, params))
 		if r1.Err != nil {
@@ -2863,10 +2866,13 @@ func (this *Aster) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"marginType": marginModeValue,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.FapiPrivatePostV3MarginType(this.Extend(request, params))
@@ -2965,7 +2971,7 @@ func (this *Aster) setPositionModeBody(ch chan AsyncResult[map[string]any], hedg
 	ch <- AsyncResult[map[string]any]{Value: r.Value}
 	return nil
 }
-func (this *Aster) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Aster) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
@@ -3928,12 +3934,15 @@ func (this *Aster) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var response any = nil
-	if *this.SafeBool(market, "swap", false) {
+	if market.Swap {
 
 		r1 := <-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))
 		if r1.Err != nil {
@@ -4130,10 +4139,13 @@ func (this *Aster) setLeverageBody(ch chan AsyncResult[map[string]any], leverage
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"leverage": leverage,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.FapiPrivatePostV3Leverage(this.Extend(request, params))
@@ -4384,11 +4396,14 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]Margin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if typeVar != nil {
 		if typeVar != nil && *typeVar == "add" {
@@ -5128,14 +5143,16 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		panic(NotSupported(this.Id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"" + *defaultMethod + "\" is invalid, please choose between \"account\" and \"positionRisk\""))
 	}
 }
-func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
+func (this *Aster) ParseAccountPositions(account map[string]any, optionalArgs ...any) any {
 	var filterClosed bool = GetArgBool(optionalArgs, 0, false)
 	_ = filterClosed
-	var positions []any = SafeListTyped(account, "positions")
-	var assets []any = SafeListTyped(account, "assets")
+	var positions []any
+	positions, _ = account["positions"].([]any)
+	var assets []any
+	assets, _ = account["assets"].([]any)
 	var balances map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var entry map[string]any = SafeMapTyped(assets, i)
+		var entry, _ = assets[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
@@ -5149,7 +5166,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = positions[i]
+		var position, _ = positions[i].(map[string]any)
 		var marketId *string = this.SafeString(position, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var code any
@@ -5165,7 +5182,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 			// sometimes not all the codes are correctly returned...
 			var balance map[string]any = SafeMapTyped(balances, code)
 			if balance != nil {
-				var parsed any = this.ParseAccountPosition(this.Extend(position, map[string]any{
+				var parsed any = this.ParseAccountPosition(this.Extend(positions[i], map[string]any{
 					"crossMargin":        this.SafeString(balance, "crossMargin"),
 					"crossWalletBalance": this.SafeString(balance, "crossWalletBalance"),
 				}), market)

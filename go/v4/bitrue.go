@@ -4169,12 +4169,12 @@ func (this *Bitrue) HandleErrors(code int64, reason string, url string, method s
 			parsedMessage = this.ParseJson(messageInner)
 		}
 	}
-	var errorResponse any = func() any {
-		if parsedMessage != nil {
-			return parsedMessage
-		}
-		return response
-	}()
+	var errorResponse any
+	if parsedMessage != nil {
+		errorResponse = parsedMessage
+	} else {
+		errorResponse = response
+	}
 	var message *string = this.SafeString(errorResponse, "msg")
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)

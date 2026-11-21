@@ -1441,7 +1441,10 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var fee map[string]any = map[string]any{
 		"cost":     feeCost,
 		"currency": marketResolved["quote"],
-		"rate":     feeRate,
+		"rate":     nil,
+	}
+	if feeRate != nil {
+		fee["rate"] = *feeRate
 	}
 	var id *string = this.SafeString(trade, "trade_id")
 	var rawSide *string = this.SafeString(trade, "side")
@@ -1782,9 +1785,9 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbo
 			if parsedTimeframe != nil {
 				var parsedTimeframeMilliseconds int64 = *parsedTimeframe * 1000
 				if this.IsRoundNumber(Mod(since, parsedTimeframeMilliseconds)) {
-					request["end"] = this.Iso8601(this.Sum((cappedLimit*parsedTimeframeMilliseconds)-parsedTimeframeMilliseconds, since))
+					request["end"] = this.Iso8601((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds + *since)
 				} else {
-					request["end"] = this.Iso8601(this.Sum(cappedLimit*parsedTimeframeMilliseconds, since))
+					request["end"] = this.Iso8601(cappedLimit*parsedTimeframeMilliseconds + *since)
 				}
 			}
 		} else {

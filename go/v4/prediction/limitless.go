@@ -352,7 +352,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 				panic(r.Err)
 			}
 			var response map[string]any = r.Value
-			var found []any = ccxt.SafeListTyped(response, "markets")
+			var found, _ = response["markets"].([]any)
 			for j := 0; j < len(found); j++ {
 				var raw any = found[j]
 				var slug *string = this.SafeString(raw, "slug")
@@ -377,7 +377,11 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			panic(r1.Err)
 		}
 		var firstPageResponse map[string]any = r1.Value
-		var firstData []any = this.SafeListSlice(firstPageResponse, "data", []any{})
+		var firstData []any
+		firstData, _ = firstPageResponse["data"].([]any)
+		if firstData == nil {
+			firstData = []any{}
+		}
 		allRaw = this.ArrayConcat(allRaw, firstData)
 		var promises []any = []any{}
 		var cappedPages float64 = math.Ceil(float64(*maxMarkets) / float64(*pageSize))
@@ -399,7 +403,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 		var responses []any = r2.Value
 		var length int = len(responses)
 		for j := 0; j < length; j++ {
-			var response map[string]any = ccxt.SafeMapTyped(responses, j)
+			var response, _ = responses[j].(map[string]any)
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
@@ -1312,18 +1316,18 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) ma
 		var rawAsks []any = ccxt.SafeListTyped(book, "asks")
 		var rawBidsLength int = len(rawBids)
 		var rawAsksLength int = len(rawAsks)
-		var yesBestBid any = func() any {
-			if rawBidsLength > 0 {
-				return rawBids[0]
-			}
-			return nil
-		}()
-		var yesBestAsk any = func() any {
-			if rawAsksLength > 0 {
-				return rawAsks[0]
-			}
-			return nil
-		}()
+		var yesBestBid any
+		if rawBidsLength > 0 {
+			yesBestBid = rawBids[0]
+		} else {
+			yesBestBid = nil
+		}
+		var yesBestAsk any
+		if rawAsksLength > 0 {
+			yesBestAsk = rawAsks[0]
+		} else {
+			yesBestAsk = nil
+		}
 		var yesBidPrice *string = this.SafeString(yesBestBid, "price")
 		var yesBidSize *string = this.SafeString(yesBestBid, "size")
 		var yesAskPrice *string = this.SafeString(yesBestAsk, "price")
@@ -1566,12 +1570,12 @@ func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var rows, _ = response["events"].([]any)
 	var filtered []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var rowTokenId *string = this.SafeString(row, "tokenId")
 		if (tokenId != nil) && (rowTokenId != nil) && (rowTokenId != tokenId && (rowTokenId == nil || tokenId == nil || *rowTokenId != *tokenId)) {
 			continue
 		}
-		filtered = append(filtered, row)
+		filtered = append(filtered, rows[i])
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(filtered, outcomeObj, since, limit))}
@@ -2778,12 +2782,12 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount any = this.ParseToNumeric(ccxt.Precise.StringMul(amountString, priceString))
-				var costRequest any = func() any {
-					if cost != nil {
-						return cost
-					}
-					return quoteAmount
-				}()
+				var costRequest any
+				if cost != nil {
+					costRequest = cost
+				} else {
+					costRequest = quoteAmount
+				}
 				makerAmount = this.CostToPredictionPrecision(outcome, costRequest)
 			}
 		} else {
@@ -3818,7 +3822,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 				panic(r.Err)
 			}
 			var response map[string]any = r.Value
-			var found []any = ccxt.SafeListTyped(response, "markets")
+			var found, _ = response["markets"].([]any)
 			for j := 0; j < len(found); j++ {
 				var raw any = found[j]
 				var rawSlug *string = this.SafeString(raw, "slug")
@@ -3878,7 +3882,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 		}
 		this.AddMarketsEntry(m["market"], m)
-		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
+		if (eventKey != nil) && (eventKey != "") {
 			if !(ccxt.InOp(eventGroups, eventKey)) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
 					"groupId": groupId,

@@ -456,14 +456,15 @@ func (this *Btcturk) ParseMarket(entry any) map[string]any {
 	})
 }
 func (this *Btcturk) ParseBalance(response map[string]any) map[string]any {
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(data); i++ {
-		var entry map[string]any = SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

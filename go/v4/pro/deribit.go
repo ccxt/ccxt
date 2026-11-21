@@ -175,7 +175,11 @@ func (this *Deribit) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	this.Balance["info"] = data
 	var currencyId *string = this.SafeString(data, "currency")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -364,7 +368,11 @@ func (this *Deribit) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
@@ -458,7 +466,11 @@ func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
@@ -1246,7 +1258,11 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && unifiedTimeframe != nil {
 		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
-	var ohlcv map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var ohlcv map[string]any
+	ohlcv, _ = params["data"].(map[string]any)
+	if ohlcv == nil {
+		ohlcv = map[string]any{}
+	}
 	// data contains a single ccxt.OHLCV candle
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
 	stored.Append(parsed)

@@ -711,9 +711,12 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetOrderbook(this.Extend(request, params))
@@ -752,7 +755,11 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 	//    }
 	//
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "serverTime"))
-	var orderBook map[string]any = this.SafeDictMap(response, "orderBook", map[string]any{})
+	var orderBook map[string]any
+	orderBook, _ = response["orderBook"].(map[string]any)
+	if orderBook == nil {
+		orderBook = map[string]any{}
+	}
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderBook, symbol, timestamp))}
 	return nil
@@ -1385,7 +1392,8 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		//        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
 		//    }
 		//
-		var elements []any = SafeListTyped(response, "elements")
+		var elements []any
+		elements, _ = response["elements"].([]any)
 		// we need to reverse the list to fix chronology
 		rawTrades = []any{}
 		var length int = len(elements)
@@ -1570,7 +1578,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"rate":     feeRate,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal127031 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"symbol":       this.SafeString(marketResolved, "symbol"),
@@ -1581,15 +1589,15 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        price,
-		"amount": func() any {
-			if linear != nil && *linear {
-				return amount
-			}
-			return nil
-		}(),
-		"cost": cost,
-		"fee":  fee,
-	})
+		"cost":         cost,
+		"fee":          fee,
+	}
+	if linear != nil && *linear {
+		literal127031["amount"] = amount
+	} else {
+		literal127031["amount"] = nil
+	}
+	return this.SafeTrade(literal127031)
 }
 func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
@@ -1790,7 +1798,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 	//         }
 	//     }
 	//
-	var sendStatus any = this.SafeValue(response, "sendStatus")
+	var sendStatus, _ = response["sendStatus"].(map[string]any)
 	var status *string = this.SafeString(sendStatus, "status")
 	this.VerifyOrderActionSuccess(status, "createOrder", []any{"filled"})
 
@@ -2447,7 +2455,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], o
 	var closedOrders []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
 		var order, _ = allOrders[i].(map[string]any)
-		var event map[string]any = SafeMapTyped(order, "event")
+		var event, _ = order["event"].(map[string]any)
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated map[string]any = SafeMapTyped(event, "OrderUpdated")
 		if orderPlaced != nil {
@@ -2539,7 +2547,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 	var canceledAndRejected []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
 		var order, _ = allOrders[i].(map[string]any)
-		var event map[string]any = SafeMapTyped(order, "event")
+		var event, _ = order["event"].(map[string]any)
 		_, has1 := event["OrderTriggerCancelled"]
 		var isCancelledTriggerOrder bool = has1
 		var orderPlaced map[string]any = SafeDict2Typed(event, "OrderPlaced", "OrderTriggerCancelled")
@@ -3328,11 +3336,11 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], o
 	// a position-size leg(asset equals the contract id) - keep the cash legs only
 	var rows []any = []any{}
 	for i := 0; i < len(logs); i++ {
-		var row any = logs[i]
+		var row, _ = logs[i].(map[string]any)
 		var asset *string = this.SafeString(row, "asset")
 		var contract *string = this.SafeString(row, "contract")
 		if (asset != nil) && (asset != contract && (asset == nil || contract == nil || *asset != *contract)) {
-			rows = append(rows, row)
+			rows = append(rows, logs[i])
 		}
 	}
 

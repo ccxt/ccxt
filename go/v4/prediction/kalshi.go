@@ -1421,7 +1421,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		var response map[string]any = r1.Value
 		var rawMarkets, _ = response["markets"].([]any)
 		for i := 0; i < len(rawMarkets); i++ {
-			var raw any = rawMarkets[i]
+			var raw, _ = rawMarkets[i].(map[string]any)
 			var marketTicker *string = this.SafeString(raw, "ticker")
 			var marketTickerInOutcomesByTicker bool
 			if marketTicker != nil {
@@ -1432,7 +1432,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			}
 			var grouped any = outcomesByTicker[*marketTicker]
 			for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
-				var ticker map[string]any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
+				var ticker map[string]any = this.ParsePredictionTicker(rawMarkets[i], ccxt.GetValue(grouped, j))
 				var symbolKey *string = this.SafeString(ticker, "outcome")
 				if symbolKey != nil {
 					result[*symbolKey] = ticker
@@ -1479,11 +1479,11 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 		"ticker": ticker,
 	}
 
-	r1 := <-this.KalshiPublicGetMarketsTickerOrderbook(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.KalshiPublicGetMarketsTickerOrderbook(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "orderbook_fp": {
@@ -1496,7 +1496,11 @@ func (this *Kalshi) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	//         }
 	//     }
 	//
-	var book map[string]any = this.SafeDictMap(response, "orderbook_fp", response)
+	var book map[string]any
+	book, _ = response["orderbook_fp"].(map[string]any)
+	if book == nil {
+		book = response
+	}
 	// Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
 	var rawYes []any = ccxt.SafeListTyped(book, "yes_dollars")
 	var rawNo []any = ccxt.SafeListTyped(book, "no_dollars")
@@ -1689,12 +1693,12 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	var candles, _ = response["candlesticks"].([]any)
 	var usableCandles []any = []any{}
 	for i := 0; i < len(candles); i++ {
-		var candle any = candles[i]
-		var priceObj map[string]any = ccxt.SafeMapTyped(candle, "price")
+		var candle, _ = candles[i].(map[string]any)
+		var priceObj, _ = candle["price"].(map[string]any)
 		var openPrice *float64 = this.SafeNumber(priceObj, "open_dollars")
 		var previousPrice *float64 = this.SafeNumber(priceObj, "previous_dollars")
 		if (openPrice != nil) || (previousPrice != nil) {
-			usableCandles = append(usableCandles, candle)
+			usableCandles = append(usableCandles, candles[i])
 		}
 	}
 	// kalshi candles carry only the period-END timestamp; thread the candle duration through so
@@ -1807,10 +1811,10 @@ func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 	var trades, _ = response["trades"].([]any)
 	var filteredTrades []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		var trade any = trades[i]
+		var trade, _ = trades[i].(map[string]any)
 		var tradeTicker *string = this.SafeString2(trade, "ticker", "market_ticker")
 		if (tradeTicker == nil) || (tradeTicker == ticker || (tradeTicker != nil && ticker != nil && *tradeTicker == *ticker)) {
-			filteredTrades = append(filteredTrades, trade)
+			filteredTrades = append(filteredTrades, trades[i])
 		}
 	}
 
@@ -2460,7 +2464,11 @@ func (this *Kalshi) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -2516,7 +2524,11 @@ func (this *Kalshi) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil
@@ -3017,7 +3029,7 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var restingOrdersLength int = len(restingOrders)
 	var canceledOrders []any = []any{}
 	for i := 0; i < restingOrdersLength; i++ {
-		var restingOrder any = restingOrders[i]
+		var restingOrder, _ = restingOrders[i].(map[string]any)
 		var orderId *string = this.SafeString(restingOrder, "order_id")
 		if orderId != nil {
 
@@ -3029,7 +3041,7 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			}
 			// the DELETE body is minimal — parse the already-fetched resting order instead, which
 			// carries the true side/outcome/price/count, then mark it canceled
-			var parsed map[string]any = this.ParsePredictionOrder(restingOrder)
+			var parsed map[string]any = this.ParsePredictionOrder(restingOrders[i])
 			parsed["status"] = "canceled"
 			canceledOrders = append(canceledOrders, parsed)
 		}
@@ -3341,7 +3353,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 			panic(r.Err)
 		}
 		var seriesResponse map[string]any = r.Value
-		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
+		var seriesList, _ = seriesResponse["series"].([]any)
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
 			var st *string = this.SafeString(seriesList[si], "ticker")
@@ -3360,7 +3372,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 			panic(r1.Err)
 		}
 		var seriesResponse map[string]any = r1.Value
-		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
+		var seriesList, _ = seriesResponse["series"].([]any)
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
 			var st *string = this.SafeString(seriesList[si], "ticker")

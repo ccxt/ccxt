@@ -1055,7 +1055,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var limitValue int64
 	if limit == nil {
 		limitValue = 100
@@ -1064,8 +1064,11 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	} // default 100
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
-		"InstrumentId": market["id"],
+		"InstrumentId": nil,
 		"Depth":        limitValue,
+	}
+	if market.Id != nil {
+		request["InstrumentId"] = *market.Id
 	}
 
 	responseRecv := <-this.PublicGetGetL2Snapshot(this.Extend(request, params))
@@ -1385,7 +1388,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if limit == nil {
 			request["ToDate"] = this.Ymdhms(now)
 		} else {
-			request["ToDate"] = this.Ymdhms(this.Sum(since, (duration**limit)*1000))
+			request["ToDate"] = this.Ymdhms(*since + (duration**limit)*1000)
 		}
 	}
 
@@ -1701,7 +1704,7 @@ func (this *Ndax) ParseBalanceList(response []any) map[string]any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "ProductId")
 		if (currencyId != nil) && (this.Currencies_by_id != nil) {
 			if _, ok := this.Currencies_by_id[*currencyId]; ok {

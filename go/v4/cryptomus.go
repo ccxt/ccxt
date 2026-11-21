@@ -688,9 +688,12 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currencyPair": market["id"],
+		"currencyPair": nil,
+	}
+	if market.Id != nil {
+		request["currencyPair"] = *market.Id
 	}
 	var level int = 0
 	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrderBook", "level", level)
@@ -902,7 +905,7 @@ func (this *Cryptomus) ParseBalanceList(balance []any) map[string]any {
 		"info": balance,
 	}
 	for i := 0; i < len(balance); i++ {
-		var balanceEntry map[string]any = SafeMapTyped(balance, i)
+		var balanceEntry, _ = balance[i].(map[string]any)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

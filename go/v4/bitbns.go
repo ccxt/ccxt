@@ -679,7 +679,7 @@ func (this *Bitbns) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var keys []string = nil
 	if data != nil {
 		keys = make([]string, 0, len(data))
@@ -1717,9 +1717,12 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"symbol": currency["id"],
+		"symbol": nil,
+	}
+	if currency.Id != nil {
+		request["symbol"] = *currency.Id
 	}
 
 	responseReply := <-this.V1PostGetCoinAddressSymbol(this.Extend(request, params))

@@ -890,10 +890,13 @@ func (this *Mudrex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_id":  market["id"],
+		"asset_id":  nil,
 		"is_symbol": 1,
+	}
+	if market.Id != nil {
+		request["asset_id"] = *market.Id
 	}
 
 	responseReply := <-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params))
@@ -946,13 +949,16 @@ func (this *Mudrex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var marginType *string = this.SafeString(params, "marginType", "ISOLATED")
 	var request map[string]any = map[string]any{
-		"asset_id":    market["id"],
+		"asset_id":    nil,
 		"is_symbol":   1,
 		"margin_type": marginType,
 		"leverage":    leverage,
+	}
+	if market.Id != nil {
+		request["asset_id"] = *market.Id
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"marginType"})
 
@@ -1946,12 +1952,12 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	}
 	maxCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-	var pageSize any = func() any {
-		if limit == nil {
-			return 0
-		}
-		return *limit * 2
-	}()
+	var pageSize any
+	if limit == nil {
+		pageSize = 0
+	} else {
+		pageSize = *limit * 2
+	}
 	var allRows []any = []any{}
 	var transactionsCount int = 0
 	var calls int = 0

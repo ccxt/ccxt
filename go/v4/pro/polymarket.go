@@ -106,12 +106,12 @@ func (this *Polymarket) SendSubscription(action string, channels any, messageHas
 	// subscribed yet, so a pending entry is registered under the same
 	// condition - otherwise no ack would ever arrive to consume it, the
 	// private channels register a shared hash next to narrowed ones
-	var hashesToCheck any = func() any {
-		if checkHashes == nil {
-			return messageHashes
-		}
-		return checkHashes
-	}()
+	var hashesToCheck any
+	if checkHashes == nil {
+		hashesToCheck = messageHashes
+	} else {
+		hashesToCheck = checkHashes
+	}
 	var willSend bool = false
 	for i := 0; i < ccxt.GetArrayLength(hashesToCheck); i++ {
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(hashesToCheck, i))) {
@@ -256,7 +256,11 @@ func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 	snapshot["nonce"] = this.SafeInteger(message, "sq")
@@ -441,7 +445,11 @@ func (this *Polymarket) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -530,7 +538,11 @@ func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "iid")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -1488,13 +1500,17 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var rows []any = ccxt.SafeListTyped(data, "positions")
+	var rows, _ = data["positions"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var row map[string]any = this.SafeDictMap(rows, i, map[string]any{})
@@ -1506,7 +1522,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 		cache.Append(position)
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
-	var margin map[string]any = ccxt.SafeMapTyped(data, "margin")
+	var margin, _ = data["margin"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,

@@ -345,7 +345,11 @@ func (this *Bingx) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	// const marketId = messageHash.split('@')[0]
 	var isSwap bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
@@ -919,7 +923,11 @@ func (this *Bingx) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = strings.Split(*dataType, "@")
 	var firstPart *string = this.SafeString(parts, 0)

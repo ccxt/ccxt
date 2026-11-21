@@ -812,7 +812,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var typeVar *string = this.SafeString(params, "type", "l2")
 	var paramsOmitted map[string]any = this.OmitDict(params, "type")
@@ -820,7 +820,10 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": typeVar,
-		"symbol":  market["id"],
+		"symbol":  nil,
+	}
+	if market.Id != nil {
+		subscribe["symbol"] = *market.Id
 	}
 	var request map[string]any = this.DeepExtend(subscribe, paramsOmitted)
 

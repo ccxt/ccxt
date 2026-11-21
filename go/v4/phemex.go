@@ -975,9 +975,9 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 		contractSize = this.ParseNumber(contractSizeString)
 	}
 	var isLinear bool = !inverse
-	return this.SafeMarketStructure(map[string]any{
+	var literal75241 map[string]any = map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
+		"symbol":         nil,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
@@ -1028,7 +1028,11 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if base != nil && quote != nil && settle != nil {
+		literal75241["symbol"] = *base + "/" + *quote + ":" + *settle
+	}
+	return this.SafeMarketStructure(literal75241)
 }
 func (this *Phemex) ParseSpotMarket(market any) map[string]any {
 	//
@@ -2526,7 +2530,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Phemex) ParseSpotBalance(response any) map[string]any {
+func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//
 	//     {
 	//         "code":0,
@@ -2555,9 +2559,10 @@ func (this *Phemex) ParseSpotBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var balance map[string]any = SafeMapTyped(data, i)
+		var balance, _ = data[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency map[string]any = SafeMapTyped(this.Currencies, code)
@@ -2586,7 +2591,7 @@ func (this *Phemex) ParseSpotBalance(response any) map[string]any {
 	result["datetime"] = this.Iso8601(timestamp)
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Phemex) ParseSwapBalance(response any) map[string]any {
+func (this *Phemex) ParseSwapBalance(response map[string]any) map[string]any {
 	// usdt
 	//   {
 	//       "info": {
@@ -2620,8 +2625,8 @@ func (this *Phemex) ParseSwapBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var balance map[string]any = SafeMapTyped(data, "account")
+	var data, _ = response["data"].(map[string]any)
+	var balance, _ = data["account"].(map[string]any)
 	var currencyId *string = this.SafeString(balance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var currency map[string]any = this.Currency(code)
@@ -3815,17 +3820,20 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if trigger != nil && *trigger {
 		request["untriggerred"] = trigger
 	}
 	var response map[string]any = nil
-	var marketSettle *string = this.SafeString(market, "settle")
+	var marketSettle *string = market.Settle
 	if (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC") {
 
 		r1 := <-this.PrivateDeleteGOrdersAll(this.Extend(request, paramsOmitted))
@@ -3833,7 +3841,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if *this.SafeBool(market, "swap", false) {
+	} else if market.Swap {
 
 		r2 := <-this.PrivateDeleteOrdersAll(this.Extend(request, paramsOmitted))
 		if r2.Err != nil {
@@ -4499,9 +4507,12 @@ func (this *Phemex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var defaultNetworks, _ = this.Options["defaultNetworks"].(map[string]any)
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, code)
@@ -4615,7 +4626,11 @@ func (this *Phemex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -4684,7 +4699,11 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -4894,9 +4913,12 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		}
 		code = &codeStr3
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var response map[string]any = nil
 	if isUSDTSettled {
@@ -5005,7 +5027,7 @@ func (this *Phemex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	positions, _ = data["positions"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = positions[i]
+		var position, _ = positions[i].(map[string]any)
 		result = append(result, PositionToMap(this.ParsePosition(position)))
 	}
 
@@ -5046,10 +5068,13 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = SafeStringPtr(market["symbol"])
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = &market.Symbol
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = min(200, *limit)
@@ -5758,12 +5783,15 @@ func (this *Phemex) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if market["settle"] != "USDT" {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Settle == nil || *market.Settle != "USDT" {
 		panic(BadSymbol(this.Id + " setPositionMode() supports USDT settled markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if hedged {
 		request["targetPosMode"] = "Hedged"
@@ -6057,12 +6085,15 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	var isHedged *bool = this.SafeBool(params, "hedged", false)
 	var longLeverageRr *int64 = this.SafeInteger(params, "longLeverageRr")
 	var shortLeverageRr *int64 = this.SafeInteger(params, "shortLeverageRr")
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var response map[string]any = nil
-	var marketSettle *string = this.SafeString(market, "settle")
+	var marketSettle *string = market.Settle
 	if (marketSettle != nil && *marketSettle == "USDT") || (marketSettle != nil && *marketSettle == "USDC") {
 		if (!(isHedged != nil && *isHedged)) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
@@ -6173,7 +6204,11 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		//         }
 		//     }
 		//
-		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var data map[string]any
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		transfer = TransferEntryToMap(this.ParseTransfer(data, currency))
 	} else {
 		var request map[string]any = map[string]any{
@@ -6591,7 +6626,11 @@ func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
@@ -6763,7 +6802,11 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromC
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Conversion]{Value: this.ParseConversion(data, fromCurrency, toCurrency)}
 	return nil
@@ -7073,9 +7116,12 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 		}
 		code = &codeStr3
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var response map[string]any = nil
 	if isUSDTSettled {

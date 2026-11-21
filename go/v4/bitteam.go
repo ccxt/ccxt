@@ -975,9 +975,12 @@ func (this *Bitteam) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair": market["id"],
+		"pair": nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))
@@ -1240,7 +1243,11 @@ func (this *Bitteam) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -1474,7 +1481,11 @@ func (this *Bitteam) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//         }
 	//     }
 	//
-	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var order map[string]any
+	order, _ = response["result"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -1526,7 +1537,11 @@ func (this *Bitteam) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil

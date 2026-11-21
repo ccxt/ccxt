@@ -123,10 +123,17 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	//         "seq": 1
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "m")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var nonce *int64 = this.SafeInteger(message, "seq")
@@ -157,8 +164,18 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "b", []any{}))
-	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "a", []any{}))
+	var deltas1238 []any
+	deltas1238, _ = data["b"].([]any)
+	if deltas1238 == nil {
+		deltas1238 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetBids(), deltas1238)
+	var deltas1248 []any
+	deltas1248, _ = data["a"].([]any)
+	if deltas1248 == nil {
+		deltas1248 = []any{}
+	}
+	this.HandleDeltas(orderbook.GetAsks(), deltas1248)
 	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	orderbook.SetNonce(nonce)
@@ -342,7 +359,11 @@ func (this *Extended) HandleBalance(client any, message map[string]any) {
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	this.Balance["info"] = data
 	var balance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	if balance != nil {
@@ -618,12 +639,12 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 		return
 	}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var marketId *string = this.SafeString(rawPosition, "market")
 		if marketId == nil {
 			continue
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositions[i]))
 		newPositions = append(newPositions, position)
 		stored.Append(position)
 	}
@@ -774,7 +795,11 @@ func (this *Extended) HandleFundingRate(client any, message map[string]any) {
 	//         "seq": 2
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fundingRate map[string]any = this.ParseWsFundingRate(data, nil, message)
 	var symbol string = *this.SafeString(fundingRate, "symbol", "")
 	this.FundingRates[symbol] = fundingRate
@@ -979,7 +1004,10 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trades:" + symbol
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

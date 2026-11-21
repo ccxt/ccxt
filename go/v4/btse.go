@@ -875,50 +875,20 @@ func (this *Btse) ParseMarket(market any) map[string]any {
 	if isSpot {
 		fees = this.SafeDictMap(this.Fees, "spot", map[string]any{})
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":     id,
-		"symbol": symbol,
-		"base":   base,
-		"quote":  quote,
-		"settle": func() any {
-			if isSpot {
-				return nil
-			}
-			return quote
-		}(),
-		"baseId":  baseId,
-		"quoteId": quoteId,
-		"settleId": func() any {
-			if isSpot {
-				return nil
-			}
-			return quoteId
-		}(),
-		"type": typeVar,
-		"spot": isSpot,
-		"margin": func() any {
-			if isSpot {
-				return false
-			}
-			return nil
-		}(),
-		"swap":     isSwap,
-		"future":   isFuture,
-		"option":   false,
-		"active":   active,
-		"contract": isSwap || isFuture,
-		"linear": func() any {
-			if isSpot {
-				return nil
-			}
-			return true
-		}(),
-		"inverse": func() any {
-			if isSpot {
-				return nil
-			}
-			return false
-		}(),
+	var literal75341 map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"swap":           isSwap,
+		"future":         isFuture,
+		"option":         false,
+		"active":         active,
+		"contract":       isSwap || isFuture,
 		"taker":          this.SafeNumber(fees, "taker"),
 		"maker":          this.SafeNumber(fees, "maker"),
 		"contractSize":   this.ParseNumber(contractSize),
@@ -950,7 +920,33 @@ func (this *Btse) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if isSpot {
+		literal75341["settle"] = nil
+	} else {
+		literal75341["settle"] = quote
+	}
+	if isSpot {
+		literal75341["settleId"] = nil
+	} else {
+		literal75341["settleId"] = quoteId
+	}
+	if isSpot {
+		literal75341["margin"] = false
+	} else {
+		literal75341["margin"] = nil
+	}
+	if isSpot {
+		literal75341["linear"] = nil
+	} else {
+		literal75341["linear"] = true
+	}
+	if isSpot {
+		literal75341["inverse"] = nil
+	} else {
+		literal75341["inverse"] = false
+	}
+	return this.SafeMarketStructure(literal75341)
 }
 
 /**
@@ -1515,23 +1511,23 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 			for j := 0; j < len(levels); j++ {
 				var level map[string]any = levels[j]
 				var maxNotional *float64 = this.SafeNumber(level, "value")
-				// the endpoint only reports the notional ladder, the
-				// per-tier leverage and margin rates are not available
-				tiers = append(tiers, map[string]any{
-					"tier":     this.SafeInteger(level, "level"),
-					"symbol":   symbol,
-					"currency": market["settle"],
-					"minNotional": func() any {
-						if j == 0 {
-							return 0
-						}
-						return minNotional
-					}(),
+				var literal121032 map[string]any = map[string]any{
+					"tier":                  this.SafeInteger(level, "level"),
+					"symbol":                symbol,
+					"currency":              market["settle"],
 					"maxNotional":           maxNotional,
 					"maintenanceMarginRate": nil,
 					"maxLeverage":           nil,
 					"info":                  level,
-				})
+				}
+				if j == 0 {
+					literal121032["minNotional"] = 0
+				} else {
+					literal121032["minNotional"] = minNotional
+				}
+				// the endpoint only reports the notional ladder, the
+				// per-tier leverage and margin rates are not available
+				tiers = append(tiers, literal121032)
 				minNotional = maxNotional
 			}
 			if symbol != nil {
@@ -1831,10 +1827,10 @@ func (this *Btse) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenInte
 	data, _ = response["data"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = data[i]
+		var row, _ = data[i].(map[string]any)
 		// spot rows do not carry an open interest
 		if this.SafeString(row, "openInterest") != nil {
-			rows = append(rows, row)
+			rows = append(rows, data[i])
 		}
 	}
 
@@ -1942,10 +1938,10 @@ func (this *Btse) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	data, _ = response["data"].([]any)
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var row any = data[i]
+		var row, _ = data[i].(map[string]any)
 		// spot rows do not carry a funding rate
 		if this.SafeString(row, "fundingRate") != nil {
-			rows = append(rows, row)
+			rows = append(rows, data[i])
 		}
 	}
 
@@ -3688,7 +3684,10 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 		var feeInfo map[string]any = this.SafeDictMap(responseList, i, map[string]any{})
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
-		var symbol *string = market.Symbol
+		var symbol *string
+		if market.Symbol != "" {
+			symbol = &market.Symbol
+		}
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 		if symbol != nil {
@@ -4232,12 +4231,15 @@ func (this *Btse) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var response []any = nil
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 
 		responseRecv := <-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))
 		if responseRecv.Err != nil {
@@ -4509,7 +4511,13 @@ func (this *Btse) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 	//         }
 	//     ]
 	//
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 	var positionMode *string = this.SafeString(data, "positionMode")
 	var hedged bool = (positionMode != nil && *positionMode == "HEDGE") || (positionMode != nil && *positionMode == "ISOLATED")
 
@@ -4607,7 +4615,13 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol st
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil

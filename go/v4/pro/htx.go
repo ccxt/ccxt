@@ -273,7 +273,11 @@ func (this *Htx) HandleTicker(client any, message map[string]any) map[string]any
 	//         }
 	//     }
 	//
-	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = message["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		return message
@@ -584,7 +588,7 @@ func (this *Htx) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, ch)
@@ -979,7 +983,10 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var parts []string = strings.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
@@ -1183,12 +1190,12 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	} else {
 		symbolResolved = symbol
 	}
-	var paramsRequest any = func() any {
-		if symbol != nil {
-			return params
-		}
-		return this.Omit(params, []any{"type", "subType"})
-	}()
+	var paramsRequest any
+	if symbol != nil {
+		paramsRequest = params
+	} else {
+		paramsRequest = this.Omit(params, []any{"type", "subType"})
+	}
 	var linear bool = (subType == "linear")
 	var swap bool = (typeVar == "swap")
 	var future bool = (typeVar == "future")
@@ -1389,18 +1396,18 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 			subType = nil
 		}
 	}
-	var symbolResolved any = func() any {
-		if market != nil {
-			return market["symbol"]
-		}
-		return symbol
-	}()
-	var paramsRequest any = func() any {
-		if symbol != nil {
-			return params
-		}
-		return this.Omit(params, []any{"type", "subType"})
-	}()
+	var symbolResolved any
+	if market != nil {
+		symbolResolved = market["symbol"]
+	} else {
+		symbolResolved = symbol
+	}
+	var paramsRequest any
+	if symbol != nil {
+		paramsRequest = params
+	} else {
+		paramsRequest = this.Omit(params, []any{"type", "subType"})
+	}
 	var linear bool = (subType == "linear")
 	var swap bool = (typeVar == "swap")
 	var future bool = (typeVar == "future")
@@ -1624,7 +1631,7 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString2(message, "ch", "topic")
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(message, "contract_code")
 	if marketId == nil {
 		marketId = this.SafeString2(data, "contract_code", "symbol")
@@ -2228,7 +2235,11 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	if topic == "positions_cross" {
 		defaultMarginMode = "cross"
 	}
-	var rawPositions []any = this.SafeListSlice(message, "data", []any{})
+	var rawPositions []any
+	rawPositions, _ = message["data"].([]any)
+	if rawPositions == nil {
+		rawPositions = []any{}
+	}
 	if this.IsEmpty(rawPositions) {
 		var prefixes []string = []string{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
@@ -2422,8 +2433,11 @@ func (this *Htx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	var subscriptionParams map[string]any = map[string]any{
 		"type":    typeVar,
 		"subType": subType,
-		"margin":  marginMode,
+		"margin":  nil,
 		"isV5":    isV5Linear,
+	}
+	if marginMode != nil {
+		subscriptionParams["margin"] = *marginMode
 	}
 
 	// we are differentiating the channel from the messageHash for global subscriptions (*)
@@ -3303,12 +3317,12 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 		var data any = this.SafeValue(message, "data")
 		if data != nil {
 			var contractCode *string = this.SafeString(message, "contract_code")
-			var market any = func() any {
-				if contractCode != nil {
-					return this.SafeMarket(contractCode)
-				}
-				return nil
-			}()
+			var market any
+			if contractCode != nil {
+				market = this.SafeMarket(contractCode)
+			} else {
+				market = nil
+			}
 			if ccxt.IsArray(data) {
 				var dataList []any = ccxt.SafeListTyped(message, "data")
 				for i := 0; i < len(dataList); i++ {

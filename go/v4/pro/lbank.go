@@ -577,7 +577,7 @@ func (this *Lbank) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map
 	var marketId *string = this.SafeString(ticker, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var datetime *string = this.SafeString(ticker, "TS")
-	var tickerData map[string]any = ccxt.SafeMapTyped(ticker, "tick")
+	var tickerData, _ = ticker["tick"].(map[string]any)
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     this.Parse8601(datetime),
@@ -918,7 +918,7 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	}
 	var key *string = r1.Value
 	var url *string = this.UrlsApiStrings["ws"]
-	var messageHash any = nil
+	var messageHash string
 	var symbolResolved *string
 	if symbol == nil {
 		symbolResolved = nil
@@ -935,9 +935,12 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	if symbol == nil {
 		messageHash = "orders:all"
 	} else {
-		var market map[string]any = this.Market(symbol)
-		messageHash = "orders:" + market["symbol"].(string)
-		message["pair"] = market["id"]
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		messageHash = "orders:" + market.Symbol
+		message["pair"] = nil
+		if market.Id != nil {
+			message["pair"] = *market.Id
+		}
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
@@ -1147,7 +1150,11 @@ func (this *Lbank) HandleBalance(client any, message map[string]any) {
 	//         "TS": "2021-07-26T19:48:03.548"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(message, "TS"))
 	var datetime *string = this.Iso8601(timestamp)
 	this.Balance["info"] = data

@@ -314,10 +314,13 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var topic *string = this.SafeString(message, "topic")
 	if topic == nil {
 		return
@@ -627,7 +630,11 @@ func (this *Woo) HandleTicker(client any, message map[string]any) map[string]any
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
@@ -1064,7 +1071,10 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
@@ -1198,7 +1208,7 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 	//
 	var topic *string = this.SafeString(message, "topic")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1635,7 +1645,10 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1747,7 +1760,10 @@ func (this *Woo) HandleOrder(client any, message any, topic any) {
 		if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 			orders = byKey[*symbol]
 		}
-		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
+		var order map[string]any
+		if orderId != nil {
+			order, _ = orders[*orderId].(map[string]any)
+		}
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -2161,7 +2177,11 @@ func (this *Woo) HandleFundingRate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data))
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	if symbol != nil {
@@ -2223,7 +2243,10 @@ func (this *Woo) HandleUnSubscription(client any, message map[string]any) {
 	//
 	var subscribeHash string = *this.SafeString(message, "data", "")
 	var unsubscribeHash string = "unsubscribe::" + subscribeHash
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubscribeHash, map[string]any{})
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubscribeHash)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var unsubMessageHashes []any = ccxt.SafeListTyped(subscription, "unsubMessageHashes")
 	for i := 0; i < len(subMessageHashes); i++ {

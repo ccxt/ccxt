@@ -622,7 +622,11 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
 	//
-	var ticker map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = message["data"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 	var stream string = *this.SafeString(message, "stream", "")
 	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
@@ -720,7 +724,11 @@ func (this *Backpack) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
  * @returns {boolean} whether a subscription was updated
  */
 func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool {
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var stream string = *this.SafeString(message, "stream", "")
 	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
@@ -840,7 +848,11 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	//         },
 	//         stream: 'bookTicker.ETH_USDC'
 	//     }
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var stream string = *this.SafeString(message, "stream", "")
 	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
 	var hashes []string = nil
@@ -1171,10 +1183,14 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	//         stream: 'kline.2h.ETH_USDC'
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string = &market.Symbol
 	var stream string = *this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
@@ -1463,7 +1479,11 @@ func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	//         stream: 'trade.ETH_USDC_PERP'
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.Market(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1764,7 +1784,11 @@ func (this *Backpack) HandleOrderBook(client any, message map[string]any) {
 	//         "stream": "depth.ETH_USDC"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var symbol *string = this.SafeSymbol(marketId)
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
@@ -2038,7 +2062,11 @@ func (this *Backpack) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash string = "orders"
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -2524,7 +2552,11 @@ func (this *Backpack) HandlePositions(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash string = "positions"
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
@@ -2571,7 +2603,10 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 	var id *string = this.SafeString(position, "i")
 	var marketId *string = this.SafeString(position, "s")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var notional *string = this.SafeString(position, "n")
 	var liquidationPrice *string = this.SafeString(position, "l")
 	var entryPrice *string = this.SafeString(position, "b")

@@ -1247,36 +1247,24 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		} else {
 			settle = nil
 		}
-		result = append(result, map[string]any{
-			"id":       this.SafeString(market, "market_symbol"),
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": settleId,
-			"type":     typeVar,
-			"subType":  subType,
-			"spot":     isSpot,
-			"margin":   false,
-			"future":   false,
-			"swap":     !isSpot,
-			"option":   false,
-			"active":   (this.SafeString(market, "trading") != nil && *this.SafeString(market, "trading") == "Enabled"),
-			"contract": !isSpot,
-			"linear": func() any {
-				if isSpot {
-					return nil
-				}
-				return true
-			}(),
-			"inverse": func() any {
-				if isSpot {
-					return nil
-				}
-				return false
-			}(),
+		var literal70325 map[string]any = map[string]any{
+			"id":             this.SafeString(market, "market_symbol"),
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"subType":        subType,
+			"spot":           isSpot,
+			"margin":         false,
+			"future":         false,
+			"swap":           !isSpot,
+			"option":         false,
+			"active":         (this.SafeString(market, "trading") != nil && *this.SafeString(market, "trading") == "Enabled"),
+			"contract":       !isSpot,
 			"contractSize":   nil,
 			"expiry":         nil,
 			"expiryDatetime": nil,
@@ -1306,7 +1294,18 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			},
 			"created": nil,
 			"info":    market,
-		})
+		}
+		if isSpot {
+			literal70325["linear"] = nil
+		} else {
+			literal70325["linear"] = true
+		}
+		if isSpot {
+			literal70325["inverse"] = nil
+		} else {
+			literal70325["inverse"] = false
+		}
+		result = append(result, literal70325)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}

@@ -770,7 +770,10 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	var entry, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(entry, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var levels, _ = entry["l"].([]any)
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -1131,11 +1134,11 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	var parsedTickers []any = []any{}
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var info any = data[i]
+		var info, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(info, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var ticker map[string]any = this.ParseWsTicker(info, market)
+		var ticker map[string]any = this.ParseWsTicker(data[i], market)
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -1374,7 +1377,10 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(first, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var messageHash string = "trade:" + *symbol
 	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1649,10 +1655,17 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	//   }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var timeframe *string = this.SafeString(data, "i")
 	if timeframe == nil {
 		return
@@ -1900,7 +1913,11 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 	//
 	var error string = *this.SafeString(message, "err", "")
 	var postType string = *this.SafeString(message, "type", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		id = this.SafeString(data, "id")
@@ -1935,7 +1952,10 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1948,7 +1968,10 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1970,7 +1993,10 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var interval *string = this.SafeString(subscription, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
@@ -2027,7 +2053,11 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 	var data, _ = message["data"].(map[string]any)
 	var method *string = this.SafeString(message, "channel")
 	if method != nil && *method == "unsubscribe" {
-		var subscription map[string]any = this.SafeDictMap(data, "data", map[string]any{})
+		var subscription map[string]any
+		subscription, _ = data["data"].(map[string]any)
+		if subscription == nil {
+			subscription = map[string]any{}
+		}
 		var typeVar *string = this.SafeString(subscription, "source")
 		if typeVar != nil && *typeVar == "book" {
 			this.HandleOrderBookUnsubscription(client, subscription)

@@ -482,9 +482,9 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var status *string = this.SafeString(market, "marketEnabled")
 	var tradingFees any = this.SafeValue(this.Fees, "trading")
-	return this.SafeMarketStructure(map[string]any{
+	var literal43341 map[string]any = map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         nil,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -533,7 +533,11 @@ func (this *Bit2me) ParseMarket(market any) map[string]any {
 		},
 		"created": this.Parse8601(this.SafeString(market, "marketEnabledAt")),
 		"info":    market,
-	})
+	}
+	if base != nil && quote != nil {
+		literal43341["symbol"] = *base + "/" + *quote
+	}
+	return this.SafeMarketStructure(literal43341)
 }
 
 /**
@@ -608,8 +612,14 @@ func (this *Bit2me) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         }
 	//     ]
 	//
-	var assets map[string]any = SafeMapTyped(responses, 0)
-	var settings []any = SafeListTyped(responses, 1)
+	var assets map[string]any
+	if 0 < len(responses) {
+		assets, _ = responses[0].(map[string]any)
+	}
+	var settings []any
+	if 1 < len(responses) {
+		settings, _ = responses[1].([]any)
+	}
 	var settingsById map[string]any = this.IndexBy(settings, "symbol")
 	var ids []string = nil
 	if assets != nil {
@@ -819,7 +829,13 @@ func (this *Bit2me) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	//         }
 	//     ]
 	//
-	var ticker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var ticker map[string]any
+	if 0 < len(response) {
+		ticker, _ = response[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -1367,7 +1383,7 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var isMarketOrder bool = (typeVar == "market")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
@@ -1392,9 +1408,12 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 	var timeInForce *string = this.SafeStringUpper(query, "timeInForce")
 	query = this.Omit(query, "timeInForce")
 	var request map[string]any = map[string]any{
-		"symbol":    market["id"],
+		"symbol":    nil,
 		"side":      side,
 		"orderType": typeVar,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if isOco {
 		if side != "sell" {
@@ -1643,7 +1662,10 @@ func (this *Bit2me) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		if numOrders == 0 {
 			panic(OrderNotFound(this.Id + " fetchOrder() could not find an order with clientOrderId " + *clientOrderId))
 		}
-		var first map[string]any = this.SafeDictMap(orders, 0, map[string]any{})
+		var first, _ = orders[0].(map[string]any)
+		if first == nil {
+			first = map[string]any{}
+		}
 
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(first, market)}
 		return nil

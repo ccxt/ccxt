@@ -1075,7 +1075,7 @@ func (this *Deribit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs .
 	//         "testnet": false
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var locked *string = this.SafeString(result, "locked")
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
 	var ternaryStr74222 string = "maintenance"
@@ -1623,9 +1623,12 @@ func (this *Deribit) createDepositAddressBody(ch chan AsyncResult[DepositAddress
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	responseReply := <-this.PrivateGetCreateDepositAddress(this.Extend(request, params))
@@ -1685,9 +1688,12 @@ func (this *Deribit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	responseReply := <-this.PrivateGetGetCurrentDepositAddress(this.Extend(request, params))
@@ -1869,7 +1875,11 @@ func (this *Deribit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         "testnet": false
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -1924,9 +1934,12 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for"))
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	if typeVar != nil {
 		if typeVar != nil && *typeVar == "spot" {
@@ -2055,12 +2068,12 @@ func (this *Deribit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	} else {
 		windowLimit = *limit
 	}
-	var limitResolved any = func() any {
-		if (since == nil) && (limit == nil) {
-			return defaultLimit
-		}
-		return limit
-	}()
+	var limitResolved any
+	if (since == nil) && (limit == nil) {
+		limitResolved = defaultLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any
 	if since == nil {
 		sinceResolved = nil
@@ -2350,10 +2363,13 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		}
 	}
 	var code *string = this.CodeFromOptions("fetchTradingFees", params)
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
 		"extended": true,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	r1 := <-this.PrivateGetGetAccountSummary(this.Extend(request, params))
@@ -2755,7 +2771,11 @@ func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -3066,7 +3086,11 @@ func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
@@ -3356,7 +3380,11 @@ func (this *Deribit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 	//         }
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, nil, since, limit))}
 	return nil
@@ -3825,9 +3853,12 @@ func (this *Deribit) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": market["id"],
+		"instrument_name": nil,
+	}
+	if market.Id != nil {
+		request["instrument_name"] = *market.Id
 	}
 
 	r1 := <-this.PrivateGetGetPosition(this.Extend(request, params))
@@ -3861,7 +3892,11 @@ func (this *Deribit) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(result)}
 	return nil
@@ -3981,9 +4016,12 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	r1 := <-this.PublicGetGetHistoricalVolatility(this.Extend(request, params))
@@ -4009,7 +4047,7 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan AsyncResult[[]map[string
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ParseVolatilityHistory(response))}
 	return nil
 }
-func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
+func (this *Deribit) ParseVolatilityHistory(volatility map[string]any) []any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4024,7 +4062,8 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
 	//         "testnet": false
 	//     }
 	//
-	var volatilityResult []any = SafeListTyped(volatility, "result")
+	var volatilityResult []any
+	volatilityResult, _ = volatility["result"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(volatilityResult); i++ {
 		var timestamp *int64 = this.SafeInteger(volatilityResult[i], 0)
@@ -4230,27 +4269,26 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var account *string = this.SafeString(transfer, "other_side")
 	var direction *string = this.SafeString(transfer, "direction")
 	var currencyId *string = this.SafeString(transfer, "currency")
-	return TransferEntryFromMap(map[string]any{
-		"info":     transfer,
-		"id":       this.SafeString(transfer, "id"),
-		"status":   this.ParseTransferStatus(status),
-		"amount":   this.SafeNumber(transfer, "amount"),
-		"currency": this.SafeCurrencyCode(currencyId, currency),
-		"fromAccount": func() any {
-			if direction == nil || *direction != "payment" {
-				return account
-			}
-			return nil
-		}(),
-		"toAccount": func() any {
-			if direction != nil && *direction == "payment" {
-				return account
-			}
-			return nil
-		}(),
+	var literal314115 map[string]any = map[string]any{
+		"info":      transfer,
+		"id":        this.SafeString(transfer, "id"),
+		"status":    this.ParseTransferStatus(status),
+		"amount":    this.SafeNumber(transfer, "amount"),
+		"currency":  this.SafeCurrencyCode(currencyId, currency),
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
-	})
+	}
+	if direction == nil || *direction != "payment" {
+		literal314115["fromAccount"] = account
+	} else {
+		literal314115["fromAccount"] = nil
+	}
+	if direction != nil && *direction == "payment" {
+		literal314115["toAccount"] = account
+	} else {
+		literal314115["toAccount"] = nil
+	}
+	return TransferEntryFromMap(literal314115)
 }
 func (this *Deribit) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4740,7 +4778,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 	//
 	var result, _ = response["result"].(map[string]any)
 	var cursor *string = this.SafeString(result, "continuation")
-	var settlements []any = this.SafeListSlice(result, "settlements", []any{})
+	var settlements []any
+	settlements, _ = result["settlements"].([]any)
+	if settlements == nil {
+		settlements = []any{}
+	}
 	var settlementsWithCursor []any = this.AddPaginationCursorToResult(cursor, settlements)
 
 	ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(this.ParseLiquidations(settlementsWithCursor, market, since, limit))}
@@ -5153,10 +5195,13 @@ func (this *Deribit) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
 		"kind":     "option",
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	r1 := <-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, params))

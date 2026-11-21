@@ -1812,10 +1812,10 @@ func (this *Nado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades []any = []any{}
 	for i := 0; i < len(matches); i++ {
-		var match any = matches[i]
+		var match, _ = matches[i].(map[string]any)
 		var submissionIdx *string = this.SafeString(match, "submission_idx")
 		var tx map[string]any = this.SafeDictMap(txsBySubmission, submissionIdx, map[string]any{})
-		trades = append(trades, this.Extend(tx, match))
+		trades = append(trades, this.Extend(tx, matches[i]))
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -2065,7 +2065,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]Transac
 	txs, _ = response["txs"].([]any)
 	var transactions []any = []any{}
 	for i := 0; i < len(events); i++ {
-		var event any = events[i]
+		var event, _ = events[i].(map[string]any)
 		var submissionIdx *string = this.SafeString(event, "submission_idx")
 		var tx any = map[string]any{}
 		for j := 0; j < len(txs); j++ {
@@ -2077,7 +2077,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]Transac
 			}
 		}
 		var transaction map[string]any = this.Extend(map[string]any{}, tx)
-		transaction = this.Extend(transaction, event)
+		transaction = this.Extend(transaction, events[i])
 		transaction["transaction_type"] = transactionType
 		transactions = append(transactions, TransactionToMap(this.ParseTransaction(transaction, currency)))
 	}
@@ -2162,8 +2162,8 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	products, _ = data["perp_products"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = positions[i]
-		var balance map[string]any = SafeMapTyped(position, "balance")
+		var position, _ = positions[i].(map[string]any)
+		var balance, _ = position["balance"].(map[string]any)
 		var amount *string = this.SafeString(balance, "amount")
 		if (amount == nil) || Precise.StringEquals(amount, "0") {
 			continue
@@ -2180,7 +2180,7 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		}
 		result = append(result, PositionToMap(this.ParsePosition(this.Extend(map[string]any{
 			"product": product,
-		}, position))))
+		}, positions[i]))))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
@@ -3254,12 +3254,12 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var rawOrder any = this.SafeDict(trade, "order")
 	var isArchiveMatch bool = (rawOrder != nil)
-	var order any = func() any {
-		if rawOrder == nil {
-			return map[string]any{}
-		}
-		return rawOrder
-	}()
+	var order any
+	if rawOrder == nil {
+		order = map[string]any{}
+	} else {
+		order = rawOrder
+	}
 	var amountString *string = this.SafeString(trade, "base_filled")
 	var costString *string = this.SafeString(trade, "quote_filled")
 	var rawOrderAmount *string = this.SafeString(order, "amount")
@@ -3529,9 +3529,10 @@ func (this *Nado) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances []any = SafeListTyped(response, "spot_balances")
+	var balances []any
+	balances, _ = response["spot_balances"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var rawBalance map[string]any = SafeMapTyped(balances, i)
+		var rawBalance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(rawBalance, "product_id")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil && *code == "0" {
@@ -3543,7 +3544,7 @@ func (this *Nado) ParseBalance(response map[string]any) map[string]any {
 				code = this.SafeString(market, "base", code)
 			}
 		}
-		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
+		var balance, _ = rawBalance["balance"].(map[string]any)
 		var amount *string = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
 		var account map[string]any = this.Account()
 		account["total"] = amount

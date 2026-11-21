@@ -507,7 +507,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string = &market.Symbol
 	var rawData, _ = entry["levels"].([]any)
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
@@ -1133,7 +1133,11 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var ctx map[string]any = this.SafeDictMap(data, "ctx", map[string]any{})
+	var ctx map[string]any
+	ctx, _ = data["ctx"].(map[string]any)
+	if ctx == nil {
+		ctx = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsTicker(ctx, market)
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1234,11 +1238,11 @@ func (this *Hyperliquid) HandleMyLiquidations(client any, message map[string]any
 	var fills, _ = entry["fills"].([]any)
 	var newLiquidations []any = []any{}
 	for i := 0; i < len(fills); i++ {
-		var fill any = fills[i]
-		var liquidation map[string]any = ccxt.SafeMapTyped(fill, "liquidation")
+		var fill, _ = fills[i].(map[string]any)
+		var liquidation, _ = fill["liquidation"].(map[string]any)
 		// liquidator fills carry the liquidated counterparty here
 		if this.SafeStringLower(liquidation, "liquidatedUser") == user || (this.SafeStringLower(liquidation, "liquidatedUser") != nil && user != nil && *this.SafeStringLower(liquidation, "liquidatedUser") == *user) {
-			newLiquidations = append(newLiquidations, this.ParseLiquidation(fill))
+			newLiquidations = append(newLiquidations, this.ParseLiquidation(fills[i]))
 		}
 	}
 	var newLiquidationsLength int = len(newLiquidations)
@@ -1426,7 +1430,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string = &market.Symbol
 	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
@@ -1677,7 +1681,11 @@ func (this *Hyperliquid) HandleOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var base *string = this.SafeString(data, "s")
 	var marketId any = this.CoinToMarketId(base)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1716,7 +1724,7 @@ func (this *Hyperliquid) HandleWsPost(client any, message map[string]any) {
 	var data, _ = message["data"].(map[string]any)
 	var id *string = this.SafeString(data, "id")
 	var response, _ = data["response"].(map[string]any)
-	var payload map[string]any = ccxt.SafeMapTyped(response, "payload")
+	var payload, _ = response["payload"].(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(payload, id)
 }
 
@@ -1934,7 +1942,10 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	var data, _ = message["data"].(map[string]any)
 	if topic != nil && *topic == "spotState" {
 		var spotState, _ = data["spotState"].(map[string]any)
-		rawBalances = ccxt.ArrayTyped(this.SafeList(spotState, "balances", []any{}))
+		rawBalances, _ = spotState["balances"].([]any)
+		if rawBalances == nil {
+			rawBalances = []any{}
+		}
 		account = "spot"
 		info = rawBalances
 	}
@@ -2151,7 +2162,7 @@ func (this *Hyperliquid) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	var rawPositions, _ = clearinghouseState["assetPositions"].([]any)
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
@@ -2503,7 +2514,11 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message map[string]any) 
 		id = this.SafeString(data, "id")
 	}
 	var response, _ = data["response"].(map[string]any)
-	var payload map[string]any = this.SafeDictMap(response, "payload", map[string]any{})
+	var payload map[string]any
+	payload, _ = response["payload"].(map[string]any)
+	if payload == nil {
+		payload = map[string]any{}
+	}
 	var status *string = this.SafeString(payload, "status")
 	if (status != nil) && (status == nil || *status != "ok") {
 		error := ccxt.ExchangeError(this.Id + " " + this.Json(payload))
@@ -2781,7 +2796,11 @@ func (this *Hyperliquid) HandleSubscriptionResponse(client any, message map[stri
 	var data, _ = message["data"].(map[string]any)
 	var method *string = this.SafeString(data, "method")
 	if method != nil && *method == "unsubscribe" {
-		var subscription map[string]any = this.SafeDictMap(data, "subscription", map[string]any{})
+		var subscription map[string]any
+		subscription, _ = data["subscription"].(map[string]any)
+		if subscription == nil {
+			subscription = map[string]any{}
+		}
 		this.HandleUnsubscription(client, subscription)
 	}
 }

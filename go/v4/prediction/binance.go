@@ -642,7 +642,7 @@ func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[strin
 		//
 		var responseLength int = len(response)
 		for i := 0; i < responseLength; i++ {
-			var rawTopic map[string]any = ccxt.SafeMapTyped(response, i)
+			var rawTopic, _ = response[i].(map[string]any)
 			var topicId *string = this.SafeString(rawTopic, "marketTopicId")
 			if topicId != nil {
 				var already *string = this.SafeString(seen, topicId)

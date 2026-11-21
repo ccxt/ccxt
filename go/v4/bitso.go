@@ -810,15 +810,16 @@ func (this *Bitso) ParseCurrency(rawCurrency any) map[string]any {
 	})
 }
 func (this *Bitso) ParseBalance(response map[string]any) map[string]any {
-	var payload map[string]any = SafeMapTyped(response, "payload")
-	var balances []any = SafeListTyped(payload, "balances")
+	var payload, _ = response["payload"].(map[string]any)
+	var balances []any
+	balances, _ = payload["balances"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1087,7 +1088,7 @@ func (this *Bitso) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 		request["start"] = *since
 		if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			request["end"] = this.Sum(since, (duration**limit)*1000)
+			request["end"] = *since + (duration**limit)*1000
 		}
 	} else {
 		if limit != nil {
@@ -2107,9 +2108,12 @@ func (this *Bitso) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"fund_currency": currency["id"],
+		"fund_currency": nil,
+	}
+	if currency.Id != nil {
+		request["fund_currency"] = *currency.Id
 	}
 
 	responseReply := <-this.PrivateGetFundingDestination(this.Extend(request, params))

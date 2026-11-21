@@ -414,14 +414,14 @@ func (this *Zaif) ParseMarket(market any) map[string]any {
 	})
 }
 func (this *Zaif) ParseBalance(response map[string]any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "return")
-	var deposit map[string]any = SafeMapTyped(balances, "deposit")
+	var balances, _ = response["return"].(map[string]any)
+	var deposit, _ = balances["deposit"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var funds map[string]any = SafeMapTyped(balances, "funds")
+	var funds, _ = balances["funds"].(map[string]any)
 	var currencyIds []string = nil
 	if funds != nil {
 		currencyIds = make([]string, 0, len(funds))

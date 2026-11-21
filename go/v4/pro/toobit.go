@@ -100,7 +100,7 @@ func (this *Toobit) HandleListMessage(client any, message []any) {
 		"outboundContractPositionInfo": this.HandlePositions,
 	}
 	for i := 0; i < len(message); i++ {
-		var item any = ccxt.GetValue(message, i)
+		var item any = message[i]
 		var event *string = this.SafeString(item, "e")
 		var method any = this.SafeValue(methods, event)
 		if method != nil {
@@ -815,7 +815,10 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(message, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)

@@ -76,14 +76,17 @@ func (this *Bit2me) subscribePublicBody(ch chan ccxt.AsyncResult[any], name stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var url *string = this.UrlsApiStrings["ws"]
 	var request map[string]any = map[string]any{
 		"event":  "subscribe",
-		"symbol": market["id"],
+		"symbol": nil,
 		"subscription": map[string]any{
 			"name": name,
 		},
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.Watch(url, messageHash, this.Extend(request, params), messageHash)
@@ -167,11 +170,10 @@ func (this *Bit2me) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "orderbook:" + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "orderbook:" + market.Symbol
 
-	r1 := <-this.SubscribePublicAsync("order-book", symbol, *messageHash, params)
+	r1 := <-this.SubscribePublicAsync("order-book", symbol, messageHash, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -195,10 +197,17 @@ func (this *Bit2me) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(message, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(data, "nonce")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1)
 	snapshot["nonce"] = timestamp
@@ -275,7 +284,11 @@ func (this *Bit2me) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -443,7 +456,11 @@ func (this *Bit2me) HandleOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = this.ParseWsOrder(data)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -594,7 +611,11 @@ func (this *Bit2me) HandleMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = this.ParseWsTrade(data)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -772,7 +793,11 @@ func (this *Bit2me) HandleCreateOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	var clientOrderId *string = this.SafeString(data, "clientOrderId")
 	if clientOrderId != nil {
@@ -926,7 +951,7 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 	var notDeleted, _ = data["ordersNotDeletedReasons"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(deleted); i++ {
-		var entry any = ccxt.DerefScalar(deleted[i])
+		var entry any = deleted[i]
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   entry,
 			"id":     this.SafeString(entry, "id"),
@@ -934,7 +959,7 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 		})))
 	}
 	for i := 0; i < len(notDeleted); i++ {
-		var entry any = ccxt.DerefScalar(notDeleted[i])
+		var entry any = notDeleted[i]
 		orders = append(orders, ccxt.OrderToMap(this.SafeOrder(map[string]any{
 			"info":   entry,
 			"id":     this.SafeString(entry, "id"),

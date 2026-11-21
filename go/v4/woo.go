@@ -2933,9 +2933,12 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["maxLevel"] = *limit
@@ -2967,7 +2970,11 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -3086,7 +3093,7 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	//         "timestamp": 1786690534921
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var rows []any
 	rows, _ = data["rows"].([]any)
 	var first map[string]any
@@ -3164,13 +3171,13 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	//
 	// same as fetchTicker, with multiple rows
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var rows []any
 	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var marketId *string = this.SafeString(row, "symbol")
 		if marketId == nil {
 			continue
@@ -3180,7 +3187,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
-		}, row)
+		}, rows[i])
 		result = append(result, TickerToMap(this.ParseTicker(ticker)))
 	}
 
@@ -3665,9 +3672,10 @@ func (this *Woo) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances []any = SafeListTyped(response, "holding")
+	var balances []any
+	balances, _ = response["holding"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")
@@ -4256,7 +4264,11 @@ func (this *Woo) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	//         "id": 200
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	data["timestamp"] = this.SafeInteger(response, "timestamp")
 	data["token"] = currency["id"]
 	data["status"] = "ok"
@@ -4495,7 +4507,11 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	//         "withdraw_id": "20200119145703654"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var transactionData map[string]any = this.Extend(data, map[string]any{
 		"id":        this.SafeString(data, "withdrawId"),
 		"timestamp": this.SafeInteger(response, "timestamp"),
@@ -4572,7 +4588,7 @@ func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, a
 	}))}
 	return nil
 }
-func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseMarginLoan(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "success": true,
@@ -5478,12 +5494,15 @@ func (this *Woo) modifyMarginHelperBody(ch chan AsyncResult[map[string]any], sym
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":        market["id"],
+		"symbol":        nil,
 		"adjust_token":  "USDT",
 		"adjust_amount": amount,
 		"action":        typeVar,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.V1PrivatePostClientIsolatedMargin(this.Extend(request, params))

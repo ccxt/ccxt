@@ -657,7 +657,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 			bookside.Store(price, amount)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
+	orderbook.SetSymbol(symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *P2b) HandleMessage(client any, message map[string]any) {

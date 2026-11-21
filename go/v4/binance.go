@@ -4771,7 +4771,10 @@ func (this *Binance) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	var responseCurrencies []any = this.SafeListSlice(results, 0, []any{})
 	var marginablesById any = nil
 	if fetchMargins != nil && *fetchMargins {
-		var responseMarginables []any = SafeListTyped(results, 1)
+		var responseMarginables []any
+		if 1 < len(results) {
+			responseMarginables, _ = results[1].([]any)
+		}
 		marginablesById = this.IndexBy(responseMarginables, "assetName")
 	}
 
@@ -5601,7 +5604,7 @@ func (this *Binance) ParseBalanceHelper(entry map[string]any) map[string]any {
 	account["debt"] = Precise.StringAdd(debt, interest)
 	return account
 }
-func (this *Binance) ParseBalanceCustom(response any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseBalanceCustom(response map[string]any, optionalArgs ...any) map[string]any {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -7208,9 +7211,9 @@ func (this *Binance) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if *this.SafeBool(market, "inverse", false) {
 			if *since > 0 {
 				var duration int64 = this.ParseTimeframe(timeframe)
-				var endTime any = this.Sum(since, (limitValue*duration)*1000-1)
+				var endTime int64 = *since + (limitValue*duration)*1000 - 1
 				var now int64 = this.Milliseconds()
-				request["endTime"] = mathMin(now, endTime)
+				request["endTime"] = min(now, endTime)
 			}
 		}
 	}
@@ -14204,7 +14207,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	if IsArray(data) {
 		data = this.SafeDict(data, 0, map[string]any{})
 	}
-	if IsEqual(data, nil) {
+	if data == nil {
 		panic(NullResponse(this.Id + " parseTradingFee() returned empty response"))
 	}
 
@@ -14819,14 +14822,16 @@ func (this *Binance) ParseFundingRate(contract any, optionalArgs ...any) Funding
 		"interval":                 intervalString,
 	})
 }
-func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any {
+func (this *Binance) ParseAccountPositions(account map[string]any, optionalArgs ...any) any {
 	var filterClosed bool = GetArgBool(optionalArgs, 0, false)
 	_ = filterClosed
-	var positions []any = SafeListTyped(account, "positions")
-	var assets []any = SafeListTyped(account, "assets")
+	var positions []any
+	positions, _ = account["positions"].([]any)
+	var assets []any
+	assets, _ = account["assets"].([]any)
 	var balances map[string]any = map[string]any{}
 	for i := 0; i < len(assets); i++ {
-		var entry map[string]any = SafeMapTyped(assets, i)
+		var entry, _ = assets[i].(map[string]any)
 		var currencyId *string = this.SafeString(entry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var crossWalletBalance *string = this.SafeString(entry, "crossWalletBalance")
@@ -14840,7 +14845,7 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position any = positions[i]
+		var position, _ = positions[i].(map[string]any)
 		var marketId *string = this.SafeString(position, "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
 		var code any
@@ -14855,7 +14860,7 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 		if !(filterClosed == true) || isPositionOpen {
 			// sometimes not all the codes are correctly returned...
 			if InOp(balances, code) {
-				var parsed any = this.ParseAccountPosition(this.Extend(position, map[string]any{
+				var parsed any = this.ParseAccountPosition(this.Extend(positions[i], map[string]any{
 					"crossMargin":        this.SafeValue(GetValue(balances, code), "crossMargin"),
 					"crossWalletBalance": this.SafeValue(GetValue(balances, code), "crossWalletBalance"),
 				}), market)
@@ -15826,7 +15831,10 @@ func (this *Binance) ParseOptionPosition(position any, optionalArgs ...any) map[
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market, nil, "swap"))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "quantity")
 	if side == nil || *side != "long" {
@@ -16824,12 +16832,12 @@ func (this *Binance) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string
 			panic(r.Err)
 		}
 	}
-	var market any = func() any {
-		if symbol == nil {
-			return nil
-		}
-		return this.Market(symbol)
-	}()
+	var market any
+	if symbol == nil {
+		market = nil
+	} else {
+		market = this.Market(symbol)
+	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	if typeVar == nil || *typeVar != "option" {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() supports option markets only"))
@@ -16908,12 +16916,12 @@ func (this *Binance) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[stri
 			panic(r.Err)
 		}
 	}
-	var market any = func() any {
-		if symbol == nil {
-			return nil
-		}
-		return this.Market(symbol)
-	}()
+	var market any
+	if symbol == nil {
+		market = nil
+	} else {
+		market = this.Market(symbol)
+	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
 	if typeVar == nil || *typeVar != "option" {
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() supports option markets only"))
@@ -17641,12 +17649,12 @@ func (this *Binance) HandleErrors(code int64, reason string, url string, method 
 			}
 		}
 	}
-	var responseParsed any = func() any {
-		if !IsEqual(parsedMessage, nil) {
-			return parsedMessage
-		}
-		return response
-	}()
+	var responseParsed any
+	if !IsEqual(parsedMessage, nil) {
+		responseParsed = parsedMessage
+	} else {
+		responseParsed = response
+	}
 	var message *string = this.SafeString(responseParsed, "msg")
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), message, this.Id+" "+*message)
@@ -17956,9 +17964,12 @@ func (this *Binance) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRat
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 
 	responseRecv := <-this.SapiGetMarginInterestRateHistory(this.Extend(request, params))
@@ -17976,7 +17987,10 @@ func (this *Binance) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRat
 	//         },
 	//     ]
 	//
-	var rate map[string]any = SafeMapTyped(response, 0)
+	var rate map[string]any
+	if 0 < len(response) {
+		rate, _ = response[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[CrossBorrowRate]{Value: CrossBorrowRateFromMap(this.ParseBorrowRate(rate))}
 	return nil
@@ -18134,10 +18148,13 @@ func (this *Binance) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 	if (limit != nil) && (*limit > 93) {
 		panic(BadRequest(this.Id + " fetchBorrowRateHistory() limit parameter cannot exceed 92"))
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
 		"limit": limitResolved,
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 	if since != nil {
 		request["startTime"] = *since
@@ -18254,11 +18271,14 @@ func (this *Binance) createGiftCodeBody(ch chan AsyncResult[map[string]any], cod
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	// ensure you have enough token in your funding account before calling this code
 	var request map[string]any = map[string]any{
-		"token":  currency["id"],
+		"token":  nil,
 		"amount": amount,
+	}
+	if currency.Id != nil {
+		request["token"] = *currency.Id
 	}
 
 	responseReply := <-this.SapiPostGiftcardCreateCode(this.Extend(request, params))
@@ -18616,13 +18636,16 @@ func (this *Binance) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], sy
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"asset":      currency["id"],
 		"amount":     this.CurrencyToPrecision(code, amount),
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"isIsolated": "TRUE",
 		"type":       "REPAY",
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SapiPostMarginBorrowRepay(this.Extend(request, params))
@@ -18734,13 +18757,16 @@ func (this *Binance) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], s
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"asset":      currency["id"],
 		"amount":     this.CurrencyToPrecision(code, amount),
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"isIsolated": "TRUE",
 		"type":       "BORROW",
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SapiPostMarginBorrowRepay(this.Extend(request, params))
@@ -18758,7 +18784,7 @@ func (this *Binance) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], s
 	ch <- AsyncResult[MarginLoan]{Value: MarginLoanFromMap(this.ParseMarginLoan(response, currency))}
 	return nil
 }
-func (this *Binance) ParseMarginLoan(info any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseMarginLoan(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "tranId": 108988250265,
@@ -18883,7 +18909,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInte
 			limitDefault = *limit
 		}
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["endTime"] = this.Sum(since, (duration*limitDefault)*1000)
+		request["endTime"] = *since + (duration*limitDefault)*1000
 	}
 	var response []any = nil
 	if *this.SafeBool(market, "inverse", false) {
@@ -18969,29 +18995,42 @@ func (this *Binance) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	} else {
 		request["symbol"] = market["id"]
 	}
-	var response map[string]any = nil
 	if *this.SafeBool(market, "option", false) {
 
-		r1 := <-this.EapiPublicGetOpenInterest(this.Extend(request, params))
+		optionResponseRecv := <-this.EapiPublicGetOpenInterest(this.Extend(request, params))
+		if optionResponseRecv.Err != nil {
+			panic(optionResponseRecv.Err)
+		}
+		var optionResponse []any = optionResponseRecv.Value
+		var symbolValue *string = SafeStringPtr(market["symbol"])
+		var result []any = ArrayTyped(this.ParseOpenInterestsHistory(optionResponse, market))
+		for i := 0; i < len(result); i++ {
+			var item map[string]any = SafeMapTyped(result, i)
+			if this.SafeString(item, "symbol") == symbolValue || (this.SafeString(item, "symbol") != nil && symbolValue != nil && *this.SafeString(item, "symbol") == *symbolValue) {
+
+				ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(item)}
+				return nil
+			}
+		}
+		panic(NullResponse(this.Id + " fetchOpenInterest() could not find open interest for " + *symbolValue))
+	}
+	var response map[string]any = nil
+	if *this.SafeBool(market, "inverse", false) {
+
+		r1 := <-this.DapiPublicGetOpenInterest(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if *this.SafeBool(market, "inverse", false) {
+	} else {
 
-		r2 := <-this.DapiPublicGetOpenInterest(this.Extend(request, params))
+		r2 := <-this.FapiPublicGetOpenInterest(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		response = r2.Value
-	} else {
-
-		r3 := <-this.FapiPublicGetOpenInterest(this.Extend(request, params))
-		if r3.Err != nil {
-			panic(r3.Err)
-		}
-		response = r3.Value
 	}
+
 	//
 	// futures (fapi)
 	//
@@ -19022,23 +19061,8 @@ func (this *Binance) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	//         }
 	//     ]
 	//
-	if *this.SafeBool(market, "option", false) {
-		var symbolValue *string = SafeStringPtr(market["symbol"])
-		var result []any = ArrayTyped(this.ParseOpenInterestsHistory(response, market))
-		for i := 0; i < len(result); i++ {
-			var item map[string]any = SafeMapTyped(result, i)
-			if this.SafeString(item, "symbol") == symbolValue || (this.SafeString(item, "symbol") != nil && symbolValue != nil && *this.SafeString(item, "symbol") == *symbolValue) {
-
-				ch <- AsyncResult[OpenInterest]{Value: OpenInterestFromMap(item)}
-				return nil
-			}
-		}
-		panic(NullResponse(this.Id + " fetchOpenInterest() could not find open interest for " + *symbolValue))
-	} else {
-
-		ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(response, market)}
-		return nil
-	}
+	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(response, market)}
+	return nil
 }
 func (this *Binance) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
@@ -19119,11 +19143,11 @@ func (this *Binance) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1461019 []any = r1.Value
-		if retRes1461019 == nil {
+		var retRes1460819 []any = r1.Value
+		if retRes1460819 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1461019)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes1460819)}
 		}
 		return nil
 	}
@@ -19873,7 +19897,13 @@ func (this *Binance) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
 	//         }
 	//     ]
 	//
-	var chain map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var chain map[string]any
+	if 0 < len(response) {
+		chain, _ = response[0].(map[string]any)
+	}
+	if chain == nil {
+		chain = map[string]any{}
+	}
 
 	ch <- AsyncResult[Option]{Value: this.ParseOption(chain, nil, market)}
 	return nil
@@ -20320,7 +20350,7 @@ func (this *Binance) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id s
 	if toCurrencyId != nil {
 		toCurrency = this.Currency(toCurrencyId)
 	}
-	if IsEqual(data, nil) {
+	if data == nil {
 		panic(NullResponse(this.Id + " parseConversion() returned empty response"))
 	}
 

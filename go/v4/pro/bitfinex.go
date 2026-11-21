@@ -620,7 +620,10 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = subscription
 	var name string = "myTrade"
-	var data []any = ccxt.SafeListTyped(message, 2)
+	var data []any
+	if 2 < len(message) {
+		data, _ = message[2].([]any)
+	}
 	var trade map[string]any = this.ParseWsTrade(map[string]any{
 		"result": data,
 	})
@@ -686,7 +689,10 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var messageLength int = len(message)
 	if messageLength == 2 {
 		// initial snapshot
-		var trades []any = ccxt.SafeListTyped(message, 1)
+		var trades []any
+		if 1 < len(message) {
+			trades, _ = message[1].([]any)
+		}
 		// needs to be reversed to make chronological order
 		var length int = len(trades)
 		for i := 0; i < length; i++ {
@@ -886,7 +892,10 @@ func (this *Bitfinex) HandleTicker(client any, message []any, subscription map[s
 	//     ]
 	//  ]
 	//
-	var ticker []any = ccxt.SafeListTyped(message, 1)
+	var ticker []any
+	if 1 < len(message) {
+		ticker, _ = message[1].([]any)
+	}
 	var marketId string = *this.SafeString(subscription, "symbol", "")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId)
@@ -1038,16 +1047,19 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
-			var deltas []any = ccxt.SafeListTyped(message, 1)
+			var deltas []any
+			if 1 < len(message) {
+				deltas, _ = message[1].([]any)
+			}
 			for i := 0; i < len(deltas); i++ {
 				var rawDelta any = deltas[i]
 				var delta2 *float64 = this.SafeNumber(rawDelta, 2)
-				var size any = func() any {
-					if (delta2 != nil) && (!(*delta2 >= 0)) {
-						return (-*delta2)
-					}
-					return delta2
-				}()
+				var size any
+				if (delta2 != nil) && (!(*delta2 >= 0)) {
+					size = (-*delta2)
+				} else {
+					size = delta2
+				}
 				var side string
 				if (delta2 != nil) && (!(*delta2 >= 0)) {
 					side = "asks"
@@ -1063,7 +1075,10 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				bookside.StoreArray([]any{price, size, idString})
 			}
 		} else {
-			var deltas []any = ccxt.SafeListTyped(message, 1)
+			var deltas []any
+			if 1 < len(message) {
+				deltas, _ = message[1].([]any)
+			}
 			for i := 0; i < len(deltas); i++ {
 				var delta []any = ccxt.SafeListTyped(deltas, i)
 				var deltaAmount *float64 = this.SafeNumber(delta, 2)
@@ -1072,12 +1087,12 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				}
 				var counter *float64 = this.SafeNumber(delta, 1)
 				var price *float64 = this.SafeNumber(delta, 0)
-				var size any = func() any {
-					if deltaAmount == nil || !(*deltaAmount >= 0) {
-						return (-*deltaAmount)
-					}
-					return deltaAmount
-				}()
+				var size any
+				if deltaAmount == nil || !(*deltaAmount >= 0) {
+					size = (-*deltaAmount)
+				} else {
+					size = deltaAmount
+				}
 				var side string
 				if deltaAmount == nil || !(*deltaAmount >= 0) {
 					side = "asks"
@@ -1095,17 +1110,20 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-		var deltas []any = ccxt.SafeListTyped(message, 1)
+		var deltas []any
+		if 1 < len(message) {
+			deltas, _ = message[1].([]any)
+		}
 		var orderbookItem ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		if isRaw {
 			var price *string = this.SafeString(deltas, 1)
 			var deltas2 *float64 = this.SafeNumber(deltas, 2)
-			var size any = func() any {
-				if (deltas2 != nil) && (!(*deltas2 >= 0)) {
-					return (-*deltas2)
-				}
-				return deltas2
-			}()
+			var size any
+			if (deltas2 != nil) && (!(*deltas2 >= 0)) {
+				size = (-*deltas2)
+			} else {
+				size = deltas2
+			}
 			var side string
 			if (deltas2 != nil) && (!(*deltas2 >= 0)) {
 				side = "asks"
@@ -1386,7 +1404,7 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]
 	var channelId string = *this.SafeString(message, "chanId", "")
 	var unSubChannel string = "unsubscribe:" + channelId
 	var subMessageHash string = *this.SafeString(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unSubChannel, "")
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "unsubscribe:"+subMessageHash)
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("unsubscribe:" + subMessageHash)
 	client.(ccxt.ClientInterface).SubscriptionDel(unSubChannel)
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
@@ -1767,7 +1785,10 @@ func (this *Bitfinex) HandleListMessage(client any, message []any) {
 	if heartbeat != nil && *heartbeat == "hb" {
 		return // skip heartbeats within subscription channels for now
 	}
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), channelId, map[string]any{})
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(channelId)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var channel *string = this.SafeString(subscription, "channel")
 	var name *string = this.SafeString(message, 1)
 	var publicMethods map[string]any = map[string]any{

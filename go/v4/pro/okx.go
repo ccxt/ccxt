@@ -678,7 +678,7 @@ func (this *Okx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "tickers")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 
 	r1 := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
 	if r1.Err != nil {
@@ -796,7 +796,7 @@ func (this *Okx) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrice", "channel", "mark-price")
 	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 
 	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
 	if r1.Err != nil {
@@ -1050,7 +1050,10 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var arg, _ = message["arg"].(map[string]any)
 	var marketId *string = this.SafeString(arg, "instId")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "-"))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var channel *string = this.SafeString(arg, "channel")
 	if channel != nil && *channel == "tickers" {
 		// of the five feeds routed here, only the plain one carries bidPx/askPx —
@@ -1502,12 +1505,12 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 	//
 	var rawLiquidations []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(rawLiquidations); i++ {
-		var rawLiquidation any = rawLiquidations[i]
+		var rawLiquidation, _ = rawLiquidations[i].(map[string]any)
 		var eventType *string = this.SafeString(rawLiquidation, "eventType")
 		if eventType == nil || *eventType != "liquidation" {
 			return
 		}
-		var liquidation any = this.ParseWsMyLiquidation(rawLiquidation)
+		var liquidation any = this.ParseWsMyLiquidation(rawLiquidations[i])
 		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -2923,7 +2926,10 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var arg, _ = message["arg"].(map[string]any)
 	var marketId *string = this.SafeString(arg, "instId")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "-"))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var channel *string = this.SafeString(arg, "channel", "")
 	var data, _ = message["data"].([]any)
 	if this.Positions == nil {
@@ -2932,7 +2938,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var rawPosition any = data[i]
+		var rawPosition, _ = data[i].(map[string]any)
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		var contracts *float64 = this.SafeNumber(position, "contracts")
 		if (contracts != nil && *contracts == 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
@@ -3203,10 +3209,10 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 	var filteredOrders []any = []any{}
 	// filter orders with no last trade id
 	for i := 0; i < len(rawOrders); i++ {
-		var rawOrder any = rawOrders[i]
+		var rawOrder, _ = rawOrders[i].(map[string]any)
 		var tradeId string = *this.SafeString(rawOrder, "tradeId", "")
 		if len(tradeId) > 0 {
-			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
+			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
 			filteredOrders = append(filteredOrders, order)
 		}
 	}

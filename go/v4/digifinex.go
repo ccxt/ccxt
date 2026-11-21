@@ -835,8 +835,14 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 		panic(r.Err)
 	}
 	var promises []any = r.Value
-	var spotMarkets map[string]any = SafeMapTyped(promises, 0)
-	var swapMarkets map[string]any = SafeMapTyped(promises, 1)
+	var spotMarkets map[string]any
+	if 0 < len(promises) {
+		spotMarkets, _ = promises[0].(map[string]any)
+	}
+	var swapMarkets map[string]any
+	if 1 < len(promises) {
+		swapMarkets, _ = promises[1].(map[string]any)
+	}
 	//
 	// spot and margin
 	//
@@ -2706,7 +2712,7 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 		return nil
 	}
 }
-func (this *Digifinex) ParseCancelOrders(response any, optionalArgs ...any) []any {
+func (this *Digifinex) ParseCancelOrders(response map[string]any, optionalArgs ...any) []any {
 	var symbolsById map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = symbolsById
 	var success []any = SafeListTyped(response, "success")
@@ -4885,12 +4891,15 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "swap", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Swap {
 		panic(BadSymbol(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
-		"instrument_id": market["id"],
+		"instrument_id": nil,
+	}
+	if market.Id != nil {
+		request["instrument_id"] = *market.Id
 	}
 	if since != nil {
 		request["start_timestamp"] = *since
@@ -5452,16 +5461,19 @@ func (this *Digifinex) setLeverageBody(ch chan AsyncResult[map[string]any], leve
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if market["type"] != "swap" {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Type == nil || *market.Type != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
 	if (leverage < 1) || (leverage > 100) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 100"))
 	}
 	var request map[string]any = map[string]any{
-		"instrument_id": market["id"],
+		"instrument_id": nil,
 		"leverage":      leverage,
+	}
+	if market.Id != nil {
+		request["instrument_id"] = *market.Id
 	}
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var marginMode *string = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
@@ -6071,7 +6083,11 @@ func (this *Digifinex) modifyMarginHelperBody(ch chan AsyncResult[MarginModifica
 	if code != nil && *code == 0 {
 		status = "ok"
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"status": status,
@@ -6242,7 +6258,7 @@ func (this *Digifinex) setMarginModeBody(ch chan AsyncResult[map[string]any], ma
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var marginModeLower string = strings.ToLower(marginMode)
 	var marginModeResolved string
 	if marginModeLower == "cross" {
@@ -6251,8 +6267,11 @@ func (this *Digifinex) setMarginModeBody(ch chan AsyncResult[map[string]any], ma
 		marginModeResolved = marginModeLower
 	}
 	var request map[string]any = map[string]any{
-		"instrument_id": market["id"],
+		"instrument_id": nil,
 		"margin_mode":   marginModeResolved,
+	}
+	if market.Id != nil {
+		request["instrument_id"] = *market.Id
 	}
 
 	r1 := <-this.PrivateSwapPostAccountPositionMode(this.Extend(request, params))

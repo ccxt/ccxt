@@ -910,12 +910,12 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan ccxt.AsyncResult[[]map[st
 	}
 	firstPageResponse := r1.Raw
 	var firstPageIsArray bool = ccxt.IsArray(firstPageResponse)
-	var firstPage any = func() any {
-		if firstPageIsArray {
-			return firstPageResponse
-		}
-		return []any{}
-	}()
+	var firstPage any
+	if firstPageIsArray {
+		firstPage = firstPageResponse
+	} else {
+		firstPage = []any{}
+	}
 	var firstPageLength int = ccxt.GetArrayLength(firstPage)
 	var allRawEvents []any = []any{}
 	for fi := 0; fi < firstPageLength; fi++ {
@@ -1266,12 +1266,12 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 			panic(r.Err)
 		}
 		response := r.Raw
-		var rawMarkets any = func() any {
-			if response != nil {
-				return response
-			}
-			return []any{}
-		}()
+		var rawMarkets any
+		if response != nil {
+			rawMarkets = response
+		} else {
+			rawMarkets = []any{}
+		}
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		if rawMarketsLength > 0 {
 			if this.Markets == nil {
@@ -1361,12 +1361,12 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 				panic(r.Err)
 			}
 			response := r.Raw
-			var rawMarkets any = func() any {
-				if response != nil {
-					return response
-				}
-				return []any{}
-			}()
+			var rawMarkets any
+			if response != nil {
+				rawMarkets = response
+			} else {
+				rawMarkets = []any{}
+			}
 			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
 			}))
@@ -1666,18 +1666,18 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	var bidsLength int = len(bids)
 	var asksLength int = len(asks)
 	// the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-	var bestBid any = func() any {
-		if bidsLength > 0 {
-			return bids[bidsLength-1]
-		}
-		return nil
-	}()
-	var bestAsk any = func() any {
-		if asksLength > 0 {
-			return asks[asksLength-1]
-		}
-		return nil
-	}()
+	var bestBid any
+	if bidsLength > 0 {
+		bestBid = bids[bidsLength-1]
+	} else {
+		bestBid = nil
+	}
+	var bestAsk any
+	if asksLength > 0 {
+		bestAsk = asks[asksLength-1]
+	} else {
+		bestAsk = nil
+	}
 	// book.last_trade_price is market-level and denominated in whichever token traded last —
 	// on the complementary token it is the OTHER side's price, so only the per-token
 	// last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -2071,7 +2071,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 	if !ccxt.StructAbsent(r.Value) {
 		outcomeObj = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)
 	}
-	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var outcomeInfo map[string]any = r.Value.Info
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
 		panic(ccxt.BadRequest(this.Id + " fetchOpenInterest() requires outcome.info.conditionId for " + outcome))
@@ -2088,7 +2088,13 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan ccxt.AsyncResult[ccxt.Pred
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
-	var first map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(response) {
+		first, _ = response[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOpenInterest]{Value: ccxt.PredictionOpenInterestFromMap(this.ParsePredictionOpenInterest(first, outcomeObj))}
 	return nil
@@ -2210,7 +2216,7 @@ func (this *Polymarket) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	}
 	var outcomeObj map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)
 	var tokenId *string = this.SafeString(outcomeObj, "outcomeId", "")
-	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+	var outcomeInfo map[string]any = r.Value.Info
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
 		panic(ccxt.BadRequest(this.Id + " fetchTrades() requires outcome.info.conditionId for an outcome " + *tokenId))
@@ -2730,7 +2736,11 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var orders []any = this.SafeListSlice(response, "data", []any{})
+	var orders []any
+	orders, _ = response["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(orders, outcomeObj, since, limit))}
 	return nil

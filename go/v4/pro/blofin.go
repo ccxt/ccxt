@@ -382,10 +382,13 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	//
 	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(arg, "instId")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook()
@@ -1420,7 +1423,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbols); i++ {
-		var market map[string]any = this.Market(this.SafeString(symbols, i))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(this.SafeString(symbols, i)))
 		var channel any = channelName
 		if isOHLCV {
 			var tf *string = this.SafeString(this.SafeList(symbolsArray, i), 1)
@@ -1429,10 +1432,13 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 		}
 		var topic map[string]any = map[string]any{
 			"channel": channel,
-			"instId":  market["id"],
+			"instId":  nil,
+		}
+		if market.Id != nil {
+			topic["instId"] = *market.Id
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), market["symbol"]))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), market.Symbol))
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
@@ -1461,7 +1467,10 @@ func (this *Blofin) HandleUnsubscription(client any, message map[string]any) {
 	var channel string = *this.SafeString(arg, "channel", "")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var subMessageHash string = channel + ":" + *symbol
 	if channel == "trades" {
 		this.CleanCache(map[string]any{

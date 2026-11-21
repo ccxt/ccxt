@@ -738,7 +738,11 @@ func (this *P2b) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	//        "current_time": 1698733470.469274
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeIntegerProduct(response, "current_time", 1000)
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market["symbol"], timestamp, "bids", "asks", 0, 1))}
@@ -1200,10 +1204,13 @@ func (this *P2b) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":  market["id"],
+		"market":  nil,
 		"orderId": id,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostOrderCancel(this.Extend(request, params))

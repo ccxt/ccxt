@@ -680,8 +680,8 @@ func (this *Mercado) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	return nil
 }
 func (this *Mercado) ParseBalance(response map[string]any) map[string]any {
-	var data map[string]any = SafeMapTyped(response, "response_data")
-	var balances map[string]any = SafeMapTyped(data, "balance")
+	var data, _ = response["response_data"].(map[string]any)
+	var balances, _ = data["balance"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

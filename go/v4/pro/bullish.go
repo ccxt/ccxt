@@ -257,7 +257,11 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 		return
 	}
 	var market map[string]any = this.Market(symbol)
-	var rawTrades []any = this.SafeListSlice(data, "trades", []any{})
+	var rawTrades []any
+	rawTrades, _ = data["trades"].([]any)
+	if rawTrades == nil {
+		rawTrades = []any{}
+	}
 	var trades []any = this.ParseTrades(rawTrades, market)
 	if _, ok := this.Trades[*symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -361,7 +365,11 @@ func (this *Bullish) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	var updateType string = *this.SafeString(message, "type", "")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -609,10 +617,17 @@ func (this *Bullish) HandleOrders(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawOrders []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		rawOrders = append(rawOrders, data) // update is a single order
 	} else {
-		rawOrders = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of orders
+		rawOrders, _ = message["data"].([]any)
+		if rawOrders == nil {
+			rawOrders = []any{}
+		}
 	}
 	var numRawOrders int = len(rawOrders) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawOrders > 0 {
@@ -758,10 +773,17 @@ func (this *Bullish) HandleMyTrades(client any, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var rawTrades []any = []any{}
 	if typeVar != nil && *typeVar == "update" {
-		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		rawTrades = append(rawTrades, data) // update is a single trade
 	} else {
-		rawTrades = ccxt.ArrayTyped(this.SafeList(message, "data", []any{})) // snapshot is a list of trades
+		rawTrades, _ = message["data"].([]any)
+		if rawTrades == nil {
+			rawTrades = []any{}
+		}
 	}
 	var numRawTrades int = len(rawTrades) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 	if numRawTrades > 0 {
@@ -1052,7 +1074,11 @@ func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 	//         "type": "error"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var feedback string = this.Id + " " + this.Json(data)
 
 	{

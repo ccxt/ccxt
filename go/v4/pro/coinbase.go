@@ -815,7 +815,10 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 			var candle map[string]any = candles[j]
 			var marketId *string = this.SafeString(candle, "product_id")
 			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-			var symbol *string = market.Symbol
+			var symbol *string
+			if market.Symbol != "" {
+				symbol = &market.Symbol
+			}
 			var parsed []any = []any{this.SafeTimestamp(candle, "start"), this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
 			if symbol != nil && this.Ohlcvs[*symbol] == nil {
 				this.Ohlcvs[*symbol] = map[string]any{}
@@ -1275,12 +1278,12 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 		// coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
 		var tradesLength int = len(currentTrades)
 		for j := 0; j < tradesLength; j++ {
-			var item any = func() any {
-				if (tradesLength-j)-1 >= 0 && (tradesLength-j)-1 < len(currentTrades) {
-					return currentTrades[(tradesLength-j)-1]
-				}
-				return nil
-			}()
+			var item any
+			if (tradesLength-j)-1 >= 0 && (tradesLength-j)-1 < len(currentTrades) {
+				item = currentTrades[(tradesLength-j)-1]
+			} else {
+				item = nil
+			}
 			tradesArray.Append(ccxt.TradeToMap(this.ParseTrade(item)))
 		}
 	}

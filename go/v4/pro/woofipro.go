@@ -189,7 +189,11 @@ func (this *Woofipro) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -302,7 +306,11 @@ func (this *Woofipro) HandleTicker(client any, message map[string]any) map[strin
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
@@ -583,7 +591,10 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
@@ -677,7 +688,11 @@ func (this *Woofipro) HandleTrade(client any, message map[string]any) {
 	//
 	var topic *string = this.SafeString(message, "topic")
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -1133,7 +1148,7 @@ func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string = &marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1248,7 +1263,10 @@ func (this *Woofipro) HandleOrder(client any, message any, topic any) {
 		if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 			orders = byKey[*symbol]
 		}
-		var order map[string]any = ccxt.SafeMapTyped(orders, orderId)
+		var order map[string]any
+		if orderId != nil {
+			order, _ = orders[*orderId].(map[string]any)
+		}
 		if order != nil {
 			var fee any = this.SafeValue(order, "fee")
 			if fee != nil {
@@ -1484,10 +1502,10 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var position map[string]any = this.ParseWsPosition(rawPosition, market)
+		var position map[string]any = this.ParseWsPosition(rawPositions[i], market)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var positionSymbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1639,7 +1657,11 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var balances map[string]any = ccxt.SafeMapTyped(data, "balances")
 	var keys []string = nil
 	if balances != nil {

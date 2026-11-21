@@ -821,12 +821,12 @@ func (this *BaseExchange) FilterByLimit(array []any, optionalArgs ...any) []any 
 				}
 			}
 			if fromStart == true {
-				var limitResolved any = func() any {
-					if limit != nil && *limit > int64(arrayLength) {
-						return arrayLength
-					}
-					return limit
-				}()
+				var limitResolved any
+				if limit != nil && *limit > int64(arrayLength) {
+					limitResolved = arrayLength
+				} else {
+					limitResolved = limit
+				}
 				if ascending {
 					return this.ArraySlice(array, 0, limitResolved)
 				}
@@ -1993,7 +1993,7 @@ func (this *BaseExchange) FeaturesGenerator() {
 		}
 	}
 }
-func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, optionalArgs ...any) any {
+func (this *BaseExchange) FeaturesMapper(initialFeatures map[string]any, marketType any, optionalArgs ...any) any {
 	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	var featuresObj any = this.SafeDict(initialFeatures, marketType)
@@ -2007,7 +2007,7 @@ func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, op
 		featuresObj = this.DeepExtend(extendObj, featuresObj)
 	}
 	// if exchange does not have that market-type (eg. future>inverse)
-	if IsEqual(featuresObj, nil) {
+	if featuresObj == nil {
 		return nil
 	}
 	//
@@ -2492,12 +2492,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var quoteCurrencies []any = []any{}
 		for i := 0; i < len(values); i++ {
 			var market any = values[i]
-			var defaultCurrencyPrecision any = func() any {
-				if this.PrecisionMode == DECIMAL_PLACES {
-					return 8
-				}
-				return this.ParseNumber("1e-8")
-			}()
+			var defaultCurrencyPrecision any
+			if this.PrecisionMode == DECIMAL_PLACES {
+				defaultCurrencyPrecision = 8
+			} else {
+				defaultCurrencyPrecision = this.ParseNumber("1e-8")
+			}
 			var marketPrecision map[string]any = SafeMapTyped(market, "precision")
 			if InOp(market, "base") {
 				var currency map[string]any = this.SafeCurrencyStructure(map[string]any{
@@ -3701,7 +3701,7 @@ func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs [][]any, optionalArgs
 		if ms == true {
 			ts = GetValue(ohlcvs[i], 0)
 		} else {
-			ts = this.ParseToInt(Divide(GetValue(GetValue(ohlcvs, i), 0), 1000))
+			ts = this.ParseToInt(Divide(GetValue(ohlcvs[i], 0), 1000))
 		}
 		var resultTimestamp, _ = result[timestamp].([]any)
 		resultTimestamp = append(resultTimestamp, ts)
@@ -5670,11 +5670,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes705815 map[string]any = r.Value
-	if retRes705815 == nil {
+	var retRes707215 map[string]any = r.Value
+	if retRes707215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes705815}
+		ch <- AsyncResult[map[string]any]{Value: retRes707215}
 	}
 	return nil
 }
@@ -6089,7 +6089,7 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan AsyncResult[ADL], sym
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 
 		r1 := <-this.DerivedExchange.FetchPositionsADLRankAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -7360,7 +7360,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan AsyncResult[FundingRate],
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 		if !market.Contract {
 			panic(BadSymbol(this.Id + " fetchFundingRate() supports contract markets only"))
 		}
@@ -7403,7 +7403,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan AsyncResult[FundingRa
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 		if !market.Contract {
 			panic(BadSymbol(this.Id + " fetchFundingInterval() supports contract markets only"))
 		}
@@ -8625,19 +8625,34 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) map[st
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results []any = []any{}
 	if IsArray(greeks) {
-		for i := 0; i < GetArrayLength(greeks); i++ {
-			results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, i))), params))
-		}
-	} else {
-		var marketIds []string = ObjectKeys(greeks)
-		for i := 0; i < len(marketIds); i++ {
-			var marketId string = marketIds[i]
+		return this.ParseAllGreeksList(greeks, symbols, params)
+	}
+	return this.ParseAllGreeksDict(greeks, symbols, params)
+}
+func (this *BaseExchange) ParseAllGreeksList(greeks any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	for i := 0; i < GetArrayLength(greeks); i++ {
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, i))), params))
+	}
+	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
+}
+func (this *BaseExchange) ParseAllGreeksDict(greeks any, optionalArgs ...any) map[string]any {
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	var results []any = []any{}
+	var marketIds []string = ObjectKeys(greeks)
+	for i := 0; i < len(marketIds); i++ {
+		var marketId string = marketIds[i]
 
-			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
-			results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)), params))
-		}
+		var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
+		results = append(results, this.Extend(GreeksToMap(this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)), params))
 	}
 	return this.IndexBy(this.FilterByArray(results, "symbol", this.MarketSymbols(symbols), false), "symbol")
 }
@@ -9464,7 +9479,7 @@ func (this *Exchange) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol str
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 
 		r1 := <-this.FetchMarkPricesAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -10401,7 +10416,7 @@ func (this *Exchange) fetchTickerWsBody(ch chan AsyncResult[Ticker], symbol stri
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 
 		r1 := <-this.DerivedExchange.(IFetchTickersWs).FetchTickersWsAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -10823,7 +10838,7 @@ func (this *Exchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r.Err)
 		}
 		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
-		var symbolResolved *string = market.Symbol
+		var symbolResolved *string = &market.Symbol
 
 		r1 := <-this.DerivedExchange.(IFetchTickers).FetchTickersAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -11464,12 +11479,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1047815Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1047815 []any = retRes1047815Recv
-	if retRes1047815 == nil {
+	retRes1050115Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1050115 []any = retRes1050115Recv
+	if retRes1050115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1050115)}
 	}
 	return nil
 }

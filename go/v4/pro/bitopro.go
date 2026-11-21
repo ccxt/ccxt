@@ -158,7 +158,10 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "_"))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var event *string = this.SafeString(message, "event")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
@@ -304,7 +307,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var messageHash string = "USER_TRADE"
 	if symbol != nil {
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-		var symbolValue *string = market.Symbol
+		var symbolValue *string = &market.Symbol
 		messageHash = messageHash + ":" + *symbolValue
 	}
 	var wsUrl *string = this.SafeString(this.Urls["ws"], "private")
@@ -351,7 +354,11 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -629,7 +636,11 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
 	var currencies []string = nil

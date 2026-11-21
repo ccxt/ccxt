@@ -493,7 +493,11 @@ func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = message["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var parseable any = tick
 	if isFutures {
 		var rawAsks []any = this.SafeListSlice(tick, "asks", []any{})
@@ -998,7 +1002,7 @@ func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
 		// a late push for a channel that was unwatched, see handleTrades
 		return
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	if tick == nil {
 		return
 	}
@@ -1109,7 +1113,7 @@ func (this *Bitrue) HandleTicker(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	if tick == nil {
 		return
 	}

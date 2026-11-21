@@ -972,7 +972,7 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 	}
 	var minOrderSizeString *string = this.SafeString(market, 3)
 	var maxOrderSizeString *string = this.SafeString(market, 4)
-	return map[string]any{
+	var literal67215 map[string]any = map[string]any{
 		"id":       "t" + *id,
 		"symbol":   symbol,
 		"base":     base,
@@ -989,20 +989,8 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 		"option":   false,
 		"active":   true,
 		"contract": !spot,
-		"linear": func() any {
-			if swap {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if swap {
-				return false
-			}
-			return nil
-		}(),
-		"maker": this.SafeNumber(this.Fees["trading"], "maker"),
-		"taker": this.SafeNumber(this.Fees["trading"], "taker"),
+		"maker":    this.SafeNumber(this.Fees["trading"], "maker"),
+		"taker":    this.SafeNumber(this.Fees["trading"], "taker"),
 		"contractSize": func() any {
 			if swap {
 				return this.ParseNumber("1")
@@ -1038,6 +1026,17 @@ func (this *Bitfinex) ParseMarket(pairObj any) map[string]any {
 		"created": nil,
 		"info":    market,
 	}
+	if swap {
+		literal67215["linear"] = true
+	} else {
+		literal67215["linear"] = nil
+	}
+	if swap {
+		literal67215["inverse"] = false
+	} else {
+		literal67215["inverse"] = nil
+	}
+	return literal67215
 }
 
 /**
@@ -2314,7 +2313,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *
 	 * @param {string} [params.price_oco_stop] OCO stop price
 	 * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
 	 */
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var amountString any
 	if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
 		amountString = *derefPtr
@@ -2326,8 +2325,11 @@ func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *
 		return Precise.StringNeg(amountString)
 	}()
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"amount": amountString,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
 	var trailingAmount *string = this.SafeString(params, "trailingAmount")
@@ -2367,7 +2369,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *
 		orderType = "FOK"
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
-	if (*this.SafeBool(market, "spot", false)) && (marginMode == nil) {
+	if (market.Spot) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = "EXCHANGE " + orderType
 	}
@@ -2493,7 +2495,10 @@ func (this *Bitfinex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		var errorText string = *this.SafeString(response, 7, "")
 		panic(ExchangeError(this.Id + " " + status + ": " + errorText + " (#" + errorCode + ")"))
 	}
-	var orders []any = SafeListTyped(response, 4)
+	var orders []any
+	if 4 < len(response) {
+		orders, _ = response[4].([]any)
+	}
 	var order []any
 	if 0 < len(orders) {
 		order, _ = orders[0].([]any)
@@ -2579,7 +2584,10 @@ func (this *Bitfinex) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 	//     ]
 	//
 	var results []any = []any{}
-	var data []any = SafeListTyped(response, 4)
+	var data []any
+	if 4 < len(response) {
+		data, _ = response[4].([]any)
+	}
 	for i := 0; i < len(data); i++ {
 		results = append(results, map[string]any{
 			"result": this.SafeList(this.SafeList(this.SafeList(data, i), 4), 0),
@@ -2627,7 +2635,10 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var orders []any = SafeListTyped(response, 4)
+	var orders []any
+	if 4 < len(response) {
+		orders, _ = response[4].([]any)
+	}
 	var ordersList []any = []any{}
 	for i := 0; i < len(orders); i++ {
 		ordersList = append(ordersList, map[string]any{
@@ -2700,7 +2711,10 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var order []any = SafeListTyped(response, 4)
+	var order []any
+	if 4 < len(response) {
+		order, _ = response[4].([]any)
+	}
 	var newOrder map[string]any = map[string]any{
 		"result": order,
 	}
@@ -2806,7 +2820,10 @@ func (this *Bitfinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	//         "Submitting 2 order cancellations."
 	//     ]
 	//
-	var orders []any = SafeListTyped(response, 4)
+	var orders []any
+	if 4 < len(response) {
+		orders, _ = response[4].([]any)
+	}
 	var ordersList []any = []any{}
 	for i := 0; i < len(orders); i++ {
 		ordersList = append(ordersList, map[string]any{
@@ -4827,7 +4844,10 @@ func (this *Bitfinex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], s
 	//         ]
 	//     ]
 	//
-	var oi []any = SafeListTyped(response, 0)
+	var oi []any
+	if 0 < len(response) {
+		oi, _ = response[0].([]any)
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(oi, market)}
 	return nil

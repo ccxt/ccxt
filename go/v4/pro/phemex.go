@@ -295,10 +295,18 @@ func (this *Phemex) HandleTicker(client any, message map[string]any) {
 	//
 	var tickers []any = []any{}
 	if _, ok := message["market24h"]; ok {
-		var ticker map[string]any = this.SafeDictMap(message, "market24h", map[string]any{})
+		var ticker map[string]any
+		ticker, _ = message["market24h"].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		tickers = append(tickers, this.ParseSwapTicker(ticker))
 	} else if _, ok := message["spot_market24h"]; ok {
-		var ticker map[string]any = this.SafeDictMap(message, "spot_market24h", map[string]any{})
+		var ticker map[string]any
+		ticker, _ = message["spot_market24h"].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		tickers = append(tickers, ccxt.TickerToMap(this.ParseTicker(ticker)))
 	} else if _, ok := message["data"]; ok {
 		var data, _ = message["data"].([]any)
@@ -578,7 +586,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	var isSwap bool = market.Swap
 	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "spot_market24h"
@@ -1056,7 +1064,7 @@ func (this *Phemex) HandleUnSubscription(client any, message map[string]any) {
 		if (isUnSubscription != nil && *isUnSubscription) && (subscriptionId != nil) && (subscriptionId == id || (subscriptionId != nil && id != nil && *subscriptionId == *id)) {
 			var subMessageHash *string = this.SafeString(subscription, "subMessageHash")
 			var messageHash *string = this.SafeString(subscription, "messageHash")
-			var error map[string]any = ccxt.SafeMapTyped(message, "error")
+			var error, _ = message["error"].(map[string]any)
 			if error != nil {
 				// the stream stays subscribed, so drop only the pending unsubscribe
 				client.(ccxt.ClientInterface).SubscriptionDel(subscriptionHash)

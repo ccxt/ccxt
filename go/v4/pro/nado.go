@@ -2439,18 +2439,12 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		statusStr4 := "canceled"
 		status = &statusStr4
 	}
-	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
-		"info":          order,
-		"id":            id,
-		"clientOrderId": nil,
-		"timestamp":     timestamp,
-		"datetime":      this.Iso8601(timestamp),
-		"lastTradeTimestamp": func() any {
-			if filled == nil {
-				return nil
-			}
-			return timestamp
-		}(),
+	var literal144531 map[string]any = map[string]any{
+		"info":                order,
+		"id":                  id,
+		"clientOrderId":       nil,
+		"timestamp":           timestamp,
+		"datetime":            this.Iso8601(timestamp),
 		"lastUpdateTimestamp": timestamp,
 		"symbol":              marketResolved["symbol"],
 		"type":                nil,
@@ -2468,7 +2462,13 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"status":              status,
 		"fee":                 nil,
 		"trades":              nil,
-	}, marketResolved))
+	}
+	if filled == nil {
+		literal144531["lastTradeTimestamp"] = nil
+	} else {
+		literal144531["lastTradeTimestamp"] = timestamp
+	}
+	return ccxt.OrderToMap(this.SafeOrder(literal144531, marketResolved))
 }
 func (this *Nado) HandleOrder(client any, message map[string]any) {
 	var order map[string]any = this.ParseWsOrder(message)
@@ -2624,7 +2624,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) map[string]any {
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(message, "time")
-	var bbos map[string]any = ccxt.SafeMapTyped(message, "bbos")
+	var bbos, _ = message["bbos"].(map[string]any)
 	var marketIds []string = nil
 	if bbos != nil {
 		marketIds = make([]string, 0, len(bbos))
@@ -2636,7 +2636,11 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) map[string]any {
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var bbo map[string]any = this.SafeDictMap(bbos, marketId, map[string]any{})
+		var bbo map[string]any
+		bbo, _ = bbos[marketId].(map[string]any)
+		if bbo == nil {
+			bbo = map[string]any{}
+		}
 		var bid *string = this.SafeString(bbo, "bid")
 		var ask *string = this.SafeString(bbo, "ask")
 		var maxPrice string = "170141183460469231731687303715884105727"
@@ -2695,7 +2699,10 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "product_id")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		return
 	}

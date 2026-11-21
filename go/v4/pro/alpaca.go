@@ -663,7 +663,11 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	//      }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = data["order"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -728,7 +732,11 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return
 	}
-	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = data["order"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 	var myTrades ccxt.WsArrayCache = this.MyTrades
 	if myTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)

@@ -819,12 +819,12 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 	//
 	var mids any = this.SafeDict(allMids, "mids", allMids)
 	var tickers map[string]any = map[string]any{}
-	var outcomesMap any = func() any {
-		if this.Outcomes != nil {
-			return this.Outcomes
-		}
-		return map[string]any{}
-	}()
+	var outcomesMap any
+	if this.Outcomes != nil {
+		outcomesMap = this.Outcomes
+	} else {
+		outcomesMap = map[string]any{}
+	}
 	var outcomeHandles []string = ccxt.ObjectKeys(outcomesMap)
 	for i := 0; i < len(outcomeHandles); i++ {
 		var outcomeHandle string = outcomeHandles[i]
@@ -1763,25 +1763,19 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var outcomeInfo, _ = outcomeObj["info"].(map[string]any)
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var nonce int64 = this.IncrementingNonce()
-	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
+	var clientOrderIds []string = this.SafeStringList(params, []any{"clientOrderId", "client_id"})
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "cancel",
 		"cancels": []any{},
 	}
-	if clientOrderId != nil {
-		var cloids any = func() any {
-			if ccxt.IsArray(clientOrderId) {
-				return clientOrderId
-			}
-			return []any{clientOrderId}
-		}()
+	if clientOrderIds != nil {
 		cancelAction["type"] = "cancelByCloid"
-		for i := 0; i < ccxt.GetArrayLength(cloids); i++ {
+		for i := 0; i < len(clientOrderIds); i++ {
 			cancelReq = append(cancelReq, map[string]any{
 				"asset": assetId,
-				"cloid": ccxt.GetValue(cloids, i),
+				"cloid": clientOrderIds[i],
 			})
 		}
 	} else {
@@ -1816,13 +1810,9 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	var statuses []any
 	statuses, _ = data["statuses"].([]any)
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome", outcome)
-	var requestIds any = ids
-	if clientOrderId != nil {
-		if ccxt.IsArray(clientOrderId) {
-			requestIds = clientOrderId
-		} else {
-			requestIds = []any{clientOrderId}
-		}
+	var requestIds []string = ids
+	if clientOrderIds != nil {
+		requestIds = clientOrderIds
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
@@ -1851,7 +1841,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 			"timestamp": nil,
 			"datetime":  nil,
 		}
-		if clientOrderId != nil {
+		if clientOrderIds != nil {
 			order["clientOrderId"] = requestId
 		} else {
 			order["clientOrderId"] = nil
@@ -2585,12 +2575,12 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	var markets []any = this.SafeListSlice(raw, "markets", []any{})
 	// Extract info from first market
 	var marketsLength int = len(markets)
-	var firstMarket any = func() any {
-		if marketsLength > 0 {
-			return markets[0]
-		}
-		return map[string]any{}
-	}()
+	var firstMarket any
+	if marketsLength > 0 {
+		firstMarket = markets[0]
+	} else {
+		firstMarket = map[string]any{}
+	}
 	var firstInfo map[string]any = ccxt.SafeMapTyped(firstMarket, "info")
 	var desc map[string]any = ccxt.SafeMapTyped(firstInfo, "parsedDescription")
 	var underlying *string = this.SafeString(desc, "underlying")
@@ -2815,12 +2805,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var ternaryStr219132 string = "Mainnet"
+	var ternaryStr218632 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr219132 = "Testnet"
+		ternaryStr218632 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr219132,
+		"hyperliquidChain": ternaryStr218632,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,

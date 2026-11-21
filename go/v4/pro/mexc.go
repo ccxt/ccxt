@@ -2092,12 +2092,14 @@ func (this *Mexc) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRate
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "fundingRate:" + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "fundingRate:" + market.Symbol
 	var channel string = "sub.funding.rate"
 	var requestParams map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		requestParams["symbol"] = *market.Id
 	}
 
 	r1 := <-this.WatchSwapPublicAsync(channel, messageHash, requestParams, params)
@@ -2134,13 +2136,15 @@ func (this *Mexc) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	messageHashStr := "unsubscribe:fundingRate:" + market["symbol"].(string)
-	var messageHash *string = &messageHashStr
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var messageHash string = "unsubscribe:fundingRate:" + market.Symbol
 	var url any = nil
 	var channel string = "unsub.funding.rate"
 	var requestParams map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		requestParams["symbol"] = *market.Id
 	}
 	url = this.UrlsApiSections["ws"]["swap"]
 	this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
@@ -2162,7 +2166,11 @@ func (this *Mexc) HandleFundingRate(client any, message map[string]any) {
 	//         "ts": 1771069020506
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(data))
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	if symbol != nil {

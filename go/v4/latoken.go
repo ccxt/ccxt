@@ -970,10 +970,16 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": market["baseId"],
-		"quote":    market["quoteId"],
+		"currency": nil,
+		"quote":    nil,
+	}
+	if market.BaseId != nil {
+		request["currency"] = *market.BaseId
+	}
+	if market.QuoteId != nil {
+		request["quote"] = *market.QuoteId
 	}
 	if limit != nil {
 		request["limit"] = *limit // max 1000
@@ -1015,17 +1021,17 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	var asks []any = []any{}
 	var bids []any = []any{}
 	for i := 0; i < len(rawAsks); i++ {
-		var askEntry any = rawAsks[i]
+		var askEntry, _ = rawAsks[i].(map[string]any)
 		var askQuantity *string = this.SafeString(askEntry, "quantity")
 		if Precise.StringGt(askQuantity, "0") {
-			asks = append(asks, askEntry)
+			asks = append(asks, rawAsks[i])
 		}
 	}
 	for i := 0; i < len(rawBids); i++ {
-		var bidEntry any = rawBids[i]
+		var bidEntry, _ = rawBids[i].(map[string]any)
 		var bidQuantity *string = this.SafeString(bidEntry, "quantity")
 		if Precise.StringGt(bidQuantity, "0") {
-			bids = append(bids, bidEntry)
+			bids = append(bids, rawBids[i])
 		}
 	}
 	var filtered map[string]any = map[string]any{
@@ -2544,11 +2550,14 @@ func (this *Latoken) transferBody(ch chan AsyncResult[TransferEntry], code strin
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency":  currency["id"],
+		"currency":  nil,
 		"recipient": toAccount,
 		"value":     this.CurrencyToPrecision(code, amount),
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	var response map[string]any = nil
 	if strings.Index(toAccount, "@") >= 0 {

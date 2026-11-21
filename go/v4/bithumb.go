@@ -689,20 +689,23 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				quotes = append(quotes, objectKey)
 			}
 		}
-		var promises []any = []any{}
+		var promises []<-chan EndpointResult[map[string]any]
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = quotes[i]
 			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration)))
 		}
 
-		r := <-promiseAll(promises)
+		r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](promises...)
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var results []any = r.Value
+		var results []map[string]any = r.Value
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
-			var response map[string]any = SafeMapTyped(results, i)
+			var response map[string]any
+			if i >= 0 && i < len(results) {
+				response = results[i]
+			}
 			var data map[string]any = SafeMapTyped(response, "data")
 			var extension map[string]any = this.SafeDictMap(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = nil
@@ -1606,19 +1609,21 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 		// the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
 		// and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
-		var to any = nil
+		var to *int64 = nil
 		if until != nil {
-			to = this.Sum(until, 1000) // `to` is exclusive with second precision, keep the candle that opens at `until`
+			toValue := *until + 1000
+			to = &toValue // `to` is exclusive with second precision, keep the candle that opens at `until`
 		}
 		if since != nil {
 			var duration int64 = this.ParseTimeframe(timeframe) * 1000
-			var sinceEnd any = this.Sum(since, duration*count)
-			if (to == nil) || (IsLessThan(sinceEnd, to)) {
-				to = sinceEnd
+			var sinceEnd int64 = *since + duration*count
+			if (to == nil) || (to != nil && sinceEnd < *to) {
+				toValue2 := sinceEnd
+				to = &toValue2
 			}
 		}
 		if to != nil {
-			request["to"] = this.Ymdhms(this.Sum(to, 32400000), " ")
+			request["to"] = this.Ymdhms(*to+32400000, " ")
 		}
 		if timeframe == "1d" {
 
@@ -1828,12 +1833,12 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var priceString *string = this.SafeString2(trade, "price", "trade_price")
 	var tradeVolume *string = this.SafeString(trade, "trade_volume")
-	var amountString any = func() any {
-		if tradeVolume == nil {
-			return this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
-		}
-		return tradeVolume
-	}()
+	var amountString any
+	if tradeVolume == nil {
+		amountString = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
+	} else {
+		amountString = tradeVolume
+	}
 	var costString *string = this.SafeString(trade, "total")
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")

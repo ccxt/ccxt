@@ -119,7 +119,11 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	//        "Event": "Trade"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
+	var data map[string]any
+	data, _ = message["Data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
@@ -268,9 +272,16 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		return
 	}
 	var symbol string = *base + "/" + *quote
-	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
+	var orderBook map[string]any
+	orderBook, _ = message["Data"].(map[string]any)
+	if orderBook == nil {
+		orderBook = map[string]any{}
+	}
 	var messageHash string = "orderbook:" + symbol + ":" + depth
-	var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, map[string]any{})
+	var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
 	var timestamp *int64 = this.SafeInteger(message, "Time")
 	// let orderbook = this.safeValue (this.orderbooks, symbol)

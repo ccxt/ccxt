@@ -1780,7 +1780,10 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 		response = r1.Value
 		var responseData, _ = response["data"].(map[string]any)
-		orders = ArrayTyped(this.SafeList(responseData, "items", []any{}))
+		orders, _ = responseData["items"].([]any)
+		if orders == nil {
+			orders = []any{}
+		}
 	} else {
 		if since != nil {
 			request["since"] = *since
@@ -1795,7 +1798,10 @@ func (this *Zebpay) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 		response = r2.Value
 		var responseData, _ = response["data"].(map[string]any)
-		orders = ArrayTyped(this.SafeList(responseData, "data", []any{}))
+		orders, _ = responseData["data"].([]any)
+		if orders == nil {
+			orders = []any{}
+		}
 	}
 
 	//
@@ -2010,7 +2016,11 @@ func (this *Zebpay) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -2062,7 +2072,11 @@ func (this *Zebpay) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage],
 	//         ]
 	//     }
 	//
-	var leveragePreferences []any = this.SafeListSlice(response, "data", []any{})
+	var leveragePreferences []any
+	leveragePreferences, _ = response["data"].([]any)
+	if leveragePreferences == nil {
+		leveragePreferences = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leveragePreferences, symbols, "symbol"))}
 	return nil
@@ -2109,7 +2123,11 @@ func (this *Zebpay) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	//         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -2147,10 +2165,13 @@ func (this *Zebpay) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
-		"symbol":   market["id"],
+		"symbol":   nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	//
 	// { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
@@ -2551,9 +2572,10 @@ func (this *Zebpay) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var currencyList []any = SafeListTyped(response, "data")
+	var currencyList []any
+	currencyList, _ = response["data"].([]any)
 	for i := 0; i < len(currencyList); i++ {
-		var entry map[string]any = SafeMapTyped(currencyList, i)
+		var entry, _ = currencyList[i].(map[string]any)
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(entry, "total")
 		account["free"] = this.SafeString(entry, "free")

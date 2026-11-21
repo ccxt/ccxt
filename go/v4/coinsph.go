@@ -1331,9 +1331,12 @@ func (this *Coinsph) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -1796,14 +1799,15 @@ func (this *Coinsph) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	return nil
 }
 func (this *Coinsph) ParseBalance(response map[string]any) map[string]any {
-	var balances []any = SafeListTyped(response, "balances")
+	var balances []any
+	balances, _ = response["balances"].([]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1913,21 +1917,21 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	}
 	request["newOrderRespType"] = newOrderRespType
 	var paramsRequest map[string]any = this.OmitDict(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
-	var response any = map[string]any{}
+	var response map[string]any = nil
 	if testOrder != nil && *testOrder {
 
 		r1 := <-this.PrivatePostOpenapiV1OrderTest(this.Extend(request, paramsRequest))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else {
 
 		r2 := <-this.PrivatePostOpenapiV1Order(this.Extend(request, paramsRequest))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 
 	//
@@ -2435,7 +2439,13 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	//       }
 	//     ]
 	//
-	var tradingFee map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var tradingFee map[string]any
+	if 0 < len(response) {
+		tradingFee, _ = response[0].(map[string]any)
+	}
+	if tradingFee == nil {
+		tradingFee = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(tradingFee, market)}
 	return nil
@@ -2511,7 +2521,10 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInt
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -2551,12 +2564,12 @@ func (this *Coinsph) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))
 	}
 	var networkCode *string = this.SafeString(paramsWithdrawTag, "network")
-	var networkId any = func() any {
-		if networkCode == nil {
-			return nil
-		}
-		return this.NetworkCodeToId(networkCode, code)
-	}()
+	var networkId any
+	if networkCode == nil {
+		networkId = nil
+	} else {
+		networkId = this.NetworkCodeToId(networkCode, code)
+	}
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require network parameter"))
 	}
@@ -2898,12 +2911,12 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var networkCode *string = this.SafeString(params, "network")
-	var networkId any = func() any {
-		if networkCode == nil {
-			return nil
-		}
-		return this.NetworkCodeToId(networkCode, code)
-	}()
+	var networkId any
+	if networkCode == nil {
+		networkId = nil
+	} else {
+		networkId = this.NetworkCodeToId(networkCode, code)
+	}
 	if networkId == nil {
 		panic(BadRequest(this.Id + " fetchDepositAddress() require network parameter"))
 	}

@@ -1298,7 +1298,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
-func (this *Bitvavo) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Bitvavo) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return TradingFeeInterfaceFromMap(map[string]any{
@@ -1399,10 +1399,13 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market":   market["id"],
+		"market":   nil,
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
 		// https://github.com/ccxt/ccxt/issues/9227
@@ -1414,7 +1417,7 @@ func (this *Bitvavo) FetchOHLCVRequest(symbol *string, optionalArgs ...any) map[
 		} else {
 			sinceLimit = min(*limit, 1440)
 		}
-		request["end"] = this.Sum(since, (sinceLimit*duration)*1000)
+		request["end"] = *since + (sinceLimit*duration)*1000
 	}
 	if limit != nil {
 		request["limit"] = min(*limit, 1440) // default 1440, max 1440
@@ -1674,10 +1677,13 @@ func (this *Bitvavo) transferBody(ch chan AsyncResult[TransferEntry], code strin
 		panic(ArgumentsRequired(this.Id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)"))
 	}
 	var request map[string]any = map[string]any{
-		"subaccountId": subaccountId,
+		"subaccountId": nil,
 		"direction":    direction,
 		"symbol":       currency["id"],
 		"amount":       this.CurrencyToPrecision(code, amount),
+	}
+	if subaccountId != nil {
+		request["subaccountId"] = *subaccountId
 	}
 
 	r1 := <-this.PrivatePostSubaccountsTransfers(this.Extend(request, this.Omit(params, "subaccountId")))
@@ -1917,9 +1923,12 @@ func (this *Bitvavo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"symbol": currency["id"],
+		"symbol": nil,
+	}
+	if currency.Id != nil {
+		request["symbol"] = *currency.Id
 	}
 
 	responseReply := <-this.PrivateGetDeposit(this.Extend(request, params))
@@ -2239,9 +2248,12 @@ func (this *Bitvavo) CancelOrderRequest(id *string, optionalArgs ...any) map[str
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	if clientOrderId == nil {
@@ -2515,9 +2527,12 @@ func (this *Bitvavo) FetchOrdersRequest(optionalArgs ...any) map[string]any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
 		request["start"] = *since
@@ -2849,9 +2864,12 @@ func (this *Bitvavo) FetchMyTradesRequest(optionalArgs ...any) map[string]any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if since != nil {
 		request["start"] = *since
@@ -3094,11 +3112,14 @@ func (this *Bitvavo) WithdrawRequest(code *string, amount any, address *string, 
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"symbol":  currency["id"],
+		"symbol":  nil,
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
+	}
+	if currency.Id != nil {
+		request["symbol"] = *currency.Id
 	}
 	if tag != nil {
 		request["paymentId"] = tag

@@ -8168,16 +8168,11 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 	var query map[string]any = this.OmitDict(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trigger"})
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
-		var clientOrderIds any = this.SafeValue2(query, "client-order-id", "clientOrderId")
-		clientOrderIds = this.SafeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds)
+		var clientOrderIds []string = this.SafeStringList(query, []any{"client-order-ids", "clientOrderIds", "client-order-id", "clientOrderId"})
 		if clientOrderIds == nil {
 			request["order-ids"] = ids
 		} else {
-			if IsString(clientOrderIds) {
-				request["client-order-ids"] = []any{clientOrderIds}
-			} else {
-				request["client-order-ids"] = clientOrderIds
-			}
+			request["client-order-ids"] = clientOrderIds
 			query = this.OmitDict(query, []any{"client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"})
 		}
 
@@ -9777,11 +9772,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes719623 []any = r1.Value
-			if retRes719623 == nil {
+			var retRes719123 []any = r1.Value
+			if retRes719123 == nil {
 				ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719623)}
+				ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719123)}
 			}
 			return nil
 		}
@@ -9790,11 +9785,11 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes719819 []any = r2.Value
-		if retRes719819 == nil {
+		var retRes719319 []any = r2.Value
+		if retRes719319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes719319)}
 		}
 		return nil
 	}
@@ -10235,7 +10230,10 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 		marginMode = "cross"
 	}
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(info, "accrued-at")
 	return map[string]any{
 		"info":           info,
@@ -10929,7 +10927,7 @@ func (this *Htx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position any = data[i]
+		var position, _ = data[i].(map[string]any)
 		var parsed map[string]any = PositionToMap(this.ParsePosition(position))
 		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,
@@ -11148,11 +11146,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes857819 []any = r1.Value
-		if retRes857819 == nil {
+		var retRes857319 []any = r1.Value
+		if retRes857319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857819)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857319)}
 		}
 		return nil
 	}
@@ -11787,11 +11785,14 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], symbo
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   this.CurrencyToPrecision(code, amount),
-		"symbol":   market["id"],
+		"symbol":   nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostMarginOrders(this.Extend(request, params))
@@ -12011,7 +12012,7 @@ func (this *Htx) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code stri
 	}))}
 	return nil
 }
-func (this *Htx) ParseMarginLoan(info any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseMarginLoan(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// borrowMargin cross
 	//

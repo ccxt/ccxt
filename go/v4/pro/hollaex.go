@@ -130,7 +130,7 @@ func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
 	var marketIdValue string = *this.SafeString(market, "id", "")
 	var symbol *string = this.SafeString(market, "symbol")
 	if symbol != nil {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		var timestamp *string = this.SafeString(data, "timestamp")
 		var timestampMs *int64 = this.Parse8601(timestamp)
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestampMs)
@@ -482,7 +482,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
-	var dataDict map[string]any = ccxt.SafeMapTyped(message, "data")
+	var dataDict, _ = message["data"].(map[string]any)
 	var rawOrders, _ = message["data"].([]any)
 	if dataDict != nil {
 		rawOrders = []any{dataDict}
@@ -571,7 +571,11 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "topic")
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var keys []string = nil
 	if data != nil {
 		keys = make([]string, 0, len(data))

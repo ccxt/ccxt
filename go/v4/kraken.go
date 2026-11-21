@@ -2055,7 +2055,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 	return nil
 }
 func (this *Kraken) ParseBalance(response map[string]any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "result")
+	var balances, _ = response["result"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2252,12 +2252,15 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"pair":      market["id"],
+		"pair":      nil,
 		"type":      side,
 		"ordertype": typeVar,
 		"volume":    this.AmountToPrecision(symbol, amount),
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 	var orderRequest []any = this.OrderRequest("createOrder", &symbol, &typeVar, request, amount, price, params)
 	var flags string = *this.SafeString(orderRequest[0], "oflags", "")
@@ -2277,7 +2280,11 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	result["usingCost"] = isUsingCost
 
 	// it's impossible to know if the order was created using cost or base currency
@@ -3041,7 +3048,11 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -4401,9 +4412,12 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan AsyncResult[[]map[string]any
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 
 	r1 := <-this.PrivatePostDepositMethods(this.Extend(request, params))
@@ -4623,7 +4637,11 @@ func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		//         }
 		//     }
 		//
-		var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+		var result map[string]any
+		result, _ = response["result"].(map[string]any)
+		if result == nil {
+			result = map[string]any{}
+		}
 
 		ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(result, currency)}
 		return nil

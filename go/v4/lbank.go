@@ -956,12 +956,12 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var tickerData map[string]any = this.SafeDictMap(ticker, "ticker", map[string]any{})
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var data any = func() any {
-		if *this.SafeBool(marketResolved, "contract", false) {
-			return ticker
-		}
-		return tickerData
-	}()
+	var data any
+	if *this.SafeBool(marketResolved, "contract", false) {
+		data = ticker
+	} else {
+		data = tickerData
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -2502,10 +2502,13 @@ func (this *Lbank) fetchOrderSupplementBody(ch chan AsyncResult[Order], id strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":  market["id"],
+		"symbol":  nil,
 		"orderId": id,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SpotPrivatePostSupplementOrdersInfo(this.Extend(request, params))
@@ -2566,10 +2569,13 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan AsyncResult[Order], id string, 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"order_id": id,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SpotPrivatePostOrdersInfo(this.Extend(request, params))
@@ -2917,10 +2923,13 @@ func (this *Lbank) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 	}
 	var clientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"origClientOrderId", "clientOrderId"})
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":  market["id"],
+		"symbol":  nil,
 		"orderId": id,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
@@ -2985,9 +2994,12 @@ func (this *Lbank) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.SpotPrivatePostSupplementCancelOrderBySymbol(this.Extend(request, params))
@@ -3111,9 +3123,12 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan AsyncResult[DepositAdd
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"assetCode": currency["id"],
+		"assetCode": nil,
+	}
+	if currency.Id != nil {
+		request["assetCode"] = *currency.Id
 	}
 	var network *string = this.GetNetworkCodeForCurrency(code, params)
 	var paramsOmitted map[string]any
@@ -3175,9 +3190,12 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan AsyncResult[Deposit
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"coin": currency["id"],
+		"coin": nil,
+	}
+	if currency.Id != nil {
+		request["coin"] = *currency.Id
 	}
 	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network")
@@ -3261,12 +3279,15 @@ func (this *Lbank) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "fee")
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
 		"address": address,
-		"coin":    currency["id"],
+		"coin":    nil,
 		"amount":  amount,
 		"fee":     fee,
+	}
+	if currency.Id != nil {
+		request["coin"] = *currency.Id
 	}
 	if tagWithdrawTag != nil {
 		request["memo"] = *tagWithdrawTag
@@ -3718,12 +3739,13 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan AsyncResult[map[strin
 	for i := 0; i < len(result); i++ {
 		var entry, _ = result[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(entry, "coin"))
-		var networkList []any = SafeListTyped(entry, "networkList")
+		var networkList []any
+		networkList, _ = entry["networkList"].([]any)
 		if code != nil {
 			withdrawFees[*code] = map[string]any{}
 		}
 		for j := 0; j < len(networkList); j++ {
-			var networkEntry map[string]any = SafeMapTyped(networkList, j)
+			var networkEntry, _ = networkList[j].(map[string]any)
 			var fee *float64 = this.SafeNumber(networkEntry, "withdrawFee")
 			if fee != nil {
 				var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "name"), code)

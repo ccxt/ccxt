@@ -1430,9 +1430,12 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan AsyncResult[Depo
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"primaryCurrencyCode": currency["id"],
+		"primaryCurrencyCode": nil,
+	}
+	if currency.Id != nil {
+		request["primaryCurrencyCode"] = *currency.Id
 	}
 
 	r1 := <-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))

@@ -1076,35 +1076,23 @@ func (this *Grvt) ParseMarket(market any) map[string]any {
 	var isSwap bool = (typeVar != nil && *typeVar == "swap")
 	var isFuture bool = (typeVar != nil && *typeVar == "future")
 	var isContract bool = isSwap || isFuture
-	return map[string]any{
-		"id":       marketId,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type":     typeVar,
-		"spot":     isSpot,
-		"margin":   false,
-		"swap":     isSwap,
-		"future":   isFuture,
-		"option":   false,
-		"active":   nil,
-		"contract": isContract,
-		"linear": func() any {
-			if isSwap {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isSwap {
-				return false
-			}
-			return nil
-		}(),
+	var literal73515 map[string]any = map[string]any{
+		"id":             marketId,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           isSwap,
+		"future":         isFuture,
+		"option":         false,
+		"active":         nil,
+		"contract":       isContract,
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1137,6 +1125,17 @@ func (this *Grvt) ParseMarket(market any) map[string]any {
 		"created": this.SafeIntegerProduct(market, "create_time", 0.000001),
 		"info":    market,
 	}
+	if isSwap {
+		literal73515["linear"] = true
+	} else {
+		literal73515["linear"] = nil
+	}
+	if isSwap {
+		literal73515["inverse"] = false
+	} else {
+		literal73515["inverse"] = nil
+	}
+	return literal73515
 }
 
 /**
@@ -1508,7 +1507,11 @@ func (this *Grvt) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	//            },
 	//            ...
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -1825,7 +1828,11 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(result, market))}
 	return nil
@@ -1966,10 +1973,11 @@ func (this *Grvt) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var spotBalances []any = SafeListTyped(response, "spot_balances")
+	var spotBalances []any
+	spotBalances, _ = response["spot_balances"].([]any)
 	var availableBalance *string = this.SafeString(response, "available_balance")
 	for i := 0; i < len(spotBalances); i++ {
-		var balance map[string]any = SafeMapTyped(spotBalances, i)
+		var balance, _ = spotBalances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2065,7 +2073,11 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		//     "next": "Qw0918="
 		// }
 		//
-		var result []any = this.SafeListSlice(response, "result", []any{})
+		var result []any
+		result, _ = response["result"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(result, currency, since, limit))}
 		return nil
@@ -2166,7 +2178,11 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		//     "next": "Qw0918="
 		// }
 		//
-		var result []any = this.SafeListSlice(response, "result", []any{})
+		var result []any
+		result, _ = response["result"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(result, currency, since, limit))}
 		return nil
@@ -3206,7 +3222,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//        "next": ""
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, nil, since, limit))}
 	return nil
@@ -3288,7 +3308,11 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	//        ]
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbolsNormalized))}
 	return nil
@@ -3666,7 +3690,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//        "next": ""
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(result, market, since, limit))}
 	return nil
@@ -3816,7 +3844,11 @@ func (this *Grvt) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 	//        "next": ""
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -3923,7 +3955,11 @@ func (this *Grvt) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//        ]
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, nil, since, limit))}
 	return nil

@@ -1841,15 +1841,18 @@ func (this *Weex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if (limit != nil) && (*limit > 15) {
 		request["limit"] = 200 // default is 15, max is 200
 	}
 	var response map[string]any = nil
-	if *this.SafeBool(market, "spot", false) {
+	if market.Spot {
 
 		r1 := <-this.PublicGetApiV3MarketDepth(this.Extend(request, params))
 		if r1.Err != nil {
@@ -3002,15 +3005,18 @@ func (this *Weex) CreateSpotOrderRequest(symbol string, typeVar string, side str
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	if false {
 		panic(ArgumentsRequired(this.Id + " createSpotOrderRequest() requires a side argument"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"side":     strings.ToUpper(side),
 		"type":     strings.ToUpper(typeVar),
 		"quantity": this.AmountToPrecision(symbol, amount),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -5319,7 +5325,13 @@ func (this *Weex) closePositionBody(ch chan AsyncResult[Order], symbol string, o
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var order map[string]any
+	if 0 < len(response) {
+		order, _ = response[0].(map[string]any)
+	}
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -5375,7 +5387,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
 	return nil
 }
-func (this *Weex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Weex) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// contract
 	//     {
@@ -5445,7 +5457,13 @@ func (this *Weex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol st
 	//         }
 	//     ]
 	//
-	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var marginMode map[string]any
+	if 0 < len(response) {
+		marginMode, _ = response[0].(map[string]any)
+	}
+	if marginMode == nil {
+		marginMode = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(marginMode, market)}
 	return nil
@@ -5541,10 +5559,13 @@ func (this *Weex) setMarginModeBody(ch chan AsyncResult[map[string]any], marginM
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"marginType": this.EncodeMarginMode(marginMode),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, params))
@@ -5602,7 +5623,13 @@ func (this *Weex) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol string
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
-	var marginMode map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var marginMode map[string]any
+	if 0 < len(response) {
+		marginMode, _ = response[0].(map[string]any)
+	}
+	if marginMode == nil {
+		marginMode = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(marginMode, market)}
 	return nil
@@ -5710,9 +5737,12 @@ func (this *Weex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params)
 	if marginMode != nil {
@@ -5766,9 +5796,12 @@ func (this *Weex) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo], o
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params))
@@ -5819,7 +5852,7 @@ func (this *Weex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setPositionMode", params)
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setPositionMode() also sets marginMode, so a marginMode parameter is required"))
@@ -5829,9 +5862,12 @@ func (this *Weex) setPositionModeBody(ch chan AsyncResult[map[string]any], hedge
 		separatedType = "SEPARATED"
 	}
 	var request map[string]any = map[string]any{
-		"symbol":        market["id"],
+		"symbol":        nil,
 		"marginType":    this.EncodeMarginMode(*marginMode),
 		"separatedType": separatedType,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.ContractPrivatePostCapiV3AccountMarginType(this.Extend(request, paramsMarginMode))

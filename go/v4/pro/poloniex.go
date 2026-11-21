@@ -1025,12 +1025,12 @@ func (this *Poloniex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	} else {
 		symbolResolved = this.Symbol(symbol)
 	}
-	var symbols any = func() any {
-		if symbolResolved == nil {
-			return nil
-		}
-		return []any{symbolResolved}
-	}()
+	var symbols any
+	if symbolResolved == nil {
+		symbols = nil
+	} else {
+		symbols = []any{symbolResolved}
+	}
 
 	r2 := <-this.SubscribeAsync(name, name, true, symbols, params)
 	if r2.Err != nil {
@@ -1093,12 +1093,12 @@ func (this *Poloniex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	} else {
 		symbolResolved = this.Symbol(symbol)
 	}
-	var symbols any = func() any {
-		if symbolResolved == nil {
-			return nil
-		}
-		return []any{symbolResolved}
-	}()
+	var symbols any
+	if symbolResolved == nil {
+		symbols = nil
+	} else {
+		symbols = []any{symbolResolved}
+	}
 
 	r2 := <-this.SubscribeAsync(name, messageHash, true, symbols, params)
 	if r2.Err != nil {
@@ -1757,10 +1757,10 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) map[strin
 	var data, _ = message["data"].([]any)
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var item any = data[i]
+		var item, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(item, "symbol")
 		if marketId != nil {
-			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(item))
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i]))
 			var symbol *string = this.SafeString(ticker, "symbol")
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1840,7 +1840,10 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var item, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(item, "symbol")
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-		var symbol *string = market.Symbol
+		var symbol *string
+		if market.Symbol != "" {
+			symbol = &market.Symbol
+		}
 		var name string = "book_lv2"
 		var messageHash string = name + "::" + *symbol
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)

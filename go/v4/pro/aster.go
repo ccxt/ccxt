@@ -1523,7 +1523,10 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "s")
 	var timestamp *int64 = this.SafeInteger(message, "T")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook()
@@ -1827,7 +1830,10 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var kline map[string]any = ccxt.SafeMapTyped(message, "k")
 	var timeframeId *string = this.SafeString(kline, "i")
 	var timeframe *string = this.FindTimeframe(timeframeId)
@@ -2700,7 +2706,10 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 				if byKey := cachedOrders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 					orders = byKey[*symbol]
 				}
-				var order map[string]any = this.SafeDictMap(orders, orderId)
+				var order map[string]any
+				if orderId != nil {
+					order, _ = orders[*orderId].(map[string]any)
+				}
 				if order != nil {
 					// accumulate order fees
 					var fees []any = ccxt.SafeListTyped(order, "fees")

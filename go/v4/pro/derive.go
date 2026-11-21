@@ -177,7 +177,11 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	// }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -403,7 +407,11 @@ func (this *Derive) HandleTicker(client any, message map[string]any) map[string]
 	//
 	var params, _ = message["params"].(map[string]any)
 	var rawData, _ = params["data"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(rawData, "instrument_ticker", map[string]any{})
+	var data map[string]any
+	data, _ = rawData["instrument_ticker"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var topic *string = this.SafeString(params, "channel", "")
 	// the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
 	var parts []string = strings.Split(*topic, ".")
@@ -572,7 +580,10 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	if symbol != nil && this.Orderbooks[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
@@ -721,7 +732,11 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	//
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var topic *string = this.SafeString(params, "channel", "")
 	var parsedTopic []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)

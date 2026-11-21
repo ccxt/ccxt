@@ -882,7 +882,11 @@ func (this *Dydx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	//     ]
 	// }
 	//
-	var rows []any = this.SafeListSlice(response, "trades", []any{})
+	var rows []any
+	rows, _ = response["trades"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
@@ -970,7 +974,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		} else {
 			count = 1000
 		}
-		request["toISO"] = this.Iso8601(this.Sum(since, duration*count))
+		request["toISO"] = this.Iso8601(*since + duration*count)
 	}
 
 	r1 := <-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, paramsOmitted))
@@ -999,7 +1003,11 @@ func (this *Dydx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//     ]
 	// }
 	//
-	var rows []any = this.SafeListSlice(response, "candles", []any{})
+	var rows []any
+	rows, _ = response["candles"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
@@ -1573,7 +1581,11 @@ func (this *Dydx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	//     ]
 	// }
 	//
-	var rows []any = this.SafeListSlice(response, "positions", []any{})
+	var rows []any
+	rows, _ = response["positions"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(rows, symbols))}
 	return nil
@@ -1694,7 +1706,11 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var account map[string]any = this.SafeDictMap(response, "info", map[string]any{})
+	var account map[string]any
+	account, _ = response["info"].(map[string]any)
+	if account == nil {
+		account = map[string]any{}
+	}
 	var pubKey map[string]any = SafeMapTyped(account, "pub_key")
 	account["pub_key"] = map[string]any{
 		"key": pubKey["key"],
@@ -2558,7 +2574,10 @@ func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message
 	}
 	var feeObj map[string]any = map[string]any{
 		"amount": feeAmount,
-		"denom":  denom,
+		"denom":  nil,
+	}
+	if denom != nil {
+		feeObj["denom"] = *denom
 	}
 
 	ch <- AsyncResult[map[string]any]{Value: map[string]any{
@@ -2953,7 +2972,11 @@ func (this *Dydx) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var data map[string]any
+	data, _ = response["result"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil

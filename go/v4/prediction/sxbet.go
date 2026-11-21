@@ -831,7 +831,11 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	this.Options["sxObv3Metadata"] = data
 
 	ch <- ccxt.AsyncResult[map[string]any]{Value: data}
@@ -1422,7 +1426,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
  * @param {object} response the raw DELETE /orders-v3 response
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) ParseSxbetCancelResponse(response any) any {
+func (this *Sxbet) ParseSxbetCancelResponse(response map[string]any) any {
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var result []any = []any{}
 	// by-id cancels report 'cancelled'; the /all and /event paths submit asynchronously and
@@ -2267,14 +2271,14 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	var result []any = []any{}
 	var rawPositionsLength int = len(rawPositions)
 	for i := 0; i < rawPositionsLength; i++ {
-		var raw any = rawPositions[i]
+		var raw, _ = rawPositions[i].(map[string]any)
 		var marketHash string = *this.SafeString(raw, "marketHash", "")
 		if outcomesLength > 0 {
 			if this.SafeBool(wantedMarkets, marketHash) == nil {
 				continue
 			}
 		}
-		result = append(result, this.ParseSxbetV3Position(raw))
+		result = append(result, this.ParseSxbetV3Position(rawPositions[i]))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(result)}

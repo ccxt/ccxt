@@ -1041,11 +1041,19 @@ func (this *Coinspot) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//          },
 	//      ]
 	// }
-	var buyTrades []any = this.SafeListSlice(response, "buyorders", []any{})
+	var buyTrades []any
+	buyTrades, _ = response["buyorders"].([]any)
+	if buyTrades == nil {
+		buyTrades = []any{}
+	}
 	for i := 0; i < len(buyTrades); i++ {
 		AddElementToObject(buyTrades[i], "side", "buy")
 	}
-	var sellTrades []any = this.SafeListSlice(response, "sellorders", []any{})
+	var sellTrades []any
+	sellTrades, _ = response["sellorders"].([]any)
+	if sellTrades == nil {
+		sellTrades = []any{}
+	}
 	for i := 0; i < len(sellTrades); i++ {
 		AddElementToObject(sellTrades[i], "side", "sell")
 	}
@@ -1163,11 +1171,14 @@ func (this *Coinspot) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	if typeVar == "market" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"cointype": market["id"],
+		"cointype": nil,
 		"amount":   amount,
 		"rate":     price,
+	}
+	if market.Id != nil {
+		request["cointype"] = *market.Id
 	}
 	var response map[string]any = nil
 	if sideUpper == "BUY" {

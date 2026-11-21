@@ -336,7 +336,11 @@ func (this *Grvt) HandleTicker(client any, message map[string]any) {
 	//        "prev_sequence_number": "1061717"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var selector string = *this.SafeString(message, "selector", "")
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -479,7 +483,11 @@ func (this *Grvt) HandleTrades(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var selector string = *this.SafeString(message, "selector", "")
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -644,7 +652,11 @@ func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var selector string = *this.SafeString(message, "selector", "")
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -820,7 +832,11 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var selector string = *this.SafeString(message, "selector", "")
 	var parts []string = strings.Split(selector, "@")
 	var marketId *string = this.SafeString(parts, 0)
@@ -1004,7 +1020,11 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 	//        "prev_sequence_number": "0"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "feed", map[string]any{})
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1135,7 +1155,7 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
+	var data, _ = message["feed"].(map[string]any)
 	var position map[string]any = this.ParseWsPosition(data)
 	this.Positions.Append(position)
 	var newPositions []any = []any{}
@@ -1283,7 +1303,7 @@ func (this *Grvt) HandleOrder(client any, message map[string]any) {
 	//        "prev_sequence_number": "16"
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
+	var data, _ = message["feed"].(map[string]any)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

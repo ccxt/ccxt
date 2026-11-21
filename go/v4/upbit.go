@@ -621,9 +621,9 @@ func (this *Upbit) fetchMarketByIdBody(ch chan AsyncResult[MarketInterface], id 
 	//         }
 	//     }
 	//
-	var marketInfo map[string]any = SafeMapTyped(response, "market")
-	var bid map[string]any = SafeMapTyped(marketInfo, "bid")
-	var ask map[string]any = SafeMapTyped(marketInfo, "ask")
+	var marketInfo, _ = response["market"].(map[string]any)
+	var bid, _ = marketInfo["bid"].(map[string]any)
+	var ask, _ = marketInfo["ask"].(map[string]any)
 	var marketId *string = this.SafeString(marketInfo, "id")
 	var baseId *string = this.SafeString(ask, "currency")
 	var quoteId *string = this.SafeString(bid, "currency")
@@ -804,7 +804,7 @@ func (this *Upbit) ParseBalanceList(response []any) map[string]any {
 		"datetime":  nil,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1406,9 +1406,12 @@ func (this *Upbit) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	responseReply := <-this.PrivateGetOrdersChance(this.Extend(request, params))
@@ -1591,7 +1594,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	var response []any = nil
 	if since != nil {
 		// convert `since` to `to` value
-		request["to"] = this.Iso8601(this.Sum(since, (timeframePeriod*limitResolved)*1000))
+		request["to"] = this.Iso8601(*since + (timeframePeriod*limitResolved)*1000)
 	}
 	if timeframeValue != nil && *timeframeValue == "minutes" {
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
@@ -1717,7 +1720,7 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
 	var postOnly bool = this.IsPostOnly((typeVar == "market"), false, params)
@@ -1736,8 +1739,11 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 		panic(InvalidOrder(this.Id + " createOrder() supports only buy or sell in the side argument."))
 	}
 	var request map[string]any = map[string]any{
-		"market": market["id"],
+		"market": nil,
 		"side":   orderSide,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 	if typeVar == "limit" {
 		if (price == nil) || IsEqual(amount, nil) {
@@ -3090,9 +3096,12 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 	// https://github.com/ccxt/ccxt/issues/6452
 
@@ -3266,17 +3275,17 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	return map[string]any{
+	var literal247915 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
-		"headers": func() any {
-			if apiName == "private" {
-				return headers
-			}
-			return nil
-		}(),
 	}
+	if apiName == "private" {
+		literal247915["headers"] = headers
+	} else {
+		literal247915["headers"] = nil
+	}
+	return literal247915
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

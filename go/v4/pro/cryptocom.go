@@ -391,7 +391,10 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var data any = this.SafeDict(this.SafeList(message, "data"), 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
@@ -923,7 +926,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "subscription")
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var market map[string]any = this.SafeMarket(marketId)
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var ticker any = data[i]
 		var parsed map[string]any = this.ParseWsTicker(ticker, market)
@@ -1054,8 +1057,14 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 	return nil
 }
 func (this *Cryptocom) HandleBidAsk(client any, message map[string]any) {
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var data, _ = message["data"].([]any)
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 	var parsedTicker map[string]any = this.ParseWsBidAsk(ticker)
 	var symbol string = *this.SafeString(parsedTicker, "symbol", "")
 	if symbol != "" {
@@ -1213,9 +1222,9 @@ func (this *Cryptocom) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	var data []any = ccxt.SafeListTyped(message, "data")
+	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var tick map[string]any = ccxt.SafeMapTyped(data, i)
+		var tick, _ = data[i].(map[string]any)
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 		stored.Append(parsed)
 	}
@@ -1502,8 +1511,11 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var firstData map[string]any = ccxt.SafeMapTyped(data, 0)
+	var data, _ = message["data"].([]any)
+	var firstData map[string]any
+	if 0 < len(data) {
+		firstData, _ = data[0].(map[string]any)
+	}
 	var rawPositions []any = ccxt.SafeListTyped(firstData, "positions")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1736,7 +1748,11 @@ func (this *Cryptocom) HandleOrder(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var rawOrder map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = message["result"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
 }

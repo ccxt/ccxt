@@ -1702,12 +1702,12 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var rawTicker any = tickers[i]
+		var rawTicker, _ = tickers[i].(map[string]any)
 		var contractType *string = this.SafeString(rawTicker, "contract_type")
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i]))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2070,13 +2070,14 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	return nil
 }
 func (this *Delta) ParseBalance(response map[string]any) map[string]any {
-	var balances []any = SafeListTyped(response, "result")
+	var balances []any
+	balances, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
 		var code *string = currencyId

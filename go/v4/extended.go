@@ -747,12 +747,12 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var category *string = this.SafeStringLower(market, "category")
-	var takerFees any = func() any {
-		if category != nil && *category == "rwa" {
-			return this.SafeDict(this.Fees, "rwa", map[string]any{})
-		}
-		return this.Fees
-	}()
+	var takerFees any
+	if category != nil && *category == "rwa" {
+		takerFees = this.SafeDict(this.Fees, "rwa", map[string]any{})
+	} else {
+		takerFees = this.Fees
+	}
 	var settleId *string = nil
 	var settle *string = nil
 	var symbol string = *base + "/" + *quote
@@ -1084,7 +1084,11 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var marketData, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(marketData, "name")
 		var market map[string]any = this.SafeMarket(marketId)
-		var stats map[string]any = this.SafeDictMap(marketData, "marketStats", map[string]any{})
+		var stats map[string]any
+		stats, _ = marketData["marketStats"].(map[string]any)
+		if stats == nil {
+			stats = map[string]any{}
+		}
 		var ticker map[string]any = TickerToMap(this.ParseTicker(stats, market))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
@@ -2107,7 +2111,7 @@ func (this *Extended) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

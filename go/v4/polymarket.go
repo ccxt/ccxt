@@ -675,9 +675,9 @@ func (this *Polymarket) ParseMarket(market any) map[string]any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var crossAllowed bool = !(*this.SafeBool(market, "isolated_only", false))
-	return this.SafeMarketStructure(map[string]any{
+	var literal53141 map[string]any = map[string]any{
 		"id":             numericId,
-		"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
+		"symbol":         nil,
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
@@ -729,7 +729,11 @@ func (this *Polymarket) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if base != nil && quote != nil && settle != nil {
+		literal53141["symbol"] = *base + "/" + *quote + ":" + *settle
+	}
+	return this.SafeMarketStructure(literal53141)
 }
 
 /**
@@ -757,7 +761,7 @@ func (this *Polymarket) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 		panic(r.Err)
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var symbolResolved *string = market.Symbol
+	var symbolResolved *string = &market.Symbol
 	// the tickers and statistics endpoints ignore the documented
 	// instrument_id filter and always answer with every instrument, so
 	// the single-market call reuses the bulk fetch and selects one row
@@ -1330,7 +1334,7 @@ func (this *Polymarket) fetchFundingRateBody(ch chan AsyncResult[FundingRate], s
 		panic(r.Err)
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var symbolResolved *string = market.Symbol
+	var symbolResolved *string = &market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
 	// reuses the bulk fetch and selects the requested row
@@ -1561,7 +1565,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest],
 		panic(r.Err)
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var symbolResolved *string = market.Symbol
+	var symbolResolved *string = &market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
 	// reuses the bulk fetch and selects the requested row
@@ -1960,13 +1964,16 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 	//
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
-		var marketInner any = func() any {
-			if i >= 0 && i < len(ordersMarkets) {
-				return ordersMarkets[i]
-			}
-			return nil
-		}()
+		var ack, _ = response[i].(map[string]any)
+		if ack == nil {
+			ack = map[string]any{}
+		}
+		var marketInner any
+		if i >= 0 && i < len(ordersMarkets) {
+			marketInner = ordersMarkets[i]
+		} else {
+			marketInner = nil
+		}
 		var echo map[string]any = this.SafeDictMap(ordersEntries, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
 		var merged map[string]any = this.Extend(echo, map[string]any{
@@ -2326,7 +2333,13 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 	//         }
 	//     ]
 	//
-	var first map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(response) {
+		first, _ = response[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 	var status *string = this.SafeString(first, "status")
 	if status != nil && *status == "err" {
 		var merged map[string]any = map[string]any{
@@ -2533,7 +2546,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	//         "timestamp": 1788546565789
 	//     }
 	//
-	var margin map[string]any = SafeMapTyped(response, "margin")
+	var margin, _ = response["margin"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result map[string]any = map[string]any{
 		"info":      responseReply.Raw,

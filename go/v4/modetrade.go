@@ -1699,7 +1699,11 @@ func (this *Modetrade) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	//         "timestamp": 1792270455082
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var ticker map[string]any = this.Extend(map[string]any{
 		"timestamp": timestamp,
@@ -1758,20 +1762,20 @@ func (this *Modetrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	//         "timestamp": 1792270455518
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var rows []any
 	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id == nil) || !ok {
 			continue
 		}
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
-		}, row)
+		}, rows[i])
 		result = append(result, TickerToMap(this.ParseTicker(ticker)))
 	}
 
@@ -1844,7 +1848,11 @@ func (this *Modetrade) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var interest map[string]any = this.Extend(map[string]any{
 		"timestamp": timestamp,
@@ -1889,20 +1897,20 @@ func (this *Modetrade) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Ope
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var rows []any
 	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
+		var row, _ = rows[i].(map[string]any)
 		var marketId string = *this.SafeString(row, "symbol", "")
 		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id == nil) || !ok {
 			continue
 		}
 		var interest map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
-		}, row)
+		}, rows[i])
 		result = append(result, OpenInterestToMap(this.ParseOpenInterest(interest)))
 	}
 
@@ -2163,9 +2171,12 @@ func (this *Modetrade) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["max_level"] = min(*limit, 1000)
@@ -2479,14 +2490,17 @@ func (this *Modetrade) CreateOrderRequest(symbol string, typeVar string, side *s
 	 */
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var orderType string = strings.ToUpper(typeVar)
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var orderSide string = strings.ToUpper(*side)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"side":   orderSide,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
@@ -2542,10 +2556,13 @@ func (this *Modetrade) CreateOrderRequest(symbol string, typeVar string, side *s
 	} else if hasStopLoss || hasTakeProfit {
 		request["algo_type"] = "TP_SL"
 		var outterOrder map[string]any = map[string]any{
-			"symbol":       market["id"],
+			"symbol":       nil,
 			"reduce_only":  false,
 			"algo_type":    "POSITIONAL_TP_SL",
 			"child_orders": []any{},
+		}
+		if market.Id != nil {
+			outterOrder["symbol"] = *market.Id
 		}
 		var childOrders []any = []any{}
 		var closeSide string = "BUY"
@@ -3375,7 +3392,11 @@ func (this *Modetrade) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", response)
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = response
+	}
 	var orders []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -3688,9 +3709,10 @@ func (this *Modetrade) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var balances []any = SafeListTyped(response, "holding")
+	var balances []any
+	balances, _ = response["holding"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(balance, "holding")

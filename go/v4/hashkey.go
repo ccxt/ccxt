@@ -1467,9 +1467,12 @@ func (this *Hashkey) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -1959,7 +1962,13 @@ func (this *Hashkey) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         }
 	//     ]
 	//
-	var ticker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var ticker map[string]any
+	if 0 < len(response) {
+		ticker, _ = response[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -2227,7 +2236,7 @@ func (this *Hashkey) ParseBalance(balance map[string]any) map[string]any {
 	}
 	var balances []any = SafeListTyped(balance, "balances")
 	for i := 0; i < len(balances); i++ {
-		var balanceEntry map[string]any = SafeMapTyped(balances, i)
+		var balanceEntry, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balanceEntry, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2306,12 +2315,12 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		}
 		return nil
 	}()
-	var networkCode any = func() any {
-		if networkCodeInParams == nil {
-			return this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
-		}
-		return networkCodeInParams
-	}()
+	var networkCode any
+	if networkCodeInParams == nil {
+		networkCode = this.SafeString(this.SafeDict(this.Options, "defaultNetworks", map[string]any{}), code, this.SafeString(this.Options, "defaultNetwork"))
+	} else {
+		networkCode = networkCodeInParams
+	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
 	r1 := <-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsNetworkCode))
@@ -3207,7 +3216,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
 	var request map[string]any = this.CreateSpotOrderRequest(&symbol, typeVar, side, amount, price, params)
-	var response any = map[string]any{}
+	var response map[string]any = nil
 	var test *bool = this.SafeBool(params, "test", false)
 	if test != nil && *test {
 
@@ -3215,21 +3224,21 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if isMarketBuy && (cost == nil) {
 
 		r2 := <-this.PrivatePostApiV11SpotOrder(request)
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw // the endpoint for market buy orders by amount
+		response = r2.Value // the endpoint for market buy orders by amount
 	} else {
 
 		r3 := <-this.PrivatePostApiV1SpotOrder(request)
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response = r3.Raw // the endpoint for market buy orders by cost and other orders
+		response = r3.Value // the endpoint for market buy orders by cost and other orders
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
@@ -3284,12 +3293,15 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol *string, typeVar string, side
 	 * @param {string} [params.clientOrderId] a unique id for the order
 	 * @returns {object} request to be sent to the exchange
 	 */
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var typeValue string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"side":   strings.ToUpper(side),
 		"type":   typeValue,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if !IsEqual(amount, nil) {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
@@ -3339,11 +3351,14 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol *string, typeVar string, side
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"type":     "LIMIT",
 		"quantity": this.AmountToPrecision(symbol, amount),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var isMarketOrder bool = (typeVar == "market")
 	if isMarketOrder {
@@ -3532,7 +3547,11 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 	var responseOrders []any = []any{}
 	for i := 0; i < len(result); i++ {
 		var responseEntry, _ = result[i].(map[string]any)
-		var responseOrder map[string]any = this.SafeDictMap(responseEntry, "order", map[string]any{})
+		var responseOrder map[string]any
+		responseOrder, _ = responseEntry["order"].(map[string]any)
+		if responseOrder == nil {
+			responseOrder = map[string]any{}
+		}
 		responseOrders = append(responseOrders, responseOrder)
 	}
 
@@ -4391,12 +4410,12 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 }
 func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) []any {
 	var parts []string = Split(unparsed, "_")
-	var side any = func() any {
-		if 0 >= 0 && 0 < len(parts) {
-			return parts[0]
-		}
-		return nil
-	}()
+	var side any
+	if 0 >= 0 && 0 < len(parts) {
+		side = parts[0]
+	} else {
+		side = nil
+	}
 	var secondPart *string = this.SafeString(parts, 1)
 	if secondPart != nil && *secondPart == "open" {
 		return []any{side, false}
@@ -4484,7 +4503,13 @@ func (this *Hashkey) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
 	//     ]
 	//
-	var rate map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var rate map[string]any
+	if 0 < len(response) {
+		rate, _ = response[0].(map[string]any)
+	}
+	if rate == nil {
+		rate = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(rate, market)}
 	return nil
@@ -4739,15 +4764,18 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position]
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var methodName string = "fetchPosition"
 	var methodNameOption *string = this.SafeString(params, "methodName", methodName)
 	var paramsMethodName map[string]any = this.OmitDict(params, "methodName")
-	if !(*this.SafeBool(market, "swap", false)) {
+	if !market.Swap {
 		panic(NotSupported(this.Id + " " + *methodNameOption + "() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	responseRecv := <-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))
@@ -4785,7 +4813,10 @@ func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	return this.SafePosition(map[string]any{
 		"symbol":                      symbol,
 		"id":                          nil,
@@ -4863,7 +4894,13 @@ func (this *Hashkey) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol str
 	//         }
 	//     ]
 	//
-	var leverage map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var leverage map[string]any
+	if 0 < len(response) {
+		leverage, _ = response[0].(map[string]any)
+	}
+	if leverage == nil {
+		leverage = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(leverage, market)}
 	return nil
@@ -4979,13 +5016,16 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if (marginModeValue != "CROSS") && (marginModeValue != "ISOLATED") {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}
-	var market map[string]any = this.Market(symbol)
-	if !(*this.SafeBool(market, "swap", false)) {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if !market.Swap {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"marginType": marginModeValue,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params))

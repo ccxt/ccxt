@@ -2569,7 +2569,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 	var tickers []any = SafeListTyped(response, "result")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var rawTicker any = tickers[i]
+		var rawTicker, _ = tickers[i].(map[string]any)
 		// the spot and contract payloads share the same field names, so
 		// the market type cannot be inferred from the entry itself
 		var marketId *string = this.SafeString(rawTicker, "s")
@@ -2578,7 +2578,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 			marketType = "contract"
 		}
 		var marketInner map[string]any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker, marketInner))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], marketInner))
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -3258,8 +3258,11 @@ func (this *Xt) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ...
 	if (subType != nil) || isContractWallet {
 		balances = ArrayTyped(this.SafeList(response, "result", []any{}))
 	} else {
-		var data map[string]any = SafeMapTyped(response, "result")
-		balances = ArrayTyped(this.SafeList(data, "assets", []any{}))
+		var data, _ = response["result"].(map[string]any)
+		balances, _ = data["assets"].([]any)
+		if balances == nil {
+			balances = []any{}
+		}
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(balances))}
@@ -3406,7 +3409,7 @@ func (this *Xt) createOrderBody(ch chan AsyncResult[Order], symbol string, typeV
 		}
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	if market.Spot {
 		_, has1 := params["trailingPercent"]
 		_, has2 := params["trailingAmount"]
@@ -3487,12 +3490,12 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, t
 					request["quoteQty"] = this.CostToPrecision(symbol, costCalculated)
 				}
 			} else {
-				var amountCost any = func() any {
-					if cost != nil {
-						return cost
-					}
-					return amount
-				}()
+				var amountCost any
+				if cost != nil {
+					amountCost = cost
+				} else {
+					amountCost = amount
+				}
 				request["quoteQty"] = this.CostToPrecision(symbol, amountCost)
 			}
 		}
@@ -4608,9 +4611,12 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status str
 	//     }
 	//
 	var orders []any = []any{}
-	var resultDict map[string]any = SafeMapTyped(response, "result")
+	var resultDict, _ = response["result"].(map[string]any)
 	if resultDict != nil {
-		orders = ArrayTyped(this.SafeList(resultDict, "items", []any{}))
+		orders, _ = resultDict["items"].([]any)
+		if orders == nil {
+			orders = []any{}
+		}
 	} else {
 		orders = ArrayTyped(this.SafeList(response, "result", []any{}))
 	}
@@ -4930,14 +4936,13 @@ func (this *Xt) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	//     }
 	//
 	var isContractResponse bool = ((subType != nil) || (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future"))
-	var order any
 	if isContractResponse {
-		order = response
-	} else {
-		order = this.SafeDict(response, "result", map[string]any{})
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+		return nil
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
 	return nil
 }
 
@@ -6483,11 +6488,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes482119 []any = r1.Value
-		if retRes482119 == nil {
+		var retRes482319 []any = r1.Value
+		if retRes482319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482319)}
 		}
 		return nil
 	}
@@ -7800,14 +7805,13 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol stri
 		}
 		response = r5.Value
 	}
-	var result any
 	if *this.SafeBool(market, "swap", false) {
-		result = response
-	} else {
-		result = this.SafeDict(response, "result", map[string]any{})
+
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+		return nil
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
 	return nil
 }
 func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

@@ -198,8 +198,8 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
 	}
 	var length int = len(symbolsValue)
 	if length == 1 {
-		var market map[string]any = this.Market(symbolsValue[0])
-		messageHash = ccxt.Add(messageHash, ":"+market["symbol"].(string))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbolsValue[0]))
+		messageHash = ccxt.Add(messageHash, ":"+market.Symbol)
 	}
 	subscribe["product_ids"] = marketIds
 	var request map[string]any = this.Extend(subscribe, params)
@@ -221,12 +221,12 @@ func (this *Krakenfutures) subscribePublicBody(ch chan ccxt.AsyncResult[map[stri
  * @param {object} [params] extra parameters specific to the krakenfutures api
  * @returns {object} data from the websocket stream
  */
-func (this *Krakenfutures) SubscribePrivateAsync(name any, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Krakenfutures) SubscribePrivateAsync(name any, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, name, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any, messageHash any, optionalArgs ...any) any {
+func (this *Krakenfutures) subscribePrivateBody(ch chan ccxt.AsyncResult[any], name any, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -730,7 +730,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	}
 	verbose, paramsVerbose := this.HandleOptionBoolAndParams(params, "watchOrders", "verbose", false)
 	var name any = "open_orders"
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if verbose {
 		name = "open_orders_verbose"
 		messageHash = "orders:verbose"
@@ -744,8 +744,8 @@ func (this *Krakenfutures) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 		}
 	}
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		messageHash = ccxt.Add(messageHash, ":"+market["symbol"].(string))
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		messageHash += ":" + market.Symbol
 	}
 
 	r1 := <-this.SubscribePrivateAsync(name, messageHash, paramsVerbose)
@@ -797,10 +797,10 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		}
 	}
 	var name string = "fills"
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		messageHash = "myTrades" + ":" + market["symbol"].(string)
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		messageHash = "myTrades" + ":" + market.Symbol
 	}
 
 	r1 := <-this.SubscribePrivateAsync(name, messageHash, params)
@@ -901,7 +901,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-		var symbol *string = market.Symbol
+		var symbol *string = &market.Symbol
 		var messageHash string = this.GetMessageHash("trade", nil, symbol)
 		// safeValue, not safeList: the values are ccxt.ArrayCache instances, and
 		// the typed accessor casts them to a plain list in c#, which throws
@@ -918,12 +918,12 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 			var length int = len(trades)
 			for i := 0; i < length; i++ {
 				// need reverse to correct chronology
-				var item any = func() any {
-					if (length-1)-i >= 0 && (length-1)-i < len(trades) {
-						return trades[(length-1)-i]
-					}
-					return nil
-				}()
+				var item any
+				if (length-1)-i >= 0 && (length-1)-i < len(trades) {
+					item = trades[(length-1)-i]
+				} else {
+					item = nil
+				}
 				var trade any = this.ParseWsTrade(item)
 				tradesArray.Append(trade)
 			}
@@ -1115,7 +1115,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	var order map[string]any = ccxt.SafeMapTyped(message, "order")
+	var order, _ = message["order"].(map[string]any)
 	if order != nil {
 		var marketId *string = this.SafeString(order, "instrument")
 		var feed *string = this.SafeString(message, "feed")
@@ -1129,7 +1129,10 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 		if byKey := orders.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 			previousOrders = byKey[*symbol]
 		}
-		var previousOrder map[string]any = this.SafeDictMap(previousOrders, orderId)
+		var previousOrder map[string]any
+		if orderId != nil {
+			previousOrder, _ = previousOrders[*orderId].(map[string]any)
+		}
 		var reason *string = this.SafeString(message, "reason")
 		if (previousOrder == nil) || (reason != nil && *reason == "edited_by_user") {
 			var parsed map[string]any = this.ParseWsOrder(order)
@@ -1147,10 +1150,10 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 			ccxt.AppendToArray(&retRes80116, trade)
 			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
-			totalCostLit103 := "0"
-			var totalCost *string = &totalCostLit103
-			totalAmountLit104 := "0"
-			var totalAmount *string = &totalAmountLit104
+			totalCostLit106 := "0"
+			var totalCost *string = &totalCostLit106
+			totalAmountLit107 := "0"
+			var totalAmount *string = &totalAmountLit107
 			var trades []map[string]any = this.SafeListMapsTyped(previousOrder, "trades")
 			for i := 0; i < len(trades); i++ {
 				var currentTrade map[string]any = trades[i]
@@ -1589,7 +1592,10 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{

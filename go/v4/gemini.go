@@ -1812,7 +1812,7 @@ func (this *Gemini) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2292,16 +2292,19 @@ func (this *Gemini) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		clientOrderIdStr := strconv.FormatInt(this.Milliseconds(), 10)
 		clientOrderId = &clientOrderIdStr
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var amountString *string = this.AmountToPrecision(symbol, amount)
 	var priceString *string = this.PriceToPrecision(symbol, price)
 	var request map[string]any = map[string]any{
 		"client_order_id": clientOrderId,
-		"symbol":          market["id"],
+		"symbol":          nil,
 		"amount":          amountString,
 		"price":           priceString,
 		"side":            side,
 		"type":            "exchange limit",
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	var typeValue *string = this.SafeString(params, "type", typeVar)
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
@@ -2924,9 +2927,12 @@ func (this *Gemini) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	responseReply := <-this.PrivatePostV1DepositCurrencyNewAddress(this.Extend(request, params))

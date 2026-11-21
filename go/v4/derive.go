@@ -1738,9 +1738,12 @@ func (this *Derive) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchSettlementHistory() requires a symbol argument to resolve the underlying currency"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"currency": market["baseId"],
+		"currency": nil,
+	}
+	if market.BaseId != nil {
+		request["currency"] = *market.BaseId
 	}
 
 	r1 := <-this.PublicPostGetOptionSettlementPrices(this.Extend(request, params))

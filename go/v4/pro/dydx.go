@@ -559,7 +559,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(part, 0)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var content, _ = message["contents"].(map[string]any)
 	var candles []any = ccxt.SafeListTyped(content, "candles")
 	var messageHash string = "ohlcv:" + symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)

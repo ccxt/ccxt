@@ -153,12 +153,12 @@ func (this *Paradex) UnsubscribeRequest(channel any) map[string]any {
  * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
  * @returns {object} the reply
  */
-func (this *Paradex) SendRequestAsync(url any, request map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) SendRequestAsync(url string, request map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.sendRequestBody(ch, url, request, optionalArgs...)
 	return ch
 }
-func (this *Paradex) sendRequestBody(ch chan ccxt.AsyncResult[any], url any, request map[string]any, optionalArgs ...any) any {
+func (this *Paradex) sendRequestBody(ch chan ccxt.AsyncResult[any], url string, request map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var subscribeHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -194,12 +194,12 @@ func (this *Paradex) sendRequestBody(ch chan ccxt.AsyncResult[any], url any, req
  * @param {object} [params] extra parameters merged into each subscribe request
  * @returns {object} the first update
  */
-func (this *Paradex) SubscribeChannelsAsync(url any, messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) SubscribeChannelsAsync(url string, messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeChannelsBody(ch, url, messageHashes, channels, optionalArgs...)
 	return ch
 }
-func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, channels any, optionalArgs ...any) any {
+func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url string, messageHashes any, channels any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
@@ -214,12 +214,12 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 	}
 	var channelsLength int = ccxt.GetArrayLength(channels)
 	for attempt := 0; attempt < channelsLength; attempt++ {
-		var pending any = this.UnsubscribedChannels(url, channels)
-		var pendingLength int = ccxt.GetArrayLength(pending)
+		var pending []any = this.UnsubscribedChannels(url, channels)
+		var pendingLength int = len(pending)
 		if pendingLength < 2 {
 			break
 		}
-		var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channels, ccxt.GetValue(pending, 0)))
+		var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channels, pending[0]))
 		var pendingRequest map[string]any = this.SubscribeRequest(channel)
 
 		r1 := <-this.SendRequestAsync(url, this.DeepExtend(pendingRequest, params), channel)
@@ -228,8 +228,8 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 		}
 	}
 	// the last one goes with the watch, so that an update sent right after it is not missed
-	var missing any = this.UnsubscribedChannels(url, channels)
-	var missingLength int = ccxt.GetArrayLength(missing)
+	var missing []any = this.UnsubscribedChannels(url, channels)
+	var missingLength int = len(missing)
 	if missingLength == 0 {
 
 		r2 := <-this.WatchMultiple(url, messageHashes, nil, channels)
@@ -239,7 +239,7 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 		ch <- ccxt.AsyncResult[any]{Value: r2.Value}
 		return nil
 	}
-	var index any = ccxt.GetValue(missing, 0)
+	var index any = missing[0]
 	var request map[string]any = this.SubscribeRequest(ccxt.GetValue(channels, index))
 	// a failed subscribe rejects the watchers of its own channel only
 	var subscription map[string]any = map[string]any{
@@ -254,7 +254,7 @@ func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url an
 	ch <- ccxt.AsyncResult[any]{Value: r3.Value}
 	return nil
 }
-func (this *Paradex) UnsubscribedChannels(url any, channels any) any {
+func (this *Paradex) UnsubscribedChannels(url string, channels any) []any {
 	var client ccxt.ClientInterface = this.Client(url)
 	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
@@ -485,15 +485,15 @@ func (this *Paradex) unsubscribeChannelAtBody(ch chan ccxt.AsyncResult[any], url
  * @param {string[]} subscribeHashes the subscriptions the watch relies on
  * @returns {undefined}
  */
-func (this *Paradex) WaitForPendingUnsubscribeAsync(url any, subscribeHashes any) <-chan ccxt.AsyncResult[bool] {
+func (this *Paradex) WaitForPendingUnsubscribeAsync(url string, subscribeHashes any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.waitForPendingUnsubscribeBody(ch, url, subscribeHashes)
 	return ch
 }
-func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url any, subscribeHashes any) any {
+func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], url string, subscribeHashes any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	if !(ccxt.InOp(this.Clients, url)) {
+	if _, ok := this.Clients[url]; !ok {
 
 		return nil
 	}
@@ -552,7 +552,10 @@ func (this *Paradex) ExpirePendingUnsubscribeAsync(client any, unsubHash string,
 func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, unsubHash string, requestId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var unsubscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+	var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+	if unsubscription == nil {
+		unsubscription = map[string]any{}
+	}
 	if ccxt.IsEqual(this.SafeString(unsubscription, "id"), requestId) {
 		error := ccxt.RequestTimeout(this.Id + " " + unsubHash + " was not acknowledged")
 		client.(ccxt.ClientInterface).Reject(error, unsubHash)
@@ -687,7 +690,10 @@ func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
 		if strings.Index(unsubHash, "unsubscribe:") != 0 {
 			continue
 		}
-		var subscription map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{})
+		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+		if subscription == nil {
+			subscription = map[string]any{}
+		}
 		if this.SafeString(subscription, "id") != nil && *this.SafeString(subscription, "id") == requestId {
 			this.CleanUnsubscribed(client, unsubHash, subscription)
 		}
@@ -1205,12 +1211,12 @@ func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 				panic(r2.Err)
 			}
 		}
-		var channel any = func() any {
-			if isDeltas {
-				return deltasChannel
-			}
-			return snapshotChannel
-		}()
+		var channel any
+		if isDeltas {
+			channel = deltasChannel
+		} else {
+			channel = snapshotChannel
+		}
 		channels = append(channels, channel)
 		messageHashes = append(messageHashes, "orderbook:"+market["symbol"].(string))
 	}
@@ -1292,12 +1298,12 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		// the feed the market is on, a market is on one of them at a time
 		var deltasChannel any = this.GetOrderBookChannel(market["id"], true)
 		var snapshotChannel any = this.GetOrderBookChannel(market["id"], false)
-		var channel any = func() any {
-			if deltasOption == true {
-				return deltasChannel
-			}
-			return snapshotChannel
-		}()
+		var channel any
+		if deltasOption == true {
+			channel = deltasChannel
+		} else {
+			channel = snapshotChannel
+		}
 		// a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
 		var requestedHash any = ccxt.Add(deltasChannel, ":requested")
 		if (client.(ccxt.ClientInterface).SubscriptionHas(deltasChannel)) || (client.(ccxt.ClientInterface).SubscriptionHas(requestedHash)) {
@@ -1586,7 +1592,7 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var newTicker any = nil
 	if symbolsLength > 0 {
 		for i := 0; i < symbolsLength; i++ {
-			messageHashes = append(messageHashes, ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add(channel+".", symbolsNormalized[i]))
 		}
 
 		r1 := <-this.SubscribeMarketsSummaryAsync(symbolsNormalized, messageHashes, params)
@@ -1715,7 +1721,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	var subscribeHashes []any = []any{}
 	var subMessageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		var symbol *string = &symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		marketIds = append(marketIds, marketId)

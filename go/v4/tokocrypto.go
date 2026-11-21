@@ -1916,7 +1916,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan AsyncResult[Balances], optional
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceCustom(response, typeVar, marginMode))}
 	return nil
 }
-func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) map[string]any {
+func (this *Tokocrypto) ParseBalanceCustom(response map[string]any, optionalArgs ...any) map[string]any {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = typeVar
 	var marginMode *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -1927,10 +1927,11 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) ma
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var balances []any = SafeListTyped(data, "accountAssets")
+	var data, _ = response["data"].(map[string]any)
+	var balances []any
+	balances, _ = data["accountAssets"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2850,9 +2851,12 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset": currency["id"],
+		"asset": nil,
+	}
+	if currency.Id != nil {
+		request["asset"] = *currency.Id
 	}
 	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH

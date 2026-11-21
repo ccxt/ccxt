@@ -3372,9 +3372,12 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan AsyncResult[[]Ord
 	}
 	var response map[string]any = nil
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 		var request map[string]any = map[string]any{
-			"instrument_name": market["id"],
+			"instrument_name": nil,
+		}
+		if market.Id != nil {
+			request["instrument_name"] = *market.Id
 		}
 
 		r2 := <-this.PrivateGetCancelAllByInstrument(this.Extend(request, paramsResolved))
@@ -4125,10 +4128,13 @@ func (this *Coinbaseinternational) setLeverageBody(ch chan AsyncResult[map[strin
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"instrument_name": market["id"],
+		"instrument_name": nil,
 		"leverage":        this.NumberToString(leverage),
+	}
+	if market.Id != nil {
+		request["instrument_name"] = *market.Id
 	}
 
 	r1 := <-this.AuthenticateV2Async()

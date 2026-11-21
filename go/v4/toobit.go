@@ -1620,9 +1620,9 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		// mark and index klines walk backwards from `to` and ignore a lone `from`
 		var duration int64 = this.ParseTimeframe(timeframe)
 		if limit == nil {
-			request["to"] = this.Sum(since, (duration*2000)*1000) // exchange default limit
+			request["to"] = *since + (duration*2000)*1000 // exchange default limit
 		} else {
-			request["to"] = this.Sum(since, (duration**limit)*1000)
+			request["to"] = *since + (duration**limit)*1000
 		}
 	} else if (since != nil) && (limit != nil) {
 		// without an end time the exchange returns the latest candles, not the ones starting at since
@@ -2342,10 +2342,13 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"quantity": this.AmountToPrecision(symbol, amount),
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	reduceOnly, paramsReduceOnly := this.HandleParamBool(params, "reduceOnly")
 	if side == "buy" {
@@ -3837,14 +3840,17 @@ func (this *Toobit) setMarginModeBody(ch chan AsyncResult[map[string]any], margi
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	if market["type"] != "swap" {
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	if market.Type == nil || *market.Type != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToUpper(marginMode)
 	var request map[string]any = map[string]any{
-		"symbol":     market["id"],
+		"symbol":     nil,
 		"marginType": marginModeValue,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostApiV1FuturesMarginType(this.Extend(request, params))
@@ -3892,10 +3898,13 @@ func (this *Toobit) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol":   market["id"],
+		"symbol":   nil,
 		"leverage": leverage,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))
@@ -3956,7 +3965,13 @@ func (this *Toobit) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	//     }
 	// ]
 	//
-	var data map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(response) {
+		data, _ = response[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil

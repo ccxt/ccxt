@@ -421,11 +421,11 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		request["region"] = region
 	}
 
-	r := <-this.PublicGet10PublicConfigurationPairs(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGet10PublicConfigurationPairs(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "BTC/USD": {
@@ -436,7 +436,11 @@ func (this *Revolutx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//         }
 	//     }
 	//
-	var markets map[string]any = this.SafeDictMap(response, "data", response)
+	var markets map[string]any
+	markets, _ = response["data"].(map[string]any)
+	if markets == nil {
+		markets = response
+	}
 	var keys []string = nil
 	if markets != nil {
 		keys = make([]string, 0, len(markets))
@@ -546,18 +550,22 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		request["region"] = region
 	}
 
-	r := <-this.PublicGet10PublicConfigurationCurrencies(this.Extend(request, params))
-	if r.Err != nil {
-		panic(r.Err)
+	responseReply := <-this.PublicGet10PublicConfigurationCurrencies(this.Extend(request, params))
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
 	//         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
 	//     }
 	//
-	var currencies map[string]any = this.SafeDictMap(response, "data", response)
+	var currencies map[string]any
+	currencies, _ = response["data"].(map[string]any)
+	if currencies == nil {
+		currencies = response
+	}
 	var keys []string = nil
 	if currencies != nil {
 		keys = make([]string, 0, len(currencies))
@@ -813,9 +821,12 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 	if limit != nil {
 		request["limit"] = *limit
@@ -930,7 +941,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["until"] = until
 	}
 	if (since != nil) && (until == nil) {
-		request["until"] = this.Sum(since, limitValue*duration)
+		request["until"] = *since + limitValue*duration
 	} else if (since == nil) && (until != nil) {
 		request["since"] = *until - (limitValue * duration)
 	}

@@ -595,7 +595,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	return nil
 }
 func (this *Coinmate) ParseBalance(response map[string]any) map[string]any {
-	var balances map[string]any = SafeMapTyped(response, "data")
+	var balances, _ = response["data"].(map[string]any)
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -609,7 +609,7 @@ func (this *Coinmate) ParseBalance(response map[string]any) map[string]any {
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var balance map[string]any = SafeMapTyped(balances, currencyId)
+		var balance, _ = balances[currencyId].(map[string]any)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(balance, "available")
 		account["used"] = this.SafeString(balance, "reserved")
@@ -1251,7 +1251,11 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, nil, since, limitResolved))}
 	return nil
@@ -1387,7 +1391,11 @@ func (this *Coinmate) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil

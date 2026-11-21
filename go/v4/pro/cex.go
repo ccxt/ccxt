@@ -129,7 +129,11 @@ func (this *Cex) HandleBalance(client any, message map[string]any) {
 	// to this.balance, and ccxt.Client.resolve is a no-op while nobody is
 	// awaiting, so a replaced object would make responses landing in that
 	// window invisible to the consumer forever (same class as issue #26773)
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
 	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
 	if this.Balance == nil {
@@ -505,7 +509,11 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsTicker(data)
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
 	if symbol == nil {
@@ -546,7 +554,8 @@ func (this *Cex) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[s
 	//    }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var pair []any = ccxt.SafeListTyped(ticker, "pair")
+	var pair []any
+	pair, _ = ticker["pair"].([]any)
 	var baseId *string = this.SafeString(ticker, "symbol1")
 	if baseId == nil {
 		baseId = this.SafeString(pair, 0)
@@ -818,7 +827,11 @@ func (this *Cex) HandleMyTrades(client any, message map[string]any) {
 	//             "id": "59091012962"
 	//         }
 	//     }
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -882,7 +895,7 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"info":         trade,
 		"timestamp":    this.Parse8601(datetime),
 		"datetime":     datetime,
-		"symbol":       symbol,
+		"symbol":       nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -890,6 +903,9 @@ func (this *Cex) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"cost":         nil,
 		"amount":       amount,
 		"fee":          nil,
+	}
+	if symbol != nil {
+		parsedTrade["symbol"] = *symbol
 	}
 	var fee *string = this.SafeString(trade, "fee_amount")
 	if fee != nil {
@@ -970,13 +986,17 @@ func (this *Cex) HandleOrderUpdate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var isTransaction bool = (this.SafeString(message, "e") != nil && *this.SafeString(message, "e") == "tx")
 	var orderId *string = this.SafeString2(data, "id", "order")
 	var remainsPrecision *string = this.SafeString(data, "remains")
 	var baseId *string = this.SafeString(data, "symbol")
 	var quoteId *string = this.SafeString(data, "symbol2")
-	var pair map[string]any = ccxt.SafeMapTyped(data, "pair")
+	var pair, _ = data["pair"].(map[string]any)
 	if pair != nil {
 		baseId = this.SafeString(pair, "symbol1")
 		quoteId = this.SafeString(pair, "symbol2")
@@ -1089,9 +1109,10 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 	}
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		symbolStr := *base + "/" + *quote
+		symbol = &symbolStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(symbol, market)
 	var time *int64 = this.SafeInteger(order, "time")
@@ -1114,7 +1135,7 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 		"datetime":           this.Iso8601(timestamp),
 		"lastTradeTimestamp": nil,
 		"status":             status,
-		"symbol":             symbol,
+		"symbol":             nil,
 		"type":               nil,
 		"timeInForce":        nil,
 		"postOnly":           nil,
@@ -1133,6 +1154,9 @@ func (this *Cex) ParseWsOrderUpdate(order map[string]any, optionalArgs ...any) a
 			"rate":     nil,
 		},
 		"trades": nil,
+	}
+	if symbol != nil {
+		parsedOrder["symbol"] = *symbol
 	}
 	if isTransaction {
 		parsedOrder["trades"] = this.ParseWsTrade(order, marketResolved)
@@ -1276,7 +1300,11 @@ func (this *Cex) HandleOrderBookSnapshot(client any, message map[string]any) {
 	//         "ok": "ok"
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var pair *string = this.SafeString(data, "pair")
 	var symbol string = this.PairToSymbol(pair)
 	if symbol == "" {

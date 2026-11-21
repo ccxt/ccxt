@@ -1131,7 +1131,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any
 	var asks []any = []any{}
 	for i := 0; i < len(entries); i++ {
 		var entry, _ = entries[i].(map[string]any)
-		var entryData map[string]any = ccxt.SafeMapTyped(entry, "d")
+		var entryData, _ = entry["d"].(map[string]any)
 		var side *string = this.SafeString(entryData, "D")
 		var price *float64 = this.SafeNumber(entryData, "P")
 		var volume *float64 = this.SafeNumber(entryData, "V")
@@ -1752,7 +1752,10 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]an
 		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, subId) // original watch subscription
 		var subHash string = *this.SafeString(subscription, "subHash", "")
 		var unsubHash string = "unsubscribe::" + subHash
-		var unsubsciption map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), unsubHash, map[string]any{}) // unWatch subscription
+		var unsubsciption map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
+		if unsubsciption == nil {
+			unsubsciption = map[string]any{}
+		} // unWatch subscription
 		this.HandleUnSubscription(client, unsubsciption)
 	}
 }

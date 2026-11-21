@@ -900,7 +900,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
+		var trades, _ = response["trades"].(map[string]any)
 		symbolTrades = this.SafeListSlice(trades, marketId, []any{})
 	} else if method == "marketPublicGetV1beta3CryptoLocLatestTrades" {
 
@@ -922,7 +922,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//        }
 		//    }
 		//
-		var trades map[string]any = SafeMapTyped(response, "trades")
+		var trades, _ = response["trades"].(map[string]any)
 		var symbolTrade map[string]any = this.SafeDictMap(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
@@ -1179,7 +1179,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		//        }
 		//     }
 		//
-		var bars map[string]any = SafeMapTyped(response, "bars")
+		var bars, _ = response["bars"].(map[string]any)
 		var bar map[string]any = this.SafeDictMap(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {

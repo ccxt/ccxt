@@ -3835,21 +3835,21 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		// for backward-compatibility
 		types = this.SafeListSlice(this.Options, "fetchMarkets", defaultMarkets)
 	}
-	var promises []any = []any{}
+	var promises []<-chan EndpointResult[map[string]any]
 	var fetchMargins bool = false
 	for i := 0; i < len(types); i++ {
 		var typeVar *string = this.SafeString(types, i)
 		if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 			var subTypes []string = []string{"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"}
 			for j := 0; j < len(subTypes); j++ {
-				promises = append(promises, EndpointRaw(this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]any{
+				promises = append(promises, this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]any{
 					"productType": subTypes[j],
-				}))))
+				})))
 			}
 		} else if typeVar != nil && *typeVar == "spot" {
-			promises = append(promises, EndpointRaw(this.PublicSpotGetV2SpotPublicSymbols(params)))
+			promises = append(promises, this.PublicSpotGetV2SpotPublicSymbols(params))
 			fetchMargins = true
-			promises = append(promises, EndpointRaw(this.PublicMarginGetV2MarginCurrencies(params)))
+			promises = append(promises, this.PublicMarginGetV2MarginCurrencies(params))
 		} else {
 			if typeVar != nil {
 				messageText := this.Id + " does not support " + *typeVar + " market"
@@ -3860,19 +3860,22 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 	}
 	var spotInstrumentsIndex int = len(promises)
 	if fetchMargins {
-		promises = append(promises, EndpointRaw(this.PublicUtaGetV3MarketInstruments(map[string]any{
+		promises = append(promises, this.PublicUtaGetV3MarketInstruments(map[string]any{
 			"category": "SPOT",
-		})))
+		}))
 	}
 
-	r := <-promiseAll(promises)
+	r := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](promises...)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = r.Value
+	var results []map[string]any = r.Value
 	var spotInstruments map[string]any = map[string]any{}
 	if fetchMargins {
-		var instrumentsResponse map[string]any = SafeMapTyped(results, spotInstrumentsIndex)
+		var instrumentsResponse map[string]any
+		if spotInstrumentsIndex >= 0 && spotInstrumentsIndex < len(results) {
+			instrumentsResponse = results[spotInstrumentsIndex]
+		}
 		var instruments []any = SafeListTyped(instrumentsResponse, "data")
 		spotInstruments = this.IndexBy(instruments, "symbol")
 	}
@@ -3883,7 +3886,7 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		if i == spotInstrumentsIndex {
 			continue
 		}
-		var res map[string]any = SafeMapTyped(results, i)
+		var res map[string]any = results[i]
 		var data []any = this.SafeListSlice(res, "data", []any{})
 		var firstData map[string]any = SafeMapTyped(data, 0)
 		var isBorrowable *bool = this.SafeBool(firstData, "isBorrowable")
@@ -7766,12 +7769,12 @@ func (this *Bitget) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 func (this *Bitget) ParseUtaBalance(balance any, optionalArgs ...any) map[string]any {
 	var response map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = response
-	var info any = func() any {
-		if response != nil {
-			return response
-		}
-		return balance
-	}()
+	var info any
+	if response != nil {
+		info = response
+	} else {
+		info = balance
+	}
 	var result map[string]any = map[string]any{
 		"info": info,
 	}
@@ -10541,12 +10544,12 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			response = r11.Value
 		}
 	}
-	var sinceResolved any = func() any {
-		if IsEqual(sinceDefault, nil) {
-			return since
-		}
-		return sinceDefault
-	}()
+	var sinceResolved any
+	if IsEqual(sinceDefault, nil) {
+		sinceResolved = since
+	} else {
+		sinceResolved = sinceDefault
+	}
 	//
 	// spot
 	//
@@ -11148,12 +11151,12 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 			response = r10.Raw
 		}
 	}
-	var sinceResolved any = func() any {
-		if IsEqual(sinceDefault, nil) {
-			return since
-		}
-		return sinceDefault
-	}()
+	var sinceResolved any
+	if IsEqual(sinceDefault, nil) {
+		sinceResolved = since
+	} else {
+		sinceResolved = sinceDefault
+	}
 	//
 	// spot
 	//
@@ -12729,8 +12732,11 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//
 	var position []any = []any{}
 	if (uta == true) || isHistory {
-		var data map[string]any = SafeMapTyped(response, "data")
-		position = ArrayTyped(this.SafeList(data, "list", []any{}))
+		var data, _ = response["data"].(map[string]any)
+		position, _ = data["list"].([]any)
+		if position == nil {
+			position = []any{}
+		}
 	} else {
 		position = ArrayTyped(this.SafeList(response, "data", []any{}))
 	}
@@ -13072,8 +13078,11 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
-		result = ArrayTyped(this.SafeList(data, "resultList", []any{}))
+		var data, _ = response["data"].(map[string]any)
+		result, _ = data["resultList"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 	} else {
 		var paginate bool = false
 		paginate, paramsProductType = this.HandleOptionBoolAndParams(paramsProductType, "fetchFundingRateHistory", "paginate", false)

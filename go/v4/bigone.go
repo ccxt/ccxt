@@ -698,7 +698,10 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var promisesResult []any = r.Value
-	var response map[string]any = SafeMapTyped(promisesResult, 0)
+	var response map[string]any
+	if 0 < len(promisesResult) {
+		response, _ = promisesResult[0].(map[string]any)
+	}
 	var contractResponse any = this.SafeValue(promisesResult, 1)
 	//
 	//     {
@@ -830,9 +833,9 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
-		result = append(result, this.SafeMarketStructure(map[string]any{
+		var literal75251 map[string]any = map[string]any{
 			"id":             marketId,
-			"symbol":         Add(*base+"/"+*quote+":", settle),
+			"symbol":         nil,
 			"base":           base,
 			"quote":          quote,
 			"settle":         settle,
@@ -877,7 +880,11 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 				},
 			},
 			"info": market,
-		}))
+		}
+		if base != nil && quote != nil && settle != nil {
+			literal75251["symbol"] = *base + "/" + *quote + ":" + *settle
+		}
+		result = append(result, this.SafeMarketStructure(literal75251))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -1296,7 +1303,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks map[string]any) any {
 	}
 	return result
 }
-func (this *Bigone) ParseContractOrderBook(orderbook any, symbol any, optionalArgs ...any) map[string]any {
+func (this *Bigone) ParseContractOrderBook(orderbook map[string]any, symbol any, optionalArgs ...any) map[string]any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var responseBids map[string]any = this.SafeDictMap(orderbook, "bids", map[string]any{})
@@ -1406,7 +1413,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        orderId,
+		"order":        nil,
 		"type":         "limit",
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
@@ -1414,6 +1421,9 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"amount":       amountString,
 		"cost":         nil,
 		"info":         trade,
+	}
+	if orderId != nil {
+		result["order"] = *orderId
 	}
 	var makerCurrencyCode *string = nil
 	var takerCurrencyCode *string = nil
@@ -1626,7 +1636,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if since != nil {
 		// const start = this.parseToInt (since / 1000);
 		var duration int64 = this.ParseTimeframe(timeframe)
-		var endByLimit int64 = this.ParseToInt(this.Sum(since, (limitResolved*duration)*1000))
+		var endByLimit int64 = this.ParseToInt(*since + (limitResolved*duration)*1000)
 		if until != nil {
 			request["time"] = this.Iso8601(min(endByLimit, *until+1))
 		} else {
@@ -1680,9 +1690,10 @@ func (this *Bigone) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var balances []any = SafeListTyped(response, "data")
+	var balances []any
+	balances, _ = response["data"].([]any)
 	for i := 0; i < len(balances); i++ {
-		var balance map[string]any = SafeMapTyped(balances, i)
+		var balance, _ = balances[i].(map[string]any)
 		var symbol *string = this.SafeString(balance, "asset_symbol")
 		var code *string = this.SafeCurrencyCode(symbol)
 		var account map[string]any = this.Account()
@@ -1968,12 +1979,12 @@ func (this *Bigone) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var quoteAmount any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-					var costRequest any = func() any {
-						if cost != nil {
-							return cost
-						}
-						return quoteAmount
-					}()
+					var costRequest any
+					if cost != nil {
+						costRequest = cost
+					} else {
+						costRequest = quoteAmount
+					}
 					request["amount"] = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
@@ -2120,9 +2131,12 @@ func (this *Bigone) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"asset_pair_name": market["id"],
+		"asset_pair_name": nil,
+	}
+	if market.Id != nil {
+		request["asset_pair_name"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostOrdersCancel(this.Extend(request, params))
@@ -2568,9 +2582,12 @@ func (this *Bigone) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"asset_symbol": currency["id"],
+		"asset_symbol": nil,
+	}
+	if currency.Id != nil {
+		request["asset_symbol"] = *currency.Id
 	}
 	networkCode, paramsOmitted := this.HandleNetworkCodeAndParams(params)
 

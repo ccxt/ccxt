@@ -871,7 +871,10 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 	}
 	var parsedSymbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(parsedSymbol))
-	var feeCurrency *string = marketResolved.QuoteCurrency
+	var feeCurrency *string
+	if marketResolved.QuoteCurrency != "" {
+		feeCurrency = &marketResolved.QuoteCurrency
+	}
 	var feeCost *string = nil
 	var cost *string = this.SafeString(parsed, "cost")
 	if (cost != nil) && (feeRate != nil) {

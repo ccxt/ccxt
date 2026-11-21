@@ -1160,9 +1160,12 @@ func (this *Bullish) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params))
@@ -3517,7 +3520,7 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		return nil
 	}
 }
-func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) map[string]any {
+func (this *Bullish) ParseBalanceForSingleCurrency(response map[string]any, code *string) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3640,7 +3643,10 @@ func (this *Bullish) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(this.SafeString(position, "symbol"), market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(position, "createdAtTimestamp")
 	var side *string = this.SafeString(position, "side")
 	return this.SafePosition(map[string]any{
@@ -3937,10 +3943,13 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string
 		panic(r1.Err)
 	}
 	var tradingAccountId *string = r1.Value
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"assetSymbol":      currency["id"],
+		"assetSymbol":      nil,
 		"tradingAccountId": tradingAccountId,
+	}
+	if currency.Id != nil {
+		request["assetSymbol"] = *currency.Id
 	}
 	var now int64 = this.Milliseconds()
 	var startTimestamp *int64 = since

@@ -1285,12 +1285,12 @@ func (this *testMainClass) runPredictionTestsBody(ch chan ccxt.AsyncResult[any],
 					// derive one from the selected outcome handle (the market words with
 					// separators as spaces) so the scoped contract holds even without a pin
 					var handleParts []string = Split(outcomeSymbol, ":")
-					var marketPart any = func() any {
-						if 0 >= 0 && 0 < len(handleParts) {
-							return handleParts[0]
-						}
-						return nil
-					}()
+					var marketPart any
+					if 0 >= 0 && 0 < len(handleParts) {
+						marketPart = handleParts[0]
+					} else {
+						marketPart = nil
+					}
 					var lowerPart string = ToLower(marketPart)
 					var dedashed string = strings.ReplaceAll(lowerPart, "-", " ")
 					eventQuery = strings.ReplaceAll(dedashed, "_", " ")
@@ -2093,12 +2093,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 			continue
 		}
 		var key *string = &keyValue[0]
-		var value any = func() any {
-			if 1 >= 0 && 1 < len(keyValue) {
-				return keyValue[1]
-			}
-			return nil
-		}()
+		var value any = keyValue[1]
 		if (value != nil) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
 			// some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
 			value = JsonParse(value)

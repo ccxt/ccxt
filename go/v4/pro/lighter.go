@@ -257,12 +257,19 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	//     "type": "update/order_book"
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(message, "order_book", map[string]any{})
+	var data map[string]any
+	data, _ = message["order_book"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
@@ -421,7 +428,11 @@ func (this *Lighter) HandleTicker(client any, message map[string]any) {
 	//     "type": "update/market_stats"
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(message, "market_stats", map[string]any{})
+	var data map[string]any
+	data, _ = message["market_stats"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil && *channel == "market_stats:all" {
 		var marketIds []string = nil
@@ -1604,7 +1615,11 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 			}
 		}
 	} else {
-		var stats map[string]any = this.SafeDictMap(message, "stats", map[string]any{})
+		var stats map[string]any
+		stats, _ = message["stats"].(map[string]any)
+		if stats == nil {
+			stats = map[string]any{}
+		}
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(stats, "available_balance")
 		account["total"] = this.SafeString(stats, "collateral")

@@ -717,7 +717,11 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan AsyncResult[map[string]OrderBoo
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var orderbook map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
+		var orderbook map[string]any
+		orderbook, _ = response[marketId].(map[string]any)
+		if orderbook == nil {
+			orderbook = map[string]any{}
+		}
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 		if symbol != nil {
@@ -1676,7 +1680,11 @@ func (this *Hollaex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -2034,7 +2042,11 @@ func (this *Hollaex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2244,7 +2256,11 @@ func (this *Hollaex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -2405,7 +2421,11 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil

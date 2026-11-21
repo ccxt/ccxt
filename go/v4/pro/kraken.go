@@ -409,7 +409,11 @@ func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
 	//         "time_out": "2025-05-14T13:54:10.855046Z"
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+	var result map[string]any
+	result, _ = message["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(result))
 	var messageHash *string = this.SafeString2(message, "reqid", "req_id")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)
@@ -1250,7 +1254,7 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 	var name string = "ohlc"
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbolValue)
@@ -1307,7 +1311,7 @@ func (this *Kraken) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		panic(r.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var unsubMessageHash string = "unsubscribe:" + this.GetMessageHash("ohlcv", interval, symbolValue)
 	var unsubscribe map[string]any = map[string]any{
@@ -1662,7 +1666,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var start *int64 = this.SafeInteger(subscription, "start")
 	var expires *int64 = this.SafeInteger(subscription, "expires", int64(-1))
 	var expired bool = (start != nil) && (expires != nil && *expires >= 0) && (*start <= (now - *expires))
-	if (ccxt.IsEqual(subscription, nil)) || expired {
+	if (subscription == nil) || expired {
 		// single-flight leader election, see
 		// https://github.com/ccxt/ccxt/issues/29393: the staleness gate
 		// above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -2065,7 +2069,10 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 			if byKey := stored.(*ccxt.ArrayCache).Hashmap; symbol != nil {
 				previousOrders = byKey[*symbol]
 			}
-			var previousOrder map[string]any = ccxt.SafeMapTyped(previousOrders, id)
+			var previousOrder map[string]any
+			if id != nil {
+				previousOrder, _ = previousOrders[*id].(map[string]any)
+			}
 			var newOrder any = parsed
 			if previousOrder != nil {
 				var newRawOrder map[string]any = this.Extend(previousOrder["info"], parsed["info"])

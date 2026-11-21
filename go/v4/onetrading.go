@@ -682,25 +682,13 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":     id,
-		"symbol": symbol,
-		"base":   base,
-		"quote":  quote,
-		"settle": func() any {
-			if isContract {
-				return quote
-			}
-			return nil
-		}(),
-		"baseId":  baseId,
-		"quoteId": quoteId,
-		"settleId": func() any {
-			if isContract {
-				return quoteId
-			}
-			return nil
-		}(),
+	var literal59441 map[string]any = map[string]any{
+		"id":       id,
+		"symbol":   symbol,
+		"base":     base,
+		"quote":    quote,
+		"baseId":   baseId,
+		"quoteId":  quoteId,
 		"type":     marketType,
 		"spot":     !isContract,
 		"margin":   false,
@@ -709,18 +697,6 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 		"option":   false,
 		"active":   (state != nil && *state == "ACTIVE") || (state != nil && *state == "POST_ONLY"),
 		"contract": isContract,
-		"linear": func() any {
-			if isContract {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isContract {
-				return false
-			}
-			return nil
-		}(),
 		"contractSize": func() any {
 			if isContract {
 				return this.ParseNumber("1")
@@ -755,7 +731,28 @@ func (this *Onetrading) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if isContract {
+		literal59441["settle"] = quote
+	} else {
+		literal59441["settle"] = nil
+	}
+	if isContract {
+		literal59441["settleId"] = quoteId
+	} else {
+		literal59441["settleId"] = nil
+	}
+	if isContract {
+		literal59441["linear"] = true
+	} else {
+		literal59441["linear"] = nil
+	}
+	if isContract {
+		literal59441["inverse"] = false
+	} else {
+		literal59441["inverse"] = nil
+	}
+	return this.SafeMarketStructure(literal59441)
 }
 
 /**
@@ -869,8 +866,17 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	//     },
 	// ];
 	//
-	var spotFees map[string]any = this.SafeDictMap(response, 0, map[string]any{})
-	var futuresFees map[string]any = SafeMapTyped(response, 1)
+	var spotFees map[string]any
+	if 0 < len(response) {
+		spotFees, _ = response[0].(map[string]any)
+	}
+	if spotFees == nil {
+		spotFees = map[string]any{}
+	}
+	var futuresFees map[string]any
+	if 1 < len(response) {
+		futuresFees, _ = response[1].(map[string]any)
+	}
 	var spotFeeTiers []any = this.SafeListSlice(spotFees, "fee_tiers", []any{})
 	var futuresFeeTiers []any = this.SafeListSlice(futuresFees, "fee_tiers", []any{})
 	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
@@ -1416,7 +1422,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		request["from"] = this.Iso8601(now - (limitResolved * duration))
 	} else {
 		request["from"] = this.Iso8601(since)
-		request["to"] = this.Iso8601(this.Sum(since, limitResolved*duration))
+		request["to"] = this.Iso8601(*since + limitResolved*duration)
 	}
 
 	r1 := <-this.PublicGetCandlesticksInstrumentCode(this.Extend(request, params))
@@ -2223,7 +2229,11 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	//         "max_page_size": 100
 	//     }
 	//
-	var orderHistory []any = this.SafeListSlice(response, "order_history", []any{})
+	var orderHistory []any
+	orderHistory, _ = response["order_history"].([]any)
+	if orderHistory == nil {
+		orderHistory = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orderHistory, market, since, limit))}
 	return nil
@@ -2458,7 +2468,11 @@ func (this *Onetrading) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory []any = this.SafeListSlice(response, "trade_history", []any{})
+	var tradeHistory []any
+	tradeHistory, _ = response["trade_history"].([]any)
+	if tradeHistory == nil {
+		tradeHistory = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradeHistory, market, since, limit))}
 	return nil

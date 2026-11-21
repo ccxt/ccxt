@@ -1182,7 +1182,11 @@ func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) 
 	}
 	var symbol *string = nil
 	var orders ccxt.WsArrayCache = this.Orders
-	var update map[string]any = this.SafeDictMap(message, "update", map[string]any{})
+	var update map[string]any
+	update, _ = message["update"].(map[string]any)
+	if update == nil {
+		update = map[string]any{}
+	}
 	var updateType *string = this.SafeString(update, "type")
 	if (updateType != nil && *updateType == "ORDER_REJECTED") || (updateType != nil && *updateType == "ORDER_CLOSED") || (updateType != nil && *updateType == "STOP_ORDER_TRIGGERED") {
 		var orderId *string = this.SafeString(update, "order_id")
@@ -1417,7 +1421,7 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "instrument_code")
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
-	var timeframeId map[string]any = ccxt.SafeMapTyped(message, "granularity")
+	var timeframeId, _ = message["granularity"].(map[string]any)
 	var timeframes map[string]any
 	timeframes, _ = this.Options["timeframes"].(map[string]any)
 	if timeframes == nil {
@@ -1452,12 +1456,12 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *string {
 	var timeframes map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = timeframes
-	var timeframesResolved any = func() any {
-		if timeframes == nil {
-			return this.Timeframes
-		}
-		return timeframes
-	}()
+	var timeframesResolved any
+	if timeframes == nil {
+		timeframesResolved = this.Timeframes
+	} else {
+		timeframesResolved = timeframes
+	}
 	if ccxt.IsEqual(timeframesResolved, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " findTimeframe() timeframes is required"))
 	}

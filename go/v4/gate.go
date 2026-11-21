@@ -2829,7 +2829,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan AsyncResult[[]string]) any 
 	//
 	var underlyings []any = []any{}
 	for i := 0; i < len(underlyingsResponse); i++ {
-		var underlying map[string]any = SafeMapTyped(underlyingsResponse, i)
+		var underlying, _ = underlyingsResponse[i].(map[string]any)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
 			underlyings = append(underlyings, *name)
@@ -3395,9 +3395,12 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan AsyncResult[DepositAddr
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var request map[string]any = map[string]any{
-		"currency": currency["id"],
+		"currency": nil,
+	}
+	if currency.Id != nil {
+		request["currency"] = *currency.Id
 	}
 
 	r1 := <-this.PrivateWalletGetDepositAddress(this.Extend(request, params))
@@ -3478,7 +3481,11 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var chains []any = this.SafeListSlice(response, "multichain_addresses", []any{})
+	var chains []any
+	chains, _ = response["multichain_addresses"].([]any)
+	if chains == nil {
+		chains = []any{}
+	}
 	var currencyId *string = this.SafeString(response, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var parsed []any = this.ParseDepositAddresses(chains, nil, false)
@@ -3658,7 +3665,7 @@ func (this *Gate) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(this.ParseTradingFees(response))}
 	return nil
 }
-func (this *Gate) ParseTradingFees(response any) map[string]any {
+func (this *Gate) ParseTradingFees(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
@@ -3668,7 +3675,7 @@ func (this *Gate) ParseTradingFees(response any) map[string]any {
 	}
 	return result
 }
-func (this *Gate) ParseTradingFee(info any, optionalArgs ...any) TradingFeeInterface {
+func (this *Gate) ParseTradingFee(info map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//    {
 	//        "user_id": 1486602,
@@ -6588,12 +6595,12 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, 
 			}
 		}
 	}
-	var amountResolved any = func() any {
-		if contract != nil && *contract == true {
-			return contractAmount
-		}
-		return amount
-	}()
+	var amountResolved any
+	if contract != nil && *contract == true {
+		amountResolved = contractAmount
+	} else {
+		amountResolved = amount
+	}
 	var sizeRequest any = amountResolved
 	if useGateFuturesDecimalSize {
 		sizeRequest = signedAmount
@@ -8396,14 +8403,17 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], order
 	for i := 0; i < len(orders); i++ {
 		var order map[string]any = orders[i]
 		var symbol *string = this.SafeString(order, "symbol")
-		var market map[string]any = this.Market(symbol)
-		if !(*this.SafeBool(market, "spot", false)) {
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+		if !market.Spot {
 			panic(NotSupported(this.Id + " cancelOrdersForSymbols() supports only spot markets"))
 		}
 		var id *string = this.SafeString(order, "id")
 		var orderItem map[string]any = map[string]any{
 			"id":            id,
-			"currency_pair": market["id"],
+			"currency_pair": nil,
+		}
+		if market.Id != nil {
+			orderItem["currency_pair"] = *market.Id
 		}
 		ordersRequests = append(ordersRequests, orderItem)
 	}
@@ -11006,7 +11016,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan AsyncResult[[]string], optio
 	//
 	var underlyings []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var underlying map[string]any = SafeMapTyped(response, i)
+		var underlying, _ = response[i].(map[string]any)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
 			underlyings = append(underlyings, *name)

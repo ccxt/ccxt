@@ -670,7 +670,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan AsyncResult[MapPair[int64]],
 			}
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 		}
-		if (walletAddress == nil) || (IsEqual(walletAddress, "")) {
+		if (walletAddress == nil) || (walletAddress == "") {
 			panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + "/" + optionName2 + " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection."))
 		}
 
@@ -1871,35 +1871,23 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			return this.ParseNumber(this.ParsePrecision(priceDecimals))
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
-		result = append(result, map[string]any{
-			"id":       id,
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": settleId,
-			"type":     typeVar,
-			"spot":     (typeVar != nil && *typeVar == "spot"),
-			"margin":   false,
-			"swap":     (typeVar != nil && *typeVar == "swap"),
-			"future":   false,
-			"option":   false,
-			"active":   (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "active"),
-			"contract": (typeVar != nil && *typeVar == "swap"),
-			"linear": func() any {
-				if typeVar != nil && *typeVar == "swap" {
-					return true
-				}
-				return nil
-			}(),
-			"inverse": func() any {
-				if typeVar != nil && *typeVar == "swap" {
-					return false
-				}
-				return nil
-			}(),
+		var literal128825 map[string]any = map[string]any{
+			"id":             id,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           (typeVar != nil && *typeVar == "spot"),
+			"margin":         false,
+			"swap":           (typeVar != nil && *typeVar == "swap"),
+			"future":         false,
+			"option":         false,
+			"active":         (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "active"),
+			"contract":       (typeVar != nil && *typeVar == "swap"),
 			"taker":          this.SafeNumber(market, "taker_fee"),
 			"maker":          this.SafeNumber(market, "maker_fee"),
 			"contractSize":   quoteMultiplier,
@@ -1931,7 +1919,18 @@ func (this *Lighter) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			},
 			"created": nil,
 			"info":    market,
-		})
+		}
+		if typeVar != nil && *typeVar == "swap" {
+			literal128825["linear"] = true
+		} else {
+			literal128825["linear"] = nil
+		}
+		if typeVar != nil && *typeVar == "swap" {
+			literal128825["inverse"] = false
+		} else {
+			literal128825["inverse"] = nil
+		}
+		result = append(result, literal128825)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -2853,9 +2852,10 @@ func (this *Lighter) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	accounts, _ = response["accounts"].([]any)
 	for i := 0; i < len(accounts); i++ {
 		var account, _ = accounts[i].(map[string]any)
-		var positions []any = SafeListTyped(account, "positions")
+		var positions []any
+		positions, _ = account["positions"].([]any)
 		for j := 0; j < len(positions); j++ {
-			allPositions = append(allPositions, DerefScalar(positions[j]))
+			allPositions = append(allPositions, positions[j])
 		}
 	}
 
@@ -3720,7 +3720,11 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
 	//     }
 	//
-	var rows []any = this.SafeListSlice(response, "transfers", []any{})
+	var rows []any
+	rows, _ = response["transfers"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if (first != nil) && (cursor != nil) {
@@ -3869,7 +3873,11 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	//         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "deposits", []any{})
+	var data []any
+	data, _ = response["deposits"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
@@ -3976,7 +3984,11 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	//         "cursor": "string"
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "withdraws", []any{})
+	var data []any
+	data, _ = response["withdraws"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var cursor *string = this.SafeString(response, "cursor")
 	var first map[string]any = SafeMapTyped(data, 0)
 	if (first != nil) && (cursor != nil) {
@@ -4347,7 +4359,11 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "trades", []any{})
+	var data []any
+	data, _ = response["trades"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	for i := 0; i < len(data); i++ {
 		AddElementToObject(data[i], "account_index", accountIndex)
 	}

@@ -1746,9 +1746,12 @@ func (this *Hibachi) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketDataOrderbook(this.Extend(request, params))
@@ -2352,7 +2355,10 @@ func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string = marketResolved.Symbol
+	var symbol *string
+	if marketResolved.Symbol != "" {
+		symbol = &marketResolved.Symbol
+	}
 	var side *string = this.SafeStringLower(position, "direction")
 	var quantity *string = this.SafeString(position, "quantity")
 	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
@@ -3223,9 +3229,12 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketDataFundingRates(this.Extend(request, params))

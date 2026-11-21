@@ -684,12 +684,12 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 			panic(r.Err)
 		}
 	}
-	var symbolsResolved any = func() any {
-		if symbols == nil {
-			return this.Symbols
-		}
-		return symbols
-	}()
+	var symbolsResolved any
+	if symbols == nil {
+		symbolsResolved = this.Symbols
+	} else {
+		symbolsResolved = symbols
+	}
 	if IsEqual(symbolsResolved, nil) {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
@@ -1054,10 +1054,13 @@ func (this *Bittrade) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"symbol": market["id"],
+		"symbol": nil,
 		"type":   "step0",
+	}
+	if market.Id != nil {
+		request["symbol"] = *market.Id
 	}
 
 	r1 := <-this.MarketGetDepth(this.Extend(request, params))
@@ -1156,7 +1159,11 @@ func (this *Bittrade) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//         }
 	//     }
 	//
-	var tick map[string]any = this.SafeDictMap(response, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = response["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var ticker map[string]any = TickerToMap(this.ParseTicker(tick, market))
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	ticker["timestamp"] = timestamp
@@ -1740,7 +1747,7 @@ func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 	})
 }
 func (this *Bittrade) ParseBalance(response map[string]any) map[string]any {
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var balances []map[string]any = this.SafeListMapsTyped(data, "list")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -2575,7 +2582,7 @@ func (this *Bittrade) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(response))}
 	return nil
 }
-func (this *Bittrade) ParseCancelOrders(orders any) []any {
+func (this *Bittrade) ParseCancelOrders(orders map[string]any) []any {
 	//
 	//    {
 	//        "success": [

@@ -325,7 +325,11 @@ func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[ccx
 }
 func (this *Coinbaseinternational) HandleBalance(client any, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsed map[string]any = this.ParseBalanceList(data)
 	this.Balance = this.DeepExtend(this.Balance, parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
@@ -679,7 +683,7 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -750,7 +754,7 @@ func (this *Coinbaseinternational) unWatchPositionsBody(ch chan ccxt.AsyncResult
 	}
 	if (symbolsResolved != nil) && (symbolsLength > 0) {
 		for i := 0; i < symbolsLength; i++ {
-			channels = append(channels, "user.changes."+*this.SafeString(this.Market(this.SafeString(symbolsResolved, i, "")), "id", "")+"."+*interval)
+			channels = append(channels, "user.changes."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
 		}
 	} else {
 		channels = append(channels, "user.changes.any.any."+*interval)
@@ -1359,7 +1363,11 @@ func (this *Coinbaseinternational) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[
 }
 func (this *Coinbaseinternational) HandleTicker(client any, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
 	var channel *string = this.SafeString(params, "channel")
 	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
@@ -1370,7 +1378,11 @@ func (this *Coinbaseinternational) HandleTicker(client any, message map[string]a
 }
 func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
@@ -1627,7 +1639,11 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 	if timeframe != nil {
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
@@ -2025,7 +2041,11 @@ func (this *Coinbaseinternational) unWatchOrderBookForSymbolsBody(ch chan ccxt.A
 }
 func (this *Coinbaseinternational) HandleOrderBook(client any, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var typeVar string = *this.SafeString(data, "type", "snapshot")
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var symbol *string = this.SafeSymbol(marketId)
@@ -2066,8 +2086,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
-		this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
+		var deltas129912 []any
+		deltas129912, _ = data["asks"].([]any)
+		if deltas129912 == nil {
+			deltas129912 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetAsks(), deltas129912)
+		var deltas130012 []any
+		deltas130012, _ = data["bids"].([]any)
+		if deltas130012 == nil {
+			deltas130012 = []any{}
+		}
+		this.HandleDeltas(orderbook.GetBids(), deltas130012)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2276,7 +2306,11 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+	var result map[string]any
+	result, _ = message["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var expiresIn int64 = *this.SafeInteger(result, "expires_in", 900)
 	var ratio *float64 = this.SafeNumber(this.Options, "wsAuthRefreshRatio")
 	var refreshRatio float64

@@ -759,12 +759,12 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 				marketIdsByInterval[*interval] = []any{}
 			}
 		}
-		var intervalIds any = func() any {
-			if interval == nil {
-				return nil
-			}
-			return marketIdsByInterval[*interval]
-		}()
+		var intervalIds any
+		if interval == nil {
+			intervalIds = nil
+		} else {
+			intervalIds = marketIdsByInterval[*interval]
+		}
 		ccxt.AppendToArray(&intervalIds, market["id"])
 		messageHashes = append(messageHashes, "multi:"+name+"@"+*this.SafeString(market, "id", "")+"_"+*interval)
 	}
@@ -882,12 +882,12 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 				marketIdsByInterval[*interval] = []any{}
 			}
 		}
-		var intervalIds any = func() any {
-			if interval == nil {
-				return nil
-			}
-			return marketIdsByInterval[*interval]
-		}()
+		var intervalIds any
+		if interval == nil {
+			intervalIds = nil
+		} else {
+			intervalIds = marketIdsByInterval[*interval]
+		}
 		ccxt.AppendToArray(&intervalIds, market["id"])
 		// both the single-symbol and the multi-symbol watch hashes must be released
 		subMessageHashes = append(subMessageHashes, name+"@"+*this.SafeString(market, "id", "")+"_"+*interval)
@@ -1176,7 +1176,10 @@ func (this *Bitvavo) HandleOrderBook(client any, message map[string]any) {
 	var event string = *this.SafeString(message, "event", "")
 	var marketId *string = this.SafeString(message, "market")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "-"))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var messageHash string = event + "@" + *this.SafeString(message, "market", "")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
@@ -1262,7 +1265,7 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message map[string]any)
 	//         }
 	//     }
 	//
-	var response map[string]any = ccxt.SafeMapTyped(message, "response")
+	var response, _ = message["response"].(map[string]any)
 	if response == nil {
 		return
 	}
@@ -1464,7 +1467,7 @@ func (this *Bitvavo) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		panic(r1.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	var marketId *string = market.Id
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
@@ -1533,7 +1536,7 @@ func (this *Bitvavo) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		panic(r1.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = market.Symbol
+	var symbolValue *string = &market.Symbol
 	var marketId *string = market.Id
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var name string = "account"
@@ -1833,10 +1836,13 @@ func (this *Bitvavo) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var market map[string]any = this.Market(symbol)
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"orderId": id,
-		"market":  market["id"],
+		"market":  nil,
+	}
+	if market.Id != nil {
+		request["market"] = *market.Id
 	}
 
 	r2 := <-this.WatchRequestAsync("privateGetOrder", this.Extend(request, params))
@@ -2132,7 +2138,11 @@ func (this *Bitvavo) HandleWithdraw(client any, message map[string]any) {
 	// const action = this.safeString (message, 'action')
 	// const messageHash = this.buildMessageHash (action, message)
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response map[string]any = this.SafeDictMap(message, "response", map[string]any{})
+	var response map[string]any
+	response, _ = message["response"].(map[string]any)
+	if response == nil {
+		response = map[string]any{}
+	}
 	var withdraw map[string]any = ccxt.TransactionToMap(this.ParseTransaction(response))
 	client.(ccxt.ClientInterface).Resolve(withdraw, messageHash)
 }
@@ -2484,7 +2494,7 @@ func (this *Bitvavo) HandleTradingFees(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response map[string]any = ccxt.SafeMapTyped(message, "response")
+	var response, _ = message["response"].(map[string]any)
 	var fees map[string]any = this.ParseTradingFees(response)
 	client.(ccxt.ClientInterface).Resolve(fees, messageHash)
 }
@@ -2574,7 +2584,11 @@ func (this *Bitvavo) HandleSingleOrder(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var response map[string]any = this.SafeDictMap(message, "response", map[string]any{})
+	var response map[string]any
+	response, _ = message["response"].(map[string]any)
+	if response == nil {
+		response = map[string]any{}
+	}
 	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(response))
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(order, messageHash)

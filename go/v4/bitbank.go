@@ -880,10 +880,11 @@ func (this *Bitbank) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var assets []any = SafeListTyped(data, "assets")
+	var data, _ = response["data"].(map[string]any)
+	var assets []any
+	assets, _ = data["assets"].([]any)
 	for i := 0; i < len(assets); i++ {
-		var balance map[string]any = SafeMapTyped(assets, i)
+		var balance, _ = assets[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1098,10 +1099,13 @@ func (this *Bitbank) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
 		"order_id": id,
-		"pair":     market["id"],
+		"pair":     nil,
+	}
+	if market.Id != nil {
+		request["pair"] = *market.Id
 	}
 
 	r1 := <-this.PrivatePostUserSpotCancelOrder(this.Extend(request, params))

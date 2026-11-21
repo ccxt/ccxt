@@ -825,7 +825,7 @@ func (this *Btcmarkets) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "assetName")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -982,9 +982,12 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	var request map[string]any = map[string]any{
-		"marketId": market["id"],
+		"marketId": nil,
+	}
+	if market.Id != nil {
+		request["marketId"] = *market.Id
 	}
 
 	r1 := <-this.PublicGetMarketsMarketIdOrderbook(this.Extend(request, params))

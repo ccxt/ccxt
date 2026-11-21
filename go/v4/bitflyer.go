@@ -520,35 +520,23 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 				symbol = symbol + "-" + this.Yymmdd(expiry)
 			}
 		}
-		result = append(result, map[string]any{
-			"id":       id,
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": nil,
-			"type":     typeVar,
-			"spot":     spot,
-			"margin":   false,
-			"swap":     swap,
-			"future":   future,
-			"option":   false,
-			"active":   true,
-			"contract": contract,
-			"linear": func() any {
-				if spot {
-					return nil
-				}
-				return true
-			}(),
-			"inverse": func() any {
-				if spot {
-					return nil
-				}
-				return false
-			}(),
+		var literal36925 map[string]any = map[string]any{
+			"id":             id,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       nil,
+			"type":           typeVar,
+			"spot":           spot,
+			"margin":         false,
+			"swap":           swap,
+			"future":         future,
+			"option":         false,
+			"active":         true,
+			"contract":       contract,
 			"taker":          taker,
 			"maker":          maker,
 			"contractSize":   nil,
@@ -580,7 +568,18 @@ func (this *Bitflyer) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			},
 			"created": nil,
 			"info":    market,
-		})
+		}
+		if spot {
+			literal36925["linear"] = nil
+		} else {
+			literal36925["linear"] = true
+		}
+		if spot {
+			literal36925["inverse"] = nil
+		} else {
+			literal36925["inverse"] = false
+		}
+		result = append(result, literal36925)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -591,7 +590,7 @@ func (this *Bitflyer) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var balance map[string]any = SafeMapTyped(response, i)
+		var balance, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "currency_code")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

@@ -1288,8 +1288,8 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		//                    },
 		//                    ....
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
-		var balances map[string]any = SafeMapTyped(data, "balancesPerAccounts")
+		var data, _ = response["data"].(map[string]any)
+		var balances, _ = data["balancesPerAccounts"].(map[string]any)
 		accountBalance = this.SafeDictMap(balances, accountName, map[string]any{})
 	} else {
 
@@ -2579,12 +2579,12 @@ func (this *Cex) HandleErrors(code int64, reason string, url string, method stri
 			panic(NullResponse(this.Id + " returned unparsed response: " + body))
 		}
 	}
-	var responseParsed any = func() any {
-		if response == nil {
-			return responseFixed
-		}
-		return response
-	}()
+	var responseParsed any
+	if response == nil {
+		responseParsed = responseFixed
+	} else {
+		responseParsed = response
+	}
 	var error *string = this.SafeString(responseParsed, "error")
 	if error != nil {
 		var feedback string = this.Id + " " + body

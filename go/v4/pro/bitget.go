@@ -460,9 +460,16 @@ func (this *Bitget) ParseWsTicker(message map[string]any, optionalArgs ...any) m
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var arg, _ = message["arg"].(map[string]any)
+	var data []any
+	data, _ = message["data"].([]any)
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
@@ -593,9 +600,16 @@ func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
-	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var arg, _ = message["arg"].(map[string]any)
+	var data []any
+	data, _ = message["data"].([]any)
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 	var utaTimestamp *int64 = this.SafeInteger(message, "ts")
 	var timestamp *int64 = this.SafeInteger(ticker, "ts", utaTimestamp)
 	var instType *string = this.SafeStringLower(arg, "instType")
@@ -1949,10 +1963,10 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	var rawPositions, _ = message["data"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var marketId *string = this.SafeString2(rawPosition, "instId", "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var position map[string]any = this.ParseWsPosition(rawPosition, market)
+		var position map[string]any = this.ParseWsPosition(rawPositions[i], market)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
@@ -2357,10 +2371,10 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	}
 	var marketSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var order any = data[i]
+		var order, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString2(order, "instId", "symbol", argInstId)
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-		var parsed map[string]any = this.ParseWsOrder(order, market)
+		var parsed map[string]any = this.ParseWsOrder(data[i], market)
 		stored.Append(parsed)
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if symbol != nil {
@@ -2888,7 +2902,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	for i := 0; i < length; i++ {
-		var trade any = data[i]
+		var trade, _ = data[i].(map[string]any)
 		var market map[string]any = nil
 		if instType != nil && *instType == "uta" {
 			// UTA fills carry the product in 'category'; resolve the matching
@@ -2902,7 +2916,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 			var marketId *string = this.SafeString2(trade, "instId", "symbol")
 			market = this.SafeMarket(marketId, nil, nil, marketType)
 		}
-		var parsed map[string]any = this.ParseWsTrade(trade, market)
+		var parsed map[string]any = this.ParseWsTrade(data[i], market)
 		stored.Append(parsed)
 		var symbol string = *this.SafeString(parsed, "symbol", "")
 		var symbolSpecificMessageHash string = "myTrades:" + symbol
@@ -3855,7 +3869,11 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]an
 	//
 	var argsList, _ = message["args"].([]any)
 	if argsList == nil {
-		var arg map[string]any = this.SafeDictMap(message, "arg", map[string]any{})
+		var arg map[string]any
+		arg, _ = message["arg"].(map[string]any)
+		if arg == nil {
+			arg = map[string]any{}
+		}
 		argsList = []any{arg}
 	}
 	for i := 0; i < len(argsList); i++ {

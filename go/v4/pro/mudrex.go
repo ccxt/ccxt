@@ -289,7 +289,10 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
-	var symbol *string = market.Symbol
+	var symbol *string
+	if market.Symbol != "" {
+		symbol = &market.Symbol
+	}
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -320,7 +323,10 @@ func (this *Mudrex) HandleTicker(client any, message map[string]any) {
 			continue
 		}
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
-		var symbol *string = market.Symbol
+		var symbol *string
+		if market.Symbol != "" {
+			symbol = &market.Symbol
+		}
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")
 		var result map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
