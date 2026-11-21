@@ -1504,12 +1504,14 @@ class krakenfutures(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        response = await self.privatePostCancelorder(self.extend({'order_id': id}, params))
-        status = self.safe_string(self.safe_dict(response, 'cancelStatus', {}), 'status')
+        request = {'order_id': id}
+        response = await self.privatePostCancelorder(self.extend(request, params))
+        cancelStatus = self.safe_dict(response, 'cancelStatus')
+        status = self.safe_string(cancelStatus, 'status')
         self.verify_order_action_success(status, 'cancelOrder')
         order = {}
-        if 'cancelStatus' in response:
-            order = self.parse_order(response['cancelStatus'])
+        if cancelStatus is not None:
+            order = self.parse_order(cancelStatus)
         return self.extend({'info': response}, order)
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:

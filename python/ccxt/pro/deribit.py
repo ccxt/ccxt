@@ -743,11 +743,12 @@ class deribit(ccxt.async_support.deribit):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel', '')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_value(params, 'data', {})
             order = self.parse_order(data)
             orders = [order]
         cachedOrders = self.orders

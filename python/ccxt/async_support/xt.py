@@ -2631,7 +2631,7 @@ class xt(Exchange, ImplicitAPI):
             if reduceOnly:
                 requestType = 'LONG'
             request['positionSide'] = requestType
-        response = {}
+        response = None
         triggerPrice = self.safe_number_2(paramsOmitted4, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_number_2(paramsOmitted4, 'stopLoss', 'triggerStopPrice')
         takeProfit = self.safe_number_2(paramsOmitted4, 'takeProfit', 'triggerProfitPrice')

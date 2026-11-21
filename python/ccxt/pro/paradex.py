@@ -680,7 +680,7 @@ class paradex(ccxt.async_support.paradex):
         symbolsLength = len(symbolsNormalized)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
-        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        deltasOption, paramsDeltas = self.handle_option_bool_and_params(params, 'watchOrderBook', 'deltas', False)
         deltas = (deltasOption is True) or ((limit is not None) and (limit > 15))
         url = self.get_ws_url()
         # an unwatch in flight decides which feed each market is on once acknowledged
@@ -744,7 +744,7 @@ class paradex(ccxt.async_support.paradex):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
-        deltasOption, paramsDeltas = self.handle_option_and_params(params, 'watchOrderBook', 'deltas', False)
+        deltasOption, paramsDeltas = self.handle_option_bool_and_params(params, 'watchOrderBook', 'deltas', False)
         url = self.get_ws_url()
         client = self.client(url)
         channels = []

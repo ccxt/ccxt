@@ -4417,7 +4417,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         #     }
         # ]
         #
-        return self.parse_ledger(response, None, since, limit)
+        rows = self.info_list(response)
+        return self.parse_ledger(rows, None, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #

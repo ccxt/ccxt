@@ -2725,7 +2725,7 @@ class blofin(Exchange, ImplicitAPI):
         market = None
         if symbols is not None:
             symbolsLength = len(symbols)
-            if symbolsLength == 0:
+            if symbolsLength > 0:
                 market = self.market(symbols[0])
                 request['instId'] = market['id']
         if limit is not None:

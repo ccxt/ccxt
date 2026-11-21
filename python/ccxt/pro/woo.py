@@ -1125,16 +1125,16 @@ class woo(ccxt.async_support.woo):
         #     }
         #
         topic = self.safe_string(message, 'topic')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
+        dataList = self.safe_list(message, 'data')
+        if dataList is not None:
             # algoexecutionreportv2
-            for i in range(0, len(data)):
-                order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            for i in range(0, len(dataList)):
+                tradeId = self.omit_zero(self.safe_string(dataList, 'tradeId'))
                 if tradeId is not None:
-                    self.handle_my_trade(client, order)
-                self.handle_order(client, order, topic)
+                    self.handle_my_trade(client, dataList[i])
+                self.handle_order(client, dataList[i], topic)
         else:
+            data = self.safe_value(message, 'data')
             # executionreport
             tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
             if tradeId is not None:

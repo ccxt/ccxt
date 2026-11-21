@@ -1778,8 +1778,9 @@ class dydx(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = self.fetch_transactions_helper('fetchLedger', code, since, limit, self.omit(params, 'methodName'))
-        return self.parse_ledger(response, currency, since, limit)
+        rows = []
+        rows = self.fetch_transactions_helper('fetchLedger', code, since, limit, self.omit(params, 'methodName'))
+        return self.parse_ledger(rows, currency, since, limit)
 
     def estimate_tx_fee(self, message: dict, memo: Str, account: dict) -> dict:
         txBytes = self.encode_dydx_tx_for_simulation(message, memo, self.safe_string(account, 'sequence'), self.safe_dict(account, 'pub_key', {}))

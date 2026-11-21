@@ -399,11 +399,12 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.orders = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params', {})
         channel = self.safe_string(params, 'channel')
-        data = self.safe_value(params, 'data', {})
+        dataList = self.safe_list(params, 'data')
         orders = []
-        if isinstance(data, list):
-            orders = self.parse_orders(data)
+        if dataList is not None:
+            orders = self.parse_orders(dataList)
         else:
+            data = self.safe_value(params, 'data', {})
             orders = [self.parse_order(data)]
         ordersLength = len(orders)
         for i in range(0, ordersLength):

@@ -7942,11 +7942,12 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
         if (marketType == 'swap') or (marketType == 'future'):
+            data = self.safe_dict(response, 'data', {})
             bills = self.safe_list(data, 'bills', [])
             return self.parse_ledger(bills, currency, since, limit)
-        return self.parse_ledger(data, currency, since, limit)
+        rows = self.safe_list(response, 'data', [])
+        return self.parse_ledger(rows, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #

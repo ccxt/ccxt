@@ -1564,7 +1564,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        stock, paramsStock = self.handle_option_and_params(params, 'watchOHLCV', 'stock')
+        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchOHLCV', 'stock', False)
         if stock is True:
             if (timeframe != '5m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
                 raise BadRequest(self.id + ' watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes')

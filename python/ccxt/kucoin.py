@@ -5760,9 +5760,9 @@ class kucoin(Exchange, ImplicitAPI):
                 response = self.privateGetHfOrdersOrderId(self.extend(request, paramsOmitted))
             else:
                 response = self.privateGetOrdersOrderId(self.extend(request, paramsOmitted))
-        responseData = self.safe_value(response, 'data', {})
-        if isinstance(responseData, list):
-            responseData = self.safe_dict(responseData, 0, {})
+        responseData = self.safe_dict(response, 'data')
+        if responseData is None:
+            responseData = self.safe_dict(self.safe_list(response, 'data', []), 0, {})
         return self.parse_order(responseData, market)
 
     def fetch_contract_order(self, id: Str, symbol: Str = None, params: dict = {}) -> Order:

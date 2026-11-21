@@ -6923,16 +6923,23 @@ class BaseExchange(object):
         #         ...
         #     ]
         #
-        results = []
         if isinstance(pricesData, list):
-            for i in range(0, len(pricesData)):
-                results.append(self.extend(self.parse_last_price(pricesData[i]), params))
-        else:
-            marketIds = list(pricesData.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
+            return self.parse_last_prices_list(pricesData, symbols, params)
+        return self.parse_last_prices_dict(pricesData, symbols, params)
+
+    def parse_last_prices_list(self, pricesData: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(pricesData)):
+            results.append(self.extend(self.parse_last_price(pricesData[i]), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
+
+    def parse_last_prices_dict(self, pricesData: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(pricesData.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_last_price(pricesData[marketId], market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}):
@@ -6958,16 +6965,23 @@ class BaseExchange(object):
         #         ...
         #     ]
         #
-        results = []
         if isinstance(tickers, list):
-            for i in range(0, len(tickers)):
-                results.append(self.extend(self.parse_ticker(tickers[i]), params))
-        else:
-            marketIds = list(tickers.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
+            return self.parse_tickers_list(tickers, symbols, params)
+        return self.parse_tickers_dict(tickers, symbols, params)
+
+    def parse_tickers_list(self, tickers: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(tickers)):
+            results.append(self.extend(self.parse_ticker(tickers[i]), params))
+        return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
+
+    def parse_tickers_dict(self, tickers: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(tickers.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_ticker(tickers[marketId], market), params))
         return self.filter_by_array_tickers(results, 'symbol', self.market_symbols(symbols))
 
     def parse_deposit_addresses(self, addresses: list, codes: Strings = None, indexed=True, params: dict = {}):

@@ -1267,7 +1267,7 @@ class bithumb(Exchange, ImplicitAPI):
         response = None
         data = []
         if generation == 2:
-            paginate, paramsPaginate = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+            paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
             if paginate:
                 return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200)
             until = self.safe_integer(paramsGeneration, 'until')

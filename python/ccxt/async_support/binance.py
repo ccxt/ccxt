@@ -12070,7 +12070,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchLeverages() supports linear and inverse contracts only')
         leverages = self.safe_list(response, 'positions', [])
         if isinstance(response, list):
-            leverages = response
+            leverages = self.to_array(response)
         return self.parse_leverages(leverages, symbols, 'symbol')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
@@ -14099,7 +14099,7 @@ class binance(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchMarginModes () supports linear and inverse subTypes only')
         assets = self.safe_list(response, 'positions', [])
         if isinstance(response, list):
-            assets = response
+            assets = self.to_array(response)
         return self.parse_margin_modes(assets, symbolsNormalized, 'symbol', 'swap')
 
     async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:

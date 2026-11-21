@@ -2268,8 +2268,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         """
         paramsValue = params
         if outcome is not None:
-            warn = True
-            warn, paramsValue = self.handle_option_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
+            warn, paramsWarn = self.handle_option_bool_and_params(paramsValue, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', True)
+            paramsValue = paramsWarn
             if warn:
                 raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
         request = {}
@@ -2304,13 +2304,11 @@ class limitless(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             outcomeObj = await self.load_outcome(outcome)
             outcomeSymbol = self.safe_string(outcomeObj, 'outcome')
-        paginate = False
         maxLimit = 100
-        paramsValue = params
-        paginate, paramsValue = self.handle_option_and_params(paramsValue, 'fetchMyTrades', 'paginate', paginate)
+        paginate, paramsValue = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            paramsValue = self.omit(paramsValue, 'paginate')
-            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsValue, 'nextCursor', 'cursor', None, maxLimit)
+            paramsCursor = self.omit(paramsValue, 'paginate')
+            return await self.fetch_paginated_call_cursor('fetchMyTrades', outcome, since, limit, paramsCursor, 'nextCursor', 'cursor', None, maxLimit)
         request = {}
         if limit is not None:
             request['limit'] = min(limit, 100)
