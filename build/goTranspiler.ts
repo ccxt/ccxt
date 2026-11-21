@@ -8714,6 +8714,7 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
         return true;
     }
     if (/^"(?:[^"\\\n]|\\.)*" \+ /.test (text)) { return true; } // Go `"lit" + x` compiles only as a string: never a pointer box
+    if (/^this\.WalletAddress$/.test (text) || /^this\.(?:EthGetAddressFromPrivateKey|ShortenSlug)\([^()]*\)$/.test (text)) { return true; } // hand-written Go `string` field / results
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
         return !boxOnly;
     }
@@ -9138,6 +9139,9 @@ function goStringLiteralSelfTest (ok: SelfTestOk): void {
     ok (f ('\tif IsEqual(p, "a") {\n\t}\n').indexOf ('IsEqual(p, "a")') >= 0, 'an any parameter keeps the helper');
     ok (f ('\tvar e any = "/a/" + this.Implode(p)\n\tif true {\n\t\te = Add(e, "?")\n\t}\n\tif IsEqual(e, "/a/b") {\n\t}\n').indexOf ('if (e == "/a/b") {') >= 0, 'a literal-led string concat write compares natively');
     ok (f ('\tvar e any = "/a/" + this.Implode(p)\n\te = this.SafeString(p, "x")\n\tif IsEqual(e, "/a/b") {\n\t}\n').indexOf ('IsEqual(e, "/a/b")') >= 0, 'a concat local also written by a *string producer keeps the helper');
+    ok (f ('\tvar w any = this.WalletAddress\n\tif true {\n\t\tw = this.EthGetAddressFromPrivateKey(this.PrivateKey)\n\t}\n\tvar k any = nil\n\tk = this.ShortenSlug(p)\n\tif IsEqual(w, "") || !IsEqual(k, "") {\n\t}\n').indexOf ('if (w == "") || (k != "") {') >= 0, 'Go string field and string-returning base methods compare natively');
+    ok (f ('\tvar w any = this.WalletAddress\n\tw = this.SafeString(p, "w")\n\tif IsEqual(w, "") {\n\t}\n').indexOf ('IsEqual(w, "")') >= 0, 'a string-field local also written by a *string producer keeps the helper');
+    ok (f ('\tvar w any = this.ShortenSlug(this.SafeString(p, "s"))\n\tif IsEqual(w, "") {\n\t}\n').indexOf ('IsEqual(w, "")') >= 0, 'a nested-call argument is not matched');
     const ws = goStringLiteralNativeCompares ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tapi := ccxt.GetArg(optionalArgs, 0, "public")\n\tif ccxt.IsEqual(api, "x") {\n\t}\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (api == "x") {') >= 0, 'the package-qualified helper is rewritten');
     ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
