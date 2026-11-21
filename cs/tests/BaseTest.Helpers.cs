@@ -264,7 +264,8 @@ public partial class testMainClass : BaseTest
             return value;
         }
         var live = ccxt.BaseExchange.GetValue(ex.orderbooks, book.symbol);
-        return (live != null) ? live : value;
+        // A channel can return a plain book while the symbol cache holds a counted book.
+        return (live != null && live.GetType() == book.GetType()) ? live : value;
     }
 
     // Await any Task / Task<T> and re-box its result as object.
