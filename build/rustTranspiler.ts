@@ -6890,7 +6890,8 @@ function typeParseListReturns(content: string): string {
 }
 
 // A venue `Vec<Value>` local (or a parse_prediction_positions result) used only by `push(Value::Dict(x))`, `.len()`
-// and element reads holds proven maps: it becomes `Vec<Dict>`, a read is the map itself (missing index = empty map).
+// and element reads (`.get(i)..into_dict()` or `safe_dict_t(&v, Value::Int(i))`) holds proven maps: it becomes
+// `Vec<Dict>`, a read is the map itself (missing index = empty map, as both readers answer).
 function typeDictPushLists(content: string): string {
     const decl = /let mut (\w+): Vec<Value> = (Vec::new\(\)|self\.parse_prediction_positions\([^;\n]*\)\.into_iter\(\)\.map\(Value::Dict\)\.collect\(\));/g;
     for (const d of [...content.matchAll(decl)]) {
@@ -6898,19 +6899,35 @@ function typeDictPushLists(content: string): string {
         const end = content.slice(at).search(/\n {4}\}\n/);
         const rest = content.slice(at + d[0].length, end < 0 ? content.length : at + end);
         const read = new RegExp(String.raw`\b${v}\.get\((\w+) as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)`, 'g');
+        const sdt = new RegExp(String.raw`self\.safe_dict_t\(&${v}, Value::Int\((\w+)\)\)`, 'g');
         const uses = [...rest.matchAll(new RegExp(String.raw`\b${v}\b`, 'g'))];
         const ok = uses.every((u) => {
             const r = rest.slice(u.index!, u.index! + 120);
-            return new RegExp(String.raw`^${v}\.(?:push\(Value::Dict\(\w+\)\);|len\(\) as i64)`).test(r)
-                || new RegExp(String.raw`^${v}\.get\(\w+ as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)`).test(r);
+            return new RegExp(String.raw`^${v}\.(?:push\(Value::Dict\(\w+\)\);|len\(\) as i64)`).test(r) || rustDictPushEnd(rest, u.index!, v) > 0
+                || new RegExp(String.raw`^${v}\.get\(\w+ as usize\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)`).test(r)
+                || new RegExp(String.raw`^${v}, Value::Int\(\w+\)\)`).test(r) && rest.slice(u.index! - 18, u.index!) === 'self.safe_dict_t(&';
         });
-        if (!ok || !read.test(rest)) continue;
+        if (!ok || !(read.test(rest) || sdt.test(rest))) continue;
         const init = d[2] === 'Vec::new()' ? d[2] : d[2].replace('.into_iter().map(Value::Dict).collect()', '');
-        const typedRest = rest.replace(new RegExp(String.raw`\b${v}\.push\(Value::Dict\((\w+)\)\);`, 'g'), `${v}.push($1);`)
-            .replace(read, `${v}.get($1 as usize).cloned().unwrap_or_default()`);
+        let pushed = rest;
+        for (let k = pushed.indexOf(`${v}.push(Value::Dict(`); k >= 0; k = pushed.indexOf(`${v}.push(Value::Dict(`, k + 1)) {
+            const e = rustDictPushEnd(pushed, k, v);
+            if (e > 0) pushed = pushed.slice(0, k) + `${v}.push(` + pushed.slice(k + v.length + 18, e - 2) + ');' + pushed.slice(e + 1);
+        }
+        const typedRest = pushed.replace(new RegExp(String.raw`\b${v}\.push\(Value::Dict\((\w+)\)\);`, 'g'), `${v}.push($1);`)
+            .replace(read, `${v}.get($1 as usize).cloned().unwrap_or_default()`)
+            .replace(sdt, `${v}.get($1 as usize).cloned().unwrap_or_default()`);
         content = content.slice(0, at) + `let mut ${v}: Vec<crate::value::Dict> = ${init};` + typedRest + content.slice(at + d[0].length + rest.length);
     }
     return content;
+}
+
+// end index of the `;` closing `v.push(Value::Dict(<expr>));` starting at at (expr balanced, a Dict by construction), else -1
+function rustDictPushEnd(code: string, at: number, v: string): number {
+    const head = `${v}.push(Value::Dict(`;
+    if (!code.startsWith(head, at) || /[\w.]/.test(code[at - 1] ?? '')) return -1;
+    const close = balancedCloseIndex(code, at + head.length);
+    return code.startsWith('));', close) ? close + 2 : -1;
 }
 
 // `return ..;` / `panic!(..);` holding pos ends the fn: index of its end, or -1 when the statement does not diverge
