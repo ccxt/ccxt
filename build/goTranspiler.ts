@@ -7378,6 +7378,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'watchTopics': { 1: '[]string', 2: '[]string' }, 'unWatchTopics': { 3: '[]string', 4: '[]string', 5: '[]string' },
     // base filterByLimit (array: any[]): its callers hand a []any result local or SortBy; no override, no interface line
     'filterByLimit': { 0: '[]any' },
+    // base-only number[][] param with no ts/src caller, no override and no typed wrapper
+    'convertOHLCVToTradingView': { 0: '[][]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
