@@ -404390,7 +404390,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         let query = params;
         [transferMethod, query] = this.handleOptionStringAndParams(query, 'transfer', 'method');
         let masterAddress = undefined;
-        [masterAddress, query] = this.handlePublicAddress('transfer', query);
+        masterAddress = this.safeString(this.handlePublicAddress('transfer', query), 0);
+        query = this.safeDict(this.handlePublicAddress('transfer', query), 1, {});
         let useSendAsset = transferMethod === 'sendAsset';
         if (transferMethod === undefined) {
             let isUnified = undefined;
