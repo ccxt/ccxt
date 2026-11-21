@@ -5207,9 +5207,8 @@ public class Hyperliquid extends HyperliquidApi
         transferMethod = transferMethodqueryVariable.first();
         query = transferMethodqueryVariable.second();
         String masterAddress = null;
-        List<Object> masterAddressqueryVariable = (List<Object>) this.handlePublicAddress("transfer", (Map<String, Object>) (query));
-        masterAddress = (String) ((List<Object>) masterAddressqueryVariable).get(0);
-        query = ((List<Object>) masterAddressqueryVariable).get(1);
+        masterAddress = this.safeString(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 0);
+        query = this.safeDict(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 1, new HashMap<String, Object>() {{}});
         Boolean useSendAsset = (java.util.Objects.equals(transferMethod, "sendAsset"));
         if (java.util.Objects.equals(transferMethod, null))
         {
