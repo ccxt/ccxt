@@ -228,6 +228,10 @@ abstract class Exchange extends _Exchange {
     perpsPublicGetPoolDefaultList (params = {}): Promise<Dict | List> {
         return this.request ('pool/default-list', [ 'perps', 'public' ], 'GET', params, {});
     }
+
+    rpcPublicPost (params = {}): Promise<Dict | List> {
+        return this.request ('', [ 'rpc', 'public' ], 'POST', params, {});
+    }
 }
 
 export default Exchange;

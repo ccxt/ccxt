@@ -1,4 +1,4 @@
-﻿import Exchange from './abstract/raydium.js';
+import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
