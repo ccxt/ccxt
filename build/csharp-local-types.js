@@ -15762,6 +15762,7 @@ export function installCsharpLocalTypes (transpiler) {
             return retypeElement1Params (csharp, declaration, retypeDestructuredElement0 (csharp, scope, declaration, retypeDestructuringTemp (csharp, scope, printed) ?? printed));
         }
         const h27c01 = h27c01WatchCacheDeclaration (csharp, declaration, printed, identation); if (h27c01 !== undefined) return h27c01;
+        const h28c01 = h28c01WrapperCacheDeclaration (csharp, declaration, printed, identation); if (h28c01 !== undefined) return h28c01;
         const info = csharpLocalDeclaration (csharp, declaration);
         if (info === undefined) {
             // 87c1: the emitted line keeps `object`; a later read must not answer another type
@@ -15852,6 +15853,7 @@ export function installCsharpLocalTypes (transpiler) {
     installCsharpDictInOp (csharp);
     installCsharpNullableInOpKeyGuard (csharp);
     installCsharpGuardedConcatLocals (csharp);
+    installH28c01GenericWatchWrappers (csharp);
     csharp._localTypesPatched = true;
     // the declared-type record has to wrap the rewrite above: it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
@@ -24228,6 +24230,213 @@ function h27c01WatchCacheDeclaration (csharp, declaration, printed, identation) 
     return iden + type + ' ' + printedName + ' = await this.watch<' + type + '>(' + printed.slice (prefix.length);
 }
 // ===== end h27-H27-C01
+// ===== h28-H28-C01
+// A same-file venue ws wrapper (`async w (...) { ...; return await this.watch (...); }`, no override,
+// no other declaration or caller in ts/src or hand-written cs) prints `Task<T> w<T>(...)` returning
+// `await this.watch<T>(...)`; every caller names T: the cache class the h27-C01 resolve proof gives
+// a const local read once by filterBy*SinceLimit, `object` everywhere else (the old answer).
+const h28c01WrapperCache = new WeakMap ();
+const h28c01DeclarationCache = new WeakMap ();
+let h28c01HandWritten;
+
+function h28c01HandWrittenText () {
+    if (h28c01HandWritten === undefined) {
+        h28c01HandWritten = '';
+        for (const dir of [ 'cs/ccxt/base', 'cs/ccxt/ws' ]) {
+            try {
+                for (const f of fs.readdirSync (path.join (process.cwd (), dir))) {
+                    h28c01HandWritten += fs.readFileSync (path.join (process.cwd (), dir, f), 'utf8');
+                }
+            } catch (e) {
+                h28c01HandWritten = undefined;
+                return undefined;
+            }
+        }
+    }
+    return h28c01HandWritten;
+}
+
+// the wrapper method a `this.<name> (...)` call binds, when it may become generic
+function h28c01WrapperOf (call) {
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || WS_RESOLVE_WATCH_CORES.includes (callee.name?.text)) {
+        return undefined;
+    }
+    const methods = sourceFileMethods (call.getSourceFile (), callee.name.text);
+    return (methods.length === 1 && h28c01IsWrapper (methods[0])) ? methods[0] : undefined;
+}
+
+function h28c01IsWrapper (method) {
+    if (h28c01WrapperCache.has (method)) {
+        return h28c01WrapperCache.get (method);
+    }
+    h28c01WrapperCache.set (method, false);
+    const source = method.getSourceFile ();
+    const fileName = (source?.fileName ?? '').replace (/\\/g, '/');
+    const name = method.name?.text;
+    if (method.body === undefined || !fileName.includes ('ts/src/') || fileName.includes ('ts/src/test/') || typeof name !== 'string'
+            || !(method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
+            || (method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.OverrideKeyword || m.kind === ts.SyntaxKind.StaticKeyword)) {
+        return false;
+    }
+    const rel = path.relative (process.cwd (), source.fileName);
+    const corpus = csharpCorpus ();
+    const declared = [ ...(corpus.declarations.get (name) ?? []) ];
+    const called = [ ...(corpus.occurrences.get (name)?.keys () ?? []) ];
+    const handWritten = h28c01HandWrittenText ();
+    if (declared.length !== 1 || declared[0] !== rel || called.some ((f) => f !== rel) || handWritten === undefined
+            || new RegExp ('\\b' + name + '\\b').test (handWritten) || source.text.includes ("'" + name + "'")) {
+        return false;
+    }
+    let ok = true;
+    let returns = 0;
+    const visit = (n) => {
+        if (!ok || (n !== method && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            const e = stripParens (n.expression);
+            const call = (e?.kind === ts.SyntaxKind.AwaitExpression) ? e.expression : undefined;
+            ok = call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && call.expression.name?.text === 'watch';
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    if (!ok || returns === 0) {
+        return false;
+    }
+    // generic only when one caller is proven (otherwise nothing changes)
+    let proven = false;
+    const callers = (n) => {
+        if (proven) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.VariableDeclaration && n.initializer?.kind === ts.SyntaxKind.AwaitExpression
+                && n.initializer.expression?.kind === ts.SyntaxKind.CallExpression
+                && n.initializer.expression.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && n.initializer.expression.expression.name?.text === name) {
+            h28c01WrapperCache.set (method, true); // provisional, for the nested proof
+            proven = h28c01CallerCacheType (undefined, n) !== undefined;
+            h28c01WrapperCache.set (method, false);
+        }
+        n.forEachChild (callers);
+    };
+    source.forEachChild (callers);
+    h28c01WrapperCache.set (method, proven);
+    return proven;
+}
+
+// `const xs = await this.<wrapper> (...)` read once by filterBySinceLimit / filterBySymbolSinceLimit:
+// the cache class every settle meeting the watched hash stores, or undefined
+function h28c01CallerCacheType (csharp, declaration) {
+    if (h28c01DeclarationCache.has (declaration)) {
+        return h28c01DeclarationCache.get (declaration);
+    }
+    const call = (declaration?.initializer?.kind === ts.SyntaxKind.AwaitExpression) ? declaration.initializer.expression : undefined;
+    let result;
+    if (declaration.type === undefined && declaration.name?.kind === ts.SyntaxKind.Identifier && (declaration.parent?.flags & ts.NodeFlags.Const)
+            && h28c01WrapperOf (call) !== undefined) {
+        const scope = enclosingFunction (declaration);
+        const watched = h27c01OnlyFilterUse (scope, declaration) ? wsWrapperWatchedPrefixes (call, scope, undefined, 0) : undefined;
+        result = (watched === undefined) ? undefined : h28c01SettledCache (csharp, declaration.getSourceFile (), watched);
+    }
+    if (csharp !== undefined) {
+        h28c01DeclarationCache.set (declaration, result);
+    }
+    return result;
+}
+
+function h28c01SettledCache (csharp, source, watched) {
+    const boxes = new Set ();
+    let meets = 0;
+    for (const rel of wsHandlerFiles (source)) {
+        if (!wsResolveProofCache.has (rel)) {
+            const full = path.join (process.cwd (), rel);
+            const file = (path.resolve (full) === path.resolve (source.fileName)) ? source : tupleDictSourceFile (full);
+            wsResolveProofCache.set (rel, (file === undefined) ? undefined : wsFileSettles (csharp, file));
+        }
+        const settles = wsResolveProofCache.get (rel);
+        if (settles === undefined) {
+            return undefined;
+        }
+        for (const settle of settles) {
+            if (!settle.hashes.some ((h) => watched.some ((w) => wsPrefixesMeet (h, w)))) {
+                continue;
+            }
+            meets++;
+            const box = (settle.value === undefined) ? undefined : wsResolvedCacheBox (csharp, settle.value, 0);
+            if (box === undefined) {
+                return undefined;
+            }
+            boxes.add (box);
+        }
+    }
+    const joined = (meets === 0) ? undefined : wsJoinCacheBoxes (boxes);
+    return (joined === undefined) ? undefined : ('ccxt.pro.' + joined);
+}
+
+// rewrites `object xs = await this.<wrapper><T>(` of a proven caller; undefined = not this family
+function h28c01WrapperCacheDeclaration (csharp, declaration, printed, identation) {
+    const type = h28c01CallerCacheType (csharp, declaration);
+    if (type === undefined) {
+        return undefined;
+    }
+    const prefix = csharp.getIden (identation) + csharp.VAR_TOKEN + ' ' + csharp.printNode (declaration.name, 0) + ' = await this.';
+    if (!printed.startsWith (prefix) || !printed.includes ('<' + type + '>(')) {
+        return undefined;
+    }
+    retypedDeclarationTypes.set (declaration, type);
+    return csharp.getIden (identation) + type + printed.slice (csharp.getIden (identation).length + csharp.VAR_TOKEN.length);
+}
+
+function installH28c01GenericWatchWrappers (csharp) {
+    if (csharp._h28c01Patched || typeof csharp.printMethodDefinition !== 'function' || typeof csharp.printCallExpression !== 'function') {
+        return;
+    }
+    csharp._h28c01Patched = true;
+    const upstreamDefinition = csharp.printMethodDefinition.bind (csharp);
+    csharp.printMethodDefinition = (node, identation) => {
+        const printed = upstreamDefinition (node, identation);
+        if (node?.kind !== ts.SyntaxKind.MethodDeclaration || !h28c01IsWrapper (node)) {
+            return printed;
+        }
+        const marker = ' Task<object> ' + node.name.text + '(';
+        return printed.includes (marker) ? printed.replace (marker, ' Task<T> ' + node.name.text + '<T>(') : printed;
+    };
+    const upstreamCall = csharp.printCallExpression.bind (csharp);
+    csharp.printCallExpression = (node, identation) => {
+        const printed = upstreamCall (node, identation);
+        const callee = node?.expression;
+        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return printed;
+        }
+        const name = callee.name?.text;
+        const head = 'this.' + name + '(';
+        if (!printed.startsWith (head)) {
+            return printed;
+        }
+        if (name === 'watch') {
+            // the core watch a generic wrapper returns
+            const owner = ts.findAncestor (node.parent, isFunctionScope);
+            const ret = node.parent?.parent;
+            const inWrapper = owner?.kind === ts.SyntaxKind.MethodDeclaration && h28c01IsWrapper (owner)
+                && node.parent?.kind === ts.SyntaxKind.AwaitExpression && ret?.kind === ts.SyntaxKind.ReturnStatement;
+            return inWrapper ? 'this.watch<T>(' + printed.slice (head.length) : printed;
+        }
+        if (h28c01WrapperOf (node) === undefined) {
+            return printed;
+        }
+        const declaration = (node.parent?.kind === ts.SyntaxKind.AwaitExpression && node.parent.parent?.kind === ts.SyntaxKind.VariableDeclaration
+            && node.parent.parent.initializer === node.parent) ? node.parent.parent : undefined;
+        const type = (declaration === undefined) ? undefined : h28c01CallerCacheType (csharp, declaration);
+        return 'this.' + name + '<' + (type ?? 'object') + '>(' + printed.slice (head.length);
+    };
+}
+// ===== end h28-H28-C01
 // ===== h27-C03
 // async typed cores returning List<Dictionary<string, object>> (TYPED_CORES in build/csharpTranspiler.ts)
 const H27C03_ASYNC_DICT_LIST_CORES = [ 'fetchMySettlementHistory', 'fetchBorrowRateHistory' ];
