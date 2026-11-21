@@ -2741,6 +2741,8 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
         const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?(?:GetValue|SafeMapTyped|SafeListTyped)\\()?' + v + '(?!\\w)(, (\\d+)\\))?', 'g');
         const reads: Edit[] = [];
         for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
+            const typedSlot = goChan3PromiseAllTypedSlot (masked, declEnd + u.index, declEnd + u.index + u[0].length, rest, v, u, type, elems.length);
+            if (typedSlot !== undefined) { reads.push (typedSlot); continue; }
             const native = goChan3PromiseAllSlotWrap (u[1], type);
             // a task-list site converts only when every slot read is native (BoxAbsent folds only some positions)
             if ((u[1] === undefined) || (u[3] === undefined) || (Number (u[3]) >= elems.length) || (native === undefined) || ((taskList !== undefined) && !native)) {
@@ -2797,6 +2799,29 @@ function goChan3PromiseAllSlotWrap (wrap: string | undefined, type: string): boo
     }
     return (((name === 'SafeMapTyped') && (type === 'map[string]any')) || ((name === 'SafeListTyped') && (type === '[]any'))) ? true : undefined;
 }
+
+// ===== h27-H27-G25: a destructured promiseAll slot bound to its typed element =====
+// `x := GetValue(V, k)` (k below the arity) whose x is read only as the first argument of a reader that answers a
+// nil map / slice exactly as nil (no rebind, no nil test, no other use): `var x T = V[k]` (T = map[string]any | []any)
+const GO_CHAN3_TYPED_SLOT_READERS = '(?:ccxt\\.)?(?:SafeMapTyped|SafeListTyped|GetArrayLength)\\(|this\\.(?:SafeDictMap|IndexBy)\\(';
+function goChan3PromiseAllTypedSlot (masked: string, start: number, end: number, rest: string, v: string, u: RegExpExecArray, type: string, arity: number): Edit | undefined {
+    if (!goChan3FoldsAbsent (type) || (u[1] === undefined) || (u[1].replace (/^ccxt\./, '') !== 'GetValue(') || (u[3] === undefined) || (Number (u[3]) >= arity)) {
+        return undefined;
+    }
+    const ls = masked.lastIndexOf ('\n', start) + 1;
+    const le = masked.indexOf ('\n', end);
+    const m = /^(\t+)(?:(\w+) := |var (\w+) any = )$/.exec (masked.substring (ls, start));
+    if ((m === null) || (le < 0) || (masked.substring (end, le).trim () !== '')) {
+        return undefined;
+    }
+    const x = m[2] ?? m[3];
+    const [ fs0, fe0 ] = goChan3Func (masked, start);
+    const fn = masked.substring (fs0, fe0);
+    const all = fn.match (new RegExp ('(?<![\\w.])' + x + '(?!\\w)', 'g')) || [];
+    const ok = fn.match (new RegExp ('(?:' + GO_CHAN3_TYPED_SLOT_READERS + ')' + x + '(?!\\w)', 'g')) || [];
+    return ((ok.length > 0) && (all.length === ok.length + 1)) ? { 'start': ls, 'end': le, 'text': m[1] + 'var ' + x + ' ' + type + ' = ' + v + '[' + u[3] + ']' } : undefined;
+}
+// ===== end h27-H27-G25
 
 // ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
 // Proven above on the map shadow; goChan3StructPass retypes cores (sends `TFromMap(E)`), interfaces (not IPrediction*)
@@ -3805,6 +3830,14 @@ function goChan3SelfTest (): string[] {
     ok (run (plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)')) === plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)'), 'task list with a boxed read untouched');
     const mixed = plist.replace ('this.PubGetA(p)}', 'this.PubGetL(p)}');
     ok (run (mixed) === mixed, 'mixed task list untouched');
+    // h27-H27-G25: a slot read only by nil-safe readers binds its typed element
+    const tslot = (use: string) => pall.replace ('\treturn []any{x, GetValue(v, 1)}\n', use + '\treturn nil\n');
+    const ts1 = run (tslot ('\ty := SafeMapTyped(x, "data")\n\tthis.Use(y)\n'));
+    ok (ts1.includes ('\tvar x map[string]any = v[0]\n\ty := SafeMapTyped(x, "data")\n'), 'typed slot bind: ' + ts1);
+    ok (run (ts1) === ts1, 'typed slot bind idempotent');
+    ok (!run (tslot ('\tif x == nil {\n\t}\n\ty := SafeMapTyped(x, "data")\n')).includes ('var x map[string]any'), 'nil-tested slot keeps the box');
+    ok (!run (tslot ('\tthis.Use(x)\n')).includes ('var x map[string]any'), 'slot stored into any keeps the box');
+    ok (!run (tslot ('\tx = 1\n\ty := SafeMapTyped(x, "data")\n\tthis.Use(y)\n')).includes ('var x map[string]any'), 'rebound slot keeps the box');
     goChan3EndpointSendSelfTest (ok, run, throws, core);
     // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
     goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
