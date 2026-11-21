@@ -1478,7 +1478,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         const paramsRequest: Dict = this.omit (paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response: Dict = {};
+        let response: NullableDict = undefined;
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));
         } else {

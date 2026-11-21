@@ -3690,8 +3690,10 @@ export default class xt extends Exchange {
         //     }
         //
         const isContractResponse = ((subType !== undefined) || (type === 'swap') || (type === 'future'));
-        const order = isContractResponse ? response : this.safeDict (response, 'result', {});
-        return this.parseOrder (order, market);
+        if (isContractResponse) {
+            return this.parseOrder (response, market);
+        }
+        return this.parseOrder (this.safeDict (response, 'result', {}), market);
     }
 
     /**
@@ -5810,8 +5812,10 @@ export default class xt extends Exchange {
             //     }
             //
         }
-        const result = (this.safeBool (market, 'swap', false)) ? response : this.safeDict (response, 'result', {});
-        return this.parseOrder (result, market);
+        if (this.safeBool (market, 'swap', false)) {
+            return this.parseOrder (response, market);
+        }
+        return this.parseOrder (this.safeDict (response, 'result', {}), market);
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
