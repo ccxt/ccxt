@@ -17059,6 +17059,7 @@ function javaArithMemberCtx (lines, from, to) {
             for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && javaLineIndent (lines[k]) < ig) { scoped = false; break; }
             if (scoped) for (const x of javaGuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
         }
+        h29j02LoopExitGuards (lines, from, j, out, guardHolds);
         guardCache.set (j, out);
         return out;
     };
@@ -19223,6 +19224,7 @@ function javaPrimitiveNonNullValue (ctx, value, nn) {
     if (javaArithNonNullValue (ctx, value, nn)) return true;
     const e = longLimitStrip (value);
     if (javaPrimitiveKind (ctx, e, nn) !== undefined) return true;
+    if (h29j02UnboxedChainKind (ctx, e, nn) !== undefined) return true;
     const t = longLimitSplitTernary (e);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
@@ -29216,3 +29218,26 @@ function h28j04SafeDictMapWrite (printer, value, name) {
     return local !== undefined && local.cast === undefined ? { type: JAVA_STRUCTURE_TYPE, cast: '' } : undefined;
 }
 // ===== end h28-J04
+// ===== h29-J02
+// An arithmetic chain unboxes each operand: a `this.parseToInt (..)` operand (declared `Long`) throws on null in
+// the printed expression itself, so the chain's value is a never-null primitive long.
+function h29j02UnboxedChainKind (ctx, e, nn) {
+    const chain = javaPrimitiveOperands (e);
+    if (chain === undefined) return undefined;
+    const pti = (o) => { const x = longLimitStrip (o); const m = /^((?:\w+\.)?this\.parseToInt)\(/.exec (x); const args = m === null ? undefined : longLimitCallArgs (x, m[1]); return args !== undefined && args.length === 1; };
+    if (!chain.operands.some (pti)) return undefined;
+    return javaWidestKind (chain.operands.map ((o) => (pti (o) ? 'long' : javaPrimitiveKind (ctx, o, nn))));
+}
+// `if (Objects.equals(x, null)) { continue; | break; }` earlier in the same block also leaves x non-null below it
+function h29j02LoopExitGuards (lines, from, j, out, guardHolds) {
+    const ij = javaLineIndent (lines[j]);
+    for (let g = j - 1; g > from; g--) {
+        const m = /^(\s*)if \((.*)\)$/.exec (lines[g]);
+        if (m === null || m[1].length !== ij || lines[g + 1]?.trim () !== '{' || !/^(?:continue|break);$/.test (lines[g + 2]?.trim () ?? '')) continue;
+        if (lines[g + 3]?.trim () !== '}' || javaLineIndent (lines[g + 3]) !== ij || /^\s*else\b/.test (lines[g + 4] ?? '')) continue;
+        let scoped = true;
+        for (let k = g + 4; k < j; k++) if (lines[k].trim () !== '' && javaLineIndent (lines[k]) < ij) { scoped = false; break; }
+        if (scoped) for (const x of javaGuardNames (m[2], true)) if (guardHolds (x, g, j)) out.add (x);
+    }
+}
+// ===== end h29-J02

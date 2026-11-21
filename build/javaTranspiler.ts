@@ -6541,6 +6541,9 @@ function javaPrimitiveArithmeticSelfTest (): string[] {
         [ 'ternary arm wrong guard', '        Long w = 5L;\n        Object r = (((java.util.Objects.equals(limit, null)))) ? Helpers.subtract(this.milliseconds(), w) : since;', undefined ],
         [ 'object operand', '        Object e = this.sum(x, Helpers.add(this.parseToInt(x), 1));', undefined ],
         [ 'nullable Double', '        Object e = this.sum(x, Helpers.add(d, 1));', undefined ],
+        [ 'loop-exit guarded parseToInt chain', '        for (var j = 0; j < 3; j++)\n        {\n            Long w = (this.parseToInt(x) * 1000L);\n            Long t = this.safeInteger(x, 0);\n            if (java.util.Objects.equals(t, null))\n            {\n                continue;\n            }\n            Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));\n        }', 'Long c = this.parseToInt(((((double) t) / ((double) w)) * w));' ],
+        [ 'unguarded nullable beside parseToInt chain', '        Long w = (this.parseToInt(x) * 1000L);\n        Long t = this.safeInteger(x, 0);\n        Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));', undefined ],
+        [ 'rewritten after loop-exit guard', '        for (var j = 0; j < 3; j++)\n        {\n            Long w = (this.parseToInt(x) * 1000L);\n            Long t = this.safeInteger(x, 0);\n            if (java.util.Objects.equals(t, null))\n            {\n                continue;\n            }\n            t = this.safeInteger(x, 1);\n            Long c = this.parseToInt(Helpers.multiply(((((double) t) / ((double) w))), w));\n        }', undefined ],
     ];
     return runSnippetCases(cases, member, nativeJavaPrimitiveArithmetic, (name, out) => `arithmetic: ${name}\n${out}`);
 }
