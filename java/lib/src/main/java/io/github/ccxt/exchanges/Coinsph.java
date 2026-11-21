@@ -1799,7 +1799,7 @@ public class Coinsph extends CoinsphApi
         }
         request.put("newOrderRespType", newOrderRespType);
         Map<String, Object> paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-        Map<String, Object> response = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
         if (Boolean.TRUE.equals(testOrder))
         {
             response = (this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest))).join();

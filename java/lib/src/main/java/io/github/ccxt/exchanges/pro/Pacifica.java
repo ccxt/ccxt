@@ -1725,7 +1725,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String subMessageHash = "tickers";
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
-        List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
+        List<String> symbols = (this.tickers == null ? new ArrayList<String>() : new ArrayList<String>(this.tickers.keySet()));
         for (var i = 0; i < symbols.size(); i++)
         {
             this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));

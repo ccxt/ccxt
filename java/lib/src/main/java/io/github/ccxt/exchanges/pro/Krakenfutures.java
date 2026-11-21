@@ -489,7 +489,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Long timestamp = this.safeInteger(message, "timestamp");
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null, timestamp);
+            Map<String, Object> position = this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null, timestamp);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
@@ -509,7 +509,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market, Long timestamp)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market, Long timestamp)
     {
         //
         //        {

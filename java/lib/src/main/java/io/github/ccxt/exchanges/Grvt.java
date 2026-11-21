@@ -879,7 +879,8 @@ public class Grvt extends GrvtApi
         {
             return true;  // skip if builder fee is already approved
         }
-        Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> resultsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateTradingPostFullV1GetAuthorizedBuilders(new HashMap<String, Object>() {{}}), this.loadAccountInfos()));
+        Object results = (CompletableFuture.allOf(resultsFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(resultsFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
         // {
         //     "results": [{

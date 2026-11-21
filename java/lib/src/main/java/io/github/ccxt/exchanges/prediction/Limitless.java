@@ -448,7 +448,7 @@ public class Limitless extends LimitlessApi
             }
         }
         List<Object> markets = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> eventGroups = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> eventGroups = new HashMap<String, Map<String, Object>>();
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
         List<Object> expandedRaw = (List<Object>) this.expandGroupRows(allRaw);
@@ -474,13 +474,13 @@ public class Limitless extends LimitlessApi
                     mapLiteral2.put("markets", new ArrayList<Object>(Arrays.asList()));
                     eventGroups.put(eventKey, mapLiteral2);
                 }
-                Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
+                Map<String, Object> eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
+                Object groupMarkets = eventGroup.get("markets");
                 ((List<Object>)groupMarkets).add(m);
-                ((Map<String, Object>)eventGroup).put("markets", groupMarkets);
+                eventGroup.put("markets", groupMarkets);
             }
         }
         Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
@@ -3582,7 +3582,7 @@ public class Limitless extends LimitlessApi
         {
             this.markets = this.createSafeDictionary();
         }
-        Map<String, Object> eventGroups = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> eventGroups = new HashMap<String, Map<String, Object>>();
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
         List<Object> expandedMarkets = this.expandGroupRows(rawMarkets);
@@ -3613,13 +3613,13 @@ public class Limitless extends LimitlessApi
                     mapLiteral13.put("markets", new ArrayList<Object>(Arrays.asList()));
                     eventGroups.put(eventKey, mapLiteral13);
                 }
-                Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
+                Map<String, Object> eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
-                Object groupMarkets = Helpers.GetValue(eventGroup, "markets");
+                Object groupMarkets = eventGroup.get("markets");
                 ((List<Object>)groupMarkets).add(m);
-                ((Map<String, Object>)eventGroup).put("markets", groupMarkets);
+                eventGroup.put("markets", groupMarkets);
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());

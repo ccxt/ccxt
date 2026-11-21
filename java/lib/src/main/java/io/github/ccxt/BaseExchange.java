@@ -4944,6 +4944,22 @@ public Map<String, Object> describe()
         return defaultValue;
     }
 
+    public Object safeStringList(Object dictionaryOrList, Object keys)
+    {
+        /**
+         * @ignore
+         * @method
+         * @description a value that is a string or a list of strings by API contract, read as a list (a string becomes a one-element list)
+         * @returns {string[]|undefined}
+         */
+        String str = this.safeStringN(dictionaryOrList, keys);
+        if (!java.util.Objects.equals(str, null))
+        {
+            return new ArrayList<Object>(Arrays.asList(str));
+        }
+        return this.safeListN(dictionaryOrList, keys, (Object) null);
+    }
+
     public Object safeList(Object dictionaryOrList, Object key, Object defaultValue)
     {
         /**
@@ -5799,7 +5815,7 @@ public Map<String, Object> describe()
     private Object watchFundingRatesForSymbolsCore(Object symbols, Map<String, Object> parameters)
     {
 
-        return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v19 -> (List<String>) hx4J40v19; case Object hx4J40v19 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v19.getClass().getName()); })), parameters)).join();
+        return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v18 -> (List<String>) hx4J40v18; case Object hx4J40v18 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v18.getClass().getName()); })), parameters)).join();
 
     }
 
@@ -6981,7 +6997,7 @@ public Map<String, Object> describe()
             Integer reducedLength = reducedFees.size();
             for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
-                Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i))));
+                reducedFees.set((int) (long) (i), this.parseFeeNumeric((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i))));
             }
             if (!Boolean.TRUE.equals(parseFee) && (java.util.Objects.equals(reducedLength, 0)))
             {
@@ -10376,7 +10392,7 @@ public Map<String, Object> describe()
         {
             throw new ArgumentsRequired((this.id + " currency() requires a code argument")) ;
         }
-        List<Object> keys = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        List<String> keys = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
         Integer numCurrencies = keys.size();
         if (java.util.Objects.equals(numCurrencies, 0))
         {
@@ -10863,7 +10879,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(this.parseBorrowRate(this.safeDict(response, i, null), (Map<String, Object>) null));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
@@ -12200,22 +12216,32 @@ public Map<String, Object> describe()
         //
         // the value of greeks is either a dict or a list
         //
-        List<Object> results = new ArrayList<Object>(Arrays.asList());
         if ((greeks instanceof List))
         {
-            for (var i = 0; i < ((List<?>)greeks).size(); i++)
-            {
-                ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) ((greeks == null || i < 0 || i >= ((List<?>)greeks).size() ? null : ((List<?>)greeks).get(i))), (Map<String, Object>) null), parameters));
-            }
-        } else
+            return this.parseAllGreeksList(greeks, symbols, parameters);
+        }
+        return this.parseAllGreeksDict((Map<String, Object>) (greeks), symbols, parameters);
+    }
+
+    public Object parseAllGreeksList(Object greeks, List<String> symbols, Map<String, Object> parameters)
+    {
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)greeks).size(); i++)
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v38 -> { synchronized (j39v38) { yield new ArrayList<Object>(j39v38.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < marketIds.size(); i++)
-            {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, (String) null);
-                ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) (Helpers.GetValue(greeks, marketId)), market), parameters));
-            }
+            ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) ((greeks == null || i < 0 || i >= ((List<?>)greeks).size() ? null : ((List<?>)greeks).get(i))), (Map<String, Object>) null), parameters));
+        }
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
+    }
+
+    public Object parseAllGreeksDict(Map<String, Object> greeks, List<String> symbols, Map<String, Object> parameters)
+    {
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        List<String> marketIds = new ArrayList<String>(greeks.keySet());
+        for (var i = 0; i < marketIds.size(); i++)
+        {
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+            ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) ((greeks == null || marketId == null ? null : greeks.get(marketId))), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
@@ -12660,10 +12686,10 @@ public Map<String, Object> describe()
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))
             {
-                List<Object> tickerSymbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
+                List<String> tickerSymbols = (this.tickers == null ? new ArrayList<String>() : new ArrayList<String>(this.tickers.keySet()));
                 for (var i = 0; i < tickerSymbols.size(); i++)
                 {
-                    String tickerSymbol = (String) (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
+                    String tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
                     if (this.tickers.containsKey(tickerSymbol))
                     {
                         this.tickers.remove(tickerSymbol);
@@ -12671,10 +12697,10 @@ public Map<String, Object> describe()
                 }
             } else if (java.util.Objects.equals(topic, "bidsasks") && (!java.util.Objects.equals(this.bidsasks, null)))
             {
-                List<Object> bidsaskSymbols = (this.bidsasks == null ? new ArrayList<Object>() : new ArrayList<Object>(this.bidsasks.keySet()));
+                List<String> bidsaskSymbols = (this.bidsasks == null ? new ArrayList<String>() : new ArrayList<String>(this.bidsasks.keySet()));
                 for (var i = 0; i < bidsaskSymbols.size(); i++)
                 {
-                    String bidsaskSymbol = (String) (bidsaskSymbols == null || i < 0 || i >= bidsaskSymbols.size() ? null : bidsaskSymbols.get(i));
+                    String bidsaskSymbol = (bidsaskSymbols == null || i < 0 || i >= bidsaskSymbols.size() ? null : bidsaskSymbols.get(i));
                     if (this.bidsasks.containsKey(bidsaskSymbol))
                     {
                         this.bidsasks.remove(bidsaskSymbol);

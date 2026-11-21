@@ -3166,7 +3166,7 @@ public class Hyperliquid extends HyperliquidApi
          * @returns {object} the raw request object to be sent to the exchange
          */
         Map<String, Object> market = this.market(symbol);
-        Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
+        Object clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Boolean fast = (Boolean) this.safeBool(parameters, "fast", false);
         Map<String, Object> params2 = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "fast")));
         Long nonce = this.incrementingNonce();
@@ -3179,18 +3179,14 @@ public class Hyperliquid extends HyperliquidApi
             put( "cancels", new ArrayList<Object>(Arrays.asList()) );
         }};
         Object baseId = this.parseToNumeric(market.get("baseId"));
-        if (!java.util.Objects.equals(clientOrderId, null))
+        if (!java.util.Objects.equals(clientOrderIds, null))
         {
-            if (!(clientOrderId instanceof List))
-            {
-                clientOrderId = new ArrayList<Object>(Arrays.asList(clientOrderId));
-            }
             cancelAction.put("type", "cancelByCloid");
-            for (var i = 0; i < (switch ((Object)(clientOrderId)) { case null -> 0; case List<?> j39v7 -> j39v7.size(); case String j39v8 -> j39v8.length(); case Object j39v9 -> j39v9.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v9) : 0; }); i++)
+            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
                 HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
                 mapLiteral7.put("asset", baseId);
-                mapLiteral7.put("cloid", this.safeString(clientOrderId, i));
+                mapLiteral7.put("cloid", this.safeString(clientOrderIds, i));
                 ((List<Object>)cancelReq).add(mapLiteral7);
             }
         } else

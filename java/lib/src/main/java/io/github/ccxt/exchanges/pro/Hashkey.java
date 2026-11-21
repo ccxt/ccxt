@@ -829,7 +829,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsPosition(message, (Map<String, Object>) null);
         positions.append(parsed);
         String messageHash = "positions";
         client.resolve(parsed, messageHash);
@@ -837,7 +837,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         client.resolve(parsed, ((messageHash + ":") + symbol));
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);

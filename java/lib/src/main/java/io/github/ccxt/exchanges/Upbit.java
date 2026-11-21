@@ -2358,10 +2358,10 @@ public class Upbit extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        List<Object> trades = this.parseTrades(this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList())), marketResolved, (Long) null, (Long) null, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("order", id);
-            j39v1.put("type", type);
-            yield j39v1; } }));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("order", id);
+        j39v1.put("type", type);
+        List<Object> trades = this.parseTrades(this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList())), marketResolved, (Long) null, (Long) null, j39v1);
         Integer numTrades = trades.size();
         if ((numTrades != null && numTrades > 0))
         {

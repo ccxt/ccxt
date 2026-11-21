@@ -2676,7 +2676,9 @@ public class Predictfun extends PredictfunApi
         {
             // accepted, but nothing was resting to pull: the order had already filled, expired,
             // was never booked, or had been removed before - so the status is left unknown
-            ((List<Object>)rows).add(this.extend(response, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i))); yield j39v3; } })));
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("orderHash", (noop == null || i < 0 || i >= noop.size() ? null : noop.get(i)));
+            ((List<Object>)rows).add(this.extend(response, j39v3));
         }
         return this.parsePredictionOrders(rows, outcomeObj, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 

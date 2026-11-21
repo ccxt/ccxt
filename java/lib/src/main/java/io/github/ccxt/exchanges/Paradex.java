@@ -4937,7 +4937,9 @@ public class Paradex extends ParadexApi
             {
                 endAt = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.milliseconds(), this.sum(since, Helpers.multiply(((paginationCalls == null) ? null : (paginationCalls * 5000L)), rowSpacing)));
             }
-            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("end_at", endAt); yield j39v2; } }));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("end_at", endAt);
+            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v2);
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
             Object pages = (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, (Long) null, paramsEndAt, "next", "cursor", (Long) null, 5000L)).join();
             List<Object> sortedPages = this.sortBy(pages, "timestamp");

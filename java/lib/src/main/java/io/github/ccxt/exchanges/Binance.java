@@ -14052,7 +14052,7 @@ public class Binance extends BinanceApi
     {
         List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> balances = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> balances = new HashMap<String, Map<String, Object>>();
         for (var i = 0; i < assets.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(assets, i, null);
@@ -17775,11 +17775,23 @@ public class Binance extends BinanceApi
         {
             request.put("symbol", market.get("id"));
         }
-        Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
-            response = (this.eapiPublicGetOpenInterest(this.extend(request, parameters))).join();
-        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+            List<Object> optionResponse = (this.eapiPublicGetOpenInterest(this.extend(request, parameters))).join();
+            String symbolValue = (String) market.get("symbol");
+            List<Object> result = this.parseOpenInterestsHistory(optionResponse, market, (Long) null, (Long) null);
+            for (var i = 0; i < result.size(); i++)
+            {
+                Map<String, Object> item = this.safeDict(result, i, null);
+                if (java.util.Objects.equals(this.safeString(item, "symbol"), symbolValue))
+                {
+                    return item;
+                }
+            }
+            throw new NullResponse(((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
+        }
+        Map<String, Object> response = null;
+        if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
         {
             response = (this.dapiPublicGetOpenInterest(this.extend(request, parameters))).join();
         } else
@@ -17816,23 +17828,7 @@ public class Binance extends BinanceApi
         //         }
         //     ]
         //
-        if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
-        {
-            String symbolValue = (String) market.get("symbol");
-            List<Object> result = this.parseOpenInterestsHistory(response, market, (Long) null, (Long) null);
-            for (var i = 0; i < result.size(); i++)
-            {
-                Map<String, Object> item = this.safeDict(result, i, null);
-                if (java.util.Objects.equals(this.safeString(item, "symbol"), symbolValue))
-                {
-                    return item;
-                }
-            }
-            throw new NullResponse(((this.id + " fetchOpenInterest() could not find open interest for ") + symbolValue)) ;
-        } else
-        {
-            return this.parseOpenInterest(response, market);
-        }
+        return this.parseOpenInterest(response, market);
 
     }
 

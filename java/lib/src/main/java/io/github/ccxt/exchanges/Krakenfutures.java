@@ -1709,7 +1709,7 @@ public class Krakenfutures extends KrakenfuturesApi
         //         }
         //     }
         //
-        Object sendStatus = this.safeValue(response, "sendStatus");
+        Map<String, Object> sendStatus = this.safeDict(response, "sendStatus", null);
         String status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new ArrayList<Object>(Arrays.asList("filled")));
         return this.parseOrder(sendStatus, market);

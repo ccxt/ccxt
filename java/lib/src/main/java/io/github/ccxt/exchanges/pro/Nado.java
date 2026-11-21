@@ -1931,7 +1931,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         client.resolve(orders, ("orders:" + this.safeString(order, "symbol", "")));
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -2005,7 +2005,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(message, market);
+        Map<String, Object> position = this.parseWsPosition(message, market);
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();

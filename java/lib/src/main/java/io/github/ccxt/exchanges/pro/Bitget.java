@@ -1856,7 +1856,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString2(rawPosition, "instId", "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
@@ -1876,7 +1876,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         client.resolve(newPositions, (instType + ":positions"));
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

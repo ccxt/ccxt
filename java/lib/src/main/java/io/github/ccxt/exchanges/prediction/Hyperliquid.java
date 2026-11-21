@@ -1659,22 +1659,21 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Long assetId = this.safeInteger(outcomeInfo, "assetId");
         Long nonce = this.incrementingNonce();
-        Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
+        Object clientOrderIds = this.safeStringList(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
         List<Object> cancelReq = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> cancelAction = new HashMap<String, Object>() {{
             put( "type", "cancel" );
             put( "cancels", new ArrayList<Object>(Arrays.asList()) );
         }};
-        if (!java.util.Objects.equals(clientOrderId, null))
+        if (!java.util.Objects.equals(clientOrderIds, null))
         {
-            List<Object> cloids = (List<Object>) ((((clientOrderId instanceof List))) ? clientOrderId : new ArrayList<Object>(Arrays.asList(clientOrderId)));
             cancelAction.put("type", "cancelByCloid");
-            for (var i = 0; i < cloids.size(); i++)
+            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
                 HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                 j39v2.put("asset", assetId);
-                j39v2.put("cloid", (cloids == null || i < 0 || i >= cloids.size() ? null : cloids.get(i)));
+                j39v2.put("cloid", (clientOrderIds == null || i < 0 || i >= ((List<?>)clientOrderIds).size() ? null : ((List<?>)clientOrderIds).get(i)));
                 ((List<Object>)cancelReq).add(j39v2);
             }
         } else
@@ -1707,15 +1706,9 @@ public class Hyperliquid extends HyperliquidApi
         List<Object> statuses = this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
         String outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
         Object requestIds = ids;
-        if (!java.util.Objects.equals(clientOrderId, null))
+        if (!java.util.Objects.equals(clientOrderIds, null))
         {
-            if ((clientOrderId instanceof List))
-            {
-                requestIds = clientOrderId;
-            } else
-            {
-                requestIds = new ArrayList<Object>(Arrays.asList(clientOrderId));
-            }
+            requestIds = clientOrderIds;
         }
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < statuses.size(); i++)
@@ -1734,7 +1727,7 @@ public class Hyperliquid extends HyperliquidApi
             String requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             Map<String, Object> order = new HashMap<String, Object>();
             order.put("id", requestId);
-            order.put("clientOrderId", (((!java.util.Objects.equals(clientOrderId, null)))) ? requestId : null);
+            order.put("clientOrderId", (((!java.util.Objects.equals(clientOrderIds, null)))) ? requestId : null);
             order.put("info", status);
             order.put("status", "canceled");
             order.put("outcome", outcomeSymbol);

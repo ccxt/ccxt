@@ -1555,7 +1555,8 @@ public class Xt extends XtApi
     private Object fetchSwapAndFutureMarketsCore(Map<String, Object> parameters)
     {
 
-        Object markets = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> marketsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)));
+        Object markets = (CompletableFuture.allOf(marketsFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(marketsFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
         //     {
         //         "returnCode": 0,
@@ -4469,7 +4470,7 @@ public class Xt extends XtApi
             market = this.market(symbol);
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Object response = null;
+        Map<String, Object> response = null;
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -4562,8 +4563,11 @@ public class Xt extends XtApi
         //     }
         //
         Boolean isContractResponse = ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")));
-        Object order = ((Boolean.TRUE.equals(isContractResponse))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        if (Boolean.TRUE.equals(isContractResponse))
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -7030,7 +7034,7 @@ public class Xt extends XtApi
             request.put("orderId", id);
             request.put("price", this.priceToPrecision(symbol, price));
         }
-        Object response = null;
+        Map<String, Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             if (Boolean.TRUE.equals(isStopLoss))
@@ -7070,8 +7074,11 @@ public class Xt extends XtApi
             request.put("quantity", this.amountToPrecision(symbol, amount));
             response = (this.privateSpotPutOrderOrderId(this.extend(request, paramsOmitted))).join();
         }
-        Object result = ((Boolean.TRUE.equals((this.safeBool(market, "swap", false))))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, market);
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            return this.parseOrder(response, market);
+        }
+        return this.parseOrder(this.safeDict(response, "result", new HashMap<String, Object>() {{}}), market);
 
     }
 

@@ -471,7 +471,7 @@ public Map<String, Object> describe()
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
-        List<Object> keys = (this.events == null ? new ArrayList<Object>() : new ArrayList<Object>(this.events.keySet()));
+        List<String> keys = (this.events == null ? new ArrayList<String>() : new ArrayList<String>(this.events.keySet()));
         for (var i = 0; i < keys.size(); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
@@ -846,7 +846,7 @@ public Map<String, Object> describe()
         {
             return;
         }
-        List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
+        List<String> marketKeys = (this.markets == null ? new ArrayList<String>() : new ArrayList<String>(this.markets.keySet()));
         for (var i = 0; i < marketKeys.size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));

@@ -5540,16 +5540,16 @@ public class Phemex extends PhemexApi
             Map<String, Object> tier = this.safeDict(riskLimits, i, null);
             Long maxNotional = this.safeInteger(tier, "limit");
             Long minNotionalResponse = minNotional; // java req
-            ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("tier", this.sum(i, 1));
-                j39v1.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
-                j39v1.put("currency", marketResolved.get("settle"));
-                j39v1.put("minNotional", minNotionalResponse);
-                j39v1.put("maxNotional", maxNotional);
-                j39v1.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
-                j39v1.put("maxLeverage", null);
-                j39v1.put("info", tier);
-                yield j39v1; } }));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("tier", this.sum(i, 1));
+            j39v1.put("symbol", this.safeSymbol(marketId, marketResolved, (String) null, (String) null));
+            j39v1.put("currency", marketResolved.get("settle"));
+            j39v1.put("minNotional", minNotionalResponse);
+            j39v1.put("maxNotional", maxNotional);
+            j39v1.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin", (Object) null));
+            j39v1.put("maxLeverage", null);
+            j39v1.put("info", tier);
+            ((List<Object>)tiers).add(j39v1);
             minNotional = maxNotional;
         }
         return tiers;

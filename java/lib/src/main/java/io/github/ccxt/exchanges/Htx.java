@@ -7619,20 +7619,13 @@ public class Htx extends HtxApi
         Map<String, Object> response = null;
         if (java.util.Objects.equals(marketType, "spot"))
         {
-            Object clientOrderIds = this.safeValue2(query, "client-order-id", "clientOrderId");
-            clientOrderIds = this.safeValue2(query, "client-order-ids", "clientOrderIds", clientOrderIds);
+            Object clientOrderIds = this.safeStringList(query, new ArrayList<Object>(Arrays.asList("client-order-ids", "clientOrderIds", "client-order-id", "clientOrderId")));
             if (java.util.Objects.equals(clientOrderIds, null))
             {
                 request.put("order-ids", ids);
             } else
             {
-                if ((clientOrderIds instanceof String))
-                {
-                    request.put("client-order-ids", new ArrayList<Object>(Arrays.asList(clientOrderIds)));
-                } else
-                {
-                    request.put("client-order-ids", clientOrderIds);
-                }
+                request.put("client-order-ids", clientOrderIds);
                 query = this.omit(query, new ArrayList<Object>(Arrays.asList("client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds")));
             }
             response = (this.spotPrivatePostV1OrderOrdersBatchcancel(this.extend(request, query))).join();

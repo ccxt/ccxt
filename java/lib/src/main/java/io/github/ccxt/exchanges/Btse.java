@@ -1409,16 +1409,16 @@ public class Btse extends BtseApi
                     Double maxNotional = this.safeNumber(level, "value", (Object) null);
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
-                    ((List<Object>)tiers).add((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                        j39v1.put("tier", this.safeInteger(level, "level"));
-                        j39v1.put("symbol", symbol);
-                        j39v1.put("currency", market.get("settle"));
-                        j39v1.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
-                        j39v1.put("maxNotional", maxNotional);
-                        j39v1.put("maintenanceMarginRate", null);
-                        j39v1.put("maxLeverage", null);
-                        j39v1.put("info", level);
-                        yield j39v1; } }));
+                    HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("tier", this.safeInteger(level, "level"));
+                    j39v1.put("symbol", symbol);
+                    j39v1.put("currency", market.get("settle"));
+                    j39v1.put("minNotional", ((((j == 0)))) ? 0 : minNotional);
+                    j39v1.put("maxNotional", maxNotional);
+                    j39v1.put("maintenanceMarginRate", null);
+                    j39v1.put("maxLeverage", null);
+                    j39v1.put("info", level);
+                    ((List<Object>)tiers).add(j39v1);
                     minNotional = maxNotional;
                 }
                 result.put(symbol, tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes

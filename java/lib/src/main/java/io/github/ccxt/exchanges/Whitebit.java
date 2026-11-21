@@ -1470,10 +1470,10 @@ public class Whitebit extends WhitebitApi
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        List<Object> marketIds = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
+        List<String> marketIds = (this.markets == null ? new ArrayList<String>() : new ArrayList<String>(this.markets.keySet()));
         for (var i = 0; i < marketIds.size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeDict(this.markets, marketId, null);
             String marketSymbol = this.safeString(market, "symbol");
             if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(market, null)) || (java.util.Objects.equals(marketSymbol, null)) || (java.util.Objects.equals(marketSymbol, "")))
@@ -1546,7 +1546,8 @@ public class Whitebit extends WhitebitApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         // Fetch both currencies and fees data for comprehensive funding limits
-        Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchCurrencies(new HashMap<String, Object>() {{}}), this.v4PublicGetFee(parameters))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> responsesFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchCurrencies(new HashMap<String, Object>() {{}}), this.v4PublicGetFee(parameters)));
+        Object responses = (CompletableFuture.allOf(responsesFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(responsesFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> currenciesData = this.safeDict(responses, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> feesData = this.safeDict(responses, 1, new HashMap<String, Object>() {{}});
         //
@@ -2979,7 +2980,8 @@ public class Whitebit extends WhitebitApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         // Fetch both open and closed orders in parallel
-        var openOrdersclosedOrdersVariable = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> openOrdersclosedOrdersFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters)));
+        var openOrdersclosedOrdersVariable = (CompletableFuture.allOf(openOrdersclosedOrdersFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(openOrdersclosedOrdersFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var openOrders = ((List<Object>) openOrdersclosedOrdersVariable).get(0);
         var closedOrders = ((List<Object>) openOrdersclosedOrdersVariable).get(1);
         List<Object> allOrders = (List<Object>) this.arrayConcat(openOrders, closedOrders);

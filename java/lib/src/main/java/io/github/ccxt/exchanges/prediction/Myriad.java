@@ -3666,7 +3666,8 @@ public class Myriad extends MyriadApi
         if ((queriesLength != null && queriesLength > 0))
         {
             // some markets are only discoverable through the questions search endpoint
-            Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<CompletableFuture<?>> responsesFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest)));
+            Object responses = (CompletableFuture.allOf(responsesFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(responsesFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
             rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
             rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
         } else if (!java.util.Objects.equals(eventId, null))
@@ -3687,7 +3688,8 @@ public class Myriad extends MyriadApi
             if (java.util.Objects.equals(requestedTagsLength, 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                Object listResponses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<CompletableFuture<?>> listResponsesFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchRawMarketsList(rest), this.fetchRawQuestionsList(rest)));
+                Object listResponses = (CompletableFuture.allOf(listResponsesFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(listResponsesFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
                 rawMarkets = (List<Object>) this.safeList(listResponses, 0, new ArrayList<Object>(Arrays.asList()));
                 rawQuestions = (List<Object>) this.safeList(listResponses, 1, new ArrayList<Object>(Arrays.asList()));
             } else
@@ -3701,7 +3703,8 @@ public class Myriad extends MyriadApi
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                Object responses = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest))))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<CompletableFuture<?>> responsesFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchRawMarketsBySearch(tagQueries, rest), this.fetchRawQuestionsBySearch(tagQueries, rest)));
+                Object responses = (CompletableFuture.allOf(responsesFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(responsesFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
                 rawMarkets = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
                 rawQuestions = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             }

@@ -371,10 +371,10 @@ public class Bit2c extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        List<String> codes = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
         for (var i = 0; i < codes.size(); i++)
         {
-            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = this.account();
             Map<String, Object> currency = this.currency(code);
             String currencyId = this.safeString(currency, "id", "");

@@ -1122,7 +1122,7 @@ public class Independentreserve extends IndependentreserveApi
         //         ...
         //     ]
         //
-        Map<String, Object> fees = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> fees = new HashMap<String, Map<String, Object>>();
         List<Object> rows = this.toArray(response);
         for (var i = 0; i < rows.size(); i++)
         {

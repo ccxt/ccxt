@@ -3010,7 +3010,7 @@ public class Hashkey extends HashkeyApi
             throw new NotSupported((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
         }
         Map<String, Object> request = this.createSpotOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-        Map<String, Object> response = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
         Boolean test = (Boolean) this.safeBool(parameters, "test", false);
         if (Boolean.TRUE.equals(test))
         {

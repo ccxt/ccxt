@@ -822,10 +822,10 @@ public class Bithumb extends BithumbApi
         Map<String, Object> balances = this.safeDict(response, "data", null);
         if (!java.util.Objects.equals(balances, null))
         {
-            List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+            List<String> codes = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
             for (var i = 0; i < codes.size(); i++)
             {
-                String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+                String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Map<String, Object> account = this.account();
                 Map<String, Object> currency = this.currency(code);
                 String lowerCurrencyId = this.safeStringLower(currency, "id", "");

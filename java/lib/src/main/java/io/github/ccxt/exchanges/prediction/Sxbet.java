@@ -1338,21 +1338,21 @@ public class Sxbet extends SxbetApi
         for (var i = 0; (notCancelledLength != null && i < notCancelledLength); i++)
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
-            ((List<Object>)result).add(this.safePredictionOrder((switch (0) { default -> { HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                j39v4.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
-                j39v4.put("status", null);
-                j39v4.put("info", response);
-                yield j39v4; } }), (Object) null));
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
+            j39v3.put("status", null);
+            j39v3.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v3, (Object) null));
         }
         List<Object> unconfirmed = this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
         Integer unconfirmedLength = unconfirmed.size();
         for (var i = 0; (unconfirmedLength != null && i < unconfirmedLength); i++)
         {
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
-            j39v3.put("status", null);
-            j39v3.put("info", response);
-            ((List<Object>)result).add(this.safePredictionOrder(j39v3, (Object) null));
+            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+            j39v4.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
+            j39v4.put("status", null);
+            j39v4.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v4, (Object) null));
         }
         return result;
     }

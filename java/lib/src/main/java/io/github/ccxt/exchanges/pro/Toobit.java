@@ -1241,7 +1241,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseMyTrade(message, (Map<String, Object>) null);
         myTrades.append(trade);
         String messageHash = ("myTrades:" + this.safeString(trade, "symbol", ""));
         client.resolve(myTrades, messageHash);
@@ -1249,7 +1249,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(myTrades, messageHash);
     }
 
-    public Object parseMyTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String marketId = this.safeString(trade, "s");
         String ts = this.safeString(trade, "t");
@@ -1415,7 +1415,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (accountType == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(accountType));
         // handleMessage's fallback dispatches one item at a time
-        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(message, (Map<String, Object>) null);
+        Map<String, Object> position = this.parseWsPosition(message, (Map<String, Object>) null);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList(position));
         cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts
@@ -1438,7 +1438,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String marketId = this.safeString(position, "s");
         Long timestamp = this.safeInteger(position, "E");

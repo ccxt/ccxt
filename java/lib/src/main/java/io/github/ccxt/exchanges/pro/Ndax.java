@@ -351,7 +351,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 {
                     continue;
                 }
-                Long candleTimestamp = this.parseToInt(Helpers.multiply(((((double) timestamp) / ((double) duration))), duration));
+                Long candleTimestamp = this.parseToInt(((((double) timestamp) / ((double) duration)) * duration));
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(candleTimestamp, this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
                 if (java.util.Objects.equals(stored, null))

@@ -377,10 +377,10 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        List<String> codes = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
         for (var i = 0; i < codes.size(); i++)
         {
-            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> currency = this.currency(code);
             String currencyId = (String) currency.get("id");
             String free = this.safeString(response, currencyId);

@@ -2180,7 +2180,7 @@ public class Opinion extends OpinionApi
         {
             return null;
         }
-        List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
+        List<String> marketKeys = (this.markets == null ? new ArrayList<String>() : new ArrayList<String>(this.markets.keySet()));
         Integer marketKeysLength = marketKeys.size();
         for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {

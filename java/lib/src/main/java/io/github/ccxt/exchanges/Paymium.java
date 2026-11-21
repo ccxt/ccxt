@@ -237,10 +237,10 @@ public class Paymium extends PaymiumApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencies = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
+        List<String> currencies = (this.currencies == null ? new ArrayList<String>() : new ArrayList<String>(this.currencies.keySet()));
         for (var i = 0; i < currencies.size(); i++)
         {
-            String code = (String) (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
+            String code = (currencies == null || i < 0 || i >= currencies.size() ? null : currencies.get(i));
             Map<String, Object> currency = this.currency(code);
             String currencyId = (String) currency.get("id");
             String freeAmount = this.safeString(response, ("balance_" + currencyId));

@@ -1389,7 +1389,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             Map<String, Object> rawPosition = this.safeDict(rawPositions, i, null);
             String marketId = this.safeString(rawPosition, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, market);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");
@@ -1399,7 +1399,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Object position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Object position, Map<String, Object> market)
     {
         //
         //     {

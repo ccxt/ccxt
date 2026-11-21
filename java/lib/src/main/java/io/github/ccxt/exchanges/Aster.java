@@ -4670,7 +4670,7 @@ public class Aster extends AsterApi
     {
         List<Object> positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> balances = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> balances = new HashMap<String, Map<String, Object>>();
         for (var i = 0; i < assets.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(assets, i, null);
