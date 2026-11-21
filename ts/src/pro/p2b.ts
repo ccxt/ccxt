@@ -253,7 +253,7 @@ export default class p2b extends p2bRest {
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
         const interval = this.safeString (params, 'interval', '0.001');
-        const limitResolved = (limit === undefined) ? 100 : limit;
+        const limitResolved: Int = (limit === undefined) ? 100 : limit;
         const request = [
             market['id'],
             limitResolved,
