@@ -1037,8 +1037,8 @@ public class Poloniex extends PoloniexApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         return this.arrayConcat((results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0)), (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1)));
 
     }

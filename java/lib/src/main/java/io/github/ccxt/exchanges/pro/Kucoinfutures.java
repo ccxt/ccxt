@@ -124,11 +124,11 @@ public class Kucoinfutures extends io.github.ccxt.exchanges.Kucoinfutures
             throw new BadRequest((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.extend(this.parseTransfer(data, currency), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("amount", this.parseNumber(amountToPrecision));
-            j39v1.put("fromAccount", fromAccount);
-            j39v1.put("toAccount", toAccount);
-            yield j39v1; } }));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("amount", this.parseNumber(amountToPrecision));
+        j39v1.put("fromAccount", fromAccount);
+        j39v1.put("toAccount", toAccount);
+        return this.extend(this.parseTransfer(data, currency), j39v1);
 
     }
 

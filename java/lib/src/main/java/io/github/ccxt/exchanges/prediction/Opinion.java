@@ -796,12 +796,12 @@ public class Opinion extends OpinionApi
 
         Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
         String tokenId = this.safeString(outcomeObj, "outcomeId");
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.opinionPublicGetTokenLatestPrice(this.extend(new HashMap<String, Object>() {{
     put( "token_id", tokenId );
 }}, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new HashMap<String, Object>() {{
     put( "token_id", tokenId );
 }}, parameters))));
-        var priceResponsebookResponseVariable = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        var priceResponsebookResponseVariable = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var priceResponse = ((List<Object>) priceResponsebookResponseVariable).get(0);
         var bookResponse = ((List<Object>) priceResponsebookResponseVariable).get(1);
         Map<String, Object> response = new HashMap<String, Object>() {{

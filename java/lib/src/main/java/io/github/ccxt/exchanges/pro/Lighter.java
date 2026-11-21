@@ -1771,10 +1771,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Boolean handled = false;
             if (!java.util.Objects.equals(id, null))
             {
-                List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> subscriptionKeys = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < subscriptionKeys.size(); i++)
                 {
-                    Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
+                    String subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                     String subscriptionId = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "id");
                     String subscription = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "subscription");
                     if (java.util.Objects.equals(id, subscriptionId))
@@ -1935,10 +1935,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             // it here would make the next watchTicker re-subscribe a channel the venue still
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
-            List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptionHashes = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptionHashes.size(); i++)
             {
-                String subscriptionHash = (String) (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+                String subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
                 if ((subscriptionHash.startsWith(((String)"ticker"))))
                 {
                     Map<String, Object> subscription = this.safeDict(client.subscriptions, subscriptionHash, null);

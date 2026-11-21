@@ -960,10 +960,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
         //
         String id = this.safeString(message, "id");
-        List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> subscriptionHashes = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptionHashes.size(); i++)
         {
-            String subscriptionHash = (String) (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+            String subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
             Object subscription = (client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash));
             Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             String subscriptionId = this.safeString(subscription, "id");

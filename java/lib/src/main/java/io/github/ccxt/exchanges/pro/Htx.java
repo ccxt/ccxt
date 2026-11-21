@@ -1093,7 +1093,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
             messageHash = this.safeString(channelAndMessageHashAndParams, 1);
-            paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+            paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
         } else
         {
             List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash(type, subType, market, paramsRequest);
@@ -1274,7 +1274,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);
             messageHash = this.safeString(channelAndMessageHashAndParams, 1);
-            paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
+            paramsRequest = this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
         } else
         {
             List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash(type, subType, market, paramsRequest);
@@ -3337,10 +3337,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subTypeUrl = null;
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isLinear, true)))
             {
-                subTypeUrl = (Map<String, Object>) this.safeDict(typeUrls, "linear", new HashMap<String, Object>() {{}});
+                subTypeUrl = this.safeDict(typeUrls, "linear", new HashMap<String, Object>() {{}});
             } else
             {
-                subTypeUrl = (Map<String, Object>) this.safeDict(typeUrls, "inverse", new HashMap<String, Object>() {{}});
+                subTypeUrl = this.safeDict(typeUrls, "inverse", new HashMap<String, Object>() {{}});
             }
             if (java.util.Objects.requireNonNullElse(isPrivate, false))
             {

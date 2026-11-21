@@ -6956,12 +6956,12 @@ public class Bitget extends BitgetApi
         Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
         if (Boolean.TRUE.equals(isStockOrUta))
         {
-            timeframes = (Map<String, Object>) this.safeDict(timeframesOption, "uta", null);
+            timeframes = this.safeDict(timeframesOption, "uta", null);
             request.put("interval", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
         } else
         {
             marketType = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? "spot" : "swap";
-            timeframes = (Map<String, Object>) this.safeDict(timeframesOption, marketType, null);
+            timeframes = this.safeDict(timeframesOption, marketType, null);
             request.put("granularity", this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
         }
         Integer msInDay = 86400000;
@@ -8561,8 +8561,7 @@ public class Bitget extends BitgetApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> firstOrder = this.safeDict(orders, 0, null);
-        String symbol = this.safeString(firstOrder, "symbol");
+        String symbol = null;
         Object marginMode = null;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
@@ -8657,8 +8656,7 @@ public class Bitget extends BitgetApi
             return (this.createUtaOrders(orders, paramsUTA)).join();
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> firstOrder = this.safeDict(orders, 0, null);
-        String symbol = this.safeString(firstOrder, "symbol");
+        String symbol = null;
         Object marginMode = null;
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
@@ -9253,7 +9251,7 @@ public class Bitget extends BitgetApi
         if (Boolean.TRUE.equals(isContractTriggerEndpoint))
         {
             List<Object> orderInfo = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
-            order = (Map<String, Object>) this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
+            order = this.safeDict(orderInfo, 0, new HashMap<String, Object>() {{}});
         } else
         {
             if (Boolean.TRUE.equals(isStockOrUta) && (java.util.Objects.equals(trigger, true)))

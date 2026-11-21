@@ -1310,7 +1310,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> orderBook = null;
         if (java.util.Objects.equals(marketType, "swap"))
         {
-            orderBook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            orderBook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             timestamp = this.safeInteger(orderBook, "timestamp");
         } else
         {

@@ -2067,11 +2067,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             if (java.util.Objects.equals(nonce, null))
             {
                 Long cacheLength = this.parseToInt(((List<?>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).size());
-                List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> subscriptions = new ArrayList<String>(client.subscriptions.keySet());
                 Object subscription = null;
                 for (var i = 0; i < subscriptions.size(); i++)
                 {
-                    Object key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+                    String key = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
                     if ((Helpers.getIndexOf(key, ((String)topicSymbol)) >= 0) && (Helpers.getIndexOf(key, ((String)topicChannel)) >= 0))
                     {
                         subscription = (client.subscriptions == null || key == null ? null : client.subscriptions.get(key));

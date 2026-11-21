@@ -1011,8 +1011,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     {
 
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})));
-        List<Object> promises = (((List<?>)(fetchFunctions)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> fetchFunctions = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})));
+        List<Object> promises = (CompletableFuture.allOf(fetchFunctions.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(fetchFunctions.stream().<Object>map(CompletableFuture::join).toList()))).join();
         this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         for (var i = 0; i < promises.size(); i++)

@@ -2435,8 +2435,8 @@ public class Bybit extends BybitApi
                 this.options.put("unifiedMarginStatus", 6);
                 return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
             }
-            List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
-            List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
+            List<Object> promises = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             Map<String, Object> response = this.safeDict(promises, 0, null);
             Map<String, Object> accountInfo = this.safeDict(promises, 1, null);
             //
@@ -3154,11 +3154,11 @@ public class Bybit extends BybitApi
             response = (this.privateGetV5MarketInstrumentsInfo(paramsExtended)).join();
         } else
         {
-            List<Object> linearPromises = new ArrayList<Object>(Arrays.asList(this.publicGetV5MarketInstrumentsInfo(paramsExtended), this.publicGetV5MarketInstrumentsInfo(this.extend(paramsExtended, new HashMap<String, Object>() {{
+            List<CompletableFuture<?>> linearPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetV5MarketInstrumentsInfo(paramsExtended), this.publicGetV5MarketInstrumentsInfo(this.extend(paramsExtended, new HashMap<String, Object>() {{
     put( "status", "PreLaunch" );
 }}))));
-            List<Object> promises = (((List<?>)(linearPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            response = (Map<String, Object>) this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
+            List<Object> promises = (CompletableFuture.allOf(linearPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(linearPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
+            response = this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
             preLaunchMarkets = this.safeDict(promises, 1, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
@@ -6763,7 +6763,7 @@ public class Bybit extends BybitApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> orders = this.safeList(result, "list", null);
-        if (!(orders instanceof List))
+        if (java.util.Objects.equals(orders, null))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
     put( "info", response );

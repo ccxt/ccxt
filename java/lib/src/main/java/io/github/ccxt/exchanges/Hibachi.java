@@ -780,8 +780,8 @@ public class Hibachi extends HibachiApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
-        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
-        var pricesResponsestatsResponseVariable = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
+        var pricesResponsestatsResponseVariable = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var pricesResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(0);
         var statsResponse = ((List<Object>) pricesResponsestatsResponseVariable).get(1);
         // {
@@ -2330,8 +2330,8 @@ public class Hibachi extends HibachiApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );
         }};
-        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
-        List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
+        List<Object> promises = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> responseCapitalHistory = this.safeDict(promises, 0, null);
         //
         // {

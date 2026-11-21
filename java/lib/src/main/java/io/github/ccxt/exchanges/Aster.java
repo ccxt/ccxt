@@ -1259,9 +1259,9 @@ public class Aster extends AsterApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
-        ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
+        promises.add(this.signIn(new HashMap<String, Object>() {{}}));
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> sapiResult = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
         List<Object> sapiRows = this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> fapiResult = this.safeDict(results, 1, new HashMap<String, Object>() {{}});

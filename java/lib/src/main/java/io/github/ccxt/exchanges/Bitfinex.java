@@ -1580,7 +1580,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    public Object parseTickerList(Object ticker, Map<String, Object> market)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1774,7 +1774,12 @@ public class Bitfinex extends BitfinexApi
         //         ...
         //     ]
         //
-        return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
+        List<Object> results = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < tickers.size(); i++)
+        {
+            ((List<Object>)results).add(this.parseTickerList(this.safeList(tickers, i, new ArrayList<Object>(Arrays.asList())), (Map<String, Object>) null));
+        }
+        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
 
     }
 
@@ -1804,7 +1809,7 @@ public class Bitfinex extends BitfinexApi
             put( "symbol", market.get("id") );
         }};
         List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
-        return this.parseTicker(ticker, market);
+        return this.parseTickerList(ticker, market);
 
     }
 

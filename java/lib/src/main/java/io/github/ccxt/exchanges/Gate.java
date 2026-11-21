@@ -5987,8 +5987,15 @@ public class Gate extends GateApi
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         List<Object> ordersRequests = this.createOrdersRequest(orders, parameters);
-        Map<String, Object> firstOrder = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-        Map<String, Object> market = this.market(firstOrder.get("symbol"));
+        String symbol = null;
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        {
+            if ((i == 0))
+            {
+                symbol = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "symbol");
+            }
+        }
+        Map<String, Object> market = this.market(symbol);
         List<Object> response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {

@@ -251,8 +251,15 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> request = this.createOrdersRequest(orders, parameters);
-        Map<String, Object> firstOrder = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-        Map<String, Object> market = this.market(firstOrder.get("symbol"));
+        String symbol = null;
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        {
+            if ((i == 0))
+            {
+                symbol = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "symbol");
+            }
+        }
+        Map<String, Object> market = this.market(symbol);
         if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             throw new NotSupported((this.id + " createOrdersWs is not supported for swap markets")) ;
@@ -2652,10 +2659,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // }
         //
         String id = this.safeString(message, "id");
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String messageHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(client.subscriptions.containsKey(messageHash)))
             {
                 continue;

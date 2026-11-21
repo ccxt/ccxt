@@ -200,7 +200,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Client client = (Client)this.safeValue(this.clients, url);
         if (!java.util.Objects.equals(client, null))
         {
-            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptionKeys = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptionKeys.size(); i++)
             {
                 Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));

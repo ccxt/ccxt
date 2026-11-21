@@ -1396,14 +1396,14 @@ public class Polymarket extends PolymarketApi
 
         Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
         String tokenId = this.safeString(outcomeObj, "outcomeId");
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.clobPublicGetMidpoint(new HashMap<String, Object>() {{
     put( "token_id", tokenId );
 }}), this.clobPublicGetBook(new HashMap<String, Object>() {{
     put( "token_id", tokenId );
 }}), this.clobPublicGetLastTradePrice(new HashMap<String, Object>() {{
     put( "token_id", tokenId );
 }})));
-        var midpointResponsebookResponselastTradeResponseVariable = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        var midpointResponsebookResponselastTradeResponseVariable = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var midpointResponse = ((List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(0);
         var bookResponse = ((List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(1);
         var lastTradeResponse = ((List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(2);
@@ -1509,8 +1509,8 @@ public class Polymarket extends PolymarketApi
                 j39v3.put("token_id", (tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i))));
                 ((List<Object>)bookParams).add(j39v3);
             }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             Object booksResponse = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
             Object midpoints = (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1));
             Object lastTradesResponse = (responses == null || 2 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(2));

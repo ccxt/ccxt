@@ -3747,11 +3747,11 @@ public class Predictfun extends PredictfunApi
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
         // whatever is already live on this connection plus the hash watch () is about to register
         List<Object> hashes = new ArrayList<Object>(Arrays.asList("orders", "myTrades"));
-        List<Object> futures = new ArrayList<Object>(client.futures.keySet());
+        List<String> futures = new ArrayList<String>(client.futures.keySet());
         Integer futuresLength = futures.size();
         for (var i = 0; (futuresLength != null && i < futuresLength); i++)
         {
-            String future = (String) (futures == null || i < 0 || i >= futures.size() ? null : futures.get(i));
+            String future = (futures == null || i < 0 || i >= futures.size() ? null : futures.get(i));
             if (((future.indexOf("orders::") == 0)) || ((future.indexOf("myTrades::") == 0)))
             {
                 ((List<Object>)hashes).add(future);

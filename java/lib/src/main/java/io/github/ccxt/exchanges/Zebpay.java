@@ -388,7 +388,7 @@ public class Zebpay extends ZebpayApi
         } else
         {
             response = (this.publicSwapGetV1SystemStatus(paramsMarketType)).join();
-            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         //
         // {
@@ -444,7 +444,7 @@ public class Zebpay extends ZebpayApi
         } else
         {
             response = (this.publicSwapGetV1SystemTime(paramsMarketType)).join();
-            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         //
         // {
@@ -714,7 +714,7 @@ public class Zebpay extends ZebpayApi
             //       } ,
             //     "statusCode": 200,
             // }
-            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         } else
         {
             response = (this.publicSwapGetV1ExchangeTradefee(this.extend(request, parameters))).join();
@@ -734,7 +734,7 @@ public class Zebpay extends ZebpayApi
             // }
             //
             List<Object> responseData = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            data = (Map<String, Object>) this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
+            data = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
         }
         return this.parseTradingFee(data, market);
 

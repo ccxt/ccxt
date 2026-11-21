@@ -2163,10 +2163,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
         if ((!java.util.Objects.equals(maxTimestamp, null)) && (!java.util.Objects.equals(lastMaxTimestamp, null)) && (!java.util.Objects.equals(maxTimestamp, lastMaxTimestamp)))
         {
-            List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptions = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptions.size(); i++)
             {
-                String subscriptionHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+                String subscriptionHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
                 Map<String, Object> subscription = this.safeDict(client.subscriptions, subscriptionHash, null);
                 String streamType = this.safeString(subscription, "streamType");
                 String subscriptionSymbol = this.safeString(subscription, "symbol");
@@ -2273,10 +2273,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             client.resolve(true, unsubscribeHash);
             return;
         }
-        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> subscriptions = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            String unsubscribeHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            String unsubscribeHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             Map<String, Object> subscription = this.safeDict(client.subscriptions, unsubscribeHash, null);
             String subscriptionId = this.safeString(subscription, "id");
             if (!java.util.Objects.equals(subscriptionId, id))

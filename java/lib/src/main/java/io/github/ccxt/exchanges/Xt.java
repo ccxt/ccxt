@@ -1305,8 +1305,8 @@ public class Xt extends XtApi
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList(this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)));
-        var chainsResponsecurrenciesResponseVariable = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promisesRaw = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)));
+        var chainsResponsecurrenciesResponseVariable = (CompletableFuture.allOf(promisesRaw.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesRaw.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var chainsResponse = ((List<Object>) chainsResponsecurrenciesResponseVariable).get(0);
         var currenciesResponse = ((List<Object>) chainsResponsecurrenciesResponseVariable).get(1);
         //
@@ -1472,8 +1472,8 @@ public class Xt extends XtApi
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)));
-        List<Object> promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)));
+        List<Object> promises = (CompletableFuture.allOf(promisesUnresolved.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesUnresolved.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
         Object swapAndFutureMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
         return this.arrayConcat(spotMarkets, swapAndFutureMarkets);

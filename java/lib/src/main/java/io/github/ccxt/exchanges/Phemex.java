@@ -3931,15 +3931,14 @@ public class Phemex extends PhemexApi
             }
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
-        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-        if ((data instanceof List))
+        List<Object> dataList = this.safeList(response, "data", null);
+        if (!java.util.Objects.equals(dataList, null))
         {
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-        } else
-        {
-            List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(rows, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(dataList, market, since, limit, new HashMap<String, Object>() {{}});
         }
+        Map<String, Object> dataDict = this.safeDict(response, "data", null);
+        List<Object> rows = this.safeList(dataDict, "rows", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(rows, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4036,15 +4035,14 @@ public class Phemex extends PhemexApi
         //         }
         //     }
         //
-        Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-        if ((data instanceof List))
+        List<Object> dataList = this.safeList(response, "data", null);
+        if (!java.util.Objects.equals(dataList, null))
         {
-            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
-        } else
-        {
-            List<Object> rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(rows, market, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseOrders(dataList, market, since, limit, new HashMap<String, Object>() {{}});
         }
+        Map<String, Object> dataDict = this.safeDict(response, "data", null);
+        List<Object> rows = this.safeList(dataDict, "rows", new ArrayList<Object>(Arrays.asList()));
+        return this.parseOrders(rows, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

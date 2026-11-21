@@ -606,7 +606,7 @@ public class Mudrex extends MudrexApi
     {
 
         List<Object> aggregated = new ArrayList<Object>(Arrays.asList());
-        Object offset = 0;
+        Long offset = 0L;
         Integer pageLimit = 100;
         Boolean paging = true;
         while (paging)
@@ -652,7 +652,7 @@ public class Mudrex extends MudrexApi
             } else
             {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-                offset = this.sum(offset, pageLimit);
+                offset = (offset + pageLimit.longValue());
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());

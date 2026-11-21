@@ -1926,10 +1926,10 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public void handleUnsubscribe(Client client, Map<String, Object> message)
     {
         String id = this.safeString(message, "id");
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String messageHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(client.subscriptions.containsKey(messageHash)))
             {
                 continue;

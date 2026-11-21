@@ -714,7 +714,7 @@ public class Coinbase extends CoinbaseApi
             //         }
             //     }
             //
-            response = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            response = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         } else
         {
             response = (this.v3PublicGetBrokerageTime(paramsOmitted)).join();
@@ -1456,16 +1456,16 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> network = this.safeDict(transaction, "network", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(transactionType, "send"))
         {
-            amountAndCurrencyObject = (Map<String, Object>) this.safeDict(network, "transaction_amount", null);
-            feeObject = (Map<String, Object>) this.safeDict(network, "transaction_fee", new HashMap<String, Object>() {{}});
+            amountAndCurrencyObject = this.safeDict(network, "transaction_amount", null);
+            feeObject = this.safeDict(network, "transaction_fee", new HashMap<String, Object>() {{}});
         } else
         {
-            amountAndCurrencyObject = (Map<String, Object>) this.safeDict(transaction, "subtotal", null);
-            feeObject = (Map<String, Object>) this.safeDict(transaction, "fee", new HashMap<String, Object>() {{}});
+            amountAndCurrencyObject = this.safeDict(transaction, "subtotal", null);
+            feeObject = this.safeDict(transaction, "fee", new HashMap<String, Object>() {{}});
         }
         if (java.util.Objects.equals(amountAndCurrencyObject, null))
         {
-            amountAndCurrencyObject = (Map<String, Object>) this.safeDict(transaction, "amount", null);
+            amountAndCurrencyObject = this.safeDict(transaction, "amount", null);
         }
         String amountString = this.safeString(amountAndCurrencyObject, "amount");
         String amountStringAbs = Precise.stringAbs(amountString);
@@ -2331,8 +2331,8 @@ public class Coinbase extends CoinbaseApi
         Long now = this.milliseconds();
         if ((java.util.Objects.equals(timestamp, null)) || (((expires == null || ((now - timestamp)) > expires))))
         {
-            List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
-            List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
+            List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             Map<String, Object> fiatResponse = this.safeDict(promisesResult, 0, new HashMap<String, Object>() {{}});
             //
             //    [
@@ -2387,8 +2387,8 @@ public class Coinbase extends CoinbaseApi
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)));
-        List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)));
+        List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> fiatResponse = this.safeDict(promisesResult, 0, new HashMap<String, Object>() {{}});
         //
         //    [

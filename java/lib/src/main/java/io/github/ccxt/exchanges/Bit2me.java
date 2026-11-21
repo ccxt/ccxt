@@ -573,8 +573,8 @@ public class Bit2me extends Bit2meApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "includeTestnet", ((Boolean.TRUE.equals(includeTestnet))) ? "true" : "false" );
         }};
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetV2CurrencyAssets(this.extend(request, query)), this.publicGetV1WalletSettingsAssets(query)));
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetV2CurrencyAssets(this.extend(request, query)), this.publicGetV1WalletSettingsAssets(query)));
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
         // assets
         //

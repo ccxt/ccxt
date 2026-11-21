@@ -442,10 +442,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         Client client = this.client(url);
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String unsubHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String unsubHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if ((unsubHash.indexOf("unsubscribe:") != 0))
             {
                 continue;
@@ -606,10 +606,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "result": { "channel": "markets_summary", "remove": [ "ETH-USD-PERP" ] }
         //     }
         //
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String unsubHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String unsubHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if ((unsubHash.indexOf("unsubscribe:") != 0))
             {
                 continue;
@@ -1360,7 +1360,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (client.subscriptions.containsKey(scopedHash))
             {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
-                List<Object> subscribeHashes = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> subscribeHashes = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < subscribeHashes.size(); i++)
                 {
                     if ((java.util.Objects.equals((subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i)), scopedHash)) || ((((String)(subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i))).indexOf((channel + ".")) == 0)))
@@ -1471,7 +1471,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         // the markets left in the scoped subscription once these are removed
         Boolean othersRemain = false;
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
             if (((((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf((channel + ".")) == 0)) && !this.inArray((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), subscribeHashes))
@@ -3209,10 +3209,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Boolean handled = false;
             if (!java.util.Objects.equals(requestId, null))
             {
-                List<Object> subscribeHashes = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> subscribeHashes = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < subscribeHashes.size(); i++)
                 {
-                    String subscribeHash = (String) (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
+                    String subscribeHash = (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
                     Map<String, Object> subscription = this.safeDict(client.subscriptions, subscribeHash, null);
                     if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
                     {

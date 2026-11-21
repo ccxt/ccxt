@@ -1994,14 +1994,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     {
 
         // as only one ws channel gives positions for all types, for snapshot must load all positions
-        List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> fetchFunctions = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
     put( "type", "swap" );
     put( "subType", "linear" );
 }}), this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
     put( "type", "swap" );
     put( "subType", "inverse" );
 }})));
-        List<Object> promises = (((List<?>)(fetchFunctions)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(fetchFunctions.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(fetchFunctions.stream().<Object>map(CompletableFuture::join).toList()))).join();
         this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         for (var i = 0; i < promises.size(); i++)
@@ -2941,7 +2941,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             // recorded on any subscription so a later call with a new hash
             // does not resend already-subscribed topics.
             Map<String, Object> subscribedTopics = new HashMap<String, Object>() {{}};
-            List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptionHashes = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptionHashes.size(); i++)
             {
                 Map<String, Object> existing = this.safeDict(client.subscriptions, (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)), new HashMap<String, Object>() {{}});
@@ -3116,10 +3116,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Boolean foundSubscription = false;
             if (!java.util.Objects.equals(reqId, null))
             {
-                List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < keys.size(); i++)
                 {
-                    String messageHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                    String messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                     if (!(client.subscriptions.containsKey(messageHash)))
                     {
                         continue;
@@ -3448,10 +3448,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     },
         // }
         String reqId = this.safeString(message, "req_id");
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String messageHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String messageHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(client.subscriptions.containsKey(messageHash)))
             {
                 continue;

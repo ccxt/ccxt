@@ -620,7 +620,7 @@ public class P2b extends P2bApi
         //    }
         //
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        Object tickerInner = this.safeDict(ticker, "ticker", ticker);
+        Map<String, Object> tickerInner = (Map<String, Object>) this.safeDict(ticker, "ticker", ticker);
         String last = this.safeString(tickerInner, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", P2b.this.safeString(market, "symbol") );

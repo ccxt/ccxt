@@ -289,7 +289,7 @@ public class Binance extends BinanceApi
             pageLimit = this.parseToInt(pageLimitOption);
         }
         List<Object> collected = new ArrayList<Object>(Arrays.asList());
-        Object offset = 0;
+        Long offset = 0L;
         while (true)
         {
             Integer collectedLength = collected.size();
@@ -346,7 +346,7 @@ public class Binance extends BinanceApi
             {
                 break;
             }
-            offset = this.sum(offset, pageTopicsLength);
+            offset = (offset + pageTopicsLength.longValue());
         }
         return collected;
 

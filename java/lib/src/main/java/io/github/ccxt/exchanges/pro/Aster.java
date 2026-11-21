@@ -1707,10 +1707,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             String url = ((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private"), type, "") + "/") + listenKey);
             Client client = this.client(url);
-            List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
+            List<String> messageHashes = new ArrayList<String>(client.futures.keySet());
             for (var i = 0; i < messageHashes.size(); i++)
             {
-                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                String messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 client.reject(error, messageHash);
             }
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("listenKey")), type, null);

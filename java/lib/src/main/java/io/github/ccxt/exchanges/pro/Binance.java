@@ -4020,10 +4020,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 url = this.getPrivateWsUrl(urlType, (String) (cachedListenKey));
             }
             Client client = this.client(url);
-            List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
+            List<String> messageHashes = new ArrayList<String>(client.futures.keySet());
             for (var i = 0; i < messageHashes.size(); i++)
             {
-                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+                String messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 client.reject(error, messageHash);
             }
             this.options.put(type, this.extend(options, new HashMap<String, Object>() {{
@@ -7048,10 +7048,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // private endpoint uses id as messageHash
             client.reject(e, id);
             // public endpoint stores messageHash in subscriptions
-            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptionKeys = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptionKeys.size(); i++)
             {
-                Object subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
+                String subscriptionHash = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                 String subscriptionId = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "id");
                 String subscription = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "subscription");
                 if (java.util.Objects.equals(id, subscriptionId))

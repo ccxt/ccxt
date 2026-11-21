@@ -997,7 +997,7 @@ public class Bithumb extends BithumbApi
             //         }
             //     }
             //
-            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             timestamp = this.safeInteger(data, "timestamp");
         }
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity", 2);
@@ -2320,7 +2320,7 @@ public class Bithumb extends BithumbApi
                 //     }
                 //
                 List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-                data = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+                data = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
             } else
             {
                 String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "client_order_id");
@@ -2400,7 +2400,7 @@ public class Bithumb extends BithumbApi
             //         }
             //     }
             //
-            data = (Map<String, Object>) this.safeDict(response, "data", null);
+            data = this.safeDict(response, "data", null);
         }
         Map<String, Object> orderData = new HashMap<String, Object>() {{
             put( "order_id", id );

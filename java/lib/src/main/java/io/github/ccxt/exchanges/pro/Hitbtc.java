@@ -1881,7 +1881,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         // the answers can arrive in a different order than the requests, so they are matched by id
         //
         String id = this.safeString(message, "id");
-        List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> subscriptionHashes = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptionHashes.size(); i++)
         {
             Object subscription = (client.subscriptions == null || (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i)) == null ? null : client.subscriptions.get((subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i))));
@@ -1970,10 +1970,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange,
                 // authentication errors included: a private channel the api key has no access to is refused with 1003
                 // the login request has no id, so a login error matches no subscription
-                List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+                List<String> subscriptionHashes = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < subscriptionHashes.size(); i++)
                 {
-                    String subscriptionHash = (String) (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+                    String subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
                     String subscriptionId = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "id");
                     if ((!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
                     {

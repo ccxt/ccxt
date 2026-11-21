@@ -1025,10 +1025,10 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 {
                     // the private channels are account-wide, a symbol-scoped watchOrders / watchMyTrades waits on orders:SYMBOL / myTrades:SYMBOL
                     String scopedPrefix = (messageHash + ":");
-                    List<Object> pendingHashes = new ArrayList<Object>(client.futures.keySet());
+                    List<String> pendingHashes = new ArrayList<String>(client.futures.keySet());
                     for (var i = 0; i < pendingHashes.size(); i++)
                     {
-                        String pendingHash = (String) (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
+                        String pendingHash = (pendingHashes == null || i < 0 || i >= pendingHashes.size() ? null : pendingHashes.get(i));
                         if ((pendingHash.startsWith(((String)scopedPrefix))))
                         {
                             client.reject(exception, pendingHash);

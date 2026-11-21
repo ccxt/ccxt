@@ -680,7 +680,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         {
             return;
         }
-        Helpers.addElementToObject(message, "o", Helpers.parseJson(payload));
+        message.put("o", Helpers.parseJson(payload));
         Map<String, String> methods = new HashMap<String, String>() {{
             put("SubscribeLevel2", "handleSubscriptionStatus");
             put("SubscribeLevel1", "handleTicker");

@@ -401,10 +401,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // watchTicker
         client.resolve(ticker, messageHash);
         // watchTickers
-        List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
+        List<String> messageHashes = new ArrayList<String>(client.futures.keySet());
         for (var i = 0; i < messageHashes.size(); i++)
         {
-            String currentMessageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            String currentMessageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             if (currentMessageHash.indexOf("tickers") >= 0 && currentMessageHash.indexOf(symbol) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']

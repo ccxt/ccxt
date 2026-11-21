@@ -1700,14 +1700,14 @@ public class Bingx extends BingxApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> requests = new ArrayList<Object>(Arrays.asList(this.fetchSwapMarkets(parameters)));
+        List<CompletableFuture<?>> requests = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSwapMarkets(parameters)));
         Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         if (!Boolean.TRUE.equals(isSandbox))
         {
-            ((List<Object>)requests).add(this.fetchInverseSwapMarkets(parameters));
-            ((List<Object>)requests).add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
+            requests.add(this.fetchInverseSwapMarkets(parameters));
+            requests.add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
         }
-        List<Object> promises = (((List<?>)(requests)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(requests.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(requests.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> linearSwapMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
         List<Object> inverseSwapMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> spotMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
@@ -2373,10 +2373,10 @@ public class Bingx extends BingxApi
         if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
         {
             List<Object> dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            data = (Map<String, Object>) this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
+            data = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
         } else
         {
-            data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parseFundingRate(data, market);
 
@@ -7232,7 +7232,7 @@ public class Bingx extends BingxApi
             //         }
             //     }
             //
-            response = (Map<String, Object>) this.safeDict(swapResponse, "data", new HashMap<String, Object>() {{}});
+            response = this.safeDict(swapResponse, "data", new HashMap<String, Object>() {{}});
             key = "orders";
         }
         List<Object> liquidations = this.safeList(response, key, new ArrayList<Object>(Arrays.asList()));

@@ -1176,8 +1176,8 @@ public class Weex extends WeexApi
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)));
-        var spotResponsecontractResponseVariable = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)));
+        var spotResponsecontractResponseVariable = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var spotResponse = ((List<Object>) spotResponsecontractResponseVariable).get(0);
         var contractResponse = ((List<Object>) spotResponsecontractResponseVariable).get(1);
         List<Object> spotArray = this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));
@@ -5252,10 +5252,10 @@ public class Weex extends WeexApi
             parsedType = "add";
         }
         Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, paramsOmitted))).join();
-        return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("amount", this.parseNumber(amount));
-            j39v1.put("type", parsedType);
-            yield j39v1; } }));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("amount", this.parseNumber(amount));
+        j39v1.put("type", parsedType);
+        return this.extend(this.parseMarginModification(response, market), j39v1);
 
     }
 

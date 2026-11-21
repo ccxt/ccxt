@@ -1178,10 +1178,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(client.subscriptions.containsKey(key)))
             {
                 continue;

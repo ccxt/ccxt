@@ -3835,7 +3835,7 @@ public class Extended extends ExtendedApi
             request.put("externalId", clientOrderId);
             response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         } else
         {
             if (java.util.Objects.equals(id, null))
@@ -3845,7 +3845,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", id);
             response = (this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted))).join();
-            order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parseOrder(order, market);
 

@@ -1418,7 +1418,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             String id = this.safeString(message, "id");
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
-            List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
+            List<String> subscriptionKeys = new ArrayList<String>(client.subscriptions.keySet());
             Boolean matched = false;
             for (var i = 0; i < subscriptionKeys.size(); i++)
             {

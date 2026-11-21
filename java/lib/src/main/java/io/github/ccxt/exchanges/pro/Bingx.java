@@ -1823,10 +1823,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 }
                 String url = ((baseUrl + "?listenKey=") + listenKey);
                 Client client = this.client(url);
-                List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
+                List<String> messageHashes = new ArrayList<String>(client.futures.keySet());
                 for (var j = 0; j < messageHashes.size(); j++)
                 {
-                    Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
+                    String messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                     client.reject(error, messageHash);
                 }
             }

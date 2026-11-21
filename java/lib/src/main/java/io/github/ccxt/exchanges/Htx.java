@@ -7147,10 +7147,10 @@ public class Htx extends HtxApi
             if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
                 data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
             if (java.util.Objects.equals(result, null))
             {
@@ -7165,14 +7165,14 @@ public class Htx extends HtxApi
         } else if (Boolean.TRUE.equals(isStopLossTriggerOrder))
         {
             data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            result = (Map<String, Object>) this.safeDict(data, "sl_order", new HashMap<String, Object>() {{}});
+            result = this.safeDict(data, "sl_order", new HashMap<String, Object>() {{}});
         } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
         {
             data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            result = (Map<String, Object>) this.safeDict(data, "tp_order", new HashMap<String, Object>() {{}});
+            result = this.safeDict(data, "tp_order", new HashMap<String, Object>() {{}});
         } else
         {
-            result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         if (java.util.Objects.equals(result, null))
         {
@@ -7560,10 +7560,10 @@ public class Htx extends HtxApi
             if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing))
             {
                 List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else
             {
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
         } else
         {
@@ -9177,10 +9177,10 @@ public class Htx extends HtxApi
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         } else
         {
-            result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parseFundingRate(result, market);
 

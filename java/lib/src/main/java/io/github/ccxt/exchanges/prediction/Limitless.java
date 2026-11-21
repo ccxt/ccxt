@@ -1115,10 +1115,10 @@ public class Limitless extends LimitlessApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "addressOrSlug", slug );
         }};
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
     put( "slug", slug );
 }})));
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Object response = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
         //
         //     {
@@ -1271,7 +1271,7 @@ public class Limitless extends LimitlessApi
         if (ticker.containsKey("market"))
         {
             raw = (Map<String, Object>) this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
-            book = (Map<String, Object>) this.safeDict(ticker, "book", null);
+            book = this.safeDict(ticker, "book", null);
         }
         String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(market.get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");

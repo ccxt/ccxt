@@ -1188,7 +1188,7 @@ public class Cex extends CexApi
             //
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> balances = this.safeDict(data, "balancesPerAccounts", new HashMap<String, Object>() {{}});
-            accountBalance = (Map<String, Object>) this.safeDict(balances, accountName, new HashMap<String, Object>() {{}});
+            accountBalance = this.safeDict(balances, accountName, new HashMap<String, Object>() {{}});
         } else
         {
             Map<String, Object> response = (this.privatePostGetMyWalletBalance(paramsMethod)).join();
@@ -1204,7 +1204,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            accountBalance = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            accountBalance = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
         return this.parseBalance(accountBalance);
 

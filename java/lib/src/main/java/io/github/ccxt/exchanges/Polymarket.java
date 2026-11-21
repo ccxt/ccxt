@@ -530,8 +530,8 @@ public class Polymarket extends PolymarketApi
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)));
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)));
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> instruments = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
         List<Object> assets = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -775,8 +775,8 @@ public class Polymarket extends PolymarketApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)));
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)));
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
         // tickers
         //

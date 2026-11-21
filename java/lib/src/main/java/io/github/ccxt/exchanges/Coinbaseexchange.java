@@ -1151,20 +1151,14 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String open = null;
         String volume = null;
         String symbol = this.safeString(market, "symbol");
-        if ((ticker instanceof List))
-        {
-            last = this.safeString(ticker, 4);
-        } else
-        {
-            timestamp = this.parse8601(this.safeString(ticker, "time"));
-            bid = this.safeString(ticker, "bid");
-            ask = this.safeString(ticker, "ask");
-            high = this.safeString(ticker, "high");
-            low = this.safeString(ticker, "low");
-            open = this.safeString(ticker, "open");
-            last = this.safeString2(ticker, "price", "last");
-            volume = this.safeString(ticker, "volume");
-        }
+        timestamp = this.parse8601(this.safeString(ticker, "time"));
+        bid = this.safeString(ticker, "bid");
+        ask = this.safeString(ticker, "ask");
+        high = this.safeString(ticker, "high");
+        low = this.safeString(ticker, "low");
+        open = this.safeString(ticker, "open");
+        last = this.safeString2(ticker, "price", "last");
+        volume = this.safeString(ticker, "volume");
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("symbol", symbol);
         mapLiteral2.put("timestamp", timestamp);
@@ -1187,6 +1181,41 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         mapLiteral2.put("quoteVolume", null);
         mapLiteral2.put("info", ticker);
         return this.safeTicker(mapLiteral2, market);
+    }
+
+    public Object parseTickerList(Object ticker, Map<String, Object> market)
+    {
+        //
+        //      [
+        //         1639472400, // timestamp
+        //         4.26, // low
+        //         4.38, // high
+        //         4.35, // open
+        //         4.27 // close
+        //      ]
+        //
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", Coinbaseexchange.this.safeString(market, "symbol") );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "high", null );
+            put( "low", null );
+            put( "bid", null );
+            put( "bidVolume", null );
+            put( "ask", null );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", null );
+            put( "close", Coinbaseexchange.this.safeString(ticker, 4) );
+            put( "last", Coinbaseexchange.this.safeString(ticker, 4) );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", null );
+            put( "quoteVolume", null );
+            put( "info", ticker );
+        }}, market);
     }
 
     /**
@@ -1242,7 +1271,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             List<Object> entry = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
             String symbol = (String) market.get("symbol");
-            result.put(symbol, this.parseTicker(this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList())), market));
+            result.put(symbol, this.parseTickerList(this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList())), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 

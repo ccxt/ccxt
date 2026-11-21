@@ -4780,13 +4780,13 @@ public class Binance extends BinanceApi
         {
             return new HashMap<String, Object>() {{}};
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiGetCapitalConfigGetall(parameters)));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.sapiGetCapitalConfigGetall(parameters)));
         Boolean fetchMargins = (Boolean) this.safeBool(this.options, "fetchMargins", false);
         if (Boolean.TRUE.equals(fetchMargins))
         {
-            ((List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
+            promises.add(this.sapiGetMarginAllPairs(parameters));
         }
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> responseCurrencies = this.safeList(results, 0, new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> marginablesById = null;
         if (Boolean.TRUE.equals(fetchMargins))

@@ -711,8 +711,8 @@ public class Bigone extends BigoneApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
-        List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
+        List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> response = this.safeDict(promisesResult, 0, null);
         Object contractResponse = this.safeValue(promisesResult, 1);
         //

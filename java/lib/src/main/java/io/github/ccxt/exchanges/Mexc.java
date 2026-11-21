@@ -6543,7 +6543,6 @@ public class Mexc extends MexcApi
         {
             throw new ArgumentsRequired((this.id + " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
-        Object resultList = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(marketType, "spot"))
         {
             if (!java.util.Objects.equals(since, null))
@@ -6577,7 +6576,7 @@ public class Mexc extends MexcApi
             //     ],
             //     "total": 1
             // }
-            resultList = this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTransfers(this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList())), currency, since, limit, new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(marketType, "swap"))
         {
             if (!java.util.Objects.equals(limit, null))
@@ -6586,9 +6585,9 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> response = (this.contractPrivateGetAccountTransferRecord(this.extend(request, paramsToAccountType))).join();
             Map<String, Object> data = this.safeDict(response, "data", null);
-            resultList = this.safeValue(data, "resultList");
+            return this.parseTransfers(this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList())), currency, since, limit, new HashMap<String, Object>() {{}});
         }
-        return this.parseTransfers(resultList, currency, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTransfers(new ArrayList<Object>(Arrays.asList()), currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

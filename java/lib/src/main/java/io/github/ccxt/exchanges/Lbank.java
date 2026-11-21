@@ -688,8 +688,8 @@ public class Lbank extends LbankApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
-        List<Object> resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<CompletableFuture<?>> marketsPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
+        List<Object> resolvedMarkets = (CompletableFuture.allOf(marketsPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(marketsPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> spotMarkets = this.safeList(resolvedMarkets, 0, new ArrayList<Object>(Arrays.asList()));
         List<Object> swapMarkets = this.safeList(resolvedMarkets, 1, new ArrayList<Object>(Arrays.asList()));
         return this.arrayConcat(spotMarkets, swapMarkets);

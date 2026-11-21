@@ -2085,6 +2085,10 @@ public Map<String, Object> describe()
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Long byteLength = this.parseToInt((((double) ((String)hex).length()) / ((double) 2)));
+        if (java.util.Objects.equals(byteLength, null))
+        {
+            return "";
+        }
         if ((byteLength != null && byteLength == 0))
         {
             return "80";
@@ -2115,6 +2119,10 @@ public Map<String, Object> describe()
             concatenated = (concatenated + this.safeString(items, i, ""));
         }
         Long byteLength = this.parseToInt((((double) concatenated.length()) / ((double) 2)));
+        if (java.util.Objects.equals(byteLength, null))
+        {
+            return "";
+        }
         if (((byteLength == null || byteLength < 56)))
         {
             return (this.intToBase16((192L + byteLength)) + concatenated);

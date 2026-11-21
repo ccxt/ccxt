@@ -1202,10 +1202,10 @@ public class Hyperliquid extends HyperliquidApi
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new HashMap<String, Object>() {{
     put( "type", "allMids" );
 }})));
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> response = this.safeDict(results, 0, null);
         Object midsResponse = (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1));
         List<Object> balances = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));

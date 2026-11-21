@@ -2336,11 +2336,11 @@ public class Bitteam extends BitteamApi
                 side = "sell";
             }
             order = this.safeString(trade, "makerOrderId");
-            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
+            feeInfo = this.safeDict(trade, "feeMaker", new HashMap<String, Object>() {{}});
         } else if (java.util.Objects.equals(takerOrMaker, "taker"))
         {
             order = this.safeString(trade, "takerOrderId");
-            feeInfo = (Map<String, Object>) this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
+            feeInfo = this.safeDict(trade, "feeTaker", new HashMap<String, Object>() {{}});
         }
         String feeCurrencyId = this.safeString(feeInfo, "symbol");
         String feeCost = this.safeString(feeInfo, "amount");

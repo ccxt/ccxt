@@ -704,7 +704,7 @@ public class Lighter extends LighterApi
             // }
             //
             List<Object> subAccounts = this.safeList(res, "sub_accounts", null);
-            if ((subAccounts instanceof List))
+            if (!java.util.Objects.equals(subAccounts, null))
             {
                 Map<String, Object> account = this.safeDict(subAccounts, 0, null);
                 if (java.util.Objects.equals(account, null))

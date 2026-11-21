@@ -461,10 +461,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
-        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> subscriptions = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            String messageHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            String messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if ((messageHash.indexOf("myTrades:") == 0))
             {
                 client.resolve(stored, messageHash);
@@ -640,10 +640,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
-        List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> subscriptions = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < subscriptions.size(); i++)
         {
-            String messageHash = (String) (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
+            String messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if ((messageHash.indexOf("orders:") == 0))
             {
                 client.resolve(orders, messageHash);
@@ -1034,10 +1034,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public Map<String, Object> findSubscription(Client client, String name)
     {
-        List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
+        List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> subscription = this.safeDict(client.subscriptions, key, null);
             String subscriptionName = this.safeString(subscription, "name");
             if (java.util.Objects.equals(subscriptionName, name))

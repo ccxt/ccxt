@@ -1315,11 +1315,11 @@ public class Bitrue extends BitrueApi
             if (!java.util.Objects.equals(subType, null) && java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.dapiV2PrivateGetAccount(paramsSubType)).join();
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             } else
             {
                 response = (this.fapiV2PrivateGetAccount(paramsSubType)).join();
-                result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
         } else
         {

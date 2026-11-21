@@ -1269,10 +1269,10 @@ public class Hashkey extends HashkeyApi
         Map<String, Object> fees = null;
         if (Boolean.TRUE.equals(isSpot))
         {
-            fees = (Map<String, Object>) this.safeDict(tradingFees, "spot", null);
+            fees = this.safeDict(tradingFees, "spot", null);
         } else
         {
-            fees = (Map<String, Object>) this.safeDict(tradingFees, "swap", null);
+            fees = this.safeDict(tradingFees, "swap", null);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
