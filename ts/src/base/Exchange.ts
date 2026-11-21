@@ -4208,11 +4208,12 @@ export class BaseExchange {
                 if (marketType === 'spot') {
                     this.features[marketType] = this.featuresMapper (initialFeatures, marketType);
                 } else {
-                    this.features[marketType] = {};
+                    const subTypeFeatures: Dict = {};
                     for (let j = 0; j < subTypes.length; j++) {
                         const subType = subTypes[j];
-                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+                        subTypeFeatures[subType] = this.featuresMapper (initialFeatures, marketType, subType);
                     }
+                    this.features[marketType] = subTypeFeatures;
                 }
             }
         }
