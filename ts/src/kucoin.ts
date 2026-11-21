@@ -4791,8 +4791,8 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' createOrders() only supports limit orders');
             }
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -4871,8 +4871,8 @@ export default class kucoin extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createContractOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
@@ -9316,7 +9316,7 @@ export default class kucoin extends Exchange {
         } else if (version === 'v1' && ('v1' in config)) {
             return config['v1'];
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeNumber (config, 'cost', 1);
     }
 
     override parseBorrowRate (info: any, currency: Currency = undefined) {

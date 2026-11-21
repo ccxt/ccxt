@@ -1800,8 +1800,8 @@ export default class kraken extends Exchange {
             orderSymbols.push (marketId);
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const parsedAmount = this.amountToPrecision (market['symbol'], amount);
             const req: Dict = {
@@ -2305,11 +2305,11 @@ export default class kraken extends Exchange {
         const rawClose = this.safeDict (paramsOmitted2, 'close');
         if (rawClose !== undefined) {
             const close: Dict = this.extend ({}, rawClose);
-            const closePrice = this.safeValue (close, 'price');
+            const closePrice = this.safeString (close, 'price');
             if (closePrice !== undefined) {
                 close['price'] = this.priceToPrecision (symbol, closePrice);
             }
-            const closePrice2 = this.safeValue (close, 'price2'); // stopPrice
+            const closePrice2 = this.safeString (close, 'price2'); // stopPrice
             if (closePrice2 !== undefined) {
                 close['price2'] = this.priceToPrecision (symbol, closePrice2);
             }

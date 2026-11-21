@@ -698,8 +698,8 @@ export default class deribit extends deribitRest {
     }
 
     override handleDelta (bookside: any, delta: any) {
-        const price = this.safeValue (delta, 1);
-        const amount = this.safeValue (delta, 2);
+        const price = this.safeNumber (delta, 1);
+        const amount = this.safeNumber (delta, 2);
         const action = this.safeString (delta, 0);
         if (action === 'new' || action === 'change') {
             bookside.storeArray ([ price, amount, 1 ]);
