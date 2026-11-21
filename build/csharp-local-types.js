@@ -18490,6 +18490,11 @@ const CORE_LIST_ARGS_LIST_CALLERS = { 'reduceFeesByCurrency': 0, 'handleListMess
 for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LIST_CALLERS)) {
     CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
 }
+// base parse loops whose every caller passes a List<object> / IList<object> (safeList included); no override
+const CORE_LIST_ARGS_H27_C02 = { 'parseAccounts': 0, 'parseADLRanks': 0, 'parseConversions': 0 };
+for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_H27_C02)) {
+    CORE_LIST_ARGS[name] = Object.assign ({}, CORE_LIST_ARGS[name] ?? {}, { [position]: 'IList<object>' });
+}
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
