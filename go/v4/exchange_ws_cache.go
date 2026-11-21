@@ -14,7 +14,7 @@ func (this *BaseExchange) wsFrameHandler() func(client any, message any) {
 		HandleTextMessage(client any, message string)
 	})
 	list, _ := this.DerivedExchange.(interface {
-		HandleListMessage(client any, message any)
+		HandleListMessage(client any, message []any)
 	})
 	binary, _ := this.DerivedExchange.(interface {
 		HandleBinaryMessage(client any, message any)

@@ -7419,6 +7419,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'filterEventsByStatus': { 0: '[]any' }, 'filterEventsByTags': { 0: '[]any' }, 'filterEventsBySearchIn': { 0: '[]any' },
     // base List param; every ts/src caller hands a `[]any` row list (typed receive, safeList or row-list producer)
     'parseIncomes': { 0: '[]any' },
+    // ws list frames (handleListMessage (client, message: List)): the hand-written dispatch hands the asserted []any
+    'handleListMessage': { 1: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
