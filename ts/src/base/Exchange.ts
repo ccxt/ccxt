@@ -8139,8 +8139,9 @@ export class BaseExchange {
         const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseFundingRate (response[i]);
-            if (parsed['symbol'] !== undefined) {
-                fundingRates[parsed['symbol']] = parsed;
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                fundingRates[symbol] = parsed;
             }
         }
         return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbols, false), 'symbol') as FundingRates;
@@ -8314,8 +8315,9 @@ export class BaseExchange {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const parsed = this.parseOpenInterest (response[i]);
-            if (parsed['symbol'] !== undefined) {
-                result[parsed['symbol']] = parsed;
+            const symbol = this.safeString (parsed, 'symbol');
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
             }
         }
         return this.indexBy (this.filterByArray (result, 'symbol', symbols, false), 'symbol');
@@ -8702,8 +8704,9 @@ export class BaseExchange {
 
     createOHLCVObject (symbol: string, timeframe: string, data: OHLCV[]): Dictionary<Dictionary<OHLCV[]>> {
         const res: Dict = {};
-        res[symbol] = {};
-        res[symbol][timeframe] = data;
+        const inner: Dict = {};
+        inner[timeframe] = data;
+        res[symbol] = inner;
         return res;
     }
 
