@@ -1162,15 +1162,11 @@ class onetrading extends \ccxt\async\onetrading {
                 $subscription = array();
             }
         }
-        $subscriptionMarketId = $this->safe_dict($subscription, $marketId);
-        if ($subscriptionMarketId === null) {
-            if ($marketId !== null) {
-                $subscription[$marketId] = array();
-            }
+        $marketTimeframes = $this->safe_dict($subscription, $marketId, array());
+        if ($timeframe !== null) {
+            $marketTimeframes[$timeframe] = true;
         }
-        if (($marketId !== null) && ($timeframe !== null)) {
-            $subscription[$marketId][$timeframe] = true;
-        }
+        $subscription[$marketId] = $marketTimeframes;
         $properties = array();
         $marketIds = is_array($subscription) ? array_keys($subscription) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -1270,11 +1266,12 @@ class onetrading extends \ccxt\async\onetrading {
         if ($timeframesResolved === null) {
             throw new ArgumentsRequired($this->id . ' findTimeframe() timeframes is required');
         }
+        $unit = $this->safe_string($timeframe, 'unit');
+        $period = $this->safe_string($timeframe, 'period');
         $keys = is_array($timeframesResolved) ? array_keys($timeframesResolved) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $timeframeResolved = $this->safe_dict($timeframesResolved, $key, array());
-            if ($timeframeResolved['unit'] === $timeframe['unit'] && $timeframeResolved['period'] === $timeframe['period']) {
+            if ($this->safe_string($timeframesResolved[$key], 'unit') === $unit && $this->safe_string($timeframesResolved[$key], 'period') === $period) {
                 return $key;
             }
         }

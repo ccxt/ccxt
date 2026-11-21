@@ -2534,8 +2534,8 @@ class kucoin extends \ccxt\async\kucoin {
         if ($market !== null) {
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
-        if ($market !== null) {
-            $messageHash = $messageHash . ':' . $market['symbol'];
+        if ($symbolResolved !== null) {
+            $messageHash = $messageHash . ':' . $symbolResolved;
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         $isFuturesMethod = (($marketType !== 'spot') && ($marketType !== 'margin'));
@@ -3744,7 +3744,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
     }
 
-    public function get_message_hash(?string $elementName, ?string $symbol = null): string {
+    public function get_message_hash(string $elementName, ?string $symbol = null): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if ($symbol !== null) {

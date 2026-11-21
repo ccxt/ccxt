@@ -902,7 +902,10 @@ class bitopro extends Exchange {
         );
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        $limitResolved = $this->parse_to_int(($limit === null) ? 500 : min($limit, 75000));
+        $limitResolved = 500;
+        if ($limit !== null) {
+            $limitResolved = $this->parse_to_int(min($limit, 75000));
+        }
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;
         if ($since === null) {
@@ -1043,7 +1046,10 @@ class bitopro extends Exchange {
             '4' => 'canceled',
             '6' => 'canceled',
         );
-        return ($status === null) ? null : $this->safe_string($statuses, $status);
+        if ($status === null) {
+            return null;
+        }
+        return $this->safe_string($statuses, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {

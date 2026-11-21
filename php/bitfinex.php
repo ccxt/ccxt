@@ -531,7 +531,7 @@ class bitfinex extends Exchange {
 
     public function is_fiat(mixed $code): bool {
         $fiat = $this->safe_dict($this->options, 'fiat', array());
-        return (is_array($fiat) && array_key_exists($code ?? '', $fiat));
+        return $this->safe_string($fiat, $code) !== null;
     }
 
     public function get_currency_name(string $code): string {
@@ -2738,7 +2738,9 @@ class bitfinex extends Exchange {
                 'percentage' => true,
                 'tierBased' => true,
             );
-            if (is_array($fiat) && array_key_exists($market['quote'] ?? '', $fiat)) {
+            $quote = $this->safe_string($market, 'quote');
+            $fiatQuote = $this->safe_string($fiat, $quote);
+            if ($fiatQuote !== null) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
             } elseif ($this->safe_bool($market, 'contract', false)) {

@@ -1050,7 +1050,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $channels = array();
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $currentTimeframe = $this->safe_string($current, 1);
+            $currentTimeframe = $this->safe_string($current, 1, '');
             $resolution = $this->safe_string($this->timeframes, $currentTimeframe, $currentTimeframe);
             $market = $this->market($this->safe_string($current, 0));
             $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;
@@ -1112,7 +1112,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbolsAndTimeframesLength = count($symbolsAndTimeframes);
         for ($i = 0; $i < $symbolsAndTimeframesLength; $i++) {
             $current = $symbolsAndTimeframes[$i];
-            $timeframe = $this->safe_string($current, 1);
+            $timeframe = $this->safe_string($current, 1, '');
             $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $market = $this->market($this->safe_string($current, 0));
             $channels[] = 'chart.trades.' . $this->safe_string($market, 'id', '') . '.' . $resolution;

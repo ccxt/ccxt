@@ -99,7 +99,8 @@ class polymarket extends \ccxt\async\polymarket {
         $hashesToCheck = ($checkHashes === null) ? $messageHashes : $checkHashes;
         $willSend = false;
         for ($i = 0; $i < count($hashesToCheck); $i++) {
-            if (!(is_array($client->subscriptions) && array_key_exists($hashesToCheck[$i] ?? '', $client->subscriptions))) {
+            $hashToCheck = $this->safe_string($hashesToCheck, $i, '');
+            if (!(is_array($client->subscriptions) && array_key_exists($hashToCheck ?? '', $client->subscriptions))) {
                 $willSend = true;
             }
         }

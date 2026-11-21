@@ -1169,7 +1169,7 @@ class poloniex extends \ccxt\async\poloniex {
                             'currency' => $this->safe_string($trade['fee'], 'currency'),
                         );
                     }
-                    if (($previousOrder['fee']['cost'] !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
+                    if (($this->safe_string($previousOrder['fee'], 'cost') !== null) && ($this->safe_number($trade['fee'], 'cost') !== null)) {
                         $stringOrderCost = $this->number_to_string($previousOrder['fee']['cost']);
                         $stringTradeCost = $this->number_to_string($this->safe_number($trade['fee'], 'cost'));
                         $previousOrder['fee']['cost'] = Precise::string_add($stringOrderCost, $stringTradeCost);

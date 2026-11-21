@@ -161,7 +161,7 @@ class cex extends \ccxt\async\cex {
         if ($currentSymbol !== null && $currentSymbol !== $symbol) {
             throw new ArgumentsRequired($this->id . ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
-        $watchTradesDict = $this->safe_dict($this->options, 'watchTrades', array());
+        $watchTradesDict = $this->extend(array(), $this->safe_dict($this->options, 'watchTrades', array()));
         $watchTradesDict['symbol'] = $symbol;
         $this->options['watchTrades'] = $watchTradesDict;
         if ($this->markets === null) {
@@ -838,27 +838,27 @@ class cex extends \ccxt\async\cex {
             // market comes from safeMarket, so the parser never takes its undefined returns here
             $order = $this->parse_ws_order_update($data, $market);
         }
-        $order['remaining'] = $remains;
+        $orderUpdate = array();
+        $orderUpdate['remaining'] = $remains;
         $canceled = $this->safe_bool($data, 'cancel', false);
         if ($canceled) {
-            $order['status'] = 'canceled';
+            $orderUpdate['status'] = 'canceled';
         }
         if ($isTransaction) {
-            $order['status'] = 'closed';
+            $orderUpdate['status'] = 'closed';
         }
         $fee = $this->safe_number($data, 'fee');
         if ($fee !== null) {
-            $order['fee'] = array(
+            $orderUpdate['fee'] = array(
                 'cost' => $fee,
                 'currency' => $quote,
                 'rate' => null,
             );
         }
         $timestamp = $this->safe_integer($data, 'time');
-        $order['timestamp'] = $timestamp;
-        $order['datetime'] = $this->iso8601($timestamp);
-        // a fresh map copy: the cached entry is untyped
-        $parsedOrder = $this->safe_order($this->extend($order, array()));
+        $orderUpdate['timestamp'] = $timestamp;
+        $orderUpdate['datetime'] = $this->iso8601($timestamp);
+        $parsedOrder = $this->safe_order($this->extend($order, $orderUpdate));
         $storedOrders->append($parsedOrder);
         $messageHash = 'orders:' . $symbol;
         $client->resolve($storedOrders, $messageHash);

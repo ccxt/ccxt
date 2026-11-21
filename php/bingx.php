@@ -1238,7 +1238,10 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $requestLimit = $this->parse_to_int(($limit === null) ? 500 : min($limit, $maxLimit));
+        $requestLimit = 500;
+        if ($limit !== null) {
+            $requestLimit = $this->parse_to_int(min($limit, $maxLimit));
+        }
         if ($since !== null) {
             $request['startTime'] = max($since - 1, 0);
         }
@@ -1263,9 +1266,7 @@ class bingx extends Exchange {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             list($timeZone, $paramsTimeZone) = $this->handle_option_integer_and_params($paramsUntil, 'fetchOHLCV', 'timeZone', 0);
-            if ($timeZone !== null) {
-                $request['timeZone'] = $timeZone;
-            }
+            $request['timeZone'] = $timeZone;
             $response = $this->spotV1PublicGetMarketKline($this->extend($request, $paramsTimeZone));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
@@ -1592,10 +1593,11 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $isSpotExecution ? $this->safe_string($trade, 'l') : $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && ($this->safe_bool($market, 'swap', false)) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
+        $volume = $this->safe_string($trade, 'volume');
+        if (($market !== null) && ($this->safe_bool($market, 'swap', false)) && ($volume !== null)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
-            $amount = $this->safe_string($trade, 'volume');
+            $amount = $volume;
         }
         $price = $isSpotExecution ? $this->safe_string($trade, 'L') : $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
         if (($market !== null) && ($this->safe_bool($market, 'linear', false)) && ($this->safe_string($trade, 'x') === 'TRADE')) {
@@ -2345,6 +2347,7 @@ class bingx extends Exchange {
             //     ]
             // }
             //
+            return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
         } else {
             $response = $this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $paramsSubType));
             //
@@ -2360,9 +2363,6 @@ class bingx extends Exchange {
             //     }
             // }
             //
-        }
-        if ((gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data'])))) {
-            return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
         }
         return $this->parse_ticker($response['data'], $market);
     }
@@ -4074,7 +4074,11 @@ class bingx extends Exchange {
             $marketType = 'spot';
         }
         $marketId = $this->safe_string_2($orderData, 'symbol', 's');
-        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market, null, $marketType);
+        $marketIdOrUndefined = null;
+        if ($market === null) {
+            $marketIdOrUndefined = $marketId;
+        }
+        $marketResolved = $this->safe_market($marketIdOrUndefined, $market, null, $marketType);
         $side = $this->safe_string_lower_2($orderData, 'side', 'S');
         $timestamp = $this->safe_integer_n($orderData, array( 'time', 'transactTime', 'E', 'createdTime' ));
         $transactTime = $this->safe_string($orderData, 'transactTime', '');
@@ -5842,7 +5846,7 @@ class bingx extends Exchange {
         // deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         $rawType = $this->safe_string($transaction, 'transferType');
         $type = 'withdrawal';
-        if (($rawType === '0') || (is_array($transaction) && array_key_exists('insertTime' ?? '', $transaction))) {
+        if (($rawType === '0') || ($this->safe_integer($transaction, 'insertTime') !== null)) {
             $type = 'deposit';
         }
         $internal = null;

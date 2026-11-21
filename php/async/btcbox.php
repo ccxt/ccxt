@@ -389,10 +389,11 @@ class btcbox extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $this->safe_string($currency, 'id', '');
             $free = $currencyId . '_balance';
-            if (is_array($response) && array_key_exists($free ?? '', $response)) {
+            $freeValue = $this->safe_string($response, $free);
+            if ($freeValue !== null) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
-                $account['free'] = $this->safe_string($response, $free);
+                $account['free'] = $freeValue;
                 $account['used'] = $this->safe_string($response, $used);
                 $result[$code] = $account;
             }

@@ -866,11 +866,11 @@ class paradex extends Exchange {
         $parts = explode('-', $symbol);
         $partsLength = count($parts);
         $base = null;
-        $quote = null;
+        $quote = '';
         $settle = null;
         $expiryDate = null;
         $strike = null;
-        $optionType = null;
+        $optionType = '';
         if (mb_strpos($symbol, '/') > -1) {
             if ($partsLength !== 4) {
                 throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
@@ -880,22 +880,22 @@ class paradex extends Exchange {
             $base = $this->safe_string($pairParts, 0);
             $quoteAndSettle = $this->safe_string($pairParts, 1, '');
             $quoteParts = explode(':', $quoteAndSettle);
-            $quote = $this->safe_string($quoteParts, 0);
+            $quote = $this->safe_string($quoteParts, 0, '');
             $settle = $this->safe_string($quoteParts, 1, $quote);
             $expiryDate = $this->safe_string($parts, 1);
             $strike = $this->safe_string($parts, 2);
-            $optionType = $this->safe_string($parts, 3);
+            $optionType = $this->safe_string($parts, 3, '');
         } else {
             if ($partsLength !== 5) {
                 throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
             }
             $base = $this->safe_string($parts, 0);
-            $quote = $this->safe_string($parts, 1);
+            $quote = $this->safe_string($parts, 1, '');
             $settle = 'USDC'; // every option on the venue settles in USDC
             $expiryDate = $this->convert_market_id_expire_date($this->safe_string($parts, 2));
             $strikeId = $parts[3];
             $strike = str_replace('_', '.', $strikeId);
-            $optionType = $this->safe_string($parts, 4);
+            $optionType = $this->safe_string($parts, 4, '');
         }
         // the id carries the day without a leading zero, 6NOV26
         $idDate = $this->convert_expire_date_to_market_id_date($expiryDate);
@@ -1251,7 +1251,7 @@ class paradex extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'results', array());
-        if ($request['market'] === 'ALL') {
+        if ($this->safe_string($request, 'market') === 'ALL') {
             return $this->parse_tickers($this->filter_loaded_summaries($data), $symbolsNormalized);
         }
         return $this->parse_tickers($data, $symbolsNormalized);
@@ -1428,7 +1428,7 @@ class paradex extends Exchange {
         $response = Async\await($this->publicGetMarketsSummary($this->extend($request, $params)));
         $data = $this->safe_list($response, 'results', array());
         // only a perpetual funds, the other rows are dropped before they are parsed
-        if ($request['market'] === 'ALL') {
+        if ($this->safe_string($request, 'market') === 'ALL') {
             return $this->parse_funding_rates($this->filter_loaded_summaries($data, 'swap'), $symbolsNormalized);
         }
         return $this->parse_funding_rates($data, $symbolsNormalized);
@@ -3806,7 +3806,7 @@ class paradex extends Exchange {
         //
         $results = $this->safe_list($response, 'results', array());
         // the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if ($request['market'] === 'ALL') {
+        if ($this->safe_string($request, 'market') === 'ALL') {
             return $this->parse_all_greeks($this->filter_loaded_summaries($results, 'option'), $symbolsNormalized);
         }
         return $this->parse_all_greeks($results, $symbolsNormalized);
@@ -4138,7 +4138,7 @@ class paradex extends Exchange {
          * @param {int} [$limit] the maximum amount of funding $rate structures
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] $timestamp in ms of the latest funding $rate to fetch
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times, back from until (default now) to $since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times, back from $until (default now) to $since, which is required. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rate-history-structure funding $rate structures~
          */
         if ($symbol === null) {
@@ -4156,9 +4156,10 @@ class paradex extends Exchange {
             // the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             list($paginationCalls, $paramsCalls) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
-            $endAt = $this->safe_integer($paramsCalls, 'until');
-            if ($endAt === null) {
-                $endAt = min($this->milliseconds(), $this->sum($since, $paginationCalls * 5000 * $rowSpacing));
+            $until = $this->safe_integer($paramsCalls, 'until');
+            $endAt = min($this->milliseconds(), $this->sum($since, $paginationCalls * 5000 * $rowSpacing));
+            if ($until !== null) {
+                $endAt = $until;
             }
             $paramsEndAt = $this->extend($this->omit($paramsPaginate, 'until'), array( 'end_at' => $endAt ));
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first

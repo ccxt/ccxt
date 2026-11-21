@@ -465,8 +465,9 @@ class kalshi extends Exchange {
             }
         }
         for ($i = 0; $i < $outcomeSymbolsLength; $i++) {
-            if (!$this->has_outcome($outcomeSymbols[$i])) {
-                Async\await($this->fetch_outcome($outcomeSymbols[$i]));
+            $pendingSymbol = $this->safe_string($outcomeSymbols, $i, '');
+            if (!$this->has_outcome($pendingSymbol)) {
+                Async\await($this->fetch_outcome($pendingSymbol));
             }
         }
         return $this->outcomes;
@@ -2510,7 +2511,7 @@ class kalshi extends Exchange {
                     }
                 }
                 $request = array(
-                    'series_ticker' => $seriesTickers[$si],
+                    'series_ticker' => $this->safe_string($seriesTickers, $si),
                     'status' => $status,
                     'with_nested_markets' => true,
                     'limit' => $reqLimit,

@@ -4111,8 +4111,10 @@ class BaseExchange {
             if ($parsed === null) {
                 continue;
             }
-            $code = $parsed['code'];
-            $result[$code] = $parsed;
+            $code = $this->safe_string($parsed, 'code');
+            if ($code !== null) {
+                $result[$code] = $parsed;
+            }
         }
         return $result;
     }
@@ -7965,7 +7967,7 @@ class BaseExchange {
             return null;
         }
         $market = $this->market($symbol);
-        $marketSymbol = $this->safe_string($market, 'symbol');
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
             $pricePrecision = $this->number_to_string($market['precision']['price']);
@@ -7982,7 +7984,7 @@ class BaseExchange {
             return null;
         }
         $market = $this->market($symbol);
-        $marketSymbol = $this->safe_string($market, 'symbol');
+        $marketSymbol = $this->safe_string($market, 'symbol', '');
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
             $amountPrecision = $this->number_to_string($market['precision']['amount']);

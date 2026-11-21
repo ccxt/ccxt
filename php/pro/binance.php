@@ -223,7 +223,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function request_id(string $url): int {
-        $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
+        $options = $this->safe_dict($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
         $options[$url] = $newValue;
@@ -236,7 +236,7 @@ class binance extends \ccxt\async\binance {
     }
 
     public function stream(?string $type, ?string $subscriptionHash, ?int $numSubscriptions = 1): string {
-        $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', $this->create_safe_dictionary());
+        $streamBySubscriptionsHash = $this->safe_dict($this->options, 'streamBySubscriptionsHash', array());
         $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
         if ($stream === null) {
             $previousStreamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
@@ -260,7 +260,9 @@ class binance extends \ccxt\async\binance {
             if ($newNumSubscriptions > $subscriptionLimitByStream) {
                 throw new BadRequest($this->id . ' reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.');
             }
-            $this->options['numSubscriptionsByStream'][$stream] = $newNumSubscriptions;
+            $numSubscriptionsByStream = $this->safe_dict($this->options, 'numSubscriptionsByStream', array());
+            $numSubscriptionsByStream[$stream] = $newNumSubscriptions;
+            $this->options['numSubscriptionsByStream'] = $numSubscriptionsByStream;
         }
         return $stream;
     }
@@ -332,7 +334,10 @@ class binance extends \ccxt\async\binance {
     public function get_stock_ticker_from_symbol(?string $symbol): ?string {
         $market = $this->market($symbol);
         $base = $this->safe_string_2($market, 'base', 'id');
-        return ($base === null) ? null : strtolower($base);
+        if ($base === null) {
+            return null;
+        }
+        return strtolower($base);
     }
 
     public function get_stock_unified_symbol(?string $stockSymbol, string $quote = 'USDC'): ?string {
@@ -1683,7 +1688,7 @@ class binance extends \ccxt\async\binance {
         }
         $marketId = $this->safe_string($trade, 's');
         $fallbackType = 'spot';
-        if (is_array($trade) && array_key_exists('ps' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'ps') !== null) {
             $fallbackType = 'contract';
         }
         $marketType = $fallbackType;
@@ -1694,11 +1699,12 @@ class binance extends \ccxt\async\binance {
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
-        if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
+        $isMaker = $this->safe_bool($trade, 'm');
+        if ($isMaker !== null) {
             if ($side === null) {
-                $side = ($this->safe_bool($trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = $isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($this->safe_bool($trade, 'm', false)) ? 'maker' : 'taker';
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -3001,7 +3007,10 @@ class binance extends \ccxt\async\binance {
             if ($isSpot) {
                 $tickerFallbackType = 'spot';
             }
-            $tickerMarketType = ($tickerMarketById !== null) ? $this->safe_value($tickerMarketById, 'type') : $tickerFallbackType;
+            $tickerMarketType = $tickerFallbackType;
+            if ($tickerMarketById !== null) {
+                $tickerMarketType = $this->safe_string($tickerMarketById, 'type');
+            }
             $parsedTicker = $this->parse_ws_ticker($ticker, $tickerMarketType);
             $symbol = $parsedTicker['symbol'];
             if ($symbol !== null) {
@@ -4978,7 +4987,7 @@ class binance extends \ccxt\async\binance {
         $marketId = $this->safe_string($order, 's');
         // futures user-data events carry the position side field, spot ones do not
         $marketType = 'spot';
-        if (is_array($order) && array_key_exists('ps' ?? '', $order)) {
+        if ($this->safe_string($order, 'ps') !== null) {
             $marketType = 'contract';
         }
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
@@ -4992,7 +5001,7 @@ class binance extends \ccxt\async\binance {
         } elseif ($executionType === 'TRADE') {
             $lastTradeTimestamp = $T;
         }
-        $isAlgoOrder = (is_array($order) && array_key_exists('aid' ?? '', $order)); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
+        $isAlgoOrder = ($this->safe_string($order, 'aid') !== null); // the ALGO_UPDATE payload carries the algo id, but no execution type (x) and no order time (O)
         if ($isAlgoOrder && ($timestamp === null)) {
             $algoStatus = $this->safe_string($order, 'X');
             if (($algoStatus === 'NEW') || ($algoStatus === 'CANCELED')) {
@@ -5181,13 +5190,13 @@ class binance extends \ccxt\async\binance {
         $messageValue = $message;
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $messageValue = $this->safe_dict($message, 'o', $message);
-            if (($e === 'ALGO_UPDATE') && !(is_array($messageValue) && array_key_exists('T' ?? '', $messageValue))) {
+            if (($e === 'ALGO_UPDATE') && ($this->safe_integer($messageValue, 'T') === null)) {
                 $messageValue['T'] = $this->safe_integer($message, 'T'); // keep the outer event time, the algo payload carries no timestamps
             }
         }
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
-            $oField = $this->safe_value($message, 'o');
-            if ((gettype($oField) === 'array' && array_keys($oField) === array_keys(array_keys($oField)))) {
+            $oField = $this->safe_list($message, 'o');
+            if ($oField !== null) {
                 // eOptions format: o is an array of orders with nested fi fills
                 $this->handle_options_order_update($client, $message);
                 return;
@@ -5859,7 +5868,8 @@ class binance extends \ccxt\async\binance {
         $messageHash = 'myTrades';
         $symbolParams = array();
         if (($symbolResolved !== null) && ($market !== null)) {
-            $messageHash .= ':' . $symbolResolved;
+            $symbolString = $this->symbol($symbol);
+            $messageHash = $messageHash . ':' . $symbolString;
             $symbolParams = array( 'type' => $market['type'], 'symbol' => $symbolResolved );
         }
         $paramsSymbol = $this->extend($paramsAuth, $symbolParams);
@@ -6228,7 +6238,8 @@ class binance extends \ccxt\async\binance {
         $event = $this->safe_string($messageValue, 'e');
         if ((gettype($messageValue) === 'array' && array_keys($messageValue) === array_keys(array_keys($messageValue)))) {
             $arrayMessage = $this->safe_dict($messageValue, 0);
-            $event = $this->safe_string($arrayMessage, 'e') . '@arr';
+            $arrayEvent = $this->safe_string($arrayMessage, 'e', '');
+            $event = $arrayEvent . '@arr';
         }
         $method = $this->safe_value($methods, $event);
         if ($method === null) {
@@ -6248,7 +6259,7 @@ class binance extends \ccxt\async\binance {
             //         "A": "2.52500800"
             //     }
             //
-            if ($event === null && (is_array($messageValue) && array_key_exists('a' ?? '', $messageValue)) && (is_array($messageValue) && array_key_exists('b' ?? '', $messageValue))) {
+            if ($event === null && ($this->safe_string($messageValue, 'a') !== null) && ($this->safe_string($messageValue, 'b') !== null)) {
                 $this->handle_bids_asks($client, $messageValue);
             }
         } else {

@@ -360,7 +360,10 @@ class delta extends Exchange {
         }
         $optionType = $this->safe_string($optionParts, $hasSlash ? 3 : 0, '');
         $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3, '');
-        $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);
+        $expiryYear = mb_substr($rawExpiry, 4);
+        $expiryMonth = mb_substr($rawExpiry, 2, 4 - 2);
+        $expiryDay = mb_substr($rawExpiry, 0, 2 - 0);
+        $expiry = $expiryYear . $expiryMonth . $expiryDay;
         $settle = $quote;
         $strike = $this->safe_string($optionParts, 2, '');
         $datetime = $this->convert_expire_date($expiry);
@@ -917,9 +920,11 @@ class delta extends Exchange {
             $optionType = null;
             $symbol = $base . '/' . $quote;
             if ($swap || $future || $option) {
-                $symbol = $symbol . ':' . $settle;
+                $settleCode = $this->safe_currency_code($settleId);
+                $symbol = $symbol . ':' . $settleCode;
                 if ($future || $option) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                    $expiryCode = $this->yymmdd($expiry);
+                    $symbol = $symbol . '-' . $expiryCode;
                     if ($option) {
                         $type = 'option';
                         $letter = 'C';
@@ -931,7 +936,8 @@ class delta extends Exchange {
                             $letter = 'M';
                             $optionType = 'move';
                         }
-                        $symbol = $symbol . '-' . $strike . '-' . $letter;
+                        $strikeString = $this->safe_string($market, 'strike_price', '');
+                        $symbol = $symbol . '-' . $strikeString . '-' . $letter;
                     } else {
                         $type = 'future';
                     }
@@ -940,7 +946,7 @@ class delta extends Exchange {
                 }
             }
             $state = $this->safe_string($market, 'state');
-            $result[] = $this->safe_market_structure(array(
+            $marketStructure = array(
                 'id' => $id,
                 'numericId' => $numericId,
                 'symbol' => $symbol,
@@ -958,11 +964,11 @@ class delta extends Exchange {
                 'option' => $option,
                 'active' => ($state === 'live'),
                 'contract' => !$spot,
-                'linear' => $spot ? null : $linear,
-                'inverse' => $spot ? null : !$linear,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $this->safe_number($market, 'taker_commission_rate'),
                 'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                'contractSize' => $spot ? null : $contractSize,
+                'contractSize' => null,
                 'expiry' => $expiry,
                 'expiryDatetime' => $this->iso8601($expiry), // do not use raw expiry string
                 'strike' => $this->parse_number($strike),
@@ -991,7 +997,13 @@ class delta extends Exchange {
                 ),
                 'created' => $this->parse8601($this->safe_string($market, 'launch_time')),
                 'info' => $market,
-            ));
+            );
+            if (!$spot) {
+                $marketStructure['linear'] = $linear;
+                $marketStructure['inverse'] = !$linear;
+                $marketStructure['contractSize'] = $contractSize;
+            }
+            $result[] = $this->safe_market_structure($marketStructure);
         }
         return $result;
     }

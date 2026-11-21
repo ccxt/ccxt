@@ -1751,7 +1751,7 @@ class htx extends Exchange {
             $settleId = null;
             $id = null;
             $lowercaseId = null;
-            $contract = (is_array($market) && array_key_exists('contract_code' ?? '', $market));
+            $contract = ($this->safe_string($market, 'contract_code') !== null);
             $spot = !$contract;
             $swap = false;
             $future = false;
@@ -1984,11 +1984,9 @@ class htx extends Exchange {
             $marketLinear = $this->safe_bool($market, 'linear', false);
             $marketSymbol = $this->safe_string($market, 'symbol', '');
             // see comment on formats a bit above
-            $constructedId = null;
+            $constructedId = $marketBase . '_' . $contractSuffix;
             if ($marketLinear) {
                 $constructedId = $marketBase . '-' . $marketQuote . '-' . $contractSuffix;
-            } else {
-                $constructedId = $marketBase . '_' . $contractSuffix;
             }
             if ($constructedId === $symbolOrMarketId) {
                 $futureMarketIdsForSymbolsDict1 = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
@@ -3519,8 +3517,9 @@ class htx extends Exchange {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
         }
         $uniqueNetworkIds = $this->safe_dict($this->options['networkChainIdsByNames'], $currencyCode, array());
-        if (is_array($uniqueNetworkIds) && array_key_exists($networkCode ?? '', $uniqueNetworkIds)) {
-            return $uniqueNetworkIds[$networkCode];
+        $uniqueNetworkId = $this->safe_string($uniqueNetworkIds, $networkCode);
+        if ($uniqueNetworkId !== null) {
+            return $uniqueNetworkId;
         } else {
             $networkTitle = parent::network_code_to_id($networkCode, $currencyCode);
             return $this->safe_string($uniqueNetworkIds, $networkTitle, $networkTitle);
@@ -5343,15 +5342,14 @@ class htx extends Exchange {
             $request['source'] = 'c2c-margin-api';
         }
         $isMarketBuy = ($orderType === 'market') && ($sideStr === 'buy');
-        $requiresPriceAndParams = $this->handle_option_bool_and_params($paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-        $cost = $this->safe_number($requiresPriceAndParams[1], 'cost');
+        list($createMarketBuyOrderRequiresPrice, $requiresPriceParams) = $this->handle_option_bool_and_params($paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+        $cost = $this->safe_number($requiresPriceParams, 'cost');
         $paramsCost = $paramsPostOnly;
         if ($isMarketBuy) {
-            $paramsCost = $this->omit($requiresPriceAndParams[1], 'cost');
+            $paramsCost = $this->omit($requiresPriceParams, 'cost');
         }
         if ($isMarketBuy) {
             $quoteAmount = null;
-            $createMarketBuyOrderRequiresPrice = $requiresPriceAndParams[0];
             if ($cost !== null) {
                 $quoteAmount = $this->amount_to_precision($symbol, $cost);
             } elseif ($createMarketBuyOrderRequiresPrice) {
@@ -5824,11 +5822,10 @@ class htx extends Exchange {
             }
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
-            $currentMarginMode = $marginResult[0];
+            list($currentMarginMode) = $this->handle_margin_mode_and_params('createOrders', $orderParams);
             if ($currentMarginMode !== null) {
                 if ($marginMode === null) {
                     $marginMode = $currentMarginMode;
@@ -6382,7 +6379,7 @@ class htx extends Exchange {
             ));
         }
         for ($i = 0; $i < count($success); $i++) {
-            $order = $success[$i];
+            $order = $this->safe_string($success, $i);
             $result[] = $this->safe_order(array(
                 'info' => $order,
                 'id' => $order,
@@ -7997,12 +7994,12 @@ class htx extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
+        $status = $this->safe_string($response, 'status');
+        if ($status !== null) {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            $status = $this->safe_string($response, 'status');
             if ($status === 'error') {
                 $codeError = $this->safe_string_2($response, 'err-code', 'err_code');
                 $feedback = $this->id . ' ' . $body;
@@ -8013,10 +8010,11 @@ class htx extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
-        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
+        $responseCode = $this->safe_string($response, 'code');
+        if ($responseCode !== null) {
             // {code: '1003', message: 'invalid signature'}
             $feedback = $this->id . ' ' . $body;
-            $codeError = $this->safe_string($response, 'code');
+            $codeError = $responseCode;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
         }
         $data = $this->safe_dict($response, 'data');
@@ -8163,8 +8161,7 @@ class htx extends Exchange {
         }
         $response = null;
         if ($this->safe_bool($market, 'linear', false)) {
-            $marginModeAndParams = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
-            $marginMode = $marginModeAndParams[0];
+            list($marginMode) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
             $request['margin_mode'] = $marginMode;
             $response = Async\await($this->contractPrivatePostV5PositionLever($this->extend($request, $query)));
             //

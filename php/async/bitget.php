@@ -4440,9 +4440,13 @@ class bitget extends Exchange {
             $feeCostString = $this->safe_string_2($feeStructure, 'totalFee', 'fee');
             $deductionString = $this->safe_string($feeStructure, 'deduction');
             $deduction = ($deductionString === 'yes');
+            $feeCostSigned = $feeCostString;
+            if (!$deduction) {
+                $feeCostSigned = Precise::string_neg($feeCostString);
+            }
             $fee = array(
                 'currency' => $currencyCode,
-                'cost' => $deduction ? $feeCostString : Precise::string_neg($feeCostString),
+                'cost' => $feeCostSigned,
             );
         }
         return $this->safe_trade(array(
@@ -4791,7 +4795,7 @@ class bitget extends Exchange {
         } elseif (($marketType === 'swap') || ($marketType === 'future')) {
             $productType = null;
             list($productType, $paramsMarginMode) = $this->handle_product_type_and_params(null, $paramsMarginMode);
-            $paramsMarginMode['productType'] = $productType;
+            $paramsMarginMode = $this->extend($paramsMarginMode, array( 'productType' => $productType ));
             $response = Async\await($this->publicMixGetV2MixMarketContracts($paramsMarginMode));
         } else {
             throw new NotSupported($this->id . ' does not support ' . $marketType . ' market');

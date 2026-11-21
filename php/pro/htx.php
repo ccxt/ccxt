@@ -507,7 +507,11 @@ class htx extends \ccxt\async\htx {
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $limitResolved = $this->parse_to_int(($limit === null) ? $this->safe_integer($options, 'depth', 150) : $limit);
+        $limitValue = $limit;
+        if ($limit === null) {
+            $limitValue = $this->safe_integer($options, 'depth', 150);
+        }
+        $limitResolved = $this->parse_to_int($limitValue);
         if (!$this->in_array($limitResolved, $allowedLimits)) {
             throw new ExchangeError($this->id . ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only');
         }
@@ -1692,14 +1696,15 @@ class htx extends \ccxt\async\htx {
         }
         $market = null;
         $messageHash = '';
-        if ((!$this->is_empty($symbols)) && ($symbols !== null)) {
+        $hasMarket = (!$this->is_empty($symbols)) && ($symbols !== null);
+        if ($hasMarket) {
             $market = $this->get_market_from_symbols($symbols);
             $messageHash = '::' . implode(',', $symbols);
         }
         $type = null;
         $subType = null;
         $paramsSubType = array();
-        if ($market !== null) {
+        if ($hasMarket) {
             $type = $this->safe_string($market, 'type');
             if ($this->safe_bool($market, 'linear', false)) {
                 $subType = 'linear';
@@ -1712,7 +1717,7 @@ class htx extends \ccxt\async\htx {
             list($subType, $paramsSubType) = $this->handle_option_string_and_params($paramsMarketType, 'watchPositions', 'subType', $subType);
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $paramsPositions = ($market !== null) ? $params : $paramsSubType;
+        $paramsPositions = $hasMarket ? $params : $paramsSubType;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('watchPositions', $paramsPositions, 'cross');
         $paramsRequest = $paramsMarginMode;
         $linear = ($subType === 'linear');

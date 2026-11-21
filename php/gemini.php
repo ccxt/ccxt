@@ -687,7 +687,7 @@ class gemini extends Exchange {
         $fetchUsdtMarkets = $this->safe_list($this->options, 'fetchUsdtMarkets', array());
         $result = array();
         for ($i = 0; $i < count($fetchUsdtMarkets); $i++) {
-            $marketId = $fetchUsdtMarkets[$i];
+            $marketId = $this->safe_string($fetchUsdtMarkets, $i, '');
             $request = array(
                 'symbol' => $marketId,
             );
@@ -726,7 +726,7 @@ class gemini extends Exchange {
         if ($this->safe_bool($options, 'fetchDetailsForAllSymbols', false)) {
             $promises = array();
             for ($i = 0; $i < count($marketIds); $i++) {
-                $marketId = $marketIds[$i];
+                $marketId = $this->safe_string($marketIds, $i, '');
                 $request = array(
                     'symbol' => $marketId,
                 );
@@ -757,7 +757,7 @@ class gemini extends Exchange {
             if ($tradingPairs !== null) {
                 $indexedTradingPairs = $this->index_by($tradingPairs, 0);
                 for ($i = 0; $i < count($marketIds); $i++) {
-                    $marketId = $marketIds[$i];
+                    $marketId = $this->safe_string($marketIds, $i, '');
                     $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
                     if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
                         $parsed = $this->parse_market($pairInfo);

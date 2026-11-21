@@ -304,12 +304,10 @@ class phemex extends \ccxt\async\phemex {
             }
         }
         for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $symbol = $this->safe_string($ticker, 'symbol', '');
+            $symbol = $this->safe_string($tickers[$i], 'symbol', '');
             $messageHash = 'ticker:' . $symbol;
             $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
-            $ticker['timestamp'] = $timestamp;
-            $ticker['datetime'] = $this->iso8601($timestamp);
+            $ticker = $this->extend($tickers[$i], array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ));
             $this->tickers[$symbol] = $ticker;
             $client->resolve($ticker, $messageHash);
         }

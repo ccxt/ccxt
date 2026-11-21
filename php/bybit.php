@@ -1613,8 +1613,8 @@ class bybit extends Exchange {
                 $quote = 'USDT';
             }
         }
-        $strike = $this->safe_string($optionParts, 2);
-        $optionType = $this->safe_string($optionParts, 3);
+        $strike = $this->safe_string($optionParts, 2, '');
+        $optionType = $this->safe_string($optionParts, 3, '');
         $datetime = $this->convert_expire_date($expiry);
         $amountPrecision = null;
         $pricePrecision = null;
@@ -1951,7 +1951,7 @@ class bybit extends Exchange {
             $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
         }
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i);
             if ($marketType === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($marketType === 'linear') {
@@ -3072,10 +3072,11 @@ class bybit extends Exchange {
         $data = $this->safe_dict($response, 'result', array());
         $tickerList = $this->safe_list($data, 'list', array());
         $timestamp = $this->safe_integer($response, 'time');
+        $rows = array();
         for ($i = 0; $i < count($tickerList); $i++) {
-            $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
+            $rows[] = $this->extend($tickerList[$i], array( 'timestamp' => $timestamp )); // will be removed inside the parser
         }
-        return $this->parse_funding_rates($tickerList, $symbolsNormalized);
+        return $this->parse_funding_rates($rows, $symbolsNormalized);
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -3329,7 +3330,8 @@ class bybit extends Exchange {
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = 'spot';
-        if (is_array($trade) && array_key_exists('createType' ?? '', $trade)) {
+        $createType = $this->safe_string($trade, 'createType');
+        if ($createType !== null) {
             $marketType = 'contract';
         }
         $category = $this->safe_string($trade, 'category');
@@ -4048,7 +4050,8 @@ class bybit extends Exchange {
             }
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $isContract = (is_array($order) && array_key_exists('tpslMode' ?? '', $order));
+        $tpslMode = $this->safe_string($order, 'tpslMode');
+        $isContract = ($tpslMode !== null);
         $marketType = null;
         if ($market !== null) {
             $marketType = $this->safe_string($market, 'type');
@@ -4613,8 +4616,8 @@ class bybit extends Exchange {
             $orderSymbols[] = $marketId;
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams, $isUta);
             unset($orderRequest['category']);
@@ -4837,8 +4840,8 @@ class bybit extends Exchange {
             $id = $this->safe_string($rawOrder, 'id');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $orderParams);
             unset($orderRequest['category']);
@@ -6318,7 +6321,8 @@ class bybit extends Exchange {
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
         $type = 'withdrawal';
-        if (is_array($transaction) && array_key_exists('depositFee' ?? '', $transaction)) {
+        $depositFee = $this->safe_string($transaction, 'depositFee');
+        if ($depositFee !== null) {
             $type = 'deposit';
         }
         $fee = null;
@@ -10154,7 +10158,7 @@ class bybit extends Exchange {
                 } else {
                     $signature = $this->hmac($this->encode($authFull), $this->encode($this->secret), 'sha256');
                 }
-                $requestHeaders['X-BAPI-SIGN'] = $signature;
+                $requestHeaders = $this->extend($requestHeaders, array( 'X-BAPI-SIGN' => $signature ));
             } else {
                 $query = $this->extend($params, array(
                     'api_key' => $this->apiKey,

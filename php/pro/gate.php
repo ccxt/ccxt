@@ -979,10 +979,10 @@ class gate extends \ccxt\async\gate {
         if ($rawMarketType === 'futures') {
             $marketType = 'contract';
         }
-        $result = $this->safe_value($message, 'result');
+        $resultList = $this->safe_list($message, 'result');
         $results = array();
-        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
-            $results = $this->safe_list($message, 'result', array());
+        if ($resultList !== null) {
+            $results = $resultList;
         } else {
             $rawTicker = $this->safe_dict($message, 'result', array());
             $results = array( $rawTicker );
@@ -1284,12 +1284,12 @@ class gate extends \ccxt\async\gate {
         if ($rawMarketType === 'spot') {
             $marketType = 'spot';
         }
-        $rawResult = $this->safe_value($message, 'result');
+        $resultList = $this->safe_list($message, 'result');
         $result = array();
-        if ((gettype($rawResult) === 'array' && array_keys($rawResult) === array_keys(array_keys($rawResult)))) {
+        if ($resultList !== null) {
             $result = $this->safe_list($message, 'result', array());
         } else {
-            $result = array( $rawResult );
+            $result = array( $this->safe_value($message, 'result') );
         }
         $marketIds = array();
         for ($i = 0; $i < count($result); $i++) {
@@ -1546,8 +1546,10 @@ class gate extends \ccxt\async\gate {
         //
         $result = $this->safe_list($message, 'result', array());
         $this->balance['info'] = $result;
-        for ($i = 0; $i < count($result); $i++) {
-            $rawBalance = $this->safe_dict($result, $i);
+        $rows = $this->safe_list($message, 'result', array());
+        $rowsLength = count($rows);
+        for ($i = 0; $i < $rowsLength; $i++) {
+            $rawBalance = $this->safe_dict($rows, $i);
             $account = $this->account();
             $currencyId = $this->safe_string($rawBalance, 'currency', 'USDT'); // when not present it is USDT
             $code = $this->safe_currency_code($currencyId);
@@ -1900,19 +1902,20 @@ class gate extends \ccxt\async\gate {
         $marketIds = array();
         $parsedOrders = $this->parse_orders($orders);
         for ($i = 0; $i < count($parsedOrders); $i++) {
-            $parsed = $parsedOrders[$i];
             // inject order status
-            $info = $this->safe_dict($parsed, 'info');
+            $info = $this->safe_dict($parsedOrders[$i], 'info');
             $event = $this->safe_string($info, 'event');
+            $statusUpdate = array();
             if ($event === 'put' || $event === 'update') {
-                $parsed['status'] = 'open';
+                $statusUpdate['status'] = 'open';
             } elseif ($event === 'finish') {
-                $status = $this->safe_string($parsed, 'status');
+                $status = $this->safe_string($parsedOrders[$i], 'status');
                 if ($status === null) {
                     $left = $this->safe_string($info, 'left');
-                    $parsed['status'] = Precise::string_equals($left, '0') ? 'closed' : 'canceled';
+                    $statusUpdate['status'] = Precise::string_equals($left, '0') ? 'closed' : 'canceled';
                 }
             }
+            $parsed = $this->extend($parsedOrders[$i], $statusUpdate);
             $stored->append($parsed);
             $symbol = $this->safe_string($parsed, 'symbol');
             $market = $this->market($symbol);

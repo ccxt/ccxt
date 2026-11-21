@@ -333,8 +333,8 @@ class sxbet extends Exchange {
         //     }
         //
         $marketHash = $this->safe_string($raw, 'marketHash', '');
-        $teamOneName = $this->safe_string($raw, 'teamOneName');
-        $teamTwoName = $this->safe_string($raw, 'teamTwoName');
+        $teamOneName = $this->safe_string($raw, 'teamOneName', '');
+        $teamTwoName = $this->safe_string($raw, 'teamTwoName', '');
         $outcomeOneName = $this->safe_string($raw, 'outcomeOneName');
         $outcomeTwoName = $this->safe_string($raw, 'outcomeTwoName');
         $eventSlug = $this->shorten_slug($teamOneName . ' ' . $teamTwoName);

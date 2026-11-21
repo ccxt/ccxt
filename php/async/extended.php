@@ -1250,10 +1250,17 @@ class extended extends Exchange {
         $sideRaw = $this->safe_string_2($trade, 'S', 'side');
         $side = ($sideRaw !== null) ? strtolower($sideRaw) : null;
         $feeCost = $this->safe_string($trade, 'fee');
-        $fee = ($feeCost === null) ? null : array(
-            'cost' => $feeCost,
-            'currency' => ($marketResolved === null) ? null : $marketResolved['settle'],
-        );
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeDict = array(
+                'cost' => $feeCost,
+                'currency' => null,
+            );
+            if ($marketResolved !== null) {
+                $feeDict['currency'] = $marketResolved['settle'];
+            }
+            $fee = $feeDict;
+        }
         $isTaker = $this->safe_bool($trade, 'isTaker');
         $takerOrMaker = null;
         if ($isTaker !== null) {

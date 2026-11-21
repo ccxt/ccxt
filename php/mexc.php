@@ -2165,7 +2165,7 @@ class mexc extends Exchange {
         $prevClose = null;
         $isSwap = $this->safe_bool($marketResolved, 'swap', false);
         // if swap
-        if ($isSwap || (is_array($ticker) && array_key_exists('timestamp' ?? '', $ticker))) {
+        if ($isSwap || ($this->safe_string($ticker, 'timestamp') !== null)) {
             //
             //     {
             //         "symbol": "ETH_USDT",
@@ -2714,8 +2714,8 @@ class mexc extends Exchange {
             }
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $marginMode = null;
             list($marginMode, $paramsLoop) = $this->handle_margin_mode_and_params('createOrder', $paramsLoop);

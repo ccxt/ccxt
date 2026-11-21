@@ -1714,7 +1714,8 @@ class backpack extends \ccxt\async\backpack {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'positions' . ':' . $symbol;
-                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
+                $marketId = $this->safe_string($this->market($symbol), 'id', '');
+                $topics[] = 'account.positionUpdate.' . $marketId;
             }
         } else {
             $messageHashes[] = 'positions';
@@ -1751,7 +1752,8 @@ class backpack extends \ccxt\async\backpack {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
                 $symbol = $symbolsNormalized[$i];
                 $messageHashes[] = 'unsubscribe:positions' . ':' . $symbol;
-                $topics[] = 'account.positionUpdate.' . $this->market_id($symbol);
+                $marketId = $this->safe_string($this->market($symbol), 'id', '');
+                $topics[] = 'account.positionUpdate.' . $marketId;
             }
         } else {
             $messageHashes[] = 'unsubscribe:positions';

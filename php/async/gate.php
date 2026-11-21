@@ -2735,14 +2735,16 @@ class gate extends Exchange {
             if ($withdrawFixOnChains === null) {
                 $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
             } else {
+                $networkFees = array();
                 $networkIds = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
                 for ($j = 0; $j < count($networkIds); $j++) {
                     $networkId = $networkIds[$j];
                     $networkCode = $this->network_id_to_code($networkId, $code);
                     if ($networkCode !== null) {
-                        $withdrawFees[$networkCode] = $this->parse_number($withdrawFixOnChains[$networkId]);
+                        $networkFees[$networkCode] = $this->safe_number($withdrawFixOnChains, $networkId);
                     }
                 }
+                $withdrawFees = $networkFees;
             }
             $result[$code] = array(
                 'withdraw' => $withdrawFees,
@@ -3199,7 +3201,7 @@ class gate extends Exchange {
         //
         $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 'name' ));
         $marketType = 'spot';
-        if (is_array($ticker) && array_key_exists('mark_price' ?? '', $ticker)) {
+        if ($this->safe_string($ticker, 'mark_price') !== null) {
             $marketType = 'contract';
         }
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
@@ -3298,8 +3300,9 @@ class gate extends Exchange {
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
         $account['total'] = $this->safe_string($entry, 'total');
-        if (is_array($entry) && array_key_exists('borrowed' ?? '', $entry)) {
-            $account['debt'] = $this->safe_string($entry, 'borrowed');
+        $borrowed = $this->safe_string($entry, 'borrowed');
+        if ($borrowed !== null) {
+            $account['debt'] = $borrowed;
         }
         return $account;
     }
@@ -3573,7 +3576,7 @@ class gate extends Exchange {
             $keys = is_array($balances) ? array_keys($balances) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currencyId = $keys[$i];
-                $content = $balances[$currencyId];
+                $content = $this->extend(array(), $balances[$currencyId]);
                 $content['currency'] = $currencyId;
                 $flatBalances[] = $content;
             }
@@ -3636,10 +3639,6 @@ class gate extends Exchange {
         $maxLimit = ($this->safe_bool($market, 'contract', false)) ? 1999 : 1000;
         $limitValue = ($limit === null) ? $maxLimit : min($limit, $maxLimit);
         $untilMs = $this->safe_integer($paramsRequest, 'until');
-        $until = null;
-        if ($untilMs !== null) {
-            $until = $this->parse_to_int($untilMs / 1000);
-        }
         $paramsOmitted = $this->omit($paramsRequest, 'until');
         if ($since !== null) {
             $duration = $this->parse_timeframe($timeframe);
@@ -3649,14 +3648,19 @@ class gate extends Exchange {
             $toTimestamp = $this->sum($fromTimestamp, $distance);
             $currentTimestamp = $this->seconds();
             $to = min($toTimestamp, $currentTimestamp);
-            if ($until !== null) {
-                $request['to'] = min($to, $until);
+            if ($untilMs !== null) {
+                $untilSeconds = $this->parse_to_int($untilMs / 1000);
+                $toValue = $to;
+                if ($untilSeconds < $to) {
+                    $toValue = $untilSeconds;
+                }
+                $request['to'] = $toValue;
             } else {
                 $request['to'] = $to;
             }
         } else {
-            if ($until !== null) {
-                $request['to'] = $until;
+            if ($untilMs !== null) {
+                $request['to'] = $this->parse_to_int($untilMs / 1000);
             }
             $request['limit'] = $limitValue;
         }
@@ -3665,7 +3669,8 @@ class gate extends Exchange {
             $isMark = ($price === 'mark');
             $isIndex = ($price === 'index');
             if ($isMark || $isIndex) {
-                $request['contract'] = $price . '_' . $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
+                $request['contract'] = $price . '_' . $marketId;
             }
             $paramsContract = $paramsOmitted;
             if ($isMark || $isIndex) {
@@ -4233,7 +4238,7 @@ class gate extends Exchange {
         }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
         $marketType = 'spot';
-        if (is_array($trade) && array_key_exists('contract' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'contract') !== null) {
             $marketType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, '_', $marketType);
@@ -4727,8 +4732,8 @@ class gate extends Exchange {
             $orderSymbols[] = $marketId;
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
@@ -5493,7 +5498,7 @@ class gate extends Exchange {
             }
         }
         $marketType = 'contract';
-        if ((is_array($order) && array_key_exists('currency_pair' ?? '', $order)) || (is_array($order) && array_key_exists('market' ?? '', $order))) {
+        if (($this->safe_string($order, 'currency_pair') !== null) || ($this->safe_string($order, 'market') !== null)) {
             $marketType = 'spot';
         }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
@@ -5602,9 +5607,14 @@ class gate extends Exchange {
         $paramsOrder = ($clientOrderIdRaw !== null) ? $this->omit($paramsOmitted, array( 'text', 'clientOrderId' )) : $paramsOmitted;
         list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $paramsOrder);
         $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
-        list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $trigger, $query);
-        $request['order_id'] = (string) $orderId;
-        return array( $request, $requestParams );
+        if ($contract) {
+            list($contractRequest, $contractParams) = $this->prepare_request($market, $type, $query);
+            $contractOrder = $this->extend($contractRequest, array( 'order_id' => (string) $orderId ));
+            return array( $contractOrder, $contractParams );
+        }
+        list($request, $requestParams) = $this->spot_order_prepare_request($market, $trigger, $query);
+        $spotOrder = $this->extend($request, array( 'order_id' => $orderId ));
+        return array( $spotOrder, $requestParams );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -5770,7 +5780,11 @@ class gate extends Exchange {
         if ($spot && ($trigger === true)) {
             $request = $this->omit($request, 'account');
         }
-        $request['status'] = ($status === 'closed') ? 'finished' : $status;
+        $requestStatus = $status;
+        if ($status === 'closed') {
+            $requestStatus = 'finished';
+        }
+        $request['status'] = $requestStatus;
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -6912,7 +6926,10 @@ class gate extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverageTiers only supports swap and future');
         }
         $requestedLimit = $this->safe_integer($requestParams, 'limit', 100);
-        $limit = $this->parse_to_int(($requestedLimit === null) ? 100 : max(1, min($requestedLimit, 100)));
+        $limit = 100;
+        if ($requestedLimit !== null) {
+            $limit = $this->parse_to_int(max(1, min($requestedLimit, 100)));
+        }
         $offset = $this->safe_integer($requestParams, 'offset', 0);
         $contract = $this->safe_string($requestParams, 'contract', '');
         $paramsOmitted = $this->omit($requestParams, array( 'limit', 'offset' ));

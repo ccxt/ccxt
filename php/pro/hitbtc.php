@@ -1130,14 +1130,15 @@ class hitbtc extends \ccxt\async\hitbtc {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
-        $data = $this->safe_value($message, 'params', array());
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+        $dataDict = $this->safe_dict($message, 'params');
+        if ($dataDict !== null) {
+            $this->handle_order_helper($client, $message, $dataDict);
+        } else {
+            $data = $this->safe_list($message, 'params', array());
             for ($i = 0; $i < count($data); $i++) {
                 $order = $data[$i];
                 $this->handle_order_helper($client, $message, $order);
             }
-        } else {
-            $this->handle_order_helper($client, $message, $data);
         }
         return $message;
     }
@@ -1553,8 +1554,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         $result = $this->safe_value($message, 'result', array());
         if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
             $parsedOrders = array();
-            for ($i = 0; $i < count($result); $i++) {
-                $parsedOrder = $this->parse_ws_order($result[$i]);
+            $rows = $this->safe_list($message, 'result', array());
+            $rowsLength = count($rows);
+            for ($i = 0; $i < $rowsLength; $i++) {
+                $parsedOrder = $this->parse_ws_order($rows[$i]);
                 $parsedOrders[] = $parsedOrder;
             }
             $client->resolve($parsedOrders, $messageHash);
@@ -1615,7 +1618,8 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
                 $first = $this->safe_dict($result, 0, array());
-                $arrayLength = count($result);
+                $rows = $this->safe_list($message, 'result', array());
+                $arrayLength = count($rows);
                 if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
                 }

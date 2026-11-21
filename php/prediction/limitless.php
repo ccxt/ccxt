@@ -1383,8 +1383,8 @@ class limitless extends Exchange {
          * @see https://docs.limitless.exchange/api-reference/trading/historical-price
          *
          * @param {string} $outcome outcome, e.g. "TRUMP_OUT:YES"
-         * @param {string} $timeframe the length of time each $candle represents
-         * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in $ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
@@ -1500,17 +1500,17 @@ class limitless extends Exchange {
                 $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
                 $bucketOrder[] = $key;
             } else {
-                $candle = $candles[$key];
-                $prevHigh = $this->safe_number($candle, 2);
-                if (($prevHigh === null) || ($pPrice > $prevHigh)) {
-                    $candle[2] = $pPrice;
+                $prevHigh = $this->safe_number($candles[$key], 2, $pPrice);
+                $prevLow = $this->safe_number($candles[$key], 3, $pPrice);
+                $openTs = $this->safe_integer($candles[$key], 0);
+                $openPrice = $this->safe_number($candles[$key], 1);
+                if (($prevHigh !== null) && ($pPrice > $prevHigh)) {
+                    $candles[$key] = array( $openTs, $openPrice, $pPrice, $prevLow, $pPrice, 0 );
+                } elseif (($prevLow !== null) && ($prevLow > $pPrice)) {
+                    $candles[$key] = array( $openTs, $openPrice, $prevHigh, $pPrice, $pPrice, 0 );
+                } else {
+                    $candles[$key] = array( $openTs, $openPrice, $prevHigh, $prevLow, $pPrice, 0 );
                 }
-                $prevLow = $this->safe_number($candle, 3);
-                if (($prevLow === null) || ($prevLow > $pPrice)) {
-                    $candle[3] = $pPrice;
-                }
-                $candle[4] = $pPrice;
-                $candles[$key] = $candle; // php arrays are value types - write the mutation back
             }
         }
         $result = array();

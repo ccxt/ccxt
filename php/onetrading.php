@@ -957,7 +957,7 @@ class onetrading extends Exchange {
         $rawTickers = $this->to_array($response);
         for ($i = 0; $i < count($rawTickers); $i++) {
             $ticker = $this->parse_ticker($rawTickers[$i]);
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;
             }

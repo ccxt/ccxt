@@ -295,12 +295,18 @@ class mudrex extends Exchange {
         $now = $this->seconds();
         $windowLength = $duration * $requestLimit;
         $defaultStart = $now - $windowLength;
-        $startTime = $this->parse_to_int(($since !== null) ? ($since / 1000) : $defaultStart);
+        $startTime = $this->parse_to_int($defaultStart);
+        if ($since !== null) {
+            $startTime = $this->parse_to_int($since / 1000);
+        }
         $windowEnd = $this->parse_to_int($startTime . $duration * $requestLimit);
         $until = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, array( 'price', 'until' ));
         $cappedEnd = ($windowEnd > $now) ? $now : $windowEnd;
-        $endTime = $this->parse_to_int(($until !== null) ? ($until / 1000) : $cappedEnd);
+        $endTime = $this->parse_to_int($cappedEnd);
+        if ($until !== null) {
+            $endTime = $this->parse_to_int($until / 1000);
+        }
         $request['start_time'] = $startTime;
         $request['end_time'] = $endTime;
         if ($priceType === 'mark') {
@@ -432,12 +438,12 @@ class mudrex extends Exchange {
 
     public function fetch_markets($params = array()): array {
         /**
-         * retrieves $data on all markets for the exchange
+         * retrieves data on all markets for the exchange
          *
          * @see https://docs.trade.mudrex.com/docs
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} an array of objects representing market $data
+         * @return {array[]} an array of objects representing market data
          */
         $aggregated = array();
         $offset = 0;
@@ -446,21 +452,21 @@ class mudrex extends Exchange {
         while ($paging) {
             $q = $this->extend(array( 'limit' => $pageLimit, 'offset' => $offset ), $params);
             $response = $this->privateGetFutures($q);
-            $data = $this->safe_value($response, 'data', array());
+            $dataDict = $this->safe_dict($response, 'data');
             $items = array();
-            if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-                $items = $this->safe_list($data, 'items', array());
+            if ($dataDict !== null) {
+                $items = $this->safe_list($dataDict, 'items', array());
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 $itemsLength = count($items);
                 if ($itemsLength === 0) {
-                    $items = $this->safe_list($data, 'results', array());
+                    $items = $this->safe_list($dataDict, 'results', array());
                     $itemsLength = count($items);
                 }
-                if (($itemsLength === 0) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
-                    $items = array( $data );
+                if (($itemsLength === 0) && (is_array($dataDict) && array_key_exists('symbol' ?? '', $dataDict))) {
+                    $items = array( $dataDict );
                 }
             } else {
-                $items = $this->to_array($data);
+                $items = $this->safe_list($response, 'data', array());
             }
             $numItems = count($items);
             if ($numItems === 0) {
@@ -1295,7 +1301,7 @@ class mudrex extends Exchange {
                 $allRows[] = $entry;
                 if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
+                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $this->safe_string($market, 'id'))) {
                         $transactionsCount = $transactionsCount + 1;
                     }
                 }

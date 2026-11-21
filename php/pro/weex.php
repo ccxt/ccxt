@@ -689,7 +689,7 @@ class weex extends \ccxt\async\weex {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0, '');
             $market = $this->market($symbolString);
-            if ($market['type'] !== $firstMarket['type']) {
+            if ($this->safe_string($market, 'type') !== $this->safe_string($firstMarket, 'type')) {
                 throw new BadRequest($this->id . ' ' . $callerMethodName . ' market symbols must be of the same type');
             }
             $symbolString = $this->safe_string($market, 'symbol', '');
@@ -766,7 +766,7 @@ class weex extends \ccxt\async\weex {
             $data = $this->safe_list($symbolsAndTimeframes, $i);
             $symbolString = $this->safe_string($data, 0, '');
             $market = $this->market($symbolString);
-            if ($market['type'] !== $firstMarket['type']) {
+            if ($this->safe_string($market, 'type') !== $this->safe_string($firstMarket, 'type')) {
                 throw new BadRequest($this->id . ' ' . $callerMethodName . ' market symbols must be of the same type');
             }
             $symbolString = $this->safe_string($market, 'symbol', '');
@@ -1176,9 +1176,9 @@ class weex extends \ccxt\async\weex {
         $symbol = $this->safe_string($market, 'symbol');
         if ($symbol !== null) {
             $this->bidsasks[$symbol] = $ticker;
+            $messageHash = 'bidask::' . $symbol;
+            $client->resolve($ticker, $messageHash);
         }
-        $messageHash = 'bidask::' . $symbol;
-        $client->resolve($ticker, $messageHash);
     }
 
     public function parse_ws_bid_ask(array $message, ?array $market = null): array {

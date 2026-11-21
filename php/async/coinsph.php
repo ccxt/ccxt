@@ -691,7 +691,7 @@ class coinsph extends Exchange {
     }
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
-        $hasSymbolParam = (is_array($params) && array_key_exists('symbol' ?? '', $params));
+        $hasSymbolParam = ($this->safe_string($params, 'symbol') !== null);
         $hasSymbolsParam = (is_array($params) && array_key_exists('symbols' ?? '', $params));
         $limit = $this->safe_integer($params, 'limit');
         if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !$hasSymbolParam) {

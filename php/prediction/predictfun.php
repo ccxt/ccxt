@@ -1709,9 +1709,13 @@ class predictfun extends Exchange {
         if ($rawFee !== null) {
             $feeType = $this->safe_string($rawFee, 'type');
             $feeCost = $this->safe_string($rawFee, 'amount');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            $feeCurrency = null;
+            if ($feeType === 'COLLATERAL') {
+                $feeCurrency = 'USDT';
+            }
             $fee = array(
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency' => ($feeType === 'COLLATERAL') ? 'USDT' : null,
+                'currency' => $feeCurrency,
                 'cost' => $this->parse_number(Precise::string_div($feeCost, '1000000000000000000')),
             );
         }
@@ -3831,9 +3835,13 @@ class predictfun extends Exchange {
         $fee = null;
         if ($rawFee !== null) {
             $feeType = $this->safe_string($rawFee, 'type');
+            // a SHARES fee is charged in outcome tokens rather than in collateral
+            $feeCurrency = null;
+            if ($feeType === 'COLLATERAL') {
+                $feeCurrency = 'USDT';
+            }
             $fee = array(
-                // a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency' => ($feeType === 'COLLATERAL') ? 'USDT' : null,
+                'currency' => $feeCurrency,
                 'cost' => $this->parse_number(Precise::string_div($this->safe_string($rawFee, 'amountWei'), '1000000000000000000')),
             );
         }

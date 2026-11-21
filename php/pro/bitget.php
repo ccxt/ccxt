@@ -583,7 +583,8 @@ class bitget extends \ccxt\async\bitget {
             $args['interval'] = $interval;
             $messageHash = 'kline:' . $symbolValue;
         } else {
-            $args['channel'] = 'candle' . $interval;
+            $intervalValue = $this->safe_string($timeframes, $timeframe, '');
+            $args['channel'] = 'candle' . $intervalValue;
             $args['instId'] = $market['id'];
             $messageHash = 'candles:' . $timeframe . ':' . $symbolValue;
         }
@@ -1431,7 +1432,11 @@ class bitget extends \ccxt\async\bitget {
         } else {
             $defaultType = ($posMode !== null) ? 'contract' : 'spot';
         }
-        $marketResolved = $this->safe_market(($market === null) ? $instId : null, $market, null, $defaultType);
+        $instIdResolved = null;
+        if ($market === null) {
+            $instIdResolved = $instId;
+        }
+        $marketResolved = $this->safe_market($instIdResolved, $market, null, $defaultType);
         $timestamp = $this->safe_integer_n($trade, array( 'uTime', 'cTime', 'ts', 'T', 'execTime' ));
         $feeDetail = $this->safe_list($trade, 'feeDetail', array());
         $first = $this->safe_dict($feeDetail, 0);
@@ -1823,7 +1828,8 @@ class bitget extends \ccxt\async\bitget {
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('watchOrders', $paramsInstType);
         if ($marginMode !== null) {
             $instType = 'MARGIN';
-            $messageHash = $messageHash . ':' . $marginMode;
+            $marginModeValue = $marginMode;
+            $messageHash = $messageHash . ':' . $marginModeValue;
             if ($marginMode === 'isolated') {
                 $channel = 'orders-isolated';
             } else {
@@ -2170,8 +2176,8 @@ class bitget extends \ccxt\async\bitget {
         //         "stpMode": "none"
         //     }
         //
-        $isSpot = !(is_array($order) && array_key_exists('posMode' ?? '', $order));
-        $isMargin = (is_array($order) && array_key_exists('loanType' ?? '', $order));
+        $isSpot = ($this->safe_string($order, 'posMode') === null);
+        $isMargin = ($this->safe_string($order, 'loanType') !== null);
         $category = $this->safe_string_lower($order, 'category');
         if ($category === 'spot') {
             $isSpot = true;
@@ -2318,7 +2324,8 @@ class bitget extends \ccxt\async\bitget {
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbolResolved = $this->safe_string($market, 'symbol');
-            $messageHash = $messageHash . ':' . $symbolResolved;
+            $symbolValue = $this->safe_string($market, 'symbol', '');
+            $messageHash = $messageHash . ':' . $symbolValue;
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsMarketType, 'watchMyTrades', 'uta', false);
@@ -2696,7 +2703,7 @@ class bitget extends \ccxt\async\bitget {
                     $account['debt'] = Precise::string_add($borrow, $interest);
                 }
                 $freeQuery = 'available';
-                if (is_array($rawBalance) && array_key_exists('maxTransferOut' ?? '', $rawBalance)) {
+                if ($this->safe_string($rawBalance, 'maxTransferOut') !== null) {
                     $freeQuery = 'maxTransferOut';
                 }
                 $account['free'] = $this->safe_string($rawBalance, $freeQuery);

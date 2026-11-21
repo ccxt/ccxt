@@ -2791,10 +2791,16 @@ class polymarket extends Exchange {
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, $config = array()) {
         if ($path === 'account/orders') {
-            return (is_array($params) && array_key_exists('order_id' ?? '', $params)) ? 1 : 10;
+            if ($this->safe_string($params, 'order_id') !== null) {
+                return 1;
+            }
+            return 10;
         }
         if ($path === 'account/open-orders') {
-            return (is_array($params) && array_key_exists('instrument_id' ?? '', $params)) ? 1 : 20;
+            if ($this->safe_string($params, 'instrument_id') !== null) {
+                return 1;
+            }
+            return 20;
         }
         if (($path === 'trade/orders') || ($path === 'trade/orders-coid')) {
             $op = $this->safe_dict($params, 'op', array());

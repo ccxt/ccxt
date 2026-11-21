@@ -673,7 +673,7 @@ class foxbit extends Exchange {
             $entry = $data[$i];
             $marketId = $this->safe_string($entry, 'market_symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = $this->parse_trading_fee($entry, $market);
         }
         return $result;

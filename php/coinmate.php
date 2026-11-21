@@ -452,7 +452,7 @@ class coinmate extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_dict($balances, $currencyId);
+            $balance = $this->safe_dict($balances, $currencyId, array());
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'reserved');
@@ -538,7 +538,7 @@ class coinmate extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_ticker($data, $market);
     }
 
@@ -1242,7 +1242,7 @@ class coinmate extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOrderById($this->extend($request, $params));
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data, $market);
     }
 
@@ -1270,7 +1270,7 @@ class coinmate extends Exchange {
         //        }
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_order($data);
     }
 

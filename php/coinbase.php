@@ -622,8 +622,8 @@ class coinbase extends Exchange {
         $cursor = $this->safe_string($pagination, 'next_starting_after');
         $accounts = $this->safe_list($response, 'data', array());
         $length = count($accounts);
-        $lastIndex = $length - 1;
-        if (($cursor !== null) && ($cursor !== '')) {
+        if (($length > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $length - 1;
             $accounts[$lastIndex] = $this->extend($this->safe_dict($accounts, $lastIndex, array()), array( 'next_starting_after' => $cursor ));
         }
         return $this->parse_accounts($data, $paramsPaginate);

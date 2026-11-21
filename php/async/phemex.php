@@ -730,7 +730,8 @@ class phemex extends Exchange {
         if ($settleId !== $quoteId) {
             $inverse = true;
             // some unhandled cases
-            if (!(is_array($market) && array_key_exists('baseCurrency' ?? '', $market)) && $base === $quote) {
+            $marketBaseCurrency = $this->safe_string($market, 'baseCurrency');
+            if (($marketBaseCurrency === null) && $base === $quote) {
                 $base = $settle;
             }
         }
@@ -2813,7 +2814,11 @@ class phemex extends Exchange {
             }
             $request['qtyType'] = $qtyType;
             if ($qtyType === 'ByQuote') {
-                $cost = $this->safe_number($orderParams, 'cost');
+                $costParam = $this->safe_number($orderParams, 'cost');
+                $cost = $amount;
+                if ($costParam !== null) {
+                    $cost = $this->safe_number($orderParams, 'cost');
+                }
                 $orderParams = $this->omit($orderParams, 'cost');
                 if ($this->safe_bool($this->options, 'createOrderByQuoteRequiresPrice', false)) {
                     if ($price !== null) {
@@ -2821,11 +2826,10 @@ class phemex extends Exchange {
                         $priceString = $this->number_to_string($price);
                         $quoteAmount = Precise::string_mul($amountString, $priceString);
                         $cost = $this->parse_number($quoteAmount);
-                    } elseif ($cost === null) {
+                    } elseif ($costParam === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a price argument or a cost parameter');
                     }
                 }
-                $cost = ($cost === null) ? $amount : $cost;
                 $costString = $this->cost_to_precision($symbol, $cost);
                 $request['quoteQtyEv'] = $this->to_ev($costString, $market);
             } else {

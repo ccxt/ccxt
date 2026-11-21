@@ -602,7 +602,7 @@ class woofipro extends \ccxt\async\woofipro {
         //
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($trade, 'executedPrice', 'price');
         $amount = $this->safe_string_2($trade, 'executedQuantity', 'size');
         $cost = Precise::string_mul($price, $amount);
@@ -893,7 +893,7 @@ class woofipro extends \ccxt\async\woofipro {
         $orderId = $this->safe_string($order, 'orderId');
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->market($marketId);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($order, 'timestamp');
         $fee = array(
             'cost' => $this->safe_string($order, 'totalFee'),
@@ -1211,7 +1211,7 @@ class woofipro extends \ccxt\async\woofipro {
             $position = $this->parse_ws_position($rawPosition, $market);
             $newPositions[] = $position;
             $cache->append($position);
-            $positionSymbol = $market['symbol'];
+            $positionSymbol = $this->safe_string($market, 'symbol', '');
             $messageHash = 'positions::' . $positionSymbol;
             $client->resolve($position, $messageHash);
         }

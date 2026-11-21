@@ -774,8 +774,8 @@ class polymarket extends Exchange {
             // Build outcomes array
             $outcomes = array();
             for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
-                $outcomeLabel = $outcomeLabels[$oi];
-                $clobTokenId = $clobTokenIds[$oi];
+                $outcomeLabel = $this->safe_string($outcomeLabels, $oi);
+                $clobTokenId = $this->safe_string($clobTokenIds, $oi);
                 $outcomePrice = $this->safe_number($outcomePrices, $oi);
                 if (($clobTokenId === null) || ($clobTokenId === '')) {
                     continue;
@@ -1098,7 +1098,7 @@ class polymarket extends Exchange {
             }
             $bookParams = array();
             for ($i = $startIndex; $i < $endIndex; $i++) {
-                $bookParams[] = array( 'token_id' => $tokenIds[$i] );
+                $bookParams[] = array( 'token_id' => $this->safe_string($tokenIds, $i) );
             }
             $promises = array(
                 $this->clobPublicPostBooks($bookParams),
@@ -2620,9 +2620,11 @@ class polymarket extends Exchange {
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
             // the single behaviour definition
-            $effectiveParams = $this->extend(array(), $params);
-            $effectiveParams['status'] = $this->safe_string($params, 'status', 'active');
-            $effectiveParams['searchIn'] = $this->safe_string($params, 'searchIn', 'title');
+            $defaults = array(
+                'status' => $this->safe_string($params, 'status', 'active'),
+                'searchIn' => $this->safe_string($params, 'searchIn', 'title'),
+            );
+            $effectiveParams = $this->extend($params, $defaults);
         }
         return $this->apply_event_fetch_params($result, $effectiveParams, $queries);
     }
@@ -3379,8 +3381,8 @@ class polymarket extends Exchange {
             'outcomeId' => $this->safe_string($market, 'outcomeId'),
             'label' => $this->safe_string($market, 'label'),
             'market' => $this->safe_string($market, 'market'),
-            'timestamp' => $orderbook['timestamp'],
-            'datetime' => $orderbook['datetime'],
+            'timestamp' => $this->safe_integer($orderbook, 'timestamp'),
+            'datetime' => $this->safe_string($orderbook, 'datetime'),
             'high' => null,
             'low' => null,
             'bid' => $bestBid,

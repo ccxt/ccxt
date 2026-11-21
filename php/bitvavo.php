@@ -2572,7 +2572,7 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if ((is_array($transaction) && array_key_exists('success' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('address' ?? '', $transaction))) {
+        if (($this->safe_bool($transaction, 'success') !== null) || ($this->safe_string($transaction, 'address') !== null)) {
             $type = 'withdrawal';
         } else {
             $type = 'deposit';

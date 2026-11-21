@@ -2538,10 +2538,7 @@ class pacifica extends Exchange {
         $dataLength = count($data);
         if ($hasMore) {
             if (($paginationCursor !== null) && ($dataLength > 0)) {
-                $first = $data[0];
-                $first['next_cursor'] = $paginationCursor;
-                $first['has_more'] = $hasMore;
-                $data[0] = $first;
+                $data[0] = $this->extend($data[0], array( 'next_cursor' => $paginationCursor, 'has_more' => $hasMore ));
             }
         }
         return $data;

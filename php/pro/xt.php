@@ -413,7 +413,7 @@ class xt extends \ccxt\async\xt {
         }
         $market = null;
         if ($symbols !== null) {
-            $market = $this->market($symbols[0]);
+            $market = $this->market($this->safe_string($symbols, 0));
         }
         if ($name !== null) {
             $tickers = Async\await($this->subscribe($name, 'public', 'watchTickers', $market, $symbols, $params));
@@ -1397,7 +1397,7 @@ class xt extends \ccxt\async\xt {
         //
         $marketId = $this->safe_string($trade, 's');
         $tradeType = 'spot';
-        if (is_array($trade) && array_key_exists('symbol' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'symbol') !== null) {
             $tradeType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $tradeType);
@@ -1468,7 +1468,7 @@ class xt extends \ccxt\async\xt {
         //
         $marketId = $this->safe_string_2($order, 's', 'symbol');
         $tradeType = 'spot';
-        if (is_array($order) && array_key_exists('symbol' ?? '', $order)) {
+        if ($this->safe_string($order, 'symbol') !== null) {
             $tradeType = 'contract';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $tradeType);

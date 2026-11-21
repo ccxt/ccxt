@@ -1366,7 +1366,7 @@ class kraken extends Exchange {
         $items = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $ledger[$key];
+            $value = $this->extend(array(), $ledger[$key]);
             $value['id'] = $key;
             $items[] = $value;
         }
@@ -1397,7 +1397,7 @@ class kraken extends Exchange {
         $items = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $result[$key];
+            $value = $this->extend(array(), $result[$key]);
             $value['id'] = $key;
             $items[] = $value;
         }
@@ -1483,7 +1483,7 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        $isOrderTrade = ((gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade)))) && (gettype($trade) !== 'string') && (is_array($trade) && array_key_exists('ordertxid' ?? '', $trade));
+        $isOrderTrade = ((gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade)))) && (gettype($trade) !== 'string') && ($this->safe_string($trade, 'ordertxid') !== null);
         $marketResolved = $market;
         if ($isOrderTrade) {
             $marketResolved = $this->resolve_market_by_altname_or_id($this->safe_string($trade, 'pair'), $market);
@@ -1508,13 +1508,11 @@ class kraken extends Exchange {
             $type = $this->safe_string($trade, 'ordertype');
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'vol');
-            if (is_array($trade) && array_key_exists('fee' ?? '', $trade)) {
-                $currency = null;
-                if ($marketResolved !== null) {
-                    $currency = $this->safe_string($marketResolved, 'quote');
-                }
+            $tradeFee = $this->safe_string($trade, 'fee');
+            if ($tradeFee !== null) {
+                $currency = $this->safe_string($marketResolved, 'quote');
                 $fee = array(
-                    'cost' => $this->safe_string($trade, 'fee'),
+                    'cost' => $tradeFee,
                     'currency' => $currency,
                 );
             }
@@ -1527,8 +1525,9 @@ class kraken extends Exchange {
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'qty');
         }
-        if ($marketResolved !== null) {
-            $symbol = $this->safe_string($marketResolved, 'symbol');
+        $resolvedSymbol = $this->safe_string($marketResolved, 'symbol');
+        if ($resolvedSymbol !== null) {
+            $symbol = $resolvedSymbol;
         }
         $cost = $this->safe_string($trade, 'cost');
         $maker = $this->safe_bool($trade, 'maker');
@@ -1790,8 +1789,8 @@ class kraken extends Exchange {
             $orderSymbols[] = $marketId;
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $parsedAmount = $this->amount_to_precision($market['symbol'], $amount);
             $req = array(
@@ -2051,7 +2050,9 @@ class kraken extends Exchange {
             if ($part4 === 'limit' || $part4 === 'market') {
                 $descriptionType = $part4; // eg, limit, market
             } else {
-                $descriptionType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
+                $part4String = $this->safe_string($parts, 4, '');
+                $part5String = $this->safe_string($parts, 5, '');
+                $descriptionType = $part4String . ' ' . $part5String; // eg. stop loss, take profit, trailing stop
             }
             // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
             if (($part4 === 'stop' && $part5 === 'loss') || ($part4 === 'take' && $part5 === 'profit')) {
@@ -2097,8 +2098,8 @@ class kraken extends Exchange {
         $average = $this->safe_number($orderOmitted, 'price');
         if ($marketResolved !== null) {
             $symbol = $this->safe_string($marketResolved, 'symbol');
-            if (is_array($orderOmitted) && array_key_exists('fee' ?? '', $orderOmitted)) {
-                $feeCost = $this->safe_string($orderOmitted, 'fee');
+            $feeCost = $this->safe_string($orderOmitted, 'fee');
+            if ($feeCost !== null) {
                 $fee = array(
                     'cost' => $feeCost,
                     'rate' => null,
@@ -2257,7 +2258,11 @@ class kraken extends Exchange {
             }
             $trailingAmountString = ($trailingAmount !== null) ? '+' . $trailingAmount : null; // must use + for this
             $offset = $this->safe_string($paramsOmitted2, 'offset', '-'); // can use + or - for this
-            $trailingLimitAmountString = ($trailingLimitAmount !== null) ? $offset . $this->number_to_string($trailingLimitAmount) : null;
+            $trailingLimitAmountString = null;
+            if ($trailingLimitAmount !== null) {
+                $limitAmountString = $this->number_to_string($trailingLimitAmount);
+                $trailingLimitAmountString = $offset . $limitAmountString;
+            }
             $trailingActivationPriceType = $this->safe_string($paramsOmitted2, 'trigger', 'last');
             $request['trigger'] = $trailingActivationPriceType;
             if ($isLimitOrder || ($trailingLimitAmount !== null) || ($trailingLimitPercent !== null)) {
@@ -2289,11 +2294,11 @@ class kraken extends Exchange {
         $rawClose = $this->safe_dict($paramsOmitted2, 'close');
         if ($rawClose !== null) {
             $close = $this->extend(array(), $rawClose);
-            $closePrice = $this->safe_value($close, 'price');
+            $closePrice = $this->safe_string($close, 'price');
             if ($closePrice !== null) {
                 $close['price'] = $this->price_to_precision($symbol, $closePrice);
             }
-            $closePrice2 = $this->safe_value($close, 'price2'); // stopPrice
+            $closePrice2 = $this->safe_string($close, 'price2'); // stopPrice
             if ($closePrice2 !== null) {
                 $close['price2'] = $this->price_to_precision($symbol, $closePrice2);
             }
@@ -2539,10 +2544,14 @@ class kraken extends Exchange {
             //
             $rawTrades = $this->safe_value($response, 'result');
             $ids = is_array($rawTrades) ? array_keys($rawTrades) : array();
+            $rawTradesWithIds = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $rawTrades[$ids[$i]]['id'] = $ids[$i];
+                $rawTradeId = $ids[$i];
+                $rawTradeWithId = $this->extend(array(), $rawTrades[$rawTradeId]);
+                $rawTradeWithId['id'] = $rawTradeId;
+                $rawTradesWithIds[$rawTradeId] = $rawTradeWithId;
             }
-            $trades = $this->parse_trades($rawTrades, null, $since, $limit);
+            $trades = $this->parse_trades($this->to_array($rawTradesWithIds), null, $since, $limit);
             $tradesFilteredBySymbol = $this->filter_by_symbol($trades, $symbolResolved);
             $result = $this->array_concat($result, $tradesFilteredBySymbol);
         }
@@ -2644,14 +2653,18 @@ class kraken extends Exchange {
         $tradesResult = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_dict($tradesResult, 'trades', array());
         $ids = is_array($trades) ? array_keys($trades) : array();
+        $tradesWithIds = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $trades[$ids[$i]]['id'] = $ids[$i];
+            $tradeId = $ids[$i];
+            $tradeWithId = $this->extend(array(), $trades[$tradeId]);
+            $tradeWithId['id'] = $tradeId;
+            $tradesWithIds[$tradeId] = $tradeWithId;
         }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $tradesList = $this->to_array($trades);
+        $tradesList = $this->to_array($tradesWithIds);
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
@@ -3269,11 +3282,11 @@ class kraken extends Exchange {
         //     }
         //
         $rawWithdrawals = array();
-        $result = $this->safe_value($response, 'result');
-        if ((gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result)))) {
-            $rawWithdrawals = $this->add_pagination_cursor_to_result($result);
+        $resultList = $this->safe_list($response, 'result');
+        if ($resultList !== null) {
+            $rawWithdrawals = $resultList;
         } else {
-            $rawWithdrawals = $this->safe_list($response, 'result', array());
+            $rawWithdrawals = $this->add_pagination_cursor_to_result($this->safe_dict($response, 'result', array()));
         }
         return $this->parse_transactions_by_type('withdrawal', $rawWithdrawals, $code, $since, $limit);
     }
@@ -3283,7 +3296,7 @@ class kraken extends Exchange {
         $data = $this->safe_list($result, 'withdrawals', array());
         $dataLength = count($data);
         if ($cursor !== null && $dataLength > 0) {
-            $last = $data[$dataLength - 1];
+            $last = $this->extend(array(), $data[$dataLength - 1]);
             $last['next_cursor'] = $cursor;
             $data[$dataLength - 1] = $last;
         }
@@ -3788,8 +3801,8 @@ class kraken extends Exchange {
                     }
                 }
                 // handleCreateOrdersErrors:
-                if (is_array($response) && array_key_exists('result' ?? '', $response)) {
-                    $result = $this->safe_dict($response, 'result', array());
+                $result = $this->safe_dict($response, 'result');
+                if ($result !== null) {
                     if (is_array($result) && array_key_exists('orders' ?? '', $result)) {
                         $orders = $this->safe_list($result, 'orders', array());
                         for ($i = 0; $i < count($orders); $i++) {

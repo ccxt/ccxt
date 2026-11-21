@@ -1291,7 +1291,7 @@ class aster extends Exchange {
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = 'spot';
-        if (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) {
+        if ($this->safe_string($trade, 'positionSide') !== null) {
             $marketType = 'swap';
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
@@ -1592,12 +1592,12 @@ class aster extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
-        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange' ?? '', $ticker));
+        $isTickerResponse = ($this->safe_string($ticker, 'priceChange') !== null);
         $marketType = null;
         if ($isTickerResponse) {
-            $marketType = (is_array($ticker) && array_key_exists('baseAsset' ?? '', $ticker)) ? 'spot' : 'swap';
+            $marketType = ($this->safe_string($ticker, 'baseAsset') !== null) ? 'spot' : 'swap';
         } else {
-            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId' ?? '', $ticker)) ? 'swap' : 'spot';
+            $marketType = ($this->safe_integer($ticker, 'lastUpdateId') !== null) ? 'swap' : 'spot';
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
@@ -3768,7 +3768,7 @@ class aster extends Exchange {
         $contractSize = $this->safe_number($marketResolved, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // as oppose to notionalValue
-        $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
+        $linear = ($this->safe_string($position, 'notional') !== null);
         if ($marginMode === 'cross') {
             // calculate collateral
             $precision = $this->safe_dict($marketResolved, 'precision', array());

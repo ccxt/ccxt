@@ -3874,16 +3874,15 @@ class hashkey extends Exchange {
                 $type = 'limit';
             }
         }
-        $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = null;
-        list($type, $timeInForce, $postOnly) = $this->parse_order_type_time_in_force_and_post_only($type, $timeInForce);
+        $rawTimeInForce = $this->safe_string($order, 'timeInForce');
+        $timeInForce = $this->parse_order_time_in_force_value($type, $rawTimeInForce);
+        $typeParsed = $this->parse_order_type($type);
         $average = $this->omit_zero($this->safe_string($order, 'avgPrice'));
         if ($price === null) {
             $price = $average;
         }
-        $side = $this->safe_string_lower($order, 'side');
-        $reduceOnly = null;
-        list($side, $reduceOnly) = $this->parse_order_side_and_reduce_only($side);
+        $rawSide = $this->safe_string_lower($order, 'side');
+        $side = $this->parse_order_side_value($rawSide);
         $feeCurrncyId = $this->safe_string($order, 'feeCoin');
         if ($feeCurrncyId === '') {
             $feeCurrncyId = null;
@@ -3897,7 +3896,7 @@ class hashkey extends Exchange {
             'lastUpdateTimestamp' => $this->safe_integer($order, 'updateTime'),
             'status' => $this->parse_order_status($status),
             'symbol' => $marketResolved['symbol'],
-            'type' => $type,
+            'type' => $typeParsed,
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
@@ -3914,23 +3913,31 @@ class hashkey extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrncyId),
                 'cost' => $this->omit_zero($this->safe_string($order, 'feeAmount')),
             ),
-            'reduceOnly' => $reduceOnly,
-            'postOnly' => $postOnly,
+            'reduceOnly' => $this->parse_order_reduce_only_value($rawSide),
+            'postOnly' => $this->parse_order_post_only_value($type, $rawTimeInForce),
             'info' => $order,
         ), $marketResolved);
     }
 
-    public function parse_order_side_and_reduce_only(mixed $unparsed) {
-        $parts = explode('_', $unparsed);
-        $side = $parts[0];
-        $secondPart = $this->safe_string($parts, 1);
+    public function parse_order_side_value(?string $unparsed): ?string {
+        if ($unparsed === null) {
+            return null;
+        }
+        return $this->safe_string(explode('_', $unparsed), 0);
+    }
+
+    public function parse_order_reduce_only_value(?string $unparsed): ?bool {
+        if ($unparsed === null) {
+            return null;
+        }
+        $secondPart = $this->safe_string(explode('_', $unparsed), 1);
         if ($secondPart === 'open') {
-            return array( $side, false );
+            return false;
         }
         if ($secondPart === 'close') {
-            return array( $side, true );
+            return true;
         }
-        return array( $side, null );
+        return null;
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -3948,17 +3955,20 @@ class hashkey extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type_time_in_force_and_post_only(?string $type, ?string $timeInForce): array {
+    public function parse_order_time_in_force_value(?string $type, ?string $timeInForce): ?string {
         $isMakerTimeInForce = ($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER');
-        $timeInForceParsed = $timeInForce;
         if (($type !== 'LIMIT_MAKER') && $isMakerTimeInForce) {
-            $timeInForceParsed = 'PO';
+            return 'PO';
         }
-        $typeValue = $this->parse_order_type($type);
+        return $timeInForce;
+    }
+
+    public function parse_order_post_only_value(?string $type, ?string $timeInForce): ?bool {
+        $isMakerTimeInForce = ($timeInForce === 'LIMIT_MAKER') || ($timeInForce === 'MAKER');
         if (($type === 'LIMIT_MAKER') || $isMakerTimeInForce) {
-            return array( $typeValue, $timeInForceParsed, true );
+            return true;
         }
-        return array( $typeValue, $timeInForceParsed, null );
+        return null;
     }
 
     public function parse_order_type(?string $type): ?string {
@@ -4156,7 +4166,8 @@ class hashkey extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        return Async\await($this->fetch_positions_for_symbol($symbols[0], $this->extend(array( 'methodName' => 'fetchPositions' ), $params)));
+        $firstSymbol = $this->safe_string($symbols, 0, '');
+        return Async\await($this->fetch_positions_for_symbol($firstSymbol, $this->extend(array( 'methodName' => 'fetchPositions' ), $params)));
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array()): PromiseInterface {
@@ -4682,7 +4693,8 @@ class hashkey extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $fee = $this->safe_dict($data, $i, array());
             $parsedFee = $this->parse_trading_fee($fee);
-            $result[$parsedFee['symbol']] = $parsedFee;
+            $feeSymbol = $this->safe_string($parsedFee, 'symbol', '');
+            $result[$feeSymbol] = $parsedFee;
         }
         return $result;
     }

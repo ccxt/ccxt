@@ -875,11 +875,11 @@ class woofipro extends Exchange {
         //         "is_maker": "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
+        $isFromFetchOrder = ($this->safe_string($trade, 'id') !== null);
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($trade, 'executed_price');
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
@@ -1789,7 +1789,7 @@ class woofipro extends Exchange {
         $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'client_order_id', 'clientOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($order, 'order_price', 'price');
         $amount = $this->safe_string_2($order, 'order_quantity', 'quantity'); // This is base amount
         $cost = $this->safe_string_2($order, 'order_amount', 'amount'); // This is quote amount

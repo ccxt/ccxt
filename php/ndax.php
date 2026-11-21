@@ -2666,7 +2666,7 @@ class ndax extends Exchange {
         if ($template === null) {
             throw new ExchangeError($this->id . ' withdraw() could not find a withdraw template for ' . $currency['code']);
         }
-        $withdrawTemplate = json_decode($template, $as_associative_array = true);
+        $withdrawTemplate = $this->extend(array(), json_decode($template, $as_associative_array = true));
         $withdrawTemplate['ExternalAddress'] = $address;
         if ($tagWithdrawTag !== null) {
             if (is_array($withdrawTemplate) && array_key_exists('Memo' ?? '', $withdrawTemplate)) {

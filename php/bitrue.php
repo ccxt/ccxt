@@ -3405,9 +3405,11 @@ class bitrue extends Exchange {
     }
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
+        $paramsSymbol = $this->safe_string($params, 'symbol');
+        $paramsLimit = $this->safe_string($params, 'limit');
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && ($paramsSymbol === null)) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && ($paramsLimit !== null)) {
             $limit = $this->safe_integer($params, 'limit');
             $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {

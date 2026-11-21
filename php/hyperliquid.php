@@ -1547,14 +1547,18 @@ class hyperliquid extends Exchange {
             }
         }
         $paramsOmitted = $this->omit($params, array( 'until' ));
+        $req = array(
+            'coin' => $market['id'],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            'startTime' => $startTime,
+            'endTime' => $until,
+        );
+        if ($this->safe_bool($market, 'swap', false)) {
+            $req['coin'] = $this->safe_string($market, 'baseName');
+        }
         $request = array(
             'type' => 'candleSnapshot',
-            'req' => array(
-                'coin' => ($this->safe_bool($market, 'swap', false)) ? $this->safe_string($market, 'baseName') : $market['id'],
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                'startTime' => $startTime,
-                'endTime' => $until,
-            ),
+            'req' => $req,
         );
         $candlesResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
         $candles = $this->info_list($candlesResponse);
@@ -2284,7 +2288,7 @@ class hyperliquid extends Exchange {
         $ordersToBeParsed = array();
         for ($i = 0; $i < count($statuses); $i++) {
             $order = $statuses[$i];
-            if ($order === 'waitingForTrigger') {
+            if ($this->safe_string($statuses, $i) === 'waitingForTrigger') {
                 $ordersToBeParsed[] = array( 'status' => $order ); // tp/sl orders can return a string like "waitingForTrigger",
             } else {
                 $ordersToBeParsed[] = $order;
@@ -4371,14 +4375,18 @@ class hyperliquid extends Exchange {
             $destinationDex = $this->safe_string($paramsSendAsset, 'destinationDex', $defaultDex);
             $sendAssetPayload = array(
                 'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
-                'destination' => ($isDeposit) ? $subAccountAddress : $masterAddress,
+                'destination' => $masterAddress,
                 'sourceDex' => $sourceDex,
                 'destinationDex' => $destinationDex,
                 'token' => $sendAssetToken,
                 'amount' => $this->number_to_string($amount),
-                'fromSubAccount' => ($isDeposit) ? '' : $subAccountAddress,
+                'fromSubAccount' => $subAccountAddress,
                 'nonce' => $nonce,
             );
+            if ($isDeposit) {
+                $sendAssetPayload['destination'] = $subAccountAddress;
+                $sendAssetPayload['fromSubAccount'] = '';
+            }
             $sendAssetSig = $this->build_send_asset_sig($sendAssetPayload);
             $sendAssetRequest = array(
                 'action' => array(
@@ -5270,8 +5278,8 @@ class hyperliquid extends Exchange {
     }
 
     public function calculate_rate_limiter_cost(array $api, string $method, string $path, $params, array $config = array()) {
-        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
-            $type = $params['type'];
+        $type = $this->safe_string($params, 'type');
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && ($type !== null)) {
             $byType = $this->safe_dict($config, 'byType', array());
             if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                 return $byType[$type];

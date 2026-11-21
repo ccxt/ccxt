@@ -279,7 +279,8 @@ class apex extends \ccxt\async\apex {
         $client = $this->client($url);
         $newTopics = array();
         for ($i = 0; $i < count($topics); $i++) {
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i] ?? '', $client->subscriptions))) {
+            $messageHash = $this->safe_string($messageHashes, $i, '');
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                 $newTopics[] = $topics[$i];
             }
         }

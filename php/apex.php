@@ -892,7 +892,10 @@ class apex extends Exchange {
         $request = array(
             'symbol' => $this->safe_string($market, 'id2'),
         );
-        $request['limit'] = ($limit === null) ? 100 : $limit; // max 100, default 100
+        $request['limit'] = 100; // max 100, default 100
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->publicGetV3Depth($this->extend($request, $params));
         //
         // {
@@ -1291,7 +1294,7 @@ class apex extends Exchange {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
                     for ($i = 0; $i < $numMarkets; $i++) {
-                        if (($i === 0) && ($markets[$i]['id2'] === $marketId)) {
+                        if (($i === 0) && ($this->safe_string($markets[$i], 'id2') === $marketId)) {
                             $marketResolved = $markets[$i];
                         }
                     }

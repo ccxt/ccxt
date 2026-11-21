@@ -965,7 +965,10 @@ class bit2me extends Exchange {
         } else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $end = ($until !== null) ? $until : $this->milliseconds();
+            $end = $this->milliseconds();
+            if ($until !== null) {
+                $end = $until;
+            }
             $request['startTime'] = $end - $requestLimit * $duration;
         }
         if ($until !== null) {
@@ -1169,7 +1172,11 @@ class bit2me extends Exchange {
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             $stopLossLimit = $stopLimitPrice;
             if ($stopLossLimit === null) {
-                $stopLossLimit = ($price !== null) ? $this->number_to_string($price) : $stopLossPrice;
+                if ($price !== null) {
+                    $stopLossLimit = $this->number_to_string($price);
+                } else {
+                    $stopLossLimit = $stopLossPrice;
+                }
             }
             $request['stopLimitPrice'] = $this->price_to_precision($symbol, $stopLossLimit);
         } elseif ($isMarketOrder) {

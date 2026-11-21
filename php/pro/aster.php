@@ -927,11 +927,12 @@ class aster extends \ccxt\async\aster {
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
         $orderId = $this->safe_string($trade, 'i');
-        if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
+        $isMaker = $this->safe_bool($trade, 'm');
+        if ($isMaker !== null) {
             if ($side === null) {
-                $side = ($this->safe_bool($trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = $isMaker ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($this->safe_bool($trade, 'm', false)) ? 'maker' : 'taker';
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');

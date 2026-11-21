@@ -1652,10 +1652,7 @@ class revolutx extends Exchange {
                 return null;
             }
             $feedback = $this->id . ' ' . $body;
-            $errorMessage = null;
-            if (gettype($response) === 'array') {
-                $errorMessage = $this->safe_string_2($response, 'message', 'error');
-            }
+            $errorMessage = $this->safe_string_2($response, 'message', 'error');
             if ($errorMessage !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
             }

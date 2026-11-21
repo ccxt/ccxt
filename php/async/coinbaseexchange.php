@@ -1369,7 +1369,10 @@ class coinbaseexchange extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'until' ));
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        $cappedLimit = $this->parse_to_int(($limit === null) ? 300 : min($limit, 300));
+        $cappedLimit = 300;
+        if ($limit !== null) {
+            $cappedLimit = $this->parse_to_int(min($limit, 300));
+        }
         $limitResolved = ($since !== null) ? $cappedLimit : $limit;
         if ($since !== null) {
             $request['start'] = $this->iso8601($since);
@@ -2094,12 +2097,14 @@ class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            $response = $this->to_array($transfers);
-            for ($i = 0; $i < count($response); $i++) {
-                $account_id = $this->safe_string($response[$i], 'account_id');
+            $transferRows = $this->to_array($transfers);
+            $response = array();
+            for ($i = 0; $i < count($transferRows); $i++) {
+                $row = $this->extend(array(), $transferRows[$i]);
+                $account_id = $this->safe_string($row, 'account_id');
                 $account = $this->safe_dict($this->accountsById, $account_id);
-                $codeInner = $this->safe_string($account, 'code');
-                $response[$i]['currency'] = $codeInner;
+                $row['currency'] = $this->safe_string($account, 'code');
+                $response[] = $row;
             }
         } else {
             $accountTransfers = Async\await($this->privateGetAccountsIdTransfers($this->extend($request, $params)));
@@ -2129,9 +2134,12 @@ class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            $response = $this->to_array($accountTransfers);
-            for ($i = 0; $i < count($response); $i++) {
-                $response[$i]['currency'] = $code;
+            $transferRows = $this->to_array($accountTransfers);
+            $response = array();
+            for ($i = 0; $i < count($transferRows); $i++) {
+                $row = $this->extend(array(), $transferRows[$i]);
+                $row['currency'] = $code;
+                $response[] = $row;
             }
         }
         return $this->parse_transactions($response, $currency, $since, $limit);

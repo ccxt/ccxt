@@ -938,7 +938,7 @@ class blofin extends \ccxt\async\blofin {
                 $channel = $channelName;
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
+                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
                     $channel = $channel . $interval;
                 } else {
@@ -997,7 +997,7 @@ class blofin extends \ccxt\async\blofin {
             $market = $this->market($this->safe_string($symbols, $i));
             $channel = $channelName;
             if ($isOHLCV) {
-                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
+                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1, '');
                 $interval = $this->safe_string($this->timeframes, $tf, $tf);
                 $channel = $channel . $interval;
             }

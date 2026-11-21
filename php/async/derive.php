@@ -1616,7 +1616,7 @@ class derive extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tradesArray); $i++) {
             $rawTrade = $tradesArray[$i];
-            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $isFetchTrades = ($this->safe_string($rawTrade, 'order_id') === null);
             $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
             if ($isFetchTrades && ($liquidityRole === 'maker')) {
                 // skip maker trades

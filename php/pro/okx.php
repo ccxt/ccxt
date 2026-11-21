@@ -2051,7 +2051,7 @@ class okx extends \ccxt\async\okx {
             $market = $this->market($symbol);
             $symbolResolved = $market['symbol'];
             $type = $this->safe_string($market, 'type');
-            $messageHash = $messageHash . '::' . $symbolResolved;
+            $messageHash = $messageHash . '::' . $this->safe_string($market, 'symbol', '');
         }
         if ($type === 'future') {
             $type = 'futures';
@@ -2119,7 +2119,10 @@ class okx extends \ccxt\async\okx {
             $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbolsNormalized, $this->extend($request, $params)));
         }
         if ($this->newUpdates) {
-            return ($newPositions === null) ? array() : $newPositions;
+            if ($newPositions === null) {
+                return array();
+            }
+            return $newPositions;
         }
         return $this->filter_by_symbols_since_limit($this->positions, $symbolsNormalized, $since, $limit, true);
     }

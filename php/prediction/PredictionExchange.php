@@ -172,7 +172,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $sort = $this->safe_string($params, 'sort');
         if ($sort !== null) {
-            $sortKey = null;
+            $sortKey = '';
             if ($sort === 'volume') {
                 $sortKey = 'volume';
             } elseif ($sort === 'liquidity') {
@@ -180,7 +180,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             } elseif ($sort === 'newest') {
                 $sortKey = 'created';
             }
-            if ($sortKey !== null) {
+            if ($sortKey !== '') {
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
@@ -195,9 +195,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             $resultLength = count($result);
-            $sliceEnd = $limit;
-            if ($sliceEnd > $resultLength) {
-                $sliceEnd = $resultLength;
+            $limitValue = $this->safe_integer($params, 'limit', 0);
+            $sliceEnd = $resultLength;
+            if ($limitValue < $resultLength) {
+                $sliceEnd = $limitValue;
             }
             $result = $this->array_slice($result, 0, $sliceEnd);
         }

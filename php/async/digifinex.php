@@ -1384,7 +1384,11 @@ class digifinex extends Exchange {
         $amountString = $this->safe_string_n($trade, array( 'amount', 'volume', 'size' ));
         $marketId = $this->safe_string_upper_2($trade, 'symbol', 'instrument_id');
         $symbol = $this->safe_symbol($marketId, $market);
-        $marketResolved = $this->safe_market(($market === null) ? $marketId : null, $market);
+        $marketIdResolved = null;
+        if ($market === null) {
+            $marketIdResolved = $marketId;
+        }
+        $marketResolved = $this->safe_market($marketIdResolved, $market);
         $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $type = null;

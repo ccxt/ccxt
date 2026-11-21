@@ -556,7 +556,8 @@ class paradex extends \ccxt\async\paradex {
         $messageHash = 'trades.ALL';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = 'trades.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $messageHash = 'trades.' . $marketId;
         }
         $url = $this->get_ws_url();
         Async\await($this->wait_for_pending_unsubscribe($url, array( $messageHash )));
@@ -600,7 +601,8 @@ class paradex extends \ccxt\async\paradex {
         $channels = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $market = $this->market($symbolsNormalized[$i]);
-            $channels[] = 'trades.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $channels[] = 'trades.' . $marketId;
         }
         $url = $this->get_ws_url();
         // handleTrade resolves the channel of each market
@@ -656,7 +658,8 @@ class paradex extends \ccxt\async\paradex {
         $channels = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($symbolsNormalized[$i]);
-            $channels[] = 'trades.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $channels[] = 'trades.' . $marketId;
         }
         // the watchers of a market wait on its channel
         return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'trades', $channels, $channels, $symbolsNormalized, $params));
@@ -682,7 +685,8 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $channel = 'trades.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $channel = 'trades.' . $marketId;
         $messageHash = 'liquidations:' . $market['symbol'];
         $url = $this->get_ws_url();
         $liquidations = Async\await($this->subscribe_channels($url, array( $messageHash ), array( $channel ), $params));
@@ -1011,7 +1015,7 @@ class paradex extends \ccxt\async\paradex {
             if (($stored === null) || !(is_array($client->subscriptions) && array_key_exists($deltasChannel ?? '', $client->subscriptions))) {
                 return;
             }
-            $storedNonce = $stored['nonce'];
+            $storedNonce = $this->safe_integer($stored, 'nonce');
             // no book to apply it to: before the first snapshot, and between a resync and its snapshot
             if (($storedNonce === null) || ($nonce === null) || ($nonce <= $storedNonce)) {
                 return;
@@ -1297,7 +1301,8 @@ class paradex extends \ccxt\async\paradex {
         $pendingHashes = array( $channel, $channel . ':scoped' );
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $this->market($symbols[$i]);
-            $pendingHashes[] = $channel . '.' . $market['id'];
+            $pendingId = $this->safe_string($market, 'id', '');
+            $pendingHashes[] = $channel . '.' . $pendingId;
         }
         Async\await($this->wait_for_pending_unsubscribe($url, $pendingHashes));
         $client = $this->client($url);
@@ -1413,7 +1418,8 @@ class paradex extends \ccxt\async\paradex {
         if ($symbolsLength > 0) {
             for ($i = 0; $i < $symbolsLength; $i++) {
                 $market = $this->market(($symbolsNormalized)[$i]);
-                $channels[] = 'bbo.' . $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
+                $channels[] = 'bbo.' . $marketId;
                 $messageHashes[] = 'bidask:' . $market['symbol'];
             }
         } else {
@@ -1457,7 +1463,8 @@ class paradex extends \ccxt\async\paradex {
         if ($symbolsLength > 0) {
             for ($i = 0; $i < $symbolsLength; $i++) {
                 $market = $this->market(($symbolsNormalized)[$i]);
-                $channels[] = 'bbo.' . $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
+                $channels[] = 'bbo.' . $marketId;
                 $subMessageHashes[] = 'bidask:' . $market['symbol'];
                 $bidAskSymbols[] = $market['symbol'];
             }
@@ -1538,7 +1545,8 @@ class paradex extends \ccxt\async\paradex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel = 'orders.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $channel = 'orders.' . $marketId;
             $messageHash = 'orders:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
@@ -1625,7 +1633,8 @@ class paradex extends \ccxt\async\paradex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel = 'fills.' . $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
+            $channel = 'fills.' . $marketId;
             $messageHash = 'myTrades:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
@@ -1947,7 +1956,8 @@ class paradex extends \ccxt\async\paradex {
         }
         $market = $this->market($symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        $channel = 'funding_data.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $channel = 'funding_data.' . $marketId;
         $url = $this->get_ws_url();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         $messageHash = 'fundingRate:' . $market['symbol'];
@@ -1972,7 +1982,8 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $channel = 'funding_data.' . $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
+        $channel = 'funding_data.' . $marketId;
         $messageHash = 'fundingRate:' . $market['symbol'];
         return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'fundingRate', array( $channel ), array( $messageHash ), array( $market['symbol'] ), $params));
     }
@@ -2389,16 +2400,22 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $isSnapshot = ($pkgType === 0);
-        return array(
+        $result = array(
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
             'market' => $this->safe_string($strings, 0),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
             'update_type' => ($isSnapshot) ? 's' : 'd',
-            'inserts' => ($isSnapshot) ? $levels : array(),
+            'inserts' => array(),
             // a delta does not tell an insert from an update, a removal is a size of 0 among them
-            'updates' => ($isSnapshot) ? array() : $levels,
+            'updates' => array(),
             'deletes' => array(),
         );
+        if ($isSnapshot) {
+            $result['inserts'] = $levels;
+        } else {
+            $result['updates'] = $levels;
+        }
+        return $result;
     }
 
     public function parse_sbe_market_summary(Client $client, string $frameHex, float $blockLength, float $frameLength): ?array {
@@ -2536,8 +2553,9 @@ class paradex extends \ccxt\async\paradex {
         $bits = $this->parse_to_int($this->sbe_read_uint($frameHex, $offset, 1));
         for ($i = 0; $i < count($names); $i++) {
             $bit = $this->parse_to_int(fmod($bits, 2));
-            if (($bit === 1) && ($names[$i] !== '')) {
-                $flags[] = $names[$i];
+            $name = $this->safe_string($names, $i, '');
+            if (($bit === 1) && ($name !== '')) {
+                $flags[] = $name;
             }
             $bits = $this->parse_to_int($bits / 2);
         }

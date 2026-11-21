@@ -232,7 +232,7 @@ class bybit extends \ccxt\async\bybit {
                 $url = $accessibilityUrls['spot'];
             } elseif (($type === 'swap') || ($type === 'future')) {
                 $subType = $this->handle_sub_type_and_params($methodValue, $market, $params, 'linear')[0];
-                $url = $accessibilityUrls[$subType];
+                $url = $this->safe_string($accessibilityUrls, $subType);
             } else {
                 // option
                 $url = $accessibilityUrls['option'];

@@ -739,8 +739,8 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
-        $price = $this->safe_value($delta, 1);
-        $amount = $this->safe_value($delta, 2);
+        $price = $this->safe_number($delta, 1);
+        $amount = $this->safe_number($delta, 2);
         $action = $this->safe_string($delta, 0);
         if ($action === 'new' || $action === 'change') {
             $bookside->storeArray(array( $price, $amount, 1 ));

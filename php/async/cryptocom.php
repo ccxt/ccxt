@@ -2726,7 +2726,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
+        if ($this->safe_string($transaction, 'client_wid') !== null) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {
