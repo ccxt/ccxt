@@ -421,11 +421,11 @@
         ],
         "fetchPoolComments": [
             {
-                "description": "fetchPoolComments LaunchLab forum comments",
+                "description": "fetchPoolComments for a LaunchLab pool, captured live on devnet",
                 "method": "fetchPoolComments",
-                "url": "https://launch-forum-v1.raydium.io/comment/pool?poolId=AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+                "url": "https://launch-forum-v1.raydium.io/comment/pool?poolId=4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
                 "input": [
-                    "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J"
+                    "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on"
                 ],
                 "output": null
             }
@@ -566,6 +566,139 @@
                     "txVersion": "V0",
                     "computeUnitPriceMicroLamports": "0"
                 }
+            }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "createConvertTrade broadcasts the signed swap transaction over Solana JSON-RPC, quote and unsigned transaction captured live from the mainnet route API",
+                "method": "createConvertTrade",
+                "url": "https://api.mainnet-beta.solana.com/",
+                "input": [
+                    "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                    "WSOL",
+                    "RAY",
+                    0.001,
+                    {
+                        "swapResponse": {
+                            "id": "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                            "success": true,
+                            "version": "V1",
+                            "data": {
+                                "swapType": "BaseIn",
+                                "inputMint": "So11111111111111111111111111111111111111112",
+                                "inputAmount": "1000000",
+                                "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                "outputAmount": "54210",
+                                "otherAmountThreshold": "53938",
+                                "slippageBps": 50,
+                                "priceImpactPct": 0,
+                                "referrerAmount": "0",
+                                "actualInputAmount": "1000000",
+                                "routePlan": [
+                                    {
+                                        "poolId": "8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj",
+                                        "inputMint": "So11111111111111111111111111111111111111112",
+                                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeMint": "So11111111111111111111111111111111111111112",
+                                        "feeRate": 1,
+                                        "feeAmount": "100",
+                                        "remainingAccounts": [
+                                            "Fth4eqBTFwRSDmJnD6K4k3BbFz5ZoncstwzZNqMeXneX"
+                                        ],
+                                        "lastPoolPriceX64": "4786491366915518750"
+                                    },
+                                    {
+                                        "poolId": "7DFVkReyQT52W1ocZ6Xuva1QSqa6KeGuk9boGALi9C4H",
+                                        "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeRate": 10,
+                                        "feeAmount": "68",
+                                        "remainingAccounts": [
+                                            "7zaL5NPKUgFuQovWRhYYTCrWHMFNEFFHFDRh4GemMdbp"
+                                        ],
+                                        "lastPoolPriceX64": "20546260898635224133"
+                                    }
+                                ]
+                            }
+                        },
+                        "signedTransaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQADC9LPDae9Jt3Gppp8DowagQxNKA1bx5E3DFQzjSG6PQ++ZrbXOaxZDfPzwiczhmRnuocspH+RTtHaeMJMNvCz7p+lqbd4qj0QCDCoAMSKWj7LgqaD5ahXR+chWYB+8D4bKPqzMC11FM4YsZdgpPdTks8KpDoEvocUSq80kf564XqkgW5mYww7tyTcWeSfbMQwbmA6aqzKBvo+NOK0CtWXnY3dQYmemHYvCy8XXftPHIHNzQEDa80YydK3J4f95dke1L8DJCoVzhgtPsS2nZZjsBGIZgnU0QpMv+2MnRsnKwdpZ+XpqwKTMEUiVhd/3MJvoehxtD+kTZ/YtmYN56v5YDMMwoDLa+MZLFA4OAHPRDAYD54/hmMiOsgBBpcQ2/fVBwVKU1qZKSEGTSTocWDaOHx8NbXdvJK7geQfqEBBBUSNAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAABimjc+Mo6qHKzkfhglwlLVLY2XsOg2y1UinpNOCfBw5AQIBgABCxgZGgkFQEIPAAAAAAAIHxgbGRoAAQIcAwsMBA0ODxAJEQUcAgwSBhMUFRYJFwcRAEBCDwAAAAAAstIAAAAAAAAIBgABABgZGgEGCgAFAsBcFQADGY8fTDpFImPUE7LNF+vLwaDliHNk5iYaEqgXkuoWWj4ABQIHAAMQVWSoAFUnNo24UIeBcJII+ztQuiG2ju0xA/+LSGiFrXAIEALFyMnKyzoAgc7Lw2FFrVxg6la4jxuYr9rHibi5CT6S2ShlZ73CNcYFhoqJi4wA",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"sendTransaction\",\"params\":[\"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQADC9LPDae9Jt3Gppp8DowagQxNKA1bx5E3DFQzjSG6PQ++ZrbXOaxZDfPzwiczhmRnuocspH+RTtHaeMJMNvCz7p+lqbd4qj0QCDCoAMSKWj7LgqaD5ahXR+chWYB+8D4bKPqzMC11FM4YsZdgpPdTks8KpDoEvocUSq80kf564XqkgW5mYww7tyTcWeSfbMQwbmA6aqzKBvo+NOK0CtWXnY3dQYmemHYvCy8XXftPHIHNzQEDa80YydK3J4f95dke1L8DJCoVzhgtPsS2nZZjsBGIZgnU0QpMv+2MnRsnKwdpZ+XpqwKTMEUiVhd/3MJvoehxtD+kTZ/YtmYN56v5YDMMwoDLa+MZLFA4OAHPRDAYD54/hmMiOsgBBpcQ2/fVBwVKU1qZKSEGTSTocWDaOHx8NbXdvJK7geQfqEBBBUSNAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAABimjc+Mo6qHKzkfhglwlLVLY2XsOg2y1UinpNOCfBw5AQIBgABCxgZGgkFQEIPAAAAAAAIHxgbGRoAAQIcAwsMBA0ODxAJEQUcAgwSBhMUFRYJFwcRAEBCDwAAAAAAstIAAAAAAAAIBgABABgZGgEGCgAFAsBcFQADGY8fTDpFImPUE7LNF+vLwaDliHNk5iYaEqgXkuoWWj4ABQIHAAMQVWSoAFUnNo24UIeBcJII+ztQuiG2ju0xA/+LSGiFrXAIEALFyMnKyzoAgc7Lw2FFrVxg6la4jxuYr9rHibi5CT6S2ShlZ73CNcYFhoqJi4wA\",{\"encoding\":\"base64\"}]}"
+            }
+        ],
+        "submitPool": [
+            {
+                "description": "submitPool relays the signed LaunchLab mint-creation transaction, transaction captured live from a devnet launch",
+                "method": "submitPool",
+                "url": "https://launch-mint-v1.raydium.io/create/sendTransaction",
+                "input": [
+                    {
+                        "transaction": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"txs\":[\"AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ\"]}"
+            }
+        ],
+        "createPoolMetadata": [
+            {
+                "description": "createPoolMetadata request shape only, the live endpoint is browser-only, it requires a Cloudflare Turnstile cfToken and a binary image upload so no live response exists",
+                "method": "createPoolMetadata",
+                "url": "https://launch-mint-v1.raydium.io/create/mint-info",
+                "input": [
+                    {
+                        "mint": "H8r98chJQQZP3aAk7KhRaTASH6unDQSicowKkwM262wM",
+                        "name": "Test Token",
+                        "symbol": "TST",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                        "rayToken": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+                    }
+                ],
+                "output": "{\"mint\":\"H8r98chJQQZP3aAk7KhRaTASH6unDQSicowKkwM262wM\",\"name\":\"Test Token\",\"symbol\":\"TST\",\"wallet\":\"FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq\"}"
+            }
+        ],
+        "requestRaydiumToken": [
+            {
+                "description": "requestRaydiumToken signed login message, captured live on devnet",
+                "method": "requestRaydiumToken",
+                "url": "https://launch-auth-v1.raydium.io/request-token",
+                "input": [
+                    {
+                        "time": 1795250031,
+                        "signature": "KZiqZCJwvFCmAZNfG2H9USzyMskijmBpL5WYXkwBndYk2AUKDFHwxvif8p7gA2UqpE1zGByD1sQnoxeG6mdtvmh",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": "{\"time\":1795250031,\"signature\":\"KZiqZCJwvFCmAZNfG2H9USzyMskijmBpL5WYXkwBndYk2AUKDFHwxvif8p7gA2UqpE1zGByD1sQnoxeG6mdtvmh\",\"wallet\":\"FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq\"}"
+            }
+        ],
+        "fetchRaydiumTokenStatus": [
+            {
+                "description": "fetchRaydiumTokenStatus token validation, captured live on devnet",
+                "method": "fetchRaydiumTokenStatus",
+                "url": "https://launch-auth-v1.raydium.io/check-token?token=fade8cea-bccd-4b91-8423-4e02a34b3e3d&wallet=FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                "input": [
+                    {
+                        "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchClmmLimitOrder": [
+            {
+                "description": "fetchClmmLimitOrder queries the active order list first, request test only because no wallet with a live CLMM limit order is available for a response capture",
+                "method": "fetchClmmLimitOrder",
+                "url": "https://temp-api-v1.raydium.io/limit-order/order/list?wallet=FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                "input": [
+                    "orderId",
+                    "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                ],
+                "output": null
             }
         ]
     }

@@ -6866,6 +6866,227 @@
                     }
                 ]
             }
+        ],
+        "createConvertTrade": [
+            {
+                "description": "createConvertTrade RPC broadcast, quote captured live from the mainnet route API and the sendTransaction result captured live on devnet",
+                "method": "createConvertTrade",
+                "input": [
+                    "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                    "WSOL",
+                    "RAY",
+                    0.001,
+                    {
+                        "swapResponse": {
+                            "id": "520f4fc9-0014-4f9f-b8b3-fadd242ddc9d",
+                            "success": true,
+                            "version": "V1",
+                            "data": {
+                                "swapType": "BaseIn",
+                                "inputMint": "So11111111111111111111111111111111111111112",
+                                "inputAmount": "1000000",
+                                "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                "outputAmount": "54210",
+                                "otherAmountThreshold": "53938",
+                                "slippageBps": 50,
+                                "priceImpactPct": 0,
+                                "referrerAmount": "0",
+                                "actualInputAmount": "1000000",
+                                "routePlan": [
+                                    {
+                                        "poolId": "8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj",
+                                        "inputMint": "So11111111111111111111111111111111111111112",
+                                        "outputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeMint": "So11111111111111111111111111111111111111112",
+                                        "feeRate": 1,
+                                        "feeAmount": "100",
+                                        "remainingAccounts": [
+                                            "Fth4eqBTFwRSDmJnD6K4k3BbFz5ZoncstwzZNqMeXneX"
+                                        ],
+                                        "lastPoolPriceX64": "4786491366915518750"
+                                    },
+                                    {
+                                        "poolId": "7DFVkReyQT52W1ocZ6Xuva1QSqa6KeGuk9boGALi9C4H",
+                                        "inputMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "outputMint": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+                                        "feeMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                                        "feeRate": 10,
+                                        "feeAmount": "68",
+                                        "remainingAccounts": [
+                                            "7zaL5NPKUgFuQovWRhYYTCrWHMFNEFFHFDRh4GemMdbp"
+                                        ],
+                                        "lastPoolPriceX64": "20546260898635224133"
+                                    }
+                                ]
+                            }
+                        },
+                        "signedTransaction": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQADC9LPDae9Jt3Gppp8DowagQxNKA1bx5E3DFQzjSG6PQ++ZrbXOaxZDfPzwiczhmRnuocspH+RTtHaeMJMNvCz7p+lqbd4qj0QCDCoAMSKWj7LgqaD5ahXR+chWYB+8D4bKPqzMC11FM4YsZdgpPdTks8KpDoEvocUSq80kf564XqkgW5mYww7tyTcWeSfbMQwbmA6aqzKBvo+NOK0CtWXnY3dQYmemHYvCy8XXftPHIHNzQEDa80YydK3J4f95dke1L8DJCoVzhgtPsS2nZZjsBGIZgnU0QpMv+2MnRsnKwdpZ+XpqwKTMEUiVhd/3MJvoehxtD+kTZ/YtmYN56v5YDMMwoDLa+MZLFA4OAHPRDAYD54/hmMiOsgBBpcQ2/fVBwVKU1qZKSEGTSTocWDaOHx8NbXdvJK7geQfqEBBBUSNAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAABimjc+Mo6qHKzkfhglwlLVLY2XsOg2y1UinpNOCfBw5AQIBgABCxgZGgkFQEIPAAAAAAAIHxgbGRoAAQIcAwsMBA0ODxAJEQUcAgwSBhMUFRYJFwcRAEBCDwAAAAAAstIAAAAAAAAIBgABABgZGgEGCgAFAsBcFQADGY8fTDpFImPUE7LNF+vLwaDliHNk5iYaEqgXkuoWWj4ABQIHAAMQVWSoAFUnNo24UIeBcJII+ztQuiG2ju0xA/+LSGiFrXAIEALFyMnKyzoAgc7Lw2FFrVxg6la4jxuYr9rHibi5CT6S2ShlZ73CNcYFhoqJi4wA",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": "r2zdWc2YcYRgwsHM8ztUnqgkrEhr4oHsTYQYif2bGAj2J93PXerxXnt5PKz2NkSsaGu3R2dwhVYmZc2uJL8Pjzy",
+                    "id": 1
+                },
+                "parsedResponse": {
+                    "info": {
+                        "jsonrpc": "2.0",
+                        "result": "r2zdWc2YcYRgwsHM8ztUnqgkrEhr4oHsTYQYif2bGAj2J93PXerxXnt5PKz2NkSsaGu3R2dwhVYmZc2uJL8Pjzy",
+                        "id": 1
+                    },
+                    "id": "r2zdWc2YcYRgwsHM8ztUnqgkrEhr4oHsTYQYif2bGAj2J93PXerxXnt5PKz2NkSsaGu3R2dwhVYmZc2uJL8Pjzy",
+                    "fromCurrency": "WSOL",
+                    "fromAmount": 0.001,
+                    "toCurrency": "RAY",
+                    "toAmount": 0.05421,
+                    "price": 54.21,
+                    "fee": null
+                }
+            }
+        ],
+        "submitPool": [
+            {
+                "description": "submitPool relay co-sign and RPC broadcast, both responses captured live on devnet",
+                "method": "submitPool",
+                "input": [
+                    {
+                        "transaction": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "create/sendTransaction": {
+                        "id": "5cc1e060-43c0-49fb-813d-d0d6ceb4786a",
+                        "success": true,
+                        "data": {
+                            "tx": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IARH+CzQDVFP2Tn33fRty8Bl6D7FAPjqFhxcIJPADwX0+jDIMCiqyWeKwdsVZID6IyH6GiX3tQ5IbyxTVyDQjWQPgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ"
+                        }
+                    },
+                    "solana.com": {
+                        "jsonrpc": "2.0",
+                        "result": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ",
+                        "id": 1
+                    }
+                },
+                "parsedResponse": {
+                    "tx": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IARH+CzQDVFP2Tn33fRty8Bl6D7FAPjqFhxcIJPADwX0+jDIMCiqyWeKwdsVZID6IyH6GiX3tQ5IbyxTVyDQjWQPgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ",
+                    "signature": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ",
+                    "id": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ",
+                    "poolId": null,
+                    "owner": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                    "info": {
+                        "tx": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IARH+CzQDVFP2Tn33fRty8Bl6D7FAPjqFhxcIJPADwX0+jDIMCiqyWeKwdsVZID6IyH6GiX3tQ5IbyxTVyDQjWQPgAIAAwnSzw2nvSbdxqaafA6MGoEMTSgNW8eRNwxUM40huj0Pvu+9npZH3i7AkYZ8JLjboISbEVhxjkinIc06E9WK6HzMBoQfuD2/waFeCP2rxNwhsy4uYQx0zp4IlOuK6xjRasEwcQQEKgpcGT4NDVY1UOJsAhBzKiXSzaeCC2LG21TRd0/NfddNH7PV+0F77gXocMiGFvlmpZekWPYGuW0tgthzmoL/K0oWKniv3Yi9IDAMZoyof3rxgsBLjSoS45J2fY24mJbg8CKCAdZjAz4NnpoxO0KbH0p3fXx1lRJ6qKa3cRN00GabUs/s0uyZ7amErqMsDlm2pWG7zkYrGLyDNg17Oe+i7eXTBlYDzxuRb+E3WM+7Jz6FxsT3qV6zMk5ar0PGbXnEAPFYOzzzkOKVC4qei35z7n5p1t1kFzNAHFPkjQEGEgAACQcKAgELAwQFDAwNDg8IBqUBQ5mvJ9oQJiAGCgAAAFRlc3QgVG9rZW4DAAAAVFNUUAAAAGh0dHBzOi8vaXBmcy5pby9pcGZzL2JhZmtyZWlhdXJubWEzeGY0ZnduY3dlYjNwcTZ1a3dxYWZkaWFobml4ZmdmaHhjcmwyaDZybmc3Z3g0AACAxqR+jQMAAHjF+1HRAgAAEmXKEwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcTrsmxH1X0mdqMX8KwrApwkEJMpr5lIg+vhgWoCNV5OAAclJh0VHBQZ",
+                        "signature": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ"
+                    }
+                }
+            }
+        ],
+        "fetchPoolComments": [
+            {
+                "description": "fetchPoolComments with one comment, captured live on devnet",
+                "method": "fetchPoolComments",
+                "input": [
+                    "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on"
+                ],
+                "httpResponse": {
+                    "id": "191377d3-f976-4255-9a11-3692aff3fd5f",
+                    "success": true,
+                    "data": [
+                        {
+                            "id": "275",
+                            "poolId": "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
+                            "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                            "text": "test comment",
+                            "createAt": "2026-11-21T08:34:02.922Z"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "275",
+                        "poolId": "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                        "text": "test comment",
+                        "createAt": "2026-11-21T08:34:02.922Z"
+                    }
+                ]
+            }
+        ],
+        "createPoolComment": [
+            {
+                "description": "createPoolComment submission, captured live on devnet",
+                "method": "createPoolComment",
+                "input": [
+                    {
+                        "poolId": "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
+                        "text": "test comment",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+                        "rayToken": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "5fd1f051-6992-4205-81de-0ba8d9929b3f",
+                    "success": true,
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "status": "OK",
+                    "info": {
+                        "id": "5fd1f051-6992-4205-81de-0ba8d9929b3f",
+                        "success": true,
+                        "data": "OK"
+                    }
+                }
+            }
+        ],
+        "requestRaydiumToken": [
+            {
+                "description": "requestRaydiumToken issues a forum JWT, captured live on devnet",
+                "method": "requestRaydiumToken",
+                "input": [
+                    {
+                        "time": 1795250031,
+                        "signature": "KZiqZCJwvFCmAZNfG2H9USzyMskijmBpL5WYXkwBndYk2AUKDFHwxvif8p7gA2UqpE1zGByD1sQnoxeG6mdtvmh",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "04324125-3c00-46eb-900f-0571dec0099b",
+                    "success": true,
+                    "data": {
+                        "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+                    }
+                },
+                "parsedResponse": {
+                    "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+                }
+            }
+        ],
+        "fetchRaydiumTokenStatus": [
+            {
+                "description": "fetchRaydiumTokenStatus valid token, captured live on devnet",
+                "method": "fetchRaydiumTokenStatus",
+                "input": [
+                    {
+                        "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d",
+                        "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq"
+                    }
+                ],
+                "httpResponse": {
+                    "id": "2c690476-d29e-4299-a944-45908fc4f2b8",
+                    "success": true,
+                    "data": "OK"
+                },
+                "parsedResponse": {
+                    "status": "OK",
+                    "info": {
+                        "id": "2c690476-d29e-4299-a944-45908fc4f2b8",
+                        "success": true,
+                        "data": "OK"
+                    }
+                }
+            }
         ]
     }
 }

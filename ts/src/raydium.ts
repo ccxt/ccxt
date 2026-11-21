@@ -1,4 +1,4 @@
-import Exchange from './abstract/raydium.js';
+﻿import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -65,6 +65,7 @@ export default class raydium extends Exchange {
                     'dynamic': 'https://dynamic-ipfs.raydium.io',
                     'temp': 'https://temp-api-v1.raydium.io',
                     'perps': 'https://api-perps-v1.raydium.io',
+                    'rpc': 'https://api.mainnet-beta.solana.com',
                 },
                 'test': {
                     'apiV3': 'https://api-v3-devnet.raydium.io',
@@ -76,6 +77,7 @@ export default class raydium extends Exchange {
                     'owner': 'https://owner-v1-devnet.raydium.io',
                     'dynamic': 'https://dynamic-ipfs-devnet.raydium.io',
                     'temp': 'https://temp-api-v1-devnet.raydium.io',
+                    'rpc': 'https://api.devnet.solana.com',
                 },
                 'www': 'https://raydium.io',
                 'doc': [
@@ -205,6 +207,13 @@ export default class raydium extends Exchange {
                             'main/rpcs',
                             'main/availability-check',
                             'pool/default-list',
+                        ],
+                    },
+                },
+                'rpc': {
+                    'public': {
+                        'post': [
+                            '',
                         ],
                     },
                 },
@@ -673,6 +682,12 @@ export default class raydium extends Exchange {
      * @returns {object} common pool transaction result retaining venue-specific data
      */
     parsePoolSubmission (submission: Dict, wallet: Str = undefined): Dict {
+        //
+        //     {
+        //         "tx": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAR...clJh0VHBQZ",
+        //         "signature": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ"
+        //     }
+        //
         const info = this.safeDict (submission, 'info', submission);
         const signature = this.safeString2 (submission, 'signature', 'transactionId', this.safeString (submission, 'txid'));
         return this.extend (submission, {
@@ -2311,7 +2326,6 @@ export default class raydium extends Exchange {
             throw new BadRequest (this.id + ' fetchLiquidity() params.type must be stake or clmm-lock');
         }
         if (this.safeBool (response, 'success') === false) {
-            // the owner API answers success false when a wallet has no positions
             return [];
         }
         //
@@ -2346,7 +2360,6 @@ export default class raydium extends Exchange {
         //
         const result: Dict[] = [];
         if (kind === 'clmm-lock') {
-            // the clmm-lock endpoint nests positions by pool id and position nft mint
             const data = this.safeDict (response, 'data', {});
             const dataPoolIds = Object.keys (data);
             for (let i = 0; i < dataPoolIds.length; i++) {
@@ -2901,8 +2914,9 @@ export default class raydium extends Exchange {
     /**
      * @method
      * @name raydium#createConvertTrade
-     * @description submits a caller-signed Raydium swap transaction
+     * @description broadcasts a caller-signed Raydium swap transaction through a Solana JSON-RPC node
      * @see https://docs.raydium.io/api-reference/route-api-v2/overview.md
+     * @see https://solana.com/docs/rpc/http/sendtransaction
      * @param {string} id quote id returned by fetchConvertQuote
      * @param {string} fromCode currency code or mint address converted from
      * @param {string} toCode currency code or mint address converted to
@@ -2912,7 +2926,6 @@ export default class raydium extends Exchange {
      * @param {string} params.signedTransaction base64-encoded transaction signed by the wallet
      * @param {string} [params.wallet] wallet public key that signed the transaction
      * @param {string} [params.owner] alias for wallet
-     * @param {int} [params.priorityFee] priority fee override in micro-lamports
      * @returns {object} a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure) with the submitted signature
      */
     override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
@@ -2944,18 +2957,23 @@ export default class raydium extends Exchange {
             throw new ExchangeError (this.id + ' createConvertTrade() quote is missing token amounts or decimal metadata');
         }
         const request: Dict = {
-            'transaction': signedTransaction,
-            'wallet': wallet,
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'sendTransaction',
+            'params': [ signedTransaction, { 'encoding': 'base64' } ],
         };
-        const priorityFee = this.safeInteger (params, 'priorityFee');
-        if (priorityFee !== undefined) {
-            request['priorityFee'] = priorityFee;
-        }
-        const response = await this.launchMintPublicPostCreateSendTransaction (request);
-        const submission = this.extractObject (response);
-        const signature = this.safeString (submission, 'signature');
+        const response = await this.rpcPublicPost (request);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": "r2zdWc2YcYRgwsHM8ztUnqgkrEhr4oHsTYQYif2bGAj2J93PXerxXnt5PKz2NkSsaGu3R2dwhVYmZc2uJL8Pjzy",
+        //         "id": 1
+        //     }
+        //
+        const signature = this.safeString (response, 'result');
         if (signature === undefined) {
-            throw new ExchangeError (this.id + ' createConvertTrade() response is missing transaction signature');
+            const rpcError = this.safeDict (response, 'error', {});
+            throw new ExchangeError (this.id + ' createConvertTrade() broadcast failed: ' + this.safeString (rpcError, 'message', 'unknown RPC error'));
         }
         const fromAmount = Precise.stringMul (inputAmount, this.parsePrecision (this.numberToString (fromDecimals)));
         const toAmount = Precise.stringMul (outputAmount, this.parsePrecision (this.numberToString (toDecimals)));
@@ -2974,7 +2992,7 @@ export default class raydium extends Exchange {
     /**
      * @method
      * @name raydium#buildConversionTransaction
-     * @description builds unsigned token conversion transactions from a Raydium quote
+     * @description builds unsigned token conversion transactions from a Raydium quote, the transaction API returns a list with one entry per transaction to sign
      * @see https://docs.raydium.io/api-reference/route-api-v2/overview.md
      * @param {object} params transaction construction parameters
      * @param {object} params.swapResponse full raw response from fetchConvertQuote.info
@@ -3015,19 +3033,18 @@ export default class raydium extends Exchange {
         //         ]
         //     }
         //
-        // the transaction API returns a list with one entry per transaction to sign
         return this.extractRows (response);
     }
 
     /**
      * @method
      * @name raydium#submitPool
-     * @description submits a caller-signed Raydium transaction through the LaunchLab relay
+     * @description submits a caller-signed LaunchLab mint-creation transaction, the LaunchLab relay co-signs with the server-held mint key and the co-signed transaction is then broadcast through a Solana JSON-RPC node, the transaction must create a mint previously registered through the LaunchLab mint-info flow
      * @see https://docs.raydium.io/api-reference/launch-mint-v1/overview.md
+     * @see https://solana.com/docs/rpc/http/sendtransaction
      * @param {object} params signed transaction and its wallet
      * @param {string} params.transaction base64-encoded signed Solana transaction
      * @param {string} params.wallet wallet public key that signed the transaction
-     * @param {int} [params.priorityFee] optional priority fee override in micro-lamports
      * @returns {object} submission result including the transaction signature
      */
     override async submitPool (params: Dict = {}): Promise<Dict> {
@@ -3037,21 +3054,50 @@ export default class raydium extends Exchange {
             throw new ArgumentsRequired (this.id + ' submitPool() requires params.transaction and params.wallet or params.owner');
         }
         const request: Dict = {
-            'transaction': transaction,
-            'wallet': wallet,
+            'txs': [ transaction ],
         };
-        const priorityFee = this.safeInteger (params, 'priorityFee');
-        if (priorityFee !== undefined) {
-            request['priorityFee'] = priorityFee;
-        }
         const response = await this.launchMintPublicPostCreateSendTransaction (request);
-        return this.parsePoolSubmission (this.extractObject (response), wallet);
+        //
+        //     {
+        //         "id": "29c6f9c1-7f55-4ac3-b925-71e5a6f0f679",
+        //         "success": true,
+        //         "data": {
+        //             "tx": "AlbqBt4v2rky0reo9vRXXRe6VrcQBLJOg3Mntqc3GXhZtO5uSwS8Z02s8wjsaC/vEGFON/z/B4u+9ic4tWJ6IAR...clJh0VHBQZ"
+        //         }
+        //     }
+        //
+        const submission = this.extractObject (response);
+        const cosigned = this.safeString (submission, 'tx');
+        if (cosigned === undefined) {
+            throw new ExchangeError (this.id + ' submitPool() relay response is missing the co-signed transaction');
+        }
+        const rpcRequest: Dict = {
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'sendTransaction',
+            'params': [ cosigned, { 'encoding': 'base64', 'skipPreflight': true } ],
+        };
+        const rpcResponse = await this.rpcPublicPost (rpcRequest);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "result": "2jnbgCvrtJbdQBLAJfpuALJJKXhpYvG3fQdNa3fYjWhM8XogAmDKFKmh3MnHY8ErQmMeRfjeZY1cbfaPv91nVuTZ",
+        //         "id": 1
+        //     }
+        //
+        const signature = this.safeString (rpcResponse, 'result');
+        if (signature === undefined) {
+            const rpcError = this.safeDict (rpcResponse, 'error', {});
+            throw new ExchangeError (this.id + ' submitPool() broadcast failed: ' + this.safeString (rpcError, 'message', 'unknown RPC error'));
+        }
+        submission['signature'] = signature;
+        return this.parsePoolSubmission (submission, wallet);
     }
 
     /**
      * @method
      * @name raydium#createPoolMetadata
-     * @description registers off-chain metadata for a LaunchLab mint
+     * @description registers off-chain metadata for a LaunchLab mint, this endpoint is effectively browser-only, it requires a Cloudflare Turnstile token and a binary image upload through the Raydium web UI and cannot be completed through this method alone
      * @see https://docs.raydium.io/api-reference/launch-mint-v1/overview.md
      * @param {object} params metadata including mint, name, symbol, and wallet
      * @param {string} params.mint on-chain mint address
@@ -3209,7 +3255,6 @@ export default class raydium extends Exchange {
         const quoteId = parts[2];
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        // This statistics endpoint does not provide contract size, precision, limits, or trading status.
         return this.safeMarketStructure ({
             'info': market,
             'id': marketId,
@@ -3525,7 +3570,6 @@ export default class raydium extends Exchange {
         //     }
         //
         if (this.safeBool (response, 'success') === false) {
-            // the owner API answers success false when a wallet has no created pools
             return [];
         }
         return this.extractRows (response);
@@ -3549,7 +3593,6 @@ export default class raydium extends Exchange {
         //     }
         //
         if (this.safeBool (response, 'success') === false) {
-            // the owner API answers success false when a wallet has no IDO positions
             return [];
         }
         return this.extractRows (response);
@@ -4001,6 +4044,21 @@ export default class raydium extends Exchange {
      */
     async fetchPoolComments (poolId: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.launchForumPublicGetCommentPool (this.extend ({ 'poolId': poolId }, params));
+        //
+        //     {
+        //         "id": "191377d3-f976-4255-9a11-3692aff3fd5f",
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": "275",
+        //                 "poolId": "4MmrqRfyadwcfXgeu6Cig9NZPYiHahoUfnA7VCvhh3on",
+        //                 "wallet": "FBujfQRRe1AdFyXzBc8fAGe9zfNbtT7AWjHdr2v7Rteq",
+        //                 "text": "test comment",
+        //                 "createAt": "2026-11-21T08:34:02.922Z"
+        //             }
+        //         ]
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -4014,7 +4072,7 @@ export default class raydium extends Exchange {
      * @param {string} params.text comment text
      * @param {string} params.wallet commenter wallet public key
      * @param {string} params.rayToken JWT returned by requestRaydiumToken
-     * @returns {object} comment submission response
+     * @returns {object} comment submission status and the raw response
      */
     async createPoolComment (params: Dict = {}): Promise<Dict> {
         const poolId = this.safeString (params, 'poolId');
@@ -4023,11 +4081,20 @@ export default class raydium extends Exchange {
         if (poolId === undefined || text === undefined || wallet === undefined) {
             throw new ArgumentsRequired (this.id + ' createPoolComment() requires params.poolId, params.text, and params.wallet');
         }
-        if (params['file'] !== undefined) {
+        const file = this.safeValue (params, 'file');
+        if (file !== undefined) {
             throw new BadRequest (this.id + ' createPoolComment() does not support binary file uploads');
         }
         const response = await this.launchForumPublicPostComment (params);
-        return this.extractObject (response);
+        //
+        //     {
+        //         "id": "5fd1f051-6992-4205-81de-0ba8d9929b3f",
+        //         "success": true,
+        //         "data": "OK"
+        //     }
+        //
+        const status = this.safeString (response, 'data');
+        return { 'status': status, 'info': response };
     }
 
     /**
@@ -4049,6 +4116,15 @@ export default class raydium extends Exchange {
             throw new ArgumentsRequired (this.id + ' requestRaydiumToken() requires params.time, params.signature, and params.wallet');
         }
         const response = await this.launchAuthPublicPostRequestToken ({ 'time': time, 'signature': signature, 'wallet': wallet });
+        //
+        //     {
+        //         "id": "04324125-3c00-46eb-900f-0571dec0099b",
+        //         "success": true,
+        //         "data": {
+        //             "token": "fade8cea-bccd-4b91-8423-4e02a34b3e3d"
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
@@ -4060,7 +4136,7 @@ export default class raydium extends Exchange {
      * @param {object} params token and wallet fields
      * @param {string} params.token Raydium JWT
      * @param {string} params.wallet wallet public key
-     * @returns {object} token validation response
+     * @returns {object} token validation status and the raw response
      */
     async fetchRaydiumTokenStatus (params: Dict = {}): Promise<Dict> {
         const token = this.safeString (params, 'token');
@@ -4069,7 +4145,15 @@ export default class raydium extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchRaydiumTokenStatus() requires params.token and params.wallet');
         }
         const response = await this.launchAuthPublicGetCheckToken ({ 'token': token, 'wallet': wallet });
-        return this.extractObject (response);
+        //
+        //     {
+        //         "id": "2c690476-d29e-4299-a944-45908fc4f2b8",
+        //         "success": true,
+        //         "data": "OK"
+        //     }
+        //
+        const status = this.safeString (response, 'data');
+        return { 'status': status, 'info': response };
     }
 
     /**
