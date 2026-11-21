@@ -4209,6 +4209,7 @@ class NewTranspiler {
     // `string` (narrowed parameter, string local or retyped shadow), so the cast is dropped. A name
     // declared `object`/`var` keeps its cast, where it is load-bearing.
     dropStringTimeframeCasts (content: string): string {
+        content = this.h28C05OHLCVDictContent (content);
         if (!content.includes ('(string)timeframe')) {
             return content;
         }
@@ -6854,6 +6855,83 @@ class NewTranspiler {
             this.transpileWsExchangeTests(force),
         ]);
     }
+
+    // ===== h28-C05
+    // `getValue(<symbol entry of an OHLCV-dict local>, tf)` with string keys: the typed nested
+    // dictionary is read natively, each level null- and key-tested (getValue's null answers).
+    // A `FromOHLCVDict(await core)` local whose only reads are that shape keeps the core's type.
+    // runs after finalizeCoreArgTypes (string copies such as timeframeVar are typed by then)
+    h28C05OHLCVDictContent (content: string): string {
+        if (!content.includes ('OHLCV>>>') && !content.includes ('FromOHLCVDict(')) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public async (virtual|override) Task<List<ccxt\.OHLCV>> \w+\(/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            const bounds = (sig === null) ? undefined : this.methodBodyBounds (lines, i, sig[1]);
+            if (bounds !== undefined) {
+                this.h28C05OHLCVDictReads (lines, bounds[0], bounds[1], this.isPrediction);
+                i = bounds[1];
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    h28C05OHLCVDictReads (lines: string[], bodyStart: number, bodyEnd: number, predictionTier: boolean): void {
+        const typed = this.qualifyTypedCoreType (OHLCV_DICT_TYPE);
+        const declRe = /^(\s*)(Dictionary<string, object>|Dictionary<string, Dictionary<string, List<ccxt\.OHLCV>>>) (\w+) = (ccxt\.BaseExchange\.FromOHLCVDict\((await this\.(\w+)\(.*\))\)|await this\.(\w+)\(.*\));$/;
+        // a key is admitted only when the body declares it `string` (local or parameter)
+        const body = lines.slice (Math.max (0, bodyStart - 2), bodyEnd).filter ((l) => l !== null);
+        const keyOf = (name: string): string | undefined => (body.some ((l) => new RegExp ('\\bstring\\?? ' + name + '\\b').test (l)) ? name : undefined);
+        for (let j = bodyStart + 1; j < bodyEnd; j++) {
+            const decl = lines[j] === null ? null : declRe.exec (lines[j]);
+            if (decl === null) {
+                continue;
+            }
+            const boxed = decl[2] === 'Dictionary<string, object>';
+            if (boxed !== (decl[5] !== undefined) || this.typedCoreType (this.pascalName (decl[6] ?? decl[7], true), predictionTier) !== OHLCV_DICT_TYPE) {
+                continue;
+            }
+            const r = decl[3];
+            const readRe = boxed
+                ? new RegExp ('getValue\\(getValue\\(' + r + ', (\\w+)\\), (\\w+)\\)', 'g')
+                : new RegExp ('getValue\\(\\(' + r + ' != null && (\\w+) != null && ' + r + '\\.ContainsKey\\(\\1\\) \\? ' + r + '\\[\\1\\] : null\\), (\\w+)\\)', 'g');
+            const nameRe = new RegExp ('\\b' + r + '\\b');
+            const edits: [ number, string ][] = [];
+            let sound = true;
+            for (let k = j + 1; k < bodyEnd && sound; k++) {
+                const text = lines[k];
+                if (text === null || !nameRe.test (text) || text.trim ().startsWith ('//')) {
+                    continue;
+                }
+                let ok = true;
+                const out = text.replace (readRe, (m, key, tf) => {
+                    const k1 = keyOf (key);
+                    const k2 = keyOf (tf);
+                    ok = ok && k1 !== undefined && k2 !== undefined;
+                    return `(${r} != null && ${key} != null && ${r}.ContainsKey(${k1}) && ${r}[${k1}] != null && ${tf} != null && ${r}[${k1}].ContainsKey(${k2}) ? ${r}[${k1}][${k2}] : null)`;
+                });
+                // a boxed local is retyped only when every mention is the converted read
+                const rest = out.split (`(${r} != null && `).join ('').replace (new RegExp ('\\b' + r + '(\\.ContainsKey\\(|\\[)', 'g'), '');
+                if (!ok || (boxed && (out === text || nameRe.test (rest)))) {
+                    sound = false;
+                    continue;
+                }
+                edits.push ([ k, out ]);
+            }
+            if (!sound || edits.length === 0) {
+                continue;
+            }
+            if (boxed) {
+                lines[j] = decl[1] + typed + ' ' + r + ' = ' + decl[5] + ';';
+            }
+            for (const [ k, out ] of edits) {
+                lines[k] = out;
+            }
+        }
+    }
+    // ===== end h28-C05
 }
 
 // ral-84c3 snippet checks: a row element local is typed only when a literal-key write makes a use native
