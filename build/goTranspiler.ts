@@ -11205,6 +11205,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = h27g26StructRowReads (content);  // struct list rows read by SafeDictMap / inline FromMap / len
     content = h28a23StructRowPtrKeyReads (content);  // struct map rows keyed by a *string local
+    content = h29a22StructBoxInfoReads (content);  // `info` of a boxed struct read from the typed field
     content = goAsyncTupleSlotReads (content, filePath);  // again: async []any producers are received as rN.Value only after GOCHAN3
     content = goAsyncMapPairHolders (content);
     content = goAsyncMapPairs (content);
@@ -16415,6 +16416,7 @@ async function runMain () {
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
             [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
             [ 'h28-a23 struct row *string key: ', h28a23StructRowPtrKeyReadsSelfTest ],
+            [ 'h29-a22 struct box info reads: ', h29a22StructBoxInfoReadsSelfTest ],
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
@@ -22941,3 +22943,76 @@ function h28a23StructRowPtrKeyReadsSelfTest (): string[] {
     return problems;
 }
 // ===== end h28-H28-A23
+// ===== h29-H29-A22
+function h29a22StructBoxInfoReads (content: string): string {
+    const box = /^(\t+)(?:var )?(\w+) (?:map\[string\]any )?= ((?:ccxt\.)?)Struct(?:Box|ResultMap)\((r\d*)\.Value, \3(\w+)ToMap\)\n/gm;
+    const edits: Edit[] = [];
+    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
+        const [ name, q, rv, elem ] = [ m[2], m[3], m[4], m[5] ];
+        if (elem !== 'PredictionOutcome') {   // its Go `Info` field is declared map[string]any (exchange_prediction_types.go)
+            continue;
+        }
+        const [ , fe0 ] = goChan3Func (content, m.index);
+        const declAt = content.lastIndexOf ('\n', content.lastIndexOf ('\t' + rv + ' := <-', m.index)) + 1;
+        const declLine = /^(\t+)(\w+) := <-/.exec (content.substring (declAt));
+        if ((declAt <= 0) || (declLine === null) || (declLine[2] !== rv) || (goChan3Func (content, declAt)[1] !== fe0)) {
+            continue;
+        }
+        const depth = declLine[1].length;
+        const mine: Edit[] = [];
+        const reads = [ new RegExp ('^(\\t*)(?:var \\w+ map\\[string\\]any = |\\w+ = )?(' + q.replace ('.', '\\.') + 'SafeMapTyped\\(' + name + ', "info"\\))', 'gm'),
+            new RegExp ('this\\.Safe\\w+\\((' + q.replace ('.', '\\.') + 'GetValue\\(' + name + ', "info"\\)), ', 'g') ];
+        for (const re of reads) {
+            re.lastIndex = m.index + m[0].length;
+            for (let r = re.exec (content); (r !== null) && (r.index < fe0); r = re.exec (content)) {
+                const call = r[r.length - 1];
+                const at = r.index + r[0].indexOf (call);
+                const between = content.substring (m.index + m[0].length, at);
+                const lines = between.split ('\n');
+                // the receive is still in scope (no line closes its block) and neither the receive nor the box is rewritten
+                const closed = lines.slice (1).some ((l) => (l.trim () !== '') && ((l.length - l.replace (/^\t+/, '').length) < depth));
+                const rewritten = new RegExp ('(?<![\\w.])(?:' + rv + ' :?=|' + name + ' :?=|&' + name + '\\b)').test (between);
+                if (!closed && !rewritten) {
+                    mine.push ({ 'start': at, 'end': at + call.length, 'text': rv + '.Value.Info' });
+                }
+            }
+        }
+        // Go rejects a local that is only written: a box left with no read loses its declaration, or keeps every wrap
+        const fs0 = goChan3Func (content, m.index)[0];
+        const body = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
+        const boxReads = (body.match (new RegExp ('(?<![\\w.])' + name + '\\b(?! :?= )', 'g')) ?? []).length - (body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) ?? []).length;
+        if ((mine.length > 0) && (boxReads === mine.length)) {
+            if (!m[0].startsWith (m[1] + 'var ')) {
+                continue;
+            }
+            mine.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': '' });
+        }
+        edits.push (...mine);
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function h29a22StructBoxInfoReadsSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push (msg); } };
+    const fn = (b: string) => 'func (this *X) f(ch chan any) {\n\tr := <-this.LoadOutcomeAsync(o)\n\tvar box any = nil\n\tif !ccxt.StructAbsent(r.Value) {\n\t\tbox = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)\n\t}\n' + b + '}\n';
+    const src = fn ('\tvar info map[string]any = ccxt.SafeMapTyped(box, "info")\n\tvar n *string = this.SafeString(ccxt.GetValue(box, "info"), "n")\n\tthis.Use(box)\n');
+    const out = h29a22StructBoxInfoReads (src);
+    ok (out.includes ('\tvar info map[string]any = r.Value.Info\n') && out.includes ('this.SafeString(r.Value.Info, "n")'), 'typed info reads: ' + out);
+    const srm = 'func (this *X) f(ch chan any) {\n\tr := <-this.LoadOutcomeAsync(o)\n\tvar box map[string]any = ccxt.StructResultMap(r.Value, ccxt.PredictionOutcomeToMap)\n\tvar info map[string]any = ccxt.SafeMapTyped(box, "info")\n}\n';
+    ok (h29a22StructBoxInfoReads (srm).includes ('\tvar info map[string]any = r.Value.Info\n'), 'result map form: ' + h29a22StructBoxInfoReads (srm));
+    const only = h29a22StructBoxInfoReads (srm);
+    ok (!only.includes ('StructResultMap') && only.includes ('r.Value.Info'), 'a result map with no other read loses its declaration: ' + only);
+    const boxOnly = fn ('\tvar info map[string]any = ccxt.SafeMapTyped(box, "info")\n');
+    ok (h29a22StructBoxInfoReads (boxOnly) === boxOnly, 'a box declared apart with no other read keeps the wrap: ' + h29a22StructBoxInfoReads (boxOnly));
+    const other = src.replace (/PredictionOutcome/g, 'Leverage');
+    ok (h29a22StructBoxInfoReads (other) === other, 'a struct whose Info is any keeps the wrap');
+    const rebound = fn ('\tbox = this.Other()\n\tvar info map[string]any = ccxt.SafeMapTyped(box, "info")\n');
+    ok (h29a22StructBoxInfoReads (rebound) === rebound, 'a box written again keeps the wrap');
+    const bare = fn ('\tthis.Use(ccxt.GetValue(box, "info"))\n');
+    ok (h29a22StructBoxInfoReads (bare) === bare, 'a GetValue not read by a safe reader keeps the helper (typed nil map)');
+    const scoped = 'func (this *X) f(ch chan any) {\n\tif o != nil {\n\t\tr := <-this.LoadOutcomeAsync(o)\n\t\tbox = ccxt.StructBox(r.Value, ccxt.PredictionOutcomeToMap)\n\t}\n\tvar info map[string]any = ccxt.SafeMapTyped(box, "info")\n}\n';
+    ok (h29a22StructBoxInfoReads (scoped) === scoped, 'a read after the receive block closes keeps the wrap');
+    return problems;
+}
+// ===== end h29-H29-A22
