@@ -2767,7 +2767,6 @@ export default class blofin extends Exchange {
             method = 'privatePostTradeCancelTpsl';
         }
         if (clientOrderIds === undefined) {
-            const orderIds = this.parseIds (ids) as string[];
             if (tpslIds !== undefined) {
                 for (let i = 0; i < tpslIds.length; i++) {
                     request.push ({
@@ -2776,15 +2775,15 @@ export default class blofin extends Exchange {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
+            for (let i = 0; i < ids.length; i++) {
                 if (trigger === true) {
                     request.push ({
-                        'tpslId': this.safeString (orderIds, i),
+                        'tpslId': this.safeString (ids, i),
                         'instId': market['id'],
                     });
                 } else {
                     request.push ({
-                        'orderId': this.safeString (orderIds, i),
+                        'orderId': this.safeString (ids, i),
                         'instId': market['id'],
                     });
                 }
