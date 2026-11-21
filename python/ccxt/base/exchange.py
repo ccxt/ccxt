@@ -3651,8 +3651,6 @@ class BaseExchange(object):
         raise NotSupported(self.id + ' parseTransaction() is not supported yet')
 
     def parse_transfer(self, transfer: dict, currency: Currency = None):
-        if transfer is None:
-            raise NotSupported(self.id + ' parseTransfer() is not supported yet')
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
     def parse_account(self, account: dict):
@@ -3940,18 +3938,20 @@ class BaseExchange(object):
         #
         # createOrder
         if 'createOrder' in featuresObj:
-            value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
-            featuresObj['createOrder']['stopLoss'] = value
-            featuresObj['createOrder']['takeProfit'] = value
+            createOrder = self.extend({}, featuresObj['createOrder'])
+            value = self.safe_dict(createOrder, 'attachedStopLossTakeProfit')
+            createOrder['stopLoss'] = value
+            createOrder['takeProfit'] = value
             if marketType == 'spot':
                 # default 'hedged': false
-                featuresObj['createOrder']['hedged'] = False
+                createOrder['hedged'] = False
                 # default 'leverage': false
-                if not ('leverage' in featuresObj['createOrder']):
-                    featuresObj['createOrder']['leverage'] = False
+                if not ('leverage' in createOrder):
+                    createOrder['leverage'] = False
             # default 'GTC' to true
-            if self.safe_bool(featuresObj['createOrder']['timeInForce'], 'GTC') is None:
-                featuresObj['createOrder']['timeInForce']['GTC'] = True
+            if self.safe_bool(createOrder['timeInForce'], 'GTC') is None:
+                createOrder['timeInForce']['GTC'] = True
+            featuresObj['createOrder'] = createOrder
         # other methods
         keys = list(featuresObj.keys())
         for i in range(0, len(keys)):
@@ -7378,15 +7378,10 @@ class BaseExchange(object):
         """
         networkKeys = list(fee['networks'].keys())
         numNetworks = len(networkKeys)
-        if numNetworks == 1:
-            networkFee = self.safe_dict(fee['networks'], networkKeys[0], {})
-            fee['withdraw'] = networkFee['withdraw']
-            fee['deposit'] = networkFee['deposit']
-            return fee
         currencyCode = self.safe_string(currency, 'code')
         for i in range(0, numNetworks):
             network = networkKeys[i]
-            if network == currencyCode:
+            if (numNetworks == 1) or (network == currencyCode):
                 networkFee = self.safe_dict(fee['networks'], networkKeys[i], {})
                 fee['withdraw'] = networkFee['withdraw']
                 fee['deposit'] = networkFee['deposit']
@@ -7395,7 +7390,7 @@ class BaseExchange(object):
     def parse_income(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseIncome () is not supported yet')
 
-    def parse_incomes(self, incomes: object, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_incomes(self, incomes: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
  @ignore
         parses funding fee info from exchange response

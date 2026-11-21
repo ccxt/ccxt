@@ -1110,8 +1110,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         # if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         shouldRefresh = (self.safe_string_2(params, 'user', 'address') is not None) and self.safe_bool(params, 'enableUnifiedMargin') is None
-        userAddress = self.safe_string(self.handle_public_address('fetchBalance', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchBalance', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchBalance', params)
         type, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, paramsPublicAddress)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBalance', paramsMarketType)
         isUnifiedEnabled, paramsValue = await self.is_unified_enabled('fetchBalance', userAddress, shouldRefresh, paramsMarginMode)
@@ -1552,8 +1551,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.subAccountAddress]: sub account user address
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        userAddress = self.safe_string(self.handle_public_address('fetchTrades', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchTrades', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchTrades', params)
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -1887,8 +1885,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         publicAddress = None
         paramsPublicAddress = {}
         if address is None:
-            publicAddress = self.safe_string(self.handle_public_address('isUnifiedEnabled', params), 0)
-            paramsPublicAddress = self.safe_dict(self.handle_public_address('isUnifiedEnabled', params), 1, {})
+            publicAddress, paramsPublicAddress = self.handle_public_address('isUnifiedEnabled', params)
         userAddress = address if (address is not None) else publicAddress
         paramsAddress = params if (address is not None) else paramsPublicAddress
         enableUnifiedMarginOption, paramsEnableUnifiedMargin = self.handle_option_bool_and_params(paramsAddress, method, 'enableUnifiedMargin')
@@ -2976,8 +2973,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.dex]: perp dex name. default is None
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = self.safe_string(self.handle_public_address('fetchOpenOrders', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchOpenOrders', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchOpenOrders', params)
         method, paramsMethod = self.handle_option_string_and_params(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders')
         if self.markets is None:
             await self.load_markets()
@@ -3076,8 +3072,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.dex]: perp dex name. default is None
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        userAddress = self.safe_string(self.handle_public_address('fetchOrders', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchOrders', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchOrders', params)
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -3145,8 +3140,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         userAddress = None
         params2 = None
-        userAddress = self.safe_string(self.handle_public_address('fetchOrder', params), 0)
-        params2 = self.safe_dict(self.handle_public_address('fetchOrder', params), 1, {})
+        userAddress, params2 = self.handle_public_address('fetchOrder', params)
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -3401,8 +3395,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.subAccountAddress]: sub account user address
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        userAddress = self.safe_string(self.handle_public_address('fetchMyTrades', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchMyTrades', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchMyTrades', params)
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -3518,8 +3511,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        userAddress = self.safe_string(self.handle_public_address('fetchMyLiquidations', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchMyLiquidations', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchMyLiquidations', params)
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -3649,8 +3641,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = self.safe_string(self.handle_public_address('fetchPositions', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchPositions', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchPositions', params)
         symbolsNormalized = self.market_symbols(symbols)
         request = {
             'type': 'clearinghouseState',
@@ -4064,8 +4055,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         query = params
         transferMethod, query = self.handle_option_string_and_params(query, 'transfer', 'method')
         masterAddress = None
-        masterAddress = self.safe_string(self.handle_public_address('transfer', query), 0)
-        query = self.safe_dict(self.handle_public_address('transfer', query), 1, {})
+        masterAddress, query = self.handle_public_address('transfer', query)
         useSendAsset = (transferMethod == 'sendAsset')
         if transferMethod is None:
             isUnified = None
@@ -4298,8 +4288,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        userAddress = self.safe_string(self.handle_public_address('fetchTradingFee', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchTradingFee', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchTradingFee', params)
         market = self.market(symbol)
         request = {
             'type': 'userFees',
@@ -4408,8 +4397,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         userAddress = None
         params2 = None
-        userAddress = self.safe_string(self.handle_public_address('fetchLedger', params), 0)
-        params2 = self.safe_dict(self.handle_public_address('fetchLedger', params), 1, {})
+        userAddress, params2 = self.handle_public_address('fetchLedger', params)
         request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4500,8 +4488,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         userAddress = None
         params2 = None
-        userAddress = self.safe_string(self.handle_public_address('fetchDepositsWithdrawals', params), 0)
-        params2 = self.safe_dict(self.handle_public_address('fetchDepositsWithdrawals', params), 1, {})
+        userAddress, params2 = self.handle_public_address('fetchDepositsWithdrawals', params)
         request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4561,8 +4548,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             await self.load_markets()
         userAddress = None
         params2 = None
-        userAddress = self.safe_string(self.handle_public_address('fetchDepositsWithdrawals', params), 0)
-        params2 = self.safe_dict(self.handle_public_address('fetchDepositsWithdrawals', params), 1, {})
+        userAddress, params2 = self.handle_public_address('fetchDepositsWithdrawals', params)
         request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4684,8 +4670,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        userAddress = self.safe_string(self.handle_public_address('fetchFundingHistory', params), 0)
-        paramsPublicAddress = self.safe_dict(self.handle_public_address('fetchFundingHistory', params), 1, {})
+        userAddress, paramsPublicAddress = self.handle_public_address('fetchFundingHistory', params)
         request = {
             'user': userAddress,
             'type': 'userFunding',
@@ -4696,7 +4681,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPublicAddress, 'until')
         if until is not None:
             request['endTime'] = until
-        response = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        fundingResponse = await self.publicPostInfo(self.extend(request, paramsOmitted))
+        response = self.info_list(fundingResponse)
         #
         # [
         #     {

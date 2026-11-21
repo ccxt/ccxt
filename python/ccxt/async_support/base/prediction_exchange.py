@@ -91,7 +91,16 @@ class PredictionExchange(BaseExchange):
         singleQuery = self.safe_string(params, 'query')
         if singleQuery is not None:
             return [singleQuery]
-        return self.safe_list(params, 'queries', [])
+        # every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        rawQueries = self.to_array(self.safe_list(params, 'queries', []))
+        rawQueriesLength = len(rawQueries)
+        queries = []
+        for i in range(0, rawQueriesLength):
+            query = self.safe_string(rawQueries, i)
+            if query is None:
+                raise BadRequest(self.id + ' params.queries must be a list of strings')
+            queries.append(query)
+        return queries
 
     def require_event_query(self, params: dict = {}):
         # fetchEvents must be scoped by at least one selector — an unfiltered call would page the
