@@ -4570,7 +4570,8 @@ class hyperliquid extends Exchange {
         $query = $params;
         list($transferMethod, $query) = $this->handle_option_string_and_params($query, 'transfer', 'method');
         $masterAddress = null;
-        list($masterAddress, $query) = $this->handle_public_address('transfer', $query);
+        $masterAddress = $this->safe_string($this->handle_public_address('transfer', $query), 0);
+        $query = $this->safe_dict($this->handle_public_address('transfer', $query), 1, array());
         $useSendAsset = ($transferMethod === 'sendAsset');
         if ($transferMethod === null) {
             $isUnified = null;
