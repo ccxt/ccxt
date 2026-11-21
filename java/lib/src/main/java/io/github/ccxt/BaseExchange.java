@@ -2087,8 +2087,16 @@ public class BaseExchange {
         return this.throttler.throttle(cost);
     }
 
+    // mirrors ts clone (base/functions/generic.ts): a shallow copy, so writes to the
+    // copy never alias the original (e.g. a flat position split into long and short)
     public Object clone(Object s) {
-        return s; // check later
+        if (s instanceof java.util.List<?> list) {
+            return new java.util.ArrayList<Object>(list);
+        }
+        if (s instanceof java.util.Map<?, ?>) {
+            return io.github.ccxt.base.Generic.extend(s, null);
+        }
+        return s;
     }
 
     /**
