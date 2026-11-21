@@ -1500,11 +1500,9 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // subscription for the type). The handle serves `subscriptions` /
         // `futures` live from the registry, so this stays coherent as
         // subscriptions come and go.
-        crate::runtime::add_element_to_object(
-            &mut self.clients,
-            &Value::Str(url.clone().into()),
-            crate::pro::ws_client::client_value(&url),
-        );
+        if let Value::Dict(m) = &mut self.clients {
+            Arc::make_mut(m).insert(url.clone(), crate::pro::ws_client::client_value(&url));
+        }
         // If an ancestor ws_run on this task is already driving `url`, don't
         // start a nested loop — the subscribe frame was sent above; report the
         // current settled state and let the outer loop resolve `hashes`.
@@ -1643,23 +1641,23 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let max_retries: i64 = 3;
         let mut tries = 0;
         while tries < max_retries {
-            let mut stored = Value::from(crate::pro::cache::CacheStore::at(&self.orderbooks, &symbol));
-            let cache = crate::get_value(&stored, &Value::Str("cache".into()));
+            let book: Option<crate::pro::order_book::Book> = crate::pro::cache::CacheStore::at(&self.orderbooks, &symbol);
+            let mut stored = Value::from(&book);
             let snapshot = self
                 .dispatch_to_derived("fetch_rest_order_book_safe",
                     &[symbol.clone(), limit.clone(), params.clone()])
                 .await
                 .unwrap_or(Value::Null);
+            // the deltas buffered while the snapshot was fetched
+            let cache = Value::Arr(crate::pro::order_book::BookSlot::cache_items(&book));
             let index = self
                 .dispatch_to_derived("get_cache_index", &[snapshot.clone(), cache.clone()])
                 .await;
             let idx = match index { Some(Value::Int(n)) => n, _ => -1 };
             if idx >= 0 {
                 stored.reset(snapshot);
-                let clen = match crate::runtime::get_array_length(&cache) { Value::Int(n) => n, _ => 0 };
-                let deltas: Vec<Value> = (idx..clen)
-                    .map(|i| crate::get_value(&cache, &Value::Int(i)))
-                    .collect();
+                let items = crate::pro::order_book::BookSlot::cache_items(&book);
+                let deltas: Vec<Value> = items.iter().skip(idx as usize).cloned().collect();
                 self.dispatch_to_derived("handle_deltas", &[stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
                 crate::pro::ws_client::value_resolve(&client, stored.clone(), message_hash.as_str());
@@ -3060,7 +3058,6 @@ mod throttle_tests {
 mod cow_alias_tests {
     use super::Exchange;
     use crate::Value;
-    use crate::runtime::get_array_length;
 
     // convertOHLCVToTradingView does `result[key].push(...)` on an extracted
     // local — a COW clone in Rust. Without the write-back the result columns
@@ -3077,7 +3074,7 @@ mod cow_alias_tests {
         let r = ex.convert_ohlcv_to_trading_view(ohlcvs, &[]);
         for key in ["t", "o", "h", "l", "c", "v"] {
             let col = r.at(key);
-            assert_eq!(get_array_length(col), Value::Int(2),
+            assert_eq!(col.as_array().map(|a| a.len()), Some(2),
                 "result['{key}'] lost its pushes — COW write-back failed");
         }
     }

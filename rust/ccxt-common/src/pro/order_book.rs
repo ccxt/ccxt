@@ -64,18 +64,18 @@ fn build_book(kind: &str, snapshot: Value, depth: Value) -> Value {
     let bids = new_side(side_kind, /*is_bid=*/ true,  max_depth, bids_deltas);
     let asks = new_side(side_kind, /*is_bid=*/ false, max_depth, asks_deltas);
 
-    let timestamp = match crate::get_value(&snapshot, &Value::Str("timestamp".into())) {
+    let timestamp = match *snapshot.at("timestamp") {
         Value::Int(n)   => Some(n),
         Value::Float(f) => Some(f as i64),
         _ => None,
     };
     let datetime = timestamp.and_then(iso8601_millis);
-    let nonce = match crate::get_value(&snapshot, &Value::Str("nonce".into())) {
+    let nonce = match *snapshot.at("nonce") {
         Value::Int(n)   => Value::Int(n),
         Value::Float(f) => Value::Int(f as i64),
         _ => Value::Null,
     };
-    let symbol = crate::get_value(&snapshot, &Value::Str("symbol".into()));
+    let symbol = snapshot.at("symbol").to_owned();
 
     // Scalar meta lives in the shared book store (keyed by `__book_id`) so WS
     // handlers that mutate a cloned book — okx's seqId nonce — propagate.
