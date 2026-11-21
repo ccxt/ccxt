@@ -4566,12 +4566,9 @@ class hyperliquid extends Exchange {
         $transferType = $this->safe_string($params, 'type');
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        $transferMethod = null;
-        $query = $params;
-        list($transferMethod, $query) = $this->handle_option_string_and_params($query, 'transfer', 'method');
-        $masterAddress = null;
-        $masterAddress = $this->safe_string($this->handle_public_address('transfer', $query), 0);
-        $query = $this->safe_dict($this->handle_public_address('transfer', $query), 1, array());
+        list($transferMethod, $paramsMethod) = $this->handle_option_string_and_params($params, 'transfer', 'method');
+        list($masterAddress, $paramsAddress) = $this->handle_public_address('transfer', $paramsMethod);
+        $query = $paramsAddress;
         $useSendAsset = ($transferMethod === 'sendAsset');
         if ($transferMethod === null) {
             $isUnified = null;
