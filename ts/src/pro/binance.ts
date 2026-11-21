@@ -4985,8 +4985,8 @@ export default class binance extends binanceRest {
             }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
-            const oField = this.safeValue (message, 'o');
-            if (Array.isArray (oField)) {
+            const oField = this.safeList (message, 'o');
+            if (oField !== undefined) {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate (client, message);
                 return;

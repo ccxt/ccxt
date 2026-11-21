@@ -1074,14 +1074,15 @@ export default class hitbtc extends hitbtcRest {
             const limit = this.safeInteger (this.options, 'ordersLimit');
             this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const data = this.safeValue (message, 'params', []);
-        if (Array.isArray (data)) {
+        const dataDict = this.safeDict (message, 'params');
+        if (dataDict !== undefined) {
+            this.handleOrderHelper (client, message, dataDict);
+        } else {
+            const data = this.safeList (message, 'params', []);
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
                 this.handleOrderHelper (client, message, order);
             }
-        } else {
-            this.handleOrderHelper (client, message, data);
         }
         return message;
     }

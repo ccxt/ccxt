@@ -3293,11 +3293,11 @@ export default class kraken extends Exchange {
         //     }
         //
         let rawWithdrawals: any[] = [];
-        const result = this.safeValue (response, 'result');
-        if (!Array.isArray (result)) {
-            rawWithdrawals = this.addPaginationCursorToResult (result);
+        const resultList = this.safeList (response, 'result');
+        if (resultList !== undefined) {
+            rawWithdrawals = resultList;
         } else {
-            rawWithdrawals = this.safeList (response, 'result', []);
+            rawWithdrawals = this.addPaginationCursorToResult (this.safeDict (response, 'result', {}));
         }
         return this.parseTransactionsByType ('withdrawal', rawWithdrawals, code, since, limit);
     }
