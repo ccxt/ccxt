@@ -494,7 +494,7 @@ export default class coinspot extends Exchange {
             const id = ids[i];
             const market = this.safeMarket (id);
             if (this.safeBool (market, 'spot', false)) {
-                const symbol = market['symbol'];
+                const symbol = this.safeString (market, 'symbol', '');
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker (ticker, market);
             }
