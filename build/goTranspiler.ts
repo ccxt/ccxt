@@ -9770,8 +9770,6 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // the helper would store a typed-nil map as untyped nil
     } else if ((valueType === 'map[string]any') && goOptionsDefaultedDictLocal (maskedFunc, declOf (value), value)) {
         valueOut = value; // the `{}`-defaulted comma-ok read is never nil
-    } else if ((valueType === 'map[string]any') && goNeverNilMapValue (lines, maskedFunc, declOf (value), value)) {
-        valueOut = value; // a TickerToMap/OrderToMap/producer-call local is a fresh non-nil map, the helper stores it unchanged
     } else if (guardedPointer (value)) {
         valueOut = '*' + value;
     } else if (defaultedOk) {
@@ -11496,49 +11494,6 @@ function goTightenedOperatorText (content: string, index: number, operator: stri
     return { 'start': start, 'end': end };
 }
 
-// drop the blanks around every level-4/5 operator of `text` (level >= 2 throughout: the
-// cutoff is 4, so no level-4/5 operator keeps a blank), strings and comments untouched
-function goSqueezeLevel45Text (text: string): string {
-    const out: string[] = [];
-    let lastChar = '';
-    let i = 0;
-    while (i < text.length) {
-        const char = text[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            const literal = text.slice (i, goSkipLiteralText (text, i) + 1);
-            out.push (literal);
-            lastChar = literal[literal.length - 1];
-            i += literal.length;
-            continue;
-        }
-        if (char === '/' && (text[i + 1] === '/' || text[i + 1] === '*')) {
-            const comment = text.slice (i, goSkipCommentText (text, i) + 1);
-            out.push (comment);
-            i += comment.length;
-            continue;
-        }
-        const operator = goLevel45OperatorText (text, i);
-        if ((operator !== null) && GO_OPERAND_ENDER.test (lastChar)) {
-            const tightened = goTightenedOperatorText (text, i, operator);
-            if (tightened !== null) {
-                if ((out.length > 0) && ((out[out.length - 1] === ' ') || (out[out.length - 1] === '\t'))) {
-                    out.pop ();
-                }
-                out.push (operator);
-                i = tightened.end;
-                lastChar = '';
-                continue;
-            }
-        }
-        out.push (char);
-        if ((char !== ' ') && (char !== '\t')) {
-            lastChar = char;
-        }
-        i += 1;
-    }
-    return out.join ('');
-}
-
 // in a level-1 chain mixing level 4 and 5, go/printer prints every level-5 operator (and its
 // grouped operand) one level deeper (diffPrec/reduceDepth): `(90 * 86400) * 1000 - 1` is
 // gofmt's `(90*86400)*1000 - 1`, while `(90 * 86400) * 1000` keeps every blank
@@ -11714,46 +11669,6 @@ function goCollectLevelOneChainFixes (content: string, start: number, end: numbe
     if (!(has4 && has5)) {
         return;
     }
-    for (let t = 0; t < tokens.length; t++) {
-        const token = tokens[t];
-        if (goOperatorPrecedenceText (token.operator as string) !== 5) {
-            continue;
-        }
-        const previous = tokens[t - 1];
-        if ((previous === undefined) || (previous.operator !== null) || previous.keyword) {
-            continue;                     // a unary `*` owns no blanks and never mixes a chain
-        }
-        const tightened = goTightenedOperatorText (content, token.start, token.operator as string);
-        if (tightened !== null) {
-            fixes.push ({ 'start': tightened.start, 'end': tightened.end, 'text': token.operator as string });
-        }
-        // the operand of this level-5 operator prints one level deeper too: a grouped one
-        // lands at level 2 with it, so every operator inside it loses its blanks
-        const neighbours = [ t - 1, t + 1 ];
-        for (let n = 0; n < neighbours.length; n++) {
-            const neighbour = tokens[neighbours[n]];
-            if ((neighbour !== undefined) && (neighbour.operator === null)) {
-                const text = content.slice (neighbour.start, neighbour.end);
-                if ((text[0] === '(') && (text[text.length - 1] === ')')) {
-                    const squeezed = goSqueezeLevel45Text (text.slice (1, text.length - 1));
-                    if (squeezed !== text.slice (1, text.length - 1)) {
-                        fixes.push ({ 'start': neighbour.start + 1, 'end': neighbour.end - 1, 'text': squeezed });
-                    }
-                }
-            }
-        }
-    }
-}
-
-// go/token precedence of the operators the Go printer can print
-function goOperatorPrecedenceText (operator: string): number {
-    switch (operator) {
-    case '*': case '/': case '%': case '<<': case '>>': case '&': case '&^':
-        return 5;
-    case '+': case '-': case '|': case '^':
-        return 4;
-    }
-    return 0;
 }
 
 // gofmt's file-level blank lines: exactly one after the package clause and every import
@@ -21756,23 +21671,6 @@ function goIsEqualSafeLiteralSelfTest (ok: SelfTestOk): void {
     }
     const own = 'package ccxt\n\nfunc (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n\nfunc (this *X) f(p any) any {\n\treturn IsEqual(this.SafeString(p, "k"), "x")\n}\n';
     ok (goIsEqualSafeLiteral (own) === own, 'same-file SafeString override keeps IsEqual');
-}
-
-// `AddElementToObject(m, k, v)` -> `m[k] = v` when v is a single-assignment map local whose initializer never
-// answers nil (struct-to-map conversion or a map-producer call): the helper's derefScalar leaves such a value unchanged.
-function goNeverNilMapValue (lines: string[], maskedFunc: string, decl: any, name: string): boolean {
-    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
-        return false;
-    }
-    const n = goAccessEscape (name);
-    if (goMapLocalRebound (maskedFunc, n) || new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)', 'm').test (maskedFunc)) {
-        return false;
-    }
-    const init = decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim ();
-    if (/^(?:ccxt\.)?(?:TickerToMap|TradeToMap|OrderToMap)\(/.test (init)) {
-        return true; // StructToMap of a struct value always builds a fresh map
-    }
-    return /\)$/.test (init) && (goMapWriteGroupEnd (init, init.indexOf ('(')) === init.length) && goMapWriteMapResultCall (lines, init);
 }
 
 // `var r map[string]any = MapTyped(h[i])` where `h := this.M(..)` is h's only write and M is the single same-receiver method
