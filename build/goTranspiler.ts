@@ -18531,7 +18531,7 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
     }
     const masked = goTextMaskLiteralsAndComments (content);
     // the file's own pair producers (venue `[ Str|Dict, Dict ]` methods printed with a `(T, map[string]any)` result)
-    const pairs = [ ...masked.matchAll (/^func \(this \*\w+\) (\w+)\([^\n]*\) \((?:\*string|map\[string\]any), map\[string\]any\) \{$/gm) ].map ((p) => '|' + p[1]).join ('');
+    const pairs = [ ...masked.matchAll (/^func \(this \*\w+\) (\w+)\([^\n]*\) \((?:\*string|map\[string\]any|int64), map\[string\]any\) \{$/gm) ].map ((p) => '|' + p[1]).join ('');
     const call = /(?<![\w.])(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
     let out = '';
     let cursor = 0;
