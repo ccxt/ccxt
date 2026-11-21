@@ -4,7 +4,7 @@
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
-import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString } from '../base/types.js';
+import type{ Balances, Str, Strings, Tickers, Dict, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position, Market, MarketInterface, FeeString, Num } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -1850,27 +1850,42 @@ export default class aster extends asterRest {
                         // accumulate order fees
                         const fees: Dict[] = this.safeList (order, 'fees', []);
                         const fee = this.safeDict (order, 'fee');
+                        const tradeFeeCurrency = this.safeString (tradeFee, 'currency');
+                        const tradeFeeCost = this.safeNumber (tradeFee, 'cost');
                         if (!this.isEmpty (fees)) {
                             let insertNewFeeCurrency = true;
+                            const newFees: Dict[] = [];
                             for (let i = 0; i < fees.length; i++) {
-                                const orderFee = fees[i];
-                                if (this.safeString (orderFee, 'currency') === this.safeString (tradeFee, 'currency')) {
-                                    const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
-                                    const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
-                                    order['fees'][i]['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
+                                const orderFee: Dict = this.extend ({}, fees[i]);
+                                if (insertNewFeeCurrency && this.safeString (orderFee, 'currency') === tradeFeeCurrency) {
+                                    const feeCost: Num = this.sum (tradeFeeCost, this.safeNumber (orderFee, 'cost'));
+                                    const feeCostString = this.currencyToPrecision (tradeFeeCurrency, feeCost);
+                                    if (feeCostString !== undefined) {
+                                        orderFee['cost'] = parseFloat (feeCostString);
+                                    } else {
+                                        orderFee['cost'] = undefined;
+                                    }
                                     insertNewFeeCurrency = false;
-                                    break;
                                 }
+                                newFees.push (orderFee);
                             }
                             if (insertNewFeeCurrency) {
-                                order['fees'].push (tradeFee);
+                                newFees.push (tradeFee);
                             }
+                            order['fees'] = newFees;
                         } else if (fee !== undefined) {
-                            if (this.safeString (fee, 'currency') === this.safeString (tradeFee, 'currency')) {
-                                const feeCost = this.sum (fee['cost'], tradeFee['cost']);
-                                const feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
-                                order['fee']['cost'] = (feeCostString === undefined) ? undefined : parseFloat (feeCostString);
-                            } else if (this.safeString (fee, 'currency') === undefined) {
+                            const feeCurrency = this.safeString (fee, 'currency');
+                            if (feeCurrency === tradeFeeCurrency) {
+                                const feeCost: Num = this.sum (this.safeNumber (fee, 'cost'), tradeFeeCost);
+                                const feeCostString = this.currencyToPrecision (tradeFeeCurrency, feeCost);
+                                const newFee: Dict = this.extend ({}, fee);
+                                if (feeCostString !== undefined) {
+                                    newFee['cost'] = parseFloat (feeCostString);
+                                } else {
+                                    newFee['cost'] = undefined;
+                                }
+                                order['fee'] = newFee;
+                            } else if (feeCurrency === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
                                 order['fees'] = [ fee, tradeFee ];
