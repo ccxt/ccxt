@@ -8843,17 +8843,49 @@ function rustTypedListReads(content: string): string {
 // venue producers whose every return is a typed dict: [name, 'dict' (all returns `safe_balance`) | 'opt' (all
 // returns `parse_order`)]. The declaration returns that type; `.into_opt_dict()` / `.into_dict()` callers take it
 // as is and any other caller (dispatch arms, `Value` returns) re-boxes it exactly as the old return did.
-const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt']> = [
+// 'built': every return is `Value::Dict(x)` / `Value::Map(m)` (checked below), returned as `x` / `Arc::new(m)`.
+const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['parse_balance_custom', 'dict'],
     ['accept_rfq_quote', 'opt'],
     ['create_rfq_order', 'opt'],
     ['parse_balance_list', 'dict'],
+    ['get_subscription_request', 'built'],
+    ['unsubscribe_request', 'built'],
+    ['parse_spot_or_uta_ticker', 'built'],
+    ['create_public_subscription_request', 'built'],
+    ['parse_outcome_description', 'built'],
+    ['construct_phantom_agent', 'built'],
+    ['clob_order_message', 'built'],
+    ['parse_sxbet_snapshot_best_odds', 'built'],
+    ['parse_sxbet_v3_book_sides', 'built'],
+    ['parse_funding_history', 'built'],
+    ['parse_fee_tiers', 'built'],
+    ['estimate_tx_fee', 'built'],
+    ['create_extended_order_request', 'built'],
+    ['parse_trading_order', 'built'],
+    ['parse_trading_balance', 'built'],
+    ['parse_order_trade', 'built'],
+    ['subscribe_request', 'built'],
+    ['parse_funding_rate_ws', 'built'],
+    ['parse_trading_fees', 'built'],
+    ['opinion_order_raw_amounts', 'built'],
+    ['parse_opinion_market', 'built'],
+    ['polymarket_order_raw_amounts', 'built'],
+    ['build_orderbook_order', 'built'],
+    ['parse_sxbet_market', 'built'],
+    ['sign_predictfun_order', 'built'],
+    ['parse_uta_market', 'built'],
+    ['parse_ledger_comment', 'built'],
+    ['create_signed_request', 'built'],
+    ['eip_domain_data', 'built'],
+    ['parse_bid_ask_custom', 'built'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
     // later rows first: a dict producer may return another one (binance parse_balance_custom -> parse_balance_list)
     const dictRet = new RegExp ('^( *return )Value::Dict\\((self\\.(?:safe_balance|' + RUST_TYPED_DICT_PRODUCERS.filter ((r) => r[1] === 'dict').map ((r) => r[0]).join ('|') + ')\\(.*\\))\\);$', 'gm');
-    for (const [fn, kind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
+    for (const [fn, rowKind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
+        const kind = rowKind === 'built' ? 'dict' : rowKind;
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -8862,7 +8894,9 @@ function rustTypedDictProducers (content: string): string {
             if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
             let body = content.slice (open, end);
             const rets = body.match (/^ *return\b[^\n]*$/gm) ?? [];
-            if (kind === 'dict') {
+            if (rowKind === 'built') {
+                body = rustBuiltDictReturns (fn, body);
+            } else if (kind === 'dict') {
                 if (rets.length === 0 || !rets.every ((r) => new RegExp (dictRet.source).test (r))) throw new Error (fn + ': unproven return');
                 body = body.replace (dictRet, '$1$2;');
             } else {
@@ -8896,6 +8930,24 @@ function rustTypedDictProducers (content: string): string {
     }
     return content;
 }
+// ===== h29-R02
+// every `return` statement is a whole `Value::Dict(x);` / `Value::Map(m);` at statement start, the last one ends the body.
+function rustBuiltDictReturns (fn: string, body: string): string {
+    if (/\breturn\b/.test (body.replace (/^ *return\b/gm, ''))) throw new Error (fn + ': unproven return');
+    const head = /^( *)return Value::(Dict|Map)\(/gm, parts: string[] = [];
+    let at = 0, m: RegExpExecArray | null, lastEnd = -1, lastIndent = '';
+    while ((m = head.exec (body)) !== null) {
+        const close = balancedCloseIndex (body, m.index + m[0].length);
+        if (body.slice (close + 1, close + 3) !== ';\n' && body.slice (close + 1) !== ';') throw new Error (fn + ': unproven return');
+        const inner = body.slice (m.index + m[0].length, close);
+        parts.push (body.slice (at, m.index), m[1] + 'return ' + (m[2] === 'Dict' ? inner : 'std::sync::Arc::new(' + inner + ')') + ';');
+        at = close + 2; lastEnd = at; lastIndent = m[1];
+    }
+    const rets = body.match (/^ *return\b/gm) ?? [];
+    if (rets.length === 0 || rets.length !== parts.length / 2 || lastIndent !== '        ' || body.slice (lastEnd).trim () !== '') throw new Error (fn + ': unproven return');
+    return parts.join ('') + body.slice (at);
+}
+// ===== end h29-R02
 // A string key read on a local declared `crate::types::Market` reads the market's own map and moves nothing out of a
 // temporary: print the borrowed map read (`Some` for a string entry, `None` otherwise, exactly as `into_opt_string`).
 // `Value::Arr(self.symbols.clone()).into_opt_list()` is always `Some(..)` of the typed list.
