@@ -896,7 +896,10 @@ export default class apex extends Exchange {
         const request: Dict = {
             'symbol': this.safeString (market, 'id2'),
         };
-        request['limit'] = (limit === undefined) ? 100 : limit; // max 100, default 100
+        request['limit'] = 100; // max 100, default 100
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const response = await this.publicGetV3Depth (this.extend (request, params));
         //
         // {

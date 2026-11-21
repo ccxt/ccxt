@@ -329,7 +329,10 @@ export default class binance extends binanceRest {
     getStockTickerFromSymbol (symbol: Str): Str {
         const market = this.market (symbol);
         const base = this.safeString2 (market, 'base', 'id');
-        return (base === undefined) ? undefined : base.toLowerCase ();
+        if (base === undefined) {
+            return undefined;
+        }
+        return base.toLowerCase ();
     }
 
     getStockUnifiedSymbol (stockSymbol: Str, quote: string = 'USDC'): Str {
