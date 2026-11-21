@@ -6802,9 +6802,30 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_orders_by_status',
     'fetch_spot_markets',
     'fetch_swap_markets',
+    'find_message_hashes',
+    'parse_prediction_trades',
+    'convert_trading_view_to_ohlcv',
+    'get_order_channel_and_message_hash',
+    'compact_signable',
+    'complete_raw_topics',
+    'expand_group_rows',
+    'fetch_deposit_methods',
+    'fetch_raw_markets_by_search',
+    'fetch_raw_markets_list',
+    'fetch_raw_topics',
+    'fetch_raw_topics_by_queries',
+    'fetch_series_events',
+    'orders_to_trades',
+    'resolve_event_series_tickers',
+    'sbe_read_flags',
+    'fetch_events_by_query',
+    'custom_parse_bid_ask',
+    'fetch_securities',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
+// declared once, in a base tier: typed in every file
+for (const n of [ 'find_message_hashes', 'parse_prediction_trades', 'convert_trading_view_to_ohlcv' ]) RUST_VENUE_LIST_FNS.delete(n);
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
@@ -6813,7 +6834,7 @@ function typeParseListReturns(content: string): string {
     content = content.replace(decl, (whole, sig, name, open, body: string) => {
         const lines = body.split('\n').filter((l) => /^\s*return\b/.test(l));
         // a local declared once as `Vec<Value>` (never redeclared) is a built list
-        const vecs = [...body.matchAll(/\n\s*let mut (\w+): Vec<Value> = (?:Vec::new\(\)|vec!\[(?:Value::[^\n]*)?\]);/g)].map((v) => v[1])
+        const vecs = [...`\n${body}`.matchAll(/\n\s*let mut (\w+): Vec<Value> = (?:Vec::new\(\)|vec!\[(?:Value::[^\n]*)?\]);/g)].map((v) => v[1])
             .filter((v) => (body.match(new RegExp(String.raw`\blet mut ${v}\b`, 'g')) ?? []).length === 1);
         // a local declared once as `crate::value::List` is a list whatever it is reassigned from
         const listLocalRet = (l: string) => { const r = /^\s*return Value::Arr\((\w+)\);$/.exec(l); return r !== null
@@ -6838,7 +6859,7 @@ function typeParseListReturns(content: string): string {
     // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
     const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || (n !== 'parse_settlements' && !RUST_VENUE_LIST_FNS.has(n))));
     if (names.length === 0) return content;
-    const head = new RegExp(String.raw`\bself(?:\.parent)?\.(?:${names.join('|')})\(`, 'g');
+    const head = new RegExp(String.raw`(?:\bself(?:\.parent)?\.|<Self as crate::prediction_exchange_generated::PredictionBase>::)(?:${names.join('|')})\(`, 'g');
     const typedBody = new RegExp(String.raw`\n {4}(?:pub )?(?:async )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
     const spans: Array<[number, number]> = [];
     // sample JSON in comment lines has unbalanced brackets: blank them before finding the body's close
@@ -6856,8 +6877,10 @@ function typeParseListReturns(content: string): string {
         const inTyped = spans.some(([a, b]) => m!.index > a && m!.index < b) && /return $/.test(content.slice(m.index - 7, m.index));
         let rep = inTyped ? call + aw : `Value::Arr(${call}${aw})`;
         if (conv !== null) rep = conv[1] ? `Some(${call}${aw})` : call + aw;
+        const vec = conv === null ? content.slice(close + 1 + aw.length).match(/^\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)/) : null;
+        if (vec !== null) rep = `${call}${aw}.to_vec()`;
         out += content.slice(last, m.index) + rep;
-        last = close + 1 + aw.length + (conv?.[0].length ?? 0);
+        last = close + 1 + aw.length + (conv?.[0].length ?? 0) + (vec?.[0].length ?? 0);
         head.lastIndex = last;
     }
     return out + content.slice(last);
