@@ -4857,15 +4857,14 @@ public partial class hyperliquid : Exchange
         string? transferType = this.safeString(parameters, "type");
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        string? transferMethod = null;
-        object query = parameters;
-        (string?, IDictionary<string, object>) transferMethodqueryVariable = this.handleOptionStringAndParams(query, "transfer", "method");
-        transferMethod = transferMethodqueryVariable.Item1;
-        query = transferMethodqueryVariable.Item2;
-        string? masterAddress = null;
-        masterAddress = this.safeString(this.handlePublicAddress("transfer", query), 0);
-        query = this.safeDict(this.handlePublicAddress("transfer", query), 1, new Dictionary<string, object>() {});
-        bool useSendAsset = (transferMethod == "sendAsset");
+        (string?, IDictionary<string, object>) transferMethodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "transfer", "method");
+        string? transferMethod = transferMethodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = (transferMethodparamsMethodVariable.Item2);
+        IList<object> masterAddressparamsAddressVariable = (IList<object>)this.handlePublicAddress("transfer", paramsMethod);
+        var masterAddress = masterAddressparamsAddressVariable[0];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)masterAddressparamsAddressVariable[1]);
+        object query = paramsAddress;
+        bool useSendAsset = ((transferMethod == "sendAsset"));
         if ((transferMethod == null))
         {
             bool? isUnified = null;
