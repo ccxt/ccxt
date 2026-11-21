@@ -29,7 +29,7 @@
     "ts/src/btcmarkets.ts": 3,
     "ts/src/btcturk.ts": 3,
     "ts/src/btse.ts": 3,
-    "ts/src/bullish.ts": 11,
+    "ts/src/bullish.ts": 12,
     "ts/src/bybit.ts": 40,
     "ts/src/coinbase.ts": 19,
     "ts/src/coinbaseexchange.ts": 12,

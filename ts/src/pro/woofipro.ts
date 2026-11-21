@@ -1007,7 +1007,7 @@ export default class woofipro extends woofiproRest {
         const messageHash = 'myTrades';
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = market['symbol'];
         const trade = this.parseWsTrade (message, market);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
