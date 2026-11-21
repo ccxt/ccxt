@@ -5631,15 +5631,11 @@ class htx(Exchange, ImplicitAPI):
         query = self.omit(paramsMarketType, ['stop', 'stopLossTakeProfit', 'trigger'])
         response = None
         if marketType == 'spot':
-            clientOrderIds = self.safe_value_2(query, 'client-order-id', 'clientOrderId')
-            clientOrderIds = self.safe_value_2(query, 'client-order-ids', 'clientOrderIds', clientOrderIds)
+            clientOrderIds = self.safe_string_list(query, ['client-order-ids', 'clientOrderIds', 'client-order-id', 'clientOrderId'])
             if clientOrderIds is None:
                 request['order-ids'] = ids
             else:
-                if isinstance(clientOrderIds, str):
-                    request['client-order-ids'] = [clientOrderIds]
-                else:
-                    request['client-order-ids'] = clientOrderIds
+                request['client-order-ids'] = clientOrderIds
                 query = self.omit(query, ['client-order-id', 'client-order-ids', 'clientOrderId', 'clientOrderIds'])
             response = self.spotPrivatePostV1OrderOrdersBatchcancel(self.extend(request, query))
         else:

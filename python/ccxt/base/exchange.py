@@ -3233,6 +3233,17 @@ class BaseExchange(object):
             return value2
         return defaultValue
 
+    def safe_string_list(self, dictionaryOrList: object, keys: list[NullableIndexType]):
+        """
+ @ignore
+        a value that is a string or a list of strings by API contract, read as a list(a string becomes a one-element list)
+        :returns str[]|None:
+        """
+        str = self.safe_string_n(dictionaryOrList, keys)
+        if str is not None:
+            return [str]
+        return self.safe_list_n(dictionaryOrList, keys)
+
     def safe_list(self, dictionaryOrList: object, key: NullableIndexType, defaultValue: list = None):
         """
  @ignore
@@ -7839,16 +7850,23 @@ class BaseExchange(object):
         #
         # the value of greeks is either a dict or a list
         #
-        results = []
         if isinstance(greeks, list):
-            for i in range(0, len(greeks)):
-                results.append(self.extend(self.parse_greeks(greeks[i]), params))
-        else:
-            marketIds = list(greeks.keys())
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                market = self.safe_market(marketId)
-                results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
+            return self.parse_all_greeks_list(greeks, symbols, params)
+        return self.parse_all_greeks_dict(greeks, symbols, params)
+
+    def parse_all_greeks_list(self, greeks: list[dict], symbols: Strings = None, params: dict = {}):
+        results = []
+        for i in range(0, len(greeks)):
+            results.append(self.extend(self.parse_greeks(greeks[i]), params))
+        return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
+
+    def parse_all_greeks_dict(self, greeks: dict, symbols: Strings = None, params: dict = {}):
+        results = []
+        marketIds = list(greeks.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            results.append(self.extend(self.parse_greeks(greeks[marketId], market), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None):

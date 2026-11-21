@@ -3505,8 +3505,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         isContractResponse = ((subType is not None) or (type == 'swap') or (type == 'future'))
-        order = response if isContractResponse else self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        if isContractResponse:
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -5475,8 +5476,9 @@ class xt(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        result = response if (self.safe_bool(market, 'swap', False)) else self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        if self.safe_bool(market, 'swap', False):
+            return self.parse_order(response, market)
+        return self.parse_order(self.safe_dict(response, 'result', {}), market)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         #

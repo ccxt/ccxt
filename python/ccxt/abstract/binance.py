@@ -639,7 +639,7 @@ class ImplicitAPI:
     eapipublic_get_trades = eapiPublicGetTrades = Entry[_List]('trades', ['eapiPublic'], 'GET', {'cost': 5})
     eapipublic_get_historicaltrades = eapiPublicGetHistoricalTrades = Entry[_List]('historicalTrades', ['eapiPublic'], 'GET', {'cost': 20})
     eapipublic_get_exercisehistory = eapiPublicGetExerciseHistory = Entry[_List]('exerciseHistory', ['eapiPublic'], 'GET', {'cost': 3})
-    eapipublic_get_openinterest = eapiPublicGetOpenInterest = Entry[_Dict]('openInterest', ['eapiPublic'], 'GET', {'cost': 3})
+    eapipublic_get_openinterest = eapiPublicGetOpenInterest = Entry[_List]('openInterest', ['eapiPublic'], 'GET', {'cost': 3})
     eapiprivate_get_account = eapiPrivateGetAccount = Entry[_Dict]('account', ['eapiPrivate'], 'GET', {'cost': 3})
     eapiprivate_get_position = eapiPrivateGetPosition = Entry[_List]('position', ['eapiPrivate'], 'GET', {'cost': 5})
     eapiprivate_get_openorders = eapiPrivateGetOpenOrders = Entry[_List]('openOrders', ['eapiPrivate'], 'GET', {'cost': 1, 'noSymbol': 40})

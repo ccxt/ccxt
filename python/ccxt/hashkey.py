@@ -2495,7 +2495,7 @@ class hashkey(Exchange, ImplicitAPI):
         if (not isMarketBuy) and (cost is not None):
             raise NotSupported(self.id + ' createOrder() supports cost parameter for spot market buy orders only')
         request = self.create_spot_order_request(symbol, type, side, amount, price, params)
-        response = {}
+        response = None
         test = self.safe_bool(params, 'test', False)
         if test:
             response = self.privatePostApiV1SpotOrderTest(request)

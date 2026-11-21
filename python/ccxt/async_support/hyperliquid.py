@@ -2491,7 +2491,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: the raw request object to be sent to the exchange
         """
         market = self.market(symbol)
-        clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
+        clientOrderIds = self.safe_string_list(params, ['clientOrderId', 'client_id'])
         fast = self.safe_bool(params, 'fast', False)
         params2 = self.omit(params, ['clientOrderId', 'client_id', 'fast'])
         nonce = self.incrementing_nonce()
@@ -2505,14 +2505,12 @@ class hyperliquid(Exchange, ImplicitAPI):
             'cancels': [],
         }
         baseId = self.parse_to_numeric(market['baseId'])
-        if clientOrderId is not None:
-            if not isinstance(clientOrderId, list):
-                clientOrderId = [clientOrderId]
+        if clientOrderIds is not None:
             cancelAction['type'] = 'cancelByCloid'
-            for i in range(0, len(clientOrderId)):
+            for i in range(0, len(clientOrderIds)):
                 cancelReq.append({
                     'asset': baseId,
-                    'cloid': self.safe_string(clientOrderId, i),
+                    'cloid': self.safe_string(clientOrderIds, i),
                 })
         else:
             cancelAction['type'] = 'cancel'

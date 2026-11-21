@@ -13541,10 +13541,17 @@ class binance(Exchange, ImplicitAPI):
             request['expiration'] = self.yymmdd(market['expiry'])
         else:
             request['symbol'] = market['id']
-        response = None
         if self.safe_bool(market, 'option', False):
-            response = self.eapiPublicGetOpenInterest(self.extend(request, params))
-        elif self.safe_bool(market, 'inverse', False):
+            optionResponse = self.eapiPublicGetOpenInterest(self.extend(request, params))
+            symbolValue = market['symbol']
+            result = self.parse_open_interests_history(optionResponse, market)
+            for i in range(0, len(result)):
+                item = self.safe_dict(result, i)
+                if self.safe_string(item, 'symbol') == symbolValue:
+                    return item
+            raise NullResponse(self.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue)
+        response = None
+        if self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetOpenInterest(self.extend(request, params))
         else:
             response = self.fapiPublicGetOpenInterest(self.extend(request, params))
@@ -13578,16 +13585,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if self.safe_bool(market, 'option', False):
-            symbolValue = market['symbol']
-            result = self.parse_open_interests_history(response, market)
-            for i in range(0, len(result)):
-                item = self.safe_dict(result, i)
-                if self.safe_string(item, 'symbol') == symbolValue:
-                    return item
-            raise NullResponse(self.id + ' fetchOpenInterest() could not find open interest for ' + symbolValue)
-        else:
-            return self.parse_open_interest(response, market)
+        return self.parse_open_interest(response, market)
 
     def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')

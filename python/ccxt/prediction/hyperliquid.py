@@ -1262,15 +1262,14 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
         assetId = self.safe_integer(outcomeInfo, 'assetId')
         nonce = self.incrementing_nonce()
-        clientOrderId = self.safe_value_2(params, 'clientOrderId', 'client_id')
+        clientOrderIds = self.safe_string_list(params, ['clientOrderId', 'client_id'])
         paramsOmitted = self.omit(params, ['clientOrderId', 'client_id'])
         cancelReq = []
         cancelAction = {'type': 'cancel', 'cancels': []}
-        if clientOrderId is not None:
-            cloids = clientOrderId if isinstance(clientOrderId, list) else [clientOrderId]
+        if clientOrderIds is not None:
             cancelAction['type'] = 'cancelByCloid'
-            for i in range(0, len(cloids)):
-                cancelReq.append({'asset': assetId, 'cloid': cloids[i]})
+            for i in range(0, len(clientOrderIds)):
+                cancelReq.append({'asset': assetId, 'cloid': clientOrderIds[i]})
         else:
             cancelAction['type'] = 'cancel'
             for i in range(0, len(ids)):
@@ -1292,11 +1291,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         statuses = self.safe_list(data, 'statuses', [])
         outcomeSymbol = self.safe_string(outcomeObj, 'outcome', outcome)
         requestIds = ids
-        if clientOrderId is not None:
-            if isinstance(clientOrderId, list):
-                requestIds = clientOrderId
-            else:
-                requestIds = [clientOrderId]
+        if clientOrderIds is not None:
+            requestIds = clientOrderIds
         orders = []
         for i in range(0, len(statuses)):
             status = statuses[i]
@@ -1309,7 +1305,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             requestId = self.safe_string(requestIds, i, self.safe_string(requestIds, 0))
             order = {
                 'id': requestId,
-                'clientOrderId': requestId if (clientOrderId is not None) else None,
+                'clientOrderId': requestId if (clientOrderIds is not None) else None,
                 'info': status,
                 'status': 'canceled',
                 'outcome': outcomeSymbol,

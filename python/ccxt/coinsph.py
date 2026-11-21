@@ -1434,7 +1434,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         paramsRequest = self.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = {}
+        response = None
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, paramsRequest))
         else:

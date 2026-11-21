@@ -1403,7 +1403,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        sendStatus = self.safe_value(response, 'sendStatus')
+        sendStatus = self.safe_dict(response, 'sendStatus')
         status = self.safe_string(sendStatus, 'status')
         self.verify_order_action_success(status, 'createOrder', ['filled'])
         return self.parse_order(sendStatus, market)
