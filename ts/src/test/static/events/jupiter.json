@@ -1,0 +1,1402 @@
+[
+    {
+        "info": {
+            "eventId": "POLY-1273034",
+            "isActive": true,
+            "isLive": false,
+            "category": "economics",
+            "subcategory": "",
+            "tags": [
+                "economics",
+                "economy",
+                "politics",
+                "trump",
+                "finance",
+                "fed-rates",
+                "fed",
+                "fomc",
+                "recurring",
+                "kevin-warsh",
+                "Global-Rates",
+                "jerome-powell",
+                "economic-policy",
+                "macro-indicators"
+            ],
+            "metadata": {
+                "slug": "fed-decision-in-april-2027",
+                "title": "Fed Decision in April?",
+                "isLive": false,
+                "series": "polymarket",
+                "eventId": "POLY-1273034",
+                "imageUrl": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg",
+                "subtitle": "",
+                "closeTime": "2027-04-28T23:59:00Z"
+            },
+            "volumeUsd": "77917000000",
+            "volume24hr": "14463000000",
+            "beginAt": null,
+            "closeCondition": "This market will close and expire after a winner is declared.",
+            "rulesPdf": "",
+            "markets": [
+                {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353937",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "No change",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 630000,
+                        "sellYesPriceUsd": 610000,
+                        "sellNoPriceUsd": 370000,
+                        "buyNoPriceUsd": 390000,
+                        "volume": 16242
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "92199856198491275974466415643782357799240104314088671664656875045136906216387",
+                        "76119921629324516080602677397464024765019421580812939146552092343123569009356"
+                    ],
+                    "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353938",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "25 bps increase",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 250000,
+                        "sellYesPriceUsd": 240000,
+                        "sellNoPriceUsd": 750000,
+                        "buyNoPriceUsd": 760000,
+                        "volume": 47236
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "66397584046016765630746682613716092787022624785319248883504748528086365032455",
+                        "91168819772335340570004456943856235837454872683081712125169386405134130889252"
+                    ],
+                    "conditionId": "0x69032c7492764e828a8ed90122aacb1a768ff155811e1c34a056e07d4a58dbcd",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353936",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "25 bps decrease",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 90000,
+                        "sellYesPriceUsd": 70000,
+                        "sellNoPriceUsd": 910000,
+                        "buyNoPriceUsd": 930000,
+                        "volume": 7950
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "91364641252886208641596192895959608205022780880573644957377258156593193729304",
+                        "91900411293926999327568125722983794567537896537702178592833082361916565050813"
+                    ],
+                    "conditionId": "0xc863296c2162d2a51fc609d50b919364abafb9d6c05e7f6b39d7a052873bf22f",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353935",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "50+ bps decrease",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 68000,
+                        "sellYesPriceUsd": 29000,
+                        "sellNoPriceUsd": 932000,
+                        "buyNoPriceUsd": 971000,
+                        "volume": 4503
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "40975492362534065384445375184930755740276665733716606910761176570257872622431",
+                        "57293207829185769776248260379423126765494413540986435577192517979331594457009"
+                    ],
+                    "conditionId": "0x29bac54c808714e8cd14cb6f3624e7c37540709069cb942264b56b874ec3c0cc",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353939",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "50+ bps increase",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 24000,
+                        "sellYesPriceUsd": 14000,
+                        "sellNoPriceUsd": 976000,
+                        "buyNoPriceUsd": 986000,
+                        "volume": 1986
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "87111392629200251821241512983323141112564029898919169563335739701658247628265",
+                        "7409600213236868981748674822226517385591395676563865310144195640937775728419"
+                    ],
+                    "conditionId": "0xaaf1a74fa134a36e8ea4c4bf927081d63d4d3900b18b626368217c03696143c0",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                }
+            ],
+            "sportsMarketGroups": []
+        },
+        "id": "POLY-1273034",
+        "event": "POLY-1273034",
+        "title": "Fed Decision in April?",
+        "description": null,
+        "slug": "fed-decision-in-april-2027",
+        "category": "economics",
+        "tags": [
+            "economics",
+            "economy",
+            "politics",
+            "trump",
+            "finance",
+            "fed-rates",
+            "fed",
+            "fomc",
+            "recurring",
+            "kevin-warsh",
+            "Global-Rates",
+            "jerome-powell",
+            "economic-policy",
+            "macro-indicators"
+        ],
+        "markets": [
+            {
+                "info": {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353937",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "No change",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 630000,
+                        "sellYesPriceUsd": 610000,
+                        "sellNoPriceUsd": 370000,
+                        "buyNoPriceUsd": 390000,
+                        "volume": 16242
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "92199856198491275974466415643782357799240104314088671664656875045136906216387",
+                        "76119921629324516080602677397464024765019421580812939146552092343123569009356"
+                    ],
+                    "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                "id": "POLY-6353937",
+                "market": "POLY-6353937",
+                "event": "POLY-1273034",
+                "base": "POLY-6353937",
+                "quote": "USD",
+                "settle": "USD",
+                "baseId": "POLY-6353937",
+                "quoteId": "USD",
+                "settleId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": false,
+                "inverse": false,
+                "expiry": 1808956740000,
+                "expiryDatetime": "2027-04-28T23:59:00.000Z",
+                "precision": {
+                    "amount": 0.000001,
+                    "price": 0.000001
+                },
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "percentage": false,
+                "tierBased": false,
+                "marketType": "binary",
+                "executionModel": "amm",
+                "title": "No change",
+                "description": null,
+                "outcomes": [
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353937",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "No change",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 630000,
+                                "sellYesPriceUsd": 610000,
+                                "sellNoPriceUsd": 370000,
+                                "buyNoPriceUsd": 390000,
+                                "volume": 16242
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "92199856198491275974466415643782357799240104314088671664656875045136906216387",
+                                "76119921629324516080602677397464024765019421580812939146552092343123569009356"
+                            ],
+                            "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353937:YES",
+                        "outcomeId": "POLY-6353937:YES",
+                        "label": "Yes",
+                        "market": "POLY-6353937",
+                        "marketId": "POLY-6353937",
+                        "event": "POLY-1273034",
+                        "price": 0.63,
+                        "active": true
+                    },
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353937",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "No change",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 630000,
+                                "sellYesPriceUsd": 610000,
+                                "sellNoPriceUsd": 370000,
+                                "buyNoPriceUsd": 390000,
+                                "volume": 16242
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "92199856198491275974466415643782357799240104314088671664656875045136906216387",
+                                "76119921629324516080602677397464024765019421580812939146552092343123569009356"
+                            ],
+                            "conditionId": "0xa55e6d0a127dc7f882b95cc8aa3027dc4846ba8a08a06a358f637cc03a6002ac",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353937:NO",
+                        "outcomeId": "POLY-6353937:NO",
+                        "label": "No",
+                        "market": "POLY-6353937",
+                        "marketId": "POLY-6353937",
+                        "event": "POLY-1273034",
+                        "price": 0.39,
+                        "active": true
+                    }
+                ],
+                "collateral": "USD",
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "volume": 0.016242,
+                "liquidity": null,
+                "end": 1808956740000,
+                "endDatetime": "2027-04-28T23:59:00.000Z"
+            },
+            {
+                "info": {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353938",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "25 bps increase",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 250000,
+                        "sellYesPriceUsd": 240000,
+                        "sellNoPriceUsd": 750000,
+                        "buyNoPriceUsd": 760000,
+                        "volume": 47236
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "66397584046016765630746682613716092787022624785319248883504748528086365032455",
+                        "91168819772335340570004456943856235837454872683081712125169386405134130889252"
+                    ],
+                    "conditionId": "0x69032c7492764e828a8ed90122aacb1a768ff155811e1c34a056e07d4a58dbcd",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                "id": "POLY-6353938",
+                "market": "POLY-6353938",
+                "event": "POLY-1273034",
+                "base": "POLY-6353938",
+                "quote": "USD",
+                "settle": "USD",
+                "baseId": "POLY-6353938",
+                "quoteId": "USD",
+                "settleId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": false,
+                "inverse": false,
+                "expiry": 1808956740000,
+                "expiryDatetime": "2027-04-28T23:59:00.000Z",
+                "precision": {
+                    "amount": 0.000001,
+                    "price": 0.000001
+                },
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "percentage": false,
+                "tierBased": false,
+                "marketType": "binary",
+                "executionModel": "amm",
+                "title": "25 bps increase",
+                "description": null,
+                "outcomes": [
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353938",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "25 bps increase",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 250000,
+                                "sellYesPriceUsd": 240000,
+                                "sellNoPriceUsd": 750000,
+                                "buyNoPriceUsd": 760000,
+                                "volume": 47236
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "66397584046016765630746682613716092787022624785319248883504748528086365032455",
+                                "91168819772335340570004456943856235837454872683081712125169386405134130889252"
+                            ],
+                            "conditionId": "0x69032c7492764e828a8ed90122aacb1a768ff155811e1c34a056e07d4a58dbcd",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353938:YES",
+                        "outcomeId": "POLY-6353938:YES",
+                        "label": "Yes",
+                        "market": "POLY-6353938",
+                        "marketId": "POLY-6353938",
+                        "event": "POLY-1273034",
+                        "price": 0.25,
+                        "active": true
+                    },
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353938",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "25 bps increase",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 250000,
+                                "sellYesPriceUsd": 240000,
+                                "sellNoPriceUsd": 750000,
+                                "buyNoPriceUsd": 760000,
+                                "volume": 47236
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "66397584046016765630746682613716092787022624785319248883504748528086365032455",
+                                "91168819772335340570004456943856235837454872683081712125169386405134130889252"
+                            ],
+                            "conditionId": "0x69032c7492764e828a8ed90122aacb1a768ff155811e1c34a056e07d4a58dbcd",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353938:NO",
+                        "outcomeId": "POLY-6353938:NO",
+                        "label": "No",
+                        "market": "POLY-6353938",
+                        "marketId": "POLY-6353938",
+                        "event": "POLY-1273034",
+                        "price": 0.76,
+                        "active": true
+                    }
+                ],
+                "collateral": "USD",
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "volume": 0.047236,
+                "liquidity": null,
+                "end": 1808956740000,
+                "endDatetime": "2027-04-28T23:59:00.000Z"
+            },
+            {
+                "info": {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353936",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "25 bps decrease",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 90000,
+                        "sellYesPriceUsd": 70000,
+                        "sellNoPriceUsd": 910000,
+                        "buyNoPriceUsd": 930000,
+                        "volume": 7950
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "91364641252886208641596192895959608205022780880573644957377258156593193729304",
+                        "91900411293926999327568125722983794567537896537702178592833082361916565050813"
+                    ],
+                    "conditionId": "0xc863296c2162d2a51fc609d50b919364abafb9d6c05e7f6b39d7a052873bf22f",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                "id": "POLY-6353936",
+                "market": "POLY-6353936",
+                "event": "POLY-1273034",
+                "base": "POLY-6353936",
+                "quote": "USD",
+                "settle": "USD",
+                "baseId": "POLY-6353936",
+                "quoteId": "USD",
+                "settleId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": false,
+                "inverse": false,
+                "expiry": 1808956740000,
+                "expiryDatetime": "2027-04-28T23:59:00.000Z",
+                "precision": {
+                    "amount": 0.000001,
+                    "price": 0.000001
+                },
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "percentage": false,
+                "tierBased": false,
+                "marketType": "binary",
+                "executionModel": "amm",
+                "title": "25 bps decrease",
+                "description": null,
+                "outcomes": [
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353936",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "25 bps decrease",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 90000,
+                                "sellYesPriceUsd": 70000,
+                                "sellNoPriceUsd": 910000,
+                                "buyNoPriceUsd": 930000,
+                                "volume": 7950
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "91364641252886208641596192895959608205022780880573644957377258156593193729304",
+                                "91900411293926999327568125722983794567537896537702178592833082361916565050813"
+                            ],
+                            "conditionId": "0xc863296c2162d2a51fc609d50b919364abafb9d6c05e7f6b39d7a052873bf22f",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353936:YES",
+                        "outcomeId": "POLY-6353936:YES",
+                        "label": "Yes",
+                        "market": "POLY-6353936",
+                        "marketId": "POLY-6353936",
+                        "event": "POLY-1273034",
+                        "price": 0.09,
+                        "active": true
+                    },
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353936",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "25 bps decrease",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 90000,
+                                "sellYesPriceUsd": 70000,
+                                "sellNoPriceUsd": 910000,
+                                "buyNoPriceUsd": 930000,
+                                "volume": 7950
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "91364641252886208641596192895959608205022780880573644957377258156593193729304",
+                                "91900411293926999327568125722983794567537896537702178592833082361916565050813"
+                            ],
+                            "conditionId": "0xc863296c2162d2a51fc609d50b919364abafb9d6c05e7f6b39d7a052873bf22f",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353936:NO",
+                        "outcomeId": "POLY-6353936:NO",
+                        "label": "No",
+                        "market": "POLY-6353936",
+                        "marketId": "POLY-6353936",
+                        "event": "POLY-1273034",
+                        "price": 0.93,
+                        "active": true
+                    }
+                ],
+                "collateral": "USD",
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "volume": 0.00795,
+                "liquidity": null,
+                "end": 1808956740000,
+                "endDatetime": "2027-04-28T23:59:00.000Z"
+            },
+            {
+                "info": {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353935",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "50+ bps decrease",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 68000,
+                        "sellYesPriceUsd": 29000,
+                        "sellNoPriceUsd": 932000,
+                        "buyNoPriceUsd": 971000,
+                        "volume": 4503
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "40975492362534065384445375184930755740276665733716606910761176570257872622431",
+                        "57293207829185769776248260379423126765494413540986435577192517979331594457009"
+                    ],
+                    "conditionId": "0x29bac54c808714e8cd14cb6f3624e7c37540709069cb942264b56b874ec3c0cc",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                "id": "POLY-6353935",
+                "market": "POLY-6353935",
+                "event": "POLY-1273034",
+                "base": "POLY-6353935",
+                "quote": "USD",
+                "settle": "USD",
+                "baseId": "POLY-6353935",
+                "quoteId": "USD",
+                "settleId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": false,
+                "inverse": false,
+                "expiry": 1808956740000,
+                "expiryDatetime": "2027-04-28T23:59:00.000Z",
+                "precision": {
+                    "amount": 0.000001,
+                    "price": 0.000001
+                },
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "percentage": false,
+                "tierBased": false,
+                "marketType": "binary",
+                "executionModel": "amm",
+                "title": "50+ bps decrease",
+                "description": null,
+                "outcomes": [
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353935",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "50+ bps decrease",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 68000,
+                                "sellYesPriceUsd": 29000,
+                                "sellNoPriceUsd": 932000,
+                                "buyNoPriceUsd": 971000,
+                                "volume": 4503
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "40975492362534065384445375184930755740276665733716606910761176570257872622431",
+                                "57293207829185769776248260379423126765494413540986435577192517979331594457009"
+                            ],
+                            "conditionId": "0x29bac54c808714e8cd14cb6f3624e7c37540709069cb942264b56b874ec3c0cc",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353935:YES",
+                        "outcomeId": "POLY-6353935:YES",
+                        "label": "Yes",
+                        "market": "POLY-6353935",
+                        "marketId": "POLY-6353935",
+                        "event": "POLY-1273034",
+                        "price": 0.068,
+                        "active": true
+                    },
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353935",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "50+ bps decrease",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 68000,
+                                "sellYesPriceUsd": 29000,
+                                "sellNoPriceUsd": 932000,
+                                "buyNoPriceUsd": 971000,
+                                "volume": 4503
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "40975492362534065384445375184930755740276665733716606910761176570257872622431",
+                                "57293207829185769776248260379423126765494413540986435577192517979331594457009"
+                            ],
+                            "conditionId": "0x29bac54c808714e8cd14cb6f3624e7c37540709069cb942264b56b874ec3c0cc",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353935:NO",
+                        "outcomeId": "POLY-6353935:NO",
+                        "label": "No",
+                        "market": "POLY-6353935",
+                        "marketId": "POLY-6353935",
+                        "event": "POLY-1273034",
+                        "price": 0.971,
+                        "active": true
+                    }
+                ],
+                "collateral": "USD",
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "volume": 0.004503,
+                "liquidity": null,
+                "end": 1808956740000,
+                "endDatetime": "2027-04-28T23:59:00.000Z"
+            },
+            {
+                "info": {
+                    "provider": "polymarket",
+                    "marketId": "POLY-6353939",
+                    "status": "open",
+                    "result": null,
+                    "marketResultPubkey": null,
+                    "title": "50+ bps increase",
+                    "openTime": 1793210502,
+                    "closeTime": 1808956740,
+                    "isTeamMarket": false,
+                    "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                    "rulesSecondary": "",
+                    "resolveAt": null,
+                    "pricing": {
+                        "buyYesPriceUsd": 24000,
+                        "sellYesPriceUsd": 14000,
+                        "sellNoPriceUsd": 976000,
+                        "buyNoPriceUsd": 986000,
+                        "volume": 1986
+                    },
+                    "imageUrl": null,
+                    "team": null,
+                    "outcomes": [
+                        "Yes",
+                        "No"
+                    ],
+                    "clobTokenIds": [
+                        "87111392629200251821241512983323141112564029898919169563335739701658247628265",
+                        "7409600213236868981748674822226517385591395676563865310144195640937775728419"
+                    ],
+                    "conditionId": "0xaaf1a74fa134a36e8ea4c4bf927081d63d4d3900b18b626368217c03696143c0",
+                    "comboStatus": "disabled",
+                    "marketOptions": [
+                        {
+                            "label": "Yes",
+                            "buyYes": true
+                        },
+                        {
+                            "label": "No",
+                            "buyYes": false
+                        }
+                    ],
+                    "sportsMarketType": null,
+                    "sportsLine": null,
+                    "periodType": null,
+                    "periodNumber": null,
+                    "gameNumber": null
+                },
+                "id": "POLY-6353939",
+                "market": "POLY-6353939",
+                "event": "POLY-1273034",
+                "base": "POLY-6353939",
+                "quote": "USD",
+                "settle": "USD",
+                "baseId": "POLY-6353939",
+                "quoteId": "USD",
+                "settleId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "contract": false,
+                "linear": false,
+                "inverse": false,
+                "expiry": 1808956740000,
+                "expiryDatetime": "2027-04-28T23:59:00.000Z",
+                "precision": {
+                    "amount": 0.000001,
+                    "price": 0.000001
+                },
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "cost": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "percentage": false,
+                "tierBased": false,
+                "marketType": "binary",
+                "executionModel": "amm",
+                "title": "50+ bps increase",
+                "description": null,
+                "outcomes": [
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353939",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "50+ bps increase",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 24000,
+                                "sellYesPriceUsd": 14000,
+                                "sellNoPriceUsd": 976000,
+                                "buyNoPriceUsd": 986000,
+                                "volume": 1986
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "87111392629200251821241512983323141112564029898919169563335739701658247628265",
+                                "7409600213236868981748674822226517385591395676563865310144195640937775728419"
+                            ],
+                            "conditionId": "0xaaf1a74fa134a36e8ea4c4bf927081d63d4d3900b18b626368217c03696143c0",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353939:YES",
+                        "outcomeId": "POLY-6353939:YES",
+                        "label": "Yes",
+                        "market": "POLY-6353939",
+                        "marketId": "POLY-6353939",
+                        "event": "POLY-1273034",
+                        "price": 0.024,
+                        "active": true
+                    },
+                    {
+                        "info": {
+                            "provider": "polymarket",
+                            "marketId": "POLY-6353939",
+                            "status": "open",
+                            "result": null,
+                            "marketResultPubkey": null,
+                            "title": "50+ bps increase",
+                            "openTime": 1793210502,
+                            "closeTime": 1808956740,
+                            "isTeamMarket": false,
+                            "rulesPrimary": "The FED interest rates are defined in this market by the upper bound of the target federal funds range. The decisions on the target federal funds range are made by the Federal Open Market Committee (FOMC) meetings.\n\nThis market will resolve to the amount of basis points the upper bound of the target federal funds rate is changed by versus the level it was prior to the Federal Reserve's April 2027 meeting.\n\nIf the target federal funds rate is changed to a level not expressed in the displayed options, the change will be rounded up to the nearest 25 and will resolve to the relevant bracket. (e.g. if there's a cut/increase of 12.5 bps it will be considered to be 25 bps)\n\nThe resolution source for this market is the FOMC’s statement after its meeting scheduled to conclude on April 28, 2027 according to the official calendar: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm.\n\nThe level and change of the target federal funds rate is also published at the official website of the Federal Reserve at https://www.federalreserve.gov/monetarypolicy/openmarket.htm.\n\nThis market may resolve as soon as the FOMC’s statement for their April meeting with relevant data is issued. If no statement is released by the end date of the next scheduled meeting, this market will resolve to the \"No change\" bracket.",
+                            "rulesSecondary": "",
+                            "resolveAt": null,
+                            "pricing": {
+                                "buyYesPriceUsd": 24000,
+                                "sellYesPriceUsd": 14000,
+                                "sellNoPriceUsd": 976000,
+                                "buyNoPriceUsd": 986000,
+                                "volume": 1986
+                            },
+                            "imageUrl": null,
+                            "team": null,
+                            "outcomes": [
+                                "Yes",
+                                "No"
+                            ],
+                            "clobTokenIds": [
+                                "87111392629200251821241512983323141112564029898919169563335739701658247628265",
+                                "7409600213236868981748674822226517385591395676563865310144195640937775728419"
+                            ],
+                            "conditionId": "0xaaf1a74fa134a36e8ea4c4bf927081d63d4d3900b18b626368217c03696143c0",
+                            "comboStatus": "disabled",
+                            "marketOptions": [
+                                {
+                                    "label": "Yes",
+                                    "buyYes": true
+                                },
+                                {
+                                    "label": "No",
+                                    "buyYes": false
+                                }
+                            ],
+                            "sportsMarketType": null,
+                            "sportsLine": null,
+                            "periodType": null,
+                            "periodNumber": null,
+                            "gameNumber": null
+                        },
+                        "outcome": "POLY-6353939:NO",
+                        "outcomeId": "POLY-6353939:NO",
+                        "label": "No",
+                        "market": "POLY-6353939",
+                        "marketId": "POLY-6353939",
+                        "event": "POLY-1273034",
+                        "price": 0.986,
+                        "active": true
+                    }
+                ],
+                "collateral": "USD",
+                "active": true,
+                "closed": false,
+                "resolved": false,
+                "volume": 0.001986,
+                "liquidity": null,
+                "end": 1808956740000,
+                "endDatetime": "2027-04-28T23:59:00.000Z"
+            }
+        ],
+        "active": true,
+        "resolved": false,
+        "volume": 77917000000,
+        "liquidity": null,
+        "created": null,
+        "end": 1808956740000,
+        "endDatetime": "2027-04-28T23:59:00.000Z",
+        "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/fed-decision-in-september-762-c4RyWuxRPo1L.jpg"
+    }
+]

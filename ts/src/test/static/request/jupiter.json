@@ -1,0 +1,209 @@
+{
+    "exchange": "jupiter",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "createPool": [
+            {
+                "description": "jupiter spot createPool",
+                "method": "createPool",
+                "url": "https://api.jup.ag/studio/v1/dbc-pool/create-tx",
+                "input": [
+                    {
+                        "buildCurveByMarketCapParam": {
+                            "quoteMint": "So11111111111111111111111111111111111111112",
+                            "initialMarketCap": 30,
+                            "migrationMarketCap": 300,
+                            "tokenQuoteDecimal": 9,
+                            "lockedVestingParam": {
+                                "totalLockedVestingAmount": 0,
+                                "cliffUnlockAmount": 0,
+                                "numberOfVestingPeriod": 0,
+                                "totalVestingDuration": 0,
+                                "cliffDurationFromMigrationTime": 0
+                            }
+                        },
+                        "antiSniping": false,
+                        "fee": {
+                            "feeBps": 100
+                        },
+                        "tokenName": "CCXT Test",
+                        "tokenSymbol": "CCXTT",
+                        "tokenImageContentType": "image/png",
+                        "creator": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2"
+                    }
+                ],
+                "output": "{\"buildCurveByMarketCapParam\":{\"quoteMint\":\"So11111111111111111111111111111111111111112\",\"initialMarketCap\":30,\"migrationMarketCap\":300,\"tokenQuoteDecimal\":9,\"lockedVestingParam\":{\"totalLockedVestingAmount\":0,\"cliffUnlockAmount\":0,\"numberOfVestingPeriod\":0,\"totalVestingDuration\":0,\"cliffDurationFromMigrationTime\":0}},\"antiSniping\":false,\"fee\":{\"feeBps\":100},\"tokenName\":\"CCXT Test\",\"tokenSymbol\":\"CCXTT\",\"tokenImageContentType\":\"image/png\",\"creator\":\"7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2\"}"
+            }
+        ],
+        "claimPoolFees": [
+            {
+                "description": "jupiter spot claimPoolFees",
+                "method": "claimPoolFees",
+                "url": "https://api.jup.ag/studio/v1/dbc/fee/create-tx",
+                "input": [
+                    "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+                    {
+                        "ownerWallet": "2BCTyLZziqFMx7wpAMatTmsdgQeC5JCxph5hkHUyNDhC",
+                        "maxQuoteAmount": 658163
+                    }
+                ],
+                "output": "{\"ownerWallet\":\"2BCTyLZziqFMx7wpAMatTmsdgQeC5JCxph5hkHUyNDhC\",\"poolAddress\":\"4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F\",\"maxQuoteAmount\":658163}"
+            }
+        ],
+        "collectFees": [
+            {
+                "description": "jupiter spot collectFees",
+                "method": "collectFees",
+                "url": "https://api.jup.ag/studio/v1/dbc/fee/create-tx",
+                "input": [
+                    "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F",
+                    {
+                        "ownerWallet": "2BCTyLZziqFMx7wpAMatTmsdgQeC5JCxph5hkHUyNDhC",
+                        "maxQuoteAmount": 658163
+                    }
+                ],
+                "output": "{\"ownerWallet\":\"2BCTyLZziqFMx7wpAMatTmsdgQeC5JCxph5hkHUyNDhC\",\"poolAddress\":\"4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F\",\"maxQuoteAmount\":658163}"
+            }
+        ],
+        "fetchPoolMintAddresses": [
+            {
+                "description": "jupiter spot fetchPoolMintAddresses",
+                "method": "fetchPoolMintAddresses",
+                "url": "https://api.jup.ag/studio/v1/dbc-pool/addresses/FAvY2SSpxzLYWaBAgkGUJdZMJaXLt2sQpSYN6yd9jups",
+                "input": [
+                    "FAvY2SSpxzLYWaBAgkGUJdZMJaXLt2sQpSYN6yd9jups"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPoolFees": [
+            {
+                "description": "jupiter spot fetchPoolFees v2",
+                "method": "fetchPoolFees",
+                "url": "https://api.jup.ag/studio/v1/dbc/fee",
+                "input": [
+                    "4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F"
+                ],
+                "output": "{\"poolAddress\":\"4z3aBPaMHPbncBkNoWqhVHFVUropAtXzP1iLXinU945F\"}"
+            }
+        ],
+        "requestTriggerChallenge": [
+            {
+                "description": "jupiter spot requestTriggerChallenge",
+                "method": "requestTriggerChallenge",
+                "url": "https://api.jup.ag/trigger/v2/auth/challenge",
+                "input": [
+                    "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2"
+                ],
+                "output": "{\"walletPubkey\":\"7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2\",\"type\":\"message\"}"
+            }
+        ],
+        "fetchBorrowPositions": [
+            {
+                "description": "jupiter spot fetchBorrowPositions",
+                "method": "fetchBorrowPositions",
+                "url": "https://api.jup.ag/lend/v1/borrow/positions?users=7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+                "input": [
+                    "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2"
+                ],
+                "output": null
+            }
+        ],
+        "fetchLiquidity": [
+            {
+                "description": "jupiter spot fetchLiquidity earn",
+                "method": "fetchLiquidity",
+                "url": "https://api.jup.ag/lend/v1/earn/positions?users=7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+                "input": [
+                    null,
+                    {
+                        "walletAddress": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+                        "type": "earn"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLiquidityPools": [
+            {
+                "description": "jupiter spot fetchLiquidityPools earn",
+                "method": "fetchLiquidityPools",
+                "url": "https://api.jup.ag/lend/v1/earn/tokens",
+                "input": [
+                    {
+                        "type": "earn"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchSwapInstructions": [
+            {
+                "description": "jupiter spot fetchSwapInstructions",
+                "method": "fetchSwapInstructions",
+                "url": "https://api.jup.ag/swap/v2/build?inputMint=JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN&outputMint=So11111111111111111111111111111111111111112&amount=1000000&taker=7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2",
+                "input": [
+                    {
+                        "inputMint": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+                        "outputMint": "So11111111111111111111111111111111111111112",
+                        "amount": "1000000",
+                        "taker": "7G2tGKyoRzH6nsub3f6VZdSgaY2AVjPS3ciwP8Npm1d2"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "jupiter spot fetchConvertQuote",
+                "method": "fetchConvertQuote",
+                "url": "https://api.jup.ag/swap/v2/order?inputMint=JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN&outputMint=So11111111111111111111111111111111111111112&amount=1000000",
+                "input": [
+                    "JUP",
+                    "SOL",
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarketsEmulated": [
+            {
+                "description": "jupiter spot fetchMarketsEmulated",
+                "method": "fetchMarketsEmulated",
+                "url": "https://api.jup.ag/tokens/v2/search?query=USDC",
+                "input": [
+                    {
+                        "base": "JUP",
+                        "quote": "USDC"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "jupiter spot fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.jup.ag/tokens/v2/search?query=JUP",
+                "input": [
+                    {
+                        "query": "JUP"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "jupiter spot fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.jup.ag/price/v3?ids=JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN%2CSo11111111111111111111111111111111111111112",
+                "input": [
+                    "JUP/SOL"
+                ],
+                "output": null
+            }
+        ]
+    }
+}

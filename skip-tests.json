@@ -1777,6 +1777,11 @@
             }
         }
     },
+    "jupiter": {
+        "skipMethods": {
+            "fetchOrderBook": "jupiter is a swap aggregator without an order book endpoint"
+        }
+    },
     "kalshi": {
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
@@ -2431,6 +2436,11 @@
             "fetchOHLCV": {
                 "compareTimestampToLimit": "todo"
             }
+        }
+    },
+    "raydium": {
+        "skipMethods": {
+            "fetchOrderBook": "raydium pools are AMMs without an order book endpoint"
         }
     },
     "revolutx": {

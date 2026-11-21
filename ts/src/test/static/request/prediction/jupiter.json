@@ -1,0 +1,340 @@
+{
+    "exchange": "jupiter",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {},
+    "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.jup.ag/prediction/v1/orders?ownerPubkey=CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+                "input": [
+                    null,
+                    null,
+                    5,
+                    {
+                        "ownerPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.jup.ag/prediction/v1/orders?ownerPubkey=CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+                "input": [
+                    null,
+                    null,
+                    5,
+                    {
+                        "ownerPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "closeAllPredictionPositions": [
+            {
+                "description": "close all prediction positions",
+                "method": "closeAllPredictionPositions",
+                "url": "https://api.jup.ag/prediction/v1/positions",
+                "input": [
+                    {
+                        "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+                        "minSellPriceSlippageBps": 100
+                    }
+                ],
+                "output": "{\"minSellPriceSlippageBps\":100,\"ownerPubkey\":\"8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM\"}"
+            }
+        ],
+        "closePredictionPosition": [
+            {
+                "description": "close one prediction position",
+                "method": "closePredictionPosition",
+                "url": "https://api.jup.ag/prediction/v1/positions/9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+                "input": [
+                    "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+                    {
+                        "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM"
+                    }
+                ],
+                "output": "{\"ownerPubkey\":\"8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM\"}"
+            }
+        ],
+        "fetchPositionById": [
+            {
+                "description": "fetch position by pubkey",
+                "method": "fetchPositionById",
+                "url": "https://api.jup.ag/prediction/v1/positions/9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm",
+                "input": [
+                    "9vMtMrFnabEQHQEQvKr44TwaGyv8rJn9L9h4MJZicZwm"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create market buy order",
+                "method": "createOrder",
+                "url": "https://api.jup.ag/prediction/v1/orders",
+                "input": [
+                    "POLY-6353937:YES",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "ownerPubkey": "CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R",
+                        "depositAmount": "7000000",
+                        "depositMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    }
+                ],
+                "output": "{\"ownerPubkey\":\"CqRes7Fvso7h765yS6Gu3qwvtfCsJWnqV3iXp4rvpe7R\",\"marketId\":\"POLY-6353937\",\"isYes\":true,\"isBuy\":true,\"contracts\":\"10\",\"depositAmount\":\"7000000\",\"depositMint\":\"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v\"}"
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.jup.ag/prediction/v1/history?ownerPubkey=CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d&start=0&end=5",
+                "input": [
+                    "4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM",
+                    null,
+                    null,
+                    5,
+                    {
+                        "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPredictionOrderStatus": [
+            {
+                "description": "fetch order status",
+                "method": "fetchPredictionOrderStatus",
+                "url": "https://api.jup.ag/prediction/v1/orders/status/4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM",
+                "input": [
+                    "4NJqSjU5quEFJWFgKJ3ii6WMMvaauCwXuN1L68425hXM"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions v2",
+                "method": "fetchPositions",
+                "url": "https://api.jup.ag/prediction/v1/positions?ownerPubkey=8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM",
+                "input": [
+                    null,
+                    {
+                        "ownerPubkey": "8ed2wf1p9KZdvXVMyTpmMvMrBmph7rciWjkahc2pcxEM"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchEventScores": [
+            {
+                "description": "fetch event scores",
+                "method": "fetchEventScores",
+                "url": "https://api.jup.ag/prediction/v1/events/scores?eventIds=POLY-1273034",
+                "input": [
+                    {
+                        "eventIds": "POLY-1273034"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders",
+                "method": "fetchOrders",
+                "url": "https://api.jup.ag/prediction/v1/orders?ownerPubkey=CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d&end=5",
+                "input": [
+                    null,
+                    null,
+                    5,
+                    {
+                        "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.jup.ag/prediction/v1/history?ownerPubkey=CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d&start=0&end=5",
+                "input": [
+                    null,
+                    null,
+                    5,
+                    {
+                        "ownerPubkey": "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPredictionProfile": [
+            {
+                "description": "fetch prediction profile",
+                "method": "fetchPredictionProfile",
+                "url": "https://api.jup.ag/prediction/v1/profiles/CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d",
+                "input": [
+                    "CdzvU3te3u5jJpcKVp769Jcwr9Dd5HNeSh8AVWWSpS5d"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPredictionLeaderboards": [
+            {
+                "description": "fetch prediction leaderboards",
+                "method": "fetchPredictionLeaderboards",
+                "url": "https://api.jup.ag/prediction/v1/leaderboards",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchPredictionForecast": [
+            {
+                "description": "fetch forecast for a market",
+                "method": "fetchPredictionForecast",
+                "url": "https://api.jup.ag/prediction/v1/forecast?marketId=POLY-6353937",
+                "input": [
+                    {
+                        "marketId": "POLY-6353937"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchPredictionVaultInfo": [
+            {
+                "description": "fetch prediction vault info",
+                "method": "fetchPredictionVaultInfo",
+                "url": "https://api.jup.ag/prediction/v1/vault-info",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchEventScore": [
+            {
+                "description": "fetch event score",
+                "method": "fetchEventScore",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034/score",
+                "input": [
+                    "POLY-1273034"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for a yes outcome v2",
+                "method": "fetchTrades",
+                "url": "https://api.jup.ag/prediction/v1/trades?marketId=POLY-6353937&limit=5",
+                "input": [
+                    "POLY-6353937:YES",
+                    null,
+                    5
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://api.jup.ag/prediction/v1/orderbook/POLY-6353937",
+                "input": [
+                    "POLY-6353937:YES"
+                ],
+                "output": null
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch trading status",
+                "method": "fetchStatus",
+                "url": "https://api.jup.ag/prediction/v1/trading-status",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for a yes outcome",
+                "method": "fetchTicker",
+                "url": "https://api.jup.ag/prediction/v1/markets/POLY-6353937",
+                "input": [
+                    "POLY-6353937:YES"
+                ],
+                "output": null
+            }
+        ],
+        "fetchEventMarket": [
+            {
+                "description": "fetch one market of an event",
+                "method": "fetchEventMarket",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034/markets/POLY-6353937",
+                "input": [
+                    "POLY-1273034",
+                    "POLY-6353937"
+                ],
+                "output": null
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetch event by id",
+                "method": "fetchEvent",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034",
+                "input": [
+                    "POLY-1273034"
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetch events by id",
+                "method": "fetchEvents",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034?includeMarkets=true",
+                "input": [
+                    {
+                        "eventId": "POLY-1273034"
+                    }
+                ]
+            }
+        ],
+        "fetchEventMarkets": [
+            {
+                "description": "fetch markets by event id",
+                "method": "fetchEventMarkets",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034/markets",
+                "input": [
+                    "POLY-1273034"
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch markets by event id",
+                "method": "fetchMarkets",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034?includeMarkets=true",
+                "input": [
+                    {
+                        "eventId": "POLY-1273034"
+                    }
+                ]
+            }
+        ]
+    }
+}

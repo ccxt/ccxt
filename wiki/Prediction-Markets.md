@@ -126,7 +126,7 @@ Outcome-addressed methods (`fetchTicker`, `createOrder`, …) auto-load the outc
 fetchEvent (id, params = {})
 ```
 
-- `id` — the identifier of a single event. Polymarket accepts the numeric event id or its slug, Kalshi the event ticker, Myriad the `networkId:marketId` market id, and Limitless the market slug or address
+- `id` — the identifier of a single event. Polymarket accepts the numeric event id or its slug, Kalshi the event ticker, Myriad the `networkId:marketId` market id, Limitless the market slug or address, and Jupiter the event id
 - returns a single **[event structure](#prediction-event-structure)** (same shape as the entries returned by `fetchEvents`)
 
 ```javascript
@@ -135,7 +135,7 @@ const events = await exchange.fetchEvents ({ 'query': 'Trump' })
 const event = await exchange.fetchEvent (events[0]['id'])
 ```
 
-Supported by `polymarket`, `kalshi`, `myriad` and `limitless` (check `exchange.has['fetchEvent']`); Hyperliquid has no single-event endpoint.
+Supported by `polymarket`, `kalshi`, `myriad`, `limitless` and `jupiter` (check `exchange.has['fetchEvent']`); Hyperliquid has no single-event endpoint.
 
 ## createOrder
 
