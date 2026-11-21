@@ -14,7 +14,7 @@ Your API keys stay on your machine, and **the AI model never sees them**:
 - Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main").
 - Keys leave the process only inside signed HTTPS requests to the exchange itself — the same as any trading bot.
 - Every tool result, error, and log line passes a **redaction filter** holding your loaded secret values (some exchanges echo signed URLs in error bodies — that path is closed). Raw request URLs/headers/bodies are never emitted. `verbose` is force-disabled.
-- **Capability tiers are opt-in and file-owned.** Out of the box the server does public market data only. Configuring an account enables private reads. `trading`, `funds` (withdraw/transfer), and `implicitWrites` (raw endpoints) must each be enabled per account **in the config file** — there is no tool that edits config, so a conversation can never grant itself permissions. Unregistered tiers do not even appear in the tool list.
+- **Capability tiers are opt-in and file-owned.** Out of the box the server does public market data only. Configuring an account enables private reads. `trading`, `funds` (withdraw/transfer), and `implicitWrites` (raw endpoints) must each be enabled per account **in the config file** — there is no tool that edits config, so a conversation can never grant itself permissions. By default **every** tool is listed (including `create_order`, `withdraw`, `transfer`), so the model can discover them and, when one isn't configured, relay a clear "configure an account" error with the config-file path. Listing is not authorization: **execution is always gated at the handler**, which re-checks the account and its tier on every call, so a write tool without a configured, tier-enabled account just errors. Set `"settings": {"hideDisabledTools": true}` to hide unconfigured tiers from the tool list instead (see [Settings](#settings)).
 - Writes are **previewed and confirmed** (native confirmation form where the host supports elicitation, otherwise an explicit preview + confirm-token round-trip), validated against market limits and your notional caps, and journaled to an append-only audit log.
 
 Recommended exchange-side backstops (they hold even if your machine is compromised): create API keys with **withdrawal permission disabled** and an **IP allowlist**.
@@ -133,6 +133,24 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 | implicitWrites | raw POST/PUT/DELETE endpoints (anything exchange-specific, incl. key mgmt) | per-account `"implicitWrites": true` | **off** |
 
 `"trading": true` deliberately works **only** on sandbox/demo accounts; live trading requires typing `"trading": "live"` *and* deciding a `maxOrderValue` (a number, or explicitly `null` to opt out). The same pattern applies to `funds` with `maxTransferValue`. Activating a tier is your responsibility — the server's job is honest gates, confirmation, and the audit journal (`<cache-dir>/ccxt-mcp/journal/`).
+
+### Settings
+
+Optional server-wide switches live in a top-level `settings` object next to `accounts`:
+
+```jsonc
+{
+  "settings": {
+    "hideDisabledTools": true   // list only the tools of tiers some account enables
+  },
+  "accounts": { … }
+}
+```
+
+| Setting | Default | Effect |
+|---|---|---|
+| `hideDisabledTools` | `false` | `false`: every tool is listed and an unconfigured private tool errors at call time with a setup hint. `true`: a tier's tools are listed only when at least one account enables it — with no accounts only the read-only market, discovery and streaming tools are listed, roughly half of the full list, which shrinks the tool definitions the host sends to the model each turn. A lean option for deliberately read-only or monitoring deployments. Execution is gated at the handler either way. |
+| `strictPermissions` | `false` | if the config file is accessible to other users, refuse to load its accounts (otherwise just warn). Not applied on Windows. |
 
 ## Tools
 
