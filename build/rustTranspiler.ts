@@ -6527,6 +6527,10 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['fetch_order_request', ''],
     ['parse_create_edit_order_args', ''],
     ['handle_trading_statistics_window', ''],
+    ['prepare_request', 'dict_'],
+    ['spot_order_prepare_request', 'dict_'],
+    ['multi_order_spot_prepare_request', 'dict_'],
+    ['prepare_account_request_with_currency_code', 'dict_'],
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -6538,6 +6542,7 @@ const RUST_OPTION_TUPLE_SLOT0: { [fam: string]: [string, string | undefined, (v:
     'bool_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`], 'integer_': ['Option<i64>', 'as_i64', (v) => `Value::from(${v})`],
     'margin_mode_': ['Value', undefined, (v) => v], 'sub_type_': ['Value', undefined, (v) => v],
     'bool_pair_': ['Option<bool>', 'as_bool', (v) => `${v}.map_or(Value::Null, Value::Bool)`],
+    'dict_': ['crate::value::Dict', undefined, (v) => `Value::Dict(${v})`],
 };
 function rustCloseParen(s: string, j: number): number {
     for (let d = 1; j < s.length; j++) {
@@ -6548,6 +6553,7 @@ function rustCloseParen(s: string, j: number): number {
 }
 function rustOptionTupleRead(fam: string, v: string, i: string, rest: string): string {
     const [ , typed, box ] = RUST_OPTION_TUPLE_SLOT0[fam];
+    const h30r03 = h30r03DictSlotRead(fam, v, i, rest); if (h30r03 !== undefined) return h30r03;
     const as = /^\.and_then\(Value::(as_\w+)\)|^\.cloned\(\)\.unwrap_or\(Value::Null\)\.(as_\w+)\(\)/.exec(rest);
     if (i === '1') return /^\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)$/.test(rest) ? `${v}.1` : `Value::Dict(${v}.1)${rest.replace(/^\.cloned\(\)\.unwrap_or\(Value::Null\)/, '').replace(/^\.and_then\(Value::(as_\w+)\)/, '.$1()')}`;
     if (as !== null && (as[1] ?? as[2]) === typed && as[0] === rest) return `${v}.0`;
@@ -6690,6 +6696,7 @@ function typeHandleOptionTuples(input: string): string {
     // the base bodies: the return type, each `return [ v, p ]`, and the unreachable `Value::Null` tail
     // handleMarketTypeAndParams overrides (okx, deepcoin) only return the base's tuple through `super_`
     out = out.replace(/(\n {4}pub fn handle_market_type_and_params\([^\n]*\) -> )Value( \{\n(?:(?!\n {4}(?:pub )?fn )[\s\S])*?return self\.super_handle_market_type_and_params\([^\n]*\);)\n\n {4}Value::Null\n\}/g, '$1(Value, crate::value::Dict)$2\n}');
+    out = h30r03DictSlot0Bodies(out);
     return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
         (_m, sig, name, open, body) => { const fam = rustTupleFam(name, out); if (fam === 'bool_pair_') return `${sig}(Option<bool>, Option<bool>)${open}${body.replace(/return Value::from\(vec!\[(self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\)), (self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\))\]\);/g, 'return ($1.as_bool(), $2.as_bool());')}\n}`; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|Value::Map\((\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
             (_r, v, d, mp, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? (mp ? `std::sync::Arc::new(${mp})` : `${b}.into_dict()`)});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
@@ -8491,6 +8498,7 @@ function typeGateTupleTernaries(content: string): string {
         const seen: string[] = [];
         const body = rest.replace(new RegExp(String.raw`\b${n}\.get\(([01])\)\.cloned\(\)\.unwrap_or\(Value::Null\)(\.into_dict\(\))?`, 'g'), (_r, i, d) => {
             seen.push(i);
+            const h30r03 = h30r03TernarySlot(expr, n, i, d); if (h30r03 !== undefined) return h30r03;
             return i === '1' ? (d ? `${n}.1` : `Value::Dict(${n}.1)`) : `${n}.0${d ?? ''}`;
         });
         const left = body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), '');
@@ -18823,3 +18831,46 @@ if (isMainEntry(import.meta.url)) {
     }
 }
 
+// ===== h30-H30-R03
+// venue tuple helpers whose every return builds slot 0 as a fresh map (`dict_` rows): the pair is `(Dict, Dict)`,
+// a `.into_dict()` slot-0 read is the map itself, any other read boxes it as `Value::Dict` (the value it held before)
+function h30r03DictSlotRead(fam: string, v: string, i: string, rest: string): string | undefined {
+    if (fam !== 'dict_' || i !== '0') return undefined;
+    if (/^\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)$/.test(rest)) return `${v}.0`;
+    return `Value::Dict(${v}.0)${rest.replace(/^\.cloned\(\)\.unwrap_or\(Value::Null\)/, '').replace(/^\.and_then\(Value::(as_\w+)\)/, '.$1()')}`;
+}
+function h30r03SplitPair(s: string): [string, string] | undefined {
+    for (let j = 0, d = 0; j < s.length; j++) {
+        const c = s[j];
+        if (c === '"') { for (j++; j < s.length && s[j] !== '"'; j++) if (s[j] === '\\') j++; } else if ('([{'.includes(c)) d++; else if (')]}'.includes(c)) d--;
+        else if (c === ',' && d === 0) return [s.slice(0, j).trim(), s.slice(j + 1).trim()];
+    }
+    return undefined;
+}
+function h30r03DictSlot0Bodies(input: string): string {
+    const names = RUST_TUPLE_VENUE_FNS.filter(r => r[1] === 'dict_').map(r => r[0]).join('|');
+    return input.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (?:${names})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (whole, sig, open, body) => {
+        let ok = (body.match(/\breturn\b/g) ?? []).length === (body.match(/\breturn Value::from\(vec!\[/g) ?? []).length;
+        const typed = body.replace(/return Value::from\(vec!\[(.*)\]\);/g, (r: string, inner: string) => {
+            const pair = h30r03SplitPair(inner);
+            if (pair === undefined) { ok = false; return r; }
+            const [x, y] = pair;
+            const xm = /^Value::(?:Map\((\w+)\)|Dict\((\w+)\)|from\(&(\w+)\))$/.exec(x);
+            if (xm === null || (xm[3] !== undefined && new RegExp(`\\b${xm[3]}\\b`).test(y))) { ok = false; return r; }
+            const slot0 = xm[1] !== undefined ? `std::sync::Arc::new(${xm[1]})` : (xm[2] ?? xm[3]);
+            const om = /^self\.omit\(&(\w+), Value::Str\("(\w+)"\.into\(\)\), &\[\]\)$/.exec(y);
+            const ym = /^(?:Value::(?:Dict|from)\(&?(\w+)\)|Value::Map\((\w+)\)|(\w+(?:\.clone\(\))?))$/.exec(y);
+            if (om === null && ym === null) { ok = false; return r; }
+            const slot1 = om !== null ? `self.omit_t(&${om[1]}, &["${om[2]}"], &[])` : ym![1] ?? (ym![2] ? `std::sync::Arc::new(${ym![2]})` : `${ym![3]}.into_dict()`);
+            return `return (${slot0}, ${slot1});`;
+        });
+        return ok ? `${sig}(crate::value::Dict, crate::value::Dict)${open}${typed}\n}` : whole;
+    });
+}
+// a gate ternary binds its tuple only when both arms are `dict_` rows: slot 0 then reads as the dict pair's map
+function h30r03TernarySlot(expr: string, n: string, i: string, d: string | undefined): string | undefined {
+    const called = [...expr.matchAll(/(?:self|exchange)(?:\.parent)?\.(\w+)\(/g)].map(m => m[1]).filter(f => RUST_TUPLE_VENUE_FAM.has(f));
+    if (i !== '0' || called.length === 0 || !called.every(f => RUST_TUPLE_VENUE_FAM.get(f) === 'dict_')) return undefined;
+    return d ? `${n}.0` : `Value::Dict(${n}.0)`;
+}
+// ===== end h30-H30-R03
