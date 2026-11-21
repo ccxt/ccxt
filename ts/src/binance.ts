@@ -13647,13 +13647,13 @@ export default class binance extends Exchange {
         } else if (('noPoolId' in config) && !('poolId' in params)) {
             return config['noPoolId'];
         } else if (('byLimit' in config) && ('limit' in params)) {
-            const limit = params['limit'];
+            const limit = this.safeInteger (params, 'limit');
             // every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
             const byLimit: List = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit <= entry[0]) {
-                    return entry[1];
+                if (limit !== undefined && limit <= this.safeInteger (entry, 0, 0)) {
+                    return this.safeInteger (entry, 1);
                 }
             }
         }
@@ -15858,7 +15858,7 @@ export default class binance extends Exchange {
             //     ]
             //
         } else if (subType === 'inverse') {
-            requestUntil['pair'] = market['info']['pair'];
+            requestUntil['pair'] = this.safeString (market['info'], 'pair');
             response = await this.dapiDataGetGlobalLongShortAccountRatio (this.extend (requestUntil, paramsSubType));
             //
             //     [
