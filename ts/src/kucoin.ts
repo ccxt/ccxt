@@ -9290,11 +9290,11 @@ export default class kucoin extends Exchange {
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
-        const apiVersions = this.safeDict (versions, api[0], {});
+        const apiVersions = this.safeDict (versions, this.safeString (api, 0), {});
         const methodVersions = this.safeDict (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.options['version']);
         const version = this.safeString (params, 'version', defaultVersion);
-        if ((api[0] === 'utaV2') && (path === 'market/orderbook')) {
+        if ((this.safeString (api, 0) === 'utaV2') && (path === 'market/orderbook')) {
             // https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             // 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
             const depth = this.safeInteger (params, 'limit'); // undefined for 'FULL'

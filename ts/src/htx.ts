@@ -6228,7 +6228,7 @@ export default class htx extends Exchange {
             }));
         }
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString (success, i);
             result.push (this.safeOrder ({
                 'info': order,
                 'id': order,

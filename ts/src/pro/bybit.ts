@@ -220,7 +220,7 @@ export default class bybit extends bybitRest {
                 url = accessibilityUrls['spot'];
             } else if ((type === 'swap') || (type === 'future')) {
                 const subType: Str = this.handleSubTypeAndParams (methodValue, market, params, 'linear')[0];
-                url = accessibilityUrls[subType as string];
+                url = this.safeString (accessibilityUrls, subType);
             } else {
                 // option
                 url = accessibilityUrls['option'];
