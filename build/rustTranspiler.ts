@@ -19,7 +19,6 @@ import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 // match the helper exactly (its array arm and marker-free dict arm); anything unproven keeps `get_value(...)`.
 
 
-
 function maskText(src: string): string {
     let out = '';
     let i = 0;
@@ -60,9 +59,7 @@ function closeBracket(src: string, open: number): number {
 }
 
 
-
 type Edit = { start: number, end: number, text: string };
-
 
 
 /** Bare identifier used as a key, or undefined. */
@@ -81,7 +78,6 @@ function callArgs(masked: string, callStart: number, recv: string): [number, num
     if (close < 0) return undefined;
     return [afterRecv, close];
 }
-
 
 
 // ---- native insert ----
@@ -1732,58 +1728,6 @@ function nativeContainerOpsSelfTest (): string[] {
     return problems;
 }
 
-// ---- native bool scalars ----
-// `is_true` / `is_equal` on a `Value` local whose every write is `Bool` (or `Null`) reads `x.as_bool() == Some(true)`;
-// two such operands compare `as_bool()`s. Runs after the base bool-local passes; everything unproven keeps the helper.
-
-const BOOL_FNS = new Set(['safe_bool', 'safe_bool_k', 'safe_bool_2', 'get_arg_bool']);
-const INT_FNS = new Set(['safe_integer', 'safe_integer_k', 'safe_integer_2', 'safe_int', 'safe_timestamp']);
-const STR_FNS = new Set(['safe_string', 'safe_string_k', 'safe_string_2', 'safe_string_lower', 'safe_string_upper', 'safe_string_lower_k', 'safe_string_upper_k']);
-const FLOAT_FNS = new Set(['safe_float', 'safe_float_k', 'safe_number', 'safe_number_k', 'safe_number_2']);
-
-type Variant = 'bool' | 'int' | 'float' | 'str' | 'null'
-type VariantSet = Set<Variant>
-
-interface FnRegion { start: number, end: number, header: string }
-
-/** Blank out string literals and line comments, preserving every offset. */
-function mask (content: string): string {
-    const out = content.split('');
-    let i = 0;
-    while (i < out.length) {
-        if (out[i] === '"') {
-            let j = i + 1;
-            while (j < out.length && out[j] !== '"') {
-                if (out[j] === '\\') j++;
-                j++;
-            }
-            for (let k = i + 1; k < j && k < out.length; k++) out[k] = ' ';
-            i = j + 1;
-            continue;
-        }
-        if (out[i] === '/' && out[i + 1] === '/') {
-            let j = i;
-            while (j < out.length && out[j] !== '\n') { out[j] = ' '; j++; }
-            i = j;
-            continue;
-        }
-        i++;
-    }
-    return out.join('');
-}
-
-function closeParen (masked: string, open: number): number {
-    let depth = 0;
-    for (let i = open; i < masked.length; i++) {
-        const c = masked[i];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth === 0) return i;
-        }
-    }
-    return -1;
-}
 
 function splitTopLevel (src: string, sep: string): string[] {
     const parts: string[] = [];
@@ -1808,115 +1752,6 @@ function splitTopLevel (src: string, sep: string): string[] {
     return parts.map((p) => p.trim());
 }
 
-function stripOuter (src: string): string {
-    let s = src.trim();
-    while (s.startsWith('(') && closeParen(s, 0) === s.length - 1) s = s.slice(1, -1).trim();
-    return s;
-}
-
-function rhsAfter (masked: string, from: number): string {
-    let depth = 0;
-    for (let i = from; i < masked.length; i++) {
-        const c = masked[i];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ';' && depth === 0) return masked.slice(from, i).trim();
-    }
-    return '';
-}
-
-const UNION: Variant[] = ['bool', 'null'];
-
-/**
- * Runtime variants a write can produce, or undefined when not provable.
- * `safe_bool*` is admitted only when its default cannot be a non-bool value.
- */
-function variantOf (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
-    const e = stripOuter(expr);
-    const lit = /^Value::(Bool|Int|Float|Str)\(/.exec(e);
-    if (lit !== null && closeParen(e, 'Value::'.length + lit[1].length) === e.length - 1) {
-        return new Set<Variant>([lit[1].toLowerCase() as Variant]);
-    }
-    if (e === 'Value::Null' || e === 'crate::Value::Null') return new Set<Variant>(['null']);
-    const call = /^self\.([a-z_][a-z0-9_]*)\(/.exec(e);
-    if (call !== null && closeParen(e, 'self.'.length + call[1].length) === e.length - 1) {
-        const name = call[1];
-        if (BOOL_FNS.has(name)) return safeBoolVariants(e, masked, region, depth);
-        if (INT_FNS.has(name)) return new Set<Variant>(['int', 'null']);
-        if (STR_FNS.has(name)) return new Set<Variant>(['str', 'null']);
-        if (FLOAT_FNS.has(name)) return new Set<Variant>(['float', 'int', 'null']);
-        return undefined;
-    }
-    if (/^\(?if /.test(e) && e.includes('} else {')) {
-        const at = e.indexOf('} else {');
-        const a = variantOf(e.slice(e.indexOf('{') + 1, at), masked, region, depth);
-        const b = variantOf(e.slice(at + '} else {'.length, e.lastIndexOf('}')), masked, region, depth);
-        if (a !== undefined && b !== undefined) return new Set<Variant>([...a, ...b]);
-    }
-    return undefined;
-}
-
-/** `safe_bool*(obj, key, &[])` is `Bool` or `Null`; a proven bool default is `Bool`. */
-function safeBoolVariants (call: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
-    const open = call.indexOf('(');
-    const args = splitTopLevel(call.slice(open + 1, closeParen(call, open)), ',');
-    const list = /^&\[(.*)\]$/.exec(args[args.length - 1] ?? '');
-    if (list === null) return undefined;
-    const items = list[1].trim();
-    if (items === '') return new Set<Variant>(UNION);
-    return boolDefault(items, masked, region, depth);
-}
-
-function boolDefault (expr: string, masked: string, region: FnRegion, depth: number): VariantSet | undefined {
-    const e = stripOuter(expr);
-    if (/^Value::Bool\(/.test(e) || e === 'Value::Null') return new Set<Variant>(UNION);
-    const name = /^([A-Za-z_][A-Za-z0-9_]*)(?:\.clone\(\))?$/.exec(e);
-    if (name === null) return undefined;
-    const proof = proveLocal(masked, name[1], region, depth + 1);
-    if (proof.variants === undefined) return undefined;
-    return [...proof.variants].every((v) => v === 'bool' || v === 'null') ? new Set<Variant>(UNION) : undefined;
-}
-
-interface LocalProof { kind: 'variant' | 'none', variants?: VariantSet }
-
-/** Variant proof for every write of `name` inside one fn region. */
-function proveLocal (masked: string, name: string, region: FnRegion, depth: number): LocalProof {
-    if (depth > 3) return { kind: 'none' };
-    const body = masked.slice(region.start, region.end);
-    const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const shadow = new RegExp(`(?<!\\|)\\|(?!\\|)[^|\\n]*\\b${esc}\\b[^|\\n]*(?<!\\|)\\|(?!\\|)|\\bfor [^\\n]*\\b${esc}\\b[^\\n]* in |\\blet \\([^)]*\\b${esc}\\b`);
-    if (shadow.test(body)) return { kind: 'none' };
-    const types = new Set<string>();
-    const param = new RegExp(`\\b(?:mut )?${esc}\\s*:\\s*([A-Za-z_][A-Za-z0-9_<>]*)`).exec(region.header);
-    if (param !== null) types.add(param[1]);
-    const writes: string[] = [];
-    const spans: Array<[number, number]> = [];
-    const letRe = new RegExp(`\\blet (?:mut )?${esc}\\b\\s*(?::\\s*([A-Za-z_][A-Za-z0-9_<>]*))?\\s*=`, 'g');
-    for (const m of body.matchAll(letRe)) {
-        const at = m.index as number;
-        const rhs = rhsAfter(masked, region.start + at + m[0].length);
-        spans.push([at, at + m[0].length + rhs.length]);
-        if (m[1] !== undefined) types.add(m[1]);
-        writes.push(rhs);
-    }
-    const assignRe = new RegExp(`(?<![A-Za-z0-9_.])${esc}\\s*=(?!=)`, 'g');
-    for (const m of body.matchAll(assignRe)) {
-        const at = m.index as number;
-        if (spans.some(([s, e]) => at >= s && at < e)) continue;
-        writes.push(rhsAfter(masked, region.start + at + m[0].length));
-        types.add('?');
-    }
-    const only = [...types];
-    if (writes.length === 0 || only.some((t) => t !== 'Value' && t !== '?')) return { kind: 'none' };
-    let acc: VariantSet | undefined = undefined;
-    for (const w of writes) {
-        const v = variantOf(w, masked, region, depth);
-        if (v === undefined) return { kind: 'none' };
-        acc = acc === undefined ? v : new Set<Variant>([...acc].filter((x) => v.has(x)));
-        if (acc.size === 0) return { kind: 'none' };
-    }
-    return acc === undefined ? { kind: 'none' } : { kind: 'variant', variants: acc };
-}
 
 // ---- Arr-only vec push ----
 // `append_to_array(&mut x, v)` becomes a guarded native `Vec` push when x can only be `Value::Arr`/`Value::Null`:
@@ -3934,202 +3769,6 @@ function rustVecPushInlineSelfTest (): string[] {
     return problems;
 }
 
-// ---- string natives ----
-// String helpers (`to_string_val`, `replace_str`, `split`, `starts_with`, `to_fixed`, `join`, ...) print native on an
-// operand whose declared type or pinned variant set proves the helper's matching arm. Unproven sites keep the helper.
-
-
-type VSet = Set<string>;
-type Local = { set?: VSet, ty: string, elems?: string };
-
-const SCALAR: VSet = new Set([ 'str', 'int', 'float', 'bool', 'null' ]);
-
-/** Index just past the delimiter matching the one at `open`, or -1. */
-function stringNativesCloseParen(masked: string, open: number): number {
-    const openCh = masked[open];
-    const closeCh = openCh === '(' ? ')' : openCh === '[' ? ']' : '}';
-    let depth = 0;
-    for (let k = open; k < masked.length; k++) {
-        const c = masked[k];
-        if (c === openCh) depth++;
-        else if (c === closeCh) { depth--; if (depth === 0) return k + 1; }
-    }
-    return -1;
-}
-
-/** Split top-level commas in `[from, to)`; undefined when the text is unbalanced. */
-function stringNativesSplitArgs(masked: string, from: number, to: number): string[] | undefined {
-    const args: string[] = [];
-    let depth = 0;
-    let start = from;
-    for (let k = from; k < to; k++) {
-        const c = masked[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ',' && depth === 0) { args.push(masked.slice(start, k)); start = k + 1; }
-    }
-    args.push(masked.slice(start, to));
-    return args;
-}
-
-/** `&Value::Str("lit".into())` -> `"lit"`, else undefined. */
-function strBox(arg: string): string | undefined {
-    const m = /^&\s*Value::Str\(\s*("(?:[^"\\]|\\.)*")\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(arg.trim());
-    return m === null ? undefined : m[1];
-}
-
-/** `&Value::Int(-?n)` -> the digits, else undefined. */
-function intBox(arg: string): string | undefined {
-    const m = /^&\s*Value::Int\(\s*(-?\d+)\s*\)$/.exec(arg.trim());
-    return m === null ? undefined : m[1];
-}
-
-/** Variant set a single write expression can leave in a `Value`, or undefined. */
-function inferSet(expr: string, locals: Map<string, Local>): VSet | undefined {
-    const e = expr.trim().replace(/;$/, '').trim();
-    for (const [ head, variant ] of [ [ 'Value::Str(', 'str' ], [ 'Value::Int(', 'int' ], [ 'Value::Float(', 'float' ], [ 'Value::Bool(', 'bool' ] ]) {
-        if (e.startsWith(head)) return new Set([ variant ]);
-    }
-    if (e === 'Value::Null') return new Set([ 'null' ]);
-    const copy = /^([A-Za-z_]\w*)(?:\.clone\(\))?$/.exec(e);
-    if (copy !== null) {
-        const src = locals.get(copy[1]);
-        if (src === undefined) return undefined;
-        if (src.ty === 'Value') return src.set === undefined ? undefined : new Set(src.set);
-        if (src.ty === 'String') return new Set([ 'str' ]);
-    }
-    // The family helpers return a `Value::Str` / `Value::Array` of Str on every path.
-    const own = /^(?:crate::runtime::)?(to_string_val|replace_str|replace_all_str|join|pad_end|to_fixed)\(/.exec(e);
-    if (own !== null) return own[1] === 'pad_end' ? new Set([ 'str', 'null' ]) : new Set([ 'str' ]);
-    if (/^(?:crate::runtime::)?split\(/.test(e)) return new Set([ 'arr' ]);
-    // `parse_to_int` / `number_to_string` return `Option<i64>` / `Option<String>`, boxed once at a `Value` write.
-    const typed = /^Value::from\(self\.parse_to_int\(/.exec(e) ?? /^self\.number_to_string\(/.exec(e);
-    if (typed !== null) {
-        const open = typed[0].length - 1;
-        const close = stringNativesCloseParen(e, open);
-        const tail = close < 0 ? '' : e.slice(close);
-        if (typed[0].startsWith('Value::from') ? tail === ')' : tail === '.map(Value::from).unwrap_or(Value::Null)') return new Set([ typed[0].startsWith('Value::from') ? 'int' : 'str', 'null' ]);
-        return undefined;
-    }
-    const call = /^(?:crate::value::)?(?:self\.)?(safe_string(?:_k|_2|_lower|_upper|_lower_k|_upper_k)?|safe_bool(?:_k|_2)?|safe_integer(?:_k|_2)?|safe_int|safe_timestamp|safe_float(?:_k)?|safe_number(?:_k|_2)?|parse_int|parse_float|decimal_to_precision|sum)\(/.exec(e);
-    if (call !== null) {
-        const name = call[1];
-        const open = call[0].length - 1;
-        if (stringNativesCloseParen(e, open) !== e.length) return undefined;
-        if (name === 'decimal_to_precision') return new Set([ 'str' ]);
-        if (name === 'sum') return new Set([ 'int', 'float', 'str', 'null' ]);
-        let own = 'str';
-        if (name.startsWith('safe_bool')) own = 'bool';
-        else if (name.startsWith('safe_float') || name.startsWith('safe_number') || name === 'parse_float') own = 'float';
-        else if (!name.startsWith('safe_string')) own = 'int';
-        const out: VSet = new Set([ own ]);
-        // `safe_*` fall back to their default: a literal box pins it, `&[]` leaves Null.
-        if (name.startsWith('safe')) {
-            const args = stringNativesSplitArgs(e, open + 1, e.length - 1);
-            if (args === undefined) return undefined;
-            const last = args[args.length - 1].trim();
-            if (last === '&[]') out.add('null');
-            else {
-                const inner = /^&\[(.*)\]$/.exec(last);
-                if (inner === null) return undefined;
-                const lit = strBox(`&${inner[1]}`);
-                const num = intBox(`&${inner[1]}`);
-                if (lit !== undefined) out.add('str');
-                else if (num !== undefined) out.add('int');
-                else return undefined;
-            }
-        } else {
-            out.add('null');
-        }
-        return out;
-    }
-    if (/^(?:Value::(?:Array|List)\(|Value::from\(vec!\[|vec!\[)/.test(e)) return new Set([ 'arr' ]);
-    const slice = /^(?:crate::value::)?(?:self\.)?(?:array_slice|array_concat)\(\s*&?([A-Za-z_]\w*)/.exec(e);
-    if (slice !== null) {
-        const src = locals.get(slice[1]);
-        return src === undefined || src.set === undefined ? undefined : new Set(src.set);
-    }
-    // The printer's inline `parse_float` / `parse_int`: every arm yields a number or Null.
-    if (/^\(match &\w+ \{ Value::Str\(__parse_s\) => __parse_s\.trim\(\)\.parse::<f64>\(\)\.map\(Value::Float\)/.test(e)) return new Set([ 'float', 'null' ]);
-    if (/^\(match &\w+ \{ Value::Str\(__parse_s\) => __parse_s\.trim\(\)\.parse::<i64>\(\)\.map\(Value::Int\)/.test(e)) return new Set([ 'int', 'null' ]);
-    // The printer's inline arithmetic: every arm is an Int/Float/Null.
-    if (/^\(match \(&\(/.test(e)) return new Set([ 'int', 'float', 'null' ]);
-    return undefined;
-}
-
-/** Native replacement for one helper call, or undefined when the operand is unproven. */
-function rewrite(name: string, args: string[], locals: Map<string, Local>): string | undefined {
-    const arg0 = (args[0] ?? '').trim();
-    const recv = /^&\s*([A-Za-z_]\w*)$/.exec(arg0);
-    const x = recv === null ? undefined : recv[1];
-    const local = x === undefined ? undefined : locals.get(x);
-    const set = local?.set;
-    const ty = local?.ty;
-    const provenScalar = set !== undefined && set.size > 0 && [ ...set ].every(v => SCALAR.has(v));
-    const strTyped = ty === 'String';
-    const strProven = strTyped || (set !== undefined && set.size === 1 && set.has('str'));
-    const scalarProven = strTyped || provenScalar;
-    const numProven = ty === 'i64' || ty === 'f64' || (set !== undefined && set.size > 0 && [ ...set ].every(v => v === 'int' || v === 'float' || v === 'null'));
-    if (x === undefined) {
-        // An inline scalar expression (`self.sum(..)`, the arithmetic match) needs no local.
-        if (name !== 'to_string_val') return undefined;
-        const held = arg0.replace(/^&/, '').replace(/;$/, '').trim();
-        const got = inferSet(held, locals);
-        if (got === undefined || [ ...got ].some(v => !SCALAR.has(v))) return undefined;
-        return `Value::str(${held}.to_string())`;
-    }
-    switch (name) {
-    case 'to_string_val': {
-        if (args.length !== 1) return undefined;
-        if (strProven) return `Value::str(${x}.clone())`;
-        if (scalarProven) return `Value::str(${x}.to_string())`;
-        return undefined;
-    }
-    case 'replace_str':
-    case 'replace_all_str': {
-        if (!strProven || args.length !== 3) return undefined;
-        const a = strBox(args[1]);
-        const b = strBox(args[2]);
-        if (a === undefined || b === undefined) return undefined;
-        const holder = strTyped ? x : `${x}.as_str().unwrap_or_default()`;
-        return `Value::str(${holder}.replace(${a}, ${b}))`;
-    }
-    case 'split': {
-        if (!strProven || args.length !== 2) return undefined;
-        const d = strBox(args[1]);
-        if (d === undefined) return undefined;
-        const holder = strTyped ? x : `${x}.as_str().unwrap_or_default()`;
-        return `Value::Array(${holder}.split(${d}).map(Value::str).collect())`;
-    }
-    case 'starts_with':
-    case 'ends_with': {
-        if (!strProven || args.length !== 2) return undefined;
-        const s = strBox(args[1]);
-        if (s === undefined) return undefined;
-        const holder = strTyped ? x : `${x}.as_str().unwrap_or_default()`;
-        return `${holder}.${name}(${s})`;
-    }
-    case 'to_fixed': {
-        if (!numProven || args.length !== 2) return undefined;
-        const d = intBox(args[1]);
-        if (d === undefined) return undefined;
-        const n = ty === 'f64' ? x : ty === 'i64' ? `(${x} as f64)` : `${x}.as_f64().unwrap_or(0.0)`;
-        return `Value::str(format!("{:.*}", ${d}, ${n}))`;
-    }
-    case 'join': {
-        if (args.length !== 2) return undefined;
-        const s = strBox(args[1]);
-        if (s === undefined) return undefined;
-        if (ty === 'Vec<String>') return `Value::str(${x}.join(${s}))`;
-        // Every element is a `Value::Str`, so the helper's stringify_simple is the identity.
-        if (local?.elems === 'str' && set !== undefined && set.size === 1 && set.has('arr')) {
-            return `Value::str(${x}.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join(${s}))`;
-        }
-        return undefined;
-    }
-    default: return undefined;
-    }
-}
 
 // ---- plain-dict state containers ----
 // `options`/`markets`/`balance` are single-owner untagged dicts, so `get_value_mut(&mut self.<f>, "lit")` prints the
@@ -9837,9 +9476,6 @@ export class RustTranspilerBuilder {
     }
 
 
-
-
-
     // Writes index-mutations back to their source array. TS does
     // `const x = arr[i]; x['k'] = v;` relying on `x` being a *reference*
     // into `arr`. In Rust `let x = get_value(&arr, &i)` clones, so the
@@ -10345,139 +9981,6 @@ export class RustTranspilerBuilder {
         ];
     }
 
-    // ── type conversion ───────────────────────────────────────────────────────
-
-    isObject(type: string): boolean {
-        return type === 'any' || type === 'unknown';
-    }
-
-    isDictionary(type: string): boolean {
-        return (
-            type === 'Object' ||
-            type === 'Dictionary<any>' ||
-            type === 'unknown' ||
-            type === 'Dict' ||
-            (type.startsWith('{') && type.endsWith('}'))
-        );
-    }
-
-    isStringType(type: string): boolean {
-        return (
-            type === 'Str' ||
-            type === 'string' ||
-            type === 'StringLiteral' ||
-            type === 'StringLiteralType' ||
-            (type.startsWith('"') && type.endsWith('"')) ||
-            (type.startsWith("'") && type.endsWith("'"))
-        );
-    }
-
-    isNumberType(type: string): boolean {
-        return (
-            type === 'Num' ||
-            type === 'number' ||
-            type === 'NumericLiteral' ||
-            type === 'NumericLiteralType'
-        );
-    }
-
-    isIntegerType(type: string): boolean {
-        return type !== undefined && type.toLowerCase() === 'int';
-    }
-
-    isBooleanType(type: string): boolean {
-        return (
-            type === 'boolean' ||
-            type === 'BooleanLiteral' ||
-            type === 'BooleanLiteralType' ||
-            type === 'Bool'
-        );
-    }
-
-    /**
-     * Maps a TypeScript/CCXT type string to a Rust type string.
-     */
-    jsTypeToRust(name: string, type: string, isReturn = false): string {
-        if (name.startsWith('watchOrderBook')) {
-            return isReturn ? 'crate::Result<crate::types::OrderBook>' : 'crate::types::OrderBook';
-        }
-        if (name === 'fetchTime') {
-            return isReturn ? 'crate::Result<i64>' : 'i64';
-        }
-
-        const isPromise = type?.startsWith('Promise<') && type?.endsWith('>');
-        let inner = isPromise ? type.substring(8, type.length - 1) : (type ?? 'any');
-        let isList = false;
-
-        const wrapResult = (t: string): string => {
-            if (isList) {
-                return isPromise ? `crate::Result<Vec<${t}>>` : `Vec<${t}>`;
-            }
-            return isPromise ? `crate::Result<${t}>` : t;
-        };
-
-        const rustReplacements: dict = {
-            'OrderType':  'String',
-            'OrderSide':  'String',
-        };
-
-        if (!inner || inner === 'Undefined' || inner === 'void') {
-            return isPromise ? 'crate::Result<()>' : '()';
-        }
-
-        if (inner === 'string[][]') {
-            return wrapResult('Vec<Vec<String>>');
-        }
-
-        if (inner.endsWith('[]')) {
-            isList = true;
-            inner = inner.substring(0, inner.length - 2);
-        }
-
-        if (this.isObject(inner)) {
-            return wrapResult(isReturn ? 'crate::Value' : 'crate::Value');
-        }
-        if (this.isDictionary(inner)) {
-            return wrapResult('crate::Value');
-        }
-        if (this.isStringType(inner)) {
-            return wrapResult('String');
-        }
-        if (this.isIntegerType(inner)) {
-            return wrapResult('i64');
-        }
-        if (this.isNumberType(inner)) {
-            return wrapResult('f64');
-        }
-        if (this.isBooleanType(inner)) {
-            return wrapResult('bool');
-        }
-        if (inner === 'Strings') {
-            return wrapResult('Vec<String>');
-        }
-        if (rustReplacements[inner]) {
-            return wrapResult(rustReplacements[inner]);
-        }
-
-        if (inner.startsWith('Dictionary<')) {
-            let valueType = inner.substring(11, inner.length - 1).trim();
-            valueType = this.jsTypeToRust(name, valueType) as string;
-            return wrapResult(`std::collections::HashMap<String, ${valueType}>`);
-        }
-
-        // Named types (Order, Trade, Ticker, …) live in crate::types
-        const knownTypes = new Set([
-            'Market', 'Ticker', 'Trade', 'Order', 'OrderBook', 'Position',
-            'Balances', 'OHLCV', 'Transaction', 'Transfer', 'Currency',
-            'LedgerEntry', 'FundingRate', 'Greeks',
-        ]);
-        if (knownTypes.has(inner)) {
-            return wrapResult(`crate::types::${inner}`);
-        }
-
-        return wrapResult(inner);
-    }
-
     // ── post-processing regexes ───────────────────────────────────────────────
 
     /**
@@ -10531,7 +10034,6 @@ export class RustTranspilerBuilder {
             }],
 
 
-
             // Mark async methods with async keyword (transpiler strips it)
             ...(asyncPattern.length
                 ? [[new RegExp(`pub fn (${asyncPattern})\\(`, 'g'), 'pub async fn $1(']]
@@ -10579,8 +10081,6 @@ export class RustTranspilerBuilder {
                 'self.$1 = $2.clone();'],
 
 
-
-
             // Convert JSDoc-style `/** */` block comments to plain `/* */`
             // — `/**` is parsed as a doc-attribute when it precedes
             // statements inside a method body.
@@ -10597,8 +10097,6 @@ export class RustTranspilerBuilder {
             // Simple version: replace `} catch ... {` and drop until matching `}`.
             // We do this with a separate paren-balanced pass after the
             // regex list runs (see `stripCatchBlocks`).
-
-
 
 
             // Trailing `};` after blocks
@@ -10646,16 +10144,11 @@ export class RustTranspilerBuilder {
                     `${indent}${n} = Value::Bool(${e});`],
 
 
-
             // Paren-wrapped bool RHS in plain assignment: `X = (is_Y(...));`
             // (allows trailing whitespace/comments on the same line)
             [/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*\((!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+)\)\s*;/gm,
                 (_: string, indent: string, lhs: string, expr: string) =>
                     `${indent}${lhs} = Value::Bool(${expr});`],
-
-
-
-
 
 
             // `m.insert("X", is_true(&Y) && ...)` — wrap bool exprs in Value::Bool.
@@ -10689,7 +10182,6 @@ export class RustTranspilerBuilder {
 
         return rules;
     }
-
 
 
     /**
@@ -11878,9 +11370,6 @@ export class RustTranspilerBuilder {
         }
         return out;
     }
-
-
-
 
 
     /**
@@ -16050,8 +15539,6 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteTryCatchAsync(basePart);
 
 
-
-
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
 
         // Auto-clone simple identifier args in every `self.X(...)` call.
@@ -18195,59 +17682,6 @@ impl std::ops::DerefMut for ${coreName} {
         return returns > 0 && (tail === 'Value::Null' || tail === 'crate::Value::Null');
     }
 
-    // `is_equal(&X, &Value::Bool(b))` -> `X.as_bool() == Some(b)` when X can only hold
-    // `Value::Bool(..)` / `Value::Null` (same proof as rustIsBoolBoxedExpr): Bool compares by payload, Null never equals a Bool.
-
-    /** The bool-boxed local proof for `name` inside one fn region (single typed `let`, every write bool-boxed). */
-    rustBoolBoxedLocal(name: string, region: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
-        const decls = [...region.matchAll(new RegExp(`let (?:mut )?${name}\\b(\\s*:\\s*Value)?\\s*=\\s*`, 'g'))];
-        if (decls.length !== 1 || decls[0][1] === undefined) return false;
-        const vetoes = [
-            `\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`,
-            `(?:for|if let|while let)\\s+${name}\\s+(?:in|=)`,
-            `&mut\\s+${name}\\b`,
-            `(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)=`,
-            `\\b${name}\\s*\\)\\s*(?:=>|if\\b)`,
-            `(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`,
-        ];
-        if (vetoes.some(v => new RegExp(v).test(region))) return false;
-        const initAt = (decls[0].index as number) + decls[0][0].length;
-        const initEnd = this.endOfRustStatement(region, initAt);
-        if (initEnd < 0 || !this.rustIsBoolBoxedExpr(content.slice(from + initAt, from + initEnd), content, own, memo)) return false;
-        for (const w of region.matchAll(new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=(?!=)\\s*`, 'g'))) {
-            const rhsAt = (w.index as number) + w[0].length;
-            const end = this.endOfRustStatement(region, rhsAt);
-            const rhs = end < 0 ? '' : content.slice(from + rhsAt, from + end);
-            if (end < 0 || !(this.rustIsBoolBoxedExpr(rhs, content, own, memo) ||
-                this.rustDestrTmpBoolHead(rhs, region.slice(0, w.index as number), from, content, own, memo))) return false;
-        }
-        return true;
-    }
-
-    /** `__destr_tmp.as_array()..get(0)..` whose nearest preceding `let __destr_tmp = C;` binds a proven bool-tuple call C. */
-    rustDestrTmpBoolHead(rhs: string, before: string, from: number, content: string, own: Set<string>, memo: Map<string, boolean>): boolean {
-        const m = /^(__destr_tmp[A-Za-z0-9_]*)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\(0\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
-        // The printer declares the destructuring temp `Vec<Value>`: element 0 reads through the slice.
-        const typed = /^(__destr_tmp[A-Za-z0-9_]*)\.get\(0\)\.cloned\(\)\.unwrap_or\(Value::Null\)$/.exec(rhs.trim());
-        if (m === null && typed === null) return false;
-        const tmpName = (typed ?? m)![1];
-        const typedTail = '.as_array().cloned().unwrap_or_default()';
-        const decls = [...before.matchAll(typed !== null
-            ? new RegExp(`let ${tmpName}\\s*:\\s*Vec<Value>\\s*=\\s*`, 'g')
-            : new RegExp(`let (?:mut )?${tmpName}\\s*=\\s*`, 'g'))];
-        if (decls.length === 0) return false;
-        const d = decls[decls.length - 1];
-        const at = (d.index as number) + d[0].length;
-        const stmtEnd = this.endOfRustStatement(before, at);
-        if (stmtEnd < 0 || new RegExp(`(?<![A-Za-z0-9_.])${tmpName}\\s*=(?!=)`).test(before.slice(stmtEnd))) return false;
-        let end = stmtEnd;
-        if (typed !== null) {
-            const typedInit = before.slice(at, stmtEnd).trim();
-            if (!typedInit.endsWith(typedTail)) return false;
-            end = at + typedInit.length - typedTail.length;
-        }
-        return this.rustIsBoolTupleCall(content.slice(from + at, from + end).trim(), content, own, memo);
-    }
 
     /** A printed expression that is a native Rust `bool`: `&&`/`||`/`!` over `X.as_str().is_some_and(|__s| __s.starts_with|ends_with("lit"))`
      *  and `X.as_bool() == Some(b)` atoms (`is_true` on a `bool` is the identity). */
@@ -18303,182 +17737,6 @@ impl std::ops::DerefMut for ${coreName} {
             at = r.end;
         }
         return out + content.slice(at);
-    }
-
-    // `is_true(&p)` -> `p.as_bool() == Some(true)` for a never-reassigned parameter
-    // whose every TS caller passes `true`/`false`/`undefined`/omits it (or forwards a parameter
-    // proven the same way), so its Value is only ever `Bool(..)` or Null.
-
-    private rustTsMethodIndexCache: { files: string[], heads: Array<{ file: number, at: number, end: number, name: string, params: Array<[string, string | undefined]> }> } | undefined;
-
-    /** Method headers of every ts/src source (venues, pro, prediction, base, tests). */
-    rustTsMethodIndex() {
-        if (this.rustTsMethodIndexCache !== undefined) return this.rustTsMethodIndexCache;
-        const files: string[] = [];
-        const walk = (dir: string) => {
-            let entries: fs.Dirent[] = [];
-            try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
-            for (const e of entries) {
-                if (e.isDirectory()) walk(`${dir}/${e.name}`);
-                else if (isTsIndexSource(e.name)) {
-                    const text = readTsIndexSource(`${dir}/${e.name}`);
-                    if (text !== undefined) files.push(text);
-                }
-            }
-        };
-        walk('./ts/src');
-        const heads: any[] = [];
-        const re = /\n[ \t]+(?:(?:override|async|public|private|protected|static)\s+)*([A-Za-z_]\w*)\s*\(([^()]*)\)\s*(?::[^{;]*)?\{/g;
-        files.forEach((text, file) => {
-            const own: any[] = [];
-            for (const m of text.matchAll(re)) {
-                if (/^(?:if|for|while|switch|catch|function|return)$/.test(m[1])) continue;
-                const params: Array<[string, string | undefined]> = [];
-                for (const raw of m[2].split(',')) {
-                    const p = /^\s*(\w+)\s*\??\s*(?::[^=]*)?(?:=\s*(.*?))?\s*$/s.exec(raw);
-                    if (p !== null) params.push([p[1], p[2]]);
-                }
-                own.push({ file, at: m.index as number, end: text.length, name: m[1], params });
-            }
-            for (let i = 0; i + 1 < own.length; i++) own[i].end = own[i + 1].at;
-            heads.push(...own);
-        });
-        this.rustTsMethodIndexCache = { files, heads };
-        return this.rustTsMethodIndexCache;
-    }
-
-    /** Top-level comma-split argument list starting after a `(`; undefined when unbalanced. */
-    rustTsCallArgs(text: string, from: number): string[] | undefined {
-        const out: string[] = []; let depth = 0; let cur = '';
-        for (let i = from; i < text.length; i++) {
-            const c = text[i];
-            if (c === '(' || c === '[' || c === '{') depth += 1;
-            else if (c === ')' || c === ']' || c === '}') {
-                if (depth === 0) { if (cur.trim() !== '') out.push(cur.trim()); return out; }
-                depth -= 1;
-            }
-            if (c === ',' && depth === 0) { out.push(cur.trim()); cur = ''; } else cur += c;
-        }
-        return undefined;
-    }
-
-    private rustBoolOnlyParamMemo = new Map<string, boolean>();
-
-    /** Every value the TS parameter `param` of every `method` declaration can receive is a bool or nullish. */
-    rustBoolOnlyParam(method: string, param: string, stack: Set<string> = new Set()): boolean {
-        const key = `${method}:${param}`;
-        if (this.rustBoolOnlyParamMemo.has(key)) return this.rustBoolOnlyParamMemo.get(key) as boolean;
-        if (stack.has(key)) return true; // a self-forward adds no new value
-        stack.add(key);
-        const { files, heads } = this.rustTsMethodIndex();
-        let ok = true;
-        const slots = new Set<number>();
-        for (const h of heads) {
-            if (h.name !== method) continue;
-            const i = h.params.findIndex(p => p[0] === param);
-            if (i < 0) { ok = false; break; }
-            slots.add(i);
-            const d = h.params[i][1];
-            if (d !== undefined && !/^(?:true|false|undefined)$/.test(d.trim())) { ok = false; break; }
-        }
-        if (slots.size !== 1) ok = false;
-        const slot = [...slots][0];
-        if (ok && !this.rustStaticFixtureInputsBool(method, slot)) ok = false;
-        for (let f = 0; ok && f < files.length; f++) {
-            const text = files[f];
-            // Dynamic dispatch (`this[name]`, option-named methods) and unbound references.
-            if (!this.rustQuotedMethodMentionsSafe(method, f) || new RegExp(`\\.${method}\\b(?!\\s*\\()`).test(text)) { ok = false; break; }
-            for (const c of text.matchAll(new RegExp(`\\.${method}\\s*\\(`, 'g'))) {
-                const args = this.rustTsCallArgs(text, (c.index as number) + c[0].length);
-                if (args === undefined || args.some(a => a.startsWith('...'))) { ok = false; break; }
-                if (args.length <= slot) continue;
-                const arg = args[slot];
-                if (/^(?:true|false|undefined)$/.test(arg)) continue;
-                const encl = heads.filter(h => h.file === f && h.at < (c.index as number)).pop();
-                const body = encl === undefined ? '' : text.slice(encl.at, encl.end);
-                if (encl !== undefined && /^\w+$/.test(arg) && encl.params.some(p => p[0] === arg)
-                    && !new RegExp(`(?<![\\w.])${arg}\\s*(?:[-+*/%|&^]|\\?\\?|\\|\\||&&)?=(?!=)`).test(body.slice(body.indexOf('{')))
-                    && this.rustBoolOnlyParam(encl.name, arg, stack)) continue;
-                ok = false; break;
-            }
-        }
-        stack.delete(key);
-        this.rustBoolOnlyParamMemo.set(key, ok);
-        return ok;
-    }
-
-    // A quoted method name only vetoes the rustBoolOnlyParam proof when it can reach dynamic dispatch:
-    // object keys, non-call indexes and args of non-dispatching `this.f(` calls are inert.
-    // Static request/response/ws fixtures call methods by name, so their inputs must be bool/null.
-    private rustDynamicDispatchers: Set<string> | undefined;
-
-    rustQuotedMethodMentionsSafe(method: string, file: number): boolean {
-        const { files, heads } = this.rustTsMethodIndex();
-        if (this.rustDynamicDispatchers === undefined) {
-            const disp = new Set<string>();
-            const fwd: Array<{ name: string, callees: string[] }> = [];
-            for (const h of heads) {
-                const body = files[h.file].slice(h.at, h.end).replace(/\/\/[^\n]*/g, '');
-                if (/(?:this|exchange)\s*\[\s*\w+\s*\]\s*\(/.test(body)) disp.add(h.name);
-                const callees: string[] = [];
-                for (const c of body.matchAll(/this\.(\w+)\s*\(/g)) {
-                    const args = this.rustTsCallArgs(body, (c.index as number) + c[0].length) ?? [];
-                    if (args.some(a => h.params.some(p => p[0] === a))) callees.push(c[1]);
-                }
-                if (callees.length > 0) fwd.push({ name: h.name, callees });
-            }
-            // a method forwarding one of its own parameters into a dispatcher dispatches too
-            for (let grew = true; grew;) {
-                grew = false;
-                for (const f of fwd) {
-                    if (!disp.has(f.name) && f.callees.some(c => disp.has(c))) { disp.add(f.name); grew = true; }
-                }
-            }
-            this.rustDynamicDispatchers = disp;
-        }
-        const text = files[file];
-        for (const m of text.matchAll(new RegExp(`['"\`]${method}['"\`]`, 'g'))) {
-            const at = m.index as number;
-            const after = text.slice(at + m[0].length, at + m[0].length + 8);
-            const before = text.slice(Math.max(0, at - 160), at);
-            const lineStart = before.lastIndexOf('\n');
-            if (/^\s*\/\//.test(before.slice(lineStart + 1))) continue;
-            if (/^\s*:/.test(after) && !/\?\s*$/.test(before)) continue;
-            if (/\[\s*$/.test(before) && /^\s*\](?!\s*\()/.test(after)) continue;
-            const call = /this\.(\w+)\s*\(([^()]|\([^()]*\))*$/.exec(before);
-            if (call !== null && !this.rustDynamicDispatchers.has(call[1]) && /^\s*[,)]/.test(after)) continue;
-            return false;
-        }
-        return true;
-    }
-
-    private rustStaticFixtures: any[] | undefined;
-
-    rustStaticFixtureInputsBool(method: string, slot: number): boolean {
-        if (this.rustStaticFixtures === undefined) {
-            this.rustStaticFixtures = [];
-            for (const kind of ['request', 'response', 'ws']) {
-                const dir = `./ts/src/test/static/${kind}`;
-                let names: string[] = [];
-                try { names = fs.readdirSync(dir).filter(n => n.endsWith('.json')); } catch { continue; }
-                for (const n of names) {
-                    try { this.rustStaticFixtures.push(JSON.parse(fs.readFileSync(`${dir}/${n}`, 'utf8'))); } catch { this.rustStaticFixtures.push(undefined); }
-                }
-            }
-        }
-        for (const d of this.rustStaticFixtures) {
-            if (d === undefined) return false; // unreadable fixture: assume the worst
-            const cases = d?.methods?.[method];
-            if (cases === undefined) continue;
-            for (const c of cases) {
-                const input = c?.input;
-                if (input === undefined || input === null) continue;
-                if (!Array.isArray(input)) return false;
-                const v = input[slot];
-                if (v !== undefined && v !== null && typeof v !== 'boolean') return false;
-            }
-        }
-        return true;
     }
 
     /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
@@ -18660,8 +17918,6 @@ impl std::ops::DerefMut for ${coreName} {
         }
         return out + content.slice(at);
     }
-
-
 
 
     // `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
