@@ -1714,7 +1714,7 @@ export default class htx extends Exchange {
             let settleId: Str = undefined;
             let id: Str = undefined;
             let lowercaseId: Str = undefined;
-            const contract = ('contract_code' in market);
+            const contract = (this.safeString (market, 'contract_code') !== undefined);
             const spot = !contract;
             let swap = false;
             let future = false;
@@ -3434,8 +3434,9 @@ export default class htx extends Exchange {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
         const uniqueNetworkIds = this.safeDict (this.options['networkChainIdsByNames'], currencyCode, {});
-        if (networkCode in uniqueNetworkIds) {
-            return uniqueNetworkIds[networkCode];
+        const uniqueNetworkId = this.safeString (uniqueNetworkIds, networkCode);
+        if (uniqueNetworkId !== undefined) {
+            return uniqueNetworkId;
         } else {
             const networkTitle = super.networkCodeToId (networkCode, currencyCode);
             return this.safeString (uniqueNetworkIds, networkTitle, networkTitle);
@@ -7786,12 +7787,12 @@ export default class htx extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
+        const status = this.safeString (response, 'status');
+        if (status !== undefined) {
             //
             //     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             //
-            const status = this.safeString (response, 'status');
             if (status === 'error') {
                 const codeError = this.safeString2 (response, 'err-code', 'err_code');
                 const feedback = this.id + ' ' + body;
@@ -7802,10 +7803,11 @@ export default class htx extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
-        if ('code' in response) {
+        const responseCode = this.safeString (response, 'code');
+        if (responseCode !== undefined) {
             // {code: '1003', message: 'invalid signature'}
             const feedback = this.id + ' ' + body;
-            const codeError = this.safeString (response, 'code');
+            const codeError = responseCode;
             this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
         }
         const data = this.safeDict (response, 'data');

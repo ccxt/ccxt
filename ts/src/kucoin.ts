@@ -7836,10 +7836,14 @@ export default class kucoin extends Exchange {
         }
         const createdAt = this.safeInteger2 (transaction, 'createdAt', 'createAt');
         const updatedAt = this.safeInteger (transaction, 'updatedAt');
-        const isV1 = !('createdAt' in transaction);
+        const isV1 = (this.safeInteger (transaction, 'createdAt') === undefined);
         // if it's a v1 structure
         if (isV1) {
-            type = ('address' in transaction) ? 'withdrawal' : 'deposit';
+            if (this.safeString (transaction, 'address') !== undefined) {
+                type = 'withdrawal';
+            } else {
+                type = 'deposit';
+            }
         }
         const createdAtMs = (createdAt === undefined) ? undefined : createdAt * 1000;
         const updatedAtMs = (updatedAt === undefined) ? undefined : updatedAt * 1000;
