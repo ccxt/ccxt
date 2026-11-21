@@ -3722,12 +3722,7 @@ export default class mexc extends Exchange {
                 'clientOrderId': this.safeString (order, 'newClientOrderId'),
             });
         }
-        let id: Str = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        } else {
-            id = this.safeString2 (order, 'orderId', 'id');
-        }
+        const id = this.safeString2 (order, 'orderId', 'id');
         let timeInForce = this.parseOrderTimeInForce (this.safeString (order, 'timeInForce'));
         const typeRaw = this.safeString (order, 'type');
         if (timeInForce === undefined) {
