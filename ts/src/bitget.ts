@@ -8402,12 +8402,13 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
         if ((marketType === 'swap') || (marketType === 'future')) {
+            const data = this.safeDict (response, 'data', {});
             const bills: Dict[] = this.safeList (data, 'bills', []);
             return this.parseLedger (bills, currency, since, limit);
         }
-        return this.parseLedger (data, currency, since, limit);
+        const rows: Dict[] = this.safeList (response, 'data', []);
+        return this.parseLedger (rows, currency, since, limit);
     }
 
     override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {

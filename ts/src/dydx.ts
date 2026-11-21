@@ -1881,8 +1881,9 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
-        return this.parseLedger (response, currency, since, limit);
+        let rows: Dict[] = [];
+        rows = await this.fetchTransactionsHelper ('fetchLedger', code, since, limit, this.omit (params, 'methodName'));
+        return this.parseLedger (rows, currency, since, limit);
     }
 
     async estimateTxFee (message: Dict, memo: Str, account: Dict): Promise<Dict> {

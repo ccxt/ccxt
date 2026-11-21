@@ -4777,7 +4777,8 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        return this.parseLedger (response, undefined, since, limit);
+        const rows: Dict[] = this.infoList (response);
+        return this.parseLedger (rows, undefined, since, limit);
     }
 
     override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
