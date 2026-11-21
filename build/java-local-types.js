@@ -22926,6 +22926,7 @@ function r87j3IntegralOperand (printer, declaration, node) {
         if (target === declaration) {
             return true;
         }
+        if (h28j02WholeConst (printer, n, target)) return true;
         const t = String (target !== undefined ? (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '') : '').trim ();
         return [ 'Long', 'Integer', 'long', 'int' ].includes (t);
     }
@@ -23220,6 +23221,7 @@ function r90j3LongOperand (printer, node, depth = 0, constLocals = true) {
     if (r87j3Memo (printer).get (target) === true) {
         return n.text; // a ral-87j3 counter: non-null Long on every write
     }
+    { const h = h28j02IntConstOperand (printer, n, target, constLocals); if (h !== undefined) return h; }
     if (!constLocals) {
         return undefined;
     }
@@ -29063,3 +29065,30 @@ function h28j01KeysCopy (text) {
         : `(${guarded[1]} == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(${guarded[1]}.keySet()))${guarded[2]}`;
 }
 // ===== end h28-J01
+
+// ===== h28-J02
+// a const Integer local that is never null: an int-literal seed (`Integer n = 100`) or a `.length`
+// const (`Integer n = xs.size()`); widened to the long operand of the native add
+function h28j02IntConstOperand (printer, n, target, constLocals) {
+    if (!constLocals || !ts.isVariableDeclarationList (target.parent) || (target.parent.flags & ts.NodeFlags.Const) === 0
+        || target.initializer === undefined || !(r87j3IntLiteral (target.initializer) || r87j3LengthConst (printer, n))) {
+        return undefined;
+    }
+    let declared;
+    try {
+        declared = String (printer.javaDeclaredTypeOfDeclaration?.(target) ?? '').trim ();
+    } catch (e) {
+        declared = '';
+    }
+    // undecided yet (the counter is classified before the const is printed): a const of an int
+    // literal or a `.length` always prints `Integer`
+    return (declared === 'Integer' || declared === '') ? `${n.text}.longValue()` : undefined;
+}
+
+// a const local of an int literal or a `.length`: a whole number, readable before the layer
+// has published its declared type (it may be declared after the counter it feeds)
+function h28j02WholeConst (printer, n, target) {
+    return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+        && (target.parent.flags & ts.NodeFlags.Const) !== 0 && (r87j3IntLiteral (target.initializer) || r87j3LengthConst (printer, n));
+}
+// ===== end h28-J02
