@@ -3297,8 +3297,56 @@ function goChan3StructRowReads (content: string): string {
             edits.push ({ 'start': at, 'end': at + from.length, 'text': row });
         }
     }
+    return goChan3StructRowInlineSends (edits.length ? goChan3Splice (content, edits) : content);
+}
+
+// ===== h27-H27-A13: the row read inline in the send, `ch <- AsyncResult[T]{Value: TFromMap(this.SafeDictMap(box, k))}`
+// as goChan3StructRowReads: a missing row (empty list, absent key) was the zero T, a present one round-trips; a `{}`
+// default reads as the zero T only for an all-pointer struct (Position: NewPosition of an empty map is Position{})
+function goChan3StructRowInlineSends (content: string): string {
+    const box = /^(\t+)var (\w+) (map\[string\]any|\[\]any) = ((?:ccxt\.)?)(?:StructResultMap\((r\d*)\.Value, \4(\w+)MapToMap\)|(\w+)\((r\d*)\.Value\))\n/gm;
+    const edits: Edit[] = [];
+    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
+        const [ whole, ind, name, boxType, q, rm, elemM, toList, rl ] = m;
+        const isList = (boxType === '[]any');
+        const elem = isList ? Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList) : elemM;
+        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) {
+            continue;
+        }
+        const [ fs0, fe0 ] = goChan3Func (content, m.index);
+        const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""');
+        const qq = q.replace ('.', '\\.');
+        const send = new RegExp ('\\n' + ind + 'ch <- ' + qq + 'AsyncResult\\[' + qq + elem + '\\]\\{Value: ' + qq + elem
+            + 'FromMap\\(this\\.SafeDictMap\\(' + name + ', (\\w+)(, map\\[string\\]any\\{\\})?\\)\\)\\}\\n');
+        const s = send.exec (fn);
+        if ((s === null) || (isList !== (s[1] === '0')) || ((s[2] !== undefined) && (elem !== 'Position'))) {
+            continue;
+        }
+        const key = s[1];
+        if (!isList && !new RegExp ('^func [^\\n]*[(,] ?' + key + ' string[,)]').test (fn) && !new RegExp ('\\n\\t+var ' + key + ' string = ').test (fn)) {
+            continue;   // the key must be a Go string
+        }
+        if ((fn.match (new RegExp ('(?<![\\w.])' + name + '\\b', 'g')) ?? []).length !== 2) {
+            continue;   // the box is read elsewhere: keep the round trip
+        }
+        const T = q + elem;
+        const row = name + 'Row';
+        if (new RegExp ('(?<![\\w.])' + row + '\\b').test (fn)) {
+            continue;
+        }
+        const read = isList
+            ? ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'if len(' + name + ') > 0 {\n' + ind + '\t' + row + ' = ' + name + '[0]\n' + ind + '}\n'
+            : ind + 'var ' + name + ' map[string]' + T + ' = ' + rm + '.Value\n' + ind + 'var ' + row + ' ' + T + ' = ' + name + '[' + key + ']\n';
+        const at = content.indexOf (s[0].substring (1), m.index + whole.length);
+        if ((at < 0) || (at >= fe0)) {
+            continue;
+        }
+        edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': read });
+        edits.push ({ 'start': at, 'end': at + s[0].length - 2, 'text': ind + 'ch <- ' + q + 'AsyncResult[' + T + ']{Value: ' + row + '}' });
+    }
     return edits.length ? goChan3Splice (content, edits) : content;
 }
+// ===== end h27-H27-A13
 
 // ===== h26-H26-G43: struct row reads, tuple bind and nil-tested row
 // `xRecv, _ := TsToList(rN.Value), rN.Value != nil` + `var x []any = xRecv` feeding a row read: the bool is discarded,
@@ -3650,6 +3698,14 @@ function goChan3SelfTest (): string[] {
     ok (goChan3StructRowNilReads (rowFn (', symbol any', nilMap)).includes ('SafeMapTyped(tickers, symbol)'), 'nil-tested row keeps a non-string key');
     ok (goChan3StructRowNilReads (rowFn (', symbol string', nilMap + '\tthis.Use(ticker)\n')).includes ('SafeMapTyped(tickers, symbol)'), 'nil-tested row keeps a row read elsewhere');
     ok (goChan3StructRowNilReads (rowFn ('', nilList.replace ('OrdersToList', 'MapSliceToList').replace ('OrderFromMap', 'map[string]anyFromMap'))).includes ('SafeMapTyped(orders, 0)'), 'nil-tested row keeps a map-element list');
+    // h27-H27-A13: the row read inline in the send
+    const inl = '\tvar ps []any = PositionsToList(r.Value)\n\n\tch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(ps, 0, map[string]any{}))}\n';
+    ok (goChan3StructRowReads (rowFn ('', inl)).includes ('\tvar ps []Position = r.Value\n\tvar psRow Position\n\tif len(ps) > 0 {\n\t\tpsRow = ps[0]\n\t}\n\n\tch <- AsyncResult[Position]{Value: psRow}\n'), 'inline list row send');
+    ok (goChan3StructRowReads (rowFn ('', inl.replace (/Position/g, 'Order'))).includes ('SafeDictMap(ps, 0, map[string]any{})'), 'inline row keeps a {} default of a non-pointer struct');
+    ok (goChan3StructRowReads (rowFn ('', inl + '\tthis.Use(ps)\n')).includes ('PositionsToList(r.Value)'), 'inline row keeps a box read elsewhere');
+    const inm = '\tvar t map[string]any = StructResultMap(r1.Value, TickerMapToMap)\n\tch <- AsyncResult[Ticker]{Value: TickerFromMap(this.SafeDictMap(t, s))}\n';
+    ok (goChan3StructRowReads (rowFn (', s string', inm)).includes ('\tvar t map[string]Ticker = r1.Value\n\tvar tRow Ticker = t[s]\n\tch <- AsyncResult[Ticker]{Value: tRow}\n'), 'inline map row send');
+    ok (goChan3StructRowReads (rowFn (', s any', inm)).includes ('SafeDictMap(t, s)'), 'inline map row keeps a non-string key');
     // retype + sends + nil
     const good = '\tvar response map[string]any = nil\n\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: map[string]any{\n\t\t"k": 1,\n\t}}\n\tch <- AsyncResult[any]{Value: response} // c\n\treturn nil\n';
     const out = run ('package ccxt\n\n' + core ('X', good));
