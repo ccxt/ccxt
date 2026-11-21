@@ -2394,7 +2394,7 @@ export default class paradex extends Exchange {
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const hasOrderIds = (ids !== undefined);
-        const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray(clientOrderIds));
+        const hasClientOrderIds = (clientOrderIds !== undefined);
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
         }

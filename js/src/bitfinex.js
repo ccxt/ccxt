@@ -1195,7 +1195,7 @@ export default class bitfinex extends Exchange {
         result['asks'] = this.sortBy(asks, 0);
         return result;
     }
-    parseTicker(ticker, market = undefined) {
+    parseTickerList(ticker, market = undefined) {
         //
         // on trading pairs (ex. tBTCUSD)
         //
@@ -1375,7 +1375,11 @@ export default class bitfinex extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseTickers(tickers, symbolsNormalized);
+        const results = [];
+        for (let i = 0; i < tickers.length; i++) {
+            results.push(this.parseTickerList(this.safeList(tickers, i, [])));
+        }
+        return this.filterByArrayTickers(results, 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -1395,7 +1399,7 @@ export default class bitfinex extends Exchange {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetTickerSymbol(this.extend(request, params));
-        return this.parseTicker(ticker, market);
+        return this.parseTickerList(ticker, market);
     }
     parseTrade(trade, market = undefined) {
         //

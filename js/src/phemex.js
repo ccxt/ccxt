@@ -3376,14 +3376,13 @@ export default class phemex extends Exchange {
             }
             throw e;
         }
-        const data = this.safeValue(response, 'data', {});
-        if (Array.isArray(data)) {
-            return this.parseOrders(data, market, since, limit);
+        const dataList = this.safeList(response, 'data');
+        if (dataList !== undefined) {
+            return this.parseOrders(dataList, market, since, limit);
         }
-        else {
-            const rows = this.safeList(data, 'rows', []);
-            return this.parseOrders(rows, market, since, limit);
-        }
+        const dataDict = this.safeDict(response, 'data');
+        const rows = this.safeList(dataDict, 'rows', []);
+        return this.parseOrders(rows, market, since, limit);
     }
     /**
      * @method
@@ -3465,14 +3464,13 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        if (Array.isArray(data)) {
-            return this.parseOrders(data, market, since, limit);
+        const dataList = this.safeList(response, 'data');
+        if (dataList !== undefined) {
+            return this.parseOrders(dataList, market, since, limit);
         }
-        else {
-            const rows = this.safeList(data, 'rows', []);
-            return this.parseOrders(rows, market, since, limit);
-        }
+        const dataDict = this.safeDict(response, 'data');
+        const rows = this.safeList(dataDict, 'rows', []);
+        return this.parseOrders(rows, market, since, limit);
     }
     /**
      * @method

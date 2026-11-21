@@ -4748,9 +4748,8 @@ class kucoin extends kucoin$1["default"] {
         }
         let isSpot = false;
         let isContract = false;
-        const ordersList = this.toArray(orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const order = this.safeDict(ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4795,9 +4794,8 @@ class kucoin extends kucoin$1["default"] {
         }
         const ordersRequests = [];
         let symbol = undefined;
-        const ordersList = this.toArray(orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const rawOrder = this.safeDict(ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4888,9 +4886,8 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        const ordersList = this.toArray(orders);
-        for (let i = 0; i < ordersList.length; i++) {
-            const rawOrder = this.safeDict(ordersList, i);
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');

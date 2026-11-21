@@ -723,7 +723,7 @@ export declare class BaseExchange {
     parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
     addKeyInArrayItems(obj: any, keyName: any): Dict[];
-    invertFlatStringDictionary(dict: any): Dict;
+    invertFlatStringDictionary(dict: Dict): Dict;
     stringToBase16(str: any): string;
     reduceFeesByCurrency(fees: any): Dict[];
     safeTicker(ticker: Dict, market?: Market): Ticker;

@@ -5307,7 +5307,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const orders = this.safeList(result, 'list');
-        if (!Array.isArray(orders)) {
+        if (orders === undefined) {
             return [this.safeOrder({ 'info': response })];
         }
         return this.parseOrders(orders, market);

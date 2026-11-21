@@ -36,7 +36,7 @@ export default class p2b extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
-    parseTicker(ticker: any, market?: Market): Ticker;
+    parseTicker(ticker: NullableDict, market?: Market): Ticker;
     /**
      * @method
      * @name p2b#fetchOrderBook

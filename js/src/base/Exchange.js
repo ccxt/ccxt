@@ -3572,11 +3572,12 @@ export class BaseExchange {
                     this.features[marketType] = this.featuresMapper(initialFeatures, marketType);
                 }
                 else {
-                    this.features[marketType] = {};
+                    const subTypeFeatures = {};
                     for (let j = 0; j < subTypes.length; j++) {
                         const subType = subTypes[j];
-                        this.features[marketType][subType] = this.featuresMapper(initialFeatures, marketType, subType);
+                        subTypeFeatures[subType] = this.featuresMapper(initialFeatures, marketType, subType);
                     }
+                    this.features[marketType] = subTypeFeatures;
                 }
             }
         }
@@ -4298,10 +4299,7 @@ export class BaseExchange {
             }
             const reducedLength = reducedFees.length;
             for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber(reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber(reducedFees[i], 'rate');
-                }
+                reducedFees[i] = this.parseFeeNumeric(reducedFees[i]);
             }
             if (!parseFee && (reducedLength === 0)) {
                 // copy fee to avoid modification by reference
@@ -7069,6 +7067,9 @@ export class BaseExchange {
             return undefined;
         }
         const precisionNumber = parseInt(precision);
+        if (precisionNumber === undefined) {
+            return undefined;
+        }
         if (precisionNumber === 0) {
             return '1';
         }
@@ -7107,6 +7108,9 @@ export class BaseExchange {
                 return undefined;
             }
             const positivePrecision = parseInt(positivePrecisionString);
+            if (positivePrecision === undefined) {
+                return undefined;
+            }
             let parsedPrecision = '1';
             for (let i = 0; i < positivePrecision - 1; i++) {
                 parsedPrecision = parsedPrecision + '0';

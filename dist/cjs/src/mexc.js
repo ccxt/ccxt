@@ -5632,7 +5632,6 @@ class mexc extends mexc$1["default"] {
         else {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"');
         }
-        let resultList = [];
         if (marketType === 'spot') {
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -5662,7 +5661,7 @@ class mexc extends mexc$1["default"] {
             //     ],
             //     "total": 1
             // }
-            resultList = this.safeList(response, 'rows', []);
+            return this.parseTransfers(this.safeList(response, 'rows', []), currency, since, limit);
         }
         else if (marketType === 'swap') {
             if (limit !== undefined) {
@@ -5670,7 +5669,7 @@ class mexc extends mexc$1["default"] {
             }
             const response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, paramsToAccountType));
             const data = this.safeDict(response, 'data');
-            resultList = this.safeValue(data, 'resultList');
+            return this.parseTransfers(this.safeList(data, 'resultList', []), currency, since, limit);
             //
             //     {
             //         "success": true,
@@ -5696,7 +5695,7 @@ class mexc extends mexc$1["default"] {
             //     }
             //
         }
-        return this.parseTransfers(resultList, currency, since, limit);
+        return this.parseTransfers([], currency, since, limit);
     }
     /**
      * @method

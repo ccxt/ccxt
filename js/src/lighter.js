@@ -525,7 +525,7 @@ export default class lighter extends Exchange {
             // }
             //
             const subAccounts = this.safeList(res, 'sub_accounts');
-            if (Array.isArray(subAccounts)) {
+            if (subAccounts !== undefined) {
                 const account = this.safeDict(subAccounts, 0);
                 if (account === undefined) {
                     throw new ArgumentsRequired(this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter');
