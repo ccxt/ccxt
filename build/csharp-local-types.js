@@ -7397,6 +7397,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         ?? (((csharpType === 'Int64' || csharpType === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined)
                         ?? int64CopySumWriteType (csharp, declaration, csharpType, parent.right, context);
                     if (!assignable (csharpType, written)) {
+                        if ((csharpType === 'Int64?' || csharpType === 'Int64') && h28c04SelfMinMaxWriteType (csharp, declaration, parent.right) === 'Int64') { break; }
                         // `x = x + r` / `x = this.omit (x, keys)` / `x = cond ? 'lit' : x`:
                         // the value reads this very local, so its type can only be proven
                         // against the declaration being checked (see the self-write sections).
@@ -14113,6 +14114,7 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
         // `x = Math.min (x, y)` / `Math.max` on an Int64 local: native only when the printer itself prints
         // Math.Min/Max over Int64 / null-tested Int64? reads (no literal: the helper would keep its Int32 box)
         written ??= (type === 'Int64' && !sawNull) ? selfMinMaxInt64WriteType (csharp, context, declaration, parent.right) : undefined;
+        written ??= (type === 'Int64?' || type === 'Int64') ? h28c04SelfMinMaxWriteType (csharp, declaration, parent.right) : undefined;
         written ??= int64CopySumWriteType (csharp, declaration, type, parent.right, context);
         // `Int` local writes the printer types natively (int64AnnotatedLocalWriteType)
         written ??= ((type === 'Int64' || type === 'Int64?') && annotationType (declaration) === 'Int64?') ? int64AnnotatedLocalWriteType (csharp, declaration, parent.right, context) : undefined;
@@ -18618,6 +18620,7 @@ export function installCsharpGuardedMinMax (transpiler) {
         if ((native !== undefined) || (args?.length !== 2)) {
             return native;
         }
+        const h28c04 = h28c04GuardedMinMaxText (csharp, node, name, parsedArg1, parsedArg2); if (h28c04 !== undefined) return h28c04;
         const bothInt64 = minMaxBothInt64Text (csharp, node, name, parsedArg1, parsedArg2);
         if (bothInt64 !== undefined) {
             return bothInt64;
@@ -24560,3 +24563,90 @@ function h27c05ParseToIntOfLength (call) {
         && (right?.kind === ts.SyntaxKind.NumericLiteral) && /^[1-9]\d{0,8}$/.test (right.text);
 }
 // ===== end h27-C05
+// ===== h28-C04
+// `x` is non-null at `call`: the call sits in the branch of an `if` whose test proves x non-null there
+// (`if (x === undefined || y === undefined) {..} else { <call> }`) and nothing writes x from the branch start
+function h28c04BranchNonNull (csharp, call, ident) {
+    if (ident?.kind !== ts.SyntaxKind.Identifier || typeof csharp.csharpTestIsNonNullCheck !== 'function' || typeof csharp.csharpReceiverWrittenBetween !== 'function') {
+        return false;
+    }
+    let symbol;
+    try {
+        symbol = csharp.getChecker ().getSymbolAtLocation (ident);
+    } catch (e) {
+        return false;
+    }
+    const scope = csharp.csharpEnclosingFunction (call);
+    if (symbol === undefined || scope === undefined) {
+        return false;
+    }
+    let current = call;
+    while (current.parent !== undefined && current.parent !== scope) {
+        const parent = current.parent;
+        if (parent.kind === ts.SyntaxKind.IfStatement && parent.expression !== current) {
+            const truthy = parent.thenStatement === current;
+            if (csharp.csharpTestIsNonNullCheck (parent.expression, symbol, truthy)) {
+                let statement = call;
+                while (statement.parent !== undefined && statement.parent.kind !== ts.SyntaxKind.Block && statement.parent !== parent) {
+                    statement = statement.parent;
+                }
+                // no write in the branch other than the target of this very statement (a loop could carry a later one back)
+                return !csharp.csharpReceiverWrittenBetween (scope, current.getStart (), statement.getStart (), symbol)
+                    && !csharp.csharpReceiverWrittenBetween (scope, call.getEnd (), current.getEnd (), symbol);
+            }
+        }
+        if (isFunctionScope (parent)) {
+            return false;
+        }
+        current = parent;
+    }
+    return false;
+}
+
+function h28c04MinMaxCall (node) {
+    const call = stripParens (node);
+    const callee = call?.expression;
+    return (call?.kind === ts.SyntaxKind.CallExpression && call.arguments?.length === 2 && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && callee.expression?.kind === ts.SyntaxKind.Identifier && callee.expression.text === 'Math'
+        && (callee.name?.text === 'min' || callee.name?.text === 'max')) ? call : undefined;
+}
+
+// `x = Math.max (x, y)` into the Int64? local x, both reads branch-proven non-null and y an Int64 / Int64?
+// local: mathMax hands back one of two non-null Int64 boxes, so the write is an Int64
+function h28c04SelfMinMaxWriteType (csharp, declaration, node) {
+    const call = h28c04MinMaxCall (node);
+    if (call === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier || !csharp.csharpMinMaxResultIsPlainValue (call)) {
+        return undefined;
+    }
+    const self = call.arguments.filter ((a) => a.kind === ts.SyntaxKind.Identifier && a.text === declaration.name.text);
+    const other = call.arguments.filter ((a) => !self.includes (a));
+    if (self.length !== 1 || other.length !== 1 || other[0].kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const kind = nativeArithmeticOperandKind (csharp, other[0]);
+    if ((kind !== 'Int64' && kind !== 'Int64?') || !h28c04BranchNonNull (csharp, call, self[0])) {
+        return undefined;
+    }
+    return (kind === 'Int64' || h28c04BranchNonNull (csharp, call, other[0])) ? 'Int64' : undefined;
+}
+
+// the printed form of that write: `Math.Max(x.Value, y.Value)` once both reads are Int64? / Int64 locals
+function h28c04GuardedMinMaxText (csharp, call, name, parsedArg1, parsedArg2) {
+    if (!csharp.csharpMinMaxResultIsPlainValue (call) || !call.arguments.every ((a) => a.kind === ts.SyntaxKind.Identifier)
+            || (typeof csharp.csharpMinMaxSinkIsNarrowInt === 'function' && csharp.csharpMinMaxSinkIsNarrowInt (call))) {
+        return undefined;
+    }
+    const texts = call.arguments.map ((a, i) => {
+        const kind = nativeArithmeticOperandKind (csharp, a);
+        const printed = ((i === 0) ? parsedArg1 : parsedArg2).trim ();
+        if (kind === 'Int64') {
+            return printed;
+        }
+        return (kind === 'Int64?' && h28c04BranchNonNull (csharp, call, a)) ? printed + '.Value' : undefined;
+    });
+    if (texts.includes (undefined) || !texts.some ((t) => t.endsWith ('.Value'))) {
+        return undefined;
+    }
+    return 'Math.' + name + '(' + texts[0] + ', ' + texts[1] + ')';
+}
+// ===== end h28-C04
