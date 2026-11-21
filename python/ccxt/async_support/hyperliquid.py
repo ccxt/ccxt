@@ -4051,12 +4051,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         transferType = self.safe_string(params, 'type')
         # subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         # unified account is active", a unified account has to move balances with sendAsset instead
-        transferMethod = None
-        query = params
-        transferMethod, query = self.handle_option_string_and_params(query, 'transfer', 'method')
-        masterAddress = None
-        masterAddress = self.safe_string(self.handle_public_address('transfer', query), 0)
-        query = self.safe_dict(self.handle_public_address('transfer', query), 1, {})
+        transferMethod, paramsMethod = self.handle_option_string_and_params(params, 'transfer', 'method')
+        masterAddress, paramsAddress = self.handle_public_address('transfer', paramsMethod)
+        query = paramsAddress
         useSendAsset = (transferMethod == 'sendAsset')
         if transferMethod is None:
             isUnified = None
