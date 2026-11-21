@@ -922,7 +922,7 @@ export default class woo extends Exchange {
         //         "isMaker": 0
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const isFromFetchOrder = (this.safeString (trade, 'id') !== undefined);
         const timestampString = this.safeString2 (trade, 'executed_timestamp', 'executedTimestamp');
         let timestamp: Int = undefined;
         if (timestampString !== undefined) {
