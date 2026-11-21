@@ -7503,7 +7503,7 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     },
     // typed market rows: true prints string-literal reads of a MarketInterface / CurrencyInterface row as struct
     // fields; stays false until the cache stores *MarketInterface rows
-    'markets': { 'rowStructReads': false },
+    'markets': { 'rowStructReads': true, 'mapStorage': true },
 };
 
 const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
