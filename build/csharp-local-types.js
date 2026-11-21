@@ -1546,6 +1546,7 @@ export function installCsharpCollectionReturns (transpiler) {
     const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
+        const h27c03 = h27C03AsyncDictListDeclaration (csharp, node, printed); if (h27c03 !== undefined) return h27c03;
         if (node?.declarations?.length === 1 && (dictListCallLocal (node.declarations[0]) || dictListSortedLocal (csharp, node.declarations[0]) || dictListVenueSortedLocal (csharp, node.declarations[0]))) {
             return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Dictionary<string, object>> $2 = this.');
         }
@@ -24225,3 +24226,79 @@ function h27c01WatchCacheDeclaration (csharp, declaration, printed, identation) 
     return iden + type + ' ' + printedName + ' = await this.watch<' + type + '>(' + printed.slice (prefix.length);
 }
 // ===== end h27-H27-C01
+// ===== h27-C03
+// async typed cores returning List<Dictionary<string, object>> (TYPED_CORES in build/csharpTranspiler.ts)
+const H27C03_ASYNC_DICT_LIST_CORES = [ 'fetchMySettlementHistory', 'fetchBorrowRateHistory' ];
+
+function h27C03AsyncDictListScope (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    return (scope?.kind === ts.SyntaxKind.MethodDeclaration && H27C03_ASYNC_DICT_LIST_CORES.includes (scope.name?.text)
+        && typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (scope)) ? scope : undefined;
+}
+
+// `const sorted = this.sortBy (acc, ...)` read only by `return this.filterBy*SinceLimit (sorted, ...)`
+function h27C03SortedLocal (csharp, declaration, checkSource = true) {
+    const scope = h27C03AsyncDictListScope (csharp, declaration);
+    const call = stripParens (declaration?.initializer);
+    if (scope === undefined || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier || call === undefined
+            || dictListSortCall (call.arguments?.[0]) !== call || call.arguments[0].kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const name = declaration.name.text;
+    const uses = (indexScope (csharp, scope).identifiers.get (name) ?? []).filter ((n) => n !== declaration.name);
+    if (uses.length === 0 || !uses.every ((use) => enclosingFunction (use) === scope && use.parent?.parent?.kind === ts.SyntaxKind.ReturnStatement && dictListGenericFilterOf (use.parent, name))) {
+        return false;
+    }
+    if (!checkSource) {
+        return true;
+    }
+    const source = (indexScope (csharp, scope).identifiers.get (call.arguments[0].text) ?? []).filter ((n) => n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n);
+    return source.length === 1 && h27C03Accumulator (csharp, source[0].parent);
+}
+
+// `const acc = []`: every use is a push of a proven Dictionary or the source of a h27C03SortedLocal
+function h27C03Accumulator (csharp, declaration) {
+    const scope = h27C03AsyncDictListScope (csharp, declaration);
+    const empty = stripParens (declaration?.initializer);
+    if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier || empty?.kind !== ts.SyntaxKind.ArrayLiteralExpression || empty.elements.length !== 0) {
+        return false;
+    }
+    let pushed = false;
+    let sorted = false;
+    for (const use of indexScope (csharp, scope).identifiers.get (declaration.name.text) ?? []) {
+        if (use === declaration.name) {
+            continue;
+        }
+        if (enclosingFunction (use) !== scope) {
+            return false;
+        }
+        if (h27C03SortedLocal (csharp, dictListSortCall (use)?.parent, false)) {
+            sorted = true;
+            continue;
+        }
+        const parent = use.parent;
+        const call = parent?.parent;
+        if (parent?.kind !== ts.SyntaxKind.PropertyAccessExpression || parent.expression !== use || parent.name?.text !== 'push'
+                || call?.kind !== ts.SyntaxKind.CallExpression || call.expression !== parent || call.arguments?.length !== 1
+                || elementValueType (csharp, call.arguments[0], undefined) !== 'Dictionary<string, object>') {
+            return false;
+        }
+        pushed = true;
+    }
+    return pushed && sorted;
+}
+
+function h27C03AsyncDictListDeclaration (csharp, node, printed) {
+    const declaration = (node?.declarations?.length === 1) ? node.declarations[0] : undefined;
+    if (declaration === undefined) {
+        return undefined;
+    }
+    if (h27C03SortedLocal (csharp, declaration)) {
+        return printed.replace (/^(\s*)List<object> (\w+) = this\./, '$1List<Dictionary<string, object>> $2 = this.');
+    }
+    if (h27C03Accumulator (csharp, declaration)) {
+        return printed.replace (/^(\s*)List<object> (\w+) = new List<object>\(\) \{\}/, '$1List<Dictionary<string, object>> $2 = new List<Dictionary<string, object>>() {}');
+    }
+    return undefined;
+}
+// ===== end h27-C03
