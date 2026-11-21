@@ -6103,6 +6103,7 @@ const RUST_LENT_OPTIONAL_ARGS_BASE = [
     'handle_sub_type_and_params',
     'handle_margin_mode_and_params',
     'handle_max_entries_per_request_and_params',
+    'market_symbols',
 ];
 // implicit-API wrappers (`*_api.rs`, `&[&Value]` forwarded to `call_method`) and the hand-written by-name dispatchers
 const RUST_LENT_DISPATCHERS = ['call_method', 'call_method_t', 'call_method_o', 'call_method_lt', 'call_method_lo'];
