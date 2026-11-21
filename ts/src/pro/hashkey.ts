@@ -3,7 +3,7 @@
 
 import hashkeyRest from '../hashkey.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
-import type { List, Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface } from '../base/types.js';
+import type { List, Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade, MarketInterface } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -467,13 +467,12 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString (order, 's');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'O');
-        let side = this.safeStringLower (order, 'S');
-        let reduceOnly: Bool = undefined;
-        [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
-        let type: Str = this.parseOrderType (this.safeString (order, 'o'));
-        let timeInForce = this.safeString (order, 'f');
-        let postOnly: Bool = undefined;
-        [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
+        const rawSide = this.safeStringLower (order, 'S');
+        const side = this.parseOrderSideValue (rawSide);
+        const rawType: Str = this.parseOrderType (this.safeString (order, 'o'));
+        const rawTimeInForce = this.safeString (order, 'f');
+        const timeInForce = this.parseOrderTimeInForceValue (rawType, rawTimeInForce);
+        let type: Str = this.parseOrderType (rawType);
         if (this.safeBool (marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
@@ -504,8 +503,8 @@ export default class hashkey extends hashkeyRest {
                 'currency': this.safeCurrencyCode (this.safeString (order, 'N')),
                 'amount': this.omitZero ((this.safeString (order, 'n') as string)),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': this.parseOrderReduceOnlyValue (rawSide),
+            'postOnly': this.parseOrderPostOnlyValue (rawType, rawTimeInForce),
             'info': order,
         }, marketResolved);
     }
@@ -818,11 +817,8 @@ export default class hashkey extends hashkeyRest {
         if (isSpot) {
             type = 'spot';
         }
-        if (!(type in this.balance)) {
-            this.balance[type] = {};
-        }
-        this.balance[type]['info'] = message;
-        const balance = this.safeDict (this.balance, type, {});
+        const balance: Dict = this.safeDict (this.balance, type, {});
+        balance['info'] = message;
         const currencyId = this.safeString (balanceUpdate, 'a');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
