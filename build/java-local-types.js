@@ -27741,6 +27741,7 @@ function j02ParamPlain (param, depth) {
         || param.initializer !== undefined || !J02_PARAM_SOURCE_FILE.test (method.getSourceFile ().fileName) || depth > 5) {
         return false;
     }
+    const h = h28j03FrameParam (param, depth); if (h !== undefined) return h;
     const name = method.name.text;
     const position = method.parameters.indexOf (param);
     const key = `${name}#${position}`;
@@ -29092,3 +29093,54 @@ function h28j02WholeConst (printer, n, target) {
         && (target.parent.flags & ts.NodeFlags.Const) !== 0 && (r87j3IntLiteral (target.initializer) || r87j3LengthConst (printer, n));
 }
 // ===== end h28-J02
+// ===== h28-J03
+// `message` of a venue `handleMessage (client, message)`: the hand-written transport hands it the decoded frame only
+// (BaseExchange.routeMessage: Jackson LinkedHashMap from WsClient / the static-test injector); every ts/src caller is
+// routeMessage itself or passes a plain value (a literal, or a same-file function returning one).
+function h28j03FrameParam (param, depth) {
+    const method = param.parent;
+    if (method.name.text !== 'handleMessage' || method.parameters.indexOf (param) !== 1 || method.parameters.length !== 2
+        || !/[\\/]ts[\\/]src[\\/]pro[\\/]\w+\.ts$/.test (method.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    const routed = (call) => {
+        const scope = enclosingFunction (call);
+        return scope !== undefined && ts.isMethodDeclaration (scope) && ts.isIdentifier (scope.name) && scope.name.text === 'routeMessage'
+            && /[\\/]ts[\\/]src[\\/]base[\\/]Exchange\.ts$/.test (call.getSourceFile ().fileName);
+    };
+    const localPlain = (arg) => {
+        const value = javaFreshMapUnwrap (arg);
+        if (value === undefined || !ts.isCallExpression (value) || !ts.isIdentifier (value.expression)) {
+            return false;
+        }
+        const fn = value.getSourceFile ().statements.find ((s) => ts.isFunctionDeclaration (s) && s.name?.text === value.expression.text);
+        const returns = [];
+        const walk = (n) => {
+            if (ts.isFunctionLike (n) && n !== fn) {
+                return;
+            }
+            if (ts.isReturnStatement (n)) {
+                returns.push (n.expression);
+            }
+            n.forEachChild (walk);
+        };
+        fn?.body?.forEachChild (walk);
+        return returns.length > 0 && returns.every ((r) => r !== undefined && j02Plain ({ checker: undefined, scope: fn }, r, depth + 1));
+    };
+    for (const call of j02Callers ().calls.get ('handleMessage') ?? []) {
+        const scope = enclosingFunction (call);
+        const arg = call.arguments[1];
+        const own = javaFreshMapUnwrap (arg);
+        if (routed (call) || (scope !== undefined && ts.isMethodDeclaration (scope) && ts.isIdentifier (scope.name) && scope.name.text === 'handleMessage'
+            && own !== undefined && ts.isIdentifier (own) && ts.isIdentifier (scope.parameters[1]?.name) && scope.parameters[1].name.text === own.text
+            && !identifierIndex (scope.body).get (own.text)?.some ((n) => ts.isBinaryExpression (n.parent) && n.parent.left === n))) {
+            continue; // routeMessage itself, or a handler forwarding its own (never reassigned) frame
+        }
+        if (arg === undefined || call.arguments.some ((a) => ts.isSpreadElement (a)) || scope === undefined
+            || !(j02Plain ({ checker: undefined, scope }, arg, depth + 1) || localPlain (arg))) {
+            return false;
+        }
+    }
+    return true;
+}
+// ===== end h28-J03
