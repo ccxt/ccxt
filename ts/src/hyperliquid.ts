@@ -4392,7 +4392,8 @@ export default class hyperliquid extends Exchange {
         let query: Dict = params;
         [ transferMethod, query ] = this.handleOptionStringAndParams (query, 'transfer', 'method');
         let masterAddress: Str = undefined;
-        [ masterAddress, query ] = this.handlePublicAddress ('transfer', query);
+        masterAddress = this.safeString (this.handlePublicAddress ('transfer', query), 0);
+        query = this.safeDict (this.handlePublicAddress ('transfer', query), 1, {});
         let useSendAsset = (transferMethod === 'sendAsset');
         if (transferMethod === undefined) {
             let isUnified: Bool = undefined;
