@@ -2505,6 +2505,7 @@ function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: 
             return true
         }
     }
+    const h28c03 = h28C03FilteredReturnIsTyped (value, targetType, methodLines); if (h28c03 !== undefined) return h28c03
     const call = CSHARP_RET_CALL.exec (value) ?? CSHARP_RET_BARE_CALL.exec (value)
     if (call !== null) {
         const awaited = call[1] !== undefined
@@ -2561,6 +2562,9 @@ function csharpReturnIdentitySelfTest (): string[] {
         [ 'sortBy-typed-list', 'this.sortBy(rows, "timestamp")', dictList, true ],
         [ 'sortBy-boxed-list', 'this.sortBy(boxed, "timestamp")', dictList, false ],
         [ 'sortBy-dict-target', 'this.sortBy(rows, "timestamp")', dictionary, false ],
+        [ 'filtered-cast-arg', 'this.filterByCurrencySinceLimit(rows,((string)code), since, limit)', dictList, true ],
+        [ 'filtered-boxed-list', 'this.filterByCurrencySinceLimit(boxed,((string)code), since, limit)', dictList, false ],
+        [ 'filtered-trailing', 'this.filterByCurrencySinceLimit(rows,code, since, limit).x()', dictList, false ],
     ]
     const problems: string[] = []
     for (const [ name, expr, target, expected ] of cases) {
@@ -10820,3 +10824,30 @@ export function readerSeedElementWriteChecks (): string[] {
     if (!callee.includes ('string? i = "GTC";') || !callee.includes ('(i != "RPI")')) problems.push (`literal seed written from a string? method: ${callee.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }
+
+// ===== h28-C03
+// generic `List<T> filterBy*SinceLimit<T>(IList<T> ...)`: T comes from the first argument alone, so the
+// later arguments may carry any printed form (no space, nested casts such as `((string)code)`)
+function h28C03FilteredReturnIsTyped (value: string, targetType: string, methodLines: string[]): boolean | undefined {
+    const head = /^this\.(?:filterBySinceLimit|filterBySymbolSinceLimit|filterByCurrencySinceLimit)\(([A-Za-z_]\w*),/.exec (value)
+    if ((head === null) || (targetType !== 'List<Dictionary<string, object>>')) {
+        return undefined
+    }
+    let depth = 0
+    for (let k = value.indexOf ('('); k < value.length; k++) {
+        const c = value[k]
+        if ((c === '"') || (c === '\'')) {
+            return undefined
+        }
+        depth += (c === '(') ? 1 : ((c === ')') ? -1 : 0)
+        if ((depth === 0) && (k !== value.length - 1)) {
+            return undefined
+        }
+    }
+    if (depth !== 0) {
+        return undefined
+    }
+    const types = csharpRetMethodBindings (methodLines).get (head[1])
+    return ((types !== undefined) && (types.length === 1) && (types[0] === targetType)) ? true : undefined
+}
+// ===== end h28-C03
