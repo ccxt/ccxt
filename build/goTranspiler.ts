@@ -2664,6 +2664,7 @@ function goChan3PromiseAllPass (content: string, table: Map<string, string>): st
     const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\((?:\[\]any\{|(\w+)\)\n)/gm;
     for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
         const taskList = goChan3PromiseAllTaskList (masked, m);
+        const h28g18 = goChan3H28G18AppendList (content, masked, m, stubs, q); if (h28g18 !== undefined) { edits.push (...h28g18); continue; }
         if ((m[3] !== undefined) && (taskList === undefined)) {
             continue;
         }
@@ -2822,6 +2823,104 @@ function goChan3PromiseAllTypedSlot (masked: string, start: number, end: number,
     return ((ok.length > 0) && (all.length === ok.length + 1)) ? { 'start': ls, 'end': le, 'text': m[1] + 'var ' + x + ' ' + type + ' = ' + v + '[' + u[3] + ']' } : undefined;
 }
 // ===== end h27-H27-G25
+
+// ===== h28-H28-G18: promiseAll of a task list built only by `append` of one-T endpoint stubs =====
+// `var P []any = []any{}` + `P = append(P, [EndpointRaw(]this.Stub(..)[)])` lines (no closure in between) and a result
+// read only as `len(V)` or `SafeMapTyped|SafeListTyped(V, i)` inside `for i := 0; i < len(V); i++` -> typed channels
+function goChan3H28G18AppendList (content: string, masked: string, m: RegExpExecArray, stubs: Map<string, string>, q: string): Edit[] | undefined {
+    const P = m[3];
+    if (P === undefined) {
+        return undefined;
+    }
+    const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+    const fn = masked.substring (fs0, fe0);
+    const at = m.index - fs0;
+    const decl = [ ...fn.matchAll (new RegExp ('\\n(\\t+)var ' + P + ' \\[\\]any = \\[\\]any\\{\\}\\n', 'g')) ];
+    if ((decl.length !== 1) || ((decl[0].index as number) > at) || (fn.substring (decl[0].index as number, at).indexOf ('func(') >= 0)) {
+        return undefined;
+    }
+    const appRe = new RegExp ('\\n\\t+' + P + ' = append\\(' + P + ', ', 'g');
+    const apps = [ ...fn.matchAll (appRe) ];
+    const uses = (fn.match (new RegExp ('(?<![\\w.])' + P + '(?!\\w)', 'g')) || []).length;
+    if ((apps.length === 0) || (uses !== 2 + 2 * apps.length)) {
+        return undefined;
+    }
+    const edits: Edit[] = [];
+    let type: string | undefined = undefined;
+    for (const a of apps) {
+        const open = fs0 + (a.index as number) + a[0].length - P.length - 3;
+        const close = goChanClose (masked, open);
+        if ((close < 0) || (fs0 + (a.index as number) > m.index) || (masked[close] !== '\n')) {
+            return undefined;
+        }
+        const argStart = open + 1 + P.length + 2;
+        const arg = content.substring (argStart, close - 1);
+        const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (arg);
+        const call = ((w !== null) && (goChanClose (arg, arg.indexOf ('(')) === arg.length)) ? w[1] : arg;
+        const c = /^this\.(\w+)\(/.exec (call);
+        if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
+            return undefined;
+        }
+        const t = stubs.get (c[1]);
+        if ((t === undefined) || !goChan3FoldsAbsent (t) || ((type !== undefined) && (type !== t))) {
+            return undefined;
+        }
+        type = t;
+        if (call !== arg) {
+            edits.push ({ 'start': argStart, 'end': close - 1, 'text': call });
+        }
+    }
+    if (type === undefined) {
+        return undefined;
+    }
+    const ind = m[1];
+    const r = m[2];
+    const tail = masked.substring (m.index + m[0].length);
+    const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
+    if (head === null) {
+        return undefined;
+    }
+    const v = head[1];
+    const declEnd = m.index + m[0].length + head[0].length;
+    const rest = masked.substring (declEnd, fe0);
+    if (new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
+        return undefined;
+    }
+    const reader = (type === 'map[string]any') ? 'SafeMapTyped' : 'SafeListTyped';
+    const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?' + reader + '\\(|len\\()?' + v + '(?!\\w)(, (\\w+)\\))?', 'g');
+    for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
+        if ((u[1] === 'len(') && (rest[u.index + u[0].length] === ')') && (u[2] === undefined)) {
+            continue;
+        }
+        if ((u[1] === undefined) || (u[1] === 'len(') || (u[3] === undefined) || !goChan3H28G18LoopBound (rest, u.index, v, u[3])) {
+            return undefined;
+        }
+        edits.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': v + '[' + u[3] + ']' });
+    }
+    const carrier = q + 'EndpointResult[' + type + ']';
+    const d0 = fs0 + (decl[0].index as number) + 1;
+    edits.push ({ 'start': d0, 'end': d0 + decl[0][0].length - 2, 'text': decl[0][1] + 'var ' + P + ' []<-chan ' + carrier });
+    edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': m.index + m[0].length - 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + P + '...)' });
+    const varLine = head[0].split ('\n')[3];
+    edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
+    return edits;
+}
+
+// true when `at` lies inside `for i := 0; i < len(v); i++ {` and the body never writes i or v
+function goChan3H28G18LoopBound (rest: string, at: number, v: string, i: string): boolean {
+    const hdr = 'for ' + i + ' := 0; ' + i + ' < len(' + v + '); ' + i + '++ {';
+    for (let h = rest.lastIndexOf (hdr, at); h >= 0; h = rest.lastIndexOf (hdr, h - 1)) {
+        const open = h + hdr.length - 1;
+        const close = goChanClose (rest, open);
+        if ((close < 0) || (close <= at)) {
+            continue;
+        }
+        const body = rest.substring (open, close);
+        return !new RegExp ('(?<![\\w.])(?:' + i + '|' + v + ')\\s*(?:[-+*/:]?=(?!=)|\\+\\+|--)').test (body);
+    }
+    return false;
+}
+// ===== end h28-H28-G18
 
 // ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
 // Proven above on the map shadow; goChan3StructPass retypes cores (sends `TFromMap(E)`), interfaces (not IPrediction*)
@@ -3828,6 +3927,18 @@ function goChan3SelfTest (): string[] {
     const appended = plist.replace ('\n\n\tr := ', '\n\tps = append(ps, this.PubGetA(p))\n\tr := ');
     ok (run (appended) === appended, 'appended task list untouched');
     ok (run (plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)')) === plist.replace ('SafeMapTyped(v, 1)', 'GetValue(v, 1)'), 'task list with a boxed read untouched');
+    // h28-H28-G18: appended task list read in a len-bound loop
+    const alist = 'package ccxt\n\nfunc (this *Y) f(p any, n int) any {\n\tvar ps []any = []any{}\n\tfor j := 0; j < n; j++ {\n\t\tps = append(ps, EndpointRaw(this.PubGetA(p)))\n\t}\n\n\tr := <-promiseAll(ps)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tfor i := 0; i < len(v); i++ {\n\t\tvar x map[string]any = SafeMapTyped(v, i)\n\t\tthis.Use(x)\n\t}\n\treturn nil\n}\n';
+    const al = run (alist);
+    ok (al.includes ('\tvar ps []<-chan EndpointResult[map[string]any]\n') && al.includes ('\t\tps = append(ps, this.PubGetA(p))\n') && al.includes ('\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](ps...)\n') && al.includes ('\tvar v []map[string]any = r.Value\n') && al.includes ('\t\tvar x map[string]any = v[i]\n'), 'appended task list: ' + al);
+    ok (run (al) === al, 'appended task list idempotent');
+    const aneg = (from: string, to: string, label: string) => { const src = alist.replace (from, to); ok (run (src) === src, label); };
+    aneg ('\t\tps = append(ps, EndpointRaw(this.PubGetA(p)))\n', '\t\tps = append(ps, EndpointRaw(this.PubGetA(p)))\n\t\tps = append(ps, EndpointRaw(this.PubGetL(p)))\n', 'appended task list of two types untouched');
+    aneg ('SafeMapTyped(v, i)', 'SafeMapTyped(v, 0)', 'appended task list literal read untouched');
+    aneg ('\t\tthis.Use(x)\n', '\t\tthis.Use(x)\n\t\ti++\n', 'appended task list with a written index untouched');
+    aneg ('SafeMapTyped(v, i)', 'SafeListTyped(v, i)', 'appended task list read as another type untouched');
+    aneg ('\tfor i := 0; i < len(v); i++ {\n\t\tvar x map[string]any = SafeMapTyped(v, i)\n\t\tthis.Use(x)\n\t}\n', '\tthis.Use(v)\n', 'appended task list read whole untouched');
+    aneg ('\n\n\tr := ', '\n\tthis.Use(ps)\n\n\tr := ', 'appended task list used elsewhere untouched');
     const mixed = plist.replace ('this.PubGetA(p)}', 'this.PubGetL(p)}');
     ok (run (mixed) === mixed, 'mixed task list untouched');
     // h27-H27-G25: a slot read only by nil-safe readers binds its typed element
