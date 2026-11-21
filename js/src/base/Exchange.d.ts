@@ -1001,7 +1001,7 @@ export declare class BaseExchange {
     depositWithdrawFee(info: NullableDict): Dict;
     assignDefaultDepositWithdrawFees(fee: Dict, currency?: Currency): Dict;
     parseIncome(info: Dict, market?: Market): object;
-    parseIncomes(incomes: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
+    parseIncomes(incomes: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     getMarketFromSymbols(symbols: string[]): MarketInterface;
     getMarketFromSymbols(symbols?: Strings): Market;
     parseWsOHLCVs(ohlcvs: object[], market?: Market, timeframe?: string, since?: Int, limit?: Int): OHLCV[];

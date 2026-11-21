@@ -91,7 +91,18 @@ class PredictionExchange extends Exchange.BaseExchange {
         if (singleQuery !== undefined) {
             return [singleQuery];
         }
-        return this.safeList(params, 'queries', []);
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        const rawQueries = this.toArray(this.safeList(params, 'queries', []));
+        const rawQueriesLength = rawQueries.length;
+        const queries = [];
+        for (let i = 0; i < rawQueriesLength; i++) {
+            const query = this.safeString(rawQueries, i);
+            if (query === undefined) {
+                throw new errors.BadRequest(this.id + ' params.queries must be a list of strings');
+            }
+            queries.push(query);
+        }
+        return queries;
     }
     requireEventQuery(params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the

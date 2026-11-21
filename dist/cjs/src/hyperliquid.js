@@ -1145,8 +1145,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     async fetchBalance(params = {}) {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         const shouldRefresh = (this.safeString2(params, 'user', 'address') !== undefined) && this.safeBool(params, 'enableUnifiedMargin') === undefined;
-        const userAddress = this.safeString(this.handlePublicAddress('fetchBalance', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchBalance', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchBalance', params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, paramsPublicAddress);
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchBalance', paramsMarketType);
         const [isUnifiedEnabled, paramsValue] = await this.isUnifiedEnabled('fetchBalance', userAddress, shouldRefresh, paramsMarginMode);
@@ -1608,8 +1607,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchTrades', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchTrades', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1962,8 +1960,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let publicAddress = undefined;
         let paramsPublicAddress = {};
         if (address === undefined) {
-            publicAddress = this.safeString(this.handlePublicAddress('isUnifiedEnabled', params), 0);
-            paramsPublicAddress = this.safeDict(this.handlePublicAddress('isUnifiedEnabled', params), 1, {});
+            [publicAddress, paramsPublicAddress] = this.handlePublicAddress('isUnifiedEnabled', params);
         }
         const userAddress = (address !== undefined) ? address : publicAddress;
         const paramsAddress = (address !== undefined) ? params : paramsPublicAddress;
@@ -3164,8 +3161,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchOpenOrders', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchOpenOrders', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOpenOrders', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -3280,8 +3276,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchOrders', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchOrders', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3357,8 +3352,7 @@ class hyperliquid extends hyperliquid$1["default"] {
     async fetchOrder(id, symbol = undefined, params = {}) {
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchOrder', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchOrder', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3629,8 +3623,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchMyTrades', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchMyTrades', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3754,8 +3747,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchMyLiquidations', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchMyLiquidations', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchMyLiquidations', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -3899,8 +3891,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchPositions', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchPositions', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchPositions', params);
         const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'type': 'clearinghouseState',
@@ -4340,8 +4331,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         let query = params;
         [transferMethod, query] = this.handleOptionStringAndParams(query, 'transfer', 'method');
         let masterAddress = undefined;
-        masterAddress = this.safeString(this.handlePublicAddress('transfer', query), 0);
-        query = this.safeDict(this.handlePublicAddress('transfer', query), 1, {});
+        [masterAddress, query] = this.handlePublicAddress('transfer', query);
         let useSendAsset = (transferMethod === 'sendAsset');
         if (transferMethod === undefined) {
             let isUnified = undefined;
@@ -4588,8 +4578,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchTradingFee', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchTradingFee', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchTradingFee', params);
         const market = this.market(symbol);
         const request = {
             'type': 'userFees',
@@ -4701,8 +4690,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchLedger', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchLedger', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchLedger', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4799,8 +4787,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchDepositsWithdrawals', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchDepositsWithdrawals', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -4870,8 +4857,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchDepositsWithdrawals', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchDepositsWithdrawals', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress,
@@ -5011,8 +4997,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchFundingHistory', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchFundingHistory', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchFundingHistory', params);
         const request = {
             'user': userAddress,
             'type': 'userFunding',
@@ -5025,7 +5010,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(fundingResponse);
         //
         // [
         //     {

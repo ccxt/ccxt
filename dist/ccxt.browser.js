@@ -179742,9 +179742,6 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' parseTransaction() is not supported yet');
     }
     parseTransfer(transfer, currency = undefined) {
-        if (transfer === undefined) {
-            throw new _errors_js__rspack_import_2.NotSupported(this.id + ' parseTransfer() is not supported yet');
-        }
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' parseTransfer() is not supported yet');
     }
     parseAccount(account) {
@@ -180061,21 +180058,23 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
         //
         // createOrder
         if ('createOrder' in featuresObj) {
-            const value = this.safeDict(featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            featuresObj['createOrder']['stopLoss'] = value;
-            featuresObj['createOrder']['takeProfit'] = value;
+            const createOrder = this.extend({}, featuresObj['createOrder']);
+            const value = this.safeDict(createOrder, 'attachedStopLossTakeProfit');
+            createOrder['stopLoss'] = value;
+            createOrder['takeProfit'] = value;
             if (marketType === 'spot') {
                 // default 'hedged': false
-                featuresObj['createOrder']['hedged'] = false;
+                createOrder['hedged'] = false;
                 // default 'leverage': false
-                if (!('leverage' in featuresObj['createOrder'])) {
-                    featuresObj['createOrder']['leverage'] = false;
+                if (!('leverage' in createOrder)) {
+                    createOrder['leverage'] = false;
                 }
             }
             // default 'GTC' to true
-            if (this.safeBool(featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
-                featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            if (this.safeBool(createOrder['timeInForce'], 'GTC') === undefined) {
+                createOrder['timeInForce']['GTC'] = true;
             }
+            featuresObj['createOrder'] = createOrder;
         }
         // other methods
         const keys = Object.keys(featuresObj);
@@ -184271,16 +184270,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
          * @returns {object} A deposit withdraw fee structure
          */ const networkKeys = Object.keys(fee['networks']);
         const numNetworks = networkKeys.length;
-        if (numNetworks === 1) {
-            const networkFee = this.safeDict(fee['networks'], networkKeys[0], {});
-            fee['withdraw'] = networkFee['withdraw'];
-            fee['deposit'] = networkFee['deposit'];
-            return fee;
-        }
         const currencyCode = this.safeString(currency, 'code');
         for(let i = 0; i < numNetworks; i++){
             const network = networkKeys[i];
-            if (network === currencyCode) {
+            if (numNetworks === 1 || network === currencyCode) {
                 const networkFee = this.safeDict(fee['networks'], networkKeys[i], {});
                 fee['withdraw'] = networkFee['withdraw'];
                 fee['deposit'] = networkFee['deposit'];
@@ -190852,7 +190845,18 @@ class PredictionExchange extends _Exchange_js__rspack_import_0/* .BaseExchange *
                 singleQuery
             ];
         }
-        return this.safeList(params, 'queries', []);
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        const rawQueries = this.toArray(this.safeList(params, 'queries', []));
+        const rawQueriesLength = rawQueries.length;
+        const queries = [];
+        for(let i = 0; i < rawQueriesLength; i++){
+            const query = this.safeString(rawQueries, i);
+            if (query === undefined) {
+                throw new _errors_js__rspack_import_1.BadRequest(this.id + ' params.queries must be a list of strings');
+            }
+            queries.push(query);
+        }
+        return queries;
     }
     requireEventQuery(params = {}) {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -401076,8 +401080,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      */ async fetchBalance(params = {}) {
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         const shouldRefresh = this.safeString2(params, 'user', 'address') !== undefined && this.safeBool(params, 'enableUnifiedMargin') === undefined;
-        const userAddress = this.safeString(this.handlePublicAddress('fetchBalance', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchBalance', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchBalance', params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, paramsPublicAddress);
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchBalance', paramsMarketType);
         const [isUnifiedEnabled, paramsValue] = await this.isUnifiedEnabled('fetchBalance', userAddress, shouldRefresh, paramsMarginMode);
@@ -401534,8 +401537,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchTrades', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchTrades', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -401988,8 +401990,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         let publicAddress = undefined;
         let paramsPublicAddress = {};
         if (address === undefined) {
-            publicAddress = this.safeString(this.handlePublicAddress('isUnifiedEnabled', params), 0);
-            paramsPublicAddress = this.safeDict(this.handlePublicAddress('isUnifiedEnabled', params), 1, {});
+            [publicAddress, paramsPublicAddress] = this.handlePublicAddress('isUnifiedEnabled', params);
         }
         const userAddress = address !== undefined ? address : publicAddress;
         const paramsAddress = address !== undefined ? params : paramsPublicAddress;
@@ -403219,8 +403220,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchOpenOrders', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchOpenOrders', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOpenOrders', params);
         const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -403339,8 +403339,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.dex] perp dex name. default is null
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchOrders', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchOrders', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -403414,8 +403413,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      */ async fetchOrder(id, symbol = undefined, params = {}) {
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchOrder', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchOrder', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchOrder', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -403688,8 +403686,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */ async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchMyTrades', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchMyTrades', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -403811,8 +403808,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */ async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('fetchMyLiquidations', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchMyLiquidations', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchMyLiquidations', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -403955,8 +403951,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchPositions', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchPositions', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchPositions', params);
         const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'type': 'clearinghouseState',
@@ -404395,8 +404390,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         let query = params;
         [transferMethod, query] = this.handleOptionStringAndParams(query, 'transfer', 'method');
         let masterAddress = undefined;
-        masterAddress = this.safeString(this.handlePublicAddress('transfer', query), 0);
-        query = this.safeDict(this.handlePublicAddress('transfer', query), 1, {});
+        [masterAddress, query] = this.handlePublicAddress('transfer', query);
         let useSendAsset = transferMethod === 'sendAsset';
         if (transferMethod === undefined) {
             let isUnified = undefined;
@@ -404639,8 +404633,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchTradingFee', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchTradingFee', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchTradingFee', params);
         const market = this.market(symbol);
         const request = {
             'type': 'userFees',
@@ -404751,8 +404744,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchLedger', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchLedger', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchLedger', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress
@@ -404850,8 +404842,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchDepositsWithdrawals', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchDepositsWithdrawals', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress
@@ -404924,8 +404915,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         }
         let userAddress = undefined;
         let params2 = undefined;
-        userAddress = this.safeString(this.handlePublicAddress('fetchDepositsWithdrawals', params), 0);
-        params2 = this.safeDict(this.handlePublicAddress('fetchDepositsWithdrawals', params), 1, {});
+        [userAddress, params2] = this.handlePublicAddress('fetchDepositsWithdrawals', params);
         const request = {
             'type': 'userNonFundingLedgerUpdates',
             'user': userAddress
@@ -405068,8 +405058,7 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const userAddress = this.safeString(this.handlePublicAddress('fetchFundingHistory', params), 0);
-        const paramsPublicAddress = this.safeDict(this.handlePublicAddress('fetchFundingHistory', params), 1, {});
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress('fetchFundingHistory', params);
         const request = {
             'user': userAddress,
             'type': 'userFunding'
@@ -405082,7 +405071,8 @@ class hyperliquid extends _abstract_hyperliquid_js__rspack_import_0/* ["default"
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const fundingResponse = await this.publicPostInfo(this.extend(request, paramsOmitted));
+        const response = this.infoList(fundingResponse);
         //
         // [
         //     {
@@ -445671,12 +445661,7 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
                 'clientOrderId': this.safeString(order, 'newClientOrderId')
             });
         }
-        let id = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        } else {
-            id = this.safeString2(order, 'orderId', 'id');
-        }
+        const id = this.safeString2(order, 'orderId', 'id');
         let timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
         const typeRaw = this.safeString(order, 'type');
         if (timeInForce === undefined) {
@@ -448094,14 +448079,15 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
+        return this.parseLeverageList(data, market);
     }
-    parseLeverage(leverage, market = undefined) {
+    parseLeverageList(leverages, market = undefined) {
         let marginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for(let i = 0; i < leverage.length; i++){
-            const entry = this.safeDict(leverage, i);
+        const numLeverages = leverages.length;
+        for(let i = 0; i < numLeverages; i++){
+            const entry = this.safeDict(leverages, i);
             const openType = this.safeInteger(entry, 'openType');
             const positionType = this.safeInteger(entry, 'positionType');
             if (positionType === 1) {
@@ -448112,11 +448098,21 @@ class mexc extends _abstract_mexc_js__rspack_import_0/* ["default"] */.A {
             marginMode = openType === 1 ? 'isolated' : 'cross';
         }
         return {
-            'info': leverage,
+            'info': leverages,
             'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return {
+            'info': leverage,
+            'symbol': this.safeString(market, 'symbol'),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
@@ -581048,8 +581044,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */ async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('watchMyTrades', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('watchMyTrades', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -581108,8 +581103,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */ async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        const userAddress = this.safeString(this.handlePublicAddress('watchMyLiquidationsForSymbols', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('watchMyLiquidationsForSymbols', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchMyLiquidationsForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -581161,8 +581155,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (symbol !== undefined) {
             throw new _base_errors_js__rspack_import_1.NotSupported(this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        const userAddress = this.safeString(this.handlePublicAddress('unWatchMyTrades', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('unWatchMyTrades', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
         const url = this.urls['api']['ws']['public'];
         const request = {
@@ -581655,8 +581648,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('watchBalance', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('watchBalance', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchBalance', params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('watchBalance', userAddress, false, paramsMarketType);
         const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
@@ -581705,8 +581697,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const url = this.urls['api']['ws']['public'];
-        const userAddress = this.safeString(this.handlePublicAddress('unWatchBalance', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('unWatchBalance', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('unWatchBalance', params);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('unWatchBalance', undefined, paramsValue);
         const unifiedResult = await this.isUnifiedEnabled('unWatchBalance', userAddress, false, paramsMarketType);
         const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
@@ -581890,8 +581881,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('watchPositions', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('watchPositions', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchPositions', params);
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         const hasSymbols = symbols !== undefined && !this.isEmpty(symbols);
@@ -581984,8 +581974,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         }
         const messageHash = 'unsubscribe:clearinghouseState';
         const url = this.urls['api']['ws']['public'];
-        const userAddress = this.safeString(this.handlePublicAddress('unWatchPositions', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('unWatchPositions', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('unWatchPositions', params);
         const request = {
             'method': 'unsubscribe',
             'subscription': {
@@ -582011,8 +582000,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const userAddress = this.safeString(this.handlePublicAddress('watchOrders', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('watchOrders', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('watchOrders', params);
         let market = undefined;
         let messageHash = 'order';
         if (symbol !== undefined) {
@@ -582066,8 +582054,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         }
         const messageHash = 'unsubscribe:order';
         const url = this.urls['api']['ws']['public'];
-        const userAddress = this.safeString(this.handlePublicAddress('unWatchOrders', params), 0);
-        const paramsValue = this.safeDict(this.handlePublicAddress('unWatchOrders', params), 1, params);
+        const [userAddress, paramsValue] = this.handlePublicAddress('unWatchOrders', params);
         const request = {
             'method': 'unsubscribe',
             'subscription': {

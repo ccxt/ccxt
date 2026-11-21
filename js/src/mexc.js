@@ -3750,13 +3750,7 @@ export default class mexc extends Exchange {
                 'clientOrderId': this.safeString(order, 'newClientOrderId'),
             });
         }
-        let id = undefined;
-        if (typeof order === 'string') {
-            id = order;
-        }
-        else {
-            id = this.safeString2(order, 'orderId', 'id');
-        }
+        const id = this.safeString2(order, 'orderId', 'id');
         let timeInForce = this.parseOrderTimeInForce(this.safeString(order, 'timeInForce'));
         const typeRaw = this.safeString(order, 'type');
         if (timeInForce === undefined) {
@@ -6220,14 +6214,15 @@ export default class mexc extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(data, market);
+        return this.parseLeverageList(data, market);
     }
-    parseLeverage(leverage, market = undefined) {
+    parseLeverageList(leverages, market = undefined) {
         let marginMode = undefined;
         let longLeverage = undefined;
         let shortLeverage = undefined;
-        for (let i = 0; i < leverage.length; i++) {
-            const entry = this.safeDict(leverage, i);
+        const numLeverages = leverages.length;
+        for (let i = 0; i < numLeverages; i++) {
+            const entry = this.safeDict(leverages, i);
             const openType = this.safeInteger(entry, 'openType');
             const positionType = this.safeInteger(entry, 'positionType');
             if (positionType === 1) {
@@ -6239,11 +6234,21 @@ export default class mexc extends Exchange {
             marginMode = (openType === 1) ? 'isolated' : 'cross';
         }
         return {
-            'info': leverage,
+            'info': leverages,
             'symbol': this.safeString(market, 'symbol'),
             'marginMode': marginMode,
             'longLeverage': longLeverage,
             'shortLeverage': shortLeverage,
+        };
+    }
+    parseLeverage(leverage, market = undefined) {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return {
+            'info': leverage,
+            'symbol': this.safeString(market, 'symbol'),
+            'marginMode': undefined,
+            'longLeverage': undefined,
+            'shortLeverage': undefined,
         };
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
