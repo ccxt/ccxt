@@ -8819,33 +8819,9 @@ function rustTypedListReads(content: string): string {
     content = content.replace(
         /\(match ([\w.]+\.get\("\w+"\)) \{ Some\(__v\) if matches!\(__v, Value::Arr\(_\)\) => __v\.clone\(\), _ => Value::from\(vec!\[\]\) \}\)\.into_list\(\)/g,
         '(match $1 { Some(Value::Arr(__a)) => __a.clone(), _ => Default::default() })');
-    content = content.replace(
+    return content.replace(
         /\bif \(matches!\(&(\w+), Value::Arr\(_\)\)\) \{(\n[ \t]*)(\w+) = \1\.into_list\(\);/g,
         'if let Value::Arr(__a) = $1 {$2$3 = __a;');
-    return rustTypedListRowDictReads(content);
-}
-// `self.safe_dict_t(&xs, Value::Int(i))` on a local or parameter declared `List` / `Vec<Value>` (nearest declaration of
-// the name in its fn) is the slice read: the element's map, else the empty map (an out-of-range or negative index reads
-// None here and Null in the reader), with the element copied once as the reader copied it.
-function rustTypedListRowDictReads(content: string): string {
-    if (!content.includes('self.safe_dict_t(&')) return content;
-    const lines = content.split('\n');
-    const read = /\bself\.safe_dict_t\(&([A-Za-z_]\w*), Value::Int\(([A-Za-z_]\w*|\d+)\)\)/g;
-    const listType = /^&?(?:crate::value::List|Vec<Value>|Vec<crate::Value>|&?crate::value::List)$/;
-    for (let i = 0; i < lines.length; i++) {
-        if (!lines[i].includes('self.safe_dict_t(&') || lines[i].trimStart().startsWith('//')) continue;
-        lines[i] = lines[i].replace(read, (whole: string, name: string, idx: string) => {
-            for (let j = i; j >= 0; j--) {
-                const l = lines[j];
-                const fn = /^\s*(?:pub )?(?:async )?fn \w+/.test(l);
-                const decl = new RegExp('(?:\\blet (?:mut )?|[(,]\\s*(?:mut )?)' + name + '\\b\\s*(:\\s*([^=;]+?))?\\s*(?:=|[,)]|$)').exec(fn ? l : (j === i ? l.slice(0, l.indexOf('self.safe_dict_t(&' + name)) : l));
-                if (decl && (fn || /\blet\b/.test(decl[0]))) return decl[2] !== undefined && listType.test(decl[2].trim()) ? `(if let Some(Value::Dict(__m)) = ${name}.get(${idx} as usize).cloned() { __m } else { Default::default() })` : whole;
-                if (fn) return whole;
-            }
-            return whole;
-        });
-    }
-    return lines.join('\n');
 }
 // venue producers whose every return is a typed dict: [name, 'dict' (all returns `safe_balance`) | 'opt' (all
 // returns `parse_order`)]. The declaration returns that type; `.into_opt_dict()` / `.into_dict()` callers take it
