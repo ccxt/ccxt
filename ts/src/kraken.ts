@@ -2061,7 +2061,9 @@ export default class kraken extends Exchange {
             if (part4 === 'limit' || part4 === 'market') {
                 descriptionType = part4; // eg, limit, market
             } else {
-                descriptionType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
+                const part4String: string = this.safeString (parts, 4, '');
+                const part5String: string = this.safeString (parts, 5, '');
+                descriptionType = part4String + ' ' + part5String; // eg. stop loss, take profit, trailing stop
             }
             // split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
             if ((part4 === 'stop' && part5 === 'loss') || (part4 === 'take' && part5 === 'profit')) {
@@ -2267,7 +2269,11 @@ export default class kraken extends Exchange {
             }
             const trailingAmountString = (trailingAmount !== undefined) ? '+' + trailingAmount : undefined; // must use + for this
             const offset = this.safeString (paramsOmitted2, 'offset', '-'); // can use + or - for this
-            const trailingLimitAmountString = (trailingLimitAmount !== undefined) ? offset + this.numberToString (trailingLimitAmount) : undefined;
+            let trailingLimitAmountString: Str = undefined;
+            if (trailingLimitAmount !== undefined) {
+                const limitAmountString: string = this.numberToString (trailingLimitAmount);
+                trailingLimitAmountString = offset + limitAmountString;
+            }
             const trailingActivationPriceType = this.safeString (paramsOmitted2, 'trigger', 'last');
             request['trigger'] = trailingActivationPriceType;
             if (isLimitOrder || (trailingLimitAmount !== undefined) || (trailingLimitPercent !== undefined)) {

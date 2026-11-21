@@ -3824,8 +3824,10 @@ export default class binance extends Exchange {
             } else if (future) {
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
             } else if (option) {
+                const strikeString: string = this.numberToString (this.parseToNumeric (this.safeString (market, 'strikePrice')));
+                const optionType: string = this.safeString (optionParts, 3, '');
                 strike = this.numberToString (this.parseToNumeric (this.safeString (market, 'strikePrice')));
-                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
+                symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strikeString + '-' + optionType;
             }
             contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             linear = settle === quote;
@@ -15314,7 +15316,7 @@ export default class binance extends Exchange {
         } else if (this.safeBool (market, 'inverse', false)) {
             response = await this.dapiPrivateGetPositionMarginHistory (this.extend (request, paramsOmitted));
         } else {
-            throw new BadRequest (this.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type']);
+            throw new BadRequest (this.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + this.safeString (market, 'type', ''));
         }
         //
         //    [
