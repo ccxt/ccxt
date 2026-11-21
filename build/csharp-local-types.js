@@ -2256,6 +2256,7 @@ function wsHashPrefixes (node, scope, params, depth) {
         return out;
     }
     case ts.SyntaxKind.CallExpression: {
+        const h29c01 = h29c01DispatchKeyPrefixes (node, scope); if (h29c01 !== undefined) return h29c01;
         const key = wsSubscriptionKeyRead (node, scope);
         if (key === undefined) {
             return any;
@@ -24653,3 +24654,161 @@ function h28c04GuardedMinMaxText (csharp, call, name, parsedArg1, parsedArg2) {
     return 'Math.' + name + '(' + texts[0] + ', ' + texts[1] + ')';
 }
 // ===== end h28-C04
+// ===== h29-H29-C01
+// `this.safeString (message, 'F')` inside a ws handler that is reached ONLY through dispatch tables
+// `{ 'k': this.handler }` looked up by `this.safeString (message, 'F')` of the same frame (and invoked
+// with that frame) equals one of the table keys: its hash prefixes are those keys, exact.
+const h29c01DispatchCache = new WeakMap ();
+
+function h29c01IsSafeStringOf (node, param, field) {
+    const callee = node?.expression;
+    return node?.kind === ts.SyntaxKind.CallExpression && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && callee.name?.text === 'safeString' && node.arguments.length === 2
+        && node.arguments[0].kind === ts.SyntaxKind.Identifier && node.arguments[0].text === param
+        && node.arguments[1].kind === ts.SyntaxKind.StringLiteral && (field === undefined || node.arguments[1].text === field);
+}
+
+// the frame parameter name of a (client, message) method, when the body never writes it
+function h29c01FrameParam (method) {
+    const p = method?.parameters?.[1];
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || method.body === undefined || p?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const name = p.name.text;
+    const writes = wsIdentifierWrites (p.name, method);
+    return (writes === undefined) ? name : undefined;
+}
+
+// the keys of `const t = { 'k': this.H, ... }` in dispatcher D when D looks t up by
+// `this.safeString (frame, field)` and calls the result only as `x.call (this, client, frame)`
+function h29c01TableKeys (table, handlerName, field) {
+    const decl = table.parent;
+    const method = enclosingFunction (decl);
+    const frame = h29c01FrameParam (method);
+    if (decl?.kind !== ts.SyntaxKind.VariableDeclaration || decl.name?.kind !== ts.SyntaxKind.Identifier || frame === undefined
+            || !(decl.parent?.flags & ts.NodeFlags.Const)) {
+        return undefined;
+    }
+    const keys = [];
+    for (const prop of table.properties) {
+        if (prop.kind !== ts.SyntaxKind.PropertyAssignment || prop.name?.kind !== ts.SyntaxKind.StringLiteral) {
+            return undefined;
+        }
+        const v = prop.initializer;
+        if (v.kind === ts.SyntaxKind.PropertyAccessExpression && v.expression?.kind === ts.SyntaxKind.ThisKeyword && v.name.text === handlerName) {
+            keys.push (prop.name.text);
+        }
+    }
+    let ok = true;
+    let lookups = 0;
+    const tableName = decl.name.text;
+    const visit = (n) => {
+        if (!ok || (n !== method && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === tableName && n !== decl.name) {
+            // `const m = this.safeValue (t, k)` with k's only write `this.safeString (frame, field)`
+            const call = n.parent;
+            const holder = call?.parent;
+            const keyArg = call?.arguments?.[1];
+            const keyWrites = (keyArg?.kind === ts.SyntaxKind.Identifier) ? wsIdentifierWrites (keyArg, method) : undefined;
+            ok = call?.kind === ts.SyntaxKind.CallExpression && call.arguments[0] === n && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && call.expression.name.text === 'safeValue'
+                && keyWrites?.length === 1 && !keyWrites.appended && h29c01IsSafeStringOf (keyWrites[0], frame, field)
+                && holder?.kind === ts.SyntaxKind.VariableDeclaration && holder.name?.kind === ts.SyntaxKind.Identifier
+                && (holder.parent?.flags & ts.NodeFlags.Const) && h29c01OnlyCalledWithFrame (method, holder, frame);
+            lookups++;
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return (ok && lookups > 0 && keys.length > 0) ? keys : undefined;
+}
+
+// every use of the looked-up handler local is `m !== undefined` or `m.call (this, client, frame)`
+function h29c01OnlyCalledWithFrame (method, holder, frame) {
+    const name = holder.name.text;
+    let ok = true;
+    const visit = (n) => {
+        if (!ok || (n !== method && isFunctionScope (n))) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== holder.name) {
+            const p = n.parent;
+            const isCheck = p?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken ].includes (p.operatorToken.kind)
+                && (p.right.kind === ts.SyntaxKind.Identifier && p.right.text === 'undefined');
+            const call = p?.parent;
+            const isCall = p?.kind === ts.SyntaxKind.PropertyAccessExpression && p.name.text === 'call' && call?.kind === ts.SyntaxKind.CallExpression
+                && call.expression === p && call.arguments.length === 3 && call.arguments[0].kind === ts.SyntaxKind.ThisKeyword
+                && call.arguments[2].kind === ts.SyntaxKind.Identifier && call.arguments[2].text === frame;
+            ok = isCheck || isCall;
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return ok;
+}
+
+// the dispatch keys under which `field` routes frames to `handler`, or undefined when unproven
+function h29c01HandlerKeys (handler, field) {
+    let byField = h29c01DispatchCache.get (handler);
+    if (byField === undefined) {
+        byField = new Map ();
+        h29c01DispatchCache.set (handler, byField);
+    }
+    if (byField.has (field)) {
+        return byField.get (field);
+    }
+    byField.set (field, undefined);
+    const source = handler.getSourceFile ();
+    const name = handler.name?.text;
+    const rel = path.relative (process.cwd (), source.fileName);
+    const corpus = csharpCorpus ();
+    // other venues' same-named handlers never run for this instance: only the class family and base count
+    const family = new Set (wsHandlerFiles (source));
+    const related = (f) => family.has (f) || f.replace (/\\/g, '/').startsWith ('ts/src/base/');
+    const declared = [ ...(corpus.declarations.get (name) ?? []) ].filter (related);
+    const called = [ ...(corpus.occurrences.get (name)?.keys () ?? []) ].filter (related);
+    const handWritten = h28c01HandWrittenText ();
+    if (typeof name !== 'string' || declared.length !== 1 || declared[0] !== rel || called.some ((f) => f !== rel) || handWritten === undefined
+            || new RegExp ('\\b' + name + '\\b').test (handWritten) || source.text.includes ("'" + name + "'")) {
+        return undefined;
+    }
+    const keys = [];
+    let ok = true;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === name && n !== handler.name) {
+            const access = n.parent;
+            const prop = access?.parent;
+            const table = prop?.parent;
+            const found = (access?.kind === ts.SyntaxKind.PropertyAccessExpression && access.name === n && access.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && prop?.kind === ts.SyntaxKind.PropertyAssignment && prop.initializer === access && table?.kind === ts.SyntaxKind.ObjectLiteralExpression)
+                ? h29c01TableKeys (table, name, field) : undefined;
+            if (found === undefined) {
+                ok = false;
+                return;
+            }
+            keys.push (...found);
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    source.forEachChild (visit);
+    const out = (ok && keys.length > 0) ? [ ...new Set (keys) ].map ((k) => ({ 'lit': k, 'exact': true })) : undefined;
+    byField.set (field, out);
+    return out;
+}
+
+function h29c01DispatchKeyPrefixes (node, scope) {
+    const frame = h29c01FrameParam (scope);
+    if (frame === undefined || !h29c01IsSafeStringOf (node, frame, undefined)) {
+        return undefined;
+    }
+    return h29c01HandlerKeys (scope, node.arguments[1].text);
+}
+// ===== end h29-H29-C01
