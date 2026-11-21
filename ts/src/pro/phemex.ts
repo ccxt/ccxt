@@ -110,7 +110,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const lastString = this.fromEp (this.safeString (ticker, 'close'), marketValue);
         const last = this.parseNumber (lastString);
@@ -172,7 +172,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (ticker, 0);
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const lastString = this.fromEp (this.safeString (ticker, 4), marketValue);
         const last = this.parseNumber (lastString);
         const quoteVolume = this.parseNumber (this.fromEv (this.safeString (ticker, 6), marketValue));
@@ -445,7 +445,7 @@ export default class phemex extends phemexRest {
         const name = 'trade';
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const messageHash = name + ':' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -495,7 +495,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const candles = this.safeList2 (message, 'kline', 'kline_p', []);
         const first = this.safeList (candles, 0, []);
         const interval = this.safeString (first, 1);
@@ -903,7 +903,7 @@ export default class phemex extends phemexRest {
         //
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const type = this.safeString (message, 'type');
         const depth = this.safeInteger (message, 'depth');
         const name = 'orderbook';
@@ -1095,7 +1095,7 @@ export default class phemex extends phemexRest {
             const market = this.safeMarket (marketId);
             const parsed = this.parseTrade (rawTrade);
             cachedTrades.append (parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString (parsed, 'symbol');
             if (type === undefined) {
                 const marketSettle = this.safeString (market, 'settle');
                 type = (marketSettle === 'USDT') ? 'perpetual' : market['type'];
@@ -1360,7 +1360,7 @@ export default class phemex extends phemexRest {
         for (let i = 0; i < parsedOrders.length; i++) {
             const parsed = parsedOrders[i];
             stored.append (parsed);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString (parsed, 'symbol', '');
             const market = this.market (symbol);
             if (type === undefined) {
                 const isUsdt = market['settle'] === 'USDT';
@@ -1509,7 +1509,7 @@ export default class phemex extends phemexRest {
         const marketId = this.safeString (order, 'symbol');
         const marketResolved = this.safeMarket (marketId, market);
         const marketValue: Market = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.safeStringLower (order, 'side');
         const type = this.parseOrderType (this.safeString (order, 'ordType'));
