@@ -1847,7 +1847,7 @@ public class Onetrading extends OnetradingApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "order_id", id );
         }};
-        Object response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
+        Map<String, Object> response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
         //
         //     {
         //         "order": {

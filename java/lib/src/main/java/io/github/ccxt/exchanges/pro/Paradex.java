@@ -14,6 +14,7 @@ import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.Liquidation;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
@@ -982,9 +983,9 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        List<Object> deltasOptionparamsDeltasVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = ((List<Object>) deltasOptionparamsDeltasVariable).get(0);
-        Map<String, Object> paramsDeltas = (Map<String, Object>) ((List<Object>) deltasOptionparamsDeltasVariable).get(1);
+        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "deltas", false);
+        Boolean deltasOption = deltasOptionparamsDeltasVariable.first();
+        Map<String, Object> paramsDeltas = deltasOptionparamsDeltasVariable.second();
         Boolean deltas = (java.util.Objects.equals(deltasOption, true)) || ((!java.util.Objects.equals(limit, null)) && ((limit > 15)));
         String url = this.getWsUrl();
         // an unwatch in flight decides which feed each market is on once acknowledged
@@ -1076,9 +1077,9 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        List<Object> deltasOptionparamsDeltasVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "deltas", false);
-        var deltasOption = ((List<Object>) deltasOptionparamsDeltasVariable).get(0);
-        Map<String, Object> paramsDeltas = (Map<String, Object>) ((List<Object>) deltasOptionparamsDeltasVariable).get(1);
+        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "deltas", false);
+        Boolean deltasOption = deltasOptionparamsDeltasVariable.first();
+        Map<String, Object> paramsDeltas = deltasOptionparamsDeltasVariable.second();
         String url = this.getWsUrl();
         Client client = this.client(url);
         List<Object> channels = new ArrayList<Object>(Arrays.asList());

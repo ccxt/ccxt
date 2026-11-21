@@ -1430,12 +1430,12 @@ public class Mudrex extends MudrexApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String ms = this.safeString(position, "symbol");

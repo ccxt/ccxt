@@ -961,7 +961,7 @@ public class Grvt extends GrvtApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        Object marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
+        CompletableFuture<?> marketsPromise = this.publicMarketPostFullV1AllInstruments(parameters);
         //
         //    {
         //        "result": [
@@ -988,12 +988,12 @@ public class Grvt extends GrvtApi
         //            },
         //            ...
         //
-        List<Object> promises = new ArrayList<Object>(Arrays.asList(marketsPromise));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(marketsPromise));
         if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey))
         {
-            ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
+            promises.add(this.signIn(new HashMap<String, Object>() {{}}));
         }
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> response = this.safeDict(results, 0, null);
         List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
         return this.parseMarkets(result);
@@ -2992,7 +2992,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //            {

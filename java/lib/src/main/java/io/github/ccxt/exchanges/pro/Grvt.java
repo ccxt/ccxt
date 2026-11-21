@@ -1040,7 +1040,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Map<String, Object> data = this.safeDict(message, "feed", null);
-        Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(data, (Map<String, Object>) null);
+        Map<String, Object> position = this.parseWsPosition(data, (Map<String, Object>) null);
         ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         ((List<Object>)newPositions).add(position);
@@ -1048,7 +1048,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Object position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Object position, Map<String, Object> market)
     {
         // same as REST api
         return this.parsePosition((Map<String, Object>) (position), market);

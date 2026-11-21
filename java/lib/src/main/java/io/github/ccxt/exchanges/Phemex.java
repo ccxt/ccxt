@@ -4784,12 +4784,12 @@ public class Phemex extends PhemexApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(data, new ArrayList<String>(Arrays.asList(symbolValue)), new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(data, new ArrayList<String>(Arrays.asList(symbolValue)), new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(positions, symbolValue, since, limit, false);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //    {

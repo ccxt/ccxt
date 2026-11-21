@@ -6310,7 +6310,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // fetchPositions
@@ -7355,7 +7355,7 @@ public class Mexc extends MexcApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(data, symbols, parameters);
+        List<Object> positions = this.parsePositions(data, symbols, parameters);
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }

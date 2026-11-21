@@ -2019,9 +2019,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         Map<String, Object> market = this.market(symbol);
         String symbolValue = (String) market.get("symbol");
-        List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "stock", (Object) null);
-        var stock = ((List<Object>) stockparamsStockVariable).get(0);
-        Map<String, Object> paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
+        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "stock", false);
+        Boolean stock = stockparamsStockVariable.first();
+        Map<String, Object> paramsStock = stockparamsStockVariable.second();
         if (java.util.Objects.equals(stock, true))
         {
             if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "5m")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1h")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M")))

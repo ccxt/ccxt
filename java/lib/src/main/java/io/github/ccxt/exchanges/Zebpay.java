@@ -1952,7 +1952,7 @@ public class Zebpay extends ZebpayApi
         //    }
         //
         List<Object> positions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object result = this.parsePositions(positions, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> result = this.parsePositions(positions, (List<String>) null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(result, "symbol", symbols);
 
     }
@@ -2260,7 +2260,7 @@ public class Zebpay extends ZebpayApi
         return this.safeBalance(result);
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // isolated

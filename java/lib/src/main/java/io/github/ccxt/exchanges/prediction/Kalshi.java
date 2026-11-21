@@ -427,7 +427,7 @@ public class Kalshi extends KalshiApi
         // loadMarkets cannot run away through every kalshi market via the cursor.
         Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
         List<Object> flatMarkets = new ArrayList<Object>(Arrays.asList());
-        Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
+        Map<String, Map<String, Object>> eventsDict = new HashMap<String, Map<String, Object>>();
         String cursor = null;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
@@ -475,13 +475,13 @@ public class Kalshi extends KalshiApi
                             mapLiteral1.put("markets", new ArrayList<Object>(Arrays.asList()));
                             eventsDict.put(eventKey, mapLiteral1);
                         }
-                        Object eventEntry = (eventsDict == null || eventKey == null ? null : eventsDict.get(eventKey));
+                        Map<String, Object> eventEntry = (eventsDict == null || eventKey == null ? null : eventsDict.get(eventKey));
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        Object entryMarkets = Helpers.GetValue(eventEntry, "markets");
+                        Object entryMarkets = eventEntry.get("markets");
                         ((List<Object>)entryMarkets).add(m);
-                        ((Map<String, Object>)eventEntry).put("markets", entryMarkets);
+                        eventEntry.put("markets", entryMarkets);
                     }
                 }
             }
@@ -492,7 +492,7 @@ public class Kalshi extends KalshiApi
                 break;
             }
         }
-        this.events = eventsDict;
+        this.events = new HashMap<String, Object>(eventsDict);
         Integer flatMarketsLength = flatMarkets.size();
         if ((flatMarketsLength != null && (maxMarkets == null || flatMarketsLength > maxMarkets)))
         {
@@ -1821,7 +1821,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a unified trade structure
      */
-    public Object parseMyTrade(Map<String, Object> fill, Map<String, Object> market)
+    public Map<String, Object> parseMyTrade(Map<String, Object> fill, Map<String, Object> market)
     {
         String id = this.safeString2(fill, "fill_id", "trade_id");
         String orderId = this.safeString(fill, "order_id");

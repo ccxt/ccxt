@@ -570,13 +570,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
-        Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> dataList = this.safeList(parameters, "data", null);
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
+        if (!java.util.Objects.equals(dataList, null))
         {
-            orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            orders = this.parseOrders(dataList, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         } else
         {
+            Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
             orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, (Map<String, Object>) null)));
         }
         Integer ordersLength = orders.size();
@@ -1960,9 +1961,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long expiresIn = this.safeInteger(result, "expires_in", 900);
         Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", (Object) null);
-        Object refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
+        Double refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
         Long now = this.milliseconds();
-        this.options.put("wsAuthRefreshAt", this.sum(now, this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio))));
+        this.options.put("wsAuthRefreshAt", this.sum(now, this.parseToInt(((expiresIn * 1000L) * refreshRatio))));
         client.lastPong = ((Number)now).longValue();
         client.resolve(result, "authenticated");
     }
@@ -2529,7 +2530,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
         Object result = (this.requestWs("private/get_positions", paramsResolved, true)).join();
-        Object positions = this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(positions, "symbol", symbolsResolved);
 
     }

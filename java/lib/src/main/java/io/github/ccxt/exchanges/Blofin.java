@@ -3584,7 +3584,7 @@ public class Blofin extends BlofinApi
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object result = this.parsePositions(data, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> result = this.parsePositions(data, (List<String>) null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
 
     }
@@ -3620,7 +3620,7 @@ public class Blofin extends BlofinApi
         if (!java.util.Objects.equals(symbols, null))
         {
             Integer symbolsLength = symbols.size();
-            if (java.util.Objects.equals(symbolsLength, 0))
+            if ((symbolsLength != null && symbolsLength > 0))
             {
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 request.put("instId", market.get("id"));
@@ -3666,12 +3666,12 @@ public class Blofin extends BlofinApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(data, symbols, paramsUntil);
+        List<Object> positions = this.parsePositions(data, symbols, paramsUntil);
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // response similar for REST & WS

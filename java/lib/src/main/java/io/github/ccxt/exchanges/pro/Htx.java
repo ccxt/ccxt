@@ -2051,7 +2051,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             return;
         }
-        List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> newPositions = new ArrayList<Map<String, Object>>();
         Map<String, Object> positionsByMarginMode = new HashMap<String, Object>() {{}};
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
@@ -2071,7 +2071,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 cache = new ArrayCache.ArrayCacheBySymbolBySide();
                 this.positionsByType.put(marginMode, cache);
             }
-            ((List<Object>)newPositions).add(position);
+            newPositions.add(position);
             positionsByMarginMode.put(marginMode, this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList())));
             ((List<Object>)(positionsByMarginMode == null || marginMode == null ? null : positionsByMarginMode.get(marginMode))).add(position);
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);

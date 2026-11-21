@@ -8677,7 +8677,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // linear swap
@@ -11682,7 +11682,7 @@ public class Bybit extends BybitApi
         {
             rawPositionsList = rawPositions;
         }
-        Object positions = this.parsePositions(rawPositionsList, symbols, paramsOmitted);
+        List<Object> positions = this.parsePositions(rawPositionsList, symbols, paramsOmitted);
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }

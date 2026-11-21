@@ -2426,7 +2426,7 @@ public class Opinion extends OpinionApi
         mapLiteral8.put("amount", this.safeNumber(message, "shares", (Object) null));
         mapLiteral8.put("cost", this.safeNumber(message, "amount", (Object) null));
         mapLiteral8.put("fee", null);
-        Object trade = this.safePredictionTrade(mapLiteral8, outcomeObj);
+        Map<String,Object> trade = this.safePredictionTrade(mapLiteral8, outcomeObj);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -2642,7 +2642,7 @@ public class Opinion extends OpinionApi
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         String sym = this.safeString(outcomeObj, "outcome");
         Long timestamp = this.safeTimestamp(message, "createdAt");
-        Object trade = this.safePredictionTrade(new HashMap<String, Object>() {{
+        Map<String,Object> trade = this.safePredictionTrade(new HashMap<String, Object>() {{
             put( "id", Opinion.this.safeString(message, "tradeNo") );
             put( "info", message );
             put( "timestamp", timestamp );

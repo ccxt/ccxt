@@ -1586,7 +1586,7 @@ public class Limitless extends LimitlessApi
         //
         Long decimals = this.safeInteger(this.options, "usdcDecimals", 6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
-        String scaleStr = this.parsePrecision(this.numberToString((decimals == null ? null : -decimals)));
+        String scaleStr = this.parsePrecision(this.numberToString((-decimals)));
         String outcomeLabel = this.safeStringLower(outcomeObj.get("info"), "outcomeLabel", "yes");
         Boolean isYes = !java.util.Objects.equals(outcomeLabel, "no");
         List<Object> rawBids = this.safeList(response, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -2947,13 +2947,13 @@ public class Limitless extends LimitlessApi
     private Object cancelAllOrdersCore(String outcome, Map<String, Object> parameters)
     {
 
-        Object paramsValue = parameters;
+        Map<String, Object> paramsValue = parameters;
         if (!java.util.Objects.equals(outcome, null))
         {
-            Object warn = true;
-            List<Object> warnparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
-            warn = ((List<Object>) warnparamsValueVariable).get(0);
-            paramsValue = ((List<Object>) warnparamsValueVariable).get(1);
+            Pair<Boolean, Map<String, Object>> warnparamsWarnVariable = this.handleOptionBoolAndParams(paramsValue, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", true);
+            Boolean warn = warnparamsWarnVariable.first();
+            Map<String, Object> paramsWarn = warnparamsWarnVariable.second();
+            paramsValue = paramsWarn;
             if (Boolean.TRUE.equals(warn))
             {
                 throw new BadRequest((this.id + " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")) ;
@@ -3007,16 +3007,14 @@ public class Limitless extends LimitlessApi
             Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcome), false)).join();
             outcomeSymbol = this.safeString(outcomeObj, "outcome");
         }
-        Object paginate = false;
         Long maxLimit = 100L;
-        Map<String, Object> paramsValue = parameters;
-        List<Object> paginateparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "fetchMyTrades", "paginate", paginate);
-        paginate = ((List<Object>) paginateparamsValueVariable).get(0);
-        paramsValue = (Map<String, Object>) ((List<Object>) paginateparamsValueVariable).get(1);
+        Pair<Boolean, Map<String, Object>> paginateparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Boolean paginate = paginateparamsValueVariable.first();
+        Map<String, Object> paramsValue = paginateparamsValueVariable.second();
         if (Boolean.TRUE.equals(paginate))
         {
-            paramsValue = this.omit(paramsValue, "paginate");
-            return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsValue, "nextCursor", "cursor", (Long) null, maxLimit)).join();
+            Map<String, Object> paramsCursor = this.omit(paramsValue, "paginate");
+            return (this.fetchPaginatedCallCursor("fetchMyTrades", outcome, since, limit, paramsCursor, "nextCursor", "cursor", (Long) null, maxLimit)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(limit, null))

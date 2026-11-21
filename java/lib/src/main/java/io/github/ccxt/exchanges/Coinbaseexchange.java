@@ -886,35 +886,35 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 continue;
             }
             String status = this.safeString(market, "status");
-            ((List<Object>)result).add(this.extend((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-                j39v1.put("id", id);
-                j39v1.put("symbol", ((base + "/") + quote));
-                j39v1.put("base", base);
-                j39v1.put("quote", quote);
-                j39v1.put("settle", null);
-                j39v1.put("baseId", baseId);
-                j39v1.put("quoteId", quoteId);
-                j39v1.put("settleId", null);
-                j39v1.put("type", "spot");
-                j39v1.put("spot", true);
-                j39v1.put("margin", this.safeBool(market, "margin_enabled", (Object) null));
-                j39v1.put("swap", false);
-                j39v1.put("future", false);
-                j39v1.put("option", false);
-                j39v1.put("active", (java.util.Objects.equals(status, "online")));
-                j39v1.put("contract", false);
-                j39v1.put("linear", null);
-                j39v1.put("inverse", null);
-                j39v1.put("contractSize", null);
-                j39v1.put("expiry", null);
-                j39v1.put("expiryDatetime", null);
-                j39v1.put("strike", null);
-                j39v1.put("optionType", null);
-                j39v1.put("precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", id);
+            j39v1.put("symbol", ((base + "/") + quote));
+            j39v1.put("base", base);
+            j39v1.put("quote", quote);
+            j39v1.put("settle", null);
+            j39v1.put("baseId", baseId);
+            j39v1.put("quoteId", quoteId);
+            j39v1.put("settleId", null);
+            j39v1.put("type", "spot");
+            j39v1.put("spot", true);
+            j39v1.put("margin", this.safeBool(market, "margin_enabled", (Object) null));
+            j39v1.put("swap", false);
+            j39v1.put("future", false);
+            j39v1.put("option", false);
+            j39v1.put("active", (java.util.Objects.equals(status, "online")));
+            j39v1.put("contract", false);
+            j39v1.put("linear", null);
+            j39v1.put("inverse", null);
+            j39v1.put("contractSize", null);
+            j39v1.put("expiry", null);
+            j39v1.put("expiryDatetime", null);
+            j39v1.put("strike", null);
+            j39v1.put("optionType", null);
+            j39v1.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Coinbaseexchange.this.safeNumber(market, "base_increment", (Object) null) );
                     put( "price", Coinbaseexchange.this.safeNumber(market, "quote_increment", (Object) null) );
                 }});
-                j39v1.put("limits", new HashMap<String, Object>() {{
+            j39v1.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -932,9 +932,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                         put( "max", null );
                     }} );
                 }});
-                j39v1.put("created", null);
-                j39v1.put("info", market);
-                yield j39v1; } })));
+            j39v1.put("created", null);
+            j39v1.put("info", market);
+            ((List<Object>)result).add(this.extend((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), j39v1));
         }
         return result;
 

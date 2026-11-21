@@ -558,14 +558,14 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         // the asyncapi spec describes the data field as an array of trade objects while typing it
         // as a single object, so both shapes are handled here
         //
-        Object data = this.safeValue(message, "data");
+        List<Object> dataList = this.safeList(message, "data", null);
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
+        if (!java.util.Objects.equals(dataList, null))
         {
-            rows = (List<Object>) data;
+            rows = dataList;
         } else
         {
-            ((List<Object>)rows).add(data);
+            ((List<Object>)rows).add(this.safeValue(message, "data"));
         }
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
@@ -993,14 +993,14 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //         ]
         //     }
         //
-        Object data = this.safeValue(message, "data");
+        List<Object> dataList = this.safeList(message, "data", null);
         List<Object> rows = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
+        if (!java.util.Objects.equals(dataList, null))
         {
-            rows = (List<Object>) data;
+            rows = dataList;
         } else
         {
-            ((List<Object>)rows).add(data);
+            ((List<Object>)rows).add(this.safeValue(message, "data"));
         }
         Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))

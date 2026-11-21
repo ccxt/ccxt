@@ -1070,8 +1070,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         if (java.util.Objects.equals(this.balance, null))
         {
-            Map<String, Object> emptyBalances = new HashMap<String, Object>() {{}};
-            this.balance = emptyBalances;
+            Map<String, Map<String, Object>> emptyBalances = new HashMap<String, Map<String, Object>>();
+            this.balance = new HashMap<String, Object>(emptyBalances);
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         String subaccountIdKey = this.numberToString(subaccountId);

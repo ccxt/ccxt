@@ -8103,7 +8103,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -9566,7 +9566,9 @@ public class Okx extends OkxApi
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         String errorCode = this.safeString(response, "code");
-        return this.extend(this.parseMarginModification(entry, market), (switch (0) { default -> { HashMap<String, Object> j39v19 = new HashMap<String, Object>(); j39v19.put("status", (((java.util.Objects.equals(errorCode, "0")))) ? "ok" : "failed"); yield j39v19; } }));
+        HashMap<String, Object> j39v19 = new HashMap<String, Object>();
+        j39v19.put("status", (((java.util.Objects.equals(errorCode, "0")))) ? "ok" : "failed");
+        return this.extend(this.parseMarginModification(entry, market), j39v19);
 
     }
 
@@ -12003,7 +12005,7 @@ public class Okx extends OkxApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(data, symbols, paramsOmitted);
+        List<Object> positions = this.parsePositions(data, symbols, paramsOmitted);
         return this.filterBySinceLimit(positions, since, limitResolved, "timestamp", false);
 
     }

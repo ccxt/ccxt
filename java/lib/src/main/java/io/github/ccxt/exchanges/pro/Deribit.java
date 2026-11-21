@@ -952,13 +952,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
         Map<String, Object> parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> dataList = this.safeList(parameters, "data", null);
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        if ((data instanceof List))
+        if (!java.util.Objects.equals(dataList, null))
         {
-            orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+            orders = this.parseOrders(dataList, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         } else
         {
+            Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }

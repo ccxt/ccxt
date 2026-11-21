@@ -15790,10 +15790,10 @@ public class Binance extends BinanceApi
         {
             throw new NotSupported((this.id + " fetchLeverages() supports linear and inverse contracts only")) ;
         }
-        Object leverages = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> leverages = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         if ((response instanceof List))
         {
-            leverages = response;
+            leverages = this.toArray(response);
         }
         return this.parseLeverages(leverages, symbols, "symbol", null);
 
@@ -18425,10 +18425,10 @@ public class Binance extends BinanceApi
         {
             throw new BadRequest((this.id + " fetchMarginModes () supports linear and inverse subTypes only")) ;
         }
-        Object assets = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> assets = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         if ((response instanceof List))
         {
-            assets = response;
+            assets = this.toArray(response);
         }
         return this.parseMarginModes(assets, symbolsNormalized, "symbol", "swap");
 

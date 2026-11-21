@@ -5000,7 +5000,7 @@ public class Whitebit extends WhitebitApi
         //         }
         //     ]
         //
-        Object positions = this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(response, (List<String>) null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit, false);
 
     }
@@ -5105,7 +5105,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // fetchPosition, fetchPositions

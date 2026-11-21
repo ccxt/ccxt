@@ -2336,7 +2336,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawPosition = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, (Map<String, Object>) null);
             cache.append(position);
             ((List<Object>)newPositions).add(position);
         }
@@ -2356,7 +2356,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(newPositions, "positions");
     }
 
-    public Object parseWsPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         // same as REST api
         return this.parsePosition(position, market);

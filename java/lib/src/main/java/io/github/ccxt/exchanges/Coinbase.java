@@ -2360,11 +2360,11 @@ public class Coinbase extends CoinbaseApi
             List<Object> fiatData = this.safeList(fiatResponse, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> cryptoData = this.safeList(cryptoResponse, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
-            this.options.put("fetchCurrencies", this.extend(options, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                j39v2.put("currencies", this.arrayConcat(fiatData, cryptoData));
-                j39v2.put("exchangeRates", exchangeRates);
-                j39v2.put("timestamp", now);
-                yield j39v2; } })));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("currencies", this.arrayConcat(fiatData, cryptoData));
+            j39v2.put("exchangeRates", exchangeRates);
+            j39v2.put("timestamp", now);
+            this.options.put("fetchCurrencies", this.extend(options, j39v2));
         }
         return this.safeDict(this.options, "fetchCurrencies", new HashMap<String, Object>() {{}});
 
@@ -6011,7 +6011,7 @@ public class Coinbase extends CoinbaseApi
         }
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

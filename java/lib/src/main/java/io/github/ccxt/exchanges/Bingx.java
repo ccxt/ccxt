@@ -3526,7 +3526,7 @@ public class Bingx extends BingxApi
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> records = this.safeList(data, "positionHistory", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(records, (List<String>) null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(records, (List<String>) null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit, false);
 
     }
@@ -3634,7 +3634,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // inverse swap

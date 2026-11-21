@@ -1491,10 +1491,14 @@ public class Extended extends ExtendedApi
         String sideRaw = this.safeString2(trade, "S", "side");
         String side = (((!java.util.Objects.equals(sideRaw, null)))) ? ((String)sideRaw).toLowerCase() : null;
         String feeCost = this.safeString(trade, "fee");
-        Map<String, Object> fee = (((java.util.Objects.equals(feeCost, null)))) ? null : (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        Map<String, Object> fee = null;
+        if (!((((java.util.Objects.equals(feeCost, null))))))
+        {
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("cost", feeCost);
             j39v1.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
-            yield j39v1; } });
+            fee = j39v1;
+        }
         Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
@@ -2970,7 +2974,7 @@ public class Extended extends ExtendedApi
             }
             ((List<Object>)result).add(entry);
         }
-        Object positions = this.parsePositions(result, ((List<String>) (switch ((Object) (symbolsList)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(result, ((List<String>) (switch ((Object) (symbolsList)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }
@@ -2979,7 +2983,7 @@ public class Extended extends ExtendedApi
         return this.fetchPositionsHistory((Object) (symbols), since, limit, parameters);
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

@@ -1851,15 +1851,17 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> response = (this.privatePostCancelorder(this.extend(new HashMap<String, Object>() {{
+        Map<String, Object> request = new HashMap<String, Object>() {{
             put( "order_id", id );
-        }}, parameters))).join();
-        String status = this.safeString(this.safeDict(response, "cancelStatus", new HashMap<String, Object>() {{}}), "status");
+        }};
+        Map<String, Object> response = (this.privatePostCancelorder(this.extend(request, parameters))).join();
+        Map<String, Object> cancelStatus = this.safeDict(response, "cancelStatus", null);
+        String status = this.safeString(cancelStatus, "status");
         this.verifyOrderActionSuccess(status, "cancelOrder", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> order = new HashMap<String, Object>() {{}};
-        if (response.containsKey("cancelStatus"))
+        if (!java.util.Objects.equals(cancelStatus, null))
         {
-            order = (Map<String, Object>) this.parseOrder(response.get("cancelStatus"), (Map<String, Object>) null);
+            order = (Map<String, Object>) this.parseOrder(cancelStatus, (Map<String, Object>) null);
         }
         return this.extend(new HashMap<String, Object>() {{
             put( "info", response );
@@ -3906,12 +3908,12 @@ public class Krakenfutures extends KrakenfuturesApi
                 ((List<Object>)updates).add(update);
             }
         }
-        Object positions = this.parsePositions(updates, symbols, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(updates, symbols, new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         // cross
         //    {

@@ -4751,7 +4751,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -5641,7 +5641,8 @@ public class Hyperliquid extends HyperliquidApi
         //     }
         // ]
         //
-        return this.parseLedger(response, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
+        List<Object> rows = this.infoList(response);
+        return this.parseLedger(rows, (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

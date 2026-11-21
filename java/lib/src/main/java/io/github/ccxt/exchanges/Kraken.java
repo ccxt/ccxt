@@ -4211,12 +4211,12 @@ public class Kraken extends KrakenApi
         //
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         List<Object> result = this.safeList(response, "result", null);
-        Object results = this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
+        List<Object> results = this.parsePositions(result, symbolsNormalized, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(results, "symbol", symbolsNormalized);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //             {

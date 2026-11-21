@@ -7407,10 +7407,10 @@ public class Kucoin extends KucoinApi
                 response = (this.privateGetOrdersOrderId(this.extend(request, paramsOmitted))).join();
             }
         }
-        Object responseData = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-        if ((responseData instanceof List))
+        Map<String, Object> responseData = this.safeDict(response, "data", null);
+        if (java.util.Objects.equals(responseData, null))
         {
-            responseData = this.safeDict(responseData, 0, new HashMap<String, Object>() {{}});
+            responseData = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
         }
         return this.parseOrder(responseData, market);
 
@@ -12914,7 +12914,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //    {

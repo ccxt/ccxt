@@ -802,10 +802,10 @@ public class Luno extends LunoApi
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                result.put(code, this.extend((result == null || code == null ? null : result.get(code)), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-                    j39v2.put("used", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
-                    j39v2.put("total", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
-                    yield j39v2; } })));
+                HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+                j39v2.put("used", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
+                j39v2.put("total", Precise.stringAdd(this.safeString((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                result.put(code, this.extend((result == null || code == null ? null : result.get(code)), j39v2));
             } else if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = this.account();

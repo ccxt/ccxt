@@ -4061,7 +4061,7 @@ public class Polymarket extends PolymarketApi
         mapLiteral13.put("amount", amount);
         mapLiteral13.put("cost", null);
         mapLiteral13.put("fee", null);
-        Object trade = this.safePredictionTrade(mapLiteral13, market);
+        Map<String,Object> trade = this.safePredictionTrade(mapLiteral13, market);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = new HashMap<String, Object>() {{}};

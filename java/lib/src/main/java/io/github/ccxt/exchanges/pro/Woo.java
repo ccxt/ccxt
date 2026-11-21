@@ -1500,22 +1500,22 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeValue(message, "data");
-        if ((data instanceof List))
+        List<Object> dataList = this.safeList(message, "data", null);
+        if (!java.util.Objects.equals(dataList, null))
         {
             // algoexecutionreportv2
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < dataList.size(); i++)
             {
-                Object order = (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i));
-                String tradeId = this.omitZero(this.safeString(data, "tradeId"));
+                String tradeId = this.omitZero(this.safeString(dataList, "tradeId"));
                 if (!java.util.Objects.equals(tradeId, null))
                 {
-                    this.handleMyTrade(client, (Map<String, Object>) (order));
+                    this.handleMyTrade(client, (Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))));
                 }
-                this.handleOrder(client, (Map<String, Object>) (order), (String) (topic));
+                this.handleOrder(client, (Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))), (String) (topic));
             }
         } else
         {
+            Object data = this.safeValue(message, "data");
             // executionreport
             String tradeId = this.omitZero(this.safeString(data, "tradeId"));
             if (!java.util.Objects.equals(tradeId, null))

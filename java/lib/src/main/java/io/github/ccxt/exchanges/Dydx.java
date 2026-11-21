@@ -1328,7 +1328,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // {
@@ -2269,8 +2269,9 @@ public class Dydx extends DydxApi
         {
             currency = this.currency((String) (code));
         }
-        List<Object> response = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
-        return this.parseLedger(response, currency, since, limit, new HashMap<String, Object>() {{}});
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
+        rows = (this.fetchTransactionsHelper("fetchLedger", code, since, limit, this.omit(parameters, "methodName"))).join();
+        return this.parseLedger(rows, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 

@@ -1526,10 +1526,10 @@ public class Bithumb extends BithumbApi
         Object data = new ArrayList<Object>(Arrays.asList());
         if ((generation != null && generation == 2))
         {
-            List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-            var paginate = ((List<Object>) paginateparamsPaginateVariable).get(0);
-            Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Boolean paginate = paginateparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
             }

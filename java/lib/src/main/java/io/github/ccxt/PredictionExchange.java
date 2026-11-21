@@ -1757,7 +1757,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object safePredictionTrade(Map<String, Object> trade, Object outcomeObj)
+    public Map<String, Object> safePredictionTrade(Map<String, Object> trade, Object outcomeObj)
     {
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         String price = this.safeString(trade, "price");

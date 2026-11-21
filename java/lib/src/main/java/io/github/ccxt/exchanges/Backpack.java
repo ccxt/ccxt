@@ -4052,7 +4052,7 @@ public class Backpack extends BackpackApi
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // fetchPositions

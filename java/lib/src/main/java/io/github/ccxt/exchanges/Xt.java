@@ -3417,7 +3417,7 @@ public class Xt extends XtApi
             }
             request.put("positionSide", requestType);
         }
-        Map<String, Object> response = new HashMap<String, Object>() {{}};
+        Map<String, Object> response = null;
         Double triggerPrice = this.safeNumber2(paramsOmitted4, "triggerPrice", "stopPrice", (Object) null);
         Double stopLoss = this.safeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice", (Object) null);
         Double takeProfit = this.safeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice", (Object) null);
@@ -6739,12 +6739,12 @@ public class Xt extends XtApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> items = this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
-        Object positions = this.parsePositions(items, symbolsNormalized, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(items, symbolsNormalized, new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // position/list
