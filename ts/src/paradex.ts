@@ -851,11 +851,11 @@ export default class paradex extends Exchange {
         const parts = symbol.split ('-');
         const partsLength = parts.length;
         let base: Str = undefined;
-        let quote: Str = undefined;
+        let quote = '';
         let settle: Str = undefined;
         let expiryDate: Str = undefined;
         let strike: Str = undefined;
-        let optionType: Str = undefined;
+        let optionType = '';
         if (symbol.indexOf ('/') > -1) {
             if (partsLength !== 4) {
                 throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
@@ -865,22 +865,22 @@ export default class paradex extends Exchange {
             base = this.safeString (pairParts, 0);
             const quoteAndSettle = this.safeString (pairParts, 1, '');
             const quoteParts = quoteAndSettle.split (':');
-            quote = this.safeString (quoteParts, 0);
+            quote = this.safeString (quoteParts, 0, '');
             settle = this.safeString (quoteParts, 1, quote);
             expiryDate = this.safeString (parts, 1);
             strike = this.safeString (parts, 2);
-            optionType = this.safeString (parts, 3);
+            optionType = this.safeString (parts, 3, '');
         } else {
             if (partsLength !== 5) {
                 throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
             }
             base = this.safeString (parts, 0);
-            quote = this.safeString (parts, 1);
+            quote = this.safeString (parts, 1, '');
             settle = 'USDC'; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate (this.safeString (parts, 2));
             const strikeId = parts[3];
             strike = strikeId.replace ('_', '.');
-            optionType = this.safeString (parts, 4);
+            optionType = this.safeString (parts, 4, '');
         }
         // the id carries the day without a leading zero, 6NOV26
         let idDate = this.convertExpireDateToMarketIdDate (expiryDate) as string;
