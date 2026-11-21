@@ -220,9 +220,9 @@ type MarketInterface struct {
 	Id              *string
 	UppercaseId     *string
 	LowercaseId     *string
-	Symbol          *string
-	BaseCurrency    *string
-	QuoteCurrency   *string
+	Symbol          string
+	BaseCurrency    string
+	QuoteCurrency   string
 	BaseId          *string
 	QuoteId         *string
 	Active          *bool
@@ -305,9 +305,9 @@ func NewMarketInterface(data any) MarketInterface {
 		Id:              SafeStringTyped(m, "id"),
 		UppercaseId:     SafeStringTyped(m, "uppercaseId"),
 		LowercaseId:     SafeStringTyped(m, "lowercaseId"),
-		Symbol:          SafeStringTyped(m, "symbol"),
-		BaseCurrency:    SafeStringTyped(m, "base"),
-		QuoteCurrency:   SafeStringTyped(m, "quote"),
+		Symbol:          routerDerefString(SafeStringTyped(m, "symbol")),
+		BaseCurrency:    routerDerefString(SafeStringTyped(m, "base")),
+		QuoteCurrency:   routerDerefString(SafeStringTyped(m, "quote")),
 		BaseId:          SafeStringTyped(m, "baseId"),
 		QuoteId:         SafeStringTyped(m, "quoteId"),
 		Active:          SafeBoolTyped(m, "active"),

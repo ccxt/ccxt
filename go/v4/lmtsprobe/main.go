@@ -50,7 +50,7 @@ func main() {
 	var outcome, slug string
 	for _, m := range markets {
 		info, _ := m.Info.(map[string]any)
-		if info == nil || m.Symbol == nil {
+		if info == nil || m.Symbol == "" {
 			continue
 		}
 		venue, _ := info["venue"].(map[string]any)
@@ -65,7 +65,7 @@ func main() {
 			continue
 		}
 		slug = s
-		outcome = *m.Symbol + ":YES"
+		outcome = m.Symbol + ":YES"
 		break
 	}
 	fmt.Println("using outcome " + outcome + " slug " + slug + "\n")
