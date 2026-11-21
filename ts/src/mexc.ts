@@ -2724,8 +2724,8 @@ export default class mexc extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             let marginMode: Str = undefined;
             [ marginMode, paramsLoop ] = this.handleMarginModeAndParams ('createOrder', paramsLoop);
