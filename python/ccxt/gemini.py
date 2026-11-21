@@ -685,7 +685,7 @@ class gemini(Exchange, ImplicitAPI):
         fetchUsdtMarkets = self.safe_list(self.options, 'fetchUsdtMarkets', [])
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
-            marketId = fetchUsdtMarkets[i]
+            marketId = self.safe_string(fetchUsdtMarkets, i, '')
             request = {
                 'symbol': marketId,
             }
@@ -718,7 +718,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.safe_bool(options, 'fetchDetailsForAllSymbols', False):
             promises = []
             for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
+                marketId = self.safe_string(marketIds, i, '')
                 request = {
                     'symbol': marketId,
                 }
@@ -746,7 +746,7 @@ class gemini(Exchange, ImplicitAPI):
             if tradingPairs is not None:
                 indexedTradingPairs = self.index_by(tradingPairs, 0)
                 for i in range(0, len(marketIds)):
-                    marketId = marketIds[i]
+                    marketId = self.safe_string(marketIds, i, '')
                     pairInfo = self.safe_list(indexedTradingPairs, marketId.upper())
                     if pairInfo is not None and not self.in_array(marketId, brokenPairs):
                         parsed = self.parse_market(pairInfo)

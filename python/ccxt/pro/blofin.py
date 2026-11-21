@@ -772,7 +772,7 @@ class blofin(ccxt.async_support.blofin):
                 channel = channelName
                 if isOHLCV:
                     market = self.market(current)
-                    tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
+                    tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                     interval = self.safe_string(self.timeframes, tf, tf)
                     channel = channel + interval
                 else:
@@ -818,7 +818,7 @@ class blofin(ccxt.async_support.blofin):
             market = self.market(self.safe_string(symbols, i))
             channel = channelName
             if isOHLCV:
-                tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
+                tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                 interval = self.safe_string(self.timeframes, tf, tf)
                 channel = channel + interval
             topic = {

@@ -1317,7 +1317,10 @@ class digifinex(Exchange, ImplicitAPI):
         amountString = self.safe_string_n(trade, ['amount', 'volume', 'size'])
         marketId = self.safe_string_upper_2(trade, 'symbol', 'instrument_id')
         symbol = self.safe_symbol(marketId, market)
-        marketResolved = self.safe_market(marketId if (market is None) else None, market)
+        marketIdResolved = None
+        if market is None:
+            marketIdResolved = marketId
+        marketResolved = self.safe_market(marketIdResolved, market)
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
         type = None

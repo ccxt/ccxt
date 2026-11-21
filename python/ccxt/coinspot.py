@@ -478,7 +478,7 @@ class coinspot(Exchange, ImplicitAPI):
             id = ids[i]
             market = self.safe_market(id)
             if self.safe_bool(market, 'spot', False):
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 ticker = prices[id]
                 result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)

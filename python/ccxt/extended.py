@@ -1173,10 +1173,15 @@ class extended(Exchange, ImplicitAPI):
         sideRaw = self.safe_string_2(trade, 'S', 'side')
         side = sideRaw.lower() if (sideRaw is not None) else None
         feeCost = self.safe_string(trade, 'fee')
-        fee = None if (feeCost is None) else {
-            'cost': feeCost,
-            'currency': None if (marketResolved is None) else marketResolved['settle'],
-        }
+        fee = None
+        if feeCost is not None:
+            feeDict = {
+                'cost': feeCost,
+                'currency': None,
+            }
+            if marketResolved is not None:
+                feeDict['currency'] = marketResolved['settle']
+            fee = feeDict
         isTaker = self.safe_bool(trade, 'isTaker')
         takerOrMaker = None
         if isTaker is not None:

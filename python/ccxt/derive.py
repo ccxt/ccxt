@@ -1500,7 +1500,7 @@ class derive(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(tradesArray)):
             rawTrade = tradesArray[i]
-            isFetchTrades = not ('order_id' in rawTrade)
+            isFetchTrades = (self.safe_string(rawTrade, 'order_id') is None)
             liquidityRole = self.safe_string(rawTrade, 'liquidity_role')
             if isFetchTrades and (liquidityRole == 'maker'):
                 # skip maker trades

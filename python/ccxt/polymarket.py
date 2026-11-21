@@ -2651,9 +2651,13 @@ class polymarket(Exchange, ImplicitAPI):
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config={}):
         if path == 'account/orders':
-            return 1 if ('order_id' in params) else 10
+            if self.safe_string(params, 'order_id') is not None:
+                return 1
+            return 10
         if path == 'account/open-orders':
-            return 1 if ('instrument_id' in params) else 20
+            if self.safe_string(params, 'instrument_id') is not None:
+                return 1
+            return 20
         if (path == 'trade/orders') or (path == 'trade/orders-coid'):
             op = self.safe_dict(params, 'op', {})
             args = self.safe_list(op, 'args', [])

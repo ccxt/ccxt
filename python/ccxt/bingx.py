@@ -1230,7 +1230,9 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        requestLimit = self.parse_to_int(500 if (limit is None) else min(limit, maxLimit))
+        requestLimit = 500
+        if limit is not None:
+            requestLimit = self.parse_to_int(min(limit, maxLimit))
         if since is not None:
             request['startTime'] = max(since - 1, 0)
         if limit is not None:
@@ -1252,8 +1254,7 @@ class bingx(Exchange, ImplicitAPI):
             # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
             timeZone, paramsTimeZone = self.handle_option_integer_and_params(paramsUntil, 'fetchOHLCV', 'timeZone', 0)
-            if timeZone is not None:
-                request['timeZone'] = timeZone
+            request['timeZone'] = timeZone
             response = self.spotV1PublicGetMarketKline(self.extend(request, paramsTimeZone))
         else:
             if self.safe_bool(market, 'inverse', False):
@@ -1562,10 +1563,11 @@ class bingx(Exchange, ImplicitAPI):
         if isMaker is not None:
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string(trade, 'l') if isSpotExecution else self.safe_string_n(trade, ['qty', 'amount', 'q'])
-        if (market is not None) and (self.safe_bool(market, 'swap', False)) and ('volume' in trade):
+        volume = self.safe_string(trade, 'volume')
+        if (market is not None) and (self.safe_bool(market, 'swap', False)) and (volume is not None):
             # Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             # safeTrade applies contractSize when calculating inverse cost.
-            amount = self.safe_string(trade, 'volume')
+            amount = volume
         price = self.safe_string(trade, 'L') if isSpotExecution else self.safe_string_n(trade, ['price', 'p', 'tradePrice'])
         if (market is not None) and (self.safe_bool(market, 'linear', False)) and (self.safe_string(trade, 'x') == 'TRADE'):
             lastAmount = self.safe_string(trade, 'l')
@@ -2263,6 +2265,7 @@ class bingx(Exchange, ImplicitAPI):
             #     ]
             # }
             #
+            return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
         else:
             response = self.swapV2PublicGetQuotePremiumIndex(self.extend(request, paramsSubType))
             #
@@ -2278,8 +2281,6 @@ class bingx(Exchange, ImplicitAPI):
             #     }
             # }
             #
-        if isinstance(response['data'], list):
-            return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
         return self.parse_ticker(response['data'], market)
 
     def fetch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -3887,7 +3888,10 @@ class bingx(Exchange, ImplicitAPI):
         if positionSide is None:
             marketType = 'spot'
         marketId = self.safe_string_2(orderData, 'symbol', 's')
-        marketResolved = self.safe_market(marketId if (market is None) else None, market, None, marketType)
+        marketIdOrUndefined = None
+        if market is None:
+            marketIdOrUndefined = marketId
+        marketResolved = self.safe_market(marketIdOrUndefined, market, None, marketType)
         side = self.safe_string_lower_2(orderData, 'side', 'S')
         timestamp = self.safe_integer_n(orderData, ['time', 'transactTime', 'E', 'createdTime'])
         transactTime = self.safe_string(orderData, 'transactTime', '')
@@ -5554,7 +5558,7 @@ class bingx(Exchange, ImplicitAPI):
         # deposit records carry insertTime and no transferType, withdrawal records say 1 (on-chain) or 2 (internal)
         rawType = self.safe_string(transaction, 'transferType')
         type = 'withdrawal'
-        if (rawType == '0') or ('insertTime' in transaction):
+        if (rawType == '0') or (self.safe_integer(transaction, 'insertTime') is not None):
             type = 'deposit'
         internal = None
         if rawType is not None:

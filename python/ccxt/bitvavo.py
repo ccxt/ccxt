@@ -2428,7 +2428,7 @@ class bitvavo(Exchange, ImplicitAPI):
                 'currency': code,
             }
         type = None
-        if ('success' in transaction) or ('address' in transaction):
+        if (self.safe_bool(transaction, 'success') is not None) or (self.safe_string(transaction, 'address') is not None):
             type = 'withdrawal'
         else:
             type = 'deposit'

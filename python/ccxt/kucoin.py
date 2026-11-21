@@ -2222,10 +2222,9 @@ class kucoin(Exchange, ImplicitAPI):
         hf = False
         if migrated:
             hf = True
-        hfParam = self.safe_bool(params, 'hf')
+        hfParam, paramsOmitted = self.handle_param_bool(params, 'hf')
         if hfParam is not None:
             hf = (hfParam is True)
-        paramsOmitted = self.omit(params, 'hf')
         return [hf, paramsOmitted]
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
@@ -2990,8 +2989,7 @@ class kucoin(Exchange, ImplicitAPI):
         time = self.safe_integer_2(data, 'time', 'ts')
         result = {}
         for i in range(0, len(tickers)):
-            tickers[i]['time'] = time
-            ticker = self.parse_spot_or_uta_ticker(tickers[i])
+            ticker = self.parse_spot_or_uta_ticker(self.extend(tickers[i], {'time': time}))
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
@@ -4561,8 +4559,8 @@ class kucoin(Exchange, ImplicitAPI):
             if type != 'limit':
                 raise BadRequest(self.id + ' createOrders() only supports limit orders')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_spot_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -4635,8 +4633,8 @@ class kucoin(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
             type = self.safe_string(rawOrder, 'type', '')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
@@ -5504,10 +5502,10 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOrdersByStatus', paramsOmitted)
         isUnified = (accountModeOption == 'unified')
         tradeType = self.handle_trade_type(isContract, marginMode, isUnified, paramsMarginMode)
-        paramsMarginMode['tradeType'] = tradeType
+        paramsTradeType = self.extend(paramsMarginMode, {'tradeType': tradeType})
         if since is not None:
             request['startAt'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsMarginMode)
+        requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsTradeType)
         if limit is not None:
             requestUntil['pageSize'] = limit
         lowercaseStatus = status.lower()
@@ -6466,7 +6464,7 @@ class kucoin(Exchange, ImplicitAPI):
         isMargin = marginMode is not None
         if isMargin:
             hf = True
-            request['tradeType'] = None if (marginMode is None) else self.safe_string(self.options['marginModes'], marginMode, marginMode)
+            request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, marginMode)
         if (hf is True) and symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf or margin orders')
         market = None
@@ -7366,10 +7364,13 @@ class kucoin(Exchange, ImplicitAPI):
             }
         createdAt = self.safe_integer_2(transaction, 'createdAt', 'createAt')
         updatedAt = self.safe_integer(transaction, 'updatedAt')
-        isV1 = not ('createdAt' in transaction)
+        isV1 = (self.safe_integer(transaction, 'createdAt') is None)
         # if it's a v1 structure
         if isV1:
-            type = 'withdrawal' if ('address' in transaction) else 'deposit'
+            if self.safe_string(transaction, 'address') is not None:
+                type = 'withdrawal'
+            else:
+                type = 'deposit'
         createdAtMs = None if (createdAt is None) else createdAt * 1000
         updatedAtMs = None if (updatedAt is None) else updatedAt * 1000
         timestamp = createdAtMs if isV1 else createdAt
@@ -8570,7 +8571,8 @@ class kucoin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, paramsRequest = self.handle_margin_mode_and_params('fetchLedger', paramsRequest)
         if uta and (requestedType == 'margin'):
-            marginMode = 'cross' if (marginMode is None) else marginMode  # default to cross margin for UTA if margin is requested but marginMode is not specified
+            if marginMode is None:
+                marginMode = 'cross'  # default to cross margin for UTA if margin is requested but marginMode is not specified
             requestedType = marginMode
         accountsByType = self.safe_dict(self.options, 'accountsByType')
         if uta:
@@ -8696,11 +8698,11 @@ class kucoin(Exchange, ImplicitAPI):
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         versions = self.safe_dict(self.options, 'versions', {})
-        apiVersions = self.safe_dict(versions, api[0], {})
+        apiVersions = self.safe_dict(versions, self.safe_string(api, 0), {})
         methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
-        if (api[0] == 'utaV2') and (path == 'market/orderbook'):
+        if (self.safe_string(api, 0) == 'utaV2') and (path == 'market/orderbook'):
             # https://www.kucoin.com/docs-new/change-log 2026.11.02: weight depends on the requested depth
             # 5PW <= 20, 20PW <= 100, 50PW <= 500, 250PW above or FULL, doubled like every other cost in this file
             depth = self.safe_integer(params, 'limit')  # undefined for 'FULL'
@@ -8719,7 +8721,7 @@ class kucoin(Exchange, ImplicitAPI):
             return config['v2']
         elif version == 'v1' and ('v1' in config):
             return config['v1']
-        return self.safe_value(config, 'cost', 1)
+        return self.safe_number(config, 'cost', 1)
 
     def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
@@ -8974,9 +8976,9 @@ class kucoin(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            requestUntil['pageSize'] = limit  # default:50, min:10, max:500
+            request['pageSize'] = limit  # default:50, min:10, max:500
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         response = self.privateGetMarginInterest(self.extend(requestUntil, paramsUntil))
         #
         #     {
@@ -9027,9 +9029,9 @@ class kucoin(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['startTime'] = since
-        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         if limit is not None:
-            requestUntil['pageSize'] = limit  # default:50, min:10, max:500
+            request['pageSize'] = limit  # default:50, min:10, max:500
+        requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
         response = self.privateGetMarginInterest(self.extend(requestUntil, paramsUntil))
         #
         #     {
@@ -11118,15 +11120,15 @@ class kucoin(Exchange, ImplicitAPI):
         apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        tradeType = self.safe_string(query, 'tradeType')
+        tradeType = self.safe_string(query, 'tradeType', '')
         if not self.is_empty(query):
             if ((method == 'GET') or (method == 'DELETE')) and (path != 'orders/multi-cancel'):
                 endpoint += '?' + self.rawencode(query)
             else:
                 if (endpoint == '/api/ua/v1/classic/order/place') or (endpoint == '/api/ua/v1/classic/order/place/batch') or (endpoint == '/api/ua/v1/classic/order/cancel') or (endpoint == '/api/ua/v1/classic/order/cancel/batch'):
                     endpoint += '?tradeType=' + tradeType
-                bodyJson = self.json(query)
-                endpart = bodyJson
+                endpart = self.json(query)
+                bodyJson = endpart
                 headersBase['Content-Type'] = 'application/json'
         headersResult = headersBase
         isFuturePrivate = (apiName == 'futuresPrivate')

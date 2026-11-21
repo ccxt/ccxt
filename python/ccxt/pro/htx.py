@@ -448,7 +448,10 @@ class htx(ccxt.async_support.htx):
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        limitResolved = self.parse_to_int(self.safe_integer(options, 'depth', 150) if (limit is None) else limit)
+        limitValue = limit
+        if limit is None:
+            limitValue = self.safe_integer(options, 'depth', 150)
+        limitResolved = self.parse_to_int(limitValue)
         if not self.in_array(limitResolved, allowedLimits):
             raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = ''
@@ -1528,13 +1531,14 @@ class htx(ccxt.async_support.htx):
             await self.load_markets()
         market = None
         messageHash = ''
-        if (not self.is_empty(symbols)) and (symbols is not None):
+        hasMarket = (not self.is_empty(symbols)) and (symbols is not None)
+        if hasMarket:
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
         type = None
         subType = None
         paramsSubType = {}
-        if market is not None:
+        if hasMarket:
             type = self.safe_string(market, 'type')
             if self.safe_bool(market, 'linear', False):
                 subType = 'linear'
@@ -1545,7 +1549,7 @@ class htx(ccxt.async_support.htx):
             type = 'future' if (marketType == 'spot') else marketType
             subType, paramsSubType = self.handle_option_string_and_params(paramsMarketType, 'watchPositions', 'subType', subType)
         symbolsNormalized = self.market_symbols(symbols)
-        paramsPositions = params if (market is not None) else paramsSubType
+        paramsPositions = params if hasMarket else paramsSubType
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('watchPositions', paramsPositions, 'cross')
         paramsRequest = paramsMarginMode
         linear = (subType == 'linear')

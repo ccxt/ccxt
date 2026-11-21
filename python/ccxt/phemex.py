@@ -732,7 +732,8 @@ class phemex(Exchange, ImplicitAPI):
         if settleId != quoteId:
             inverse = True
             # some unhandled cases
-            if not ('baseCurrency' in market) and base == quote:
+            marketBaseCurrency = self.safe_string(market, 'baseCurrency')
+            if (marketBaseCurrency is None) and base == quote:
                 base = settle
         priceScale = self.safe_integer(market, 'priceScale')
         ratioScale = self.safe_integer(market, 'ratioScale')
@@ -2674,7 +2675,10 @@ class phemex(Exchange, ImplicitAPI):
                 request['trigger'] = 'ByLastPrice'
             request['qtyType'] = qtyType
             if qtyType == 'ByQuote':
-                cost = self.safe_number(orderParams, 'cost')
+                costParam = self.safe_number(orderParams, 'cost')
+                cost = amount
+                if costParam is not None:
+                    cost = self.safe_number(orderParams, 'cost')
                 orderParams = self.omit(orderParams, 'cost')
                 if self.safe_bool(self.options, 'createOrderByQuoteRequiresPrice', False):
                     if price is not None:
@@ -2682,9 +2686,8 @@ class phemex(Exchange, ImplicitAPI):
                         priceString = self.number_to_string(price)
                         quoteAmount = Precise.string_mul(amountString, priceString)
                         cost = self.parse_number(quoteAmount)
-                    elif cost is None:
+                    elif costParam is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
-                cost = amount if (cost is None) else cost
                 costString = self.cost_to_precision(symbol, cost)
                 request['quoteQtyEv'] = self.to_ev(costString, market)
             else:

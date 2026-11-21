@@ -242,7 +242,8 @@ class apex(ccxt.async_support.apex):
         client = self.client(url)
         newTopics = []
         for i in range(0, len(topics)):
-            if not (messageHashes[i] in client.subscriptions):
+            messageHash = self.safe_string(messageHashes, i, '')
+            if not (messageHash in client.subscriptions):
                 newTopics.append(topics[i])
         newTopicsLength = len(newTopics)
         message = None

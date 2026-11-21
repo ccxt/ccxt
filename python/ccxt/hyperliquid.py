@@ -1481,14 +1481,17 @@ class hyperliquid(Exchange, ImplicitAPI):
             else:
                 startTime = 0
         paramsOmitted = self.omit(params, ['until'])
+        req = {
+            'coin': market['id'],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
+            'startTime': startTime,
+            'endTime': until,
+        }
+        if self.safe_bool(market, 'swap', False):
+            req['coin'] = self.safe_string(market, 'baseName')
         request = {
             'type': 'candleSnapshot',
-            'req': {
-                'coin': self.safe_string(market, 'baseName') if (self.safe_bool(market, 'swap', False)) else market['id'],
-                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-                'startTime': startTime,
-                'endTime': until,
-            },
+            'req': req,
         }
         candlesResponse = self.publicPostInfo(self.extend(request, paramsOmitted))
         candles = self.info_list(candlesResponse)
@@ -2164,7 +2167,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         ordersToBeParsed = []
         for i in range(0, len(statuses)):
             order = statuses[i]
-            if order == 'waitingForTrigger':
+            if self.safe_string(statuses, i) == 'waitingForTrigger':
                 ordersToBeParsed.append({'status': order})  # tp/sl orders can return a string like "waitingForTrigger",
             else:
                 ordersToBeParsed.append(order)
@@ -4071,14 +4074,17 @@ class hyperliquid(Exchange, ImplicitAPI):
             destinationDex = self.safe_string(paramsSendAsset, 'destinationDex', defaultDex)
             sendAssetPayload = {
                 'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
-                'destination': subAccountAddress if (isDeposit) else masterAddress,
+                'destination': masterAddress,
                 'sourceDex': sourceDex,
                 'destinationDex': destinationDex,
                 'token': sendAssetToken,
                 'amount': self.number_to_string(amount),
-                'fromSubAccount': '' if (isDeposit) else subAccountAddress,
+                'fromSubAccount': subAccountAddress,
                 'nonce': nonce,
             }
+            if isDeposit:
+                sendAssetPayload['destination'] = subAccountAddress
+                sendAssetPayload['fromSubAccount'] = ''
             sendAssetSig = self.build_send_asset_sig(sendAssetPayload)
             sendAssetRequest = {
                 'action': {
@@ -4889,8 +4895,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
-        if ('byType' in config) and ('type' in params):
-            type = params['type']
+        type = self.safe_string(params, 'type')
+        if ('byType' in config) and (type is not None):
             byType = self.safe_dict(config, 'byType', {})
             if type in byType:
                 return byType[type]

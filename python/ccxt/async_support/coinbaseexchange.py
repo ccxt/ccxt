@@ -1282,7 +1282,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
+        cappedLimit = 300
+        if limit is not None:
+            cappedLimit = self.parse_to_int(min(limit, 300))
         limitResolved = cappedLimit if (since is not None) else limit
         if since is not None:
             request['start'] = self.iso8601(since)
@@ -1890,12 +1892,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #        }
             #    ]
             #
-            response = self.to_array(transfers)
-            for i in range(0, len(response)):
-                account_id = self.safe_string(response[i], 'account_id')
+            transferRows = self.to_array(transfers)
+            response = []
+            for i in range(0, len(transferRows)):
+                row = self.extend({}, transferRows[i])
+                account_id = self.safe_string(row, 'account_id')
                 account = self.safe_dict(self.accountsById, account_id)
-                codeInner = self.safe_string(account, 'code')
-                response[i]['currency'] = codeInner
+                row['currency'] = self.safe_string(account, 'code')
+                response.append(row)
         else:
             accountTransfers = await self.privateGetAccountsIdTransfers(self.extend(request, params))
             #
@@ -1924,9 +1928,12 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             #        }
             #    ]
             #
-            response = self.to_array(accountTransfers)
-            for i in range(0, len(response)):
-                response[i]['currency'] = code
+            transferRows = self.to_array(accountTransfers)
+            response = []
+            for i in range(0, len(transferRows)):
+                row = self.extend({}, transferRows[i])
+                row['currency'] = code
+                response.append(row)
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:

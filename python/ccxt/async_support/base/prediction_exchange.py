@@ -155,14 +155,14 @@ class PredictionExchange(BaseExchange):
             result = self.filter_events_by_search_in(result, queries, self.safe_string(params, 'searchIn'))
         sort = self.safe_string(params, 'sort')
         if sort is not None:
-            sortKey = None
+            sortKey = ''
             if sort == 'volume':
                 sortKey = 'volume'
             elif sort == 'liquidity':
                 sortKey = 'liquidity'
             elif sort == 'newest':
                 sortKey = 'created'
-            if sortKey is not None:
+            if sortKey != '':
                 # normalize the sort key on every row first — sortBy reads it with a raw
                 # subscript, which raises KeyError/undefined-index in Python/PHP when a
                 # venue's parsed event omits the field (JS alone tolerates the miss)
@@ -174,9 +174,10 @@ class PredictionExchange(BaseExchange):
             # clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             # via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             resultLength = len(result)
-            sliceEnd = limit
-            if sliceEnd > resultLength:
-                sliceEnd = resultLength
+            limitValue = self.safe_integer(params, 'limit', 0)
+            sliceEnd = resultLength
+            if limitValue < resultLength:
+                sliceEnd = limitValue
             result = self.array_slice(result, 0, sliceEnd)
         return result
 

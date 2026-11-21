@@ -3633,8 +3633,9 @@ class BaseExchange(object):
             parsed = self.parse_currency(arr[i])
             if parsed is None:
                 continue
-            code = parsed['code']
-            result[code] = parsed
+            code = self.safe_string(parsed, 'code')
+            if code is not None:
+                result[code] = parsed
         return result
 
     def parse_market(self, market: dict):
@@ -6757,7 +6758,7 @@ class BaseExchange(object):
         if price is None:
             return None
         market = self.market(symbol)
-        marketSymbol = self.safe_string(market, 'symbol')
+        marketSymbol = self.safe_string(market, 'symbol', '')
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
             pricePrecision = self.number_to_string(market['precision']['price'])
@@ -6770,7 +6771,7 @@ class BaseExchange(object):
         if amount is None:
             return None
         market = self.market(symbol)
-        marketSymbol = self.safe_string(market, 'symbol')
+        marketSymbol = self.safe_string(market, 'symbol', '')
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
             amountPrecision = self.number_to_string(market['precision']['amount'])

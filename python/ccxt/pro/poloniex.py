@@ -991,7 +991,7 @@ class poloniex(ccxt.async_support.poloniex):
                             'cost': 0,
                             'currency': self.safe_string(trade['fee'], 'currency'),
                         }
-                    if (previousOrder['fee']['cost'] is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
+                    if (self.safe_string(previousOrder['fee'], 'cost') is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                         stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
                         stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                         previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)

@@ -221,7 +221,7 @@ class bybit(ccxt.async_support.bybit):
                 url = accessibilityUrls['spot']
             elif (type == 'swap') or (type == 'future'):
                 subType = self.handle_sub_type_and_params(methodValue, market, params, 'linear')[0]
-                url = accessibilityUrls[subType]
+                url = self.safe_string(accessibilityUrls, subType)
             else:
                 # option
                 url = accessibilityUrls['option']

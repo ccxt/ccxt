@@ -386,10 +386,11 @@ class btcbox(Exchange, ImplicitAPI):
             currency = self.currency(code)
             currencyId = self.safe_string(currency, 'id', '')
             free = currencyId + '_balance'
-            if free in response:
+            freeValue = self.safe_string(response, free)
+            if freeValue is not None:
                 account = self.account()
                 used = currencyId + '_lock'
-                account['free'] = self.safe_string(response, free)
+                account['free'] = freeValue
                 account['used'] = self.safe_string(response, used)
                 result[code] = account
         return self.safe_balance(result)

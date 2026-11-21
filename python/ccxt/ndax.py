@@ -2554,7 +2554,7 @@ class ndax(Exchange, ImplicitAPI):
         template = self.safe_string(withdrawTemplateResponse, 'Template')
         if template is None:
             raise ExchangeError(self.id + ' withdraw() could not find a withdraw template for ' + currency['code'])
-        withdrawTemplate = json.loads(template)
+        withdrawTemplate = self.extend({}, json.loads(template))
         withdrawTemplate['ExternalAddress'] = address
         if tagWithdrawTag is not None:
             if 'Memo' in withdrawTemplate:

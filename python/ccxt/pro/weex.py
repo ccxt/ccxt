@@ -595,7 +595,7 @@ class weex(ccxt.async_support.weex):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0, '')
             market = self.market(symbolString)
-            if market['type'] != firstMarket['type']:
+            if self.safe_string(market, 'type') != self.safe_string(firstMarket, 'type'):
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
             symbolString = self.safe_string(market, 'symbol', '')
             unifiedTimeframe = self.safe_string(data, 1, '1')
@@ -657,7 +657,7 @@ class weex(ccxt.async_support.weex):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0, '')
             market = self.market(symbolString)
-            if market['type'] != firstMarket['type']:
+            if self.safe_string(market, 'type') != self.safe_string(firstMarket, 'type'):
                 raise BadRequest(self.id + ' ' + callerMethodName + ' market symbols must be of the same type')
             symbolString = self.safe_string(market, 'symbol', '')
             unifiedTimeframe = self.safe_string(data, 1, '1')
@@ -1008,8 +1008,8 @@ class weex(ccxt.async_support.weex):
         symbol = self.safe_string(market, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
-        messageHash = 'bidask::' + symbol
-        client.resolve(ticker, messageHash)
+            messageHash = 'bidask::' + symbol
+            client.resolve(ticker, messageHash)
 
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'E')

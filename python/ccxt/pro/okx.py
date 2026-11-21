@@ -1767,7 +1767,7 @@ class okx(ccxt.async_support.okx):
             market = self.market(symbol)
             symbolResolved = market['symbol']
             type = self.safe_string(market, 'type')
-            messageHash = messageHash + '::' + symbolResolved
+            messageHash = messageHash + '::' + self.safe_string(market, 'symbol', '')
         if type == 'future':
             type = 'futures'
         if type is None:
@@ -1822,7 +1822,9 @@ class okx(ccxt.async_support.okx):
         else:
             newPositions = await self.subscribe_multiple('private', channel, symbolsNormalized, self.extend(request, params))
         if self.newUpdates:
-            return [] if (newPositions is None) else newPositions
+            if newPositions is None:
+                return []
+            return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
     def handle_positions(self, client: Client, message: dict):

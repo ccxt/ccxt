@@ -352,7 +352,7 @@ class xt(ccxt.async_support.xt):
             return self.filter_by_array(self.tickers, 'symbol', symbols)
         market = None
         if symbols is not None:
-            market = self.market(symbols[0])
+            market = self.market(self.safe_string(symbols, 0))
         if name is not None:
             tickers = await self.subscribe(name, 'public', 'watchTickers', market, symbols, params)
             if self.newUpdates:
@@ -1189,7 +1189,7 @@ class xt(ccxt.async_support.xt):
         #
         marketId = self.safe_string(trade, 's')
         tradeType = 'spot'
-        if 'symbol' in trade:
+        if self.safe_string(trade, 'symbol') is not None:
             tradeType = 'contract'
         marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_string(trade, 't')
@@ -1258,7 +1258,7 @@ class xt(ccxt.async_support.xt):
         #
         marketId = self.safe_string_2(order, 's', 'symbol')
         tradeType = 'spot'
-        if 'symbol' in order:
+        if self.safe_string(order, 'symbol') is not None:
             tradeType = 'contract'
         marketResolved = self.safe_market(marketId, market, None, tradeType)
         timestamp = self.safe_integer_2(order, 'ct', 'createTime')

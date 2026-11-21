@@ -458,7 +458,7 @@ class coinmate(Exchange, ImplicitAPI):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_dict(balances, currencyId)
+            balance = self.safe_dict(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'reserved')
@@ -537,7 +537,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_ticker(data, market)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -1197,7 +1197,7 @@ class coinmate(Exchange, ImplicitAPI):
         if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
         response = self.privatePostOrderById(self.extend(request, params))
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1224,7 +1224,7 @@ class coinmate(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
     def nonce(self) -> int:

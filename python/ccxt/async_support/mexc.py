@@ -2119,7 +2119,7 @@ class mexc(Exchange, ImplicitAPI):
         prevClose = None
         isSwap = self.safe_bool(marketResolved, 'swap', False)
         # if swap
-        if isSwap or ('timestamp' in ticker):
+        if isSwap or (self.safe_string(ticker, 'timestamp') is not None):
             #
             #     {
             #         "symbol": "ETH_USDT",
@@ -2610,8 +2610,8 @@ class mexc(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             marginMode = None
             marginMode, paramsLoop = self.handle_margin_mode_and_params('createOrder', paramsLoop)

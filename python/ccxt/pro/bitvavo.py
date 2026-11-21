@@ -910,7 +910,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = self.safe_string(market, 'symbol')
+        symbolValue = self.safe_string(market, 'symbol', '')
         marketId = self.safe_string(market, 'id')
         url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
@@ -945,7 +945,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = self.safe_string(market, 'symbol')
+        symbolValue = self.safe_string(market, 'symbol', '')
         marketId = self.safe_string(market, 'id')
         url = self.safe_string(self.urls['api'], 'ws')
         name = 'account'
@@ -1563,7 +1563,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = self.safe_string(market, 'symbol')
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'order:' + symbol
         order = self.parse_order(message, market)
         if self.orders is None:
@@ -1591,7 +1591,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        symbol = self.safe_string(market, 'symbol')
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'myTrades:' + symbol
         trade = self.parse_trade(message, market)
         if self.myTrades is None:

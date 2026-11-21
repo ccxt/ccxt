@@ -922,7 +922,9 @@ class bit2me(Exchange, ImplicitAPI):
         else:
             # the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             duration = self.parse_timeframe(timeframe) * 1000
-            end = until if (until is not None) else self.milliseconds()
+            end = self.milliseconds()
+            if until is not None:
+                end = until
             request['startTime'] = end - requestLimit * duration
         if until is not None:
             request['endTime'] = until
@@ -1105,7 +1107,10 @@ class bit2me(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
             stopLossLimit = stopLimitPrice
             if stopLossLimit is None:
-                stopLossLimit = self.number_to_string(price) if (price is not None) else stopLossPrice
+                if price is not None:
+                    stopLossLimit = self.number_to_string(price)
+                else:
+                    stopLossLimit = stopLossPrice
             request['stopLimitPrice'] = self.price_to_precision(symbol, stopLossLimit)
         elif isMarketOrder:
             if triggerPrice is not None:

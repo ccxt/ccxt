@@ -2211,8 +2211,8 @@ class kucoin(ccxt.async_support.kucoin):
         symbolResolved = symbol
         if market is not None:
             symbolResolved = self.safe_string(market, 'symbol')
-        if market is not None:
-            messageHash = messageHash + ':' + market['symbol']
+        if symbolResolved is not None:
+            messageHash = messageHash + ':' + symbolResolved
         marketType, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         isFuturesMethod = ((marketType != 'spot') and (marketType != 'margin'))
         utaEnabled = await self.is_uta_enabled()
@@ -3282,7 +3282,7 @@ class kucoin(ccxt.async_support.kucoin):
                 self.handle_error_message(client, message)
             self.handle_subscription_status(client, message)
 
-    def get_message_hash(self, elementName: Str, symbol: Str = None) -> str:
+    def get_message_hash(self, elementName: str, symbol: Str = None) -> str:
         # method from kucoinfutures
         # elementName can be 'ticker', 'bidask', ...
         if symbol is not None:

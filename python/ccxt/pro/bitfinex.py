@@ -71,7 +71,9 @@ class bitfinex(ccxt.async_support.bitfinex):
             sub = client.subscriptions[messageHash]
             subChecksum = self.safe_bool(sub, 'checksum', False)
             if (sub is not None) and not subChecksum:
-                client.subscriptions[messageHash]['checksum'] = True
+                subUpdated = self.extend({}, sub)
+                subUpdated['checksum'] = True
+                client.subscriptions[messageHash] = subUpdated
                 await client.send({
                     'event': 'conf',
                     'flags': 131072,

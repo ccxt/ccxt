@@ -883,7 +883,9 @@ class bitopro(Exchange, ImplicitAPI):
         }
         # we need to have a limit argument because "to" and "from" are required
         # supports slightly more than 75k candles atm, but limit here to avoid errors
-        limitResolved = self.parse_to_int(500 if (limit is None) else min(limit, 75000))
+        limitResolved = 500
+        if limit is not None:
+            limitResolved = self.parse_to_int(min(limit, 75000))
         timeframeInSeconds = self.parse_timeframe(timeframe)
         alignedSince = None
         if since is None:
@@ -1012,7 +1014,9 @@ class bitopro(Exchange, ImplicitAPI):
             '4': 'canceled',
             '6': 'canceled',
         }
-        return None if (status is None) else self.safe_string(statuses, status)
+        if status is None:
+            return None
+        return self.safe_string(statuses, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #

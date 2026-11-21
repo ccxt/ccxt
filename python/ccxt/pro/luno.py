@@ -97,7 +97,7 @@ class luno(ccxt.async_support.luno):
         length = len(rawTrades)
         if length == 0:
             return
-        symbol = subscription['symbol']
+        symbol = self.safe_string(subscription, 'symbol', '')
         market = self.market(symbol)
         symbolValue = market['symbol']
         messageHash = 'trades:' + symbolValue

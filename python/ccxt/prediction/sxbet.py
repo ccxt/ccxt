@@ -318,8 +318,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #     }
         #
         marketHash = self.safe_string(raw, 'marketHash', '')
-        teamOneName = self.safe_string(raw, 'teamOneName')
-        teamTwoName = self.safe_string(raw, 'teamTwoName')
+        teamOneName = self.safe_string(raw, 'teamOneName', '')
+        teamTwoName = self.safe_string(raw, 'teamTwoName', '')
         outcomeOneName = self.safe_string(raw, 'outcomeOneName')
         outcomeTwoName = self.safe_string(raw, 'outcomeTwoName')
         eventSlug = self.shorten_slug(teamOneName + ' ' + teamTwoName)

@@ -2042,10 +2042,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         if ('byType' in config) and ('type' in params):
-            type = params['type']
+            type = self.safe_string(params, 'type')
             byType = config['byType']
-            if type in byType:
-                return byType[type]
+            if type is not None:
+                if type in byType:
+                    return self.safe_integer(byType, type)
         return self.safe_value(config, 'cost', 1)
 
     def info_list(self, response: dict | list | str) -> list[dict]:

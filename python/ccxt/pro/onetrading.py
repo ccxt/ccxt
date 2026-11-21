@@ -1074,12 +1074,10 @@ class onetrading(ccxt.async_support.onetrading):
                     client.subscriptions[subscriptionHash] = None
             else:
                 subscription = {}
-        subscriptionMarketId = self.safe_dict(subscription, marketId)
-        if subscriptionMarketId is None:
-            if marketId is not None:
-                subscription[marketId] = {}
-        if (marketId is not None) and (timeframe is not None):
-            subscription[marketId][timeframe] = True
+        marketTimeframes = self.safe_dict(subscription, marketId, {})
+        if timeframe is not None:
+            marketTimeframes[timeframe] = True
+        subscription[marketId] = marketTimeframes
         properties = []
         marketIds = list(subscription.keys())
         for i in range(0, len(marketIds)):
@@ -1171,11 +1169,12 @@ class onetrading(ccxt.async_support.onetrading):
         timeframesResolved = self.timeframes if (timeframes is None) else timeframes
         if timeframesResolved is None:
             raise ArgumentsRequired(self.id + ' findTimeframe() timeframes is required')
+        unit = self.safe_string(timeframe, 'unit')
+        period = self.safe_string(timeframe, 'period')
         keys = list(timeframesResolved.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            timeframeResolved = self.safe_dict(timeframesResolved, key, {})
-            if timeframeResolved['unit'] == timeframe['unit'] and timeframeResolved['period'] == timeframe['period']:
+            if self.safe_string(timeframesResolved[key], 'unit') == unit and self.safe_string(timeframesResolved[key], 'period') == period:
                 return key
         return None
 

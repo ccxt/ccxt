@@ -847,14 +847,14 @@ class bullish(Exchange, ImplicitAPI):
                 idParts = id.split('-')
                 datePart = self.safe_string(idParts, 2)
                 dateYmd = datePart[2:]
-                symbol += '-' + dateYmd
+                symbol = base + '/' + quote + ':' + settle + '-' + dateYmd
                 if type == 'future':
                     future = True
                 elif type == 'option':
                     option = True
                     optionType = self.safe_string_lower(market, 'optionType')
                     strike = self.parse_to_numeric(self.safe_string(market, 'optionStrikePrice'))
-                    symbol += '-' + self.number_to_string(strike) + '-' + self.safe_string(idParts, 4)
+                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + self.number_to_string(strike) + '-' + self.safe_string(idParts, 4)
         tradingFees = self.safe_dict(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,
@@ -2185,20 +2185,21 @@ class bullish(Exchange, ImplicitAPI):
 
     def load_account(self, params: dict = {}) -> Str:
         tradingAccountIdOption, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
-        tradingAccountId = tradingAccountIdOption
-        if tradingAccountId is None:
-            response = self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-            accounts = self.to_array(response)
-            for i in range(0, len(accounts)):
-                account = self.safe_dict(accounts, i)
-                name = self.safe_string(account, 'tradingAccountName')
-                if name == 'Primary Account':
-                    tradingAccountId = self.safe_string(account, 'tradingAccountId')
-                    break
-        if tradingAccountId is None:
-            raise ArgumentsRequired(self.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account')
-        self.options['tradingAccountId'] = tradingAccountId
-        return self.safe_string(self.options, 'tradingAccountId')
+        if tradingAccountIdOption is not None:
+            self.options['tradingAccountId'] = tradingAccountIdOption
+            return self.safe_string(self.options, 'tradingAccountId')
+        response = self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+        accounts = self.to_array(response)
+        for i in range(0, len(accounts)):
+            account = self.safe_dict(accounts, i)
+            name = self.safe_string(account, 'tradingAccountName')
+            if name == 'Primary Account':
+                primaryAccountId = self.safe_string(account, 'tradingAccountId')
+                if primaryAccountId is not None:
+                    self.options['tradingAccountId'] = primaryAccountId
+                    return self.safe_string(self.options, 'tradingAccountId')
+                break
+        raise ArgumentsRequired(self.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account')
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """

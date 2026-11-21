@@ -792,10 +792,11 @@ class aster(ccxt.async_support.aster):
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
         orderId = self.safe_string(trade, 'i')
-        if 'm' in trade:
+        isMaker = self.safe_bool(trade, 'm')
+        if isMaker is not None:
             if side is None:
-                side = 'sell' if (self.safe_bool(trade, 'm', False)) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm', False)) else 'taker'
+                side = 'sell' if isMaker else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if isMaker else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:

@@ -551,7 +551,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def is_fiat(self, code: object) -> bool:
         fiat = self.safe_dict(self.options, 'fiat', {})
-        return(code in fiat)
+        return self.safe_string(fiat, code) is not None
 
     def get_currency_name(self, code: str) -> str:
         # temporary fix for transpiler recognition, even though this is in parent class
@@ -2610,7 +2610,9 @@ class bitfinex(Exchange, ImplicitAPI):
                 'percentage': True,
                 'tierBased': True,
             }
-            if market['quote'] in fiat:
+            quote = self.safe_string(market, 'quote')
+            fiatQuote = self.safe_string(fiat, quote)
+            if fiatQuote is not None:
                 fee['maker'] = makerFeeFiat
                 fee['taker'] = takerFeeFiat
             elif self.safe_bool(market, 'contract', False):

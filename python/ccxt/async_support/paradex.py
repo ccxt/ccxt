@@ -843,11 +843,11 @@ class paradex(Exchange, ImplicitAPI):
         parts = symbol.split('-')
         partsLength = len(parts)
         base = None
-        quote = None
+        quote = ''
         settle = None
         expiryDate = None
         strike = None
-        optionType = None
+        optionType = ''
         if symbol.find('/') > -1:
             if partsLength != 4:
                 raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
@@ -856,21 +856,21 @@ class paradex(Exchange, ImplicitAPI):
             base = self.safe_string(pairParts, 0)
             quoteAndSettle = self.safe_string(pairParts, 1, '')
             quoteParts = quoteAndSettle.split(':')
-            quote = self.safe_string(quoteParts, 0)
+            quote = self.safe_string(quoteParts, 0, '')
             settle = self.safe_string(quoteParts, 1, quote)
             expiryDate = self.safe_string(parts, 1)
             strike = self.safe_string(parts, 2)
-            optionType = self.safe_string(parts, 3)
+            optionType = self.safe_string(parts, 3, '')
         else:
             if partsLength != 5:
                 raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
             base = self.safe_string(parts, 0)
-            quote = self.safe_string(parts, 1)
+            quote = self.safe_string(parts, 1, '')
             settle = 'USDC'  # every option on the venue settles in USDC
             expiryDate = self.convert_market_id_expire_date(self.safe_string(parts, 2))
             strikeId = parts[3]
             strike = strikeId.replace('_', '.')
-            optionType = self.safe_string(parts, 4)
+            optionType = self.safe_string(parts, 4, '')
         # the id carries the day without a leading zero, 6NOV26
         idDate = self.convert_expire_date_to_market_id_date(expiryDate)
         if idDate.startswith('0'):
@@ -1186,7 +1186,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        if request['market'] == 'ALL':
+        if self.safe_string(request, 'market') == 'ALL':
             return self.parse_tickers(self.filter_loaded_summaries(data), symbolsNormalized)
         return self.parse_tickers(data, symbolsNormalized)
 
@@ -1339,7 +1339,7 @@ class paradex(Exchange, ImplicitAPI):
         response = await self.publicGetMarketsSummary(self.extend(request, params))
         data = self.safe_list(response, 'results', [])
         # only a perpetual funds, the other rows are dropped before they are parsed
-        if request['market'] == 'ALL':
+        if self.safe_string(request, 'market') == 'ALL':
             return self.parse_funding_rates(self.filter_loaded_summaries(data, 'swap'), symbolsNormalized)
         return self.parse_funding_rates(data, symbolsNormalized)
 
@@ -3407,7 +3407,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         results = self.safe_list(response, 'results', [])
         # the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
-        if request['market'] == 'ALL':
+        if self.safe_string(request, 'market') == 'ALL':
             return self.parse_all_greeks(self.filter_loaded_summaries(results, 'option'), symbolsNormalized)
         return self.parse_all_greeks(results, symbolsNormalized)
 
@@ -3716,9 +3716,10 @@ class paradex(Exchange, ImplicitAPI):
             # the pages run newest first from end_at and the cursor keeps the start_at filter, so they stop at since,
             # end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             paginationCalls, paramsCalls = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10)
-            endAt = self.safe_integer(paramsCalls, 'until')
-            if endAt is None:
-                endAt = min(self.milliseconds(), self.sum(since, paginationCalls * 5000 * rowSpacing))
+            until = self.safe_integer(paramsCalls, 'until')
+            endAt = min(self.milliseconds(), self.sum(since, paginationCalls * 5000 * rowSpacing))
+            if until is not None:
+                endAt = until
             paramsEndAt = self.extend(self.omit(paramsPaginate, 'until'), {'end_at': endAt})
             # the cursor helper returns the newest rows first, the limit is applied once they are oldest first
             pages = await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, None, paramsEndAt, 'next', 'cursor', None, 5000)

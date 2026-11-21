@@ -362,7 +362,10 @@ class delta(Exchange, ImplicitAPI):
             base = self.safe_string(symbolBase, 0, '')
         optionType = self.safe_string(optionParts, 3 if hasSlash else 0, '')
         rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3, '')
-        expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
+        expiryYear = rawExpiry[4:]
+        expiryMonth = rawExpiry[2:4]
+        expiryDay = rawExpiry[0:2]
+        expiry = expiryYear + expiryMonth + expiryDay
         settle = quote
         strike = self.safe_string(optionParts, 2, '')
         datetime = self.convert_expire_date(expiry)
@@ -878,9 +881,11 @@ class delta(Exchange, ImplicitAPI):
             optionType = None
             symbol = base + '/' + quote
             if swap or future or option:
-                symbol = symbol + ':' + settle
+                settleCode = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settleCode
                 if future or option:
-                    symbol = symbol + '-' + self.yymmdd(expiry)
+                    expiryCode = self.yymmdd(expiry)
+                    symbol = symbol + '-' + expiryCode
                     if option:
                         type = 'option'
                         letter = 'C'
@@ -891,13 +896,14 @@ class delta(Exchange, ImplicitAPI):
                         elif moveOptions:
                             letter = 'M'
                             optionType = 'move'
-                        symbol = symbol + '-' + strike + '-' + letter
+                        strikeString = self.safe_string(market, 'strike_price', '')
+                        symbol = symbol + '-' + strikeString + '-' + letter
                     else:
                         type = 'future'
                 else:
                     type = 'swap'
             state = self.safe_string(market, 'state')
-            result.append(self.safe_market_structure({
+            marketStructure = {
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -915,11 +921,11 @@ class delta(Exchange, ImplicitAPI):
                 'option': option,
                 'active': (state == 'live'),
                 'contract': not spot,
-                'linear': None if spot else linear,
-                'inverse': None if spot else not linear,
+                'linear': None,
+                'inverse': None,
                 'taker': self.safe_number(market, 'taker_commission_rate'),
                 'maker': self.safe_number(market, 'maker_commission_rate'),
-                'contractSize': None if spot else contractSize,
+                'contractSize': None,
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),  # do not use raw expiry string
                 'strike': self.parse_number(strike),
@@ -948,7 +954,12 @@ class delta(Exchange, ImplicitAPI):
                 },
                 'created': self.parse8601(self.safe_string(market, 'launch_time')),
                 'info': market,
-            }))
+            }
+            if not spot:
+                marketStructure['linear'] = linear
+                marketStructure['inverse'] = not linear
+                marketStructure['contractSize'] = contractSize
+            result.append(self.safe_market_structure(marketStructure))
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:

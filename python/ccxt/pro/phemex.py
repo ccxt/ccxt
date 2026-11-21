@@ -287,12 +287,10 @@ class phemex(ccxt.async_support.phemex):
             for i in range(0, len(data)):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            symbol = self.safe_string(ticker, 'symbol', '')
+            symbol = self.safe_string(tickers[i], 'symbol', '')
             messageHash = 'ticker:' + symbol
             timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
-            ticker['timestamp'] = timestamp
-            ticker['datetime'] = self.iso8601(timestamp)
+            ticker = self.extend(tickers[i], {'timestamp': timestamp, 'datetime': self.iso8601(timestamp)})
             self.tickers[symbol] = ticker
             client.resolve(ticker, messageHash)
 

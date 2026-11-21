@@ -537,7 +537,7 @@ class woofipro(ccxt.async_support.woofipro):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
@@ -785,7 +785,7 @@ class woofipro(ccxt.async_support.woofipro):
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
             'cost': self.safe_string(order, 'totalFee'),
@@ -1063,7 +1063,7 @@ class woofipro(ccxt.async_support.woofipro):
             position = self.parse_ws_position(rawPosition, market)
             newPositions.append(position)
             cache.append(position)
-            positionSymbol = market['symbol']
+            positionSymbol = self.safe_string(market, 'symbol', '')
             messageHash = 'positions::' + positionSymbol
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')

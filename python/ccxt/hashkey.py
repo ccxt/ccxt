@@ -3558,15 +3558,14 @@ class hashkey(Exchange, ImplicitAPI):
                 type = 'market'
             else:
                 type = 'limit'
-        timeInForce = self.safe_string(order, 'timeInForce')
-        postOnly = None
-        type, timeInForce, postOnly = self.parse_order_type_time_in_force_and_post_only(type, timeInForce)
+        rawTimeInForce = self.safe_string(order, 'timeInForce')
+        timeInForce = self.parse_order_time_in_force_value(type, rawTimeInForce)
+        typeParsed = self.parse_order_type(type)
         average = self.omit_zero(self.safe_string(order, 'avgPrice'))
         if price is None:
             price = average
-        side = self.safe_string_lower(order, 'side')
-        reduceOnly = None
-        side, reduceOnly = self.parse_order_side_and_reduce_only(side)
+        rawSide = self.safe_string_lower(order, 'side')
+        side = self.parse_order_side_value(rawSide)
         feeCurrncyId = self.safe_string(order, 'feeCoin')
         if feeCurrncyId == '':
             feeCurrncyId = None
@@ -3579,7 +3578,7 @@ class hashkey(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': self.safe_integer(order, 'updateTime'),
             'status': self.parse_order_status(status),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': typeParsed,
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
@@ -3596,20 +3595,25 @@ class hashkey(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(feeCurrncyId),
                 'cost': self.omit_zero(self.safe_string(order, 'feeAmount')),
             },
-            'reduceOnly': reduceOnly,
-            'postOnly': postOnly,
+            'reduceOnly': self.parse_order_reduce_only_value(rawSide),
+            'postOnly': self.parse_order_post_only_value(type, rawTimeInForce),
             'info': order,
         }, marketResolved)
 
-    def parse_order_side_and_reduce_only(self, unparsed: object):
-        parts = unparsed.split('_')
-        side = parts[0]
-        secondPart = self.safe_string(parts, 1)
+    def parse_order_side_value(self, unparsed: Str) -> Str:
+        if unparsed is None:
+            return None
+        return self.safe_string(unparsed.split('_'), 0)
+
+    def parse_order_reduce_only_value(self, unparsed: Str) -> Bool:
+        if unparsed is None:
+            return None
+        secondPart = self.safe_string(unparsed.split('_'), 1)
         if secondPart == 'open':
-            return [side, False]
+            return False
         if secondPart == 'close':
-            return [side, True]
-        return [side, None]
+            return True
+        return None
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -3625,15 +3629,17 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type_time_in_force_and_post_only(self, type: Str, timeInForce: Str) -> list:
+    def parse_order_time_in_force_value(self, type: Str, timeInForce: Str) -> Str:
         isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
-        timeInForceParsed = timeInForce
         if (type != 'LIMIT_MAKER') and isMakerTimeInForce:
-            timeInForceParsed = 'PO'
-        typeValue = self.parse_order_type(type)
+            return 'PO'
+        return timeInForce
+
+    def parse_order_post_only_value(self, type: Str, timeInForce: Str) -> Bool:
+        isMakerTimeInForce = (timeInForce == 'LIMIT_MAKER') or (timeInForce == 'MAKER')
         if (type == 'LIMIT_MAKER') or isMakerTimeInForce:
-            return [typeValue, timeInForceParsed, True]
-        return [typeValue, timeInForceParsed, None]
+            return True
+        return None
 
     def parse_order_type(self, type: Str) -> Str:
         types = {
@@ -3800,7 +3806,8 @@ class hashkey(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only')
         if self.markets is None:
             self.load_markets()
-        return self.fetch_positions_for_symbol(symbols[0], self.extend({'methodName': 'fetchPositions'}, params))
+        firstSymbol = self.safe_string(symbols, 0, '')
+        return self.fetch_positions_for_symbol(firstSymbol, self.extend({'methodName': 'fetchPositions'}, params))
 
     def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
         """
@@ -4253,7 +4260,8 @@ class hashkey(Exchange, ImplicitAPI):
         for i in range(0, len(data)):
             fee = self.safe_dict(data, i, {})
             parsedFee = self.parse_trading_fee(fee)
-            result[parsedFee['symbol']] = parsedFee
+            feeSymbol = self.safe_string(parsedFee, 'symbol', '')
+            result[feeSymbol] = parsedFee
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:

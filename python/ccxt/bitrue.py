@@ -3223,9 +3223,11 @@ class bitrue(Exchange, ImplicitAPI):
         return None
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
-        if ('noSymbol' in config) and not ('symbol' in params):
+        paramsSymbol = self.safe_string(params, 'symbol')
+        paramsLimit = self.safe_string(params, 'limit')
+        if ('noSymbol' in config) and (paramsSymbol is None):
             return config['noSymbol']
-        elif ('byLimit' in config) and ('limit' in params):
+        elif ('byLimit' in config) and (paramsLimit is not None):
             limit = self.safe_integer(params, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):

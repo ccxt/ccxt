@@ -2480,7 +2480,7 @@ class cryptocom(Exchange, ImplicitAPI):
         type = None
         rawStatus = self.safe_string(transaction, 'status')
         status = None
-        if 'client_wid' in transaction:
+        if self.safe_string(transaction, 'client_wid') is not None:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
         else:

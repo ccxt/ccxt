@@ -1086,10 +1086,10 @@ class bitflyer(Exchange, ImplicitAPI):
         type = None
         status = None
         fee = None
-        if 'fee' in transaction:
+        feeCost = self.safe_string(transaction, 'fee')
+        if feeCost is not None:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
-            feeCost = self.safe_string(transaction, 'fee')
             additionalFee = self.safe_string(transaction, 'additional_fee')
             fee = {'currency': code, 'cost': self.parse_number(Precise.string_add(feeCost, additionalFee))}
         else:

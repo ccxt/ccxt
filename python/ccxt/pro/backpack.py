@@ -1450,7 +1450,8 @@ class backpack(ccxt.async_support.backpack):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 messageHashes.append('positions' + ':' + symbol)
-                topics.append('account.positionUpdate.' + self.market_id(symbol))
+                marketId = self.safe_string(self.market(symbol), 'id', '')
+                topics.append('account.positionUpdate.' + marketId)
         else:
             messageHashes.append('positions')
             topics.append('account.positionUpdate')
@@ -1478,7 +1479,8 @@ class backpack(ccxt.async_support.backpack):
             for i in range(0, len(symbolsNormalized)):
                 symbol = symbolsNormalized[i]
                 messageHashes.append('unsubscribe:positions' + ':' + symbol)
-                topics.append('account.positionUpdate.' + self.market_id(symbol))
+                marketId = self.safe_string(self.market(symbol), 'id', '')
+                topics.append('account.positionUpdate.' + marketId)
         else:
             messageHashes.append('unsubscribe:positions')
             topics.append('account.positionUpdate')

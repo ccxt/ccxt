@@ -631,8 +631,8 @@ class coinbase(Exchange, ImplicitAPI):
         cursor = self.safe_string(pagination, 'next_starting_after')
         accounts = self.safe_list(response, 'data', [])
         length = len(accounts)
-        lastIndex = length - 1
-        if (cursor is not None) and (cursor != ''):
+        if (length > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = length - 1
             accounts[lastIndex] = self.extend(self.safe_dict(accounts, lastIndex, {}), {'next_starting_after': cursor})
         return self.parse_accounts(data, paramsPaginate)
 

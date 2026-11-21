@@ -530,7 +530,8 @@ class bitget(ccxt.async_support.bitget):
             args['interval'] = interval
             messageHash = 'kline:' + symbolValue
         else:
-            args['channel'] = 'candle' + interval
+            intervalValue = self.safe_string(timeframes, timeframe, '')
+            args['channel'] = 'candle' + intervalValue
             args['instId'] = market['id']
             messageHash = 'candles:' + timeframe + ':' + symbolValue
         ohlcv = await self.watch_public(isStockOrUta, messageHash, args, paramsRequest)
@@ -1268,7 +1269,10 @@ class bitget(ccxt.async_support.bitget):
             defaultType = 'contract' if (category != 'SPOT') else 'spot'
         else:
             defaultType = 'contract' if (posMode is not None) else 'spot'
-        marketResolved = self.safe_market(instId if (market is None) else None, market, None, defaultType)
+        instIdResolved = None
+        if market is None:
+            instIdResolved = instId
+        marketResolved = self.safe_market(instIdResolved, market, None, defaultType)
         timestamp = self.safe_integer_n(trade, ['uTime', 'cTime', 'ts', 'T', 'execTime'])
         feeDetail = self.safe_list(trade, 'feeDetail', [])
         first = self.safe_dict(feeDetail, 0)
@@ -1622,7 +1626,8 @@ class bitget(ccxt.async_support.bitget):
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('watchOrders', paramsInstType)
         if marginMode is not None:
             instType = 'MARGIN'
-            messageHash = messageHash + ':' + marginMode
+            marginModeValue = marginMode
+            messageHash = messageHash + ':' + marginModeValue
             if marginMode == 'isolated':
                 channel = 'orders-isolated'
             else:
@@ -1948,8 +1953,8 @@ class bitget(ccxt.async_support.bitget):
         #         "stpMode": "none"
         #     }
         #
-        isSpot = not ('posMode' in order)
-        isMargin = ('loanType' in order)
+        isSpot = (self.safe_string(order, 'posMode') is None)
+        isMargin = (self.safe_string(order, 'loanType') is not None)
         category = self.safe_string_lower(order, 'category')
         if category == 'spot':
             isSpot = True
@@ -2079,7 +2084,8 @@ class bitget(ccxt.async_support.bitget):
         if symbol is not None:
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
-            messageHash = messageHash + ':' + symbolResolved
+            symbolValue = self.safe_string(market, 'symbol', '')
+            messageHash = messageHash + ':' + symbolValue
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         uta, paramsUta = self.handle_option_bool_and_params(paramsMarketType, 'watchMyTrades', 'uta', False)
         useSpotInstType = (symbol is None and type == 'spot')
@@ -2426,7 +2432,7 @@ class bitget(ccxt.async_support.bitget):
                     interest = self.safe_string(rawBalance, 'interest')
                     account['debt'] = Precise.string_add(borrow, interest)
                 freeQuery = 'available'
-                if 'maxTransferOut' in rawBalance:
+                if self.safe_string(rawBalance, 'maxTransferOut') is not None:
                     freeQuery = 'maxTransferOut'
                 account['free'] = self.safe_string(rawBalance, freeQuery)
                 account['total'] = self.safe_string(rawBalance, 'equity')

@@ -876,7 +876,9 @@ class apex(Exchange, ImplicitAPI):
         request = {
             'symbol': self.safe_string(market, 'id2'),
         }
-        request['limit'] = 100 if (limit is None) else limit  # max 100, default 100
+        request['limit'] = 100  # max 100, default 100
+        if limit is not None:
+            request['limit'] = limit
         response = await self.publicGetV3Depth(self.extend(request, params))
         #
         # {
@@ -1255,7 +1257,7 @@ class apex(Exchange, ImplicitAPI):
                     markets = self.markets_by_id[newMarketId]
                     numMarkets = len(markets)
                     for i in range(0, numMarkets):
-                        if (i == 0) and (markets[i]['id2'] == marketId):
+                        if (i == 0) and (self.safe_string(markets[i], 'id2') == marketId):
                             marketResolved = markets[i]
         return super(apex, self).safe_market(marketId, marketResolved, delimiter, marketType)
 

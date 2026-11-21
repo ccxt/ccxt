@@ -1019,7 +1019,8 @@ class backpack(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' fetchStockIndicativeQuote() requires a stock market')
         if (side != 'buy') and (side != 'sell'):
             raise BadRequest(self.id + ' fetchStockIndicativeQuote() requires buy or sell')
-        if (amount is None) or not Precise.string_gt(self.number_to_string(amount), '0'):
+        amountString = self.number_to_string(amount)
+        if (amountString is None) or not Precise.string_gt(amountString, '0'):
             raise InvalidOrder(self.id + ' fetchStockIndicativeQuote() requires a positive base share quantity')
         request = {'symbol': market['baseId'], 'side': self.encode_order_side(side), 'quantity': self.number_to_string(amount)}
         requestMethod = 'publicGetApiV1StockIndicativeQuote'
@@ -1179,7 +1180,8 @@ class backpack(Exchange, ImplicitAPI):
             acceptParams = self.omit(query, ['quoteId', 'price', 'baseAmount', 'clientOrderId'])
             accepted = await self.accept_rfq_quote(id, quoteId, self.safe_symbol(None, market), acceptParams)
             return self.parse_conversion(accepted, self.currency(fromCode), self.currency(toCode))
-        if (amount is None) or not Precise.string_gt(self.number_to_string(amount), '0'):
+        amountString = self.number_to_string(amount)
+        if (amountString is None) or not Precise.string_gt(amountString, '0'):
             raise ArgumentsRequired(self.id + ' createConvertTrade() requires a positive amount')
         fromIsBase = fromCode == self.safe_string(market, 'base')
         side = 'sell' if (fromIsBase) else 'buy'
@@ -2341,7 +2343,8 @@ class backpack(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' createOrder() RFQs support market or limit orders only')
         if (side != 'buy') and (side != 'sell'):
             raise InvalidOrder(self.id + ' createOrder() requires buy or sell')
-        if (amount is None) or not Precise.string_gt(self.number_to_string(amount), '0'):
+        amountString = self.number_to_string(amount)
+        if (amountString is None) or not Precise.string_gt(amountString, '0'):
             raise InvalidOrder(self.id + ' createOrder() RFQs require a positive base quantity')
         unsupported = ['cost', 'quoteQuantity', 'postOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'reduceOnly', 'timeInForce', 'selfTradePrevention']
         for i in range(0, len(unsupported)):

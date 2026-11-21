@@ -1623,8 +1623,8 @@ class bybit(Exchange, ImplicitAPI):
             expiry = self.convert_market_id_expire_date(self.safe_string(optionParts, 1))
             if symbol.endswith('-USDT'):
                 quote = 'USDT'
-        strike = self.safe_string(optionParts, 2)
-        optionType = self.safe_string(optionParts, 3)
+        strike = self.safe_string(optionParts, 2, '')
+        optionType = self.safe_string(optionParts, 3, '')
         datetime = self.convert_expire_date(expiry)
         amountPrecision = None
         pricePrecision = None
@@ -1936,7 +1936,7 @@ class bybit(Exchange, ImplicitAPI):
             # for backward-compatibility
             types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
         for i in range(0, len(types)):
-            marketType = types[i]
+            marketType = self.safe_string(types, i)
             if marketType == 'spot':
                 promisesUnresolved.append(self.fetch_spot_markets(params))
             elif marketType == 'linear':
@@ -2989,9 +2989,10 @@ class bybit(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(data, 'list', [])
         timestamp = self.safe_integer(response, 'time')
+        rows = []
         for i in range(0, len(tickerList)):
-            tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
-        return self.parse_funding_rates(tickerList, symbolsNormalized)
+            rows.append(self.extend(tickerList[i], {'timestamp': timestamp}))  # will be removed inside the parser
+        return self.parse_funding_rates(rows, symbolsNormalized)
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
@@ -3233,7 +3234,8 @@ class bybit(Exchange, ImplicitAPI):
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'spot'
-        if 'createType' in trade:
+        createType = self.safe_string(trade, 'createType')
+        if createType is not None:
             marketType = 'contract'
         category = self.safe_string(trade, 'category')
         if category is not None:
@@ -3905,7 +3907,8 @@ class bybit(Exchange, ImplicitAPI):
                     'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferredMarketType),
                 })
         marketId = self.safe_string(order, 'symbol')
-        isContract = ('tpslMode' in order)
+        tpslMode = self.safe_string(order, 'tpslMode')
+        isContract = (tpslMode is not None)
         marketType = None
         if market is not None:
             marketType = self.safe_string(market, 'type')
@@ -4399,8 +4402,8 @@ class bybit(Exchange, ImplicitAPI):
             orderSymbols.append(marketId)
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
             del orderRequest['category']
@@ -4603,8 +4606,8 @@ class bybit(Exchange, ImplicitAPI):
             id = self.safe_string(rawOrder, 'id')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.edit_order_request(id, symbol, type, side, amount, price, orderParams)
             del orderRequest['category']
@@ -5971,7 +5974,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'withdrawal'
-        if 'depositFee' in transaction:
+        depositFee = self.safe_string(transaction, 'depositFee')
+        if depositFee is not None:
             type = 'deposit'
         fee = None
         if feeCost is not None:
@@ -9554,7 +9558,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                     signature = self.rsa(authFull, self.secret, 'sha256')
                 else:
                     signature = self.hmac(self.encode(authFull), self.encode(self.secret), hashlib.sha256)
-                requestHeaders['X-BAPI-SIGN'] = signature
+                requestHeaders = self.extend(requestHeaders, {'X-BAPI-SIGN': signature})
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,

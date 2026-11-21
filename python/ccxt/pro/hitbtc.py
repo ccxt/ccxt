@@ -1000,13 +1000,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
             self.orders = ArrayCacheBySymbolById(limit)
-        data = self.safe_value(message, 'params', [])
-        if isinstance(data, list):
+        dataDict = self.safe_dict(message, 'params')
+        if dataDict is not None:
+            self.handle_order_helper(client, message, dataDict)
+        else:
+            data = self.safe_list(message, 'params', [])
             for i in range(0, len(data)):
                 order = data[i]
                 self.handle_order_helper(client, message, order)
-        else:
-            self.handle_order_helper(client, message, data)
         return message
 
     def handle_order_helper(self, client: Client, message: dict, order: dict):
@@ -1371,8 +1372,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         result = self.safe_value(message, 'result', {})
         if isinstance(result, list):
             parsedOrders = []
-            for i in range(0, len(result)):
-                parsedOrder = self.parse_ws_order(result[i])
+            rows = self.safe_list(message, 'result', [])
+            rowsLength = len(rows)
+            for i in range(0, rowsLength):
+                parsedOrder = self.parse_ws_order(rows[i])
                 parsedOrders.append(parsedOrder)
             client.resolve(parsedOrders, messageHash)
         else:
@@ -1423,7 +1426,8 @@ class hitbtc(ccxt.async_support.hitbtc):
             if isinstance(result, list):
                 # to do improve this, not very reliable right now
                 first = self.safe_dict(result, 0, {})
-                arrayLength = len(result)
+                rows = self.safe_list(message, 'result', [])
+                arrayLength = len(rows)
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
 

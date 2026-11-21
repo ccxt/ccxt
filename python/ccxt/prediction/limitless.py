@@ -1388,15 +1388,16 @@ class limitless(PredictionExchange, ImplicitAPI):
                 candles[key] = [bucket, pPrice, pPrice, pPrice, pPrice, 0]
                 bucketOrder.append(key)
             else:
-                candle = candles[key]
-                prevHigh = self.safe_number(candle, 2)
-                if (prevHigh is None) or (pPrice > prevHigh):
-                    candle[2] = pPrice
-                prevLow = self.safe_number(candle, 3)
-                if (prevLow is None) or (prevLow > pPrice):
-                    candle[3] = pPrice
-                candle[4] = pPrice
-                candles[key] = candle  # php arrays are value types - write the mutation back
+                prevHigh = self.safe_number(candles[key], 2, pPrice)
+                prevLow = self.safe_number(candles[key], 3, pPrice)
+                openTs = self.safe_integer(candles[key], 0)
+                openPrice = self.safe_number(candles[key], 1)
+                if (prevHigh is not None) and (pPrice > prevHigh):
+                    candles[key] = [openTs, openPrice, pPrice, prevLow, pPrice, 0]
+                elif (prevLow is not None) and (prevLow > pPrice):
+                    candles[key] = [openTs, openPrice, prevHigh, pPrice, pPrice, 0]
+                else:
+                    candles[key] = [openTs, openPrice, prevHigh, prevLow, pPrice, 0]
         result = []
         for i in range(0, len(bucketOrder)):
             result.append(self.safe_value(candles, bucketOrder[i]))

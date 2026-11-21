@@ -678,7 +678,7 @@ class foxbit(Exchange, ImplicitAPI):
             entry = data[i]
             marketId = self.safe_string(entry, 'market_symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = self.parse_trading_fee(entry, market)
         return result
 

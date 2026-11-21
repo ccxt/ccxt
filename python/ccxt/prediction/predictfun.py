@@ -1605,9 +1605,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if rawFee is not None:
             feeType = self.safe_string(rawFee, 'type')
             feeCost = self.safe_string(rawFee, 'amount')
+            # a SHARES fee is charged in outcome tokens rather than in collateral
+            feeCurrency = None
+            if feeType == 'COLLATERAL':
+                feeCurrency = 'USDT'
             fee = {
-                # a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': 'USDT' if (feeType == 'COLLATERAL') else None,
+                'currency': feeCurrency,
                 'cost': self.parse_number(Precise.string_div(feeCost, '1000000000000000000')),
             }
         timestamp = self.parse8601(self.safe_string(trade, 'executedAt'))
@@ -3491,9 +3494,12 @@ class predictfun(PredictionExchange, ImplicitAPI):
         fee = None
         if rawFee is not None:
             feeType = self.safe_string(rawFee, 'type')
+            # a SHARES fee is charged in outcome tokens rather than in collateral
+            feeCurrency = None
+            if feeType == 'COLLATERAL':
+                feeCurrency = 'USDT'
             fee = {
-                # a SHARES fee is charged in outcome tokens rather than in collateral
-                'currency': 'USDT' if (feeType == 'COLLATERAL') else None,
+                'currency': feeCurrency,
                 'cost': self.parse_number(Precise.string_div(self.safe_string(rawFee, 'amountWei'), '1000000000000000000')),
             }
         timestamp = self.safe_integer(event, 'timestamp')

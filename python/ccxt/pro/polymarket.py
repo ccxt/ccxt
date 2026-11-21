@@ -94,7 +94,8 @@ class polymarket(ccxt.async_support.polymarket):
         hashesToCheck = messageHashes if (checkHashes is None) else checkHashes
         willSend = False
         for i in range(0, len(hashesToCheck)):
-            if not (hashesToCheck[i] in client.subscriptions):
+            hashToCheck = self.safe_string(hashesToCheck, i, '')
+            if not (hashToCheck in client.subscriptions):
                 willSend = True
         if not willSend:
             emptyRequest = {}

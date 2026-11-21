@@ -144,7 +144,7 @@ class cex(ccxt.async_support.cex):
         currentSymbol = self.safe_string(self.options['watchTrades'], 'symbol')
         if currentSymbol is not None and currentSymbol != symbol:
             raise ArgumentsRequired(self.id + ' : self exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance')
-        watchTradesDict = self.safe_dict(self.options, 'watchTrades', {})
+        watchTradesDict = self.extend({}, self.safe_dict(self.options, 'watchTrades', {}))
         watchTradesDict['symbol'] = symbol
         self.options['watchTrades'] = watchTradesDict
         if self.markets is None:
@@ -744,24 +744,24 @@ class cex(ccxt.async_support.cex):
         if order is None:
             # market comes from safeMarket, so the parser never takes its undefined returns here
             order = self.parse_ws_order_update(data, market)
-        order['remaining'] = remains
+        orderUpdate = {}
+        orderUpdate['remaining'] = remains
         canceled = self.safe_bool(data, 'cancel', False)
         if canceled:
-            order['status'] = 'canceled'
+            orderUpdate['status'] = 'canceled'
         if isTransaction:
-            order['status'] = 'closed'
+            orderUpdate['status'] = 'closed'
         fee = self.safe_number(data, 'fee')
         if fee is not None:
-            order['fee'] = {
+            orderUpdate['fee'] = {
                 'cost': fee,
                 'currency': quote,
                 'rate': None,
             }
         timestamp = self.safe_integer(data, 'time')
-        order['timestamp'] = timestamp
-        order['datetime'] = self.iso8601(timestamp)
-        # a fresh map copy: the cached entry is untyped
-        parsedOrder = self.safe_order(self.extend(order, {}))
+        orderUpdate['timestamp'] = timestamp
+        orderUpdate['datetime'] = self.iso8601(timestamp)
+        parsedOrder = self.safe_order(self.extend(order, orderUpdate))
         storedOrders.append(parsedOrder)
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)

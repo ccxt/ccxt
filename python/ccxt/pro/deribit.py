@@ -654,8 +654,8 @@ class deribit(ccxt.async_support.deribit):
         return data
 
     def handle_delta(self, bookside: object, delta: object):
-        price = self.safe_value(delta, 1)
-        amount = self.safe_value(delta, 2)
+        price = self.safe_number(delta, 1)
+        amount = self.safe_number(delta, 2)
         action = self.safe_string(delta, 0)
         if action == 'new' or action == 'change':
             bookside.storeArray([price, amount, 1])

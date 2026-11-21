@@ -2296,10 +2296,7 @@ class pacifica(Exchange, ImplicitAPI):
         dataLength = len(data)
         if hasMore:
             if (paginationCursor is not None) and (dataLength > 0):
-                first = data[0]
-                first['next_cursor'] = paginationCursor
-                first['has_more'] = hasMore
-                data[0] = first
+                data[0] = self.extend(data[0], {'next_cursor': paginationCursor, 'has_more': hasMore})
         return data
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:

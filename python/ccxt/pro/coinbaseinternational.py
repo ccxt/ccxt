@@ -850,7 +850,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         channels = []
         for i in range(0, symbolsAndTimeframesLength):
             current = symbolsAndTimeframes[i]
-            currentTimeframe = self.safe_string(current, 1)
+            currentTimeframe = self.safe_string(current, 1, '')
             resolution = self.safe_string(self.timeframes, currentTimeframe, currentTimeframe)
             market = self.market(self.safe_string(current, 0))
             channels.append('chart.trades.' + self.safe_string(market, 'id', '') + '.' + resolution)
@@ -899,7 +899,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbolsAndTimeframesLength = len(symbolsAndTimeframes)
         for i in range(0, symbolsAndTimeframesLength):
             current = symbolsAndTimeframes[i]
-            timeframe = self.safe_string(current, 1)
+            timeframe = self.safe_string(current, 1, '')
             resolution = self.safe_string(self.timeframes, timeframe, timeframe)
             market = self.market(self.safe_string(current, 0))
             channels.append('chart.trades.' + self.safe_string(market, 'id', '') + '.' + resolution)

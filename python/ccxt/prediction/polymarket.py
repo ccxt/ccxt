@@ -717,8 +717,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             # Build outcomes array
             outcomes = []
             for oi in range(0, len(outcomeLabels)):
-                outcomeLabel = outcomeLabels[oi]
-                clobTokenId = clobTokenIds[oi]
+                outcomeLabel = self.safe_string(outcomeLabels, oi)
+                clobTokenId = self.safe_string(clobTokenIds, oi)
                 outcomePrice = self.safe_number(outcomePrices, oi)
                 if (clobTokenId is None) or (clobTokenId == ''):
                     continue
@@ -994,7 +994,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 endIndex = tokenIdsLength
             bookParams = []
             for i in range(startIndex, endIndex):
-                bookParams.append({'token_id': tokenIds[i]})
+                bookParams.append({'token_id': self.safe_string(tokenIds, i)})
             promises = [
                 self.clobPublicPostBooks(bookParams),
                 self.clobPublicPostMidpoints(bookParams),
@@ -2321,9 +2321,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
             # title match (the caller can override); the other venues search exactly and need no
             # such default. inject the defaults as explicit params so the shared pipeline stays
             # the single behaviour definition
-            effectiveParams = self.extend({}, params)
-            effectiveParams['status'] = self.safe_string(params, 'status', 'active')
-            effectiveParams['searchIn'] = self.safe_string(params, 'searchIn', 'title')
+            defaults = {
+                'status': self.safe_string(params, 'status', 'active'),
+                'searchIn': self.safe_string(params, 'searchIn', 'title'),
+            }
+            effectiveParams = self.extend(params, defaults)
         return self.apply_event_fetch_params(result, effectiveParams, queries)
 
     async def fetch_event(self, id: str, params: dict = {}) -> PredictionEvent:
@@ -2970,8 +2972,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'outcomeId': self.safe_string(market, 'outcomeId'),
             'label': self.safe_string(market, 'label'),
             'market': self.safe_string(market, 'market'),
-            'timestamp': orderbook['timestamp'],
-            'datetime': orderbook['datetime'],
+            'timestamp': self.safe_integer(orderbook, 'timestamp'),
+            'datetime': self.safe_string(orderbook, 'datetime'),
             'high': None,
             'low': None,
             'bid': bestBid,

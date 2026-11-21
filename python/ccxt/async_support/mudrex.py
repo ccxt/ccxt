@@ -288,12 +288,16 @@ class mudrex(Exchange, ImplicitAPI):
         now = self.seconds()
         windowLength = duration * requestLimit
         defaultStart = now - windowLength
-        startTime = self.parse_to_int((since / 1000) if (since is not None) else defaultStart)
+        startTime = self.parse_to_int(defaultStart)
+        if since is not None:
+            startTime = self.parse_to_int(since / 1000)
         windowEnd = self.parse_to_int(startTime + duration * requestLimit)
         until = self.safe_integer(params, 'until')
         paramsOmitted = self.omit(params, ['price', 'until'])
         cappedEnd = now if (windowEnd > now) else windowEnd
-        endTime = self.parse_to_int((until / 1000) if (until is not None) else cappedEnd)
+        endTime = self.parse_to_int(cappedEnd)
+        if until is not None:
+            endTime = self.parse_to_int(until / 1000)
         request['start_time'] = startTime
         request['end_time'] = endTime
         response: dict
@@ -428,19 +432,19 @@ class mudrex(Exchange, ImplicitAPI):
         while(paging):
             q = self.extend({'limit': pageLimit, 'offset': offset}, params)
             response = await self.privateGetFutures(q)
-            data = self.safe_value(response, 'data', [])
+            dataDict = self.safe_dict(response, 'data')
             items = []
-            if isinstance(data, dict) and not isinstance(data, list):
-                items = self.safe_list(data, 'items', [])
+            if dataDict is not None:
+                items = self.safe_list(dataDict, 'items', [])
                 # hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                 itemsLength = len(items)
                 if itemsLength == 0:
-                    items = self.safe_list(data, 'results', [])
+                    items = self.safe_list(dataDict, 'results', [])
                     itemsLength = len(items)
-                if (itemsLength == 0) and ('symbol' in data):
-                    items = [data]
+                if (itemsLength == 0) and ('symbol' in dataDict):
+                    items = [dataDict]
             else:
-                items = self.to_array(data)
+                items = self.safe_list(response, 'data', [])
             numItems = len(items)
             if numItems == 0:
                 paging = False
@@ -1189,7 +1193,7 @@ class mudrex(Exchange, ImplicitAPI):
                 allRows.append(entry)
                 if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
                     # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
+                    if (market is None) or (self.safe_string(entry, 'symbol') == self.safe_string(market, 'id')):
                         transactionsCount = transactionsCount + 1
             calls = calls + 1
             paging = False

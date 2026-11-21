@@ -132,20 +132,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
         bookParams['bookSubscriptionType'] = bookSubscriptionType2
-        paramsBookSubscriptionType2['params'] = bookParams
-        bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
+        paramsWithBook = self.extend(paramsBookSubscriptionType2, {'params': bookParams})
+        bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
         if bookUpdateFrequency2 is not None:
-            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
             frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
-            paramsBookUpdateFrequency2['params'] = frequencyParams
+        paramsWithFrequency = self.extend(paramsBookUpdateFrequency2, {'params': frequencyParams})
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
             limitString = self.number_to_string(limitResolved)
             messageHashes.append('orderbook:' + market['symbol'])
             topics.append('book.' + self.safe_string(market, 'id', '') + '.' + limitString)
-        orderbook = await self.watch_public_multiple(messageHashes, topics, paramsBookUpdateFrequency2)
+        orderbook = await self.watch_public_multiple(messageHashes, topics, paramsWithFrequency)
         return orderbook.limit()
 
     async def un_watch_order_book_for_symbols(self, symbols: list[str], params: dict = {}):
@@ -175,20 +175,20 @@ class cryptocom(ccxt.async_support.cryptocom):
         bookSubscriptionType2, paramsBookSubscriptionType2 = self.handle_option_string_and_params(paramsBookSubscriptionType, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
         bookParams = self.safe_dict(paramsBookSubscriptionType2, 'params', {})
         bookParams['bookSubscriptionType'] = bookSubscriptionType2
-        paramsBookSubscriptionType2['params'] = bookParams
-        bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsBookSubscriptionType2, 'watchOrderBook', 'bookUpdateFrequency')
+        paramsWithBook = self.extend(paramsBookSubscriptionType2, {'params': bookParams})
+        bookUpdateFrequency, paramsBookUpdateFrequency = self.handle_option_string_and_params(paramsWithBook, 'watchOrderBook', 'bookUpdateFrequency')
         bookUpdateFrequency2, paramsBookUpdateFrequency2 = self.handle_option_string_and_params(paramsBookUpdateFrequency, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
         if bookUpdateFrequency2 is not None:
-            frequencyParams = self.safe_dict(paramsBookUpdateFrequency2, 'params', {})
             frequencyParams['bookSubscriptionType'] = bookUpdateFrequency2
-            paramsBookUpdateFrequency2['params'] = frequencyParams
+        paramsWithFrequency = self.extend(paramsBookUpdateFrequency2, {'params': frequencyParams})
         for i in range(0, len(symbolsNormalized)):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
             subMessageHashes.append('orderbook:' + market['symbol'])
             messageHashes.append('unsubscribe:orderbook:' + market['symbol'])
             topics.append('book.' + self.safe_string(market, 'id', '') + '.' + str(limit))
-        return await self.un_watch_public_multiple('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2)
+        return await self.un_watch_public_multiple('orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsWithFrequency)
 
     def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 0)

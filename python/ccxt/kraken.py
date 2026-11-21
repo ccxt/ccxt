@@ -1334,7 +1334,7 @@ class kraken(Exchange, ImplicitAPI):
         items = []
         for i in range(0, len(keys)):
             key = keys[i]
-            value = ledger[key]
+            value = self.extend({}, ledger[key])
             value['id'] = key
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
@@ -1362,7 +1362,7 @@ class kraken(Exchange, ImplicitAPI):
         items = []
         for i in range(0, len(keys)):
             key = keys[i]
-            value = result[key]
+            value = self.extend({}, result[key])
             value['id'] = key
             items.append(value)
         return self.parse_ledger(items)
@@ -1445,7 +1445,7 @@ class kraken(Exchange, ImplicitAPI):
         orderId = None
         fee = None
         symbol = None
-        isOrderTrade = (not isinstance(trade, list)) and (not isinstance(trade, str)) and ('ordertxid' in trade)
+        isOrderTrade = (not isinstance(trade, list)) and (not isinstance(trade, str)) and (self.safe_string(trade, 'ordertxid') is not None)
         marketResolved = market
         if isOrderTrade:
             marketResolved = self.resolve_market_by_altname_or_id(self.safe_string(trade, 'pair'), market)
@@ -1468,12 +1468,11 @@ class kraken(Exchange, ImplicitAPI):
             type = self.safe_string(trade, 'ordertype')
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'vol')
-            if 'fee' in trade:
-                currency = None
-                if marketResolved is not None:
-                    currency = self.safe_string(marketResolved, 'quote')
+            tradeFee = self.safe_string(trade, 'fee')
+            if tradeFee is not None:
+                currency = self.safe_string(marketResolved, 'quote')
                 fee = {
-                    'cost': self.safe_string(trade, 'fee'),
+                    'cost': tradeFee,
                     'currency': currency,
                 }
         else:
@@ -1484,8 +1483,9 @@ class kraken(Exchange, ImplicitAPI):
             type = self.safe_string(trade, 'ord_type')
             price = self.safe_string(trade, 'price')
             amount = self.safe_string(trade, 'qty')
-        if marketResolved is not None:
-            symbol = self.safe_string(marketResolved, 'symbol')
+        resolvedSymbol = self.safe_string(marketResolved, 'symbol')
+        if resolvedSymbol is not None:
+            symbol = resolvedSymbol
         cost = self.safe_string(trade, 'cost')
         maker = self.safe_bool(trade, 'maker')
         takerOrMaker = None
@@ -1724,8 +1724,8 @@ class kraken(Exchange, ImplicitAPI):
             orderSymbols.append(marketId)
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             parsedAmount = self.amount_to_precision(market['symbol'], amount)
             req = {
@@ -1970,7 +1970,9 @@ class kraken(Exchange, ImplicitAPI):
             if part4 == 'limit' or part4 == 'market':
                 descriptionType = part4  # eg, limit, market
             else:
-                descriptionType = part4 + ' ' + part5  # eg. stop loss, take profit, trailing stop
+                part4String = self.safe_string(parts, 4, '')
+                part5String = self.safe_string(parts, 5, '')
+                descriptionType = part4String + ' ' + part5String  # eg. stop loss, take profit, trailing stop
             # split parts carry no spaces, so the joined type is 'stop loss' / 'take profit' exactly when the two parts match
             if (part4 == 'stop' and part5 == 'loss') or (part4 == 'take' and part5 == 'profit'):
                 triggerPrice = self.safe_string(parts, 6)
@@ -2007,8 +2009,8 @@ class kraken(Exchange, ImplicitAPI):
         average = self.safe_number(orderOmitted, 'price')
         if marketResolved is not None:
             symbol = self.safe_string(marketResolved, 'symbol')
-            if 'fee' in orderOmitted:
-                feeCost = self.safe_string(orderOmitted, 'fee')
+            feeCost = self.safe_string(orderOmitted, 'fee')
+            if feeCost is not None:
                 fee = {
                     'cost': feeCost,
                     'rate': None,
@@ -2145,7 +2147,10 @@ class kraken(Exchange, ImplicitAPI):
                 trailingPercentString = ('+' + trailingPercent) if (trailingPercent.endswith('%')) else ('+' + trailingPercent + '%')
             trailingAmountString = '+' + trailingAmount if (trailingAmount is not None) else None  # must use + for this
             offset = self.safe_string(paramsOmitted2, 'offset', '-')  # can use + or - for this
-            trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
+            trailingLimitAmountString = None
+            if trailingLimitAmount is not None:
+                limitAmountString = self.number_to_string(trailingLimitAmount)
+                trailingLimitAmountString = offset + limitAmountString
             trailingActivationPriceType = self.safe_string(paramsOmitted2, 'trigger', 'last')
             request['trigger'] = trailingActivationPriceType
             if isLimitOrder or (trailingLimitAmount is not None) or (trailingLimitPercent is not None):
@@ -2171,10 +2176,10 @@ class kraken(Exchange, ImplicitAPI):
         rawClose = self.safe_dict(paramsOmitted2, 'close')
         if rawClose is not None:
             close = self.extend({}, rawClose)
-            closePrice = self.safe_value(close, 'price')
+            closePrice = self.safe_string(close, 'price')
             if closePrice is not None:
                 close['price'] = self.price_to_precision(symbol, closePrice)
-            closePrice2 = self.safe_value(close, 'price2')  # stopPrice
+            closePrice2 = self.safe_string(close, 'price2')  # stopPrice
             if closePrice2 is not None:
                 close['price2'] = self.price_to_precision(symbol, closePrice2)
             request['close'] = close
@@ -2394,9 +2399,13 @@ class kraken(Exchange, ImplicitAPI):
             #
             rawTrades = self.safe_value(response, 'result')
             ids = list(rawTrades.keys())
+            rawTradesWithIds = {}
             for i in range(0, len(ids)):
-                rawTrades[ids[i]]['id'] = ids[i]
-            trades = self.parse_trades(rawTrades, None, since, limit)
+                rawTradeId = ids[i]
+                rawTradeWithId = self.extend({}, rawTrades[rawTradeId])
+                rawTradeWithId['id'] = rawTradeId
+                rawTradesWithIds[rawTradeId] = rawTradeWithId
+            trades = self.parse_trades(self.to_array(rawTradesWithIds), None, since, limit)
             tradesFilteredBySymbol = self.filter_by_symbol(trades, symbolResolved)
             result = self.array_concat(result, tradesFilteredBySymbol)
         return result
@@ -2490,12 +2499,16 @@ class kraken(Exchange, ImplicitAPI):
         tradesResult = self.safe_dict(response, 'result', {})
         trades = self.safe_dict(tradesResult, 'trades', {})
         ids = list(trades.keys())
+        tradesWithIds = {}
         for i in range(0, len(ids)):
-            trades[ids[i]]['id'] = ids[i]
+            tradeId = ids[i]
+            tradeWithId = self.extend({}, trades[tradeId])
+            tradeWithId['id'] = tradeId
+            tradesWithIds[tradeId] = tradeWithId
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        tradesList = self.to_array(trades)
+        tradesList = self.to_array(tradesWithIds)
         return self.parse_trades(tradesList, market, since, limit)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -3065,11 +3078,11 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #
         rawWithdrawals = []
-        result = self.safe_value(response, 'result')
-        if not isinstance(result, list):
-            rawWithdrawals = self.add_pagination_cursor_to_result(result)
+        resultList = self.safe_list(response, 'result')
+        if resultList is not None:
+            rawWithdrawals = resultList
         else:
-            rawWithdrawals = self.safe_list(response, 'result', [])
+            rawWithdrawals = self.add_pagination_cursor_to_result(self.safe_dict(response, 'result', {}))
         return self.parse_transactions_by_type('withdrawal', rawWithdrawals, code, since, limit)
 
     def add_pagination_cursor_to_result(self, result: dict) -> list:
@@ -3077,7 +3090,7 @@ class kraken(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'withdrawals', [])
         dataLength = len(data)
         if cursor is not None and dataLength > 0:
-            last = data[dataLength - 1]
+            last = self.extend({}, data[dataLength - 1])
             last['next_cursor'] = cursor
             data[dataLength - 1] = last
         return data
@@ -3538,8 +3551,8 @@ class kraken(Exchange, ImplicitAPI):
                             self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
                         raise ExchangeError(message)
                 # handleCreateOrdersErrors:
-                if 'result' in response:
-                    result = self.safe_dict(response, 'result', {})
+                result = self.safe_dict(response, 'result')
+                if result is not None:
                     if 'orders' in result:
                         orders = self.safe_list(result, 'orders', [])
                         for i in range(0, len(orders)):

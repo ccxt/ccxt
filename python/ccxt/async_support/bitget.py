@@ -4253,9 +4253,12 @@ class bitget(Exchange, ImplicitAPI):
             feeCostString = self.safe_string_2(feeStructure, 'totalFee', 'fee')
             deductionString = self.safe_string(feeStructure, 'deduction')
             deduction = (deductionString == 'yes')
+            feeCostSigned = feeCostString
+            if not deduction:
+                feeCostSigned = Precise.string_neg(feeCostString)
             fee = {
                 'currency': currencyCode,
-                'cost': feeCostString if deduction else Precise.string_neg(feeCostString),
+                'cost': feeCostSigned,
             }
         return self.safe_trade({
             'info': trade,
@@ -4562,7 +4565,7 @@ class bitget(Exchange, ImplicitAPI):
         elif (marketType == 'swap') or (marketType == 'future'):
             productType = None
             productType, paramsMarginMode = self.handle_product_type_and_params(None, paramsMarginMode)
-            paramsMarginMode['productType'] = productType
+            paramsMarginMode = self.extend(paramsMarginMode, {'productType': productType})
             response = await self.publicMixGetV2MixMarketContracts(paramsMarginMode)
         else:
             raise NotSupported(self.id + ' does not support ' + marketType + ' market')

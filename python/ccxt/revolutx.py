@@ -1446,9 +1446,7 @@ class revolutx(Exchange, ImplicitAPI):
             if response is None:
                 return None
             feedback = self.id + ' ' + body
-            errorMessage = None
-            if isinstance(response, dict):
-                errorMessage = self.safe_string_2(response, 'message', 'error')
+            errorMessage = self.safe_string_2(response, 'message', 'error')
             if errorMessage is not None:
                 self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
             return None

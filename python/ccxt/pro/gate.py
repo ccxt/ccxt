@@ -842,10 +842,10 @@ class gate(ccxt.async_support.gate):
         marketType = 'spot'
         if rawMarketType == 'futures':
             marketType = 'contract'
-        result = self.safe_value(message, 'result')
+        resultList = self.safe_list(message, 'result')
         results = []
-        if isinstance(result, list):
-            results = self.safe_list(message, 'result', [])
+        if resultList is not None:
+            results = resultList
         else:
             rawTicker = self.safe_dict(message, 'result', {})
             results = [rawTicker]
@@ -1097,12 +1097,12 @@ class gate(ccxt.async_support.gate):
         marketType = 'contract'
         if rawMarketType == 'spot':
             marketType = 'spot'
-        rawResult = self.safe_value(message, 'result')
+        resultList = self.safe_list(message, 'result')
         result = []
-        if isinstance(rawResult, list):
+        if resultList is not None:
             result = self.safe_list(message, 'result', [])
         else:
-            result = [rawResult]
+            result = [self.safe_value(message, 'result')]
         marketIds = {}
         for i in range(0, len(result)):
             ohlcv = result[i]
@@ -1331,8 +1331,10 @@ class gate(ccxt.async_support.gate):
         #
         result = self.safe_list(message, 'result', [])
         self.balance['info'] = result
-        for i in range(0, len(result)):
-            rawBalance = self.safe_dict(result, i)
+        rows = self.safe_list(message, 'result', [])
+        rowsLength = len(rows)
+        for i in range(0, rowsLength):
+            rawBalance = self.safe_dict(rows, i)
             account = self.account()
             currencyId = self.safe_string(rawBalance, 'currency', 'USDT')  # when not present it is USDT
             code = self.safe_currency_code(currencyId)
@@ -1634,17 +1636,18 @@ class gate(ccxt.async_support.gate):
         marketIds = {}
         parsedOrders = self.parse_orders(orders)
         for i in range(0, len(parsedOrders)):
-            parsed = parsedOrders[i]
             # inject order status
-            info = self.safe_dict(parsed, 'info')
+            info = self.safe_dict(parsedOrders[i], 'info')
             event = self.safe_string(info, 'event')
+            statusUpdate = {}
             if event == 'put' or event == 'update':
-                parsed['status'] = 'open'
+                statusUpdate['status'] = 'open'
             elif event == 'finish':
-                status = self.safe_string(parsed, 'status')
+                status = self.safe_string(parsedOrders[i], 'status')
                 if status is None:
                     left = self.safe_string(info, 'left')
-                    parsed['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
+                    statusUpdate['status'] = 'closed' if Precise.string_equals(left, '0') else 'canceled'
+            parsed = self.extend(parsedOrders[i], statusUpdate)
             stored.append(parsed)
             symbol = self.safe_string(parsed, 'symbol')
             market = self.market(symbol)

@@ -2174,12 +2174,7 @@ class btse(Exchange, ImplicitAPI):
                     query = self.omit(query, ['trailingAmount', 'trailingPercent', 'triggerPriceType'])
                 # TWAP orders require the timePeriod param which passes through
             response = await self.privatePostFuturesApiV3TradeOrdersAlgo(self.extend(request, query))
-        # the normal futures endpoint responds with a single order dict, keep a
-        # one element array guard in case a gateway wraps it
-        order = response
-        if isinstance(response, list):
-            order = self.safe_dict(response, 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(response, market)
 
     def encode_trigger_price_type(self, priceType: Str) -> Str:
         priceTypes = {

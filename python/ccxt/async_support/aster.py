@@ -1272,7 +1272,7 @@ class aster(Exchange, ImplicitAPI):
         id = self.safe_string_2(trade, 'id', 'a')
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'spot'
-        if 'positionSide' in trade:
+        if self.safe_string(trade, 'positionSide') is not None:
             marketType = 'swap'
         marketResolved = self.safe_market(marketId, market, None, marketType)
         currencyId = self.safe_string_2(trade, 'commissionAsset', 'marginAsset')
@@ -1541,12 +1541,12 @@ class aster(Exchange, ImplicitAPI):
         baseVolume = self.safe_string(ticker, 'volume')
         high = self.safe_string(ticker, 'highPrice')
         low = self.safe_string(ticker, 'lowPrice')
-        isTickerResponse = ('priceChange' in ticker)
+        isTickerResponse = (self.safe_string(ticker, 'priceChange') is not None)
         marketType = None
         if isTickerResponse:
-            marketType = 'spot' if ('baseAsset' in ticker) else 'swap'
+            marketType = 'spot' if (self.safe_string(ticker, 'baseAsset') is not None) else 'swap'
         else:
-            marketType = 'swap' if ('lastUpdateId' in ticker) else 'spot'
+            marketType = 'swap' if (self.safe_integer(ticker, 'lastUpdateId') is not None) else 'spot'
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market, None, marketType)
         return self.safe_ticker({
@@ -3456,7 +3456,7 @@ class aster(Exchange, ImplicitAPI):
         contractSize = self.safe_number(marketResolved, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         # as oppose to notionalValue
-        linear = ('notional' in position)
+        linear = (self.safe_string(position, 'notional') is not None)
         if marginMode == 'cross':
             # calculate collateral
             precision = self.safe_dict(marketResolved, 'precision', {})

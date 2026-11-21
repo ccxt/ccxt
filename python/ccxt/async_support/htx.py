@@ -1702,7 +1702,7 @@ class htx(Exchange, ImplicitAPI):
             settleId = None
             id = None
             lowercaseId = None
-            contract = ('contract_code' in market)
+            contract = (self.safe_string(market, 'contract_code') is not None)
             spot = not contract
             swap = False
             future = False
@@ -1912,11 +1912,9 @@ class htx(Exchange, ImplicitAPI):
             marketLinear = self.safe_bool(market, 'linear', False)
             marketSymbol = self.safe_string(market, 'symbol', '')
             # see comment on formats a bit above
-            constructedId = None
+            constructedId = marketBase + '_' + contractSuffix
             if marketLinear:
                 constructedId = marketBase + '-' + marketQuote + '-' + contractSuffix
-            else:
-                constructedId = marketBase + '_' + contractSuffix
             if constructedId == symbolOrMarketId:
                 futureMarketIdsForSymbolsDict1 = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
                 futureMarketIdsForSymbolsDict1[symbolOrMarketId] = marketSymbol
@@ -3278,8 +3276,9 @@ class htx(Exchange, ImplicitAPI):
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
         uniqueNetworkIds = self.safe_dict(self.options['networkChainIdsByNames'], currencyCode, {})
-        if networkCode in uniqueNetworkIds:
-            return uniqueNetworkIds[networkCode]
+        uniqueNetworkId = self.safe_string(uniqueNetworkIds, networkCode)
+        if uniqueNetworkId is not None:
+            return uniqueNetworkId
         else:
             networkTitle = super(htx, self).network_code_to_id(networkCode, currencyCode)
             return self.safe_string(uniqueNetworkIds, networkTitle, networkTitle)
@@ -4910,14 +4909,13 @@ class htx(Exchange, ImplicitAPI):
         elif marginMode == 'c2c':
             request['source'] = 'c2c-margin-api'
         isMarketBuy = (orderType == 'market') and (sideStr == 'buy')
-        requiresPriceAndParams = self.handle_option_bool_and_params(paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
-        cost = self.safe_number(requiresPriceAndParams[1], 'cost')
+        createMarketBuyOrderRequiresPrice, requiresPriceParams = self.handle_option_bool_and_params(paramsPostOnly, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+        cost = self.safe_number(requiresPriceParams, 'cost')
         paramsCost = paramsPostOnly
         if isMarketBuy:
-            paramsCost = self.omit(requiresPriceAndParams[1], 'cost')
+            paramsCost = self.omit(requiresPriceParams, 'cost')
         if isMarketBuy:
             quoteAmount = None
-            createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0]
             if cost is not None:
                 quoteAmount = self.amount_to_precision(symbol, cost)
             elif createMarketBuyOrderRequiresPrice:
@@ -5324,11 +5322,10 @@ class htx(Exchange, ImplicitAPI):
                     raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
-            marginResult = self.handle_margin_mode_and_params('createOrders', orderParams)
-            currentMarginMode = marginResult[0]
+            currentMarginMode = self.handle_margin_mode_and_params('createOrders', orderParams)[0]
             if currentMarginMode is not None:
                 if marginMode is None:
                     marginMode = currentMarginMode
@@ -5827,7 +5824,7 @@ class htx(Exchange, ImplicitAPI):
                 'clientOrderId': self.safe_string(order, 'client_order_id'),
             }))
         for i in range(0, len(success)):
-            order = success[i]
+            order = self.safe_string(success, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -7252,12 +7249,12 @@ class htx(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
-        if 'status' in response:
+        status = self.safe_string(response, 'status')
+        if status is not None:
             #
             #     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             #     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             #
-            status = self.safe_string(response, 'status')
             if status == 'error':
                 codeError = self.safe_string_2(response, 'err-code', 'err_code')
                 feedback = self.id + ' ' + body
@@ -7266,10 +7263,11 @@ class htx(Exchange, ImplicitAPI):
                 message = self.safe_string_2(response, 'err-msg', 'err_msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
-        if 'code' in response:
+        responseCode = self.safe_string(response, 'code')
+        if responseCode is not None:
             # {code: '1003', message: 'invalid signature'}
             feedback = self.id + ' ' + body
-            codeError = self.safe_string(response, 'code')
+            codeError = responseCode
             self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
         data = self.safe_dict(response, 'data')
         errorsList = self.safe_list(data, 'errors')
@@ -7395,8 +7393,7 @@ class htx(Exchange, ImplicitAPI):
             request['contract_code'] = market['id']
         response = None
         if self.safe_bool(market, 'linear', False):
-            marginModeAndParams = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
-            marginMode = marginModeAndParams[0]
+            marginMode = self.handle_margin_mode_and_params('setLeverage', params, 'cross')[0]
             request['margin_mode'] = marginMode
             response = await self.contractPrivatePostV5PositionLever(self.extend(request, query))
             #

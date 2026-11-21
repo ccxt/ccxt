@@ -418,8 +418,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
         for i in range(0, outcomeSymbolsLength):
-            if not self.has_outcome(outcomeSymbols[i]):
-                await self.fetch_outcome(outcomeSymbols[i])
+            pendingSymbol = self.safe_string(outcomeSymbols, i, '')
+            if not self.has_outcome(pendingSymbol):
+                await self.fetch_outcome(pendingSymbol)
         return self.outcomes
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
@@ -2182,7 +2183,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     if reqLimit <= 0:
                         break
                 request = {
-                    'series_ticker': seriesTickers[si],
+                    'series_ticker': self.safe_string(seriesTickers, si),
                     'status': status,
                     'with_nested_markets': True,
                     'limit': reqLimit,
