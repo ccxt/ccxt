@@ -289,7 +289,7 @@ export default class kalshi extends Exchange {
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
-                        const entryMarkets = eventEntry['markets'];
+                        const entryMarkets: Market[] = eventEntry['markets'];
                         entryMarkets.push (m);
                         eventEntry['markets'] = entryMarkets;
                     }
@@ -2239,8 +2239,10 @@ export default class kalshi extends Exchange {
             const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
-                const m = parsedMarkets[mi];
-                this.markets[m['market']] = m;
+                const marketKey = this.safeString (parsedMarkets[mi], 'market');
+                if (marketKey !== undefined) {
+                    this.markets[marketKey] = parsedMarkets[mi];
+                }
             }
         }
         this.populateOutcomes ();
