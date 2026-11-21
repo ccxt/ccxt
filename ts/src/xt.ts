@@ -966,8 +966,8 @@ export default class xt extends Exchange {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        const chainsData = this.safeList (chainsResponse, 'result', []);
-        const currenciesResult = this.safeDict (currenciesResponse, 'result', {});
+        const chainsData: Dict[] = this.safeList (chainsResponse, 'result', []);
+        const currenciesResult: Dict = this.safeDict (currenciesResponse, 'result', {});
         const currenciesData: Dict[] = this.safeList (currenciesResult, 'currencies', []);
         const chainsDataIndexed = this.indexBy (chainsData, 'currency');
         const result: Dict = {};
@@ -1874,7 +1874,7 @@ export default class xt extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
-            const symbol = ticker['symbol'];
+            const symbol: Str = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1968,7 +1968,7 @@ export default class xt extends Exchange {
             }
             const marketInner = this.safeMarket (marketId, market, '_', marketType);
             const ticker = this.parseTicker (rawTicker, marketInner);
-            const symbol = ticker['symbol'];
+            const symbol: Str = ticker['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2029,7 +2029,7 @@ export default class xt extends Exchange {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, '_', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol: Str = marketResolved['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
         const open = this.safeString (ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -5237,7 +5237,7 @@ export default class xt extends Exchange {
     indexPositionBreakList (breakList: Dict[]): Dict {
         const breakBySymbolSide: Dict = {};
         for (let i = 0; i < breakList.length; i++) {
-            const breakEntry = breakList[i];
+            const breakEntry: Dict = breakList[i];
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
