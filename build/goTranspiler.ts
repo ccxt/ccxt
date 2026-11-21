@@ -11069,6 +11069,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goTypedLenNative (content);
     content = goErrValuePass (content);
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
+    content = h27g26StructRowReads (content);  // struct list rows read by SafeDictMap / inline FromMap / len
     content = goAsyncTupleSlotReads (content, filePath);  // again: async []any producers are received as rN.Value only after GOCHAN3
     content = goAsyncMapPairHolders (content);
     content = goAsyncMapPairs (content);
@@ -16262,6 +16263,7 @@ async function runMain () {
             [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ], [ 'go async map pair holders: ', goAsyncMapPairHoldersCheck ], [ 'go async map pairs: ', goAsyncMapPairsCheck ],
             [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
+            [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
@@ -22605,3 +22607,100 @@ function gb09Check (ok: SelfTestOk): void {
     const once = f (pair + '\n' + write + '\n' + nilTest);
     ok (f (once) === once, 'idempotent');
 }
+
+// ===== h27-H27-G26: struct list rows read by SafeDictMap / inline FromMap / len
+// as goChan3StructRowReads for a `[]T` receive boxed by `TsToList` whose every read is `len(box)` or row 0
+// (`SafeMapTyped|SafeDictMap(box, 0)` with no default) fed only to `TFromMap` or a nil test: TToMap of a present
+// row is never nil, so row 0 is the typed element, the zero T when the list is empty, and the nil test is `len == 0`
+function h27g26StructRowReads (content: string): string {
+    const box = /^(\t+)var (\w+) \[\]any = ((?:ccxt\.)?)(\w+)\((r\d*)\.Value\)\n/gm;
+    const edits: Edit[] = [];
+    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
+        const [ whole, ind, name, q, toList, rl ] = m;
+        const elem = Object.keys (GO_CHAN3_STRUCT_LISTS).find ((t) => GO_CHAN3_STRUCT_LISTS[t].to === toList);
+        if ((elem === undefined) || (elem === 'map[string]any') || (elem === 'string')) {
+            continue;
+        }
+        const [ , fe0 ] = goChan3Func (content, m.index);
+        const bodyStart = m.index + whole.length;
+        const body = content.substring (bodyStart, fe0);
+        const masked = body.replace (/"(?:[^"\\\n]|\\.)*"/g, (s) => '"' + ' '.repeat (s.length - 2) + '"');
+        const T = q + elem;
+        const read = '(?:(?:' + (q ? 'ccxt\\.' : '') + 'SafeMapTyped)|this\\.SafeDictMap)\\(' + name + ', 0\\)';
+        const rowDecl = new RegExp ('^(\\t+)var (\\w+) map\\[string\\]any = ' + read + '\\n', 'gm');
+        const inline = new RegExp ('^(\\t+)(.*?)' + T.replace ('.', '\\.') + 'FromMap\\(' + read + '\\)', 'gm');
+        const local: Edit[] = [];
+        let reads = 0;
+        let bad = false;
+        const rowVar = name + 'Row0';
+        const firstRow = (i: string, v: string) => i + 'var ' + v + ' ' + T + '\n' + i + 'if len(' + name + ') > 0 {\n' + i + '\t' + v + ' = ' + name + '[0]\n' + i + '}\n';
+        const uses = (id: string, s: string) => (s.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
+        if (uses (rowVar, masked) > 0) {
+            continue;
+        }
+        let inlineCount = 0;
+        for (let r = rowDecl.exec (masked); r !== null; r = rowDecl.exec (masked)) {
+            reads++;
+            const row = r[2];
+            const from = T + 'FromMap(' + row + ')';
+            const froms = masked.split (from).length - 1;
+            const nilTest = masked.split ('if ' + row + ' == nil {').length - 1;
+            if ((froms === 0) || (uses (row, masked) !== froms + nilTest + 1) || (nilTest > 1)) {
+                bad = true;
+                break;
+            }
+            local.push ({ 'start': bodyStart + r.index, 'end': bodyStart + r.index + r[0].length, 'text': firstRow (r[1], row) });
+            for (let at = masked.indexOf (from); at >= 0; at = masked.indexOf (from, at + from.length)) {
+                local.push ({ 'start': bodyStart + at, 'end': bodyStart + at + from.length, 'text': row });
+            }
+            const nt = masked.indexOf ('if ' + row + ' == nil {');
+            if (nt >= 0) {
+                local.push ({ 'start': bodyStart + nt, 'end': bodyStart + nt + ('if ' + row + ' == nil {').length, 'text': 'if len(' + name + ') == 0 {' });
+            }
+        }
+        for (let r = inline.exec (masked); !bad && (r !== null); r = inline.exec (masked)) {
+            reads++;
+            inlineCount++;
+            if (inlineCount > 1) {
+                bad = true;
+                break;
+            }
+            const call = r[0].substring (r[1].length + r[2].length);
+            local.push ({ 'start': bodyStart + r.index, 'end': bodyStart + r.index + r[1].length, 'text': firstRow (r[1], rowVar) + r[1] });
+            local.push ({ 'start': bodyStart + r.index + r[1].length + r[2].length, 'end': bodyStart + r.index + r[0].length, 'text': rowVar });
+            if (call.length === 0) {
+                bad = true;
+            }
+        }
+        const lens = masked.split ('len(' + name + ')').length - 1;
+        if (bad || (reads === 0) || (uses (name, masked) !== reads + lens)) {
+            continue;   // the box is read some other way: keep it
+        }
+        edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': ind + 'var ' + name + ' []' + T + ' = ' + rl + '.Value\n' });
+        edits.push (...local);
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function h27g26StructRowReadsSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push (msg); } };
+    const fn = (b: string) => 'func (this *X) f(ch chan AsyncResult[Order]) {\n\tr1 := <-this.FAsync()\n\tvar result []any = OrdersToList(r1.Value)\n' + b + '}\n';
+    const inl = h27g26StructRowReads (fn ('\tvar length int = len(result)\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.SafeDictMap(result, 0))}\n'));
+    ok (inl.includes ('\tvar result []Order = r1.Value\n\tvar length int = len(result)\n\tvar resultRow0 Order\n\tif len(result) > 0 {\n\t\tresultRow0 = result[0]\n\t}\n\tch <- AsyncResult[Order]{Value: resultRow0}\n'), 'inline row: ' + inl);
+    const nil = h27g26StructRowReads (fn ('\tvar o map[string]any = this.SafeDictMap(result, 0)\n\tif o == nil {\n\t\tpanic(\"o\")\n\t}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(o)}\n'));
+    ok (nil.includes ('\tif len(result) == 0 {\n') && nil.includes ('{Value: o}') && !nil.includes ('SafeDictMap'), 'nil-tested row: ' + nil);
+    const dflt = fn ('\tch <- AsyncResult[Order]{Value: OrderFromMap(this.SafeDictMap(result, 0, map[string]any{}))}\n');
+    ok (h27g26StructRowReads (dflt) === dflt, 'a defaulted read keeps the box');
+    const field = fn ('\tvar o map[string]any = SafeMapTyped(result, 0)\n\tvar s *string = this.SafeString(o, \"status\")\n\tch <- AsyncResult[Order]{Value: OrderFromMap(o)}\n');
+    ok (h27g26StructRowReads (field) === field, 'a row read by field keeps the box');
+    const other = fn ('\tthis.Use(result)\n\tch <- AsyncResult[Order]{Value: OrderFromMap(SafeMapTyped(result, 0))}\n');
+    ok (h27g26StructRowReads (other) === other, 'a box read elsewhere keeps the box');
+    const idx = fn ('\tch <- AsyncResult[Order]{Value: OrderFromMap(SafeMapTyped(result, i))}\n');
+    ok (h27g26StructRowReads (idx) === idx, 'a variable index keeps the box');
+    const mapList = fn ('\tch <- AsyncResult[Order]{Value: OrderFromMap(SafeMapTyped(result, 0))}\n').replace ('OrdersToList', 'MapSliceToList');
+    ok (h27g26StructRowReads (mapList) === mapList, 'a map-element list keeps the box');
+    ok (h27g26StructRowReads (inl) === inl, 'idempotent');
+    return problems;
+}
+// ===== end h27-H27-G26
