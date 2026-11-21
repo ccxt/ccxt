@@ -447,9 +447,9 @@ export default class lighter extends Exchange {
     }
 
     getLighterPrivateKey (strAccountIndex: string, strApiKeyIndex: string) {
-        const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, strAccountIndex);
-        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex);
+        const auths = this.safeDict (this.options, 'auths', {});
+        const accountAuths = this.safeDict (auths, strAccountIndex, {});
+        const apiKeyAuths = this.safeDict (accountAuths, strApiKeyIndex, {});
         return this.safeString (apiKeyAuths, 'lighterPrivateKey');
     }
 
@@ -575,9 +575,9 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeString (res, 0);
         }
-        const auths = this.safeDict (this.options, 'auths');
-        const accountAuths = this.safeDict (auths, accountIndex);
-        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex);
+        const auths = this.safeDict (this.options, 'auths', {});
+        const accountAuths = this.safeDict (auths, accountIndex, {});
+        const cachedAuth = this.safeDict (accountAuths, apiKeyIndex, {});
         const cachedDeadline = this.safeInteger (cachedAuth, 'deadline');
         const minimumRemaining = this.safeInteger (this.options, 'authDeadlineMinimumRemaining', 60);
         if ((cachedDeadline !== undefined) && (minimumRemaining !== undefined) && (cachedDeadline - minimumRemaining >= this.seconds ())) {
@@ -1909,11 +1909,11 @@ export default class lighter extends Exchange {
         const result: Dict = { 'info': response };
         const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict (accounts, i);
+            const account = this.safeDict (accounts, i, {});
             if (type === 'spot') {
                 const assets: Dict[] = this.safeList (account, 'assets', []);
                 for (let j = 0; j < assets.length; j++) {
-                    const asset = this.safeDict (assets, j);
+                    const asset = this.safeDict (assets, j, {});
                     const codeId = this.safeString (asset, 'symbol');
                     const code = this.safeCurrencyCode (codeId);
                     const balance = this.extend (this.account (), this.safeDict (result, code, {}));
@@ -2026,7 +2026,7 @@ export default class lighter extends Exchange {
         const allPositions: List = [];
         const accounts: Dict[] = this.safeList (response, 'accounts', []);
         for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict (accounts, i);
+            const account = this.safeDict (accounts, i, {});
             const positions = this.safeList (account, 'positions', []);
             for (let j = 0; j < positions.length; j++) {
                 allPositions.push (positions[j]);
