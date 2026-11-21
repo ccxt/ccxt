@@ -892,15 +892,15 @@ public class BaseExchange {
     public String secp256k1() {return "secp256k1"; }
     public String p256() {return "p256"; }
 
-    public Object hmac(Object payload, Object secret) {
+    public String hmac(Object payload, Object secret) {
         return Crypto.Hmac(payload, secret, null, null);
     }
 
-    public Object hmac(Object payload, Object secret, Object algo) {
+    public String hmac(Object payload, Object secret, Object algo) {
         return Crypto.Hmac(payload, secret, algo, null);
     }
 
-    public Object hmac(Object payload, Object secret, Object algo, Object encoding) {
+    public String hmac(Object payload, Object secret, Object algo, Object encoding) {
         return Crypto.Hmac(payload, secret, algo, (String) encoding);
     }
 
@@ -920,7 +920,7 @@ public class BaseExchange {
         return Crypto.Rsa(payload, publicKey, algo, padding);
     }
 
-    public Object eddsa(Object payload, Object secret, Object algo) {
+    public String eddsa(Object payload, Object secret, Object algo) {
         return Crypto.Eddsa(payload, secret, algo);
     }
 
