@@ -496,7 +496,7 @@ export default class paradex extends paradexRest {
     cleanUnsubscribed (client: Client, unsubHash: string, subscription: Dict) {
         const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
         for (let j = 0; j < subscribeHashes.length; j++) {
-            const subscribeHash = subscribeHashes[j] as string;
+            const subscribeHash: string = subscribeHashes[j] as string;
             if (subscribeHash in client.subscriptions) {
                 delete client.subscriptions[subscribeHash];
             }
@@ -533,7 +533,8 @@ export default class paradex extends paradexRest {
         let messageHash = 'trades.ALL';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = 'trades.' + market['id'];
+            const marketId: string = this.safeString (market, 'id', '');
+            messageHash = 'trades.' + marketId;
         }
         const url = this.getWsUrl ();
         await this.waitForPendingUnsubscribe (url, [ messageHash ]);
@@ -573,7 +574,8 @@ export default class paradex extends paradexRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market (symbolsNormalized[i]);
-            channels.push ('trades.' + market['id']);
+            const marketId: string = this.safeString (market, 'id', '');
+            channels.push ('trades.' + marketId);
         }
         const url = this.getWsUrl ();
         // handleTrade resolves the channel of each market
@@ -621,7 +623,8 @@ export default class paradex extends paradexRest {
         const channels: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (symbolsNormalized[i]);
-            channels.push ('trades.' + market['id']);
+            const marketId: string = this.safeString (market, 'id', '');
+            channels.push ('trades.' + marketId);
         }
         // the watchers of a market wait on its channel
         return await this.unsubscribeChannels (this.getWsUrl (), 'trades', channels, channels, symbolsNormalized, params);
@@ -643,7 +646,8 @@ export default class paradex extends paradexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const channel = 'trades.' + market['id'];
+        const marketId: string = this.safeString (market, 'id', '');
+        const channel = 'trades.' + marketId;
         const messageHash = 'liquidations:' + market['symbol'];
         const url = this.getWsUrl ();
         const liquidations = await this.subscribeChannels (url, [ messageHash ], [ channel ], params);
@@ -1220,7 +1224,8 @@ export default class paradex extends paradexRest {
         const pendingHashes: string[] = [ channel, channel + ':scoped' ];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            pendingHashes.push (channel + '.' + market['id']);
+            const pendingId: string = this.safeString (market, 'id', '');
+            pendingHashes.push (channel + '.' + pendingId);
         }
         await this.waitForPendingUnsubscribe (url, pendingHashes);
         const client = this.client (url);
@@ -1324,7 +1329,8 @@ export default class paradex extends paradexRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market ((symbolsNormalized as string[])[i]);
-                channels.push ('bbo.' + market['id']);
+                const marketId: string = this.safeString (market, 'id', '');
+                channels.push ('bbo.' + marketId);
                 messageHashes.push ('bidask:' + market['symbol']);
             }
         } else {
@@ -1364,7 +1370,8 @@ export default class paradex extends paradexRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsLength; i++) {
                 const market = this.market ((symbolsNormalized as string[])[i]);
-                channels.push ('bbo.' + market['id']);
+                const marketId: string = this.safeString (market, 'id', '');
+                channels.push ('bbo.' + marketId);
                 subMessageHashes.push ('bidask:' + market['symbol']);
                 bidAskSymbols.push (market['symbol']);
             }
@@ -1441,7 +1448,8 @@ export default class paradex extends paradexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel = 'orders.' + market['id'];
+            const marketId: string = this.safeString (market, 'id', '');
+            channel = 'orders.' + marketId;
             messageHash = 'orders:' + symbolResolved;
         }
         const url = this.getWsUrl ();
@@ -1524,7 +1532,8 @@ export default class paradex extends paradexRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel = 'fills.' + market['id'];
+            const marketId: string = this.safeString (market, 'id', '');
+            channel = 'fills.' + marketId;
             messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.getWsUrl ();
@@ -1834,7 +1843,8 @@ export default class paradex extends paradexRest {
         }
         const market = this.market (symbol);
         // the per-market channel, the all-markets one sends every perpetual's funding
-        const channel = 'funding_data.' + market['id'];
+        const marketId: string = this.safeString (market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const url = this.getWsUrl ();
         // its own hash: funding_data.<symbol> is the hash of watchFundingRates on the all-markets channel
         const messageHash = 'fundingRate:' + market['symbol'];
@@ -1855,7 +1865,8 @@ export default class paradex extends paradexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const channel = 'funding_data.' + market['id'];
+        const marketId: string = this.safeString (market, 'id', '');
+        const channel = 'funding_data.' + marketId;
         const messageHash = 'fundingRate:' + market['symbol'];
         return await this.unsubscribeChannels (this.getWsUrl (), 'fundingRate', [ channel ], [ messageHash ], [ market['symbol'] ], params);
     }
