@@ -1159,7 +1159,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) map[string]any {
 			"nonce": nonce,
 		}, params)
 		var request string = this.Urlencode(query)
-		var secret any = this.Hash(this.Encode(this.Secret), md5)
+		var secret string = this.HashString(this.Encode(this.Secret), md5, "hex")
 		query["signature"] = this.Hmac(this.Encode(request), this.Encode(secret), sha256)
 		var signedBody string = this.Urlencode(query)
 		var signedHeaders map[string]any = map[string]any{

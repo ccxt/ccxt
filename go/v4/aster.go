@@ -1164,7 +1164,11 @@ func (this *Aster) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 		panic(r.Err)
 	}
 	var sapiResult map[string]any = r.Value
-	var sapiRows []any = this.SafeListSlice(sapiResult, "assets", []any{})
+	var sapiRows []any
+	sapiRows, _ = sapiResult["assets"].([]any)
+	if sapiRows == nil {
+		sapiRows = []any{}
+	}
 
 	//
 	//     [
@@ -1359,7 +1363,7 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 		return nil
 	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
-	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var tradingFees, _ = this.Fees["trading"].(map[string]any)
 	var spot bool
 	var symbol any = nil
 	var settle *string = nil
@@ -4824,7 +4828,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
-	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
+	var leverageBrackets, _ = this.Options["leverageBrackets"].(map[string]any)
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
@@ -5208,7 +5212,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
 	var contracts *float64 = this.ParseNumber(contractsStringAbs)
-	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
+	var leverageBrackets, _ = this.Options["leverageBrackets"].(map[string]any)
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
@@ -5423,7 +5427,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 	}
 	// by default cache the leverage bracket
 	// it contains useful stuff like the maintenance margin and initial margin for positions
-	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
+	var leverageBrackets, _ = this.Options["leverageBrackets"].(map[string]any)
 	if (leverageBrackets == nil) || (reload == true) {
 
 		responseRecv := <-this.FapiPrivateGetV3LeverageBracket(params)
@@ -5583,14 +5587,14 @@ func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	}
 	var chainId *int64 = this.SafeInteger(paramsWithdrawTag, "chainId")
 	// TODO: check how ARBI signature would work
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper(paramsWithdrawTag, "network")
 	if network != nil {
 		network = this.SafeString(this.NetworkAliases, network, network) // accepts aliases like ETH for ERC20
 	}
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
-		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")
+		var chainIds, _ = this.Options["networksToChainId"].(map[string]any)
 		chainId = this.SafeInteger(chainIds, network)
 	}
 	if chainId == nil {

@@ -1037,7 +1037,13 @@ func (this *Kraken) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r.Value)
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+		var first map[string]any
+		if trades != nil {
+			var firstRows []any = trades.ToArray()
+			if len(firstRows) > 0 {
+				first, _ = firstRows[0].(map[string]any)
+			}
+		}
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1243,8 +1249,8 @@ func (this *Kraken) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		panic(r.Err)
 	}
 	var name string = "ohlc"
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = market.Symbol
 	var url *string = this.UrlsApiSectionStrings["ws"]["publicV2"]
 	var requestId int64 = this.RequestId()
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbolValue)
@@ -1300,8 +1306,8 @@ func (this *Kraken) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue *string = market.Symbol
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var unsubMessageHash string = "unsubscribe:" + this.GetMessageHash("ohlcv", interval, symbolValue)
 	var unsubscribe map[string]any = map[string]any{
@@ -2378,7 +2384,7 @@ func (this *Kraken) HandleUnsubscriptionStatus(client any, message map[string]an
 	//         "time_out": "2026-10-26T16:12:36.610502Z"
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	var channel *string = this.SafeString(result, "channel")
 	var symbol *string = this.SafeSymbol(this.SafeString(result, "symbol"))
 	if channel != nil && *channel == "trade" {

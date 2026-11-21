@@ -1252,7 +1252,7 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 			maxLeverage = &maxLeverageValue
 		}
 	}
-	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var tradingFees, _ = this.Fees["trading"].(map[string]any)
 	var fees map[string]any = nil
 	if isSpot {
 		fees = this.SafeDictMap(tradingFees, "spot")
@@ -1340,7 +1340,11 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var coins []any = this.SafeListSlice(response, "coins", []any{})
+	var coins []any
+	coins, _ = response["coins"].([]any)
+	if coins == nil {
+		coins = []any{}
+	}
 
 	//
 	//     {
@@ -2150,11 +2154,11 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	marketTypeOption, paramsMarketType := this.HandleMarketTypeAndParams(methodName, nil, params, marketType)
 	if marketTypeOption != nil && *marketTypeOption == "swap" {
 
-		r1 := <-this.PrivateGetApiV1FuturesBalance(paramsMarketType)
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PrivateGetApiV1FuturesBalance(paramsMarketType)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r1.Raw
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//         {
@@ -2173,11 +2177,11 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		return nil
 	} else if marketTypeOption != nil && *marketTypeOption == "spot" {
 
-		r2 := <-this.PrivateGetApiV1Account(this.Extend(request, paramsMarketType))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.PrivateGetApiV1Account(this.Extend(request, paramsMarketType))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r1.Value
 
 		//
 		//     {
@@ -2201,7 +2205,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeOption + " type of markets"))
 	}
 }
-func (this *Hashkey) ParseBalance(balance any) map[string]any {
+func (this *Hashkey) ParseBalance(balance map[string]any) map[string]any {
 	//
 	//     {
 	//         "balances": [
@@ -4782,8 +4786,8 @@ func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	return this.SafePosition(map[string]any{
 		"symbol":                      symbol,
 		"id":                          nil,
@@ -5174,7 +5178,11 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], 
 	}
 	var response map[string]any = r1.Value
 	// response is the same as in fetchMarkets()
-	var data []any = this.SafeListSlice(response, "contracts", []any{})
+	var data []any
+	data, _ = response["contracts"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(data, symbolsNormalized, "symbol"))}

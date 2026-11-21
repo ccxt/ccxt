@@ -599,7 +599,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//         "stream_type": "SNAPSHOT"
 	//     }
 	//
-	var content map[string]any = ccxt.SafeMapTyped(message, "content")
+	var content, _ = message["content"].(map[string]any)
 	if content != nil {
 		var list []any = this.SafeListSlice(content, "list", []any{})
 		var first map[string]any = ccxt.SafeMapTyped(list, 0)
@@ -633,7 +633,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	if symbol == nil {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var obLimit *int64 = this.SafeInteger(options, "limit", 1000)
 	if !(this.Orderbooks[*symbol] != nil) {
 		this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, obLimit)
@@ -811,7 +811,7 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 	//         "stream_type": "REALTIME"
 	//     }
 	//
-	var content map[string]any = ccxt.SafeMapTyped(message, "content")
+	var content, _ = message["content"].(map[string]any)
 	var rawTrades []any = this.SafeListSlice(content, "list", []any{message})
 	for i := 0; i < len(rawTrades); i++ {
 		var rawTrade any = rawTrades[i]
@@ -923,7 +923,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) bool
 	//        "resmsg" : "Invalid Filter Syntax"
 	//    }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error != nil {
 		var errorName string = *this.SafeString(error, "name", "Error")
 		var errorMessage string = *this.SafeString(error, "message", "")

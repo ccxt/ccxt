@@ -1015,7 +1015,7 @@ func (this *Poloniex) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 		panic(r.Err)
 	}
 	var markets map[string]any = r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexBy(this.Currencies, "numericId")
 	}
@@ -1152,7 +1152,11 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface
 	//                "limitMaxQty": "1000000"
 	//            },
 	//
-	var markets []any = this.SafeListSlice(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1947,7 +1951,11 @@ func (this *Poloniex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 		//             cT: "1740777074704",
 		//         },
 		//
-		var tradesList []any = this.SafeListSlice(response, "data", []any{})
+		var tradesList []any
+		tradesList, _ = response["data"].([]any)
+		if tradesList == nil {
+			tradesList = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tradesList, market, since, limit))}
 		return nil
@@ -2089,7 +2097,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		//                "actType": "TRADING"
 		//            },
 		//
-		var data []any = this.SafeListSlice(raw, "data", []any{})
+		var data []any
+		data, _ = raw["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 		return nil
@@ -2271,12 +2283,11 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
 	var feeCurrencyCode any = nil
 	var rate *string = this.SafeString(order, "fee")
 	if feeCurrency == nil {
-		feeCurrencyCode = func() any {
-			if side != nil && *side == "buy" {
-				return marketResolved["base"]
-			}
-			return marketResolved["quote"]
-		}()
+		if side != nil && *side == "buy" {
+			feeCurrencyCode = marketResolved["base"]
+		} else {
+			feeCurrencyCode = marketResolved["quote"]
+		}
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
 		if derefPtr := this.SafeCurrencyCode(feeCurrency); derefPtr != nil {
@@ -2591,7 +2602,11 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	//                "qCcy": "USDT"
 	//            },
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3144,7 +3159,11 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		//         ]
 		//     }
 		//
-		var data []any = this.SafeListSlice(responseRaw, "data", []any{})
+		var data []any
+		data, _ = responseRaw["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 		return nil
@@ -3585,7 +3604,11 @@ func (this *Poloniex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		//        }
 		//    }
 		//
-		var data map[string]any = this.SafeDictMap(responseRaw, "data", map[string]any{})
+		var data map[string]any
+		data, _ = responseRaw["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 		return nil
@@ -3730,7 +3753,11 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		//       "msg": "Success"
 		//    }
 		//
-		var data map[string]any = this.SafeDictMap(responseRaw, "data", map[string]any{})
+		var data map[string]any
+		data, _ = responseRaw["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var ts *int64 = this.SafeInteger(data, "ts")
 
 		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, ts))}
@@ -3970,7 +3997,7 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		panic(r.Err)
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
@@ -4155,7 +4182,7 @@ func (this *Poloniex) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 	var timestamp *int64 = this.SafeInteger(transfer, "createTime")
 	var fromAccountId *string = this.SafeString(transfer, "fromAccount")
 	var toAccountId *string = this.SafeString(transfer, "toAccount")
-	var accountIds map[string]any = SafeMapTyped(this.Options, "accountsById")
+	var accountIds, _ = this.Options["accountsById"].(map[string]any)
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString2(transfer, "id", "transferId"),
@@ -5104,7 +5131,11 @@ func (this *Poloniex) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//        ]
 	//    }
 	//
-	var positions []any = this.SafeListSlice(response, "data", []any{})
+	var positions []any
+	positions, _ = response["data"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
@@ -5153,12 +5184,11 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 	if marginMode != nil && *marginMode == "isolated" {
 		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
 		var upl *string = this.SafeString(position, "upl")
-		collateral = func() *string {
-			if (positionMargin != nil) && (upl != nil) {
-				return Precise.StringAdd(positionMargin, upl)
-			}
-			return nil
-		}()
+		if (positionMargin != nil) && (upl != nil) {
+			collateral = Precise.StringAdd(positionMargin, upl)
+		} else {
+			collateral = nil
+		}
 	}
 	// todo: some more fields
 	return this.SafePosition(map[string]any{
@@ -5240,7 +5270,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan AsyncResult[MarginModificat
 	if typeVar == "reduce" {
 		amountResolved = Precise.StringAbs(amountResolved)
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(data, market))}
 	return nil

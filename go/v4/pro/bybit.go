@@ -514,7 +514,7 @@ func (this *Bybit) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var topic string = *this.SafeString(options, "name", "tickers")
 	if (!(*this.SafeBool(market, "spot", false))) && (topic != "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
@@ -567,7 +567,7 @@ func (this *Bybit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	}
 	var url string = r1.Value
 	var paramsValue any = this.CleanParams(params)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options, _ = this.Options["watchTickers"].(map[string]any)
 	var topic string = *this.SafeString(options, "name", "tickers")
 	var marketIds []string = this.MarketIds(symbolsValue)
 	var topics []string = []string{}
@@ -627,7 +627,7 @@ func (this *Bybit) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 		}
 	}
 	var symbolsValue []string = this.MarketSymbols(symbols, nil, false)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options, _ = this.Options["watchTickers"].(map[string]any)
 	var topic string = *this.SafeString(options, "name", "tickers")
 	var messageHashes []string = []string{}
 	var subMessageHashes []string = []string{}
@@ -1727,7 +1727,13 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		panic(r2.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -3648,7 +3654,7 @@ func (this *Bybit) HandleErrorMessage(client any, message map[string]any) bool {
 			var success *bool = this.SafeBool(message, "success")
 			if (success != nil) && (!(success != nil && *success)) {
 				var ret_msg string = *this.SafeString(message, "ret_msg", "")
-				var request map[string]any = ccxt.SafeMapTyped(message, "request")
+				var request, _ = message["request"].(map[string]any)
 				var op *string = this.SafeString(request, "op")
 				if op != nil && *op == "auth" {
 					panic(ccxt.AuthenticationError("Authentication failed: " + ret_msg))

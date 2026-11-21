@@ -1099,7 +1099,13 @@ func (this *Bitbns) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(first, market)}
 	return nil
@@ -1187,7 +1193,11 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//         "code":200
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -1368,7 +1378,11 @@ func (this *Bitbns) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "code": 200
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1501,7 +1515,11 @@ func (this *Bitbns) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         "code":200
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -1557,7 +1575,11 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//
 	//     ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil

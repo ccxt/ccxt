@@ -699,7 +699,7 @@ func (this *Revolutx) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var metadata map[string]any = SafeMapTyped(response, "metadata")
+	var metadata, _ = response["metadata"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
@@ -838,8 +838,12 @@ func (this *Revolutx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//         "metadata": { "region": "UK", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var metadata map[string]any = SafeMapTyped(response, "metadata")
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+	var metadata, _ = response["metadata"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -948,7 +952,11 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1138,12 +1146,11 @@ func (this *Revolutx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		var staked *string = this.SafeString(balance, "staked")
 		var used any = reserved
 		if staked != nil {
-			used = func() any {
-				if reserved == nil {
-					return staked
-				}
-				return Precise.StringAdd(reserved, staked)
-			}()
+			if reserved == nil {
+				used = staked
+			} else {
+				used = Precise.StringAdd(reserved, staked)
+			}
 		}
 		account["used"] = used
 		account["total"] = this.SafeString(balance, "total")
@@ -1624,7 +1631,11 @@ func (this *Revolutx) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

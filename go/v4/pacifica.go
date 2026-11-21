@@ -887,7 +887,11 @@ func (this *Pacifica) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//   "error": null,
 	//   "code": null
 	// }
-	var markets []any = this.SafeListSlice(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -998,7 +1002,7 @@ func (this *Pacifica) ParseMarket(market any) map[string]any {
 	if isSwap {
 		symbol = *base + "/" + *quote + ":" + *quote
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
+	var fees, _ = this.Fees[typeVar].(map[string]any)
 	var taker *float64 = this.SafeNumber(fees, "taker")
 	var maker *float64 = this.SafeNumber(fees, "maker")
 	var amountPrecision *float64 = this.SafeNumber(market, "lot_size")
@@ -1126,7 +1130,11 @@ func (this *Pacifica) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//   "error": null,
 	//   "code": null
 	// }
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var result map[string]any = map[string]any{
 		"info": data,
 	}
@@ -1343,8 +1351,8 @@ func (this *Pacifica) ParseAccountSettings(settings any) map[string]any {
 	for i := 0; i < settingsLen; i++ {
 		var setting any = GetValue(settings, i)
 		var marketId *string = this.SafeString(setting, "symbol")
-		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
+		var symbol *string = market.Symbol
 		if symbol != nil {
 			settingsBySymbol[*symbol] = setting
 		}
@@ -1519,8 +1527,9 @@ func (this *Pacifica) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//   "error": null,
 	//   "code": null
 	// }
-	var data map[string]any = SafeMapTyped(response, "data")
-	var levels []any = SafeListTyped(data, "l")
+	var data, _ = response["data"].(map[string]any)
+	var levels []any
+	levels, _ = data["l"].([]any)
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
 		"asks": this.SafeList(levels, 1, []any{}),
@@ -1579,7 +1588,11 @@ func (this *Pacifica) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//     "code": null
 	//   }
 	//
-	var result []any = this.SafeListSlice(response, "data", []any{})
+	var result []any
+	result, _ = response["data"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(result, symbols))}
 	return nil
@@ -1602,8 +1615,8 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) FundingRat
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var funding *float64 = this.SafeNumber(info, "funding")
 	var markPx *float64 = this.SafeNumber(info, "mark")
 	var oraclePx *float64 = this.SafeNumber(info, "oracle")
@@ -1747,7 +1760,11 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//   "code": null
 	// }
 	//
-	var candles []any = this.SafeListSlice(response, "data", []any{})
+	var candles []any
+	candles, _ = response["data"].([]any)
+	if candles == nil {
+		candles = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
 	return nil
@@ -1832,7 +1849,11 @@ func (this *Pacifica) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//   "last_order_id": 1557404170
 	// }
 	//
-	var recentTrades []any = this.SafeListSlice(response, "data", []any{})
+	var recentTrades []any
+	recentTrades, _ = response["data"].([]any)
+	if recentTrades == nil {
+		recentTrades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(recentTrades, market, since, limit))}
 	return nil
@@ -2313,7 +2334,7 @@ func (this *Pacifica) BatchOrdersRequest(actions []any) map[string]any {
 		"actions": actions,
 	}
 }
-func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) any {
+func (this *Pacifica) CreateOrdersRequest(orders []any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var actions []any = []any{}
@@ -2373,7 +2394,7 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.CreateOrdersRequest(orders)
+	var request map[string]any = this.CreateOrdersRequest(orders)
 
 	r2 := <-this.PrivatePostOrdersBatch(this.Extend(request, params))
 	if r2.Err != nil {
@@ -2398,7 +2419,7 @@ func (this *Pacifica) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	//     "code": null
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
@@ -2462,7 +2483,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a \"symbol\" argument!"))
 	}
-	var request any = this.CancelOrdersRequest(ids, symbol, params)
+	var request map[string]any = this.CancelOrdersRequest(ids, symbol, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderIds"})
 
 	r2 := <-this.PrivatePostOrdersBatch(this.Extend(request, paramsOmitted))
@@ -2489,7 +2510,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	//     "code": null
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var results []map[string]any = this.SafeListMapsTyped(data, "results")
 	var ordersToReturn []any = []any{}
 	for i := 0; i < len(results); i++ {
@@ -2512,7 +2533,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ordersToReturn)}
 	return nil
 }
-func (this *Pacifica) CancelOrdersRequest(ids []string, optionalArgs ...any) any {
+func (this *Pacifica) CancelOrdersRequest(ids []string, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2520,7 +2541,7 @@ func (this *Pacifica) CancelOrdersRequest(ids []string, optionalArgs ...any) any
 	var actions []any = []any{}
 	for i := 0; i < len(ids); i++ {
 		var id *string = this.SafeString(ids, i)
-		var request any = this.CancelOrderRequest(id, symbol, params)
+		var request map[string]any = this.CancelOrderRequest(id, symbol, params)
 		var action map[string]any = map[string]any{
 			"type": "Cancel",
 			"data": request,
@@ -2534,7 +2555,7 @@ func (this *Pacifica) CancelOrdersRequest(ids []string, optionalArgs ...any) any
 		var cloidParams map[string]any = map[string]any{
 			"clientOrderId": cloid,
 		}
-		var request any = this.CancelOrderRequest(cloid, symbol, this.Extend(cloidParams, paramsOmitted))
+		var request map[string]any = this.CancelOrderRequest(cloid, symbol, this.Extend(cloidParams, paramsOmitted))
 		var action map[string]any = map[string]any{
 			"type": "Cancel",
 			"data": request,
@@ -2579,7 +2600,7 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var request any = this.CancelAllOrdersRequest(symbol, params)
+	var request map[string]any = this.CancelAllOrdersRequest(symbol, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"excludeReduceOnly", "expiryWindow"})
 
 	r2 := <-this.PrivatePostOrdersCancelAll(this.Extend(request, paramsOmitted))
@@ -2603,7 +2624,7 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	}))})}
 	return nil
 }
-func (this *Pacifica) CancelAllOrdersRequest(symbol *string, optionalArgs ...any) any {
+func (this *Pacifica) CancelAllOrdersRequest(symbol *string, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var operationType string = "cancel_all_orders"
@@ -2662,7 +2683,7 @@ func (this *Pacifica) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
-	var request any = this.CancelOrderRequest(id, symbol, params)
+	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"})
 	var response map[string]any = nil
@@ -2702,7 +2723,7 @@ func (this *Pacifica) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	})}
 	return nil
 }
-func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
+func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) map[string]any {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2769,7 +2790,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		panic(r1.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
+	var request map[string]any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
 	r2 := <-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))
@@ -2794,7 +2815,7 @@ func (this *Pacifica) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	})}
 	return nil
 }
-func (this *Pacifica) EditOrderRequest(id *string, symbol string, typeVar string, side string, amount any, price any, market map[string]any, optionalArgs ...any) any {
+func (this *Pacifica) EditOrderRequest(id *string, symbol string, typeVar string, side string, amount any, price any, market map[string]any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if false {
@@ -3252,7 +3273,11 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	//   "last_order_id": 1557370337
 	// }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -3686,9 +3711,13 @@ func (this *Pacifica) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = PositionsToList(r.Value)
+	var positions []Position = r.Value
+	var positionsRow Position
+	if len(positions) > 0 {
+		positionsRow = positions[0]
+	}
 
-	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
+	ch <- AsyncResult[Position]{Value: positionsRow}
 	return nil
 }
 
@@ -3777,8 +3806,8 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position 
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var margin *string = this.SafeString(position, "margin")
 	var rawIsolated *bool = this.SafeBool(position, "isolated")
 	var isIsolated bool = (margin != nil) && (margin == nil || *margin != "0")
@@ -4048,7 +4077,11 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	//   "error": null,
 	//   "code": null
 	// }
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}
 	return nil
@@ -4090,7 +4123,11 @@ func (this *Pacifica) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
@@ -4170,7 +4207,11 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(data, symbolsNormalized))}
 	return nil
@@ -4460,7 +4501,11 @@ func (this *Pacifica) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var deposits []any = this.FilterBy(transactions, "type", "deposit")
 
@@ -4513,7 +4558,11 @@ func (this *Pacifica) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var transactions []any = this.ParseTransactions(data, this.SafeCurrency(code))
 	var withdrawals []any = this.FilterBy(transactions, "type", "withdrawal")
 
@@ -4650,7 +4699,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//   "next_cursor": "11114Lz77",
 	//   "has_more": true
 	// }
-	var data any = this.AddPaginationCursorToResult(response)
+	var data []any = this.AddPaginationCursorToResult(response)
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(data, market, since, limit))}
 	return nil
@@ -4672,8 +4721,8 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	var id *string = this.SafeString(income, "history_id")
 	var timestamp *int64 = this.SafeInteger(income, "created_at")
 	var marketId *string = this.SafeString(income, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var amount *string = this.SafeString(income, "payout")
 	var code *string = this.SafeCurrencyCode("USDC")
 	var rate *float64 = this.SafeNumber(income, "rate")
@@ -4744,7 +4793,11 @@ func (this *Pacifica) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	//   "code": null
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: TransferEntryFromMap(this.Extend(TransferEntryToMap(this.ParseTransfer(data, currency)), map[string]any{
 		"amount":      amount,
@@ -5181,7 +5234,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(paramsOmitted)
 		requestBody = &jsonText
 	}
-	if !IsEqual(this.HandleOption("sign", "apiKey"), nil) {
+	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
 	return map[string]any{
@@ -5198,7 +5251,7 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path stri
 	var costNumber *float64 = this.ParseNumber(cost)
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
 	if costNumber != nil && *costNumber > 1 {
-		if !IsEqual(this.HandleOption(method, "apiKey"), nil) {
+		if this.HandleOption(method, "apiKey") != nil {
 			var costWithKey any = this.HandleOption(method, "maxCostHugeWithApiKey", 3)
 			return costWithKey
 		}

@@ -802,7 +802,7 @@ func (this *Bitfinex) Describe() map[string]any {
 	})
 }
 func (this *Bitfinex) IsFiat(code any) bool {
-	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
+	var fiat, _ = this.Options["fiat"].(map[string]any)
 	return (InOp(fiat, code))
 }
 func (this *Bitfinex) GetCurrencyName(code string) any {
@@ -1309,7 +1309,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 			panic(r.Err)
 		}
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
+	var accountsByType, _ = this.Options["v2AccountsByType"].(map[string]any)
 	var requestedType *string = this.SafeString(params, "type", "exchange")
 	var accountType *string = this.SafeString(accountsByType, requestedType, requestedType)
 	if accountType == nil {
@@ -1391,7 +1391,7 @@ func (this *Bitfinex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 			panic(r.Err)
 		}
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
+	var accountsByType, _ = this.Options["v2AccountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount)
 	if fromId == nil {
 		var keys []string = nil
@@ -3676,7 +3676,7 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var fiat map[string]any = SafeMapTyped(this.Options, "fiat")
+	var fiat, _ = this.Options["fiat"].(map[string]any)
 	var feeData []any = SafeListTyped(response, 4)
 	var makerData []any = SafeListTyped(feeData, 0)
 	var takerData []any = SafeListTyped(feeData, 1)
@@ -3868,7 +3868,7 @@ func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if tag != nil {
 		request["payment_id"] = tag
 	}
-	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
+	var withdrawOptions, _ = this.Options["withdraw"].(map[string]any)
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
 	if includeFee != nil && *includeFee {
 		request["fee_deduct"] = 1

@@ -364,7 +364,13 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -471,7 +477,13 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResu
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -523,7 +535,13 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult
 		panic(r1.Err)
 	}
 	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(orders, 0)
+	var first map[string]any
+	if orders != nil {
+		var firstRows []any = orders.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -852,8 +870,8 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) map[s
 		}
 	}
 	var parsedSymbol *string = ccxt.SafeStringPtr(parsed["symbol"])
-	var marketResolved map[string]any = this.Market(parsedSymbol)
-	var feeCurrency *string = ccxt.SafeStringPtr(marketResolved["quote"])
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(parsedSymbol))
+	var feeCurrency *string = marketResolved.QuoteCurrency
 	var feeCost *string = nil
 	var cost *string = this.SafeString(parsed, "cost")
 	if (cost != nil) && (feeRate != nil) {

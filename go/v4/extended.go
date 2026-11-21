@@ -511,7 +511,7 @@ func (this *Extended) loadMarketsBody(ch chan AsyncResult[map[string]any], optio
 		panic(r.Err)
 	}
 	var markets map[string]any = r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
@@ -672,7 +672,11 @@ func (this *Extended) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil
@@ -875,7 +879,11 @@ func (this *Extended) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(data)}
 	return nil
@@ -1000,7 +1008,11 @@ func (this *Extended) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//       }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
@@ -1068,7 +1080,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	var data []any = SafeListTyped(response, "data")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var marketData map[string]any = SafeMapTyped(data, i)
+		var marketData, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(marketData, "name")
 		var market map[string]any = this.SafeMarket(marketId)
 		var stats map[string]any = this.SafeDictMap(marketData, "marketStats", map[string]any{})
@@ -1210,7 +1222,11 @@ func (this *Extended) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//       }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp int64 = this.Milliseconds()
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "bid", "ask", "price", "qty")
 	if limit != nil {
@@ -1278,7 +1294,11 @@ func (this *Extended) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1374,7 +1394,7 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -1483,7 +1503,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -1729,7 +1749,11 @@ func (this *Extended) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1849,7 +1873,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -1967,7 +1991,11 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(data, market, sinceResolved, limitResolved))}
 	return nil
@@ -2053,7 +2081,11 @@ func (this *Extended) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
@@ -2118,7 +2150,11 @@ func (this *Extended) fetchAccountBody(ch chan AsyncResult[Account], optionalArg
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Account]{Value: AccountFromMap(this.ParseAccount(data))}
 	return nil
@@ -2172,7 +2208,11 @@ func (this *Extended) fetchAccountsBody(ch chan AsyncResult[[]Account], optional
 	//       }
 	//     ]}
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(data))}
 	return nil
@@ -2260,7 +2300,7 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	}
 	var response map[string]any = r2.Value
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -2425,7 +2465,7 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -2694,7 +2734,7 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 	}
 	var response map[string]any = r2.Value
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -2864,7 +2904,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId *string, optionalArgs 
 	if assetId == nil {
 		return this.SafeString(currency, "code")
 	}
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	var currencyByNumericId map[string]any = SafeMapTyped(currenciesByNumericId, assetId)
 	if currencyByNumericId != nil {
 		return this.SafeString(currencyByNumericId, "code")
@@ -3006,7 +3046,13 @@ func (this *Extended) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(first, market)}
 	return nil
@@ -3191,7 +3237,11 @@ func (this *Extended) setLeverageBody(ch chan AsyncResult[Leverage], leverage in
 	//         "data": {}
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -3284,7 +3334,11 @@ func (this *Extended) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbols))}
 	return nil
@@ -3314,9 +3368,13 @@ func (this *Extended) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = PositionsToList(r.Value)
+	var positions []Position = r.Value
+	var positionsRow Position
+	if len(positions) > 0 {
+		positionsRow = positions[0]
+	}
 
-	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0))}
+	ch <- AsyncResult[Position]{Value: positionsRow}
 	return nil
 }
 
@@ -3410,7 +3468,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)
@@ -3515,7 +3573,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan AsyncResult[map[string]an
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var cachedAccount map[string]any = SafeMapTyped(this.Options, "account")
+	var cachedAccount, _ = this.Options["account"].(map[string]any)
 	if cachedAccount != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "account", map[string]any{})}
@@ -3965,7 +4023,11 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	data["timestamp"] = now
@@ -4021,7 +4083,7 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		var order map[string]any = SafeMapTyped(response, "data")
+		var order, _ = response["data"].(map[string]any)
 		if IsEqual(amountValue, nil) {
 			if derefPtr := this.SafeNumber(order, "qty"); derefPtr != nil {
 				amountValue = *derefPtr
@@ -4081,7 +4143,11 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//         }
 	//     }
 	//
-	var responseData map[string]any = this.SafeDictMap(editResponse, "data", map[string]any{})
+	var responseData map[string]any
+	responseData, _ = editResponse["data"].(map[string]any)
+	if responseData == nil {
+		responseData = map[string]any{}
+	}
 	var market map[string]any = this.Market(symbol)
 	var now *int64 = this.SafeInteger(extendedOrderRequest, "timestamp")
 	responseData["timestamp"] = now
@@ -4486,7 +4552,11 @@ func (this *Extended) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	//       ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var orders []any = this.ParseOrders(data, market, since, limit)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
@@ -4588,7 +4658,7 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var pagination map[string]any = SafeMapTyped(response, "pagination")
+	var pagination, _ = response["pagination"].(map[string]any)
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result []any = []any{}
 	var dataLength int = len(data)

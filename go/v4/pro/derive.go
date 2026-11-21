@@ -172,7 +172,7 @@ func (this *Derive) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	// }
 	//
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var market map[string]any = this.SafeMarket(marketId)
@@ -397,8 +397,8 @@ func (this *Derive) HandleTicker(client any, message map[string]any) map[string]
 	//         }
 	//     }
 	//
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var rawData map[string]any = ccxt.SafeMapTyped(params, "data")
+	var params, _ = message["params"].(map[string]any)
+	var rawData, _ = params["data"].(map[string]any)
 	var data map[string]any = this.SafeDictMap(rawData, "instrument_ticker", map[string]any{})
 	var topic *string = this.SafeString(params, "channel", "")
 	// the slim payload does not carry the instrument name, so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
@@ -567,8 +567,8 @@ func (this *Derive) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], messageHas
 func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	if symbol != nil && this.Orderbooks[*symbol] != nil {
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
@@ -623,8 +623,8 @@ func (this *Derive) HandleUnSubscribe(client any, message map[string]any) map[st
 	//         }
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
-	var status map[string]any = ccxt.SafeMapTyped(result, "status")
+	var result, _ = message["result"].(map[string]any)
+	var status, _ = result["status"].(map[string]any)
 	if status != nil {
 		var topics []string = nil
 		if status != nil {
@@ -716,7 +716,7 @@ func (this *Derive) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 func (this *Derive) HandleTrade(client any, message map[string]any) {
 	//
 	//
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var topic *string = this.SafeString(params, "channel", "")
 	var parsedTopic []string = strings.Split(*topic, ".")
@@ -863,9 +863,7 @@ func (this *Derive) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			panic(r.Err)
 		}
 	}
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchOrders", params)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("watchOrders", params)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".orders"
 	var messageHash string = topic
@@ -942,7 +940,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 	//     }
 	// }
 	//
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var topic *string = this.SafeString(params, "channel")
 	var rawOrders []any = ccxt.SafeListTyped(params, "data")
 	for i := 0; i < len(rawOrders); i++ {
@@ -1022,9 +1020,7 @@ func (this *Derive) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 			panic(r.Err)
 		}
 	}
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("unWatchOrders", params)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("unWatchOrders", params)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".orders"
 	var messageHash string = "unwatch" + topic
@@ -1082,9 +1078,7 @@ func (this *Derive) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 			panic(r.Err)
 		}
 	}
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("watchMyTrades", params)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".trades"
 	var messageHash string = topic
@@ -1128,7 +1122,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 		this.MyTrades = myTrades
 	}
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades []any = ccxt.SafeListTyped(params, "data")
 	for i := 0; i < len(rawTrades); i++ {
@@ -1171,9 +1165,7 @@ func (this *Derive) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optional
 			panic(r.Err)
 		}
 	}
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("unWatchMyTrades", params)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("unWatchMyTrades", params)
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".trades"
 	var messageHash string = "unwatch" + topic
@@ -1224,9 +1216,7 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		}
 	}
 	fetchSnapshot, paramsSnapshot := this.HandleOptionBoolAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchBalance", paramsSnapshot)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("watchBalance", paramsSnapshot)
 	if this.Balance == nil {
 		var emptyBalances map[string]any = map[string]any{}
 		this.Balance = emptyBalances
@@ -1252,9 +1242,7 @@ func (this *Derive) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		}
 		var emptyBalance map[string]any = map[string]any{}              // hoisted: an inline literal on the right side of a property assignment derails the rust transpiler
 		var seeded map[string]any = this.Extend(snapshot, emptyBalance) // the extra extend keeps the csharp assignment dictionary-typed (CS0266 otherwise)
-		if this.Balance != nil {
-			this.Balance[*subaccountIdKey] = seeded
-		}
+		this.Balance[*subaccountIdKey] = seeded
 	}
 	var subaccountIdString *string = this.NumberToString(subaccountId)
 	var topic string = *subaccountIdString + ".balances"
@@ -1316,9 +1304,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, true)
 	fetchSnapshot, paramsSnapshot := this.HandleOptionBoolAndParams(params, "watchPositions", "fetchPositionsSnapshot", true)
-	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchPositions", paramsSnapshot)
-	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
-	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
+	subaccountId, paramsDeriveSubaccountId := this.HandleDeriveSubaccountId("watchPositions", paramsSnapshot)
 	if this.IsEmpty(this.PositionsByType) {
 		var emptySnapshots map[string]any = map[string]any{}
 		this.Options["loadedPositionsSnapshots"] = emptySnapshots
@@ -1485,7 +1471,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var topic *string = this.SafeString(params, "channel", "")
 	var topicParts []string = strings.Split(*topic, ".")
 	var subaccountIdKey *string = this.SafeString(topicParts, 0)
@@ -1534,7 +1520,9 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		updated = true
 	}
 	if updated {
-		ccxt.AddElementToObject(this.Balance, subaccountIdKey, this.SafeBalance(subBalance))
+		if subaccountIdKey != nil {
+			this.Balance[*subaccountIdKey] = this.SafeBalance(subBalance)
+		}
 		client.(ccxt.ClientInterface).Resolve(this.SafeValue(this.Balance, subaccountIdKey), topic)
 	}
 	var positionUpdatesLength int = len(positionUpdates)
@@ -1552,7 +1540,7 @@ func (this *Derive) HandleErrorMessage(client any, message map[string]any) bool 
 	if _, ok := message["error"]; !ok {
 		return false
 	}
-	var errorMessage map[string]any = ccxt.SafeMapTyped(message, "error")
+	var errorMessage, _ = message["error"].(map[string]any)
 	var errorCode *string = this.SafeString(errorMessage, "code")
 	{
 		ret__ := func(this *Derive) (ret_ bool) {
@@ -1598,7 +1586,7 @@ func (this *Derive) HandleMessage(client any, message map[string]any) {
 		"balances":    this.HandleBalance,
 	}
 	var event *string = nil
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	if params != nil {
 		var channel *string = this.SafeString(params, "channel")
 		if channel != nil {
@@ -1639,7 +1627,7 @@ func (this *Derive) HandleMessage(client any, message map[string]any) {
 			}
 		}
 		if !matched {
-			var loginResult []any = ccxt.SafeListTyped(message, "result")
+			var loginResult, _ = message["result"].([]any)
 			if loginResult != nil {
 				// the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
 				// in java the acknowledgement can arrive before the subscription record is stored

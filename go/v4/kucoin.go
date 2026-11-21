@@ -2206,7 +2206,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		return nil
 	}
 	var defaultTypes []any = []any{"spot", "swap", "future", "contract"}
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions, _ = this.Options["fetchMarkets"].(map[string]any)
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	var credentialsSet bool = this.CheckRequiredCredentials(false)
 	var requestMarginables bool = credentialsSet && (*this.SafeBool(paramsRequest, "marginables", true))
@@ -3239,7 +3239,7 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan AsyncResult[DepositWithd
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.ParseDepositWithdrawFee(data, currency))}
 	return nil
@@ -3340,7 +3340,7 @@ func (this *Kucoin) IsFuturesMethod(methodName any, params any) bool {
 	//
 	var defaultType *string = this.SafeString2(this.Options, methodName, "defaultType", "trade")
 	var requestedType *string = this.SafeString(params, "type", defaultType)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var typeVar *string = this.SafeString(accountsByType, requestedType)
 	if typeVar == nil {
 		var keys []string = nil
@@ -3859,7 +3859,11 @@ func (this *Kucoin) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data))}
 	return nil
@@ -4309,8 +4313,12 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var result []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var result []any
+	result, _ = data["list"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, sinceResolved, limitResolved))}
 	return nil
@@ -4423,7 +4431,11 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, sinceResolved, limitResolved))}
 	return nil
@@ -4485,7 +4497,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var timeframeOptions map[string]any = SafeMapTyped(this.Options, "timeframes")
+	var timeframeOptions, _ = this.Options["timeframes"].(map[string]any)
 	var swapTimeframes map[string]any = SafeMapTyped(timeframeOptions, "swap")
 	var parsedTimeframe *int64 = this.SafeInteger(swapTimeframes, timeframe)
 	if parsedTimeframe != nil {
@@ -4538,7 +4550,11 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	//        ]
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, sinceResolved, limitResolved))}
 	return nil
@@ -4600,7 +4616,11 @@ func (this *Kucoin) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	//     }
 	//   }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
@@ -4644,7 +4664,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	if accountTypePtr != nil {
 		accountType = *accountTypePtr
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 
 	r1 := <-this.IsUTAEnabledAsync()
@@ -4695,7 +4715,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	// BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
 	// BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
 	this.SetDepositAddressesVersion(version)
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	if data == nil {
 		panic(ExchangeError(this.Id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again"))
 	}
@@ -4730,8 +4750,8 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan AsyncResult[DepositA
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
-	var currencyId *string = SafeStringPtr(currency["id"])
+	var currency Currency = CurrencyFromMap(this.Currency(code))
+	var currencyId *string = currency.Id
 	var request map[string]any = map[string]any{
 		"currency": currencyId,
 	}
@@ -5023,12 +5043,11 @@ func (this *Kucoin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 					panic(ExchangeError(this.Id + " fetchOrderBook() limit argument must be 20 or 100"))
 				}
 			}
-			request["limit"] = func() any {
-				if limit != nil {
-					return limit
-				}
-				return 100
-			}()
+			if limit != nil {
+				request["limit"] = limit
+			} else {
+				request["limit"] = 100
+			}
 		}
 
 		r5 := <-this.PublicGetMarketOrderbookLevelLevelLimit(this.Extend(request, paramsMarketType))
@@ -5419,7 +5438,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 		if marginMode != nil && *marginMode == "isolated" {
 			panic(BadRequest(this.Id + " createOrder does not support isolated margin for stop orders"))
 		} else if marginMode != nil && *marginMode == "cross" {
-			var marginModes map[string]any = SafeMapTyped(this.Options, "marginModes")
+			var marginModes, _ = this.Options["marginModes"].(map[string]any)
 			request["tradeType"] = func() any {
 				if marginMode == nil {
 					return nil
@@ -6369,7 +6388,11 @@ func (this *Kucoin) createContractOrdersBody(ch chan AsyncResult[[]Order], order
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -7059,7 +7082,7 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan AsyncResult[[]Order], option
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders"))
 	}
 	if marginMode != nil {
-		var marginModes map[string]any = SafeMapTyped(this.Options, "marginModes")
+		var marginModes, _ = this.Options["marginModes"].(map[string]any)
 		request["tradeType"] = marginModes[*marginMode]
 		if (marginMode != nil && *marginMode == "isolated") && (trigger != nil && *trigger) {
 			panic(BadRequest(this.Id + " cancelAllOrders does not support isolated margin for stop orders"))
@@ -7261,8 +7284,12 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["items"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, nil, nil, map[string]any{
 		"status": "canceled",
@@ -7332,7 +7359,7 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 			marketType = typeVar
 			paramsRequest = this.OmitDict(paramsRequest, "type")
 		} else {
-			var methodOptions map[string]any = SafeMapTyped(this.Options, "fetchOrdersByStatus")
+			var methodOptions, _ = this.Options["fetchOrdersByStatus"].(map[string]any)
 			var methodDefaultType *string = this.SafeString2(methodOptions, "defaultType", "type")
 			if methodDefaultType == nil {
 				marketType = (*this.SafeString2(this.Options, "defaultType", "type", "spot"))
@@ -8673,12 +8700,9 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 			status = "closed"
 		}
 	}
-	status = func() any {
-		if cancelExist != nil && *cancelExist {
-			return "canceled"
-		}
-		return status
-	}()
+	if cancelExist != nil && *cancelExist {
+		status = "canceled"
+	}
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
@@ -9479,8 +9503,12 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["items"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = trades
@@ -9616,8 +9644,12 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["items"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 	var tradesList []any = []any{}
 	if trades != nil {
 		tradesList = trades
@@ -9897,12 +9929,11 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 			feeCurrency = *derefPtr
 		}
 		if feeCurrency == nil {
-			feeCurrency = func() any {
-				if side != nil && *side == "sell" {
-					return marketResolved["quote"]
-				}
-				return marketResolved["base"]
-			}()
+			if side != nil && *side == "sell" {
+				feeCurrency = marketResolved["quote"]
+			} else {
+				feeCurrency = marketResolved["base"]
+			}
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -10036,12 +10067,11 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 			feeCurrency = *derefPtr
 		}
 		if feeCurrency == nil {
-			feeCurrency = func() any {
-				if side != nil && *side == "sell" {
-					return marketResolved["quote"]
-				}
-				return marketResolved["base"]
-			}()
+			if side != nil && *side == "sell" {
+				feeCurrency = marketResolved["quote"]
+			} else {
+				feeCurrency = marketResolved["base"]
+			}
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -10402,12 +10432,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		if numTxidParts > 1 {
 			if address == nil {
 				if len(txidParts[1]) > 1 {
-					address = func() any {
-						if 1 >= 0 && 1 < len(txidParts) {
-							return txidParts[1]
-						}
-						return nil
-					}()
+					address = txidParts[1]
 				}
 			}
 		}
@@ -10544,7 +10569,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if accountTypePtr != nil {
 		accountType = *accountTypePtr
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 	if accountId != nil && *accountId == "contract" {
 
@@ -10736,8 +10761,12 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan AsyncResult[[]Transaction]
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var responseData []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var responseData []any
+	responseData, _ = data["items"].([]any)
+	if responseData == nil {
+		responseData = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseData, currency, since, limit, map[string]any{
 		"type": "deposit",
@@ -10791,7 +10820,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if accountTypePtr != nil {
 		accountType = *accountTypePtr
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 	if accountId != nil && *accountId == "contract" {
 
@@ -10985,8 +11014,12 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var responseData []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var responseData []any
+	responseData, _ = data["items"].([]any)
+	if responseData == nil {
+		responseData = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(responseData, currency, since, limit, map[string]any{
 		"type": "withdrawal",
@@ -11062,7 +11095,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		currency = this.Currency(code)
 	}
 	requestedType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var typeVar *string = this.SafeString(accountsByType, requestedType, requestedType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "type")
 	if typeVar != nil && *typeVar == "contract" {
@@ -11273,7 +11306,7 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan AsyncResult[Balances], opti
 	}
 	// only fetches one balance at a time
 	var defaultCode *string = this.SafeString(this.Options, "code")
-	var fetchBalanceOptions map[string]any = SafeMapTyped(this.Options, "fetchBalance")
+	var fetchBalanceOptions, _ = this.Options["fetchBalance"].(map[string]any)
 	defaultCode = this.SafeString(fetchBalanceOptions, "code", defaultCode)
 	var code *string = this.SafeString(params, "code", defaultCode)
 	if code == nil {
@@ -11370,7 +11403,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan AsyncResult[Balances], optionalA
 		}
 		requestedType = marginMode
 	}
-	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
+	var utaAccountsByType, _ = this.Options["utaAccountsByType"].(map[string]any)
 	var typeVar *string = nil
 	typeVar = this.SafeString(utaAccountsByType, requestedType, requestedType)
 	var isIsolated bool = (typeVar != nil && *typeVar == "ISOLATED")
@@ -11613,12 +11646,12 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 	request["clientOid"] = clientOidOption
 	var fromId string = this.ConvertTypeToAccount(fromAccount)
 	var toId string = this.ConvertTypeToAccount(toAccount)
-	var exchangeIds any = func() any {
-		if this.Ids == nil {
-			return []any{}
-		}
-		return this.Ids
-	}()
+	var exchangeIds []string
+	if this.Ids == nil {
+		exchangeIds = []string{}
+	} else {
+		exchangeIds = this.Ids
+	}
 	var fromIsolated bool = this.InArray(fromId, exchangeIds)
 	var toIsolated bool = this.InArray(toId, exchangeIds)
 	if fromIsolated {
@@ -11629,7 +11662,7 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 		request["toAccountSymbol"] = toId
 		toId = "ISOLATED"
 	}
-	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
+	var utaAccountsByType, _ = this.Options["utaAccountsByType"].(map[string]any)
 	fromId = *this.SafeString(utaAccountsByType, fromId, fromId)
 	toId = *this.SafeString(utaAccountsByType, toId, toId)
 	request["fromAccountType"] = strings.ToUpper(fromId)
@@ -11649,9 +11682,13 @@ func (this *Kucoin) transferUtaBody(ch chan AsyncResult[TransferEntry], code str
 	var response map[string]any = r1.Value
 	//
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(data, currency))
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
@@ -11718,12 +11755,12 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 	}
 	var fromId string = this.ConvertTypeToAccount(fromAccount)
 	var toId string = this.ConvertTypeToAccount(toAccount)
-	var exchangeIds any = func() any {
-		if this.Ids == nil {
-			return []any{}
-		}
-		return this.Ids
-	}()
+	var exchangeIds []string
+	if this.Ids == nil {
+		exchangeIds = []string{}
+	} else {
+		exchangeIds = this.Ids
+	}
 	var fromIsolated bool = this.InArray(fromId, exchangeIds)
 	var toIsolated bool = this.InArray(toId, exchangeIds)
 	if fromIsolated {
@@ -11768,7 +11805,7 @@ func (this *Kucoin) transferClassicBody(ch chan AsyncResult[TransferEntry], code
 	}
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(data, currency))
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
@@ -11868,7 +11905,7 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		accountFromRaw = this.SafeStringLower(transfer, "payAccountType")
 		accountToRaw = this.SafeStringLower(transfer, "recAccountType")
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountFrom *string
 	if accountFromRaw == nil {
 		accountFrom = nil
@@ -12365,7 +12402,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 func (this *Kucoin) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	var versions map[string]any = SafeMapTyped(this.Options, "versions")
+	var versions, _ = this.Options["versions"].(map[string]any)
 	var apiVersions map[string]any = SafeMapTyped(versions, GetValue(api, 0))
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Options["version"])
@@ -12756,8 +12793,12 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan AsyncResult[map[string]
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["items"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseBorrowRateHistories(rows, codes, since, limit)}
 	return nil
@@ -12837,8 +12878,12 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["items"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.ParseBorrowRateHistory(rows, code, since, limit))}
 	return nil
@@ -12863,8 +12908,8 @@ func (this *Kucoin) ParseBorrowRateHistories(response []any, codes any, since an
 				borrowRateHistories[*code] = []any{}
 			}
 			var borrowRateStructure map[string]any = this.ParseBorrowRate(item)
-			var borrowRateHistoriesCode any = borrowRateHistories[*code]
-			AppendToArray(&borrowRateHistoriesCode, borrowRateStructure)
+			var borrowRateHistoriesCode, _ = borrowRateHistories[*code].([]any)
+			borrowRateHistoriesCode = append(borrowRateHistoriesCode, borrowRateStructure)
 			borrowRateHistories[*code] = borrowRateHistoriesCode
 		}
 	}
@@ -12936,9 +12981,16 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 		//         }
 		//     }
 		//
-		var dataClassic map[string]any = SafeMapTyped(responseClassic, "data")
-		var items []any = SafeListTyped(dataClassic, "items")
-		var item map[string]any = this.SafeDictMap(items, 0, map[string]any{})
+		var dataClassic, _ = responseClassic["data"].(map[string]any)
+		var items []any
+		items, _ = dataClassic["items"].([]any)
+		var item map[string]any
+		if 0 < len(items) {
+			item, _ = items[0].(map[string]any)
+		}
+		if item == nil {
+			item = map[string]any{}
+		}
 
 		ch <- AsyncResult[CrossBorrowRate]{Value: CrossBorrowRateFromMap(this.ParseBorrowRate(item, currency))}
 		return nil
@@ -12962,7 +13014,11 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[CrossBorrowRate]{Value: CrossBorrowRateFromMap(this.ParseBorrowRate(data, currency))}
 	return nil
@@ -13020,7 +13076,11 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan AsyncResult[MarginLoan], code 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginLoan]{Value: MarginLoanFromMap(this.ParseMarginLoan(data, currency))}
 	return nil
@@ -13082,7 +13142,11 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan AsyncResult[MarginLoan], sy
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginLoan]{Value: MarginLoanFromMap(this.ParseMarginLoan(data, currency))}
 	return nil
@@ -13138,7 +13202,11 @@ func (this *Kucoin) repayCrossMarginBody(ch chan AsyncResult[MarginLoan], code s
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginLoan]{Value: MarginLoanFromMap(this.ParseMarginLoan(data, currency))}
 	return nil
@@ -13198,7 +13266,11 @@ func (this *Kucoin) repayIsolatedMarginBody(ch chan AsyncResult[MarginLoan], sym
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginLoan]{Value: MarginLoanFromMap(this.ParseMarginLoan(data, currency))}
 	return nil
@@ -13276,7 +13348,11 @@ func (this *Kucoin) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string]
 	//      },
 	//  ]
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "currency"))}
 	return nil
@@ -13334,7 +13410,11 @@ func (this *Kucoin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsed map[string]any = LeverageToMap(this.ParseLeverage(data, market))
 
 	ch <- AsyncResult[Leverage]{Value: LeverageFromMap(this.Extend(parsed, map[string]any{
@@ -14014,7 +14094,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//     {
 		//         "code": "200000",
@@ -14047,7 +14127,7 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response := r3.Raw
+		var response map[string]any = r3.Value
 		//
 		//    {
 		//        "code": "200000",
@@ -14394,12 +14474,11 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 		}
 		response = r2.Value
 	} else {
-		request["limit"] = func() any {
-			if limit == nil {
-				return 200
-			}
-			return limit
-		}()
+		if limit == nil {
+			request["limit"] = 200
+		} else {
+			request["limit"] = limit
+		}
 		if since != nil {
 			request["from"] = *since
 		}
@@ -14917,7 +14996,11 @@ func (this *Kucoin) addMarginBody(ch chan AsyncResult[map[string]any], symbol st
 	//        "msg":"Position does not exist"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    amount,
@@ -15280,7 +15363,11 @@ func (this *Kucoin) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo],
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var positionMode *int64 = this.SafeInteger(data, "positionMode")
 
 	ch <- AsyncResult[PositionModeInfo]{Value: PositionModeInfoFromMap(map[string]any{
@@ -15430,7 +15517,11 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageT
 	//        ]
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(data, market))}
 	return nil
@@ -15564,7 +15655,11 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var result map[string]any = map[string]any{}
 	var tiers []any = ArrayTyped(this.ParseMarketLeverageTiers(data))
 	for i := 0; i < len(tiers); i++ {
@@ -15574,8 +15669,8 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 			if _, ok := result[*symbol]; !ok {
 				result[*symbol] = []any{}
 			}
-			retRes1170016 := result[*symbol]
-			AppendToArray(&retRes1170016, tier)
+			var retRes1170016, _ = result[*symbol].([]any)
+			retRes1170016 = append(retRes1170016, tier)
 			result[*symbol] = retRes1170016
 		}
 	}
@@ -15641,7 +15736,11 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan AsyncResult[map[string]OpenIn
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(data, symbolsNormalized))}
 	return nil
@@ -15790,7 +15889,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan AsyncResult[bool], optionalArgs ...
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		var accountMode *string = this.SafeString(data, "selfAccountMode")
 		this.Options["uta"] = (accountMode != nil && *accountMode == "UNIFIED")
 	}
@@ -15825,7 +15924,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 	//                                ↑                 ↑
 	//                                ↑                 ↑
 	//
-	var versions map[string]any = SafeMapTyped(this.Options, "versions")
+	var versions, _ = this.Options["versions"].(map[string]any)
 	var apiVersions map[string]any = SafeMapTyped(versions, apiName)
 	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Options["version"])
@@ -15895,12 +15994,11 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 		var partner any = this.SafeDict(this.Options, "partner", map[string]any{})
 		var isUtaFuturePrivate bool = isUtaPrivate && (tradeType != nil && *tradeType == "FUTURES")
 		var isFuturePartner bool = isFuturePrivate || isUtaFuturePrivate
-		partner = func() any {
-			if isFuturePartner {
-				return this.SafeDict(partner, "future", partner)
-			}
-			return this.SafeDict(partner, "spot", partner)
-		}()
+		if isFuturePartner {
+			partner = this.SafeDict(partner, "future", partner)
+		} else {
+			partner = this.SafeDict(partner, "spot", partner)
+		}
 		var partnerId *string = this.SafeString(partner, "id")
 		var partnerSecret *string = this.SafeString2(partner, "secret", "key")
 		if (partnerId != nil) && (partnerSecret != nil) {
@@ -16056,8 +16154,12 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var items []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var items []any
+	items, _ = data["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(items, currency, since, limit))}
 	return nil
@@ -16144,7 +16246,11 @@ func (this *Kucoin) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(data, symbolsNormalized))}
 	return nil

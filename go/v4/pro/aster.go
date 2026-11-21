@@ -982,7 +982,13 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -1516,8 +1522,8 @@ func (this *Aster) HandleOrderBook(client any, message map[string]any) {
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var timestamp *int64 = this.SafeInteger(message, "T")
-	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = market.Symbol
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook()
@@ -1680,7 +1686,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < symbolsLength; i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
 		if symbolString == nil {
 			continue
@@ -1759,7 +1765,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		"params": subscriptionArgs,
 	}
 	for i := 0; i < symbolsLength; i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
 		if symbolString == nil {
 			continue
@@ -1820,8 +1826,8 @@ func (this *Aster) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var marketId *string = this.SafeString(message, "s")
-	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, marketType))
+	var symbol *string = market.Symbol
 	var kline map[string]any = ccxt.SafeMapTyped(message, "k")
 	var timeframeId *string = this.SafeString(kline, "i")
 	var timeframe *string = this.FindTimeframe(timeframeId)
@@ -1867,9 +1873,9 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var time int64 = this.Milliseconds()
-	var lastAuthenticatedTimeOptions map[string]any = ccxt.SafeMapTyped(this.Options, "lastAuthenticatedTime")
+	var lastAuthenticatedTimeOptions, _ = this.Options["lastAuthenticatedTime"].(map[string]any)
 	var lastAuthenticatedTime int64 = *this.SafeInteger(lastAuthenticatedTimeOptions, typeVar, 0)
-	var listenKeyRefreshRateOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKeyRefreshRate")
+	var listenKeyRefreshRateOptions, _ = this.Options["listenKeyRefreshRate"].(map[string]any)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(listenKeyRefreshRateOptions, typeVar, 3600000) // 1 hour
 	if (time - lastAuthenticatedTime) > *listenKeyRefreshRate {
 		// single-flight leader election on a never-dialed client, see
@@ -1973,7 +1979,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar string = *this.SafeString(params, "type", "spot")
-	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
+	var listenKeyOptions, _ = this.Options["listenKey"].(map[string]any)
 	var listenKey *string = this.SafeString(listenKeyOptions, typeVar)
 	if listenKey == nil {
 
@@ -2025,7 +2031,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 
 	}
 	// whether or not to schedule another listenKey keepAlive request
-	var listenKeyRefreshOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKeyRefresh")
+	var listenKeyRefreshOptions, _ = this.Options["listenKeyRefresh"].(map[string]any)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 	return nil
@@ -2033,7 +2039,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], option
 func (this *Aster) GetPrivateUrl(optionalArgs ...any) string {
 	var typeVar string = ccxt.GetArgString(optionalArgs, 0, "spot")
 	_ = typeVar
-	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
+	var listenKeyOptions, _ = this.Options["listenKey"].(map[string]any)
 	var listenKey string = *this.SafeString(listenKeyOptions, typeVar, "")
 	var url string = *this.SafeString(this.UrlsApiSections["ws"]["private"], typeVar, "") + "/" + listenKey
 	return url
@@ -2078,7 +2084,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	var url string = this.GetPrivateUrl(typeMarketType)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, *typeMarketType)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
@@ -2102,7 +2108,7 @@ func (this *Aster) SetBalanceCache(client any, typeVar string) {
 	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"

@@ -2291,11 +2291,11 @@ func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side strin
 	if false {
 		panic(ArgumentsRequired(this.Id + " requires a type argument"))
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	if false {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
-	var id *string = SafeStringPtr(market["id"])
+	var id *string = market.Id
 	var request map[string]any = map[string]any{
 		"symbol": id,
 		"side":   strings.ToUpper(side),
@@ -3131,7 +3131,7 @@ func (this *Toobit) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{

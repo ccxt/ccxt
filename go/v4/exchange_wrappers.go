@@ -1780,7 +1780,7 @@ func (this *Exchange) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.EditOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	r := <-this.EditOrdersAsync(ConvertOrderRequestListToMapRows(orders), opts.Params)
 	if r.Err != nil {
 		return nil, r.Err
 	}

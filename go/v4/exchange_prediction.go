@@ -84,7 +84,18 @@ func (this *PredictionExchange) ParseSearchQueries(optionalArgs ...any) []string
 	if singleQuery != nil {
 		return StringSliceFromList([]any{singleQuery})
 	}
-	return StringSliceFromList(this.SafeList(params, "queries", []any{}))
+	// every element must be a string (a number is stringified like safeString does), so all ports see string[]
+	var rawQueries []any = this.ToArray(this.SafeList(params, "queries", []any{}))
+	var rawQueriesLength int = len(rawQueries)
+	var queries []any = []any{}
+	for i := 0; i < rawQueriesLength; i++ {
+		var query *string = this.SafeString(rawQueries, i)
+		if query == nil {
+			panic(BadRequest(this.Id + " params.queries must be a list of strings"))
+		}
+		queries = append(queries, *query)
+	}
+	return StringSliceFromList(queries)
 }
 func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 	// fetchEvents must be scoped by at least one selector — an unfiltered call would page the
@@ -125,12 +136,12 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 	queries := GetArg(optionalArgs, 1, nil)
 	_ = queries
 	this.SetEvents(events)
-	var result any = events
+	var result []any = events
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
 		var filtered []any = []any{}
-		for i := 0; i < GetArrayLength(result); i++ {
+		for i := 0; i < len(result); i++ {
 			var event map[string]any = SafeMapTyped(result, i)
 			var idMatch bool = (eventId != nil) && (this.SafeString(event, "id") == eventId || (this.SafeString(event, "id") != nil && eventId != nil && *this.SafeString(event, "id") == *eventId))
 			var slugMatch bool = (slug != nil) && (this.SafeString(event, "slug") == slug || (this.SafeString(event, "slug") != nil && slug != nil && *this.SafeString(event, "slug") == *slug))
@@ -165,8 +176,8 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 			// normalize the sort key on every row first — sortBy reads it with a raw
 			// subscript, which raises KeyError/undefined-index in Python/PHP when a
 			// venue's parsed event omits the field (JS alone tolerates the miss)
-			for i := 0; i < GetArrayLength(result); i++ {
-				AddElementToObject(GetValue(result, i), sortKey, this.SafeNumber(GetValue(result, i), sortKey, 0))
+			for i := 0; i < len(result); i++ {
+				AddElementToObject(GetValue(result, i), sortKey, this.SafeNumber(result[i], sortKey, 0))
 			}
 			result = this.SortBy(result, sortKey, true, 0)
 		}
@@ -175,16 +186,16 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 	if limit != nil {
 		// clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
 		// via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
-		var resultLength int = GetArrayLength(result)
+		var resultLength int = len(result)
 		var sliceEnd any = limit
 		if IsGreaterThan(sliceEnd, resultLength) {
 			sliceEnd = resultLength
 		}
 		result = this.ArraySlice(result, 0, sliceEnd)
 	}
-	return ListTyped(result)
+	return result
 }
-func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ...any) any {
+func (this *PredictionExchange) FilterEventsByStatus(events []any, optionalArgs ...any) []any {
 	// 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
 	var status *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = status
@@ -193,7 +204,7 @@ func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ..
 	}
 	var wantActive bool = (status != nil && *status == "active")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(events); i++ {
+	for i := 0; i < len(events); i++ {
 		var event map[string]any = SafeMapTyped(events, i)
 		var isActive *bool = this.SafeBool(event, "active")
 		// keep events whose status is unknown (already filtered server-side, no `active` field)
@@ -203,7 +214,7 @@ func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ..
 	}
 	return result
 }
-func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, optionalArgs ...any) any {
+func (this *PredictionExchange) FilterEventsBySearchIn(events []any, queries any, optionalArgs ...any) []any {
 	// keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
 	// own-line length read so the regex transpiler uses count() (array) not strlen() (string)
 	var searchIn *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -218,7 +229,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	var checkTitle bool = (searchIn != nil && *searchIn == "title") || (searchIn != nil && *searchIn == "both")
 	var checkDescription bool = (searchIn != nil && *searchIn == "description") || (searchIn != nil && *searchIn == "both")
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(events); i++ {
+	for i := 0; i < len(events); i++ {
 		var event map[string]any = SafeMapTyped(events, i)
 		var title string = *this.SafeStringLower(event, "title", "")
 		var description string = *this.SafeStringLower(event, "description", "")
@@ -265,7 +276,7 @@ func (this *PredictionExchange) NormalizeTagKey(tag any) string {
 	}
 	return s
 }
-func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...any) any {
+func (this *PredictionExchange) FilterEventsByTags(events []any, optionalArgs ...any) []any {
 	// keep events carrying one of the requested tags; tolerant to string tags and to
 	// object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
 	var tags []string = GetArgStringSlice(optionalArgs, 0, nil)
@@ -286,7 +297,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 		}
 	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(events); i++ {
+	for i := 0; i < len(events); i++ {
 		var event map[string]any = SafeMapTyped(events, i)
 		var eventTags []any = SafeListTyped(event, "tags")
 		var matched bool = false

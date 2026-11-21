@@ -316,8 +316,9 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		var result map[string]any = ccxt.SafeMapTyped(response, "data")
-		var pageMarkets []any = ccxt.SafeListTyped(result, "markets")
+		var result, _ = response["data"].(map[string]any)
+		var pageMarkets []any
+		pageMarkets, _ = result["markets"].([]any)
 		var pageMarketsLength int = len(pageMarkets)
 		for i := 0; i < pageMarketsLength; i++ {
 			rawMarkets = append(rawMarkets, pageMarkets[i])
@@ -609,7 +610,7 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		rawMarkets = filtered
 	}
 	var grouped map[string]any = map[string]any{}
-	var order []any = []any{}
+	var order []string = []string{}
 	var rawMarketsLength int = len(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = rawMarkets[i]
@@ -621,8 +622,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 			grouped[*sportXeventId] = []any{}
 			order = append(order, *sportXeventId)
 		}
-		retRes48412 := grouped[*sportXeventId]
-		ccxt.AppendToArray(&retRes48412, raw)
+		var retRes48412, _ = grouped[*sportXeventId].([]any)
+		retRes48412 = append(retRes48412, raw)
 		grouped[*sportXeventId] = retRes48412
 	}
 	if this.Markets == nil {
@@ -631,13 +632,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 	var result []any = []any{}
 	var orderLength int = len(order)
 	for i := 0; i < orderLength; i++ {
-		var fixtureId *string = ccxt.SafeStringPtr(order[i])
-		var event map[string]any = this.ParseEvent(fixtureId, func() any {
-			if fixtureId == nil {
-				return nil
-			}
-			return grouped[*fixtureId]
-		}())
+		var fixtureId string = order[i]
+		var event map[string]any = this.ParseEvent(fixtureId, grouped[fixtureId])
 		var evMarkets []any = ccxt.SafeListTyped(event, "markets")
 		var evMarketsLength int = len(evMarkets)
 		for j := 0; j < evMarketsLength; j++ {
@@ -1052,7 +1048,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 	if spender == nil {
 		panic(ccxt.BadRequest(this.Id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender"))
 	}
-	var chains map[string]any = ccxt.SafeMapTyped(this.Options, "chains")
+	var chains, _ = this.Options["chains"].(map[string]any)
 	var chainConfig map[string]any = ccxt.SafeMapTyped(chains, this.NumberToString(chainId))
 	var rpcUrl *string = this.SafeString(paramsSpender, "rpcUrl", this.SafeString(chainConfig, "rpcUrl"))
 	if rpcUrl == nil {
@@ -1813,8 +1809,12 @@ func (this *Sxbet) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawOrders []any = this.SafeListSlice(data, "orders", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rawOrders []any
+	rawOrders, _ = data["orders"].([]any)
+	if rawOrders == nil {
+		rawOrders = []any{}
+	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.ParsePredictionOrders(rawOrders, outcomeObj, since, limit))}
 	return nil
@@ -1905,7 +1905,11 @@ func (this *Sxbet) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder]
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var row map[string]any = this.SafeDictMap(data, "order", data)
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(row, outcomeObj))}
@@ -1958,8 +1962,9 @@ func (this *Sxbet) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTra
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
+	var data, _ = response["data"].(map[string]any)
+	var rawTrades []any
+	rawTrades, _ = data["trades"].([]any)
 	var trades []any = []any{}
 	var rawTradesLength int = len(rawTrades)
 	for i := 0; i < rawTradesLength; i++ {
@@ -2025,8 +2030,9 @@ func (this *Sxbet) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawFills []any = ccxt.SafeListTyped(data, "fills")
+	var data, _ = response["data"].(map[string]any)
+	var rawFills []any
+	rawFills, _ = data["fills"].([]any)
 	var trades []any = []any{}
 	var rawFillsLength int = len(rawFills)
 	for i := 0; i < rawFillsLength; i++ {
@@ -2246,8 +2252,9 @@ func (this *Sxbet) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
+	var data, _ = response["data"].(map[string]any)
+	var rawPositions []any
+	rawPositions, _ = data["positions"].([]any)
 	var result []any = []any{}
 	var rawPositionsLength int = len(rawPositions)
 	for i := 0; i < rawPositionsLength; i++ {
@@ -2390,8 +2397,9 @@ func (this *Sxbet) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
-	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
+	var data, _ = response["data"].(map[string]any)
+	var rawTrades []any
+	rawTrades, _ = data["trades"].([]any)
 	var result []any = []any{}
 	var rawTradesLength int = len(rawTrades)
 	for i := 0; i < rawTradesLength; i++ {
@@ -2602,7 +2610,7 @@ func (this *Sxbet) fetchSxbetBestOddsBody(ch chan ccxt.AsyncResult[[]map[string]
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	var resolved []any
 	switch resolvedBox := this.SafeList(data, "bestOdds", []any{}).(type) {
@@ -2906,7 +2914,11 @@ func (this *Sxbet) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var snapshot map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var snapshot map[string]any
+	snapshot, _ = response["data"].(map[string]any)
+	if snapshot == nil {
+		snapshot = map[string]any{}
+	}
 	var sides map[string]any = this.ParseSxbetV3BookSides(snapshot, isOutcomeOne)
 	var sortedBids any = this.SafeList(sides, "bids", []any{})
 	var sortedAsks any = this.SafeList(sides, "asks", []any{})
@@ -3047,7 +3059,7 @@ func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan ccxt.AsyncResult[*string]
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))}
 	return nil
@@ -3379,7 +3391,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 		return refreshed
 	}
 	this.SetWsOption("wsBookVersions", *marketHash, version)
-	var watchedBooks map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedBooks")
+	var watchedBooks, _ = this.Options["wsWatchedBooks"].(map[string]any)
 	var watchedSyms []string = nil
 	if watchedBooks != nil {
 		watchedSyms = make([]string, 0, len(watchedBooks))
@@ -3521,7 +3533,7 @@ func (this *Sxbet) HandleTicker(client any, rows []any) {
 	//         "outcomeTwo": null
 	//     }
 	//
-	var watchedTickers map[string]any = ccxt.SafeMapTyped(this.Options, "wsWatchedTickers")
+	var watchedTickers, _ = this.Options["wsWatchedTickers"].(map[string]any)
 	var watchedSyms []string = nil
 	if watchedTickers != nil {
 		watchedSyms = make([]string, 0, len(watchedTickers))

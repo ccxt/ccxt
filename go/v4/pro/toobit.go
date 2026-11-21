@@ -266,7 +266,13 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -412,7 +418,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string
 	var marketIds []string = []string{}
 	var selectedTimeframe any = ""
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolStr string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolStr)
 		var marketId string = *this.SafeString(market, "id", "")
@@ -808,8 +814,8 @@ func (this *Toobit) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(data, i)
@@ -1668,7 +1674,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], optio
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var options, _ = this.Options["ws"].(map[string]any)
 	var listenKey *string = this.SafeString(options, "listenKey")
 	if listenKey == nil {
 

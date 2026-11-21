@@ -137,7 +137,7 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var baseId *string = this.SafeStringUpper(data, "target_currency")
 	var quoteId *string = this.SafeStringUpper(data, "quote_currency")
 	var base *string = this.SafeCurrencyCode(baseId)

@@ -669,12 +669,11 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	// ### CLOSED_or_CANCELED STATUS
 	//
 	if AssertedStatus == "closed_or_canceled" {
-		condition = func() any {
-			if EvalTruthy(strictCheck) {
-				return (closedStrict || canceledStrict)
-			}
-			return (closedNonStrict || canceledNonStrict)
-		}()
+		if EvalTruthy(strictCheck) {
+			condition = (closedStrict || canceledStrict)
+		} else {
+			condition = (closedNonStrict || canceledNonStrict)
+		}
 		Assert(condition, msg)
 		return
 	}

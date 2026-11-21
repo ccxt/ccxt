@@ -575,11 +575,11 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
@@ -1128,8 +1128,8 @@ func (this *Woofipro) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	_ = market
 	var orderId *string = this.SafeString(order, "orderId")
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketResolved map[string]any = this.Market(marketId)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
@@ -1472,7 +1472,7 @@ func (this *Woofipro) HandlePositions(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1672,11 +1672,11 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 		var total *string = this.SafeString(value, "holding")
 		var used *string = this.SafeString(value, "frozen")
 		if code != nil {
-			ccxt.AddElementToObject(this.Balance, code, this.Extend(account, map[string]any{
+			this.Balance[*code] = this.Extend(account, map[string]any{
 				"total": total,
 				"used":  used,
 				"free":  ccxt.Precise.StringSub(total, used),
-			}))
+			})
 		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)

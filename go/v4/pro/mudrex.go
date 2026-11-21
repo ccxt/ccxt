@@ -244,7 +244,7 @@ func (this *Mudrex) HandleMessage(client any, message map[string]any) {
 	if this.SafeString(message, "method") != nil && *this.SafeString(message, "method") == "PONG" {
 		return
 	}
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error != nil {
 		this.HandleErrorMessage(client, message)
 		return
@@ -259,7 +259,7 @@ func (this *Mudrex) HandleMessage(client any, message map[string]any) {
 	}
 }
 func (this *Mudrex) HandleErrorMessage(client any, message map[string]any) {
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var code *string = this.SafeString(error, "code")
 	var msg string = *this.SafeString(error, "msg", "")
 	var feedback string = this.Id + " " + msg
@@ -279,13 +279,13 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 		interval = &parts[1]
 	}
 	var tf *string = this.FindTimeframe(interval)
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var s *string = this.SafeString(data, "s")
 	if s == nil {
 		return
 	}
-	var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
+	var symbol *string = market.Symbol
 	var parsed []any = []any{this.SafeTimestamp(data, "t"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -315,8 +315,8 @@ func (this *Mudrex) HandleTicker(client any, message map[string]any) {
 		if s == nil {
 			continue
 		}
-		var market map[string]any = this.SafeMarket(strings.ToUpper(*s))
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(strings.ToUpper(*s)))
+		var symbol *string = market.Symbol
 		var timestamp int64 = this.Milliseconds()
 		var last *float64 = this.SafeNumber(t, "p")
 		var result map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{

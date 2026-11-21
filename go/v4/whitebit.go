@@ -1824,7 +1824,11 @@ func (this *Whitebit) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	//         },
 	//     }
 	//
-	var ticker map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response["result"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -2014,11 +2018,11 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 				}()
 				// try block:
 
-				r1 := <-this.V4PrivatePostOrders(this.Extend(request, paramsOmitted))
-				if r1.Err != nil {
-					panic(r1.Err)
+				responseRecv := <-this.V4PrivatePostOrders(this.Extend(request, paramsOmitted))
+				if responseRecv.Err != nil {
+					panic(responseRecv.Err)
 				}
-				response := r1.Raw
+				var response []any = responseRecv.Value
 				// Search for order in active orders response (array format)
 				var orders []any = this.ToArray(response)
 				for i := 0; i < len(orders); i++ {
@@ -2062,11 +2066,11 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 				}()
 				// try block:
 
-				r2 := <-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, paramsOmitted))
-				if r2.Err != nil {
-					panic(r2.Err)
+				r1 := <-this.V4PrivatePostTradeAccountOrderHistory(this.Extend(request, paramsOmitted))
+				if r1.Err != nil {
+					panic(r1.Err)
 				}
-				response := r2.Raw
+				var response map[string]any = r1.Value
 				// Search for order in executed orders response (object format)
 				var marketIds []string = ObjectKeys(response)
 				for i := 0; i < len(marketIds); i++ {
@@ -2668,7 +2672,11 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         ]
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limitResolved))}
 	return nil
@@ -3852,7 +3860,11 @@ func (this *Whitebit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	//         "limit": 100
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "records", []any{})
+	var data []any
+	data, _ = response["records"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market))}
 	return nil
@@ -4023,7 +4035,11 @@ func (this *Whitebit) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	//         "offset": 0
 	//     }
 	//
-	var records []any = this.SafeListSlice(response, "records", []any{})
+	var records []any
+	records, _ = response["records"].([]any)
+	if records == nil {
+		records = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(records, currency, since, limitResolved))}
 	return nil
@@ -4188,7 +4204,11 @@ func (this *Whitebit) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "account", map[string]any{})
+	var data map[string]any
+	data, _ = response["account"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
 	return nil
@@ -4655,7 +4675,13 @@ func (this *Whitebit) fetchDepositBody(ch chan AsyncResult[Transaction], id any,
 	//     }
 	//
 	var records []any = SafeListTyped(response, "records")
-	var first map[string]any = this.SafeDictMap(records, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(records) {
+		first, _ = records[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(first, currency)}
 	return nil
@@ -4751,7 +4777,11 @@ func (this *Whitebit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	//         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
 	//     }
 	//
-	var records []any = this.SafeListSlice(response, "records", []any{})
+	var records []any
+	records, _ = response["records"].([]any)
+	if records == nil {
+		records = []any{}
+	}
 	var recordsList []any = []any{}
 	if records != nil {
 		recordsList = records
@@ -4992,7 +5022,11 @@ func (this *Whitebit) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//        }
 	//    ]
 	//
-	var data []any = this.SafeListSlice(response, "result", []any{})
+	var data []any
+	data, _ = response["result"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, symbolsNormalized))}
 	return nil
@@ -5132,7 +5166,11 @@ func (this *Whitebit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//         "offset": 0
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "records", []any{})
+	var data []any
+	data, _ = response["records"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseFundingHistories(data, market, since, limit))}
 	return nil
@@ -5476,7 +5514,11 @@ func (this *Whitebit) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Convers
 	//         "offset": 0
 	//     }
 	//
-	var rows []any = this.SafeListSlice(response, "records", []any{})
+	var rows []any
+	rows, _ = response["records"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit))}
 	return nil

@@ -781,12 +781,11 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit any = nil
 	var withdraw any = nil
 	if this.IsEmpty(parsedNetworks) {
-		active = func() any {
-			if stock {
-				return nil
-			}
-			return false
-		}()
+		if stock {
+			active = nil
+		} else {
+			active = false
+		}
 		deposit = false
 		withdraw = false
 	}
@@ -1139,12 +1138,11 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 			if sessionsLength > 0 {
 				amountPrecision = this.ParseNumber(stepSize)
 				minQuantity = this.ParseNumber(minimum)
-				maxQuantity = func() any {
-					if unbounded {
-						return nil
-					}
-					return this.ParseNumber(maximum)
-				}()
+				if unbounded {
+					maxQuantity = nil
+				} else {
+					maxQuantity = this.ParseNumber(maximum)
+				}
 			}
 		}
 	} else if typeOfMarket != nil && *typeOfMarket == "swap" {
@@ -4476,8 +4474,8 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	_ = market
 	var id *string = this.SafeString(position, "positionId")
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
 	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")
@@ -4647,7 +4645,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var ts *string = this.NumberToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
-		var optionInstructions map[string]any = SafeMapTyped(this.Options, "instructions")
+		var optionInstructions, _ = this.Options["instructions"].(map[string]any)
 		var optionPathInstructions map[string]any = SafeMapTyped(optionInstructions, path)
 		var instruction string = *this.SafeString(optionPathInstructions, method, "")
 		var payload string = ""

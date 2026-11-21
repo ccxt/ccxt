@@ -907,7 +907,7 @@ func (this *Latoken) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var types map[string]any = SafeMapTyped(this.Options, "types")
+	var types, _ = this.Options["types"].(map[string]any)
 	var accountType *string = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
 	var balances []any = SafeListTyped(balancesByType, accountType)
@@ -1410,7 +1410,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFee")
+	var options, _ = this.Options["fetchTradingFee"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var paramsOmitted map[string]any = this.OmitDict(params, "method")
@@ -2332,7 +2332,11 @@ func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], o
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var content []any = this.SafeListSlice(response, "content", []any{})
+	var content []any
+	content, _ = response["content"].([]any)
+	if content == nil {
+		content = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(content, currency, since, limit))}
 	return nil
@@ -2493,7 +2497,11 @@ func (this *Latoken) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "hasContent": true
 	//     }
 	//
-	var transfers []any = this.SafeListSlice(response, "content", []any{})
+	var transfers []any
+	transfers, _ = response["content"].([]any)
+	if transfers == nil {
+		transfers = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
 	return nil

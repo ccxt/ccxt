@@ -155,7 +155,13 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var firstMarket map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var firstMarket map[string]any
+	if trades != nil {
+		var firstMarketRows []any = trades.ToArray()
+		if len(firstMarketRows) > 0 {
+			firstMarket, _ = firstMarketRows[0].(map[string]any)
+		}
+	}
 	var firstSymbol *string = this.SafeString(firstMarket, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -248,7 +254,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 	//       ]
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	if data == nil {
@@ -374,12 +380,12 @@ func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
 	//     },
 	// }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
 			this.Orderbooks[*symbol] = this.OrderBook()
@@ -501,7 +507,7 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	//     }
 	//
 	this.HandleBidAsk(client, message)
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
@@ -808,7 +814,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	//         ],
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
@@ -1078,7 +1084,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var symbols []any = []any{}
@@ -1178,7 +1184,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newPositions []any = []any{}
@@ -1445,11 +1451,11 @@ func (this *Blofin) HandleUnsubscription(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channel string = *this.SafeString(arg, "channel", "")
 	var marketId *string = this.SafeString(arg, "instId")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var subMessageHash string = channel + ":" + *symbol
 	if channel == "trades" {
 		this.CleanCache(map[string]any{
@@ -1518,7 +1524,7 @@ func (this *Blofin) HandleMessage(client any, message map[string]any) {
 	} else if event != nil && *event == "error" {
 		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(message)))
 	}
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channelName *string = this.SafeString(arg, "channel")
 	method = this.SafeValue(methods, channelName)
 	if (ccxt.IsEqual(method, nil)) && (strings.Index(*channelName, "candle") >= 0) {

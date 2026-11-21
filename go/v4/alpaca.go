@@ -883,7 +883,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response := r1.Raw
+		var response map[string]any = r1.Value
 		//
 		//    {
 		//        "next_page_token": null,
@@ -908,7 +908,7 @@ func (this *Alpaca) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//    {
 		//       "trades": {
@@ -1017,7 +1017,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//       }
 	//   }
 	//
-	var orderbooks map[string]any = SafeMapTyped(response, "orderbooks")
+	var orderbooks, _ = response["orderbooks"].(map[string]any)
 	var rawOrderbook map[string]any = this.SafeDictMap(orderbooks, id, map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
@@ -1162,7 +1162,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response := r3.Raw
+		var response map[string]any = r3.Value
 		//
 		//    {
 		//        "bars": {
@@ -1353,7 +1353,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//     }
 	//
 	var results []any = []any{}
-	var snapshots map[string]any = SafeMapTyped(response, "snapshots")
+	var snapshots, _ = response["snapshots"].(map[string]any)
 	var marketIds []string = nil
 	if snapshots != nil {
 		marketIds = make([]string, 0, len(snapshots))
@@ -1364,7 +1364,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var entry map[string]any = SafeMapTyped(snapshots, marketId)
+		var entry, _ = snapshots[marketId].(map[string]any)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
 		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
 		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")

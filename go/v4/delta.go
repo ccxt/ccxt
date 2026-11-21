@@ -564,7 +564,7 @@ func (this *Delta) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...an
 	}
 	var response map[string]any = r.Value
 	// full response sample under `fetchStatus`
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[*int64]{Value: this.SafeIntegerProduct(result, "server_time", 0.001)}
 	return nil
@@ -736,7 +736,11 @@ func (this *Delta) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opti
 	//         "success":true
 	//     }
 	//
-	var currencies []any = this.SafeListSlice(response, "result", []any{})
+	var currencies []any
+	currencies, _ = response["result"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -817,11 +821,11 @@ func (this *Delta) loadMarketsBody(ch chan AsyncResult[map[string]any], optional
 		panic(r.Err)
 	}
 	var markets map[string]any = r.Value
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	if (currenciesByNumericId == nil) || (reload == true) {
 		this.Options["currenciesByNumericId"] = this.IndexByStringifiedNumericId(this.Currencies)
 	}
-	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
+	var marketsByNumericId, _ = this.Options["marketsByNumericId"].(map[string]any)
 	if (marketsByNumericId == nil) || (reload == true) {
 		this.Options["marketsByNumericId"] = this.IndexByStringifiedNumericId(this.Markets)
 	}
@@ -1521,7 +1525,11 @@ func (this *Delta) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -1767,7 +1775,11 @@ func (this *Delta) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(result, market["symbol"], nil, "buy", "sell", "price", "size"))}
 	return nil
@@ -1932,7 +1944,11 @@ func (this *Delta) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, 
 	//         "success":true
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -2043,7 +2059,11 @@ func (this *Delta) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	//         ]
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limitValue))}
 	return nil
@@ -2053,7 +2073,7 @@ func (this *Delta) ParseBalance(response map[string]any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	for i := 0; i < len(balances); i++ {
 		var balance map[string]any = SafeMapTyped(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset_id")
@@ -2173,7 +2193,11 @@ func (this *Delta) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(result, market)}
 	return nil
@@ -2232,7 +2256,11 @@ func (this *Delta) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	//         ]
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbols))}
 	return nil
@@ -2392,7 +2420,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var marketId *string = this.SafeString(order, "product_id")
-	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
+	var marketsByNumericId, _ = this.Options["marketsByNumericId"].(map[string]any)
 	var marketValue map[string]any = this.SafeDictMap(marketsByNumericId, marketId, market)
 	var symbol *string = nil
 	if marketValue == nil {
@@ -2547,7 +2575,11 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2625,7 +2657,11 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -2708,7 +2744,11 @@ func (this *Delta) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 	//         "success":true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
@@ -3099,7 +3139,11 @@ func (this *Delta) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 	//         "success":true
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -3173,7 +3217,11 @@ func (this *Delta) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	//         "success":true
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(result, currency, since, limit))}
 	return nil
@@ -3224,7 +3272,7 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")
-	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
 	var currencyValue any = this.SafeValue(currenciesByNumericId, currencyId, currency)
 	var code *string = this.SafeString(currencyValue, "code")
 	var amount *string = this.SafeString(item, "amount")
@@ -3312,7 +3360,11 @@ func (this *Delta) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
@@ -3430,7 +3482,11 @@ func (this *Delta) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}
 	return nil
@@ -3519,7 +3575,11 @@ func (this *Delta) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingR
 	//         "success":true
 	//     }
 	//
-	var rates []any = this.SafeListSlice(response, "result", []any{})
+	var rates []any
+	rates, _ = response["result"].([]any)
+	if rates == nil {
+		rates = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
@@ -3708,7 +3768,11 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(result, market))}
 	return nil
@@ -3841,7 +3905,11 @@ func (this *Delta) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(result, market)}
 	return nil
@@ -3959,7 +4027,11 @@ func (this *Delta) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol strin
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(result, market)}
 	return nil
@@ -4139,7 +4211,11 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	//         "success": true
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 	var settlements []any = this.ParseSettlements(result, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
 
@@ -4304,7 +4380,11 @@ func (this *Delta) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(result, market)}
 	return nil
@@ -4529,7 +4609,11 @@ func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol s
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(result, market)}
 	return nil
@@ -4672,7 +4756,11 @@ func (this *Delta) fetchOptionBody(ch chan AsyncResult[Option], symbol string, o
 	//         "success": true
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Option]{Value: this.ParseOption(result, nil, market)}
 	return nil
@@ -4959,7 +5047,11 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 	//         "success": true
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(result, symbolsNormalized))}
 	return nil

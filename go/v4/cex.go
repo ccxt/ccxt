@@ -551,7 +551,11 @@ func (this *Cex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	//            },
 	//            ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil
@@ -652,7 +656,7 @@ func (this *Cex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any)
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- AsyncResult[*int64]{Value: timestamp}
@@ -761,7 +765,11 @@ func (this *Cex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	//            },
 	//            ...
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbols))}
 	return nil
@@ -862,8 +870,12 @@ func (this *Cex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	//                },
 	//                ... followed by older trades
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "trades", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -959,7 +971,11 @@ func (this *Cex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	//                ],
 	//                ...
 	//
-	var orderBook map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var orderBook map[string]any
+	orderBook, _ = response["data"].(map[string]any)
+	if orderBook == nil {
+		orderBook = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(orderBook, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderBook, market["symbol"], timestamp))}
@@ -1053,7 +1069,11 @@ func (this *Cex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//            },
 	//            ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1105,8 +1125,12 @@ func (this *Cex) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeI
 	//                },
 	//                ...
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var fees map[string]any = this.SafeDictMap(data, "tradingFee", map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var fees map[string]any
+	fees, _ = data["tradingFee"].(map[string]any)
+	if fees == nil {
+		fees = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(this.ParseTradingFees(fees, true))}
 	return nil
@@ -1199,8 +1223,12 @@ func (this *Cex) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var balances map[string]any = this.SafeDictMap(data, "balancesPerAccounts", map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var balances map[string]any
+	balances, _ = data["balancesPerAccounts"].(map[string]any)
+	if balances == nil {
+		balances = map[string]any{}
+	}
 	var arrays []any = this.ToArray(balances)
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(arrays, params))}
@@ -1246,7 +1274,7 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		response := r.Raw
+		var response map[string]any = r.Value
 		//
 		//    {
 		//        "ok": "ok",
@@ -1269,7 +1297,7 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response := r1.Raw
+		var response map[string]any = r1.Value
 		//
 		//    {
 		//        "ok": "ok",
@@ -1419,7 +1447,11 @@ func (this *Cex) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status st
 	//            },
 	//            ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
@@ -1811,7 +1843,11 @@ func (this *Cex) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	//             "rejectCode": 405,
 	//             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -1860,7 +1896,11 @@ func (this *Cex) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	//
 	//      {"ok":"ok","data":{}}
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
@@ -1910,8 +1950,9 @@ func (this *Cex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var ids []any = SafeListTyped(data, "clientOrderIds")
+	var data, _ = response["data"].(map[string]any)
+	var ids []any
+	ids, _ = data["clientOrderIds"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
 		var id any = ids[i]
@@ -1996,7 +2037,11 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	//            },
 	//            ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
@@ -2118,7 +2163,11 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	//            },
 	//            ...
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -2330,7 +2379,11 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[TransferEntr
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil
@@ -2430,7 +2483,11 @@ func (this *Cex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(data, currency)}
 	return nil

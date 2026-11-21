@@ -359,9 +359,13 @@ func (this *Predictfun) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionE
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var events []any = ccxt.PredictionEventsToList(r.Value)
+	var events []ccxt.PredictionEvent = r.Value
+	var eventsRow ccxt.PredictionEvent
+	if len(events) > 0 {
+		eventsRow = events[0]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(this.SafeDictMap(events, 0))}
+	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: eventsRow}
 	return nil
 }
 
@@ -421,7 +425,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			panic(r1.Err)
 		}
 		var response map[string]any = r1.Value
-		var data map[string]any = ccxt.SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		rawTopics = []any{data}
 	} else if queriesLength > 0 {
 		// a query/queries scope is answered by the dedicated search endpoint — the categories
@@ -660,7 +664,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	// scoping already happened server-side: the tag filter needs an event-level tags field
 	// predictfun topics lack, and the query filter would drop semantic-search matches whose
 	// title uses different words than the query
-	var postParams any = this.Omit(paramsValue, postOmitKeys)
+	var postParams map[string]any = this.OmitDict(paramsValue, postOmitKeys)
 	// status is documented as the venue enum ('OPEN' / 'RESOLVED') but the shared client-side
 	// pass speaks the unified vocabulary — translate so it doesn't discard every row it matched
 	var rawStatus *string = this.SafeString(paramsValue, "status")
@@ -719,7 +723,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	var seenSlugs map[string]any = map[string]any{}
 	// market rows whose category row did not come back, bucketed by the slug they carry
 	var orphanMarkets map[string]any = map[string]any{}
-	var orphanSlugs []any = []any{}
+	var orphanSlugs []string = []string{}
 	for i := 0; i < queriesLength; i++ {
 		var request map[string]any = map[string]any{
 			"query":           this.SafeString(queries, i, ""),
@@ -780,7 +784,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 		//         "success": true
 		//     }
 		//
-		var data map[string]any = ccxt.SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		var categories []any = ccxt.SafeListTyped(data, "categories")
 		var categoriesLength int = len(categories)
 		for ci := 0; ci < categoriesLength; ci++ {
@@ -803,7 +807,8 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 		// a term can match a market whose category row is not in the response - those rows are
 		// the other half of the payload and would otherwise be dropped, so bucket them by the
 		// categorySlug they carry
-		var rawMarkets []any = ccxt.SafeListTyped(data, "markets")
+		var rawMarkets []any
+		rawMarkets, _ = data["markets"].([]any)
 		var rawMarketsLength int = len(rawMarkets)
 		for mi := 0; mi < rawMarketsLength; mi++ {
 			var rawMarket any = rawMarkets[mi]
@@ -812,9 +817,9 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 				if _, ok := orphanMarkets[*marketSlug]; ok {
 					// push through a local and write the slice back - the go transpiler's
 					// ccxt.AppendToArray reassigns only a local copy of a map-stored array
-					var bucket any = orphanMarkets[*marketSlug]
-					ccxt.AppendToArray(&bucket, rawMarket)
-					ccxt.AddElementToObject(orphanMarkets, marketSlug, bucket)
+					var bucket, _ = orphanMarkets[*marketSlug].([]any)
+					bucket = append(bucket, rawMarket)
+					orphanMarkets[*marketSlug] = bucket
 				} else {
 					orphanMarkets[*marketSlug] = []any{rawMarket}
 					orphanSlugs = append(orphanSlugs, *marketSlug)
@@ -826,21 +831,10 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 	// topic from the market rows themselves, without spending a request per slug
 	var orphanSlugsLength int = len(orphanSlugs)
 	for i := 0; i < orphanSlugsLength; i++ {
-		var orphanSlug *string = ccxt.SafeStringPtr(orphanSlugs[i])
-		var has3 bool
-		if orphanSlug != nil {
-			_, has3 = seenSlugs[*orphanSlug]
-		}
-		if !has3 {
-			if orphanSlug != nil {
-				seenSlugs[*orphanSlug] = true
-			}
-			var markets any = func() any {
-				if orphanSlug == nil {
-					return nil
-				}
-				return orphanMarkets[*orphanSlug]
-			}()
+		var orphanSlug string = orphanSlugs[i]
+		if _, ok := seenSlugs[orphanSlug]; !ok {
+			seenSlugs[orphanSlug] = true
+			var markets any = orphanMarkets[orphanSlug]
 			var first map[string]any = ccxt.SafeMapTyped(markets, 0)
 			// the market row's 'status' is the registration enum ('REGISTERED' /
 			// 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
@@ -1451,7 +1445,11 @@ func (this *Predictfun) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predict
 	//         "success":true
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "updateTimestampMs")
 	// The outcome lables are not the same as the outcome indexSet values, so we need to check the indexSet to determine which outcome is being requested
 	var indexSet *int64 = this.SafeInteger(info, "indexSet")
@@ -1563,7 +1561,11 @@ func (this *Predictfun) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	//         "success": true
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(this.ParsePredictionTicker(data, outcomeObj))}
 	return nil
@@ -1717,7 +1719,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	var response map[string]any = r1.Value
 	// the venue answers with the shape documented in fetchTrades below
-	var data []any = ccxt.SafeListTyped(response, "data")
+	var data, _ = response["data"].([]any)
 	var wallet string = strings.ToLower(*signerAddress)
 	// a settlement names one taker and several makers, and the wallet may sit on either side,
 	// so the legs it signed are the ones to report - a self trade legitimately yields two rows
@@ -1840,11 +1842,11 @@ func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	//         "success": true
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(response, "data")
+	var data, _ = response["data"].([]any)
 	var flattenTrades []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(data, i)
+		var entry, _ = data[i].(map[string]any)
 		var taker map[string]any = ccxt.SafeMapTyped(entry, "taker")
 		var takerOutcome map[string]any = ccxt.SafeMapTyped(taker, "outcome")
 		var takerIndexSet *int64 = this.SafeInteger(takerOutcome, "indexSet")
@@ -2103,7 +2105,7 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	//
 	//     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
 	//
-	var messageData map[string]any = ccxt.SafeMapTyped(messageResponse, "data")
+	var messageData, _ = messageResponse["data"].(map[string]any)
 	var message *string = this.SafeString(messageData, "message")
 	if message == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() got an auth reply without the \"message\" field to sign"))
@@ -2123,7 +2125,7 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	//
 	//     { "data": { "token": "eyJhbGciOi..." }, "success": true }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var token *string = this.SafeString(data, "token")
 	if token == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() did not return a token"))
@@ -2604,11 +2606,15 @@ func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var positions []any = ccxt.PredictionPositionsToList(r1.Value)
+	var positions []ccxt.PredictionPosition = r1.Value
 
 	// holding none of an outcome is an ordinary read, so the empty slot is returned rather
 	// than raised - the same shape polymarket and binance answer with
-	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: ccxt.PredictionPositionFromMap(this.SafeDictMap(positions, 0))}
+	var positionsRow0 ccxt.PredictionPosition
+	if len(positions) > 0 {
+		positionsRow0 = positions[0]
+	}
+	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: positionsRow0}
 	return nil
 }
 
@@ -2920,7 +2926,11 @@ func (this *Predictfun) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 	//         "success": true
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(data, outcomeObj))}
 	return nil
@@ -3106,7 +3116,11 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan ccxt.AsyncResult[[]ccxt.Pr
 	//         "success": true
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	// since is deliberately not forwarded: the rows carry no timestamp, so the shared
 	// since filter would drop every one of them
@@ -3303,7 +3317,7 @@ func (this *Predictfun) HandleErrors(code int64, reason string, url string, meth
  */
 func (this *Predictfun) ExchangeAddress(isNegRisk bool, isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
-	var exchanges map[string]any = ccxt.SafeMapTyped(this.Options, "exchanges")
+	var exchanges, _ = this.Options["exchanges"].(map[string]any)
 	var byChain map[string]any = ccxt.SafeMapTyped(exchanges, this.NumberToString(chainIdValue))
 	var identifier string = "CTF_EXCHANGE"
 	if isNegRisk && isYieldBearing {
@@ -3327,7 +3341,7 @@ func (this *Predictfun) ExchangeAddress(isNegRisk bool, isYieldBearing bool) *st
  */
 func (this *Predictfun) ConditionalTokensAddress(isNegRisk bool, isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
-	var tokens map[string]any = ccxt.SafeMapTyped(this.Options, "conditionalTokens")
+	var tokens, _ = this.Options["conditionalTokens"].(map[string]any)
 	var byChain map[string]any = ccxt.SafeMapTyped(tokens, this.NumberToString(chainIdValue))
 	var identifier string = "CONDITIONAL_TOKENS"
 	if isNegRisk && isYieldBearing {
@@ -3350,7 +3364,7 @@ func (this *Predictfun) ConditionalTokensAddress(isNegRisk bool, isYieldBearing 
  */
 func (this *Predictfun) AdapterAddress(isYieldBearing bool) *string {
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
-	var adapters map[string]any = ccxt.SafeMapTyped(this.Options, "adapters")
+	var adapters, _ = this.Options["adapters"].(map[string]any)
 	var byChain map[string]any = ccxt.SafeMapTyped(adapters, this.NumberToString(chainIdValue))
 	var identifier string = "NEG_RISK_ADAPTER"
 	if isYieldBearing {
@@ -3424,7 +3438,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 	var side string = *this.SafeStringLower(params, "side", "buy")
 	var chainId *int64 = this.SafeInteger(this.Options, "chainId", 56)
 	var chainKey *string = this.NumberToString(chainId)
-	var rpcUrls map[string]any = ccxt.SafeMapTyped(this.Options, "rpcUrls")
+	var rpcUrls, _ = this.Options["rpcUrls"].(map[string]any)
 	var rpcUrl *string = this.SafeString(params, "rpcUrl", this.SafeString(rpcUrls, chainKey))
 	var owner *string = this.SafeString(params, "owner", this.WalletAddress)
 	if owner == nil {
@@ -3506,7 +3520,7 @@ func (this *Predictfun) approveBody(ch chan ccxt.AsyncResult[any], optionalArgs 
 		ch <- ccxt.AsyncResult[any]{Value: receipts}
 		return nil
 	}
-	var collaterals map[string]any = ccxt.SafeMapTyped(this.Options, "collateral")
+	var collaterals, _ = this.Options["collateral"].(map[string]any)
 	var token *string = this.SafeString(params, "token", this.SafeString(collaterals, chainKey))
 	var spender *string = this.SafeString(params, "spender")
 	if spender == nil {

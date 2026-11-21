@@ -473,7 +473,7 @@ func (this *Zebpay) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promisesUnresolved []any = []any{}
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions, _ = this.Options["fetchMarkets"].(map[string]any)
 	var defaultMarkets []any = []any{"spot", "swap"}
 	var types []any = this.SafeListSlice(fetchMarketsOptions, "types", defaultMarkets)
 	for i := 0; i < len(types); i++ {
@@ -554,7 +554,11 @@ func (this *Zebpay) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//             ]
 	//     }
 	//
-	var rows []any = this.SafeListSlice(response, "data", []any{})
+	var rows []any
+	rows, _ = response["data"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(rows)}
 	return nil
@@ -988,7 +992,11 @@ func (this *Zebpay) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	//        }
 	//     ]
 	//
-	var tickerList []any = this.SafeListSlice(response, "data", []any{})
+	var tickerList []any
+	tickerList, _ = response["data"].([]any)
+	if tickerList == nil {
+		tickerList = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickerList, symbolsNormalized))}
 	return nil
@@ -1317,7 +1325,11 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	//             "fees": "0.00145",
 	//         }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trades []any = []any{data}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades))}
@@ -1701,7 +1713,11 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//        },
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsedOrder map[string]any = OrderToMap(this.ParseOrder(data))
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{parsedOrder})}
@@ -2198,7 +2214,11 @@ func (this *Zebpay) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//        ],
 	//    }
 	//
-	var positions []any = this.SafeListSlice(response, "data", []any{})
+	var positions []any
+	positions, _ = response["data"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 	var result []any = this.ParsePositions(positions)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbols))}
@@ -2263,7 +2283,11 @@ func (this *Zebpay) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 	//        "msg":"Position does not exist"
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    amount,
@@ -2324,7 +2348,11 @@ func (this *Zebpay) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"amount":    amount,
@@ -2367,7 +2395,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	//    }
 	//
 	var result []any = []any{}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var markets []map[string]any = this.SafeListMapsTyped(data, "symbols")
 	for i := 0; i < len(markets); i++ {
 		var market map[string]any = markets[i]
@@ -2464,7 +2492,7 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	//    }
 	//
 	var result []any = []any{}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var markets []map[string]any = this.SafeListMapsTyped(data, "symbols")
 	for i := 0; i < len(markets); i++ {
 		var market map[string]any = markets[i]

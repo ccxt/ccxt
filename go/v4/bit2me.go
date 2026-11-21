@@ -1410,7 +1410,11 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 		var stopLossLimit any = stopLimitPrice
 		if IsEqual(stopLossLimit, nil) {
 			if price != nil {
-				stopLossLimit = this.NumberToString(price)
+				if derefPtr := this.NumberToString(price); derefPtr != nil {
+					stopLossLimit = *derefPtr
+				} else {
+					stopLossLimit = nil
+				}
 			} else {
 				stopLossLimit = stopLossPrice
 			}
@@ -2154,7 +2158,11 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//         "total": 12
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -2265,7 +2273,7 @@ func (this *Bit2me) transferBody(ch chan AsyncResult[TransferEntry], code string
 		panic(r.Err)
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -2417,7 +2425,7 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var movementType *string = this.SafeString(transfer, "movementType")
-	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
+	var accountsById, _ = this.Options["accountsById"].(map[string]any)
 	var fromAccount any = nil
 	var toAccount any = nil
 	var id *string = nil

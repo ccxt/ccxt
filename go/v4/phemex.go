@@ -1309,14 +1309,8 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var v2Productsv1ProductsVariable []map[string]any = r.Value
-	var v2Products any = nil
-	if v2Productsv1ProductsVariable[0] != nil {
-		v2Products = v2Productsv1ProductsVariable[0]
-	}
-	var v1Products any = nil
-	if v2Productsv1ProductsVariable[1] != nil {
-		v1Products = v2Productsv1ProductsVariable[1]
-	}
+	var v2Products map[string]any = v2Productsv1ProductsVariable[0]
+	var v1Products map[string]any = v2Productsv1ProductsVariable[1]
 	var v1ProductsData []any = SafeListTyped(v1Products, "data")
 	//
 	//     {
@@ -1430,8 +1424,12 @@ func (this *Phemex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//             ...
 	//         }
 	//     }
-	var data map[string]any = SafeMapTyped(response, "data")
-	var currencies []any = this.SafeListSlice(data, "currencies", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var currencies []any
+	currencies, _ = data["currencies"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -2628,18 +2626,16 @@ func (this *Phemex) ParseSwapBalance(response any) map[string]any {
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
 	var totalUsedBalanceEv *string = this.SafeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv")
 	var needsConversion bool = (code == nil || *code != "USDT")
-	account["total"] = func() any {
-		if needsConversion {
-			return this.FromEn(accountBalanceEv, valueScale)
-		}
-		return accountBalanceEv
-	}()
-	account["used"] = func() any {
-		if needsConversion {
-			return this.FromEn(totalUsedBalanceEv, valueScale)
-		}
-		return totalUsedBalanceEv
-	}()
+	if needsConversion {
+		account["total"] = this.FromEn(accountBalanceEv, valueScale)
+	} else {
+		account["total"] = accountBalanceEv
+	}
+	if needsConversion {
+		account["used"] = this.FromEn(totalUsedBalanceEv, valueScale)
+	} else {
+		account["used"] = totalUsedBalanceEv
+	}
 	if code != nil {
 		result[*code] = account
 	}
@@ -3329,12 +3325,9 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					panic(ArgumentsRequired(this.Id + " createOrder() " + *qtyType + " requires a price argument or a cost parameter"))
 				}
 			}
-			cost = func() any {
-				if IsEqual(cost, nil) {
-					return amount
-				}
-				return cost
-			}()
+			if IsEqual(cost, nil) {
+				cost = amount
+			}
 			var costString any = this.CostToPrecision(symbol, cost)
 			request["quoteQtyEv"] = this.ToEv(costString, market)
 		} else {
@@ -4498,9 +4491,9 @@ func (this *Phemex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
+	var defaultNetworks, _ = this.Options["defaultNetworks"].(map[string]any)
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, code)
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper2(params, "network", "chainName", defaultNetwork)
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	if network != nil {
@@ -5081,7 +5074,11 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	//        ]
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var positions []any = this.ParsePositions(data, []any{symbolValue})
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbolValue, since, limit))}
@@ -5887,8 +5884,9 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 	//     }
 	//
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var riskLimits []any = SafeListTyped(data, "riskLimits")
+	var data, _ = response["data"].(map[string]any)
+	var riskLimits []any
+	riskLimits, _ = data["riskLimits"].([]any)
 
 	ch <- AsyncResult[LeverageTiers]{Value: LeverageTiersFromMap(this.ParseLeverageTiers(riskLimits, symbols, "symbol"))}
 	return nil
@@ -6123,7 +6121,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var scaledAmmount any = this.ToEn(amount, this.SafeInteger(currency, "valueScale"))
@@ -6147,7 +6145,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response := r1.Raw
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "code": "0",
@@ -6177,7 +6175,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//     {
 		//         "code": "0",
@@ -6187,7 +6185,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 		//
 		transfer = TransferEntryToMap(this.ParseTransfer(response))
 	}
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		if this.SafeString(transfer, "fromAccount") == nil {
@@ -6287,7 +6285,7 @@ func (this *Phemex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var transfers []any = this.SafeListSlice(data, "rows", []any{})
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(transfers, currency, since, limit))}
@@ -6646,7 +6644,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sym
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(result, market)}
 	return nil
@@ -6821,7 +6819,11 @@ func (this *Phemex) createConvertTradeBody(ch chan AsyncResult[Conversion], id s
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fromCurrencyId *string = this.SafeString(data, "fromCurrency")
 	var fromResult map[string]any = this.SafeCurrency(fromCurrencyId, fromCurrency)
 	var toCurrencyId *string = this.SafeString(data, "toCurrency")
@@ -6907,8 +6909,12 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversio
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit))}
 	return nil

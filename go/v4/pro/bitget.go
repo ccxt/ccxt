@@ -659,7 +659,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var messageHash string
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOHLCV", "uta", false)
@@ -734,7 +734,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 			panic(r.Err)
 		}
 	}
-	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var channel any = nil
 	var market map[string]any = this.Market(symbol)
@@ -842,7 +842,7 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	//         "ts": 1755594421877
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var marketType string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -996,11 +996,11 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var isStock *bool = market.Stock
 	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false)
-	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
+	var isStockSpot bool = (isStock != nil && *isStock) && market.Spot
 	var isStockOrUta bool = (isStockSpot || uta)
 	var paramsRequest map[string]any = paramsUta
 	if isStockOrUta {
@@ -1225,7 +1225,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	//     "ts": 1755937421337
 	// }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var marketType string = "contract"
@@ -1279,13 +1279,13 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 			var payloadArray []any = []any{}
 			for i := 0; i < 25; i++ {
 				if i < bidsLength {
-					var bidLevel any = ccxt.GetValue(storedBids, i)
+					var bidLevel any = storedBids.GetData()[i]
 					var bidParts any = ccxt.GetValue(bidLevel, 2)
 					payloadArray = append(payloadArray, ccxt.GetValue(bidParts, 0))
 					payloadArray = append(payloadArray, ccxt.GetValue(bidParts, 1))
 				}
 				if i < asksLength {
-					var askLevel any = ccxt.GetValue(storedAsks, i)
+					var askLevel any = storedAsks.GetData()[i]
 					var askParts any = ccxt.GetValue(askLevel, 2)
 					payloadArray = append(payloadArray, ccxt.GetValue(askParts, 0))
 					payloadArray = append(payloadArray, ccxt.GetValue(askParts, 1))
@@ -1294,7 +1294,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 			var payload string = ccxt.Join(payloadArray, ":")
 			var calculatedChecksum int64 = this.Crc32(payload, true)
 			if responseChecksum == nil || *responseChecksum != calculatedChecksum {
-				this.Spawn(this.HandleCheckSumErrorAsync, client, symbol, messageHash, this.OrderbookChecksumMessage(this.SafeString(market, "symbol", "")))
+				this.Spawn(this.HandleCheckSumErrorAsync, client, *symbol, messageHash, this.OrderbookChecksumMessage(this.SafeString(market, "symbol", "")))
 				return
 			}
 		}
@@ -1325,20 +1325,20 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
 }
-func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol any, messageHash any, checksumMessage any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol string, messageHash string, checksumMessage string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.handleCheckSumErrorBody(ch, client, symbol, messageHash, checksumMessage)
 	return ch
 }
-func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client any, symbol any, messageHash any, checksumMessage any) any {
+func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client any, symbol string, messageHash string, checksumMessage string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	r := <-this.UnWatchOrderBookAsync(ccxt.StringArg(symbol))
+	r := <-this.UnWatchOrderBookAsync(symbol)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", checksumMessage))
+	error := ccxt.ChecksumError(this.Id + " " + checksumMessage)
 	client.(ccxt.ClientInterface).Reject(error, messageHash)
 	return nil
 }
@@ -1474,14 +1474,20 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
-	if ccxt.IsEqual(this.HandleOption("watchTrades", "ignoreDuplicates", true), true) {
+	if this.HandleOption("watchTrades", "ignoreDuplicates", true) == true {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
 
@@ -1574,7 +1580,7 @@ func (this *Bitget) HandleTrades(client any, message map[string]any) {
 	//         "ts": 1701910980730
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var marketType string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -1934,7 +1940,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	//         "ts": 1730711666652
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType string = *this.SafeString(arg, "instType", "")
 	var action *string = this.SafeString(message, "action")
 	if !(this.PositionsByType[instType] != nil) || (action != nil && *action == "snapshot") {
@@ -2302,7 +2308,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	//         "ts": 1742367838124
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var argInstId *string = this.SafeString(arg, "instId")
@@ -2877,7 +2883,7 @@ func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var length int = len(data)
 	var messageHash string = "myTrades"
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	for i := 0; i < length; i++ {
 		var trade any = data[i]
@@ -3073,7 +3079,7 @@ func (this *Bitget) HandleBalance(client any, message map[string]any) {
 	//         "ts": 1740546523244
 	//     }
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
@@ -3360,12 +3366,11 @@ func (this *Bitget) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], uta a
 		var argsArrayFirst map[string]any = ccxt.SafeMapTyped(argsArray, 0)
 		var instType *string = this.SafeString(argsArrayFirst, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
-			url = func() any {
-				if uta == true {
-					return this.UrlsApiSections["demo"]["utaPublic"]
-				}
-				return this.UrlsApiSections["demo"]["public"]
-			}()
+			if uta == true {
+				url = this.UrlsApiSections["demo"]["utaPublic"]
+			} else {
+				url = this.UrlsApiSections["demo"]["public"]
+			}
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -3650,7 +3655,7 @@ func (this *Bitget) HandleMessage(client any, message map[string]any) {
 		"account-crossed":  this.HandleBalance,
 		"kline":            this.HandleOHLCV,
 	}
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var topic *string = this.SafeString2(arg, "channel", "topic", "")
 	var method any = this.SafeValue(methods, topic)
 	if method != nil {
@@ -3687,7 +3692,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -3719,7 +3724,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]an
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -3749,7 +3754,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]an
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -3787,7 +3792,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
 	//
-	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
+	var arg, _ = message["arg"].(map[string]any)
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar string = "contract"
 	if instType != nil && *instType == "spot" {
@@ -3846,7 +3851,7 @@ func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]an
 	//  or
 	// {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
 	//
-	var argsList []any = ccxt.SafeListTyped(message, "args")
+	var argsList, _ = message["args"].([]any)
 	if argsList == nil {
 		var arg map[string]any = this.SafeDictMap(message, "arg", map[string]any{})
 		argsList = []any{arg}

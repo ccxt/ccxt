@@ -606,7 +606,13 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -918,7 +924,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 		}
 	}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != firstMarket["type"] {
@@ -1031,7 +1037,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		}
 	}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString string = *this.SafeString(data, 0, "")
 		var market map[string]any = this.Market(symbolString)
 		if market["type"] != firstMarket["type"] {
@@ -2282,7 +2288,7 @@ func (this *Weex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, *typeVar)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
@@ -2304,7 +2310,7 @@ func (this *Weex) SetBalanceCache(client any, typeVar string) {
 	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"

@@ -153,7 +153,13 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -715,7 +721,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var rawHashes []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
 		var marketId string = *this.SafeString(market, "id2", "")
@@ -1385,7 +1391,7 @@ func (this *Apex) HandleErrorMessage(client any, message map[string]any) bool {
 			var success *bool = this.SafeBool(message, "success")
 			if (success != nil) && (!(success != nil && *success)) {
 				var ret_msg *string = this.SafeString(message, "ret_msg", "")
-				var request map[string]any = ccxt.SafeMapTyped(message, "request")
+				var request, _ = message["request"].(map[string]any)
 				var op *string = this.SafeString(request, "op")
 				// Benign re-subscribe notice (same shape as bitmart 90008 /
 				// krakenfutures "Already subscribed"): the original subscription
@@ -1528,7 +1534,7 @@ func (this *Apex) HandlePing(client any, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
 func (this *Apex) HandleAccount(client any, message map[string]any) {
-	var contents map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var contents, _ = message["contents"].(map[string]any)
 	var fills []any = this.SafeListSlice(contents, "fills", []any{})
 	if fills != nil {
 		this.HandleMyTrades(client, fills)

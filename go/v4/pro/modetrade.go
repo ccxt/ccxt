@@ -95,7 +95,7 @@ func (this *Modetrade) watchPublicBody(ch chan ccxt.AsyncResult[any], messageHas
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var wsUrl *string = this.SafeString(wsUrls, "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
@@ -191,8 +191,8 @@ func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var topic *string = this.SafeString(message, "topic")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
@@ -583,11 +583,11 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
@@ -823,7 +823,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	_ = params
 	this.CheckRequiredCredentials()
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " authenticate() has no private websocket url"))
@@ -886,7 +886,7 @@ func (this *Modetrade) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHa
 		panic(r.Err)
 	}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivate() has no private websocket url"))
@@ -921,7 +921,7 @@ func (this *Modetrade) watchPrivateMultipleBody(ch chan ccxt.AsyncResult[[]any],
 		panic(r.Err)
 	}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPrivateMultiple() has no private websocket url"))
@@ -1398,7 +1398,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 		messageHashes = append(messageHashes, "positions")
 	}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var wsUrl *string = this.SafeString(wsUrls, "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPositions() has no private websocket url"))
@@ -1516,7 +1516,7 @@ func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1812,12 +1812,11 @@ func (this *Modetrade) HandleMessage(client any, message map[string]any) {
 			var splitNameLength int = len(splitTopic)
 			if splitNameLength == 2 {
 				var splitNameFirst *string = this.SafeString(splitName, 0)
-				method = func() any {
-					if splitNameFirst == nil {
-						return nil
-					}
-					return this.SafeValue(methods, splitNameFirst)
-				}()
+				if splitNameFirst == nil {
+					method = nil
+				} else {
+					method = this.SafeValue(methods, splitNameFirst)
+				}
 				if method != nil {
 					ccxt.CallDynamically(method, client, message)
 				}

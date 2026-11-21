@@ -180,7 +180,7 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var content, _ = message["contents"].(map[string]any)
 	var rawTrades []any = this.SafeListSlice(content, "trades", []any{})
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
@@ -356,7 +356,7 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
-	var content map[string]any = ccxt.SafeMapTyped(message, "contents")
+	var content, _ = message["contents"].(map[string]any)
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
 		orderbook = this.OrderBook()

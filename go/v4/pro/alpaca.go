@@ -662,7 +662,7 @@ func (this *Alpaca) HandleOrder(client any, message map[string]any) {
 	//        }
 	//      }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rawOrder map[string]any = this.SafeDictMap(data, "order", map[string]any{})
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -723,7 +723,7 @@ func (this *Alpaca) HandleMyTrade(client any, message map[string]any) {
 	//        }
 	//      }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var event *string = this.SafeString(data, "event")
 	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return

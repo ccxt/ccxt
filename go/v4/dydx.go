@@ -773,7 +773,7 @@ func (this *Dydx) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "markets")
+	var data, _ = response["markets"].(map[string]any)
 	var markets []any = nil
 	if data != nil {
 		markets = make([]any, 0, len(data))
@@ -1496,9 +1496,13 @@ func (this *Dydx) fetchPositionBody(ch chan AsyncResult[Position], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = PositionsToList(r.Value)
+	var positions []Position = r.Value
+	var positionsRow Position
+	if len(positions) > 0 {
+		positionsRow = positions[0]
+	}
 
-	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
+	ch <- AsyncResult[Position]{Value: positionsRow}
 	return nil
 }
 
@@ -1587,7 +1591,7 @@ func (this *Dydx) SignHash(hash any, privateKey any) map[string]any {
 		"v": this.Sum(27, signature["v"]),
 	}
 }
-func (this *Dydx) SignMessage(message any, privateKey string) any {
+func (this *Dydx) SignMessage(message any, privateKey string) map[string]any {
 	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Dydx) SignOnboardingAction() any {
@@ -1609,7 +1613,7 @@ func (this *Dydx) SignOnboardingAction() any {
 	if this.PrivateKey == "" {
 		panic(ArgumentsRequired(this.Id + " signOnboardingAction() requires a privateKey to be set."))
 	}
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature map[string]any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
 func (this *Dydx) SignDydxTx(privateKey *string, message any, memo any, chainId *string, account any, authenticators any, optionalArgs ...any) any {
@@ -1656,7 +1660,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var dydxAccount map[string]any = SafeMapTyped(this.Options, "dydxAccount")
+	var dydxAccount, _ = this.Options["dydxAccount"].(map[string]any)
 	if dydxAccount != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "dydxAccount", map[string]any{})}
@@ -1931,8 +1935,8 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan AsyncResult[*int64], option
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var info map[string]any = SafeMapTyped(result, "response")
+	var result, _ = response["result"].(map[string]any)
+	var info, _ = result["response"].(map[string]any)
 	var height *int64 = this.SafeInteger(info, "last_block_height")
 	if height == nil {
 		panic(ExchangeError(this.Id + " fetchLatestBlockHeight() could not parse last_block_height"))
@@ -2031,7 +2035,7 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var requestValue map[string]any = SafeMapTyped(orderRequest, "value")
 	var requestOrder map[string]any = SafeMapTyped(requestValue, "order")
 	var requestOrderId map[string]any = SafeMapTyped(requestOrder, "orderId")
@@ -2195,7 +2199,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": result,
@@ -2310,7 +2314,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 		"info": result,
@@ -2524,7 +2528,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message
 	//     }
 	// }
 	//
-	var gasInfo map[string]any = SafeMapTyped(response, "gas_info")
+	var gasInfo, _ = response["gas_info"].(map[string]any)
 	if gasInfo == nil {
 		panic(ExchangeError(this.Id + " failed to simulate transaction."))
 	}
@@ -2534,7 +2538,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message
 	}
 	var defaultFeeDenom *string = this.SafeString(this.Options, "defaultFeeDenom")
 	var defaultFeeMultiplier *string = this.SafeString(this.Options, "defaultFeeMultiplier")
-	var feeDenom map[string]any = SafeMapTyped(this.Options, "feeDenom")
+	var feeDenom, _ = this.Options["feeDenom"].(map[string]any)
 	var gasPrice *string = nil
 	var denom *string = nil
 	if defaultFeeDenom != nil && *defaultFeeDenom == "uusdc" {
@@ -3172,7 +3176,11 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan AsyncResult[[]map[string]a
 	//     ]
 	// }
 	//
-	var transfers []any = this.SafeListSlice(response, "transfers", []any{})
+	var transfers []any
+	transfers, _ = response["transfers"].([]any)
+	if transfers == nil {
+		transfers = []any{}
+	}
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(transfers)}
 	return nil
@@ -3366,7 +3374,11 @@ func (this *Dydx) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "subaccount", map[string]any{})
+	var data map[string]any
+	data, _ = response["subaccount"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
@@ -3391,7 +3403,7 @@ func (this *Dydx) GetWalletAddress() any {
 	if this.WalletAddress != "" {
 		return this.WalletAddress
 	}
-	var dydxAccount map[string]any = SafeMapTyped(this.Options, "dydxAccount")
+	var dydxAccount, _ = this.Options["dydxAccount"].(map[string]any)
 	if dydxAccount != nil {
 		// return dydxAccount;
 		var wallet *string = this.SafeString(dydxAccount, "address")

@@ -1061,7 +1061,7 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 			}
 		}
 	}
-	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var tradingFees, _ = this.Fees["trading"].(map[string]any)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -3011,7 +3011,11 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//         "totalCount": 1
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3474,17 +3478,17 @@ func (this *Bullish) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceForSingleCurrency(response, code))}
 		return nil
 	} else {
 
-		r3 := <-this.PrivateGetV1AccountsAsset(this.Extend(request, params))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateGetV1AccountsAsset(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r3.Raw
+		var response []any = responseRecv.Value
 
 		//
 		//     [
@@ -3518,7 +3522,7 @@ func (this *Bullish) ParseBalanceForSingleCurrency(response any, code *string) m
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Bullish) ParseBalanceList(response any) map[string]any {
+func (this *Bullish) ParseBalanceList(response []any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -3823,7 +3827,7 @@ func (this *Bullish) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	//         "requestId": "633909659774222336"
 	//     }
 	//
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(response, currency))
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {

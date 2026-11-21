@@ -397,7 +397,7 @@ func (this *Apex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	//
 	// {
@@ -467,7 +467,11 @@ func (this *Apex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
@@ -513,7 +517,11 @@ func (this *Apex) fetchAccountBody(ch chan AsyncResult[Account], optionalArgs ..
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Account]{Value: AccountFromMap(this.ParseAccount(data))}
 	return nil
@@ -543,9 +551,9 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var spotConfig map[string]any = SafeMapTyped(data, "spotConfig")
-	var multiChain map[string]any = SafeMapTyped(spotConfig, "multiChain")
+	var data, _ = response["data"].(map[string]any)
+	var spotConfig, _ = data["spotConfig"].(map[string]any)
+	var multiChain, _ = spotConfig["multiChain"].(map[string]any)
 	// "spotConfig": {
 	//     "assets": [
 	//         {
@@ -635,7 +643,11 @@ func (this *Apex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//        }
 	//     ]
 	// }
-	var rows []any = this.SafeListSlice(spotConfig, "assets", []any{})
+	var rows []any
+	rows, _ = spotConfig["assets"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var chains any = this.SafeList(multiChain, "chains", []any{})
 	this.Options["_temp_currencies_chains"] = chains
 	var result map[string]any = this.ParseCurrencies(rows)
@@ -752,9 +764,13 @@ func (this *Apex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
-	var perpetualContract []any = this.SafeListSlice(contractConfig, "perpetualContract", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var contractConfig, _ = data["contractConfig"].(map[string]any)
+	var perpetualContract []any
+	perpetualContract, _ = contractConfig["perpetualContract"].([]any)
+	if perpetualContract == nil {
+		perpetualContract = []any{}
+	}
 
 	// {
 	//     "perpetualContract":[
@@ -985,7 +1001,13 @@ func (this *Apex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	}
 	var response map[string]any = r1.Value
 	var tickers []any = SafeListTyped(response, "data")
-	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
+	var rawTicker map[string]any
+	if 0 < len(tickers) {
+		rawTicker, _ = tickers[0].(map[string]any)
+	}
+	if rawTicker == nil {
+		rawTicker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(rawTicker, market)}
 	return nil
@@ -1025,7 +1047,11 @@ func (this *Apex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = this.SafeListSlice(response, "data", []any{})
+	var tickers []any
+	tickers, _ = response["data"].([]any)
+	if tickers == nil {
+		tickers = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
@@ -1090,7 +1116,7 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var OHLCVs []any = this.SafeListSlice(data, this.SafeString(market, "id2"), []any{})
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(OHLCVs, market, timeframe, since, limitResolved))}
@@ -1186,7 +1212,11 @@ func (this *Apex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	//     "u": 18665465
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp int64 = this.Milliseconds()
 	var orderbook map[string]any = this.ParseOrderBook(data, market["symbol"], timestamp, "b", "a")
 	orderbook["nonce"] = this.SafeInteger(data, "u")
@@ -1266,7 +1296,11 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	//  }
 	//  ]
 	//
-	var trades []any = this.SafeListSlice(response, "data", []any{})
+	var trades []any
+	trades, _ = response["data"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limitResolved))}
 	return nil
@@ -1349,7 +1383,13 @@ func (this *Apex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symbo
 	}
 	var response map[string]any = r1.Value
 	var tickers []any = SafeListTyped(response, "data")
-	var rawTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
+	var rawTicker map[string]any
+	if 0 < len(tickers) {
+		rawTicker, _ = tickers[0].(map[string]any)
+	}
+	if rawTicker == nil {
+		rawTicker = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(rawTicker, market)}
 	return nil
@@ -1465,7 +1505,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	// }
 	//
 	var rates []any = []any{}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var resultList []map[string]any = this.SafeListMapsTyped(data, "historyFunds")
 	for i := 0; i < len(resultList); i++ {
 		var entry map[string]any = resultList[i]
@@ -1752,7 +1792,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 			orderPrice = nil
 		}
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, "swap")
+	var fees, _ = this.Fees["swap"].(map[string]any)
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
 	var pricePrecision any = GetValue(market["precision"], "price")
@@ -1854,7 +1894,11 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(r3.Err)
 	}
 	var response map[string]any = r3.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -1895,9 +1939,9 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		panic(r1.Err)
 	}
 	var configResponse map[string]any = r1.Value
-	var configData map[string]any = SafeMapTyped(configResponse, "data")
-	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
-	var spotConfig map[string]any = SafeMapTyped(configData, "spotConfig")
+	var configData, _ = configResponse["data"].(map[string]any)
+	var contractConfig, _ = configData["contractConfig"].(map[string]any)
+	var spotConfig, _ = configData["spotConfig"].(map[string]any)
 	var globalConfig map[string]any = SafeMapTyped(spotConfig, "global")
 	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
 	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
@@ -1909,11 +1953,12 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		panic(r2.Err)
 	}
 	var accountResponse map[string]any = r2.Value
-	var accountData map[string]any = SafeMapTyped(accountResponse, "data")
+	var accountData, _ = accountResponse["data"].(map[string]any)
 	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
-	var subAccounts []any = SafeListTyped(spotAccount, "subAccounts")
+	var subAccounts []any
+	subAccounts, _ = spotAccount["subAccounts"].([]any)
 	var nonce string = "0"
 	if len(subAccounts) > 0 {
 		nonce = *this.SafeString(subAccounts[0], "nonce", "0")
@@ -1995,7 +2040,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
-		response := r4.Raw
+		var response map[string]any = r4.Value
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
 		var parsedAmount *float64 = this.ParseNumber(amount)
@@ -2048,7 +2093,7 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		if r6.Err != nil {
 			panic(r6.Err)
 		}
-		response := r6.Raw
+		var response map[string]any = r6.Value
 		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 		var currentTime int64 = this.Milliseconds()
 
@@ -2122,7 +2167,11 @@ func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.ParseOrder(data, market))})}
 	return nil
@@ -2273,7 +2322,11 @@ func (this *Apex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "data", []any{})
+	var orders []any
+	orders, _ = response["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, nil, since, limit))}
 	return nil
@@ -2347,8 +2400,12 @@ func (this *Apex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "orders", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2403,8 +2460,12 @@ func (this *Apex) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "orders", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, nil, since, limit))}
 	return nil
@@ -2476,8 +2537,12 @@ func (this *Apex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "orders", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(orders, market, since, limit))}
 	return nil
@@ -2548,8 +2613,12 @@ func (this *Apex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var fundingValues []any = this.SafeListSlice(data, "fundingValues", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var fundingValues []any
+	fundingValues, _ = data["fundingValues"].([]any)
+	if fundingValues == nil {
+		fundingValues = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(fundingValues, market, since, limit))}
 	return nil
@@ -2632,7 +2701,11 @@ func (this *Apex) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: data}
 	return nil
@@ -2672,8 +2745,12 @@ func (this *Apex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var positions []any = this.SafeListSlice(data, "positions", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = data["positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
@@ -2697,8 +2774,8 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")

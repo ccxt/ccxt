@@ -894,7 +894,11 @@ func (this *Bitrue) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	//         ],
 	//     }
 	//
-	var coins []any = this.SafeListSlice(response, "coins", []any{})
+	var coins []any
+	coins, _ = response["coins"].([]any)
+	if coins == nil {
+		coins = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(coins)}
 	return nil
@@ -973,7 +977,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var promisesRaw []any = []any{}
 	var types []any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions, _ = this.Options["fetchMarkets"].(map[string]any)
 	if fetchMarketsOptions != nil {
 		types = this.SafeListSlice(fetchMarketsOptions, "types", defaultTypes)
 	} else {
@@ -1648,7 +1652,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var timeframes map[string]any = SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var response any = nil
 	var data any = []any{}
 	if *this.SafeBool(market, "swap", false) {
@@ -3087,12 +3091,11 @@ func (this *Bitrue) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	}
 	var limitResolved any = nil
 	if limit != nil {
-		limitResolved = func() any {
-			if *limit > 1000 {
-				return 1000
-			}
-			return limit
-		}()
+		if *limit > 1000 {
+			limitResolved = 1000
+		} else {
+			limitResolved = limit
+		}
 		request["limit"] = limitResolved
 	}
 	if *this.SafeBool(market, "swap", false) {
@@ -3265,7 +3268,11 @@ func (this *Bitrue) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
@@ -3348,7 +3355,11 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	//        ]
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency))}
 	return nil
@@ -3570,7 +3581,11 @@ func (this *Bitrue) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
@@ -3760,12 +3775,11 @@ func (this *Bitrue) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	}
 	var limitResolved any = nil
 	if limit != nil {
-		limitResolved = func() any {
-			if *limit > 200 {
-				return 200
-			}
-			return limit
-		}()
+		if *limit > 200 {
+			limitResolved = 200
+		} else {
+			limitResolved = limit
+		}
 		request["limit"] = limitResolved
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -3797,7 +3811,11 @@ func (this *Bitrue) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	//         }]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(data, currency, since, limitResolved))}
 	return nil
@@ -3834,7 +3852,7 @@ func (this *Bitrue) transferBody(ch chan AsyncResult[TransferEntry], code string
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountTypes, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -3855,7 +3873,11 @@ func (this *Bitrue) transferBody(ch chan AsyncResult[TransferEntry], code string
 	//         'data': null
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil

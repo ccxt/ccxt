@@ -221,7 +221,13 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -573,7 +579,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = symbolsAndTimeframes[i]
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market map[string]any = this.Market(marketSymbol)
@@ -670,7 +676,7 @@ func (this *Nado) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	var messageHashes []any = []any{}
 	var subscriptionParams []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
-		var symbolAndTimeframe []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var symbolAndTimeframe []any = symbolsAndTimeframes[i]
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market map[string]any = this.Market(marketSymbol)
@@ -1614,9 +1620,13 @@ func (this *Nado) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders []any = ccxt.OrdersToList(r.Value)
+	var orders []ccxt.Order = r.Value
+	var ordersRow ccxt.Order
+	if len(orders) > 0 {
+		ordersRow = orders[0]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(this.SafeDictMap(orders, 0))}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ordersRow}
 	return nil
 }
 
@@ -2684,8 +2694,8 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		return
 	}
@@ -2854,7 +2864,7 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 }
 func (this *Nado) Ping(client any) any {
 	var gatewayUrl *string = this.SafeString(this.UrlsApi["ws"], "gateway")
-	if ccxt.IsEqual(client.(ccxt.ClientInterface).GetUrl(), gatewayUrl) {
+	if gatewayUrl != nil && client.(ccxt.ClientInterface).GetUrl() == *gatewayUrl {
 		// the v2 gateway is kept alive with protocol-level ping frames,
 		// returning undefined makes the client send one instead of a message
 		return nil
@@ -2876,7 +2886,7 @@ func (this *Nado) HandlePong(client any, message map[string]any) map[string]any 
 	//         "id": 10
 	//     }
 	//
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(result, "server_time", this.Milliseconds()))
 	return message
 }
@@ -2914,7 +2924,7 @@ func (this *Nado) HandleMessage(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	_, has1 := message["result"]
 	var hasResult bool = has1
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	var method *string = this.SafeString(result, "method")
 	if method != nil && *method == "pong" {
 		// pong replies carry both 'id' and 'result' so they must be routed

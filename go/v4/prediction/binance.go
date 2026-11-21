@@ -331,7 +331,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan ccxt.AsyncResult[[]map[string]an
 		//         "hasMore": true
 		//     }
 		//
-		var pageTopics []any = ccxt.SafeListTyped(response, "marketTopics")
+		var pageTopics, _ = response["marketTopics"].([]any)
 		var pageTopicsLength int = len(pageTopics)
 		for i := 0; i < pageTopicsLength; i++ {
 			collected = append(collected, pageTopics[i])
@@ -698,9 +698,13 @@ func (this *Binance) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var events []any = ccxt.PredictionEventsToList(r.Value)
+	var events []ccxt.PredictionEvent = r.Value
+	var eventsRow ccxt.PredictionEvent
+	if len(events) > 0 {
+		eventsRow = events[0]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(this.SafeDictMap(events, 0))}
+	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: eventsRow}
 	return nil
 }
 
@@ -1462,7 +1466,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	//     ]
 	// }
 	//
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
@@ -1594,7 +1602,11 @@ func (this *Binance) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	//     ]
 	// }
 	//
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var parsedOrders []any = this.ParsePredictionOrders(orders, outcomeObj, since)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByOutcomeSinceLimit(parsedOrders, outcome, since, limit))}
@@ -1703,7 +1715,11 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	//     ]
 	// }
 	//
-	var data []any = this.SafeListSlice(response, "positions", []any{})
+	var data []any
+	data, _ = response["positions"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if outcomes == nil {
 
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(data))}
@@ -1772,7 +1788,11 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 	var response map[string]any = r2.Value
 	//
 	//
-	var positions []any = this.SafeListSlice(response, "positions", []any{})
+	var positions []any
+	positions, _ = response["positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 	var parsedPositions []any = this.ParsePredictionPositions(positions)
 	var filteredPositions []any = ccxt.ArrayTyped(this.FilterByOutcomeSinceLimit(parsedPositions, outcome, nil, nil))
 
@@ -1960,7 +1980,11 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	//     ]
 	// }
 	//
-	var trades []any = this.SafeListSlice(response, "orders", []any{})
+	var trades []any
+	trades, _ = response["orders"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 	var parsedTrades []any = this.ParsePredictionTrades(trades, outcomeObj)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByOutcomeSinceLimit(parsedTrades, outcome, since, limit))}
@@ -2092,7 +2116,7 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 	//     ]
 	// }
 	//
-	var wallets []any = ccxt.SafeListTyped(response, "wallets")
+	var wallets, _ = response["wallets"].([]any)
 	if walletAddress == nil {
 		this.Options["wallet"] = this.SafeDict(wallets, 0)
 
@@ -2472,14 +2496,14 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	//     ]
 	// }
 	//
-	var canceledOrders []any = ccxt.SafeListTyped(response, "canceled")
+	var canceledOrders, _ = response["canceled"].([]any)
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome", outcome)
-	var failedOrders []any = ccxt.SafeListTyped(response, "failed")
+	var failedOrders, _ = response["failed"].([]any)
 	var failedOrdersLength int = len(failedOrders)
 	if failedOrdersLength > 0 {
 		var failedDetails []string = []string{}
 		for i := 0; i < failedOrdersLength; i++ {
-			var failedOrder map[string]any = ccxt.SafeMapTyped(failedOrders, i)
+			var failedOrder, _ = failedOrders[i].(map[string]any)
 			var failedOrderId string = *this.SafeString(failedOrder, "orderId", "")
 			var failedReason string = *this.SafeString(failedOrder, "reason", "")
 			failedDetails = append(failedDetails, failedOrderId+": "+failedReason)

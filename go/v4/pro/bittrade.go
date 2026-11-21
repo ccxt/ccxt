@@ -89,8 +89,8 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	var messageHash string = "market." + marketId + ".detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -190,8 +190,8 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	var messageHash string = "market." + marketId + ".trade.detail"
 	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -242,7 +242,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) map[strin
 	//         }
 	//     }
 	//
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var data []any = ccxt.SafeListTyped(tick, "data")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
@@ -309,8 +309,8 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	var messageHash string = "market." + marketId + ".kline." + *interval
 	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -427,8 +427,8 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var messageHash string = "market." + marketId + ".mbp.150"
 	var api string = *this.SafeString(this.Options, "api", "api")
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var apiWsUrls, _ = wsUrls[api].(map[string]any)
 	var hostname map[string]any = map[string]any{
 		"hostname": this.Hostname,
 	}
@@ -535,8 +535,8 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 			var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
 			var api string = *this.SafeString(this.Options, "api", "api")
 			var apiUrls map[string]any = this.UrlsApi
-			var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-			var apiWsUrls map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+			var wsUrls, _ = apiUrls["ws"].(map[string]any)
+			var apiWsUrls, _ = wsUrls[api].(map[string]any)
 			var hostname map[string]any = map[string]any{
 				"hostname": this.Hostname,
 			}

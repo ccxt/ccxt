@@ -756,8 +756,8 @@ func (this *Polymarket) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = SafeStringPtr(market["symbol"])
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolResolved *string = market.Symbol
 	// the tickers and statistics endpoints ignore the documented
 	// instrument_id filter and always answer with every instrument, so
 	// the single-market call reuses the bulk fetch and selects one row
@@ -1111,7 +1111,11 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 	//         "more": true
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1277,7 +1281,11 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	//         "more": false
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1317,8 +1325,8 @@ func (this *Polymarket) fetchFundingRateBody(ch chan AsyncResult[FundingRate], s
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = SafeStringPtr(market["symbol"])
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolResolved *string = market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
 	// reuses the bulk fetch and selects the requested row
@@ -1544,8 +1552,8 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolResolved *string = SafeStringPtr(market["symbol"])
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var symbolResolved *string = market.Symbol
 	// the tickers endpoint ignores the documented instrument_id filter
 	// and always answers with every instrument, so the single-market call
 	// reuses the bulk fetch and selects the requested row
@@ -1686,7 +1694,13 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 			byCategory[*category] = entry
 		}
 	}
-	var fallback map[string]any = this.SafeDictMap(schedule, 0, map[string]any{})
+	var fallback map[string]any
+	if 0 < len(schedule) {
+		fallback, _ = schedule[0].(map[string]any)
+	}
+	if fallback == nil {
+		fallback = map[string]any{}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = this.SafeString(this.Symbols, i, "")
@@ -2202,9 +2216,9 @@ func (this *Polymarket) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var deadline any = 0
+	var deadline int64 = 0
 	if (true) && (timeout > 0) {
-		deadline = this.Sum(this.Milliseconds(), timeout)
+		deadline = this.Milliseconds() + timeout
 	}
 	var signable []any = []any{"autoCancel", []any{deadline}}
 	var bodyOp map[string]any = map[string]any{
@@ -2965,7 +2979,11 @@ func (this *Polymarket) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "cursor": "..."
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -3214,7 +3232,11 @@ func (this *Polymarket) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3278,7 +3300,11 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3317,7 +3343,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	}
 	var currency map[string]any = this.Currency(code)
 	var owner string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-	var collateral map[string]any = SafeMapTyped(this.Options, "collateral")
+	var collateral, _ = this.Options["collateral"].(map[string]any)
 	var tokenAddress *string = this.SafeString(collateral, "address")
 	var decimals *string = this.SafeString(collateral, "decimals", "6")
 	var precision any = this.ParsePrecision(decimals)
@@ -3661,7 +3687,7 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
 	}
 	var market map[string]any = this.Market(symbol)
 	var instrumentId int64 = this.ParseToInt(market["id"])
-	var collateral map[string]any = SafeMapTyped(this.Options, "collateral")
+	var collateral, _ = this.Options["collateral"].(map[string]any)
 	var decimals *string = this.SafeString(collateral, "decimals", "6")
 	var precision any = this.ParsePrecision(decimals)
 	var amountString string = this.DecimalToPrecision(this.NumberToString(amount), TRUNCATE, this.ParseNumber(precision), TICK_SIZE)
@@ -3777,8 +3803,8 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, keccak, "hex")
 }
-func (this *Polymarket) SignHash(hash any, privateKey any) string {
-	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), Slice(privateKey, int64(-64), nil), secp256k1, nil)
+func (this *Polymarket) SignHash(hash string, privateKey any) string {
+	var signature map[string]any = Ecdsa(hash[max(len(hash)-64, 0):], Slice(privateKey, int64(-64), nil), secp256k1, nil)
 	var r string = *this.SafeString(signature, "r", "")
 	var sVal string = *this.SafeString(signature, "s", "")
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
@@ -4112,7 +4138,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 		if apiType == "private" {
-			var credentials map[string]any = SafeMapTyped(this.Options, "proxyCredentials")
+			var credentials, _ = this.Options["proxyCredentials"].(map[string]any)
 			headersResolved["POLYMARKET-PROXY"] = this.SafeString(credentials, "proxy")
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
 		}

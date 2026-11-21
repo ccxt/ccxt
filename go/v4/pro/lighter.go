@@ -212,7 +212,7 @@ func (this *Lighter) HandleDeltas(bookside any, deltas []any) {
 	}
 }
 func (this *Lighter) HandleOrderBookMessage(client any, message map[string]any, orderbook ccxt.OrderBookInterface) any {
-	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
+	var data, _ = message["order_book"].(map[string]any)
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
 	orderbook.SetNonce(this.SafeInteger(data, "offset"))
@@ -251,8 +251,8 @@ func (this *Lighter) HandleOrderBook(client any, message map[string]any) {
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {
@@ -1133,7 +1133,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 	var channel string = *this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(channel, ":")
 	var accountIndex *string = this.SafeString(parts, 1)
-	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
+	var data, _ = message["trades"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -1573,7 +1573,7 @@ func (this *Lighter) HandleBalance(client any, message map[string]any) bool {
 	}
 	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
 	if typeVar == "spot" {
-		var assets map[string]any = ccxt.SafeMapTyped(message, "assets")
+		var assets, _ = message["assets"].(map[string]any)
 		var assetIds []string = nil
 		if assets != nil {
 			assetIds = make([]string, 0, len(assets))
@@ -1958,7 +1958,7 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 	//        "type": "update/account_all_orders"
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "orders")
+	var data, _ = message["orders"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -2017,7 +2017,7 @@ func (this *Lighter) HandleErrorMessage(client any, message map[string]any) bool
 	//         }
 	//     }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil && *errorCode == "30003" {
 		// a duplicate subscribe is harmless - the server-side subscription is intact and

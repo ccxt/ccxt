@@ -247,7 +247,13 @@ func (this *Upbit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tra
 		panic(r.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -414,7 +420,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "code")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var typeVar *string = this.SafeString(message, "stream_type")
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
 	if (typeVar != nil && *typeVar == "SNAPSHOT") && !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		if symbol != nil {

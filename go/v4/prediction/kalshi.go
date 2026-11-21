@@ -434,7 +434,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 			panic(r1.Err)
 		}
 		var response map[string]any = r1.Value
-		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		var rawMarkets, _ = response["markets"].([]any)
 		var rawMarketsLength int = len(rawMarkets)
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw any = rawMarkets[i]
@@ -551,7 +551,7 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
 			}(this)
 
 		}
-		if !ccxt.IsEqual(response, nil) {
+		if response != nil {
 			var rawMarket any = this.SafeDict(response, "market", response)
 			var parsed map[string]any = this.ParseMarket(rawMarket)
 			if this.Markets == nil {
@@ -699,7 +699,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			panic(r.Err)
 		}
 		var response map[string]any = r.Value
-		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		var rawMarkets, _ = response["markets"].([]any)
 		for i := 0; i < len(rawMarkets); i++ {
 			var parsed map[string]any = this.ParseMarket(rawMarkets[i])
 			if parsed == nil {
@@ -1284,12 +1284,11 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	if isNo {
 		bid = noBid
 		ask = noAsk
-		close = func() any {
-			if last != nil {
-				return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(last)))
-			}
-			return nil
-		}()
+		if last != nil {
+			close = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(last)))
+		} else {
+			close = nil
+		}
 	} else {
 		bid = yesBid
 		ask = yesAsk
@@ -1381,7 +1380,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	}
 	// group requested outcomes by their market ticker, yes and no outcomes share one market
 	var outcomesByTicker map[string]any = map[string]any{}
-	var tickers []any = []any{}
+	var tickers []string = []string{}
 	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
 		var ticker *string = this.SafeString(outcomeObj["info"], "ticker")
@@ -1401,7 +1400,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	var result map[string]any = map[string]any{}
 	var tickersLength int = len(tickers)
 	var lastTickerIndex int64 = int64(tickersLength) - 1
-	var chunk []any = []any{}
+	var chunk []string = []string{}
 	// flush a request every chunkSize tickers and once more for the trailing partial chunk
 	for ti := 0; ti < tickersLength; ti++ {
 		chunk = append(chunk, tickers[ti])
@@ -1410,17 +1409,17 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			continue
 		}
 		var request map[string]any = map[string]any{
-			"tickers": ccxt.Join(chunk, ","),
+			"tickers": strings.Join(chunk, ","),
 			"limit":   chunkSize,
 		}
-		chunk = []any{}
+		chunk = []string{}
 
 		r1 := <-this.KalshiPublicGetMarkets(this.Extend(request, params))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		var response map[string]any = r1.Value
-		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
+		var rawMarkets, _ = response["markets"].([]any)
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw any = rawMarkets[i]
 			var marketTicker *string = this.SafeString(raw, "ticker")
@@ -1687,7 +1686,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	//         "ticker": "KXGDPSHAREMANU-29"
 	//     }
 	//
-	var candles []any = ccxt.SafeListTyped(response, "candlesticks")
+	var candles, _ = response["candlesticks"].([]any)
 	var usableCandles []any = []any{}
 	for i := 0; i < len(candles); i++ {
 		var candle any = candles[i]
@@ -1805,7 +1804,7 @@ func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = ccxt.SafeListTyped(response, "trades")
+	var trades, _ = response["trades"].([]any)
 	var filteredTrades []any = []any{}
 	for i := 0; i < len(trades); i++ {
 		var trade any = trades[i]
@@ -1867,9 +1866,10 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 			side = &sideStr2
 		}
 	}
-	var cost any = nil
+	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		cost = (*price * *amount)
+		costValue := (*price * *amount)
+		cost = &costValue
 	}
 	return this.SafePredictionTrade(map[string]any{
 		"id":           id,
@@ -1945,7 +1945,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var fills []any = ccxt.SafeListTyped(response, "fills")
+	var fills, _ = response["fills"].([]any)
 	var fillsLength int = len(fills)
 	var trades []any = []any{}
 	for i := 0; i < fillsLength; i++ {
@@ -2008,15 +2008,17 @@ func (this *Kalshi) ParseMyTrade(fill any, optionalArgs ...any) any {
 		dollarsKey = "no_price_dollars"
 	}
 	var legCents *float64 = this.SafeNumber(fill, centsKey)
-	var centsPrice any = nil
+	var centsPrice *float64 = nil
 	if legCents != nil {
-		centsPrice = (*legCents / 100)
+		centsPriceValue := (*legCents / 100)
+		centsPrice = &centsPriceValue
 	}
 	var price *float64 = this.SafeNumber(fill, dollarsKey, centsPrice)
 	var amount *float64 = this.SafeNumber2(fill, "count_fp", "count")
-	var cost any = nil
+	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		cost = (*price * *amount)
+		costValue := (*price * *amount)
+		cost = &costValue
 	}
 	var isTaker *bool = this.SafeBool(fill, "is_taker", true)
 	var takerOrMaker string = "maker"
@@ -2146,7 +2148,11 @@ func (this *Kalshi) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var positions []any = this.SafeListSlice(response, "market_positions", []any{})
+	var positions []any
+	positions, _ = response["market_positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 	// filter by the requested outcomes' market tickers — a kalshi position is per market
 	// ticker and covers both the YES and the NO leg
 	if outcomesLength == 0 {
@@ -2227,7 +2233,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rawSettlements []any = ccxt.SafeListTyped(response, "settlements")
+	var rawSettlements, _ = response["settlements"].([]any)
 	var rawSettlementsLength int = len(rawSettlements)
 	var parsed []any = []any{}
 	for i := 0; i < rawSettlementsLength; i++ {
@@ -2287,9 +2293,10 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
 	var won bool = (marketResult != nil && *marketResult == heldLabel)
 	// kalshi reports money as dollar keys on V2, else cents
 	var revenueCents *float64 = this.SafeNumber(settlement, "revenue")
-	var centsPayout any = nil
+	var centsPayout *float64 = nil
 	if revenueCents != nil {
-		centsPayout = (*revenueCents / 100)
+		centsPayoutValue := (*revenueCents / 100)
+		centsPayout = &centsPayoutValue
 	}
 	var payout *float64 = this.SafeNumber(settlement, "revenue_dollars", centsPayout)
 	var costKey string = "no_total_cost"
@@ -2301,14 +2308,16 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
 		costDollarsKey = "yes_total_cost_dollars"
 	}
 	var costCents *float64 = this.SafeNumber(settlement, costKey)
-	var centsCost any = nil
+	var centsCost *float64 = nil
 	if costCents != nil {
-		centsCost = (*costCents / 100)
+		centsCostValue := (*costCents / 100)
+		centsCost = &centsCostValue
 	}
 	var cost *float64 = this.SafeNumber(settlement, costDollarsKey, centsCost)
-	var pnl any = nil
+	var pnl *float64 = nil
 	if (payout != nil) && (cost != nil) {
-		pnl = (*payout - *cost)
+		pnlValue := (*payout - *cost)
+		pnl = &pnlValue
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(settlement, "settled_time"))
 	var amountValue *float64
@@ -3004,7 +3013,7 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		panic(r1.Err)
 	}
 	var restingResponse map[string]any = r1.Value
-	var restingOrders []any = ccxt.SafeListTyped(restingResponse, "orders")
+	var restingOrders, _ = restingResponse["orders"].([]any)
 	var restingOrdersLength int = len(restingOrders)
 	var canceledOrders []any = []any{}
 	for i := 0; i < restingOrdersLength; i++ {
@@ -3185,7 +3194,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 	}
 	// free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
 	var seen map[string]any = map[string]any{}
-	var eventTickers []any = []any{}
+	var eventTickers []string = []string{}
 	var queriesLength int = len(queries)
 	for qi := 0; qi < queriesLength; qi++ {
 
@@ -3198,7 +3207,7 @@ func (this *Kalshi) fetchEventsByQueryBody(ch chan ccxt.AsyncResult[[]map[string
 			panic(r.Err)
 		}
 		var searchResponse map[string]any = r.Value
-		var page []any = ccxt.SafeListTyped(searchResponse, "current_page")
+		var page, _ = searchResponse["current_page"].([]any)
 		var pageLength int = len(page)
 		for pi := 0; pi < pageLength; pi++ {
 			var et *string = this.SafeString(page[pi], "event_ticker")
@@ -3331,7 +3340,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		seriesResponse := r.Raw
+		var seriesResponse map[string]any = r.Value
 		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
@@ -3350,7 +3359,7 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		seriesResponse := r1.Raw
+		var seriesResponse map[string]any = r1.Value
 		var seriesList []any = ccxt.SafeListTyped(seriesResponse, "series")
 		var seriesListLength int = len(seriesList)
 		for si := 0; si < seriesListLength; si++ {
@@ -3452,7 +3461,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]
 				panic(r.Err)
 			}
 			var response map[string]any = r.Value
-			var pageEvents []any = ccxt.SafeListTyped(response, "events")
+			var pageEvents, _ = response["events"].([]any)
 			var pageEventsLength int = len(pageEvents)
 			for ei := 0; ei < pageEventsLength; ei++ {
 				rawEvents = append(rawEvents, pageEvents[ei])

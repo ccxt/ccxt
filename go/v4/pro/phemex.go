@@ -1360,12 +1360,11 @@ func (this *Phemex) HandleMyTrades(client any, message []any) {
 		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
 		if typeVar == nil {
 			var marketSettle *string = this.SafeString(market, "settle")
-			typeVar = func() any {
-				if marketSettle != nil && *marketSettle == "USDT" {
-					return "perpetual"
-				}
-				return market["type"]
-			}()
+			if marketSettle != nil && *marketSettle == "USDT" {
+				typeVar = "perpetual"
+			} else {
+				typeVar = market["type"]
+			}
 		}
 		if symbol != nil {
 			marketIds[*symbol] = true
@@ -1670,12 +1669,11 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		var market map[string]any = this.Market(symbol)
 		if typeVar == nil {
 			var isUsdt bool = (market["settle"] == "USDT")
-			typeVar = func() any {
-				if isUsdt {
-					return "perpetual"
-				}
-				return market["type"]
-			}()
+			if isUsdt {
+				typeVar = "perpetual"
+			} else {
+				typeVar = market["type"]
+			}
 		}
 		ccxt.AddElementToObject(marketIds, symbol, true)
 	}

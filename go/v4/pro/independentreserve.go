@@ -303,12 +303,12 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		var payload any = ""
 		for i := 0; i < 10; i++ {
 			if i < bidsLength {
-				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedBids, i), 0))), this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedBids, i), 1)))
+				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(storedBids.GetData()[i], 0))), this.ValueToChecksum(this.SafeNumber(storedBids.GetData()[i], 1)))
 			}
 		}
 		for i := 0; i < 10; i++ {
 			if i < asksLength {
-				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedAsks, i), 0))), this.ValueToChecksum(this.SafeNumber(ccxt.GetValue(storedAsks, i), 1)))
+				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(this.SafeNumber(storedAsks.GetData()[i], 0))), this.ValueToChecksum(this.SafeNumber(storedAsks.GetData()[i], 1)))
 			}
 		}
 		var calculatedChecksum int64 = this.Crc32(payload, false)

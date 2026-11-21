@@ -1034,8 +1034,12 @@ func (this *Woofipro) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//     }
 	//   }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -1090,14 +1094,8 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 		panic(r.Err)
 	}
 	var tokenResponsechainResponseVariable []map[string]any = r.Value
-	var tokenResponse any = nil
-	if tokenResponsechainResponseVariable[0] != nil {
-		tokenResponse = tokenResponsechainResponseVariable[0]
-	}
-	var chainResponse any = nil
-	if tokenResponsechainResponseVariable[1] != nil {
-		chainResponse = tokenResponsechainResponseVariable[1]
-	}
+	var tokenResponse map[string]any = tokenResponsechainResponseVariable[0]
+	var chainResponse map[string]any = tokenResponsechainResponseVariable[1]
 	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
 	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
@@ -1322,8 +1320,12 @@ func (this *Woofipro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
@@ -1461,7 +1463,11 @@ func (this *Woofipro) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
 	return nil
@@ -1519,8 +1525,12 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
@@ -1700,7 +1710,8 @@ func (this *Woofipro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
@@ -1858,7 +1869,8 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan AsyncResult[map[string]Open
 	// }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
@@ -1964,7 +1976,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var result []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
@@ -2008,8 +2020,6 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	var paymentType *string = this.SafeString(income, "payment_type")
 	if paymentType != nil && *paymentType == "Pay" {
 		amount = Precise.StringNeg(amount)
-	} else {
-		amount = amount
 	}
 	return map[string]any{
 		"info":      income,
@@ -2119,8 +2129,12 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(rows, market, since, limit))}
 	return nil
@@ -2264,7 +2278,11 @@ func (this *Woofipro) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -2325,7 +2343,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	//
 	// {
 	//     "success": true,
@@ -2346,7 +2364,11 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//     }
 	// }
 	//
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
@@ -2786,8 +2808,12 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rows))}
 	return nil
@@ -3625,8 +3651,12 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, params))}
 	return nil
@@ -3730,8 +3760,12 @@ func (this *Woofipro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, paramsUntil))}
 	return nil
@@ -3800,7 +3834,11 @@ func (this *Woofipro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
@@ -3876,8 +3914,12 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
@@ -4185,7 +4227,7 @@ func (this *Woofipro) getWithdrawNonceBody(ch chan AsyncResult[*float64], option
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[*float64]{Value: this.SafeNumber(data, "withdraw_nonce")}
 	return nil
@@ -4318,7 +4360,11 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
@@ -4388,8 +4434,12 @@ func (this *Woofipro) fetchMarginModesBody(ch chan AsyncResult[map[string]Margin
 	//     }
 	// }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(rows, symbolsNormalized, "symbol"))}
 	return nil
@@ -4713,7 +4763,11 @@ func (this *Woofipro) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol st
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -4896,7 +4950,11 @@ func (this *Woofipro) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 	//     }
 	// }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(data, market)}
 	return nil
@@ -4974,8 +5032,12 @@ func (this *Woofipro) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	//     }
 	// }
 	//
-	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = this.SafeListSlice(result, "rows", []any{})
+	var result, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = result["rows"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil

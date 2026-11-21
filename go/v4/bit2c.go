@@ -723,7 +723,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	//         }
 	//     }
 	//
-	var fees map[string]any = SafeMapTyped(response, "Fees")
+	var fees, _ = response["Fees"].(map[string]any)
 	var keys []string = nil
 	if fees != nil {
 		keys = make([]string, 0, len(fees))
@@ -735,7 +735,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	for i := 0; i < len(keys); i++ {
 		var marketId string = keys[i]
 		var symbol *string = this.SafeSymbol(marketId)
-		var fee map[string]any = SafeMapTyped(fees, marketId)
+		var fee, _ = fees[marketId].(map[string]any)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
 		var maker *float64 = this.ParseNumber(Precise.StringDiv(makerString, "100"))
@@ -1272,22 +1272,21 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 			makerOrTakerStr = "taker"
 		}
 		makerOrTaker = &makerOrTakerStr
-		orderId = func() any {
-			if isMaker != nil && *isMaker {
-				return func() any {
-					if 2 >= 0 && 2 < len(reference_parts) {
-						return reference_parts[2]
-					}
-					return nil
-				}()
-			}
-			return func() any {
+		if isMaker != nil && *isMaker {
+			orderId = func() any {
+				if 2 >= 0 && 2 < len(reference_parts) {
+					return reference_parts[2]
+				}
+				return nil
+			}()
+		} else {
+			orderId = func() any {
 				if 1 >= 0 && 1 < len(reference_parts) {
 					return reference_parts[1]
 				}
 				return nil
 			}()
-		}()
+		}
 		var action *int64 = this.SafeInteger(trade, "action")
 		if action != nil && *action == 0 {
 			side = "buy"

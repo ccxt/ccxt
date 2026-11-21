@@ -248,8 +248,8 @@ func (this *Coinbase) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], name 
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId *string = market.Id
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, name+"::"+symbol)
 	}
@@ -314,8 +314,8 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId *string = market.Id
 		productIds = append(productIds, marketId)
 		watchMessageHashes = append(watchMessageHashes, name+"::"+symbol)
 		unWatchMessageHashes = append(unWatchMessageHashes, "unsubscribe:"+name+"::"+symbol)
@@ -814,8 +814,8 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 		for j := 0; j < len(candles); j++ {
 			var candle map[string]any = candles[j]
 			var marketId *string = this.SafeString(candle, "product_id")
-			var market map[string]any = this.SafeMarket(marketId)
-			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+			var symbol *string = market.Symbol
 			var parsed []any = []any{this.SafeTimestamp(candle, "start"), this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
 			if symbol != nil && this.Ohlcvs[*symbol] == nil {
 				this.Ohlcvs[*symbol] = map[string]any{}
@@ -963,7 +963,13 @@ func (this *Coinbase) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -1242,7 +1248,7 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events []any = ccxt.SafeListTyped(message, "events")
+	var events, _ = message["events"].([]any)
 	if events == nil {
 		return
 	}
@@ -1310,11 +1316,11 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events []any = ccxt.SafeListTyped(message, "events")
+	var events, _ = message["events"].([]any)
 	if events == nil {
 		return
 	}
-	var marketIds []any = []any{}
+	var marketIds []string = []string{}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1339,7 +1345,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId *string = ccxt.SafeStringPtr(marketIds[i])
+		var marketId string = marketIds[i]
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash string = "user::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
@@ -1439,7 +1445,7 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var events []any = ccxt.SafeListTyped(message, "events")
+	var events, _ = message["events"].([]any)
 	if events == nil {
 		return
 	}

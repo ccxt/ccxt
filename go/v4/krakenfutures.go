@@ -816,7 +816,11 @@ func (this *Krakenfutures) fetchTickerBody(ch chan AsyncResult[Ticker], symbol s
 	//        "serverTime": "2026-09-02T17:52:21.671Z"
 	//    }
 	//
-	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response["ticker"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -1230,7 +1234,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 	//        "more_candles": true
 	//    }
 	//
-	var candles []any = this.SafeListSlice(response, "candles", []any{})
+	var candles []any
+	candles, _ = response["candles"].([]any)
+	if candles == nil {
+		candles = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limitResolved))}
 	return nil
@@ -1325,7 +1333,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//    {
 		//        "elements": [
@@ -1394,7 +1402,7 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		response := r3.Raw
+		var response map[string]any = r3.Value
 		//
 		//    {
 		//        "result": "success",
@@ -1857,7 +1865,11 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
 	//     ]
 	// }
 	//
-	var data []any = this.SafeListSlice(response, "batchStatus", []any{})
+	var data []any
+	data, _ = response["batchStatus"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
@@ -2061,7 +2073,11 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []
 	//       }
 	//     ]
 	// }
-	var batchStatus []any = this.SafeListSlice(response, "batchStatus", []any{})
+	var batchStatus []any
+	batchStatus, _ = response["batchStatus"].([]any)
+	if batchStatus == nil {
+		batchStatus = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(batchStatus))}
 	return nil
@@ -2129,11 +2145,15 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[[]Order], opt
 	//        serverTime: '2024-06-06T01:12:44.814Z'
 	//    }
 	//
-	var cancelStatus map[string]any = SafeMapTyped(response, "cancelStatus")
-	var orderEvents []any = SafeListTyped(cancelStatus, "orderEvents")
+	var cancelStatus, _ = response["cancelStatus"].(map[string]any)
+	var orderEvents []any
+	orderEvents, _ = cancelStatus["orderEvents"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(orderEvents); i++ {
-		var orderEvent map[string]any = SafeMapTyped(orderEvents, 0)
+		var orderEvent map[string]any
+		if 0 < len(orderEvents) {
+			orderEvent, _ = orderEvents[0].(map[string]any)
+		}
 		var order map[string]any = this.SafeDictMap(orderEvent, "order", map[string]any{})
 		orders = append(orders, order)
 	}
@@ -2242,7 +2262,11 @@ func (this *Krakenfutures) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], opt
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "openOrders", []any{})
+	var orders []any
+	orders, _ = response["openOrders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2292,7 +2316,11 @@ func (this *Krakenfutures) fetchOrdersBody(ch chan AsyncResult[[]Order], optiona
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -3186,7 +3214,11 @@ func (this *Krakenfutures) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 	//        ]
 	//    }
 	//
-	var fills []any = this.SafeListSlice(response, "fills", []any{})
+	var fills []any
+	fills, _ = response["fills"].([]any)
+	if fills == nil {
+		fills = []any{}
+	}
 	// the endpoint returns the fills of every contract, each row resolves its own market
 	var trades []any = this.ParseTrades(fills)
 
@@ -3403,7 +3435,11 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan AsyncResult[[]Funding
 	//        ]
 	//    }
 	//
-	var logs []any = this.SafeListSlice(response, "logs", []any{})
+	var logs []any
+	logs, _ = response["logs"].([]any)
+	if logs == nil {
+		logs = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(logs, market, since, limit))}
 	return nil
@@ -3852,7 +3888,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan AsyncResult[map[string]
 	var tickers []any = SafeListTyped(response, "tickers")
 	var fundingRates []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry map[string]any = SafeMapTyped(tickers, i)
+		var entry, _ = tickers[i].(map[string]any)
 		var entry_symbol *string = this.SafeString(entry, "symbol")
 		if marketIds != nil {
 			if !this.InArray(entry_symbol, marketIds) {
@@ -4006,7 +4042,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fun
 	var rates []any = SafeListTyped(response, "rates")
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
-		var item map[string]any = SafeMapTyped(rates, i)
+		var item, _ = rates[i].(map[string]any)
 		var datetime *string = this.SafeString(item, "timestamp")
 		result = append(result, map[string]any{
 			"info":        item,
@@ -4733,7 +4769,11 @@ func (this *Krakenfutures) fetchLeveragesBody(ch chan AsyncResult[map[string]Lev
 	//         ]
 	//     }
 	//
-	var leveragePreferences []any = this.SafeListSlice(response, "leveragePreferences", []any{})
+	var leveragePreferences []any
+	leveragePreferences, _ = response["leveragePreferences"].([]any)
+	if leveragePreferences == nil {
+		leveragePreferences = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(leveragePreferences, symbols, "symbol"))}
 	return nil
@@ -4790,7 +4830,13 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan AsyncResult[Leverage], symb
 	//     }
 	//
 	var leveragePreferences []any = SafeListTyped(response, "leveragePreferences")
-	var data map[string]any = this.SafeDictMap(leveragePreferences, 0, map[string]any{})
+	var data map[string]any
+	if 0 < len(leveragePreferences) {
+		data, _ = leveragePreferences[0].(map[string]any)
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil

@@ -86,7 +86,7 @@ func (this *Woo) Describe() map[string]any {
 	})
 }
 func (this *Woo) RequestId(url string) int64 {
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
+	var options, _ = this.Options["requestId"].(map[string]any)
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
 	var entry map[string]any = map[string]any{}
@@ -316,8 +316,8 @@ func (this *Woo) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var topic *string = this.SafeString(message, "topic")
 	if topic == nil {
 		return
@@ -1060,11 +1060,11 @@ func (this *Woo) HandleOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var interval *string = this.SafeString(data, "type")
 	var timeframe *string = this.FindTimeframe(interval)
 	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeFloat(data, "open"), this.SafeFloat(data, "high"), this.SafeFloat(data, "low"), this.SafeFloat(data, "close"), this.SafeFloat(data, "volume")}
@@ -1971,8 +1971,8 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawPositions map[string]any = ccxt.SafeMapTyped(data, "positions")
+	var data, _ = message["data"].(map[string]any)
+	var rawPositions, _ = data["positions"].(map[string]any)
 	var postitionsIds []string = nil
 	if rawPositions != nil {
 		postitionsIds = make([]string, 0, len(rawPositions))

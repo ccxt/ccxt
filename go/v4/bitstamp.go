@@ -1399,7 +1399,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan AsyncResult[[]map[string
 			"timestamp": now,
 		})
 	}
-	var cache map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var cache, _ = this.Options["fetchMarkets"].(map[string]any)
 	var markets []any = this.SafeListSlice(cache, "response", []any{})
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(markets)}
@@ -1719,7 +1719,7 @@ func (this *Bitstamp) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
-func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
+func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) *string {
 	//
 	//     {
 	//         "fee": "0.00000000",
@@ -1750,7 +1750,8 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
 		if strings.Index(id, "_") < 0 {
 			var value *int64 = this.SafeInteger(transactionOmitted, id)
 			if (value != nil) && (value == nil || *value != 0) {
-				return id
+				retStrVal := id
+				return &retStrVal
 			}
 		}
 	}
@@ -2072,12 +2073,11 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			if untilIsDefined {
 				// Math.min (start + duration * limit - 1, untilSeconds) on integers
 				var untilSeconds int64 = this.ParseToInt(float64(*until) / 1000)
-				request["end"] = func() any {
-					if (untilSeconds - start) < ((duration * *limit) - 1) {
-						return untilSeconds
-					}
-					return (start + (duration * *limit) - 1)
-				}()
+				if (untilSeconds - start) < ((duration * *limit) - 1) {
+					request["end"] = untilSeconds
+				} else {
+					request["end"] = (start + (duration * *limit) - 1)
+				}
 			} else {
 				request["end"] = start + (duration * *limit) - 1
 			}
@@ -2125,8 +2125,12 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var ohlc []any = this.SafeListSlice(data, "ohlc", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var ohlc []any
+	ohlc, _ = data["ohlc"].([]any)
+	if ohlc == nil {
+		ohlc = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved))}
 	return nil
@@ -3081,7 +3085,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//         ]
 	//     }
 	//
-	var values []any = this.SafeListSlice(response, "funding_rate_history", []any{})
+	var values []any
+	values, _ = response["funding_rate_history"].([]any)
+	if values == nil {
+		values = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(values, market, since, limit))}
 	return nil
@@ -3302,7 +3310,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "datetime"))
-	var currencyId any = this.GetCurrencyIdFromTransaction(transaction)
+	var currencyId *string = this.GetCurrencyIdFromTransaction(transaction)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var feeCost *string = this.SafeString(transaction, "fee")
 	var feeCurrency any = nil

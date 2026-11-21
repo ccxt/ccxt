@@ -87,7 +87,7 @@ func (this *Pacifica) SetupApiKeyHeaders(optionalArgs ...any) {
 	if key != nil {
 		headers["PF-API-KEY"] = key
 	} else {
-		if !ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil) {
+		if this.HandleOption("setupApiKeyHeaders", "apiKey") != nil {
 			headers["PF-API-KEY"] = this.Options["apiKey"]
 		}
 	}
@@ -148,8 +148,8 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -266,8 +266,8 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -360,8 +360,8 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -471,8 +471,8 @@ func (this *Pacifica) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -562,8 +562,8 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -632,8 +632,8 @@ func (this *Pacifica) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -694,8 +694,8 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -763,10 +763,10 @@ func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
 	//   }
 	// }
 	//
-	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
+	var entry, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(entry, "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var levels []any = ccxt.SafeListTyped(entry, "l")
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -856,8 +856,8 @@ func (this *Pacifica) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -920,8 +920,8 @@ func (this *Pacifica) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optiona
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1001,8 +1001,8 @@ func (this *Pacifica) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1069,8 +1069,8 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1247,8 +1247,8 @@ func (this *Pacifica) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1311,8 +1311,8 @@ func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1366,8 +1366,8 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	var entry []any = ccxt.SafeListTyped(message, "data")
 	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var marketId *string = this.SafeString(first, "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var messageHash string = "trade:" + *symbol
 	if !(symbol != nil && this.Trades[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1520,8 +1520,8 @@ func (this *Pacifica) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1587,8 +1587,8 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1644,8 +1644,8 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var timeframe *string = this.SafeString(data, "i")
 	if timeframe == nil {
 		return
@@ -1721,8 +1721,8 @@ func (this *Pacifica) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1788,8 +1788,8 @@ func (this *Pacifica) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	if isTestnet {
 		urlKey = "test"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, urlKey)
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var apiUrls, _ = this.Urls[urlKey].(map[string]any)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
@@ -1898,7 +1898,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 	if id == nil {
 		id = this.SafeString(data, "id")
 	}
-	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
 	var wsHeaders map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
 	var wsHeadersFinal map[string]any = this.SafeDictMap(wsHeaders, "headers", map[string]any{})
 
@@ -1927,8 +1927,8 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 }
 func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var subMessageHash string = "orderbook:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1940,8 +1940,8 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 }
 func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var subMessageHash string = "trade:" + *symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1962,8 +1962,8 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 }
 func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var interval *string = this.SafeString(subscription, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	if timeframe == nil {
@@ -2017,7 +2017,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 	//      }
 	//  }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var method *string = this.SafeString(message, "channel")
 	if method != nil && *method == "unsubscribe" {
 		var subscription map[string]any = this.SafeDictMap(data, "data", map[string]any{})

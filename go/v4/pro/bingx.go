@@ -538,7 +538,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
-	if ccxt.IsEqual(this.HandleOption("watchTrades", "ignoreDuplicates", true), true) {
+	if this.HandleOption("watchTrades", "ignoreDuplicates", true) == true {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
 
@@ -764,7 +764,7 @@ func (this *Bingx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 			url = nil
 		}
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var depth string = *this.SafeString(options, "depth", "100")
 	var subscriptionHash string = *this.SafeString(market, "id", "") + "@depth" + depth
 	var messageHash string = this.GetMessageHash("orderbook", this.SafeString(market, "symbol"))
@@ -832,7 +832,7 @@ func (this *Bingx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var depth string = *this.SafeString(options, "depth", "100")
 	var subMessageHash string = *this.SafeString(market, "id", "") + "@depth" + depth
 	var messageHash string = "unsubscribe::" + subMessageHash
@@ -1085,7 +1085,7 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 			candles = this.SafeListSlice(message, "data", []any{})
 		}
 	} else {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1094,7 +1094,7 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 	}
 	var timeframeParts []string = strings.Split(*dataType, "_")
 	var rawTimeframe *string = this.SafeString(timeframeParts, 1)
-	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
+	var marketOptions, _ = this.Options[marketType].(map[string]any)
 	var timeframes map[string]any = this.SafeDictMap(marketOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[*symbol], unifiedTimeframe), nil) {
@@ -1880,7 +1880,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var data map[string]any = ccxt.SafeMapTyped(message, "a")
+	var data, _ = message["a"].(map[string]any)
 	if _, ok := data["P"]; !ok {
 		return
 	}
@@ -2411,7 +2411,7 @@ func (this *Bingx) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var a map[string]any = ccxt.SafeMapTyped(message, "a")
+	var a, _ = message["a"].(map[string]any)
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp *int64 = this.SafeInteger2(message, "T", "E")
 	var spotUrl *string = this.SafeString(this.UrlsApi["ws"], "spot")
@@ -2515,7 +2515,7 @@ func (this *Bingx) HandleMessage(client any, message map[string]any) {
 			this.HandleMyTrades(client, message)
 		}
 	}
-	var msgData map[string]any = ccxt.SafeMapTyped(message, "data")
+	var msgData, _ = message["data"].(map[string]any)
 	var msgEvent *string = this.SafeString(msgData, "e")
 	if msgEvent != nil && *msgEvent == "24hTicker" {
 		this.HandleTicker(client, message)

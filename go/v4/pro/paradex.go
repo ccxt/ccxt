@@ -828,7 +828,13 @@ func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -1712,12 +1718,12 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 		subscribeHashes = append(subscribeHashes, channel+"."+*marketId)
 		subMessageHashes = append(subMessageHashes, channel+"."+*symbol)
 	}
-	var tickerSymbols any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
+	var tickerSymbols []string
+	if symbolsNormalized == nil {
+		tickerSymbols = []string{}
+	} else {
+		tickerSymbols = symbolsNormalized
+	}
 	if (symbolsLength > 0) && (client.(ccxt.ClientInterface).SubscriptionHas(channel)) {
 		// the all-markets subscription has no market filter to remove these from, their watchers are ended here
 		for i := 0; i < len(subMessageHashes); i++ {

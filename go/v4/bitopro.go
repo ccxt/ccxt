@@ -414,7 +414,11 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var currencies []any = this.SafeListSlice(response, "data", []any{})
+	var currencies []any
+	currencies, _ = response["data"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -479,7 +483,11 @@ func (this *Bitopro) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var markets []any = this.SafeListSlice(response, "data", []any{})
+	var markets []any
+	markets, _ = response["data"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	//
 	//     {
@@ -648,7 +656,11 @@ func (this *Bitopro) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var ticker map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response["data"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	//
 	//     {
@@ -701,7 +713,11 @@ func (this *Bitopro) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = this.SafeListSlice(response, "data", []any{})
+	var tickers []any
+	tickers, _ = response["data"].([]any)
+	if tickers == nil {
+		tickers = []any{}
+	}
 
 	//
 	//     {
@@ -923,7 +939,11 @@ func (this *Bitopro) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = this.SafeListSlice(response, "data", []any{})
+	var trades []any
+	trades, _ = response["data"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	//
 	//     {
@@ -972,7 +992,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
+	var tradingFeeRate, _ = response["tradingFeeRate"].(map[string]any)
 	var first map[string]any = SafeMapTyped(tradingFeeRate, 0)
 	//
 	//     {
@@ -1128,7 +1148,11 @@ func (this *Bitopro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	//
 	//     {
 	//         "data":[
@@ -1249,7 +1273,11 @@ func (this *Bitopro) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var balances []any = this.SafeListSlice(response, "data", []any{})
+	var balances []any
+	balances, _ = response["data"].([]any)
+	if balances == nil {
+		balances = []any{}
+	}
 
 	//
 	//     {
@@ -1603,7 +1631,11 @@ func (this *Bitopro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(data))}
 	return nil
@@ -1877,7 +1909,11 @@ func (this *Bitopro) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "data", []any{})
+	var orders []any
+	orders, _ = response["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1974,7 +2010,11 @@ func (this *Bitopro) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = this.SafeListSlice(response, "data", []any{})
+	var trades []any
+	trades, _ = response["data"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	//
 	//     {
@@ -2150,7 +2190,11 @@ func (this *Bitopro) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result []any = this.SafeListSlice(response, "data", []any{})
+	var result []any
+	result, _ = response["data"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	//
 	//     {
@@ -2230,7 +2274,11 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result []any = this.SafeListSlice(response, "data", []any{})
+	var result []any
+	result, _ = response["data"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	//
 	//     {
@@ -2299,7 +2347,11 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id an
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any
+	result, _ = response["data"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	//
 	//     {
@@ -2365,7 +2417,7 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		paramsOmitted = this.OmitDict(paramsWithdrawTag, []any{"network"})
 	}
 	if hasNetwork {
-		var networks map[string]any = SafeMapTyped(this.Options, "networks")
+		var networks, _ = this.Options["networks"].(map[string]any)
 		var requestedNetwork *string = this.SafeStringUpper(paramsWithdrawTag, "network")
 		var networkId *string
 		if requestedNetwork == nil {
@@ -2391,7 +2443,11 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var result map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var result map[string]any
+	result, _ = response["data"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	//
 	//     {
@@ -2486,7 +2542,11 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(data, codes, "currency"))}
 	return nil

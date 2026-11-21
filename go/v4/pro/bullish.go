@@ -246,7 +246,7 @@ func (this *Bullish) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	if symbol == nil {
@@ -442,7 +442,7 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	// current channel is 'l2Orderbook' which returns only snapshots
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash string = "orderbook::" + *symbol
@@ -1078,7 +1078,7 @@ func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 }
 func (this *Bullish) HandleMessage(client any, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")
-	var result map[string]any = ccxt.SafeMapTyped(message, "result")
+	var result, _ = message["result"].(map[string]any)
 	if result != nil {
 		var response *string = this.SafeString(result, "message")
 		if response != nil && *response == "Keep alive pong" {

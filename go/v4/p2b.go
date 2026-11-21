@@ -401,7 +401,11 @@ func (this *P2b) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	//        ]
 	//    }
 	//
-	var markets []any = this.SafeListSlice(response, "result", []any{})
+	var markets []any
+	markets, _ = response["result"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -528,7 +532,11 @@ func (this *P2b) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	//        current_time: '1699252644.487566'
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(result, symbols))}
 	return nil
@@ -590,7 +598,11 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	//        current_time: '1699252958.859391'
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -803,7 +815,11 @@ func (this *P2b) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	//        current_time: '1699255571.413828'
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(result, market, since, limit))}
 	return nil
@@ -952,7 +968,11 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//        current_time: '1699256375.030494'
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(result, market, timeframe, since, limit))}
 	return nil
@@ -1023,7 +1043,11 @@ func (this *P2b) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
 	return nil
@@ -1293,7 +1317,11 @@ func (this *P2b) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//        ]
 	//    }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, since, limit))}
 	return nil
@@ -1373,8 +1401,12 @@ func (this *P2b) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var records []any = this.SafeListSlice(result, "records", []any{})
+	var result, _ = response["result"].(map[string]any)
+	var records []any
+	records, _ = result["records"].([]any)
+	if records == nil {
+		records = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(records, market, since, limit))}
 	return nil
@@ -1486,8 +1518,12 @@ func (this *P2b) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
-	var deals []any = this.SafeListSlice(result, "deals", []any{})
+	var result, _ = response["result"].(map[string]any)
+	var deals []any
+	deals, _ = result["deals"].([]any)
+	if deals == nil {
+		deals = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(deals, market, sinceResolved, limit))}
 	return nil
@@ -1601,7 +1637,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	//        }
 	//    }
 	//
-	var result map[string]any = SafeMapTyped(response, "result")
+	var result, _ = response["result"].(map[string]any)
 	var orders []any = []any{}
 	var keys []string = nil
 	if result != nil {

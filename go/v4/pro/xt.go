@@ -162,7 +162,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 					if r1.Err != nil {
 						panic(r1.Err)
 					}
-					response := r1.Raw
+					var response map[string]any = r1.Value
 					//
 					//    {
 					//        returnCode: '0',
@@ -182,7 +182,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 					if r2.Err != nil {
 						panic(r2.Err)
 					}
-					response := r2.Raw
+					var response map[string]any = r2.Value
 					//
 					//    {
 					//        "rc": 0,
@@ -503,7 +503,7 @@ func (this *Xt) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol st
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 
@@ -544,7 +544,7 @@ func (this *Xt) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTicker")
+	var options, _ = this.Options["unWatchTicker"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
 	var name string = *method + "@" + *this.SafeString(market, "id", "")
@@ -588,7 +588,7 @@ func (this *Xt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker
 			panic(r.Err)
 		}
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTickers")
+	var options, _ = this.Options["watchTickers"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	if name == nil {
@@ -652,7 +652,7 @@ func (this *Xt) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs 
 			panic(r.Err)
 		}
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "unWatchTickers")
+	var options, _ = this.Options["unWatchTickers"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	if name == nil {
@@ -1278,7 +1278,7 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) map[string
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var raw map[string]any = map[string]any{
@@ -1696,8 +1696,8 @@ func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
 		if i != nil {
 			tradeType = "spot"
 		}
-		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, tradeType))
+		var symbol *string = market.Symbol
 		var event *string = this.SafeString(message, "event")
 		var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
 		if tradesArray == nil {
@@ -1785,8 +1785,8 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if _, ok := data["fu"]; (data != nil) && ok {
 			tradeType = "contract"
 		}
-		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, tradeType))
+		var symbol *string = market.Symbol
 		var obAsks []any = ccxt.SafeListTyped(data, "a")
 		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = event + "::" + tradeType
@@ -2074,7 +2074,7 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var currencyId *string = this.SafeString2(data, "c", "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
@@ -2176,7 +2176,7 @@ func (this *Xt) HandleMessage(client any, message map[string]any) {
 			return this.SafeValue(methods, topic)
 		}()
 		if topic != nil && *topic == "trade" {
-			var data map[string]any = this.SafeDictMap(message, "data")
+			var data, _ = message["data"].(map[string]any)
 			_, has1 := data["oi"]
 			_, has2 := data["orderId"]
 			if (data != nil) && (has1 || has2) {

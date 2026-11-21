@@ -1006,7 +1006,13 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(first, "ts")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(first, symbol, timestamp))}
@@ -1113,7 +1119,13 @@ func (this *Blofin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	}
 	var response map[string]any = r1.Value
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(first, market)}
 	return nil
@@ -1157,7 +1169,13 @@ func (this *Blofin) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol strin
 	}
 	var response map[string]any = r1.Value
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(first, market)}
 	return nil
@@ -1675,7 +1693,13 @@ func (this *Blofin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbo
 	//    }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var entry map[string]any
+	if 0 < len(data) {
+		entry, _ = data[0].(map[string]any)
+	}
+	if entry == nil {
+		entry = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(entry, market)}
 	return nil
@@ -2328,7 +2352,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 			panic(r2.Err)
 		}
 		var triggerResponse map[string]any = r2.Value
-		var triggerData map[string]any = SafeMapTyped(triggerResponse, "data")
+		var triggerData, _ = triggerResponse["data"].(map[string]any)
 
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(triggerData, market)}
 		return nil
@@ -2340,7 +2364,10 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	}
 	var response map[string]any = r3.Value
 	var data []any = SafeListTyped(response, "data")
-	var order map[string]any = SafeMapTyped(data, 0)
+	var order map[string]any
+	if 0 < len(data) {
+		order, _ = data[0].(map[string]any)
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -2880,7 +2907,7 @@ func (this *Blofin) ChainIdToNetworkCode(chainId *string) any {
 		if suffixCode != nil {
 			return suffixCode
 		}
-		var prefixes map[string]any = SafeMapTyped(this.Options, "networkPrefixes")
+		var prefixes, _ = this.Options["networkPrefixes"].(map[string]any)
 		if suffix != nil {
 			if _, ok := prefixes[*suffix]; ok {
 				return suffix
@@ -3100,7 +3127,10 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var first map[string]any = SafeMapTyped(data, 0)
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
 	if first == nil {
 		if messagePiece := this.SafeString(request, "chain", chain); messagePiece != nil {
 			messageText := this.Id + " fetchDepositAddress() returned no address for " + code + " on " + *messagePiece
@@ -3440,7 +3470,11 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	// the response carries only withdrawId + clientId, and this class's
 	// parseTransaction reads every field from the payload - seed the
@@ -3838,7 +3872,11 @@ func (this *Blofin) transferBody(ch chan AsyncResult[TransferEntry], code string
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(data, currency)}
 	return nil
@@ -3898,7 +3936,10 @@ func (this *Blofin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 	}
 	var response map[string]any = r1.Value
 	var data []any = SafeListTyped(response, "data")
-	var position map[string]any = SafeMapTyped(data, 0)
+	var position map[string]any
+	if 0 < len(data) {
+		position, _ = data[0].(map[string]any)
+	}
 	if position == nil {
 		panic(NullResponse(this.Id + " fetchPosition() returned empty position"))
 	}
@@ -3943,7 +3984,11 @@ func (this *Blofin) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var result []any = this.ParsePositions(data)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
@@ -4040,7 +4085,11 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	//        ]
 	//    }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var positions []any = this.ParsePositions(data, symbols, paramsUntil)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
@@ -4368,7 +4417,11 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol stri
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(data, market)}
 	return nil
@@ -4499,7 +4552,11 @@ func (this *Blofin) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -4636,7 +4693,11 @@ func (this *Blofin) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol 
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil
@@ -4703,7 +4764,11 @@ func (this *Blofin) setMarginModeBody(ch chan AsyncResult[MarginMode], marginMod
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)} // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 	return nil
@@ -4736,7 +4801,11 @@ func (this *Blofin) fetchPositionModeBody(ch chan AsyncResult[PositionModeInfo],
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var positionMode *string = this.SafeString(data, "positionMode")
 
 	//

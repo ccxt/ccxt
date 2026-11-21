@@ -365,8 +365,8 @@ func (this *Coincheck) ParseBalance(response map[string]any) map[string]any {
 	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
-		var currency map[string]any = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
+		var currency Currency = CurrencyFromMap(this.Currency(code))
+		var currencyId *string = currency.Id
 		var free *string = this.SafeString(response, currencyId)
 		if free != nil {
 			var account map[string]any = this.Account()
@@ -524,7 +524,11 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var rawOrders []any = this.SafeListSlice(response, "orders", []any{})
+	var rawOrders []any
+	rawOrders, _ = response["orders"].([]any)
+	if rawOrders == nil {
+		rawOrders = []any{}
+	}
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
 	for i := 0; i < len(parsedOrders); i++ {
@@ -878,7 +882,11 @@ func (this *Coincheck) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	//                  ]
 	//      }
 	//
-	var transactions []any = this.SafeListSlice(response, "data", []any{})
+	var transactions []any
+	transactions, _ = response["data"].([]any)
+	if transactions == nil {
+		transactions = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(transactions, market, since, limit))}
 	return nil
@@ -939,7 +947,11 @@ func (this *Coincheck) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 	//          "created_at": "2021-12-08T14:10:33.000Z"
 	//      }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -995,7 +1007,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	//         }
 	//     }
 	//
-	var fees map[string]any = SafeMapTyped(response, "exchange_fees")
+	var fees, _ = response["exchange_fees"].(map[string]any)
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	if symbols == nil {
@@ -1202,7 +1214,11 @@ func (this *Coincheck) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	//     }
 	//   ]
 	// }
-	var data []any = this.SafeListSlice(response, "deposits", []any{})
+	var data []any
+	data, _ = response["deposits"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "deposit",
@@ -1279,7 +1295,11 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	//     }
 	//   ]
 	// }
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit, map[string]any{
 		"type": "withdrawal",

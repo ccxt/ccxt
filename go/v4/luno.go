@@ -1077,7 +1077,11 @@ func (this *Luno) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state *st
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders []any = this.SafeListSlice(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1516,7 +1520,11 @@ func (this *Luno) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	//          ]
 	//      }
 	//
-	var trades []any = this.SafeListSlice(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -1590,7 +1598,11 @@ func (this *Luno) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//          "pair": "XBTEUR"
 	//     }
 	//
-	var ohlcvs []any = this.SafeListSlice(response, "candles", []any{})
+	var ohlcvs []any
+	ohlcvs, _ = response["candles"].([]any)
+	if ohlcvs == nil {
+		ohlcvs = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit))}
 	return nil
@@ -1683,7 +1695,11 @@ func (this *Luno) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	//          ]
 	//      }
 	//
-	var trades []any = this.SafeListSlice(response, "trades", []any{})
+	var trades []any
+	trades, _ = response["trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2006,7 +2022,11 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var entries []any = this.SafeListSlice(response, "transactions", []any{})
+	var entries []any
+	entries, _ = response["transactions"].([]any)
+	if entries == nil {
+		entries = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
 	return nil

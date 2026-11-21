@@ -290,7 +290,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 		this.Orderbooks[*symbol] = this.IndexedOrderBook(map[string]any{})
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var asks []any = ccxt.SafeListTyped(message, "asks")
+	var asks, _ = message["asks"].([]any)
 	if asks == nil {
 		var inSequence bool = this.IsOrderBookDeltaInSequence(client, message, *symbol)
 		if !inSequence {
@@ -322,8 +322,8 @@ func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, 
 	_ = amountKey
 	countOrIdKey := ccxt.GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
-	var bids any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
-	var asks any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var bids []any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks []any = this.ParseOrderBookBidsAsks(this.SafeList(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	return map[string]any{
 		"symbol":    symbol,
 		"bids":      this.SortBy(bids, 0, true),
@@ -333,7 +333,7 @@ func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, 
 		"nonce":     nil,
 	}
 }
-func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
+func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) []any {
 	priceKey := ccxt.GetArg(optionalArgs, 0, "price")
 	_ = priceKey
 	amountKey := ccxt.GetArg(optionalArgs, 1, "volume")

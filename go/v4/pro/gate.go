@@ -1113,9 +1113,10 @@ func (this *Gate) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var result map[string]any = ccxt.StructResultMap(r1.Value, ccxt.TickerMapToMap)
+	var result map[string]ccxt.Ticker = r1.Value
+	var resultRow ccxt.Ticker = result[symbolValue]
 
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(this.SafeDictMap(result, symbolValue))}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: resultRow}
 	return nil
 }
 
@@ -1435,7 +1436,13 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -2902,7 +2909,7 @@ func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 	//         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var errs map[string]any = ccxt.SafeMapTyped(data, "errs")
 	var error any = this.SafeDict(message, "error", errs)
 	var code *string = this.SafeString2(error, "code", "label")
@@ -3179,7 +3186,7 @@ func (this *Gate) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	if requestId != nil {
-		var data map[string]any = ccxt.SafeMapTyped(message, "data")
+		var data, _ = message["data"].(map[string]any)
 		// use safeValue as result may be Array or an Object
 		var result any = this.SafeValue(data, "result")
 		var ack *bool = this.SafeBool(message, "ack", false)

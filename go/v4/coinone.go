@@ -474,7 +474,11 @@ func (this *Coinone) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         ]
 	//     }
 	//
-	var currencies []any = this.SafeListSlice(response, "currencies", []any{})
+	var currencies []any
+	currencies, _ = response["currencies"].([]any)
+	if currencies == nil {
+		currencies = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
@@ -576,7 +580,7 @@ func (this *Coinone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var tickers []any = SafeListTyped(response, "tickers")
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var entry map[string]any = SafeMapTyped(tickers, i)
+		var entry, _ = tickers[i].(map[string]any)
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
@@ -938,7 +942,13 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//     }
 	//
 	var data []any = SafeListTyped(response, "tickers")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -1149,7 +1159,11 @@ func (this *Coinone) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "transactions", []any{})
+	var data []any
+	data, _ = response["transactions"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
 	return nil
@@ -1568,7 +1582,11 @@ func (this *Coinone) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//         ]
 	//     }
 	//
-	var completeOrders []any = this.SafeListSlice(response, "completeOrders", []any{})
+	var completeOrders []any
+	completeOrders, _ = response["completeOrders"].([]any)
+	if completeOrders == nil {
+		completeOrders = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(completeOrders, market, since, limit))}
 	return nil
@@ -1682,7 +1700,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	//         }
 	//     }
 	//
-	var walletAddress map[string]any = SafeMapTyped(response, "walletAddress")
+	var walletAddress, _ = response["walletAddress"].(map[string]any)
 	var keys []string = nil
 	if walletAddress != nil {
 		keys = make([]string, 0, len(walletAddress))

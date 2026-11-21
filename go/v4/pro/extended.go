@@ -125,8 +125,8 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "m")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var messageHash string = "orderbook:" + *symbol
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var nonce *int64 = this.SafeInteger(message, "seq")
@@ -472,7 +472,7 @@ func (this *Extended) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
 	var symbols map[string]any = map[string]any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawTrades, 0)
@@ -604,7 +604,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var stored ccxt.WsArrayCache = this.Positions
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	var newPositions []any = []any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawPositions, 0)
@@ -670,8 +670,8 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrders []any = ccxt.SafeListTyped(data, "orders")
+	var data, _ = message["data"].(map[string]any)
+	var rawOrders, _ = data["orders"].([]any)
 	var symbols map[string]any = map[string]any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
 	if first == nil {
@@ -863,7 +863,7 @@ func (this *Extended) HandleMarkPrice(client any, message map[string]any) {
 	//         "seq": 1
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "m")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -1146,7 +1146,7 @@ func (this *Extended) HandleErrorMessage(client any, message map[string]any) boo
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error == nil {
 		return false
 	}
@@ -1162,8 +1162,8 @@ func (this *Extended) HandleMessage(client any, message map[string]any) {
 		return
 	}
 	var typeVar *string = this.SafeString(message, "type")
-	var dataList []any = ccxt.SafeListTyped(message, "data")
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var dataList, _ = message["data"].([]any)
+	var data, _ = message["data"].(map[string]any)
 	if dataList != nil {
 		var first map[string]any = ccxt.SafeMapTyped(dataList, 0)
 		var side *string = this.SafeString(first, "S")

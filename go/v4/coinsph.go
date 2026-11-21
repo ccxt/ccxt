@@ -1122,14 +1122,14 @@ func (this *Coinsph) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	if symbols != nil {
 		var ids []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var market map[string]any = this.Market(symbols[i])
-			var id *string = SafeStringPtr(market["id"])
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(symbols[i]))
+			var id *string = market.Id
 			ids = append(ids, id)
 		}
 		request["symbols"] = ids
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTickers")
+	var options, _ = this.Options["fetchTickers"].(map[string]any)
 	var method *string = this.SafeString(options, "method", defaultMethod)
 	var tickers any = []any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
@@ -1192,7 +1192,7 @@ func (this *Coinsph) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		"symbol": market["id"],
 	}
 	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTicker")
+	var options, _ = this.Options["fetchTicker"].(map[string]any)
 	var method *string = this.SafeString(options, "method", defaultMethod)
 	var ticker any = map[string]any{}
 	if method != nil && *method == "publicGetOpenapiQuoteV1TickerPrice" {
@@ -1864,7 +1864,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"type":   orderType,
 		"side":   orderSide,
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+	var options, _ = this.Options["createOrder"].(map[string]any)
 	var newOrderRespTypes map[string]any = SafeMapTyped(options, "newOrderRespType")
 	var newOrderRespType string = "FULL"
 	// if limit order
@@ -2510,8 +2510,8 @@ func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInt
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -2545,7 +2545,7 @@ func (this *Coinsph) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	tag, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	var options map[string]any = SafeMapTyped(this.Options, "withdraw")
+	var options, _ = this.Options["withdraw"].(map[string]any)
 	var warning *bool = this.SafeBool(options, "warning", true)
 	if warning != nil && *warning {
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))

@@ -713,9 +713,9 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan ccxt.AsyncResult[[]ma
 			panic(r.Err)
 		}
 		var first map[string]any = r.Value
-		var firstEvents []any = ccxt.SafeListTyped(first, "events")
+		var firstEvents, _ = first["events"].([]any)
 		var firstEventsLength int = len(firstEvents)
-		var pagination map[string]any = ccxt.SafeMapTyped(first, "pagination")
+		var pagination, _ = first["pagination"].(map[string]any)
 		var totalResults *int64 = this.SafeInteger(pagination, "totalResults", firstEventsLength)
 		var totalPages int64 = this.ParseToInt(math.Ceil(float64(*totalResults) / float64(*pageSize)))
 		// only page as far as `limit` needs (applyEventFetchParams slices to it afterwards)
@@ -1267,7 +1267,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		}
 		response := r.Raw
 		var rawMarkets any = func() any {
-			if !ccxt.IsEqual(response, nil) {
+			if response != nil {
 				return response
 			}
 			return []any{}
@@ -1362,7 +1362,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 			}
 			response := r.Raw
 			var rawMarkets any = func() any {
-				if !ccxt.IsEqual(response, nil) {
+				if response != nil {
 					return response
 				}
 				return []any{}
@@ -1895,7 +1895,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 	var resolutionMs int64 = (*fidelityMin * 60) * 1000
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
-		var item map[string]any = ccxt.SafeMapTyped(history, i)
+		var item, _ = history[i].(map[string]any)
 		var t *int64 = this.SafeInteger(item, "t")
 		var price *float64 = this.SafeNumber(item, "p")
 		if (t == nil) || (price == nil) {
@@ -2550,7 +2550,11 @@ func (this *Polymarket) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var positions []any = this.SafeListSlice(response, "data", []any{})
+	var positions []any
+	positions, _ = response["data"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 	// parse without the base outcome filter (it resolves standard markets, not outcome tokens),
 	// then filter by the requested outcomes' token ids ourselves
 	if outcomesLength == 0 {
@@ -2607,9 +2611,13 @@ func (this *Polymarket) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = ccxt.PredictionPositionsToList(r.Value)
+	var positions []ccxt.PredictionPosition = r.Value
+	var positionsRow ccxt.PredictionPosition
+	if len(positions) > 0 {
+		positionsRow = positions[0]
+	}
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: ccxt.PredictionPositionFromMap(this.SafeDictMap(positions, 0))}
+	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: positionsRow}
 	return nil
 }
 
@@ -2630,9 +2638,10 @@ func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...an
 	var size *float64 = this.SafeNumber(position, "size")
 	var entryPrice *float64 = this.SafeNumber(position, "avgPrice")
 	var curPrice *float64 = this.SafeNumber(position, "currentPrice")
-	var notional any = nil
+	var notional *float64 = nil
 	if (size != nil) && (curPrice != nil) {
-		notional = (*size * *curPrice)
+		notionalValue := (*size * *curPrice)
+		notional = &notionalValue
 	}
 	return this.SafePredictionPosition(map[string]any{
 		"id":                          this.SafeString(position, "id"),
@@ -3344,10 +3353,10 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 		var encoded []uint8 = this.EthEncodeStructuredData(orderDomain, map[string]any{
 			"Order": orderStruct,
 		}, message)
-		var eoaSig any = this.SignMessage(encoded, this.PrivateKey)
+		var eoaSig map[string]any = this.SignMessage(encoded, this.PrivateKey)
 		// lowercase: intToBase16 emits uppercase hex in some target languages, but the
 		// signature is case-insensitive bytes and the rest of the hex is lowercase
-		var eoaSignature string = "0x" + this.Remove0xPrefix(this.SafeString(eoaSig, "r")) + this.Remove0xPrefix(this.SafeString(eoaSig, "s")) + this.IntToBase16(ccxt.GetValue(eoaSig, "v"))
+		var eoaSignature string = "0x" + this.Remove0xPrefix(this.SafeString(eoaSig, "r")) + this.Remove0xPrefix(this.SafeString(eoaSig, "s")) + this.IntToBase16(eoaSig["v"])
 		return strings.ToLower(eoaSignature)
 	}
 	// POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -3393,8 +3402,8 @@ func (this *Polymarket) SignClobOrder(message map[string]any, exchangeAddress st
 		"TypedDataSign": typedDataSignStruct,
 		"Order":         orderStruct,
 	}, innerValue)
-	var innerSigObj any = this.SignMessage(innerEncoded, this.PrivateKey)
-	var innerSig string = this.Remove0xPrefix(this.SafeString(innerSigObj, "r")) + this.Remove0xPrefix(this.SafeString(innerSigObj, "s")) + this.IntToBase16(ccxt.GetValue(innerSigObj, "v"))
+	var innerSigObj map[string]any = this.SignMessage(innerEncoded, this.PrivateKey)
+	var innerSig string = this.Remove0xPrefix(this.SafeString(innerSigObj, "r")) + this.Remove0xPrefix(this.SafeString(innerSigObj, "s")) + this.IntToBase16(innerSigObj["v"])
 	// innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
 	// orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
 	// php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -3634,12 +3643,11 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 		response := r.Raw
 		var responseIsArray bool = ccxt.IsArray(response)
-		rawEvents = func() any {
-			if responseIsArray {
-				return response
-			}
-			return []any{}
-		}()
+		if responseIsArray {
+			rawEvents = response
+		} else {
+			rawEvents = []any{}
+		}
 	} else if queriesLength > 0 {
 
 		r1 := <-this.FetchRawEventsBySearchAsync(queries, rest)
@@ -4104,8 +4112,8 @@ func (this *Polymarket) EthChecksumAddress(address *string) string {
 	}
 	return "0x" + result
 }
-func (this *Polymarket) SignHash(hash any, privateKey any) map[string]any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
+func (this *Polymarket) SignHash(hash string, privateKey string) map[string]any {
+	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw string = *this.SafeString(signature, "r", "")
 	var sRaw string = *this.SafeString(signature, "s", "")
@@ -4117,8 +4125,8 @@ func (this *Polymarket) SignHash(hash any, privateKey any) map[string]any {
 		"v": this.Sum(27, signature["v"]),
 	}
 }
-func (this *Polymarket) SignMessage(message any, privateKey any) any {
-	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, int64(-64), nil))
+func (this *Polymarket) SignMessage(message any, privateKey string) map[string]any {
+	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) string {
 	// EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
@@ -4149,8 +4157,8 @@ func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) s
 		"message":   "This message attests that I control the given wallet",
 	}
 	var encoded []uint8 = this.EthEncodeStructuredData(domain, messageTypes, messageData)
-	var sig any = this.SignMessage(encoded, this.PrivateKey)
-	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
+	var sig map[string]any = this.SignMessage(encoded, this.PrivateKey)
+	return "0x" + this.Remove0xPrefix(this.SafeString(sig, "r")) + this.Remove0xPrefix(this.SafeString(sig, "s")) + this.IntToBase16(sig["v"])
 }
 
 /**

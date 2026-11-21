@@ -743,8 +743,8 @@ func (this *Upbit) ParseMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var tradingFeesByQuoteCurrency map[string]any = SafeMapTyped(this.Options, "tradingFeesByQuoteCurrency")
-	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var tradingFeesByQuoteCurrency, _ = this.Options["tradingFeesByQuoteCurrency"].(map[string]any)
+	var tradingFees, _ = this.Fees["trading"].(map[string]any)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         *base + "/" + *quote,
@@ -1104,8 +1104,8 @@ func (this *Upbit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		var quoteIds []any = []any{}
 		var marketSymbols []string = this.Symbols
 		for i := 0; i < len(marketSymbols); i++ {
-			var market map[string]any = this.Market(marketSymbols[i])
-			var quoteId *string = SafeStringPtr(market["quoteId"])
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(marketSymbols[i]))
+			var quoteId *string = market.QuoteId
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
 			}
@@ -3256,7 +3256,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 			auth = this.Rawencode(query)
 		}
 		if auth != nil {
-			var hash any = this.Hash(this.Encode(auth), sha512)
+			var hash string = this.HashString(this.Encode(auth), sha512, "hex")
 			request["query_hash"] = hash
 			request["query_hash_alg"] = "SHA512"
 		}

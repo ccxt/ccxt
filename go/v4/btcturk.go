@@ -368,8 +368,12 @@ func (this *Btcturk) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//        ],
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = this.SafeListSlice(data, "symbols", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var markets []any
+	markets, _ = data["symbols"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -575,7 +579,11 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	//         ]
 	//       }
 	//     }
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks", 0, 1))}
@@ -1089,7 +1097,11 @@ func (this *Btcturk) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -1186,9 +1198,17 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var bids []any = this.SafeListSlice(data, "bids", []any{})
-	var asks []any = this.SafeListSlice(data, "asks", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var bids []any
+	bids, _ = data["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit))}
 	return nil

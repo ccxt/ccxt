@@ -969,7 +969,7 @@ func (this *Bitfinex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 			panic(ccxt.ExchangeError(this.Id + " watchOrderBook limit argument must be undefined, 25 or 100"))
 		}
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var prec *string = this.SafeString(options, "prec", "P0")
 	var freq *string = this.SafeString(options, "freq", "F0")
 	var request map[string]any = map[string]any{

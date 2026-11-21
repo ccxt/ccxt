@@ -1079,7 +1079,7 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	}
 	// the fee an api order pays, the market falls back to the default schedule of its type
 	var apiFee map[string]any = SafeMapTyped(this.SafeDict(market, "fee_config", map[string]any{}), "api_fee")
-	var defaultFees map[string]any = SafeMapTyped(this.Fees, typeVar)
+	var defaultFees, _ = this.Fees[typeVar].(map[string]any)
 	var makerFee *float64 = this.SafeNumber(this.SafeDict(apiFee, "maker_fee", map[string]any{}), "fee", this.SafeNumber(defaultFees, "maker"))
 	var takerFee *float64 = this.SafeNumber(this.SafeDict(apiFee, "taker_fee", map[string]any{}), "fee", this.SafeNumber(defaultFees, "taker"))
 	// an rfq only market takes block trades and rejects orders on the book
@@ -1408,7 +1408,13 @@ func (this *Paradex) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var first map[string]any
+	if 0 < len(data) {
+		first, _ = data[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(first, market)}
 	return nil
@@ -1543,12 +1549,11 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var price *string = this.SafeString(paramsPaginate, "price")
 	if price != nil {
 		// the exchange names the index price "underlying" and rejects "index"
-		request["price_kind"] = func() any {
-			if price != nil && *price == "index" {
-				return "underlying"
-			}
-			return price
-		}()
+		if price != nil && *price == "index" {
+			request["price_kind"] = "underlying"
+		} else {
+			request["price_kind"] = price
+		}
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 	var hasEnd bool = (InOp(requestUntil, "end_at"))
@@ -1675,7 +1680,11 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "results", []any{})
+	var data []any
+	data, _ = response["results"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if IsEqual(request["market"], "ALL") {
 
 		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(this.FilterLoadedSummaries(data), symbolsNormalized))}
@@ -1800,7 +1809,13 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var ticker map[string]any
+	if 0 < len(data) {
+		ticker, _ = data[0].(map[string]any)
+	}
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -1898,7 +1913,11 @@ func (this *Paradex) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundin
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "results", []any{})
+	var data []any
+	data, _ = response["results"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	// only a perpetual funds, the other rows are dropped before they are parsed
 	if IsEqual(request["market"], "ALL") {
 
@@ -2308,7 +2327,13 @@ func (this *Paradex) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], sy
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var interest map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var interest map[string]any
+	if 0 < len(data) {
+		interest, _ = data[0].(map[string]any)
+	}
+	if interest == nil {
+		interest = map[string]any{}
+	}
 
 	ch <- AsyncResult[OpenInterest]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
@@ -3842,7 +3867,11 @@ func (this *Paradex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "results", []any{})
+	var data []any
+	data, _ = response["results"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(data))}
 	return nil
@@ -4132,8 +4161,8 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var side *string = this.SafeStringLower(position, "side")
 	// side carries the direction, the unified contracts is a magnitude whether or not size is signed
 	var quantity *string = Precise.StringAbs(this.SafeString(position, "size"))
@@ -5072,7 +5101,13 @@ func (this *Paradex) fetchGreeksBody(ch chan AsyncResult[Greeks], symbol string,
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var greeks map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var greeks map[string]any
+	if 0 < len(data) {
+		greeks, _ = data[0].(map[string]any)
+	}
+	if greeks == nil {
+		greeks = map[string]any{}
+	}
 
 	ch <- AsyncResult[Greeks]{Value: this.ParseGreeks(greeks, market)}
 	return nil
@@ -5150,7 +5185,11 @@ func (this *Paradex) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], 
 	//         ]
 	//     }
 	//
-	var results []any = this.SafeListSlice(response, "results", []any{})
+	var results []any
+	results, _ = response["results"].([]any)
+	if results == nil {
+		results = []any{}
+	}
 	// the summary also answers for perpetuals, spot and the USDC collateral, which carry no option greeks
 	if IsEqual(request["market"], "ALL") {
 
@@ -5195,8 +5234,8 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) Greeks {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(greeks, "symbol")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "option")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var marketResolved MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId, market, nil, "option"))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
 	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
 	return GreeksFromMap(map[string]any{
@@ -5294,7 +5333,13 @@ func (this *Paradex) fetchOptionBody(ch chan AsyncResult[Option], symbol string,
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var chain map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var chain map[string]any
+	if 0 < len(data) {
+		chain, _ = data[0].(map[string]any)
+	}
+	if chain == nil {
+		chain = map[string]any{}
+	}
 
 	ch <- AsyncResult[Option]{Value: this.ParseOption(chain, nil, market)}
 	return nil

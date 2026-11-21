@@ -1257,7 +1257,7 @@ func (this *Xt) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
+	var data, _ = response["result"].(map[string]any)
 
 	ch <- AsyncResult[*int64]{Value: this.SafeInteger(data, "serverTime")}
 	return nil
@@ -1533,8 +1533,12 @@ func (this *Xt) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var symbols []any = this.SafeListSlice(data, "symbols", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var symbols []any
+	symbols, _ = data["symbols"].([]any)
+	if symbols == nil {
+		symbols = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(symbols))}
 	return nil
@@ -3525,7 +3529,11 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         }
 	//     }
 	//
-	var order map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var order map[string]any
+	order, _ = response["result"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -3638,12 +3646,11 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			response = r2.Raw
 		}
 	} else if isTrigger {
-		request["timeInForce"] = func() any {
-			if timeInForce == nil {
-				return "GTC"
-			}
-			return timeInForce
-		}()
+		if timeInForce == nil {
+			request["timeInForce"] = "GTC"
+		} else {
+			request["timeInForce"] = timeInForce
+		}
 		request["triggerPriceType"] = this.SafeString(paramsOmitted4, "triggerPriceType", "LATEST_PRICE")
 		request["orderSide"] = strings.ToUpper(side)
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -5598,7 +5605,11 @@ func (this *Xt) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], cod
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(result, currency)}
 	return nil
@@ -5701,8 +5712,12 @@ func (this *Xt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalAr
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var deposits []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var deposits []any
+	deposits, _ = data["items"].([]any)
+	if deposits == nil {
+		deposits = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit, params))}
 	return nil
@@ -5786,8 +5801,12 @@ func (this *Xt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optiona
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "result")
-	var withdrawals []any = this.SafeListSlice(data, "items", []any{})
+	var data, _ = response["result"].(map[string]any)
+	var withdrawals []any
+	withdrawals, _ = data["items"].([]any)
+	if withdrawals == nil {
+		withdrawals = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit, params))}
 	return nil
@@ -5826,7 +5845,7 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(paramsWithdrawTag)
-	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
+	var networkIdsByCodes, _ = this.Options["networks"].(map[string]any)
 	var networkId *string = this.SafeString2(networkIdsByCodes, networkCode, code, code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
@@ -5853,7 +5872,11 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 	//         }
 	//     }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(result, currency)}
 	return nil
@@ -7515,7 +7538,7 @@ func (this *Xt) transferBody(ch chan AsyncResult[TransferEntry], code string, am
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsById")
+	var accountsByType, _ = this.Options["accountsById"].(map[string]any)
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountString *string = this.CurrencyToPrecision(code, amount)
@@ -7885,12 +7908,11 @@ func (this *Xt) Sign(path string, optionalArgs ...any) map[string]any {
 			isUndefinedBody = false
 		}
 		var jsonBody string = this.Json(query)
-		signedBody = func() any {
-			if isUndefinedBody {
-				return nil
-			}
-			return jsonBody
-		}()
+		if isUndefinedBody {
+			signedBody = nil
+		} else {
+			signedBody = jsonBody
+		}
 		var payloadString any = ""
 		var timestampPart string = "&xt-validate-t" + "imestamp=" + *timestamp // we can't glue timestamp, breaks in php
 		if (endpoint == "spot") || (endpoint == "user") {

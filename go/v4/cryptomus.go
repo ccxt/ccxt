@@ -380,7 +380,11 @@ func (this *Cryptomus) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	//         ]
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(result))}
 	return nil
@@ -412,7 +416,7 @@ func (this *Cryptomus) ParseMarket(market any) map[string]any {
 	if (base == nil) || (quote == nil) {
 		return nil
 	}
-	var fees map[string]any = SafeMapTyped(this.Fees, "trading")
+	var fees, _ = this.Fees["trading"].(map[string]any)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         *base + "/" + *quote,
@@ -722,7 +726,11 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
@@ -871,7 +879,11 @@ func (this *Cryptomus) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 	//         ]
 	//     }
 	//
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
 	return nil
@@ -1239,7 +1251,11 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	//             ...
 	//         ]
 	//     }
-	var result []any = this.SafeListSlice(response, "result", []any{})
+	var result []any
+	result, _ = response["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, nil, nil))}
 	return nil
@@ -1524,7 +1540,7 @@ func (this *Cryptomus) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
 		var stringToSign string = jsonParamsBase64 + this.Secret
-		var signature any = this.Hash(this.Encode(stringToSign), md5)
+		var signature string = this.HashString(this.Encode(stringToSign), md5, "hex")
 		privateHeaders["sign"] = signature
 		var privateBody *string = func() *string {
 			if method != "GET" {

@@ -534,7 +534,7 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	return this.Exchange.HandleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue)
 }
 func (this *Deepcoin) ConvertToInstrumentType(typeVar any) *string {
-	var exchangeTypes map[string]any = SafeMapTyped(this.Options, "exchangeType")
+	var exchangeTypes, _ = this.Options["exchangeType"].(map[string]any)
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
 
@@ -557,7 +557,7 @@ func (this *Deepcoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var types []any = []any{"spot", "swap"}
-	var fetchMarketsOption map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOption, _ = this.Options["fetchMarkets"].(map[string]any)
 	if fetchMarketsOption != nil {
 		types = this.SafeListSlice(fetchMarketsOption, "types", types)
 	} else {
@@ -629,7 +629,11 @@ func (this *Deepcoin) fetchMarketsByTypeBody(ch chan AsyncResult[[]MarketInterfa
 	//         ]
 	//     }
 	//
-	var dataResponse []any = this.SafeListSlice(response, "data", []any{})
+	var dataResponse []any
+	dataResponse, _ = response["data"].([]any)
+	if dataResponse == nil {
+		dataResponse = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(dataResponse))}
 	return nil
@@ -1060,7 +1064,11 @@ func (this *Deepcoin) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers []any = this.SafeListSlice(response, "data", []any{})
+	var tickers []any
+	tickers, _ = response["data"].([]any)
+	if tickers == nil {
+		tickers = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
@@ -1422,7 +1430,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var items []any = this.SafeListSlice(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
 		"type": "deposit",
@@ -1506,7 +1514,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var items []any = this.SafeListSlice(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
 		"type": "withdrawal",
@@ -1644,8 +1652,12 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAdd
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var list []any
+	list, _ = data["list"].([]any)
+	if list == nil {
+		list = []any{}
+	}
 	var additionalParams map[string]any = map[string]any{
 		"currency": code,
 	}
@@ -1682,7 +1694,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 		}
 	}
 	var network *string = this.SafeString(params, "network")
-	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
+	var defaultNetworks, _ = this.Options["defaultNetworks"].(map[string]any)
 	var defaultNetwork *string = this.SafeString(defaultNetworks, code)
 	if (network == nil) || (network != nil && *network == "") {
 		network = defaultNetwork
@@ -1938,7 +1950,7 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code stri
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -1965,9 +1977,13 @@ func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(data, currency))
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["fromAccount"] = fromAccount
@@ -2520,7 +2536,13 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id string
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var entry map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var entry map[string]any
+	if 0 < len(data) {
+		entry, _ = data[0].(map[string]any)
+	}
+	if entry == nil {
+		entry = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(entry, market)}
 	return nil
@@ -3786,8 +3808,12 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rates []any = this.SafeListSlice(data, "current_fund_rates", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rates []any
+	rates, _ = data["current_fund_rates"].([]any)
+	if rates == nil {
+		rates = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rates, symbolsNormalized))}
 	return nil
@@ -3847,9 +3873,16 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan AsyncResult[FundingRate], sym
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rates []any = SafeListTyped(data, "current_fund_rates")
-	var entry map[string]any = this.SafeDictMap(rates, 0, map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var rates []any
+	rates, _ = data["current_fund_rates"].([]any)
+	var entry map[string]any
+	if 0 < len(rates) {
+		entry, _ = rates[0].(map[string]any)
+	}
+	if entry == nil {
+		entry = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(entry, market)}
 	return nil
@@ -3960,8 +3993,12 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(rows, market, since, limit))}
 	return nil

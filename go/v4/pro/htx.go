@@ -177,7 +177,7 @@ func (this *Htx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var topic *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (topic != nil && *topic == "market.{marketId}.ticker") && (market["type"] != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
@@ -224,7 +224,7 @@ func (this *Htx) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string
 	}
 	var market map[string]any = this.Market(symbol)
 	var topic string = "ticker"
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
+	var options, _ = this.Options["watchTicker"].(map[string]any)
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.detail")
 	if (channel != nil && *channel == "market.{marketId}.ticker") && (market["type"] != "spot") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead"))
@@ -377,7 +377,7 @@ func (this *Htx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 	}
 	var market map[string]any = this.Market(symbol)
 	var topic string = "trades"
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchTrades")
+	var options, _ = this.Options["watchTrades"].(map[string]any)
 	var channel *string = this.SafeString(options, "name", "market.{marketId}.trade.detail")
 	var subMessageHash string = this.ImplodeParams(channel, map[string]any{
 		"marketId": market["id"],
@@ -411,7 +411,7 @@ func (this *Htx) HandleTrades(client any, message map[string]any) map[string]any
 	//         }
 	//     }
 	//
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var data []any = ccxt.SafeListTyped(tick, "data")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
@@ -628,7 +628,7 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	// which means whenever there is an order book change at that level, it pushes an update
 	// 150-levels/400-level incremental MBP feed is based on the gap
 	// between two snapshots at 100ms interval.
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var limitResolved int64 = this.ParseToInt(func() any {
 		if limit == nil {
 			return this.SafeInteger(options, "depth", 150)
@@ -698,7 +698,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 	}
 	var market map[string]any = this.Market(symbol)
 	var topic string = "orderbook"
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var depth int64 = this.ParseToInt(this.SafeInteger(options, "depth", 150))
 	var marketId string = *this.SafeString(market, "id", "")
 	var subMessageHash string = ""
@@ -978,8 +978,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 	var ch string = *this.SafeString(message, "ch", "")
 	var parts []string = strings.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
@@ -999,8 +999,8 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 			panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(symbol)))
 		}
 	}
-	var spotConditon bool = (market["spot"] == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
-	var nonSpotCondition bool = (market["contract"] == true) && (version != nil) && (ccxt.IsEqual(*version-1, this.SafeInteger(orderbook, "nonce")))
+	var spotConditon bool = (market.Spot == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
+	var nonSpotCondition bool = (market.Contract == true) && (version != nil) && (ccxt.IsEqual(*version-1, this.SafeInteger(orderbook, "nonce")))
 	if (spotConditon) || (nonSpotCondition) {
 		var asks []any = this.SafeListSlice(tick, "asks", []any{})
 		var bids []any = this.SafeListSlice(tick, "bids", []any{})
@@ -1064,7 +1064,7 @@ func (this *Htx) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "ch")
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var event *string = this.SafeString(tick, "event")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
@@ -2574,7 +2574,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			return
 		}
 		if topic != nil && *topic == "account" {
-			var accountData map[string]any = ccxt.SafeMapTyped(message, "data")
+			var accountData, _ = message["data"].(map[string]any)
 			var details []any = ccxt.SafeListTyped(accountData, "details")
 			var detailsLength int = len(details)
 			for i := 0; i < detailsLength; i++ {
@@ -3462,12 +3462,12 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 		"hostname": this.Hostname,
 	}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
-	var typeUrlsByApi map[string]any = ccxt.SafeMapTyped(wsUrls, api)
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
+	var typeUrlsByApi, _ = wsUrls[api].(map[string]any)
 	var hostnameURL any = nil
 	var url any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
-		var spotUrls map[string]any = ccxt.SafeMapTyped(typeUrlsByApi, "spot")
+		var spotUrls, _ = typeUrlsByApi["spot"].(map[string]any)
 		if isPrivate == true {
 			if derefPtr := this.SafeString(spotUrls, "private"); derefPtr != nil {
 				hostnameURL = *derefPtr
@@ -3650,7 +3650,7 @@ func (this *Htx) subscribePrivateBody(ch chan ccxt.AsyncResult[any], channel any
 	var isLinear bool = (ccxt.IsEqual(subtype, "linear"))
 	var isV5 *bool = this.SafeBool(subscriptionParams, "isV5", false)
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5)
-	var hostnames map[string]any = ccxt.SafeMapTyped(this.Urls, "hostnames")
+	var hostnames, _ = this.Urls["hostnames"].(map[string]any)
 	var hostname any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
 		hostname = hostnames["spot"]

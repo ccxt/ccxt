@@ -586,7 +586,7 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
 	var defaultFees map[string]any = this.SafeDictMap(this.Fees, "trading", map[string]any{})
-	var feesByCategory map[string]any = SafeMapTyped(this.Fees, "byCategory")
+	var feesByCategory, _ = this.Fees["byCategory"].(map[string]any)
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market map[string]any = SafeMapTyped(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -1603,7 +1603,11 @@ func (this *Bitvavo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalA
 	//         "maxItems": 0
 	//     }
 	//
-	var accounts []any = this.SafeListSlice(response, "items", []any{})
+	var accounts []any
+	accounts, _ = response["items"].([]any)
+	if accounts == nil {
+		accounts = []any{}
+	}
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts))}
 	return nil
@@ -1772,7 +1776,11 @@ func (this *Bitvavo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//         "limit": 25
 	//     }
 	//
-	var items []any = this.SafeListSlice(response, "items", []any{})
+	var items []any
+	items, _ = response["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(items, currency, since, limit))}
 	return nil
@@ -3009,7 +3017,11 @@ func (this *Bitvavo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optiona
 	//         "maxItems": 100
 	//     }
 	//
-	var items []any = this.SafeListSlice(response, "items", []any{})
+	var items []any
+	items, _ = response["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(items, currency, since, limit))}
 	return nil

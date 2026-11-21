@@ -781,7 +781,7 @@ func (this *Polymarket) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() does not support the " + timeframe + " timeframe over the websocket"))
@@ -834,7 +834,7 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolResolved string = *this.SafeString(market, "symbol", "")
-	var wsTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "wsTimeframes")
+	var wsTimeframes, _ = this.Options["wsTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(wsTimeframes, timeframe, timeframe)
 	var subMessageHash string = "candles:" + timeframe + ":" + symbolResolved
 	var messageHash string = "unsubscribe:" + subMessageHash
@@ -1045,7 +1045,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client any, message any) {
+func (this *Polymarket) HandleOrder(client any, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orders",

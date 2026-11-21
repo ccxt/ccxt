@@ -812,7 +812,7 @@ func (this *Coinspot) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	var id *string = this.SafeString(market, "id", "")
 	idStr := strings.ToLower(*id)
 	id = &idStr
-	var prices map[string]any = SafeMapTyped(response, "prices")
+	var prices, _ = response["prices"].(map[string]any)
 	//
 	//     {
 	//         "status":"ok",
@@ -883,7 +883,7 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	//    }
 	//
 	var result map[string]any = map[string]any{}
-	var prices map[string]any = SafeMapTyped(response, "prices")
+	var prices, _ = response["prices"].(map[string]any)
 	var ids []string = nil
 	if prices != nil {
 		ids = make([]string, 0, len(prices))
@@ -957,7 +957,11 @@ func (this *Coinspot) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	//         ],
 	//     }
 	//
-	var trades []any = this.SafeListSlice(response, "orders", []any{})
+	var trades []any
+	trades, _ = response["orders"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

@@ -773,7 +773,7 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = this.SafeString(market, "symbol", "")
-	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "candles:" + *symbolValue + ":" + timeframe
 	var ohlcv any = nil
@@ -2363,7 +2363,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash string = "unsubscribe:candles:" + *this.SafeString(market, "symbol", "") + ":" + timeframe
 	var url any = nil
@@ -2485,8 +2485,8 @@ func (this *Mexc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 
 	return nil
 }
-func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
-	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
+func (this *Mexc) HandleUnsubscriptions(client any, messageHashes []any) {
+	for i := 0; i < len(messageHashes); i++ {
 		var messageHash *string = this.SafeString(messageHashes, i, "")
 		var subMessageHash string = strings.Replace(*messageHash, "unsubscribe:", "", 1)
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)

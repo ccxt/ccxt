@@ -592,11 +592,11 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	if generation == 2 {
 		request["isDetails"] = true
 
-		r := <-this.PublicGetV1MarketAll(this.Extend(request, paramsGeneration))
-		if r.Err != nil {
-			panic(r.Err)
+		responseRecv := <-this.PublicGetV1MarketAll(this.Extend(request, paramsGeneration))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r.Raw
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//         {
@@ -607,7 +607,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		//         },
 		//     ]
 		//
-		for i := 0; i < GetArrayLength(response); i++ {
+		for i := 0; i < len(response); i++ {
 			var entry any = GetValue(response, i)
 			var marketId *string = this.SafeString(entry, "market")
 			var baseId any = nil
@@ -681,7 +681,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			})
 		}
 	} else {
-		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
+		var quoteCurrencies, _ = this.Options["quoteCurrencies"].(map[string]any)
 		var quotes []string = nil
 		if quoteCurrencies != nil {
 			quotes = make([]string, 0, len(quoteCurrencies))
@@ -695,11 +695,11 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration)))
 		}
 
-		r1 := <-promiseAll(promises)
-		if r1.Err != nil {
-			panic(r1.Err)
+		r := <-promiseAll(promises)
+		if r.Err != nil {
+			panic(r.Err)
 		}
-		var results []any = r1.Value
+		var results []any = r.Value
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
 			var response map[string]any = SafeMapTyped(results, i)
@@ -939,11 +939,11 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
 
-		r1 := <-this.PublicGetV1Orderbook(this.Extend(request, paramsGeneration))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PublicGetV1Orderbook(this.Extend(request, paramsGeneration))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r1.Raw
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//         {
@@ -989,11 +989,11 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 			request["count"] = *limit // default 30, max 30
 		}
 
-		r2 := <-this.PublicGetPublicOrderbookBaseIdQuoteId(this.Extend(request, paramsGeneration))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.PublicGetPublicOrderbookBaseIdQuoteId(this.Extend(request, paramsGeneration))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "status":"0000",
@@ -1308,7 +1308,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			}
 		}
 	} else {
-		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
+		var quoteCurrencies, _ = this.Options["quoteCurrencies"].(map[string]any)
 		var quotes []string = nil
 		if quoteCurrencies != nil {
 			quotes = make([]string, 0, len(quoteCurrencies))
@@ -1418,11 +1418,11 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	if generation == 2 {
 		request["markets"] = this.GetGen2MarketId(market)
 
-		r1 := <-this.PublicGetV1Ticker(this.Extend(request, paramsGeneration))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.PublicGetV1Ticker(this.Extend(request, paramsGeneration))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r1.Raw
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//         {
@@ -1460,11 +1460,11 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		request["baseId"] = market["baseId"]
 		request["quoteId"] = market["quoteId"]
 
-		r2 := <-this.PublicGetPublicTickerBaseIdQuoteId(this.Extend(request, paramsGeneration))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.PublicGetPublicTickerBaseIdQuoteId(this.Extend(request, paramsGeneration))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "status":"0000",
@@ -1936,7 +1936,7 @@ func (this *Bithumb) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response := r2.Raw
+		var response map[string]any = r2.Value
 		//
 		//     {
 		//         "status":"0000",
@@ -2044,7 +2044,11 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "batch_orders_response", []any{})
+	var data []any
+	data, _ = response["batch_orders_response"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
@@ -2969,7 +2973,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response := r1.Raw
+		var response map[string]any = r1.Value
 		//
 		//     {
 		//         "has_next": false,
@@ -3300,7 +3304,11 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	//         "fail": []
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "success", []any{})
+	var data []any
+	data, _ = response["success"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
@@ -4244,7 +4252,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 				url = this.ImplodeHostname(apiUrl) + endpoint + "?" + auth
 			}
 			if hasQuery {
-				request["query_hash"] = this.Hash(this.Encode(auth), sha512)
+				request["query_hash"] = this.HashString(this.Encode(auth), sha512, "hex")
 				request["query_hash_alg"] = "SHA512"
 			}
 			var token string = Jwt(request, this.Encode(this.Secret), sha256)

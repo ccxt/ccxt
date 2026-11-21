@@ -397,7 +397,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
+	var options, _ = this.Options["watchOrderBook"].(map[string]any)
 	var defaultMethod string = *this.SafeString(options, "method", "orderbook/full")
 	var name *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var depthValue string = *this.SafeString(params, "depth", "20")  // not named depth: the php transpiler would turn the '{depth}' literals into '{$depth}'
@@ -672,7 +672,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -785,7 +785,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBidsAsks")
+	var options, _ = this.Options["watchBidsAsks"].(map[string]any)
 	var defaultMethod string = *this.SafeString(options, "method", "orderbook/top/{speed}/batch")
 	var method *string = this.SafeString2(params, "method", "defaultMethod", defaultMethod)
 	var speedValue *string = this.SafeString(params, "speed", "100ms") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -836,7 +836,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketIds []string = nil
 	if data != nil {
 		marketIds = make([]string, 0, len(data))
@@ -2179,7 +2179,7 @@ func (this *Hitbtc) HandleError(client any, message map[string]any) bool {
 	//        id: 1700228604325
 	//    }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	if error != nil {
 		{
 			ret__ := func(this *Hitbtc) (ret_ bool) {

@@ -840,7 +840,11 @@ func (this *Zaif) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
@@ -955,7 +959,11 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
@@ -1013,7 +1021,11 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "return", map[string]any{})
+	var data map[string]any
+	data, _ = response["return"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(this.AddKeyInArrayItems(data, "id"), market, since, limit))}
 	return nil
@@ -1084,7 +1096,11 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//         }
 	//     }
 	//
-	var returnData map[string]any = this.SafeDictMap(result, "return", map[string]any{})
+	var returnData map[string]any
+	returnData, _ = result["return"].(map[string]any)
+	if returnData == nil {
+		returnData = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(returnData, currency)}
 	return nil

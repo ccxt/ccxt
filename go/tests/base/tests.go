@@ -2544,19 +2544,17 @@ func (this *testMainClass) AssertStaticIsolatedPosition(exchange ccxt.ICoreExcha
 			if isInverse {
 				var invEntry any = Divide(1, entryPrice)
 				var invLiq any = Divide(1, liquidationPrice)
-				priceDiff = func() any {
-					if IsGreaterThan(invEntry, invLiq) {
-						return (Subtract(invEntry, invLiq))
-					}
-					return (Subtract(invLiq, invEntry))
-				}()
+				if IsGreaterThan(invEntry, invLiq) {
+					priceDiff = (Subtract(invEntry, invLiq))
+				} else {
+					priceDiff = (Subtract(invLiq, invEntry))
+				}
 			} else {
-				priceDiff = func() any {
-					if *entryPrice > *liquidationPrice {
-						return (Subtract(entryPrice, liquidationPrice))
-					}
-					return (Subtract(liquidationPrice, entryPrice))
-				}()
+				if *entryPrice > *liquidationPrice {
+					priceDiff = (Subtract(entryPrice, liquidationPrice))
+				} else {
+					priceDiff = (Subtract(liquidationPrice, entryPrice))
+				}
 			}
 			var lossFromEntry any = Multiply(Multiply(priceDiff, contracts), contractSize)
 			var calculatedMm any = Subtract(entryMargin, lossFromEntry)
@@ -5225,12 +5223,11 @@ func (this *testMainClass) testBybitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5276,12 +5273,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5309,12 +5305,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5344,12 +5339,11 @@ func (this *testMainClass) testBithumbBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5558,12 +5552,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5590,12 +5583,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5624,12 +5616,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5655,12 +5646,11 @@ func (this *testMainClass) testKucoinBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5711,12 +5701,11 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5743,12 +5732,11 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan ccxt.AsyncResult[any]) 
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5795,12 +5783,11 @@ func (this *testMainClass) testBitgetBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -5851,12 +5838,11 @@ func (this *testMainClass) testMexcBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6087,12 +6073,11 @@ func (this *testMainClass) testBingxBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6559,12 +6544,11 @@ func (this *testMainClass) testParadexBody(ch chan ccxt.AsyncResult[any]) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6610,12 +6594,11 @@ func (this *testMainClass) testHashkeyBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6823,12 +6806,11 @@ func (this *testMainClass) testBackpackBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6874,12 +6856,11 @@ func (this *testMainClass) testToobitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}
@@ -6993,12 +6974,11 @@ func (this *testMainClass) testFoxbitBody(ch chan ccxt.AsyncResult[any]) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any {
-							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
-								return exchange.GetLast_request_headers()
-							}
-							return map[string]any{}
-						}()
+						if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+							reqHeaders = exchange.GetLast_request_headers()
+						} else {
+							reqHeaders = map[string]any{}
+						}
 						return nil
 					}(this)
 				}

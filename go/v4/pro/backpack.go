@@ -179,7 +179,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 	var topics []any = []any{}
 	var messageHashes []string = []string{}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var kind string
@@ -339,7 +339,7 @@ func (this *Backpack) watchPublicBody(ch chan ccxt.AsyncResult[any], topics any,
 		}
 	}
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "public", "")
 	var method string = "SUBSCRIBE"
 	if unwatch == true {
@@ -377,7 +377,7 @@ func (this *Backpack) watchPrivateBody(ch chan ccxt.AsyncResult[any], topics any
 	_ = unwatch
 	this.CheckRequiredCredentials()
 	var apiUrls map[string]any = this.UrlsApi
-	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
+	var wsUrls, _ = apiUrls["ws"].(map[string]any)
 	var url *string = this.SafeString(wsUrls, "private", "")
 	var instruction string = "subscribe"
 	var ts *string = this.NumberToString(this.Nonce())
@@ -1173,8 +1173,8 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var market map[string]any = this.Market(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
+	var symbol *string = market.Symbol
 	var stream string = *this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
@@ -1359,7 +1359,13 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 		panic(r2.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -2220,7 +2226,7 @@ func (this *Backpack) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], optiona
  * @returns {boolean} whether a balance was updated
  */
 func (this *Backpack) HandleBalance(client any, message map[string]any) bool {
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var assetId *string = this.SafeString(data, "a")
 	if assetId == nil {
 		return false
@@ -2557,8 +2563,8 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 	_ = market
 	var id *string = this.SafeString(position, "i")
 	var marketId *string = this.SafeString(position, "s")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var notional *string = this.SafeString(position, "n")
 	var liquidationPrice *string = this.SafeString(position, "l")
 	var entryPrice *string = this.SafeString(position, "b")
@@ -2612,7 +2618,7 @@ func (this *Backpack) HandleMessage(client any, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var event *string = this.SafeString(data, "e")
 	if (event != nil && *event == "stockPrice") || (event != nil && *event == "stockIndicativeQuote") {
 		this.HandleStockTicker(client, message)
@@ -2646,7 +2652,7 @@ func (this *Backpack) HandleErrorMessage(client any, message map[string]any) any
 	//         }
 	//     }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var code *int64 = this.SafeInteger(error, "code")
 
 	{

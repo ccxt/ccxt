@@ -1045,7 +1045,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 	//     ]
 	//
 	var result []any = []any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarketsFromAPI")
+	var options, _ = this.Options["fetchMarketsFromAPI"].(map[string]any)
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
 	var marketIds []any = []any{}
 	var allMarketIds []any = []any{}
@@ -1181,7 +1181,7 @@ func (this *Gemini) ParseMarket(response any) map[string]any {
 		var marketIdUpper string = ToUpper(marketId)
 		var isPerp bool = (strings.Index(marketIdUpper, "PERP") >= 0)
 		var marketIdWithoutPerp string = strings.Replace(marketIdUpper, "PERP", "", 1)
-		var conflictingMarkets map[string]any = SafeMapTyped(this.Options, "conflictingMarkets")
+		var conflictingMarkets, _ = this.Options["conflictingMarkets"].(map[string]any)
 		var lowerCaseId string = strings.ToLower(marketIdWithoutPerp)
 		if _, ok := conflictingMarkets[lowerCaseId]; ok {
 			var conflictingMarket map[string]any = MapTyped(conflictingMarkets[lowerCaseId])

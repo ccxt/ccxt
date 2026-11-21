@@ -369,7 +369,7 @@ func (this *Mercado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     ]
 	//
 	var result []any = []any{}
-	var amountLimits map[string]any = SafeMapTyped(this.Options, "limits")
+	var amountLimits, _ = this.Options["limits"].(map[string]any)
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
 		var coin *string = this.SafeString(coins, i, "")
@@ -555,7 +555,11 @@ func (this *Mercado) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response["ticker"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	//
 	//     {
@@ -891,8 +895,12 @@ func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	//         "server_unix_timestamp": "1536956499"
 	//     }
 	//
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var order map[string]any = this.SafeDictMap(responseData, "order", map[string]any{})
+	var responseData, _ = response["response_data"].(map[string]any)
+	var order map[string]any
+	order, _ = responseData["order"].(map[string]any)
+	if order == nil {
+		order = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -1028,8 +1036,8 @@ func (this *Mercado) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var order map[string]any = SafeMapTyped(responseData, "order")
+	var responseData, _ = response["response_data"].(map[string]any)
+	var order, _ = responseData["order"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
@@ -1118,8 +1126,8 @@ func (this *Mercado) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	//         "server_unix_timestamp": "1453912088"
 	//     }
 	//
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var withdrawal map[string]any = SafeMapTyped(responseData, "withdrawal")
+	var responseData, _ = response["response_data"].(map[string]any)
+	var withdrawal, _ = responseData["withdrawal"].(map[string]any)
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(withdrawal, currency)}
 	return nil
@@ -1283,8 +1291,12 @@ func (this *Mercado) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders []any = this.SafeListSlice(responseData, "orders", []any{})
+	var responseData, _ = response["response_data"].(map[string]any)
+	var orders []any
+	orders, _ = responseData["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1337,8 +1349,12 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var orders []any = this.SafeListSlice(responseData, "orders", []any{})
+	var responseData, _ = response["response_data"].(map[string]any)
+	var orders []any
+	orders, _ = responseData["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -1391,8 +1407,12 @@ func (this *Mercado) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var ordersRaw []any = this.SafeListSlice(responseData, "orders", []any{})
+	var responseData, _ = response["response_data"].(map[string]any)
+	var ordersRaw []any
+	ordersRaw, _ = responseData["orders"].([]any)
+	if ordersRaw == nil {
+		ordersRaw = []any{}
+	}
 	var orders []any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 

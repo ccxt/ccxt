@@ -2073,7 +2073,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol st
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
 	historical, paramsHistorical := this.HandleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false)
-	var timeframeOption map[string]any = SafeMapTyped(this.Options, "timeframes")
+	var timeframeOption, _ = this.Options["timeframes"].(map[string]any)
 	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -4645,7 +4645,7 @@ func (this *Weex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		return nil
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountType *string = this.SafeString(accountsByType, marketType, marketType)
 	var request map[string]any = map[string]any{}
 	var items []any = nil
@@ -4915,7 +4915,11 @@ func (this *Weex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 	//         ]
 	//     }
 	//
-	var items []any = this.SafeListSlice(response, "items", []any{})
+	var items []any
+	items, _ = response["items"].([]any)
+	if items == nil {
+		items = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(items, market, since, limit))}
 	return nil
@@ -5026,9 +5030,13 @@ func (this *Weex) fetchPositionBody(ch chan AsyncResult[Position], symbol string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var positions []any = PositionsToList(r.Value)
+	var positions []Position = r.Value
+	var positionsRow Position
+	if len(positions) > 0 {
+		positionsRow = positions[0]
+	}
 
-	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0))}
+	ch <- AsyncResult[Position]{Value: positionsRow}
 	return nil
 }
 

@@ -884,8 +884,12 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface],
 			panic(r1.Err)
 		}
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var list []any
+	list, _ = data["list"].([]any)
+	if list == nil {
+		list = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(list))}
 	return nil
@@ -1337,8 +1341,12 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 		//        "timestamp": 1787318052414
 		//    }
 		//
-		var data map[string]any = SafeMapTyped(responseInner, "data")
-		var list []any = this.SafeListSlice(data, "list", []any{})
+		var data, _ = responseInner["data"].(map[string]any)
+		var list []any
+		list, _ = data["list"].([]any)
+		if list == nil {
+			list = []any{}
+		}
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(list, market, since, limit))}
 		return nil
@@ -2230,7 +2238,7 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 		request["side"] = 1
 	}
 	if clientOrderId == nil {
-		var broker map[string]any = SafeMapTyped(this.Options, "broker")
+		var broker, _ = this.Options["broker"].(map[string]any)
 		if broker != nil {
 			var brokerId *string = this.SafeString(broker, "marketType")
 			if brokerId != nil {
@@ -2378,7 +2386,11 @@ func (this *Tokocrypto) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	//         "timestamp": 1662710994975
 	//     }
 	//
-	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = response["data"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder, market)}
 	return nil
@@ -2445,9 +2457,16 @@ func (this *Tokocrypto) fetchOrderBody(ch chan AsyncResult[Order], id string, op
 	//         "timestamp": 1662710056523
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var list []any = SafeListTyped(data, "list")
-	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var list []any
+	list, _ = data["list"].([]any)
+	var rawOrder map[string]any
+	if 0 < len(list) {
+		rawOrder, _ = list[0].(map[string]any)
+	}
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
@@ -2539,8 +2558,12 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	//         "timestamp": 1572860756458
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var orders []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var orders []any
+	orders, _ = data["list"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
 	return nil
@@ -2692,7 +2715,11 @@ func (this *Tokocrypto) cancelOrderBody(ch chan AsyncResult[Order], id string, o
 	//         "timestamp": 1662710683634
 	//     }
 	//
-	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var rawOrder map[string]any
+	rawOrder, _ = response["data"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(rawOrder)}
 	return nil
@@ -2786,8 +2813,12 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         "timestamp": 1573723498893
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["list"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil
@@ -2823,7 +2854,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan AsyncResult[DepositAddre
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var network *string = this.SafeStringUpper(params, "network") // this line allows the user to specify either ERC20 or ETH
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
 	var paramsOmitted map[string]any
@@ -2959,8 +2990,12 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 	//         "timestamp":1659758865998
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var deposits []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var deposits []any
+	deposits, _ = data["list"].([]any)
+	if deposits == nil {
+		deposits = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(deposits, currency, since, limit))}
 	return nil
@@ -3045,8 +3080,12 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 	//         "timestamp":1659759062187
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var withdrawals []any = this.SafeListSlice(data, "list", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var withdrawals []any
+	withdrawals, _ = data["list"].([]any)
+	if withdrawals == nil {
+		withdrawals = []any{}
+	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit))}
 	return nil

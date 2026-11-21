@@ -174,7 +174,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "fetchOHLCVWs")
 	var url *string = this.UrlsApiStrings["ws"]
-	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	messageHashStr := "fetchOHLCV:" + market["symbol"].(string) + ":" + *timeframeId
@@ -240,7 +240,7 @@ func (this *Lbank) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "watchOHLCV")
-	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe, timeframe)
 	messageHashStr := "ohlcv:" + market["symbol"].(string) + ":" + *timeframeId
@@ -299,7 +299,7 @@ func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	}
 	var market map[string]any = this.Market(symbol)
 	this.CheckContractMarket(market, "unWatchOHLCV")
-	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes map[string]any = ccxt.SafeMapTyped(watchOHLCVOptions, "timeframes")
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	if timeframeId == nil {
@@ -377,9 +377,9 @@ func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "_")
-	var watchOHLCVOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchOHLCV")
+	var watchOHLCVOptions, _ = this.Options["watchOHLCV"].(map[string]any)
 	var timeframes map[string]any = this.SafeDictMap(watchOHLCVOptions, "timeframes", map[string]any{})
-	var records []any = ccxt.SafeListTyped(message, "records")
+	var records, _ = message["records"].([]any)
 	var timeframeId string = ""
 	var messageHash string = ""
 	if records != nil {
@@ -1503,7 +1503,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				response := r1.Raw
+				var response map[string]any = r1.Value
 				//
 				// {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
 				//
@@ -1526,7 +1526,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 					if r2.Err != nil {
 						panic(r2.Err)
 					}
-					response := r2.Raw
+					var response map[string]any = r2.Value
 					//
 					//    {"result": "true"}
 					//

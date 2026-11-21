@@ -643,69 +643,63 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var isHttp_proxy_defined bool = this.ValueIsDefined(this.Http_proxy)
 	if isHttpProxyDefined || isHttp_proxy_defined {
 		usedProxies = append(usedProxies, "httpProxy")
-		httpProxy = func() any {
-			if isHttpProxyDefined {
-				return this.HttpProxy
-			}
-			return this.Http_proxy
-		}()
+		if isHttpProxyDefined {
+			httpProxy = this.HttpProxy
+		} else {
+			httpProxy = this.Http_proxy
+		}
 	}
 	var ishttpProxyCallbackDefined bool = this.ValueIsDefined(this.HttpProxyCallback)
 	var ishttp_proxy_callback_defined bool = this.ValueIsDefined(this.Http_proxy_callback)
 	if ishttpProxyCallbackDefined || ishttp_proxy_callback_defined {
 		usedProxies = append(usedProxies, "httpProxyCallback")
-		httpProxy = func() any {
-			if ishttpProxyCallbackDefined {
-				return this.CallDynamically("httpProxyCallback", url, method, headers, body)
-			}
-			return this.CallDynamically("http_proxy_callback", url, method, headers, body)
-		}()
+		if ishttpProxyCallbackDefined {
+			httpProxy = this.CallDynamically("httpProxyCallback", url, method, headers, body)
+		} else {
+			httpProxy = this.CallDynamically("http_proxy_callback", url, method, headers, body)
+		}
 	}
 	// httpsProxy
 	var isHttpsProxyDefined bool = this.ValueIsDefined(this.HttpsProxy)
 	var isHttps_proxy_defined bool = this.ValueIsDefined(this.Https_proxy)
 	if isHttpsProxyDefined || isHttps_proxy_defined {
 		usedProxies = append(usedProxies, "httpsProxy")
-		httpsProxy = func() any {
-			if isHttpsProxyDefined {
-				return this.HttpsProxy
-			}
-			return this.Https_proxy
-		}()
+		if isHttpsProxyDefined {
+			httpsProxy = this.HttpsProxy
+		} else {
+			httpsProxy = this.Https_proxy
+		}
 	}
 	var ishttpsProxyCallbackDefined bool = this.ValueIsDefined(this.HttpsProxyCallback)
 	var ishttps_proxy_callback_defined bool = this.ValueIsDefined(this.Https_proxy_callback)
 	if ishttpsProxyCallbackDefined || ishttps_proxy_callback_defined {
 		usedProxies = append(usedProxies, "httpsProxyCallback")
-		httpsProxy = func() any {
-			if ishttpsProxyCallbackDefined {
-				return this.CallDynamically("httpsProxyCallback", url, method, headers, body)
-			}
-			return this.CallDynamically("https_proxy_callback", url, method, headers, body)
-		}()
+		if ishttpsProxyCallbackDefined {
+			httpsProxy = this.CallDynamically("httpsProxyCallback", url, method, headers, body)
+		} else {
+			httpsProxy = this.CallDynamically("https_proxy_callback", url, method, headers, body)
+		}
 	}
 	// socksProxy
 	var isSocksProxyDefined bool = this.ValueIsDefined(this.SocksProxy)
 	var isSocks_proxy_defined bool = this.ValueIsDefined(this.Socks_proxy)
 	if isSocksProxyDefined || isSocks_proxy_defined {
 		usedProxies = append(usedProxies, "socksProxy")
-		socksProxy = func() any {
-			if isSocksProxyDefined {
-				return this.SocksProxy
-			}
-			return this.Socks_proxy
-		}()
+		if isSocksProxyDefined {
+			socksProxy = this.SocksProxy
+		} else {
+			socksProxy = this.Socks_proxy
+		}
 	}
 	var issocksProxyCallbackDefined bool = this.ValueIsDefined(this.SocksProxyCallback)
 	var issocks_proxy_callback_defined bool = this.ValueIsDefined(this.Socks_proxy_callback)
 	if issocksProxyCallbackDefined || issocks_proxy_callback_defined {
 		usedProxies = append(usedProxies, "socksProxyCallback")
-		socksProxy = func() any {
-			if issocksProxyCallbackDefined {
-				return this.CallDynamically("socksProxyCallback", url, method, headers, body)
-			}
-			return this.CallDynamically("socks_proxy_callback", url, method, headers, body)
-		}()
+		if issocksProxyCallbackDefined {
+			socksProxy = this.CallDynamically("socksProxyCallback", url, method, headers, body)
+		} else {
+			socksProxy = this.CallDynamically("socks_proxy_callback", url, method, headers, body)
+		}
 	}
 	// check
 	var length int = len(usedProxies)
@@ -725,36 +719,33 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	var is_ws_proxy_defined bool = this.ValueIsDefined(this.Ws_proxy)
 	if isWsProxyDefined || is_ws_proxy_defined {
 		usedProxies = append(usedProxies, "wsProxy")
-		wsProxy = func() any {
-			if isWsProxyDefined {
-				return this.WsProxy
-			}
-			return this.Ws_proxy
-		}()
+		if isWsProxyDefined {
+			wsProxy = this.WsProxy
+		} else {
+			wsProxy = this.Ws_proxy
+		}
 	}
 	// wss proxy
 	var isWssProxyDefined bool = this.ValueIsDefined(this.WssProxy)
 	var is_wss_proxy_defined bool = this.ValueIsDefined(this.Wss_proxy)
 	if isWssProxyDefined || is_wss_proxy_defined {
 		usedProxies = append(usedProxies, "wssProxy")
-		wssProxy = func() any {
-			if isWssProxyDefined {
-				return this.WssProxy
-			}
-			return this.Wss_proxy
-		}()
+		if isWssProxyDefined {
+			wssProxy = this.WssProxy
+		} else {
+			wssProxy = this.Wss_proxy
+		}
 	}
 	// ws socks proxy
 	var isWsSocksProxyDefined bool = this.ValueIsDefined(this.WsSocksProxy)
 	var is_ws_socks_proxy_defined bool = this.ValueIsDefined(this.Ws_socks_proxy)
 	if isWsSocksProxyDefined || is_ws_socks_proxy_defined {
 		usedProxies = append(usedProxies, "wsSocksProxy")
-		wsSocksProxy = func() any {
-			if isWsSocksProxyDefined {
-				return this.WsSocksProxy
-			}
-			return this.Ws_socks_proxy
-		}()
+		if isWsSocksProxyDefined {
+			wsSocksProxy = this.WsSocksProxy
+		} else {
+			wsSocksProxy = this.Ws_socks_proxy
+		}
 	}
 	// check
 	var length int = len(usedProxies)
@@ -764,8 +755,8 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	}
 	return []any{wsProxy, wssProxy, wsSocksProxy}
 }
-func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet any, proxyUrlSet any) {
-	var proxyAgentIsSet bool = (!IsEqual(proxyAgentSet, nil)) && (proxyAgentSet != "")
+func (this *BaseExchange) CheckConflictingProxies(proxyAgentSet *string, proxyUrlSet any) {
+	var proxyAgentIsSet bool = (proxyAgentSet != nil) && (proxyAgentSet == nil || *proxyAgentSet != "")
 	var proxyUrlIsSet bool = (!IsEqual(proxyUrlSet, nil)) && (proxyUrlSet != "")
 	if proxyAgentIsSet && proxyUrlIsSet {
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy"))
@@ -811,7 +802,7 @@ func (this *BaseExchange) FindMessageHashes(client *Client, element any) []strin
 	}
 	return result
 }
-func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
+func (this *BaseExchange) FilterByLimit(array []any, optionalArgs ...any) []any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	key := GetArg(optionalArgs, 1, "timestamp")
@@ -819,12 +810,12 @@ func (this *BaseExchange) FilterByLimit(array any, optionalArgs ...any) []any {
 	var fromStart bool = GetArgBool(optionalArgs, 2, false)
 	_ = fromStart
 	if limit != nil {
-		var arrayLength int = GetArrayLength(array)
+		var arrayLength int = len(array)
 		if arrayLength > 0 {
 			var ascending bool = true
-			if InOp(GetValue(array, 0), key) {
-				var first *float64 = this.SafeFloat(GetValue(array, 0), key)
-				var last *float64 = this.SafeFloat(GetValue(array, arrayLength-1), key)
+			if InOp(array[0], key) {
+				var first *float64 = this.SafeFloat(array[0], key)
+				var last *float64 = this.SafeFloat(array[arrayLength-1], key)
 				if (first != nil) && (last != nil) {
 					ascending = (*last >= *first) // true if array is sorted in ascending order based on 'timestamp'
 				}
@@ -1374,9 +1365,6 @@ func (this *BaseExchange) ParseTransaction(transaction any, optionalArgs ...any)
 func (this *BaseExchange) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	if IsEqual(transfer, nil) {
-		panic(NotSupported(this.Id + " parseTransfer() is not supported yet"))
-	}
 	panic(NotSupported(this.Id + " parseTransfer() is not supported yet"))
 }
 func (this *BaseExchange) ParseAccount(account any) map[string]any {
@@ -2026,21 +2014,23 @@ func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, op
 	//
 	// createOrder
 	if InOp(featuresObj, "createOrder") {
-		var value any = this.SafeDict(GetValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit")
-		AddElementToObject(GetValue(featuresObj, "createOrder"), "stopLoss", value)
-		AddElementToObject(GetValue(featuresObj, "createOrder"), "takeProfit", value)
+		var createOrder map[string]any = this.Extend(map[string]any{}, GetValue(featuresObj, "createOrder"))
+		var value any = this.SafeDict(createOrder, "attachedStopLossTakeProfit")
+		createOrder["stopLoss"] = value
+		createOrder["takeProfit"] = value
 		if marketType == "spot" {
 			// default 'hedged': false
-			AddElementToObject(GetValue(featuresObj, "createOrder"), "hedged", false)
+			createOrder["hedged"] = false
 			// default 'leverage': false
-			if !(InOp(GetValue(featuresObj, "createOrder"), "leverage")) {
-				AddElementToObject(GetValue(featuresObj, "createOrder"), "leverage", false)
+			if _, ok := createOrder["leverage"]; !ok {
+				createOrder["leverage"] = false
 			}
 		}
 		// default 'GTC' to true
-		if this.SafeBool(GetValue(GetValue(featuresObj, "createOrder"), "timeInForce"), "GTC") == nil {
-			AddElementToObject(GetValue(GetValue(featuresObj, "createOrder"), "timeInForce"), "GTC", true)
+		if this.SafeBool(createOrder["timeInForce"], "GTC") == nil {
+			AddElementToObject(createOrder["timeInForce"], "GTC", true)
 		}
+		AddElementToObject(featuresObj, "createOrder", createOrder)
 	}
 	// other methods
 	var keys []string = ObjectKeys(featuresObj)
@@ -3686,7 +3676,7 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	}
 	return result
 }
-func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ...any) any {
+func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs [][]any, optionalArgs ...any) any {
 	var timestamp string = GetArgString(optionalArgs, 0, "t")
 	_ = timestamp
 	var open string = GetArgString(optionalArgs, 1, "o")
@@ -3708,30 +3698,30 @@ func (this *BaseExchange) ConvertOHLCVToTradingView(ohlcvs any, optionalArgs ...
 	result[low] = []any{}
 	result[close] = []any{}
 	result[volume] = []any{}
-	for i := 0; i < GetArrayLength(ohlcvs); i++ {
+	for i := 0; i < len(ohlcvs); i++ {
 		var ts any = func() any {
 			if ms == true {
-				return GetValue(GetValue(ohlcvs, i), 0)
+				return GetValue(ohlcvs[i], 0)
 			}
 			return this.ParseToInt(Divide(GetValue(GetValue(ohlcvs, i), 0), 1000))
 		}()
-		var resultTimestamp any = result[timestamp]
-		AppendToArray(&resultTimestamp, ts)
+		var resultTimestamp, _ = result[timestamp].([]any)
+		resultTimestamp = append(resultTimestamp, ts)
 		result[timestamp] = resultTimestamp
-		var resultOpen any = result[open]
-		AppendToArray(&resultOpen, GetValue(GetValue(ohlcvs, i), 1))
+		var resultOpen, _ = result[open].([]any)
+		resultOpen = append(resultOpen, GetValue(ohlcvs[i], 1))
 		result[open] = resultOpen
-		var resultHigh any = result[high]
-		AppendToArray(&resultHigh, GetValue(GetValue(ohlcvs, i), 2))
+		var resultHigh, _ = result[high].([]any)
+		resultHigh = append(resultHigh, GetValue(ohlcvs[i], 2))
 		result[high] = resultHigh
-		var resultLow any = result[low]
-		AppendToArray(&resultLow, GetValue(GetValue(ohlcvs, i), 3))
+		var resultLow, _ = result[low].([]any)
+		resultLow = append(resultLow, GetValue(ohlcvs[i], 3))
 		result[low] = resultLow
-		var resultClose any = result[close]
-		AppendToArray(&resultClose, GetValue(GetValue(ohlcvs, i), 4))
+		var resultClose, _ = result[close].([]any)
+		resultClose = append(resultClose, GetValue(ohlcvs[i], 4))
 		result[close] = resultClose
-		var resultVolume any = result[volume]
-		AppendToArray(&resultVolume, GetValue(GetValue(ohlcvs, i), 5))
+		var resultVolume, _ = result[volume].([]any)
+		resultVolume = append(resultVolume, GetValue(ohlcvs[i], 5))
 		result[volume] = resultVolume
 	}
 	return result
@@ -3893,7 +3883,7 @@ func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
 }
 
 // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) []any {
 	priceKey := GetArg(optionalArgs, 0, 0)
 	_ = priceKey
 	amountKey := GetArg(optionalArgs, 1, 1)
@@ -3997,17 +3987,23 @@ func (this *BaseExchange) NetworkCodeToId(networkCode any, optionalArgs ...any) 
 		return nil
 	}
 	var unifiedCode *string = this.SafeString(this.NetworkAliases, networkCode, networkCode)
-	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
+	var networkIdsByCodes, _ = this.Options["networks"].(map[string]any)
 	var networkId *string = this.SafeString(networkIdsByCodes, unifiedCode)
 	if networkId != nil {
 		return networkId
 	}
 	// options.networks may still be keyed by an alias of the unified code
-	var aliases any = this.NetworkAliases
-	var aliasKeys []string = ObjectKeys(aliases)
+	var aliases map[string]any = this.NetworkAliases
+	var aliasKeys []string = nil
+	if aliases != nil {
+		aliasKeys = make([]string, 0, len(aliases))
+		for objectKey := range aliases {
+			aliasKeys = append(aliasKeys, objectKey)
+		}
+	}
 	for i := 0; i < len(aliasKeys); i++ {
 		var alias string = aliasKeys[i]
-		if _, ok := networkIdsByCodes[alias]; (IsEqual(GetValue(aliases, alias), unifiedCode)) && ok {
+		if _, ok := networkIdsByCodes[alias]; (IsEqual(aliases[alias], unifiedCode)) && ok {
 			return SafeStringPtr(networkIdsByCodes[alias])
 		}
 	}
@@ -4045,7 +4041,7 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	if networkId == nil {
 		return nil
 	}
-	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
+	var networkCodesByIds, _ = this.Options["networksById"].(map[string]any)
 	var mappedCode *string = this.SafeString(networkCodesByIds, networkId)
 	var networkCode *string
 	if mappedCode == nil {
@@ -4130,10 +4126,10 @@ func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs
 	countOrIdKey := GetArg(optionalArgs, 5, 2)
 	_ = countOrIdKey
 
-	var bids any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var bids []any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, bidsKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(bids)
 
-	var asks any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
+	var asks []any = this.DerivedExchange.ParseOrderBookBidsAsks(this.SafeValue(orderbook, asksKey, []any{}), priceKey, amountKey, countOrIdKey)
 	PanicOnError(asks)
 	return map[string]any{
 		"symbol":    symbol,
@@ -5215,7 +5211,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	var i_count int = 6
 	var tradesLength int = GetArrayLength(trades)
 	var oldest int64 = min(int64(tradesLength), limit)
-	var options map[string]any = SafeMapTyped(this.Options, "buildOHLCVC")
+	var options, _ = this.Options["buildOHLCVC"].(map[string]any)
 	var skipZeroPrices *bool = this.SafeBool(options, "skipZeroPrices", true)
 	for i := 0; int64(i) < oldest; i++ {
 		var trade map[string]any = SafeMapTyped(trades, i)
@@ -5670,11 +5666,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706115 map[string]any = r.Value
-	if retRes706115 == nil {
+	var retRes706015 map[string]any = r.Value
+	if retRes706015 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706115}
+		ch <- AsyncResult[map[string]any]{Value: retRes706015}
 	}
 	return nil
 }
@@ -6088,9 +6084,8 @@ func (this *BaseExchange) fetchPositionADLRankBody(ch chan AsyncResult[ADL], sym
 		if r.Err != nil {
 			panic(r.Err)
 		}
-
-		var market map[string]any = this.DerivedExchange.Market(symbol)
-		var symbolResolved *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
+		var symbolResolved *string = market.Symbol
 
 		r1 := <-this.DerivedExchange.FetchPositionsADLRankAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -7582,7 +7577,7 @@ func (this *BaseExchange) ConvertTypeToAccount(account string) string {
 	 * @param {string} account key for account name in this.options['accountsByType']
 	 * @returns the exchange specific account name or the isolated margin id for transfers
 	 */
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var lowercaseAccount string = strings.ToLower(account)
 	if _, ok := accountsByType[lowercaseAccount]; ok {
 		return *this.SafeString(accountsByType, lowercaseAccount, account)
@@ -7722,16 +7717,10 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	_ = currency
 	var networkKeys []string = ObjectKeys(GetValue(fee, "networks"))
 	var numNetworks int = len(networkKeys)
-	if numNetworks == 1 {
-		var networkFee map[string]any = SafeMapTyped(GetValue(fee, "networks"), networkKeys[0])
-		AddElementToObject(fee, "withdraw", networkFee["withdraw"])
-		AddElementToObject(fee, "deposit", networkFee["deposit"])
-		return MapTyped(fee)
-	}
 	var currencyCode *string = this.SafeString(currency, "code")
 	for i := 0; i < numNetworks; i++ {
 		var network string = networkKeys[i]
-		if currencyCode != nil && *currencyCode == network {
+		if (numNetworks == 1) || (currencyCode != nil && *currencyCode == network) {
 			var networkFeeSrc, _ = GetValue(fee, "networks").(map[string]any)
 			var networkFee map[string]any
 			networkFee, _ = networkFeeSrc[networkKeys[i]].(map[string]any)
@@ -7746,7 +7735,7 @@ func (this *BaseExchange) ParseIncome(info any, optionalArgs ...any) any {
 	_ = market
 	panic(NotSupported(this.Id + " parseIncome () is not supported yet"))
 }
-func (this *BaseExchange) ParseIncomes(incomes any, optionalArgs ...any) []any {
+func (this *BaseExchange) ParseIncomes(incomes []any, optionalArgs ...any) []any {
 	/**
 	 * @ignore
 	 * @method
@@ -7764,8 +7753,8 @@ func (this *BaseExchange) ParseIncomes(incomes any, optionalArgs ...any) []any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(incomes); i++ {
-		result = append(result, this.DerivedExchange.ParseIncome(GetValue(incomes, i), market))
+	for i := 0; i < len(incomes); i++ {
+		result = append(result, this.DerivedExchange.ParseIncome(incomes[i], market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -9271,12 +9260,12 @@ func (this *Exchange) closeAllPositionsBody(ch chan AsyncResult[[]Position], opt
 	_ = params
 	panic(NotSupported(this.Id + " closeAllPositions() is not supported yet"))
 }
-func (this *Exchange) EditOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Exchange) EditOrdersAsync(orders []map[string]any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.editOrdersBody(ch, orders, optionalArgs...)
 	return ch
 }
-func (this *Exchange) editOrdersBody(ch chan AsyncResult[[]Order], orders []any, optionalArgs ...any) any {
+func (this *Exchange) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9469,9 +9458,8 @@ func (this *Exchange) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol str
 		if r.Err != nil {
 			panic(r.Err)
 		}
-
-		var market map[string]any = this.DerivedExchange.Market(symbol)
-		var symbolResolved *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
+		var symbolResolved *string = market.Symbol
 
 		r1 := <-this.FetchMarkPricesAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -10403,9 +10391,8 @@ func (this *Exchange) fetchTickerWsBody(ch chan AsyncResult[Ticker], symbol stri
 		if r.Err != nil {
 			panic(r.Err)
 		}
-
-		var market map[string]any = this.DerivedExchange.Market(symbol)
-		var symbolResolved *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
+		var symbolResolved *string = market.Symbol
 
 		r1 := <-this.DerivedExchange.(IFetchTickersWs).FetchTickersWsAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -10825,9 +10812,8 @@ func (this *Exchange) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 		if r.Err != nil {
 			panic(r.Err)
 		}
-
-		var market map[string]any = this.DerivedExchange.Market(symbol)
-		var symbolResolved *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.DerivedExchange.Market(symbol))
+		var symbolResolved *string = market.Symbol
 
 		r1 := <-this.DerivedExchange.(IFetchTickers).FetchTickersAsync([]any{symbolResolved}, params)
 		if r1.Err != nil {
@@ -11467,12 +11453,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048115Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048115 []any = retRes1048115Recv
-	if retRes1048115 == nil {
+	retRes1047415Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1047415 []any = retRes1047415Recv
+	if retRes1047415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1047415)}
 	}
 	return nil
 }

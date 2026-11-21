@@ -3019,7 +3019,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 			panic(r.Err)
 		}
 	}
-	var currency map[string]any = this.Currency(code)
+	var currency Currency = CurrencyFromMap(this.Currency(code))
 	var accounts any = this.SafeList(this.Options, "coinbaseAccounts")
 	if accounts == nil {
 
@@ -3031,8 +3031,8 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 		this.Options["coinbaseAccounts"] = accounts // cache it
 		this.Options["coinbaseAccountsByCurrencyId"] = this.IndexBy(accounts, "currency")
 	}
-	var currencyId *string = SafeStringPtr(currency["id"])
-	var accountsByCurrencyId map[string]any = SafeMapTyped(this.Options, "coinbaseAccountsByCurrencyId")
+	var currencyId *string = currency.Id
+	var accountsByCurrencyId, _ = this.Options["coinbaseAccountsByCurrencyId"].(map[string]any)
 	var account map[string]any = SafeMapTyped(accountsByCurrencyId, currencyId)
 	if account == nil {
 		panic(InvalidAddress(this.Id + " createDepositAddress() could not find currency code " + code + " with id = " + *currencyId + " in this.options['coinbaseAccountsByCurrencyId']"))

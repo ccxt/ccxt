@@ -969,7 +969,11 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan AsyncResult[[]Order]
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
@@ -1029,7 +1033,11 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan AsyncResult[[]Orde
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limitResolved))}
 	return nil
@@ -1087,7 +1095,11 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan AsyncResult[[]Trade], 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var data []any = this.SafeListSlice(response, "Data", []any{})
+	var data []any
+	data, _ = response["Data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limitResolved))}
 	return nil
@@ -1180,7 +1192,11 @@ func (this *Independentreserve) fetchTradesBody(ch chan AsyncResult[[]Trade], sy
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var trades []any = this.SafeListSlice(response, "Trades", []any{})
+	var trades []any
+	trades, _ = response["Trades"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
 	return nil

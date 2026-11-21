@@ -440,7 +440,13 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -588,7 +594,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var rawHashes []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
+		var data []any = symbolsAndTimeframes[i]
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
@@ -869,7 +875,7 @@ func (this *Grvt) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var accountId *string = this.SafeString(this.Options, "AuthAccountId")
@@ -1305,7 +1311,7 @@ func (this *Grvt) HandleErrorMessage(client any, response map[string]any) bool {
 	//        "method": "subscribe"
 	//    }
 	//
-	var error map[string]any = ccxt.SafeMapTyped(response, "error")
+	var error, _ = response["error"].(map[string]any)
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var body string = this.Json(response)

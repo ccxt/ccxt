@@ -1995,7 +1995,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan AsyncResult[bool], optionalArgs 
 					panic(r.Err)
 				}
 				var response map[string]any = r.Value
-				var result map[string]any = SafeMapTyped(response, "key")
+				var result, _ = response["key"].(map[string]any)
 				this.Options["unifiedAccount"] = (this.SafeInteger(result, "mode") != nil && *this.SafeInteger(result, "mode") == 2)
 				return nil
 			}(this)
@@ -2189,7 +2189,7 @@ func (this *Gate) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		}
 	}
 	var rawPromises []any = []any{}
-	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var fetchMarketsOptions, _ = this.Options["fetchMarkets"].(map[string]any)
 	var types []any = this.SafeListSlice(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
 	for i := 0; i < len(types); i++ {
 		var marketType *string = this.SafeString(types, i)
@@ -2232,14 +2232,8 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		panic(r.Err)
 	}
 	var marginResponsespotMarketsResponseVariable [][]any = r.Value
-	var marginResponse any = nil
-	if marginResponsespotMarketsResponseVariable[0] != nil {
-		marginResponse = marginResponsespotMarketsResponseVariable[0]
-	}
-	var spotMarketsResponse any = nil
-	if marginResponsespotMarketsResponseVariable[1] != nil {
-		spotMarketsResponse = marginResponsespotMarketsResponseVariable[1]
-	}
+	var marginResponse []any = marginResponsespotMarketsResponseVariable[0]
+	var spotMarketsResponse []any = marginResponsespotMarketsResponseVariable[1]
 	var marginMarkets map[string]any = this.IndexBy(marginResponse, "id")
 	//
 	//  Spot
@@ -2280,7 +2274,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//     ]
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(spotMarketsResponse); i++ {
+	for i := 0; i < len(spotMarketsResponse); i++ {
 		var spotMarket map[string]any = this.SafeDictMap(spotMarketsResponse, i, map[string]any{})
 		var id *string = this.SafeString(spotMarket, "id")
 		var marginMarket any = this.SafeDict(marginMarkets, id)
@@ -2988,7 +2982,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) (*string, map[string]an
 	return marginMode, paramsUnifiedAccount
 }
 func (this *Gate) GetSettlementCurrencies(typeVar string, method string) any {
-	var options map[string]any = SafeMapTyped(this.Options, typeVar) // [ 'BTC', 'USDT' ] unified codes
+	var options, _ = this.Options[typeVar].(map[string]any) // [ 'BTC', 'USDT' ] unified codes
 	var fetchMarketsContractOptions map[string]any = SafeMapTyped(options, method)
 	var defaultSettle []any
 	if typeVar == "swap" {
@@ -3018,7 +3012,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	// sandbox/testnet only supports future markets
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var apiBackup map[string]any = SafeMapTyped(this.Urls, "apiBackup")
+	var apiBackup, _ = this.Urls["apiBackup"].(map[string]any)
 	if apiBackup != nil {
 
 		ch <- AsyncResult[map[string]any]{Value: map[string]any{}}
@@ -5547,12 +5541,11 @@ func (this *Gate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 	if contract {
 		var contractQuery map[string]any = nil
 		request, contractQuery = this.PrepareRequest(market, typeVar, paramsMarketType)
-		query = func() any {
-			if typeVar != nil && *typeVar == "option" {
-				return this.Omit(contractQuery, "order_id")
-			}
-			return contractQuery
-		}()
+		if typeVar != nil && *typeVar == "option" {
+			query = this.Omit(contractQuery, "order_id")
+		} else {
+			query = contractQuery
+		}
 	} else {
 		if market != nil {
 			request["currency_pair"] = market["id"] // Should always be set for non-trigger
@@ -6615,12 +6608,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, 
 			if isMarketOrder {
 				request["price"] = "0" // set to 0 for market orders
 			} else {
-				request["price"] = func() any {
-					if IsEqual(priceResolved, 0) {
-						return "0"
-					}
-					return this.PriceToPrecision(symbol, priceResolved)
-				}()
+				if IsEqual(priceResolved, 0) {
+					request["price"] = "0"
+				} else {
+					request["price"] = this.PriceToPrecision(symbol, priceResolved)
+				}
 			}
 			if reduceOnly != nil {
 				request["reduce_only"] = reduceOnly
@@ -6711,12 +6703,11 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, 
 			if typeVar != nil && *typeVar == "market" {
 				initial["price"] = "0"
 			} else {
-				initial["price"] = func() any {
-					if IsEqual(priceResolved, 0) {
-						return "0"
-					}
-					return this.PriceToPrecision(symbol, priceResolved)
-				}()
+				if IsEqual(priceResolved, 0) {
+					initial["price"] = "0"
+				} else {
+					initial["price"] = this.PriceToPrecision(symbol, priceResolved)
+				}
 			}
 			if reduceOnly != nil {
 				initial["reduce_only"] = reduceOnly
@@ -6766,7 +6757,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar *string, side *string, 
 			}
 		} else {
 			// spot conditional order
-			var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+			var options, _ = this.Options["createOrder"].(map[string]any)
 			var marginMode any = nil
 			var marginModePtr *string = nil
 			marginModePtr, query = this.GetMarginMode(true, query)
@@ -8613,7 +8604,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		"currency": currency["id"],
 		"amount":   truncated,
 	}
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	if _, ok := accountsByType[fromId]; !ok {
 		request["from"] = "margin"
 		request["currency_pair"] = fromId
@@ -9989,14 +9980,14 @@ func (this *Gate) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 			return bodyJson
 		}()
-		var bodySignature any = this.Hash(this.Encode(bodyPayload), sha512)
+		var bodySignature string = this.HashString(this.Encode(bodyPayload), sha512, "hex")
 		var nonce int64 = this.Nonce()
 		var timestamp int64 = this.ParseToInt(float64(nonce) / 1000)
 		var timestampString string = strconv.FormatInt(timestamp, 10)
 		var signaturePath string = "/api/" + this.Version + entirePath
-		var payloadArray []any = []any{strings.ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
+		var payloadArray []string = []string{strings.ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
-		var payload string = Join(payloadArray, "\n")
+		var payload string = strings.Join(payloadArray, "\n")
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
 		signedHeaders = map[string]any{
 			"KEY":          this.ApiKey,

@@ -337,12 +337,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 				if thresholdsLength > 0 {
 					var bucketLabel any = ""
 					if index <= 0 {
-						bucketLabel = ccxt.Add("BELOW_", func() any {
-							if 0 >= 0 && 0 < len(thresholds) {
-								return thresholds[0]
-							}
-							return nil
-						}())
+						bucketLabel = ccxt.Add("BELOW_", thresholds[0])
 					} else if index >= int64(thresholdsLength) {
 						var lastIdx int64 = int64(thresholdsLength) - 1
 						bucketLabel = ccxt.Add("ABOVE_", ccxt.GetValue(thresholds, lastIdx))
@@ -676,8 +671,8 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
  * @param {int} szDecimals the number of size decimals
  * @returns {float} the price tick size
  */
-func (this *Hyperliquid) CalculatePricePrecision(midPx any, szDecimals any) any {
-	if ccxt.IsLessThanOrEqual(midPx, 0) {
+func (this *Hyperliquid) CalculatePricePrecision(midPx int64, szDecimals int64) any {
+	if midPx <= 0 {
 		return 0.0001
 	}
 	var midStr *string = this.NumberToString(midPx)
@@ -1555,12 +1550,11 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 	var px any = nil
 	if isMarket {
 		var priceStr *string = this.NumberToString(price)
-		px = func() any {
-			if isBuy {
-				return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringAdd("1", slippage))
-			}
-			return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringSub("1", slippage))
-		}()
+		if isBuy {
+			px = ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringAdd("1", slippage))
+		} else {
+			px = ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringSub("1", slippage))
+		}
 		px = ccxt.DerefScalar(this.PriceToPrecision(marketSymbol, px))
 	} else {
 		if derefPtr := this.PriceToPrecision(marketSymbol, price); derefPtr != nil {
@@ -1609,7 +1603,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 			"f": feeInt,
 		}
 	}
-	var signature any = this.SignL1Action(orderAction, nonce, vaultAddress)
+	var signature map[string]any = this.SignL1Action(orderAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    orderAction,
 		"nonce":     nonce,
@@ -1782,7 +1776,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	cancelAction["cancels"] = cancelReq
 	vaultAddressOption, _ := this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var signature any = this.SignL1Action(cancelAction, nonce, vaultAddress)
+	var signature map[string]any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    cancelAction,
 		"nonce":     nonce,
@@ -1797,9 +1791,10 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var innerResponse map[string]any = ccxt.SafeMapTyped(response, "response")
-	var data map[string]any = ccxt.SafeMapTyped(innerResponse, "data")
-	var statuses []any = ccxt.SafeListTyped(data, "statuses")
+	var innerResponse, _ = response["response"].(map[string]any)
+	var data, _ = innerResponse["data"].(map[string]any)
+	var statuses []any
+	statuses, _ = data["statuses"].([]any)
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome", outcome)
 	var requestIds any = ids
 	if clientOrderId != nil {
@@ -2034,12 +2029,11 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 		request["oid"] = clientOrderId
 	} else {
 		var isCloid bool = (len(id) >= 34)
-		request["oid"] = func() any {
-			if isCloid {
-				return id
-			}
-			return this.ParseToNumeric(id)
-		}()
+		if isCloid {
+			request["oid"] = id
+		} else {
+			request["oid"] = this.ParseToNumeric(id)
+		}
 	}
 
 	r := <-this.PublicPostInfo(this.Extend(request, paramsValue))
@@ -2683,8 +2677,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, int64(-64), nil), ccxt.Slice(privateKey, int64(-64), nil), ccxt.Secp256k1, nil)
+func (this *Hyperliquid) SignHash(hash string, privateKey string) map[string]any {
+	var signature map[string]any = ccxt.Ecdsa(hash[max(len(hash)-64, 0):], privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw string = *this.SafeString(signature, "r", "")
@@ -2697,7 +2691,7 @@ func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 		"v": this.Sum(27, signature["v"]),
 	}
 }
-func (this *Hyperliquid) SignMessage(message any, privateKey string) any {
+func (this *Hyperliquid) SignMessage(message any, privateKey string) map[string]any {
 	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
@@ -2712,7 +2706,7 @@ func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) ma
 		"connectionId": hash,
 	}
 }
-func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any) any {
+func (this *Hyperliquid) ActionHash(action map[string]any, vaultAddress *string, nonce int64) any {
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data string = dataHex
@@ -2725,7 +2719,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress *string, nonce any)
 	}
 	return this.Hash(this.Base16ToBinary(data), ccxt.Keccak, "binary")
 }
-func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any) any {
+func (this *Hyperliquid) SignL1Action(action map[string]any, nonce int64, optionalArgs ...any) map[string]any {
 	var vaultAddress *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = vaultAddress
 	this.CheckRequiredCredentials()
@@ -2751,7 +2745,7 @@ func (this *Hyperliquid) SignL1Action(action any, nonce any, optionalArgs ...any
 	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, phantomAgent)
 	return this.SignMessage(msg, this.PrivateKey)
 }
-func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any {
+func (this *Hyperliquid) SignUserSignedAction(messageTypes map[string]any, message map[string]any) map[string]any {
 	var zeroAddress *string = this.SafeString(this.Options, "zeroAddress")
 	var chainId int = 421614
 	var domain map[string]any = map[string]any{
@@ -2761,10 +2755,10 @@ func (this *Hyperliquid) SignUserSignedAction(messageTypes any, message any) any
 		"version":           "1",
 	}
 	var msg []uint8 = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature map[string]any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
-func (this *Hyperliquid) BuildApproveBuilderFeeSig(message any) any {
+func (this *Hyperliquid) BuildApproveBuilderFeeSig(message map[string]any) map[string]any {
 	var messageTypes map[string]any = map[string]any{
 		"HyperliquidTransaction:ApproveBuilderFee": []any{map[string]any{
 			"name": "hyperliquidChain",
@@ -2792,12 +2786,12 @@ func (this *Hyperliquid) BuildApproveBuilderFeeSig(message any) any {
  * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
  * @returns {object} the raw exchange response
  */
-func (this *Hyperliquid) ApproveBuilderFeeAsync(builder any, maxFeeRate any) <-chan ccxt.AsyncResult[map[string]any] {
+func (this *Hyperliquid) ApproveBuilderFeeAsync(builder string, maxFeeRate string) <-chan ccxt.AsyncResult[map[string]any] {
 	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
 	go this.approveBuilderFeeBody(ch, builder, maxFeeRate)
 	return ch
 }
-func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[string]any], builder any, maxFeeRate any) any {
+func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[string]any], builder string, maxFeeRate string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
@@ -2812,7 +2806,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 		"builder":          builder,
 		"nonce":            nonce,
 	}
-	var sig any = this.BuildApproveBuilderFeeSig(payload)
+	var sig map[string]any = this.BuildApproveBuilderFeeSig(payload)
 	var action map[string]any = map[string]any{
 		"hyperliquidChain": payload["hyperliquidChain"],
 		"signatureChainId": "0x66eee",
@@ -2928,7 +2922,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseUrl *string = nil
 	if sandboxMode != nil && *sandboxMode {
-		var testUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "test")
+		var testUrls, _ = this.Urls["test"].(map[string]any)
 		baseUrl = this.SafeString(testUrls, apiGroup, this.SafeString(testUrls, "public", ""))
 	} else {
 		var apiUrls map[string]any = this.UrlsApi

@@ -531,7 +531,11 @@ func (this *Mudrex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
@@ -1651,7 +1655,11 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var positions []any = this.ParsePositions(data, symbolsNormalized)
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
@@ -2008,7 +2016,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			if rebateKeys[j] == GetValue(transactionKeys, i) {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
-				AddElementToObject(rebateKeys, j, "")
+				rebateKeys[j] = ""
 				break
 			}
 		}

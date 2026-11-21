@@ -763,7 +763,7 @@ func (this *Cex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 	return nil
 }
 func (this *Cex) HandleTransaction(client any, message map[string]any) {
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var symbol2 *string = this.SafeString(data, "symbol2")
 	if symbol2 == nil {
 		return
@@ -1323,7 +1323,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var incrementalId *int64 = this.SafeInteger(data, "id")
 	var pair *string = this.SafeString(data, "pair", "")
 	var symbol string = this.PairToSymbol(pair)
@@ -1501,7 +1501,7 @@ func (this *Cex) HandleOHLCV1m(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var pair *string = this.SafeString(data, "pair")
 	var symbol string = this.PairToSymbol(pair)
 	if symbol == "" {
@@ -1981,7 +1981,7 @@ func (this *Cex) HandleErrorMessage(client any, message map[string]any) bool {
 				}
 			}()
 			// try block:
-			var data map[string]any = ccxt.SafeMapTyped(message, "data")
+			var data, _ = message["data"].(map[string]any)
 			var error *string = this.SafeString(data, "error")
 			var event string = *this.SafeString(message, "e", "")
 			var feedback *string = nil

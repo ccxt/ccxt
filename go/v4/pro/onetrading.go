@@ -261,12 +261,12 @@ func (this *Onetrading) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var symbolsList any = func() any {
-		if symbolsNormalized == nil {
-			return []any{}
-		}
-		return symbolsNormalized
-	}()
+	var symbolsList []string
+	if symbolsNormalized == nil {
+		symbolsList = []string{}
+	} else {
+		symbolsList = symbolsNormalized
+	}
 	var subscriptionHash string = "MARKET_TICKER"
 	var messageHash string = "tickers"
 	var request map[string]any = map[string]any{
@@ -1301,7 +1301,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId *string = this.SafeString(market, "id", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws")
-	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
+	var timeframes, _ = this.Options["timeframes"].(map[string]any)
 	var timeframeId map[string]any = ccxt.SafeMapTyped(timeframes, timeframe)
 	if timeframeId == nil {
 		panic(ccxt.NotSupported(this.Id + " this interval is not supported, please provide one of the supported timeframes"))

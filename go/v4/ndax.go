@@ -3518,7 +3518,10 @@ func (this *Ndax) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//     }
 	//
 	var templateTypes []any = SafeListTyped(withdrawTemplateTypesResponse, "TemplateTypes")
-	var firstTemplateType map[string]any = SafeMapTyped(templateTypes, 0)
+	var firstTemplateType map[string]any
+	if 0 < len(templateTypes) {
+		firstTemplateType, _ = templateTypes[0].(map[string]any)
+	}
 	if firstTemplateType == nil {
 		panic(ExchangeError(this.Id + " withdraw() could not find a withdraw template type for " + currency["code"].(string)))
 	}

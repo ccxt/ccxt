@@ -1462,8 +1462,16 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 	//        ]
 	//    }
 	//
-	var cancelOrders []any = this.SafeListSlice(response, "cancelOrders", []any{})
-	var unprocessedRequests []any = this.SafeListSlice(response, "unprocessedRequests", []any{})
+	var cancelOrders []any
+	cancelOrders, _ = response["cancelOrders"].([]any)
+	if cancelOrders == nil {
+		cancelOrders = []any{}
+	}
+	var unprocessedRequests []any
+	unprocessedRequests, _ = response["unprocessedRequests"].([]any)
+	if unprocessedRequests == nil {
+		unprocessedRequests = []any{}
+	}
 	var orders []any = this.ArrayConcat(cancelOrders, unprocessedRequests)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders))}

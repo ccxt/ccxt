@@ -757,8 +757,12 @@ func (this *Btse) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data map[string]any = SafeMapTyped(response, "data")
-	var markets []any = this.SafeListSlice(data, "symbols", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var markets []any
+	markets, _ = data["symbols"].([]any)
+	if markets == nil {
+		markets = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1055,7 +1059,11 @@ func (this *Btse) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//         "time": 1786604274378
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -1133,7 +1141,11 @@ func (this *Btse) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	//         "time": 1786605670833
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, "bids", "asks"))}
@@ -1230,7 +1242,11 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//         "time": 1786607775380
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if until == nil {
 
 		ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(data, market, since, limit))}
@@ -1475,7 +1491,11 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 	//
 	// a single-symbol request returns the entry directly in data
 	//
-	var single map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var single map[string]any
+	single, _ = response["data"].(map[string]any)
+	if single == nil {
+		single = map[string]any{}
+	}
 	var data []any = this.SafeListSlice(response, "data", []any{single})
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
@@ -1595,7 +1615,11 @@ func (this *Btse) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -2054,7 +2078,11 @@ func (this *Btse) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 	//         "time": 1786605671650
 	//     }
 	//
-	var data []any = this.SafeListSlice(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if until == nil {
 
 		ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(data, market, since, limit))}
@@ -3650,8 +3678,8 @@ func (this *Btse) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFee
 	for i := 0; i < len(responseList); i++ {
 		var feeInfo map[string]any = this.SafeDictMap(responseList, i, map[string]any{})
 		var marketId *string = this.SafeString(feeInfo, "symbol")
-		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
+		var symbol *string = market.Symbol
 		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
 		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 		if symbol != nil {

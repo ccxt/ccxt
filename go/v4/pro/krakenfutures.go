@@ -456,7 +456,13 @@ func (this *Krakenfutures) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]
 		panic(r.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -597,7 +603,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var rawPositions []any = ccxt.SafeListTyped(message, "positions")
+	var rawPositions, _ = message["positions"].([]any)
 	if rawPositions == nil {
 		// an open_positions frame without the positions key is malformed
 		// do not resolve with a fabricated empty list (the caller cannot
@@ -894,8 +900,8 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "feed")
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var market map[string]any = this.Market(marketId)
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
+		var symbol *string = market.Symbol
 		var messageHash string = this.GetMessageHash("trade", nil, symbol)
 		// safeValue, not safeList: the values are ccxt.ArrayCache instances, and
 		// the typed accessor casts them to a plain list in c#, which throws
@@ -1582,8 +1588,8 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
-	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
+	var symbol *string = marketResolved.Symbol
 	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "lastTime"))
 	var last *string = this.SafeString(ticker, "last")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
@@ -1653,11 +1659,11 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var bids []any = ccxt.SafeListTyped(message, "bids")
+	var bids, _ = message["bids"].([]any)
 	if bids == nil {
 		return
 	}
-	var asks []any = ccxt.SafeListTyped(message, "asks")
+	var asks, _ = message["asks"].([]any)
 	if asks == nil {
 		return
 	}
@@ -1848,9 +1854,9 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 	// is a no-op while nobody is awaiting, so a replaced object would make
 	// updates landing in that window invisible to the consumer forever
 	// (same class of bug as kraken issue #26773)
-	var holding map[string]any = ccxt.SafeMapTyped(message, "holding")
-	var futures map[string]any = ccxt.SafeMapTyped(message, "futures")
-	var flexFutures map[string]any = ccxt.SafeMapTyped(message, "flex_futures")
+	var holding, _ = message["holding"].(map[string]any)
+	var futures, _ = message["futures"].(map[string]any)
+	var flexFutures, _ = message["flex_futures"].(map[string]any)
 	var messageHash string = "balances"
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	if this.Balance == nil {
@@ -1954,7 +1960,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		}
 	}
 	if flexFutures != nil {
-		var flexFutureCurrencies map[string]any = ccxt.SafeMapTyped(flexFutures, "currencies")
+		var flexFutureCurrencies, _ = flexFutures["currencies"].(map[string]any)
 		var flexFuturesKeys []string = nil
 		if flexFutureCurrencies != nil {
 			flexFuturesKeys = make([]string, 0, len(flexFutureCurrencies))

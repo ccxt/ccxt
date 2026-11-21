@@ -428,7 +428,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         "status": true
 	//     }
 	//
-	var pairs map[string]any = SafeMapTyped(response, "pairs")
+	var pairs, _ = response["pairs"].(map[string]any)
 	var keys []string = nil
 	if pairs != nil {
 		keys = make([]string, 0, len(pairs))
@@ -439,7 +439,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var market map[string]any = SafeMapTyped(pairs, key)
+		var market, _ = pairs[key].(map[string]any)
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
 		var upperBaseId string = strings.ToUpper(*baseId)
@@ -591,7 +591,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins map[string]any = SafeMapTyped(response, "coins")
+	var coins, _ = response["coins"].(map[string]any)
 	var values []any = nil
 	if coins != nil {
 		values = make([]any, 0, len(coins))
@@ -1156,8 +1156,12 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	//         ...
 	//     }
 	//
-	var firstTier map[string]any = SafeMapTyped(response, "1")
-	var fees map[string]any = this.SafeDictMap(firstTier, "fees", map[string]any{})
+	var firstTier, _ = response["1"].(map[string]any)
+	var fees map[string]any
+	fees, _ = firstTier["fees"].(map[string]any)
+	if fees == nil {
+		fees = map[string]any{}
+	}
 	var makerFees map[string]any = SafeMapTyped(fees, "maker")
 	var takerFees map[string]any = SafeMapTyped(fees, "taker")
 	var result map[string]any = map[string]any{}
@@ -1583,7 +1587,7 @@ func (this *Hollaex) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	//                     "exchange_id": 176
 	//                 }
 	//             }
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(OrderNotFound(this.Id + " fetchOrder() could not find order id " + id))
 	}
 
@@ -2149,7 +2153,11 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	//         ]
 	//     }
 	//
-	var wallet []any = this.SafeListSlice(response, "wallet", []any{})
+	var wallet []any
+	wallet, _ = response["wallet"].([]any)
+	if wallet == nil {
+		wallet = []any{}
+	}
 	if network == nil {
 
 		ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ParseDepositAddresses(wallet, codes, false))}
@@ -2309,7 +2317,13 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id an
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var transaction map[string]any = this.SafeDictMap(data, 0, map[string]any{})
+	var transaction map[string]any
+	if 0 < len(data) {
+		transaction, _ = data[0].(map[string]any)
+	}
+	if transaction == nil {
+		transaction = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(transaction, currency)}
 	return nil
@@ -2708,7 +2722,11 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[string
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins map[string]any = this.SafeDictMap(response, "coins", map[string]any{})
+	var coins map[string]any
+	coins, _ = response["coins"].(map[string]any)
+	if coins == nil {
+		coins = map[string]any{}
+	}
 
 	ch <- AsyncResult[map[string]DepositWithdrawFee]{Value: DepositWithdrawFeeMapFromMap(this.ParseDepositWithdrawFees(coins, codes, "symbol"))}
 	return nil

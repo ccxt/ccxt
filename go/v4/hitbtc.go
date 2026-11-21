@@ -1178,7 +1178,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 		network = nil
 	}
 	if (network != nil) && (code == "USDT") {
-		var networks map[string]any = SafeMapTyped(this.Options, "networks")
+		var networks, _ = this.Options["networks"].(map[string]any)
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["currency"] = parsedNetwork
@@ -1247,7 +1247,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 		network = nil
 	}
 	if (network != nil) && (code == "USDT") {
-		var networks map[string]any = SafeMapTyped(this.Options, "networks")
+		var networks, _ = this.Options["networks"].(map[string]any)
 		var parsedNetwork *string = this.SafeString(networks, network)
 		if parsedNetwork != nil {
 			request["currency"] = parsedNetwork
@@ -1321,7 +1321,7 @@ func (this *Hitbtc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	_ = params
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type"})
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var account *string
 	if typeVar == nil {
 		account = nil
@@ -3438,12 +3438,11 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType *string
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"})
 	if marketType != nil && *marketType == "swap" {
 		// set default margin mode to cross
-		request["margin_mode"] = func() any {
-			if marginMode == nil {
-				return "cross"
-			}
-			return marginMode
-		}()
+		if marginMode == nil {
+			request["margin_mode"] = "cross"
+		} else {
+			request["margin_mode"] = marginMode
+		}
 	}
 	return request, paramsOmitted
 }
@@ -3686,7 +3685,7 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[TransferEntry], code string
 	}
 	var currency map[string]any = this.Currency(code)
 	var requestAmount *string = this.CurrencyToPrecision(code, amount)
-	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var fromAccountValue string = strings.ToLower(fromAccount)
 	var toAccountValue string = strings.ToLower(toAccount)
 	var fromId *string = this.SafeString(accountsByType, fromAccountValue, fromAccountValue)
@@ -3757,7 +3756,7 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan AsyncResult[map[string]an
 	if code != "USDT" {
 		panic(ExchangeError(this.Id + " convertCurrencyNetwork() only supports USDT currently"))
 	}
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var fromNetworkUpper string = strings.ToUpper(fromNetwork)
 	var toNetworkUpper string = strings.ToUpper(toNetwork)
 	var fromNetworkValue *string = this.SafeString(this.NetworkAliases, fromNetworkUpper, fromNetworkUpper)
@@ -3836,7 +3835,7 @@ func (this *Hitbtc) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	if tagWithdrawTag != nil {
 		request["payment_id"] = *tagWithdrawTag
 	}
-	var networks map[string]any = SafeMapTyped(this.Options, "networks")
+	var networks, _ = this.Options["networks"].(map[string]any)
 	var networkInput *string = this.SafeStringUpper(paramsWithdrawTag, "network")
 	var network *string
 	if networkInput != nil {
@@ -3854,7 +3853,7 @@ func (this *Hitbtc) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	if (network != nil) && (code == "USDT") {
 		paramsOmitted = this.OmitDict(paramsWithdrawTag, "network")
 	}
-	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
+	var withdrawOptions, _ = this.Options["withdraw"].(map[string]any)
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
 	if includeFee != nil && *includeFee {
 		request["include_fee"] = true

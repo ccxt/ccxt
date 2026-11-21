@@ -351,7 +351,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			response := r.Raw
+			var response map[string]any = r.Value
 			var found []any = ccxt.SafeListTyped(response, "markets")
 			for j := 0; j < len(found); j++ {
 				var raw any = found[j]
@@ -1563,7 +1563,7 @@ func (this *Limitless) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	//         "totalRows": 13
 	//     }
 	//
-	var rows []any = ccxt.SafeListTyped(response, "events")
+	var rows, _ = response["events"].([]any)
 	var filtered []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var row any = rows[i]
@@ -1803,12 +1803,15 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 		var pointTs any = rawTs
 		if rawTs == nil {
 			var tsString *string = this.SafeString(point, "timestamp")
-			pointTs = func() any {
-				if (tsString != nil) && (tsString == nil || *tsString != "") {
-					return this.Parse8601(tsString)
+			if (tsString != nil) && (tsString == nil || *tsString != "") {
+				if derefPtr := this.Parse8601(tsString); derefPtr != nil {
+					pointTs = *derefPtr
+				} else {
+					pointTs = nil
 				}
-				return nil
-			}()
+			} else {
+				pointTs = nil
+			}
 		} else if rawTs == nil || *rawTs < 1000000000000 {
 			// old responses may return unix seconds
 			pointTs = *rawTs * 1000
@@ -2195,7 +2198,7 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 	//         ]
 	//     }
 	//
-	var results []any = ccxt.SafeListTyped(response, "results")
+	var results, _ = response["results"].([]any)
 	var found []any = []any{}
 	for i := 0; i < len(results); i++ {
 		var item map[string]any = this.SafeDictMap(results, i, map[string]any{})
@@ -3355,12 +3358,12 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	//         "nextCursor": null
 	//     }
 	//
-	var data []any = ccxt.SafeListTyped(response, "data")
+	var data, _ = response["data"].([]any)
 	// response contains both trade, settlement, split and merge history
 	// we filter out the settlements here and only return the trades
 	var trades []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var item map[string]any = ccxt.SafeMapTyped(data, i)
+		var item, _ = data[i].(map[string]any)
 		var strategy *string = this.SafeStringLower(item, "strategy")
 		if strategy != nil {
 			var buyIndex int = strings.Index(*strategy, "buy")
@@ -3655,11 +3658,11 @@ func (this *Limitless) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	//         ]
 	//     }
 	//
-	var clob []any = ccxt.SafeListTyped(response, "clob")
+	var clob, _ = response["clob"].([]any)
 	var result []any = []any{}
 	var labels []string = []string{"yes", "no"}
 	for i := 0; i < len(clob); i++ {
-		var entry map[string]any = ccxt.SafeMapTyped(clob, i)
+		var entry, _ = clob[i].(map[string]any)
 		for j := 0; j < len(labels); j++ {
 			var label *string = this.SafeString(labels, j)
 			var position any = this.GetPositionFromClobEntry(label, entry)
@@ -3814,7 +3817,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			if r.Err != nil {
 				panic(r.Err)
 			}
-			response := r.Raw
+			var response map[string]any = r.Value
 			var found []any = ccxt.SafeListTyped(response, "markets")
 			for j := 0; j < len(found); j++ {
 				var raw any = found[j]
@@ -4029,7 +4032,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 	for i := 0; i < ccxt.GetArrayLength(tags); i++ {
 		wanted = append(wanted, ccxt.ToLower(ccxt.GetValue(tags, i)))
 	}
-	var categoryIds []any = []any{}
+	var categoryIds []string = []string{}
 	var categoriesLength int = len(categories)
 	for i := 0; i < categoriesLength; i++ {
 		var category map[string]any = ccxt.SafeMapTyped(categories, i)

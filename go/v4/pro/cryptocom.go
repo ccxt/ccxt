@@ -390,8 +390,8 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "instrument_name")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var data any = this.SafeDict(this.SafeList(message, "data"), 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
@@ -538,7 +538,13 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt
 		panic(r1.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {

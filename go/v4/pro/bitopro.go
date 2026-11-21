@@ -157,8 +157,8 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var market map[string]any = this.SafeMarket(marketId, nil, "_")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "_"))
+	var symbol *string = market.Symbol
 	var event *string = this.SafeString(message, "event")
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	if orderbook == nil {
@@ -303,8 +303,8 @@ func (this *Bitopro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	}
 	var messageHash string = "USER_TRADE"
 	if symbol != nil {
-		var market map[string]any = this.Market(symbol)
-		var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var symbolValue *string = market.Symbol
 		messageHash = messageHash + ":" + *symbolValue
 	}
 	var wsUrl *string = this.SafeString(this.Urls["ws"], "private")
@@ -555,7 +555,7 @@ func (this *Bitopro) Authenticate(url string) {
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
 	var wsInnerOptions map[string]any = this.SafeDictMap(wsOptions, "options", map[string]any{})
 	var originalHeaders any = ccxt.GetValue(wsInnerOptions, "headers")
 	var headers map[string]any = map[string]any{

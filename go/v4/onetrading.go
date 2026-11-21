@@ -781,7 +781,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
 	var method *string = this.SafeString(params, "method")
 	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	if method == nil {
-		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
+		var options, _ = this.Options["fetchTradingFees"].(map[string]any)
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
@@ -1345,7 +1345,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	}
 	var periods int64 = this.ParseToInt(float64(*timestamp) / float64(duration))
 	var alignedTimestamp int64 = duration * periods
-	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
+	var options, _ = this.Options["fetchOHLCV"].(map[string]any)
 	var volumeField string = *this.SafeString(options, "volume", "total_amount")
 	return OHLCVFromList([]any{alignedTimestamp, this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, volumeField)})
 }
@@ -2346,7 +2346,11 @@ func (this *Onetrading) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id st
 	//         "cursor": "string"
 	//     }
 	//
-	var tradeHistory []any = this.SafeListSlice(response, "trade_history", []any{})
+	var tradeHistory []any
+	tradeHistory, _ = response["trade_history"].([]any)
+	if tradeHistory == nil {
+		tradeHistory = []any{}
+	}
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

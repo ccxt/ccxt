@@ -1065,7 +1065,7 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash s
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot {
 		var messageHash string = typeVar + ":" + "fetchBalanceSnapshot"

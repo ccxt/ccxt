@@ -1069,8 +1069,12 @@ func (this *Woo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], option
 	//         "timestamp": 1751512951338
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil
@@ -1232,8 +1236,12 @@ func (this *Woo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, op
 	//         "timestamp": 1751513988543
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rows, market, since, limit))}
 	return nil
@@ -1394,7 +1402,11 @@ func (this *Woo) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], s
 	//         "timestamp": 1751858977368
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}
 	return nil
@@ -1587,14 +1599,8 @@ func (this *Woo) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 		panic(r.Err)
 	}
 	var tokenResponsetokenNetworkResponseVariable []map[string]any = r.Value
-	var tokenResponse any = nil
-	if tokenResponsetokenNetworkResponseVariable[0] != nil {
-		tokenResponse = tokenResponsetokenNetworkResponseVariable[0]
-	}
-	var tokenNetworkResponse any = nil
-	if tokenResponsetokenNetworkResponseVariable[1] != nil {
-		tokenNetworkResponse = tokenResponsetokenNetworkResponseVariable[1]
-	}
+	var tokenResponse map[string]any = tokenResponsetokenNetworkResponseVariable[0]
+	var tokenNetworkResponse map[string]any = tokenResponsetokenNetworkResponseVariable[1]
 	var tokenRows []any = SafeListTyped(tokenResponse, "rows")
 	var tokenNetworkRows []any = SafeListTyped(tokenNetworkResponse, "rows")
 	var networksById map[string]any = this.GroupBy(tokenNetworkRows, "token")
@@ -2399,12 +2405,11 @@ func (this *Woo) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any], t
 	}
 	var triggerAfter any = 0
 	if (true) && (timeout > 0) {
-		triggerAfter = func() any {
-			if timeout > 900000 {
-				return 900000
-			}
-			return timeout
-		}()
+		if timeout > 900000 {
+			triggerAfter = 900000
+		} else {
+			triggerAfter = timeout
+		}
 	}
 	var request map[string]any = map[string]any{
 		"triggerAfter": triggerAfter,
@@ -3075,7 +3080,8 @@ func (this *Woo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	//     }
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var first map[string]any = SafeMapTyped(rows, 0)
 	if first == nil {
 		panic(BadSymbol(this.Id + " fetchTicker() could not find ticker data for " + symbol))
@@ -3149,7 +3155,8 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	// same as fetchTicker, with multiple rows
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
+	var rows []any
+	rows, _ = data["rows"].([]any)
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result []any = []any{}
 	for i := 0; i < len(rows); i++ {
@@ -3251,8 +3258,12 @@ func (this *Woo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	//         "timestamp": 1751622205410
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
@@ -3329,7 +3340,11 @@ func (this *Woo) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	//       }
 	//     ]
 	// }
-	var trades []any = this.SafeListSlice(response, "rows", []any{})
+	var trades []any
+	trades, _ = response["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, params))}
 	return nil
@@ -3437,8 +3452,12 @@ func (this *Woo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 	//         "timestamp": 1752055545121
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var trades []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var trades []any
+	trades, _ = data["rows"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, paramsOmitted))}
 	return nil
@@ -3518,10 +3537,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	if mainAccountResponsesubAccountResponseVariable[0] != nil {
 		mainAccountResponse = mainAccountResponsesubAccountResponseVariable[0]
 	}
-	var subAccountResponse any = nil
-	if mainAccountResponsesubAccountResponseVariable[1] != nil {
-		subAccountResponse = mainAccountResponsesubAccountResponseVariable[1]
-	}
+	var subAccountResponse map[string]any = mainAccountResponsesubAccountResponseVariable[1]
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
 	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
@@ -3626,7 +3642,11 @@ func (this *Woo) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 	//         "timestamp": 1673323746259
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(data))}
 	return nil
@@ -3698,7 +3718,11 @@ func (this *Woo) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 	//         "timestamp": 1721300689532
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[DepositAddress]{Value: this.ParseDepositAddress(this.Extend(data, map[string]any{
 		"network": this.SafeString(request, "network"),
@@ -3828,8 +3852,12 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optionalArg
 	//         "timestamp": 1752485344719
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
@@ -4223,7 +4251,7 @@ func (this *Woo) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 	data["token"] = currency["id"]
 	data["status"] = "ok"
 	var transfer map[string]any = TransferEntryToMap(this.ParseTransfer(data, currency))
-	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
+	var transferOptions, _ = this.Options["transfer"].(map[string]any)
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest {
 		transfer["amount"] = amount
@@ -4316,8 +4344,12 @@ func (this *Woo) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], option
 	//         "timestamp": 1721295317627
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit, paramsOmitted))}
 	return nil
@@ -4688,8 +4720,6 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	var paymentType *string = this.SafeString(income, "paymentType")
 	if paymentType != nil && *paymentType == "Pay" {
 		amount = Precise.StringNeg(amount)
-	} else {
-		amount = amount
 	}
 	return map[string]any{
 		"info":      income,
@@ -4803,8 +4833,12 @@ func (this *Woo) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 	//         "timestamp": 1721351502594
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(rows, market, since, limit))}
 	return nil
@@ -4949,9 +4983,16 @@ func (this *Woo) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 	//         "timestamp": 1751624037798
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = SafeListTyped(data, "rows")
-	var first map[string]any = this.SafeDictMap(rows, 0, map[string]any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	var first map[string]any
+	if 0 < len(rows) {
+		first, _ = rows[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(first, market)}
 	return nil
@@ -5012,8 +5053,12 @@ func (this *Woo) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRat
 	//         "timestamp": 1751624037798
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "rows", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["rows"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
@@ -5110,7 +5155,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	//         "timestamp": 1751632390031
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var rows []map[string]any = this.SafeListMapsTyped(data, "rows")
 	var rates []any = []any{}
 	for i := 0; i < len(rows); i++ {
@@ -5506,9 +5551,16 @@ func (this *Woo) fetchPositionBody(ch chan AsyncResult[Position], symbol string,
 	//         "timestamp": 1752500579848
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = SafeListTyped(result, "positions")
-	var first map[string]any = this.SafeDictMap(positions, 0, map[string]any{})
+	var result, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = result["positions"].([]any)
+	var first map[string]any
+	if 0 < len(positions) {
+		first, _ = positions[0].(map[string]any)
+	}
+	if first == nil {
+		first = map[string]any{}
+	}
 
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(first, market)}
 	return nil
@@ -5588,8 +5640,12 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	//         "timestamp": 1752500579848
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = this.SafeListSlice(result, "positions", []any{})
+	var result, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = result["positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
@@ -5765,7 +5821,11 @@ func (this *Woo) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCode
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fromCurrencyId *string = this.SafeString(data, "sellToken", fromCode)
 	var fromCurrency map[string]any = this.Currency(fromCurrencyId)
 	var toCurrencyId *string = this.SafeString(data, "buyToken", toCode)
@@ -5825,7 +5885,11 @@ func (this *Woo) createConvertTradeBody(ch chan AsyncResult[Conversion], id stri
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Conversion]{Value: this.ParseConversion(data)}
 	return nil
@@ -5883,7 +5947,11 @@ func (this *Woo) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id strin
 	//         }
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fromCurrencyId *string = this.SafeString(data, "sellAsset")
 	var toCurrencyId *string = this.SafeString(data, "buyAsset")
 	var fromCurrency map[string]any = nil
@@ -5968,8 +6036,12 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan AsyncResult[[]Conversion],
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "data")
-	var rows []any = this.SafeListSlice(data, "tradeVos", []any{})
+	var data, _ = response["data"].(map[string]any)
+	var rows []any
+	rows, _ = data["tradeVos"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 
 	ch <- AsyncResult[[]Conversion]{Value: ConversionsFromList(this.ParseConversions(rows, code, "sellAsset", "buyAsset", since, limit))}
 	return nil
@@ -6193,8 +6265,12 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	//         "timestamp": 1768049428472
 	//     }
 	//
-	var result map[string]any = SafeMapTyped(response, "data")
-	var positions []any = this.SafeListSlice(result, "positions", []any{})
+	var result, _ = response["data"].(map[string]any)
+	var positions []any
+	positions, _ = result["positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(positions, symbolsNormalized))}
 	return nil

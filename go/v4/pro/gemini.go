@@ -144,7 +144,13 @@ func (this *Gemini) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		panic(r.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -1227,7 +1233,7 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var wsOptions, _ = this.Options["ws"].(map[string]any)
 	var wsSubOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
 	var originalHeaders map[string]any = this.SafeDictMap(wsSubOptions, "headers", map[string]any{})
 	var headers map[string]any = map[string]any{

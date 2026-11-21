@@ -307,15 +307,12 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan ccxt.AsyncResult[any], messag
 		urlType = "futures"
 	}
 	var tradeType string = strings.ToUpper(urlType)
-	var action any = "subscribe"
+	var action string = "subscribe"
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-		action = func() any {
-			if unsubscribe != nil && *unsubscribe {
-				return "unsubscribe"
-			}
-			return action
-		}()
+		if unsubscribe != nil && *unsubscribe {
+			action = "unsubscribe"
+		}
 	}
 	var request map[string]any = map[string]any{
 		"id":        requestId,
@@ -354,15 +351,12 @@ func (this *Kucoin) subscribePrivateUtaBody(ch chan ccxt.AsyncResult[any], messa
 	_ = subscription
 	this.CheckRequiredCredentials()
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
-	var action any = "subscribe"
+	var action string = "subscribe"
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-		action = func() any {
-			if unsubscribe != nil && *unsubscribe {
-				return "unsubscribe"
-			}
-			return action
-		}()
+		if unsubscribe != nil && *unsubscribe {
+			action = "unsubscribe"
+		}
 	}
 	var request map[string]any = map[string]any{
 		"id":      requestId,
@@ -476,7 +470,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan ccxt.AsyncResult[*string]) any {
 						panic(r1.Err)
 					}
 					var response map[string]any = r1.Value
-					var data map[string]any = ccxt.SafeMapTyped(response, "data")
+					var data, _ = response["data"].(map[string]any)
 					var utaTokenString *string = this.SafeString(data, "token")
 					this.Options["utaTokenLastUpdate"] = now
 					if utaTokenString != nil {
@@ -898,15 +892,12 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan ccxt.AsyncResult[map[
 		urlType = "futures"
 	}
 	var tradeType string = strings.ToUpper(urlType)
-	var action any = "subscribe"
+	var action string = "subscribe"
 	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
-		action = func() any {
-			if unsubscribe != nil && *unsubscribe {
-				return "unsubscribe"
-			}
-			return action
-		}()
+		if unsubscribe != nil && *unsubscribe {
+			action = "unsubscribe"
+		}
 	}
 	var request map[string]any = map[string]any{
 		"id":        requestId,
@@ -1605,7 +1596,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	//        "subject":"candle.stick"
 	//    }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var candles []any = ccxt.SafeListTyped(data, "candles")
 	var topic *string = this.SafeString(message, "topic")
@@ -1663,7 +1654,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "d")
+	var data, _ = message["d"].(map[string]any)
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -1739,7 +1730,13 @@ func (this *Kucoin) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r1.Err)
 		}
 		var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
-		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+		var first map[string]any
+		if trades != nil {
+			var firstRows []any = trades.ToArray()
+			if len(firstRows) > 0 {
+				first, _ = firstRows[0].(map[string]any)
+			}
+		}
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		var limitResolved *int64 = limit
 		if this.NewUpdates {
@@ -1824,7 +1821,13 @@ func (this *Kucoin) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		panic(r2.Err)
 	}
 	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
-	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var first map[string]any
+	if trades != nil {
+		var firstRows []any = trades.ToArray()
+		if len(firstRows) > 0 {
+			first, _ = firstRows[0].(map[string]any)
+		}
+	}
 	var tradeSymbol *string = this.SafeString(first, "symbol")
 	var limitResolved *int64 = limit
 	if this.NewUpdates {
@@ -3574,17 +3577,13 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	if utaOption != nil && *utaOption {
 		defaultType = "unified"
 	}
-	var typeVar any = defaultType
+	var typeVar string = defaultType
 	if !(utaOption != nil && *utaOption) {
 		defaultType = *this.SafeString(this.Options, "defaultType", defaultType)
-		if derefPtr := this.SafeString(paramsUta, "type", defaultType); derefPtr != nil {
-			typeVar = *derefPtr
-		} else {
-			typeVar = nil
-		}
+		typeVar = *this.SafeString(paramsUta, "type", defaultType)
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "type")
-	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var uniformType *string = this.SafeString(accountsByType, typeVar, typeVar)
 	var isClassicFuturesMethod bool = (uniformType != nil && *uniformType == "contract")
 	var subscriptionHash any = "/account/balance"
@@ -3610,7 +3609,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, *uniformType)
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot) {
@@ -3659,7 +3658,7 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
 	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
+	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot {
 		var messageHash string = typeVar + ":fetchBalanceSnapshot"
@@ -3783,7 +3782,7 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		requestAccountTypeStr := "contract"
 		requestAccountType = &requestAccountTypeStr
 	}
-	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")
+	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var uniformType *string = this.SafeString(accountsByType, requestAccountType, "trade")
 	if uniformType != nil {
 		if _, ok := this.Balance[*uniformType]; !ok {

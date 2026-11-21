@@ -197,8 +197,8 @@ func (this *Bit2me) HandleOrderBook(client any, message map[string]any) {
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(message, "symbol")
-	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var symbol *string = market.Symbol
 	var timestamp *int64 = this.SafeInteger(data, "nonce")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1)
 	snapshot["nonce"] = timestamp
@@ -645,7 +645,7 @@ func (this *Bit2me) HandleBalance(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var balances []any = this.SafeListSlice(data, "balance", []any{})
 	this.Balance = this.ParseBalanceList(balances)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
@@ -835,7 +835,7 @@ func (this *Bit2me) HandleCancelOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var orderId *string = this.SafeString(data, "orderId")
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
@@ -913,7 +913,7 @@ func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var deleted []any = ccxt.SafeListTyped(data, "ordersDeleted")
 	var notDeleted []any = ccxt.SafeListTyped(data, "ordersNotDeletedReasons")
 	var orders []any = []any{}
@@ -999,7 +999,7 @@ func (this *Bit2me) HandleCancelAllOrders(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var ids []any = ccxt.SafeListTyped(data, "cancelledOrders")
 	var orders []any = []any{}
 	for i := 0; i < len(ids); i++ {
@@ -1047,7 +1047,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		//
 		//     { "accessToken": { "token": "header.payload.signature", "expirationTime": 1794378427 } }
 		//
-		var accessToken map[string]any = ccxt.SafeMapTyped(response, "accessToken")
+		var accessToken, _ = response["accessToken"].(map[string]any)
 		var request map[string]any = map[string]any{
 			"event": "authenticate",
 			"token": this.SafeString(accessToken, "token"),
@@ -1103,7 +1103,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 	//     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
 	//
 	var event *string = this.SafeString(message, "event")
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+	var error, _ = message["error"].(map[string]any)
 	var code *string = this.SafeString(error, "code")
 	var errorMessage *string = this.SafeString(error, "message")
 	var feedback string = this.Id + " " + this.Json(message)
@@ -1157,7 +1157,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 		this.SettleRequest(client, "canceled-all-orders:"+*this.SafeString(message, "symbol", ""), nil, exception)
 	} else if event != nil && *event == "subscribe" {
 		// a refused subscription names the channel and the symbol it was asked for
-		var subscription map[string]any = ccxt.SafeMapTyped(message, "subscription")
+		var subscription, _ = message["subscription"].(map[string]any)
 		var name *string = this.SafeString(subscription, "name")
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId)

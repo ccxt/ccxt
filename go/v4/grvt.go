@@ -1177,7 +1177,11 @@ func (this *Grvt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 	//            },
 	//            ..
 	//
-	var responseResult []any = this.SafeListSlice(response, "result", []any{})
+	var responseResult []any
+	responseResult, _ = response["result"].([]any)
+	if responseResult == nil {
+		responseResult = []any{}
+	}
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(responseResult)}
 	return nil
@@ -1291,7 +1295,11 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
@@ -1418,7 +1426,11 @@ func (this *Grvt) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(result, "event_time"))
 	var marketId *string = this.SafeString(result, "instrument")
 
@@ -1697,7 +1709,11 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
 	//    }
 	//
-	var candles []any = this.SafeListSlice(response, "result", []any{})
+	var candles []any
+	candles, _ = response["result"].([]any)
+	if candles == nil {
+		candles = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
 	return nil
@@ -1908,7 +1924,11 @@ func (this *Grvt) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(result))}
 	return nil
@@ -2201,7 +2221,11 @@ func (this *Grvt) internalFetchTransfersBody(ch chan AsyncResult[[]TransferEntry
 	//        "next": ""
 	//    }
 	//
-	var rows []any = this.SafeListSlice(response, "result", []any{})
+	var rows []any
+	rows, _ = response["result"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var transfers []any = this.ParseTransfers(rows, currency, since, limit)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(transfers)}
@@ -2417,7 +2441,11 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	//        "next": ""
 	//    }
 	//
-	var rows []any = this.SafeListSlice(response, "result", []any{})
+	var rows []any
+	rows, _ = response["result"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var transfers []any = this.ParseTransfers(rows, currency, since, limit)
 
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ToArray(this.SafeList(this.FilterTransfersByType(transfers, "internal", false), 1, []any{})))}
@@ -2743,7 +2771,11 @@ func (this *Grvt) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	//     }
 	// }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(result, currency)}
 	return nil
@@ -3003,7 +3035,11 @@ func (this *Grvt) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var data map[string]any
+	data, _ = response["result"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
@@ -3373,7 +3409,11 @@ func (this *Grvt) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage], o
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results []any = this.SafeListSlice(response, "results", []any{})
+	var results []any
+	results, _ = response["results"].([]any)
+	if results == nil {
+		results = []any{}
+	}
 
 	ch <- AsyncResult[map[string]Leverage]{Value: LeverageMapFromMap(this.ParseLeverages(results, symbols))}
 	return nil
@@ -3508,7 +3548,11 @@ func (this *Grvt) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMode
 	//                "margin_type": "CROSS"
 	//            },
 	//
-	var results []any = this.SafeListSlice(response, "results", []any{})
+	var results []any
+	results, _ = response["results"].([]any)
+	if results == nil {
+		results = []any{}
+	}
 
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseLeverages(results, symbols))}
 	return nil
@@ -3993,7 +4037,11 @@ func (this *Grvt) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
@@ -4227,7 +4275,11 @@ func (this *Grvt) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders([]any{result}))}
 	return nil
@@ -4290,7 +4342,11 @@ func (this *Grvt) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	//        }
 	//    }
 	//
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil

@@ -749,7 +749,11 @@ func (this *Indodax) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	//         }
 	//     }
 	//
-	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response["ticker"].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
@@ -805,7 +809,7 @@ func (this *Indodax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var tickers map[string]any = SafeMapTyped(response, "tickers")
+	var tickers, _ = response["tickers"].(map[string]any)
 	var keys []string = nil
 	if tickers != nil {
 		keys = make([]string, 0, len(tickers))
@@ -1198,7 +1202,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var openOrdersResult map[string]any = SafeMapTyped(response, "return")
+	var openOrdersResult, _ = response["return"].(map[string]any)
 	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
 	if IsEqual(rawOrders, nil) {
@@ -1281,7 +1285,7 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var historyResult map[string]any = SafeMapTyped(response, "return")
+	var historyResult, _ = response["return"].(map[string]any)
 	var orders []any = this.ParseOrders(historyResult["orders"], market)
 	var closedOrders []any = this.FilterBy(orders, "status", "closed")
 
@@ -1454,7 +1458,7 @@ func (this *Indodax) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "return")
+	var data, _ = response["return"].(map[string]any)
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
@@ -1679,9 +1683,9 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	//         }
 	//     }
 	//
-	var data map[string]any = SafeMapTyped(response, "return")
-	var withdraw map[string]any = SafeMapTyped(data, "withdraw")
-	var deposit map[string]any = SafeMapTyped(data, "deposit")
+	var data, _ = response["return"].(map[string]any)
+	var withdraw, _ = data["withdraw"].(map[string]any)
+	var deposit, _ = data["deposit"].(map[string]any)
 	var transactions []any = []any{}
 	var currency map[string]any = nil
 	if code == nil {
@@ -1950,9 +1954,9 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 	//        }
 	//    }
 	//
-	var data map[string]any = SafeMapTyped(response, "return")
-	var addresses map[string]any = SafeMapTyped(data, "address")
-	var networks map[string]any = SafeMapTyped(data, "network")
+	var data, _ = response["return"].(map[string]any)
+	var addresses, _ = data["address"].(map[string]any)
+	var networks, _ = data["network"].(map[string]any)
 	var addressKeys []string = nil
 	if addresses != nil {
 		addressKeys = make([]string, 0, len(addresses))

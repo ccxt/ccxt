@@ -783,7 +783,7 @@ func (this *Bitrue) HandleTrades(client any, message map[string]any) {
 		// an unsubscribe, so frames it sent before processing it can still arrive
 		return
 	}
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var data []any = ccxt.SafeListTyped(tick, "data")
 	var appended bool = false
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
@@ -866,7 +866,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV is only supported for swap markets"))
 	}
-	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
+	var futuresTimeframes, _ = this.Options["futuresTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(futuresTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV does not support timeframe " + timeframe))
@@ -935,7 +935,7 @@ func (this *Bitrue) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchOHLCV is only supported for swap markets"))
 	}
-	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
+	var futuresTimeframes, _ = this.Options["futuresTimeframes"].(map[string]any)
 	var interval *string = this.SafeString(futuresTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchOHLCV does not support timeframe " + timeframe))
@@ -1296,7 +1296,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 				//         }
 				//     }
 				//
-				var data map[string]any = ccxt.SafeMapTyped(response, "data")
+				var data, _ = response["data"].(map[string]any)
 				var key *string = this.SafeString(data, "listenKey")
 				if key == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
