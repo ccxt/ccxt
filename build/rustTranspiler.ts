@@ -9652,6 +9652,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustSyncTryBlocks,
     rustStrHaystackIndexOf,
     lendContainerArgs,
+    // re-run: rustTypedLiteralParsers / rustTypedDictProducers above type more pushed producers as Dict
+    typeDictPushLists,
     // re-run: tuple-slot passes above print fresh `x.clone()` call arguments at a last use
     moveLocalsAtLastUse,
     rustDropUnusedMut,
