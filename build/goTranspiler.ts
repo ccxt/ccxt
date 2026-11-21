@@ -7286,7 +7286,7 @@ function goTernaryIifeStatements (content: string): string {
 // base methods whose declaration and every go/v4 override return this type; BaseExchange fields of this declared type
 const GO_TERNARY_CALL_TYPES: Record<string, string> = { 'PriceToPrecision': '*string', 'AmountToPrecision': '*string', 'NumberToString': '*string', 'ParseNumber': '*float64', 'SafeNumber': '*float64', 'SafeNumber2': '*float64', 'SafeNumberN': '*float64', 'SafeTimestamp': '*int64', 'Milliseconds': 'int64', 'Json': 'string' };
 const GO_TERNARY_FIELD_TYPES: Record<string, string> = { 'this.Timeframes': 'map[string]any', 'this.TokenBucket': 'map[string]any', 'this.Symbols': '[]string', 'this.Ids': '[]string' };
-const GO_TERNARY_ANY_STMT = /^([ \t]*)(?:var (\w+) any = |(\w+) := )func\(\) any \{\n([ \t]+)if ([^\n]+) \{\n([ \t]+)return ([^\n]+)\n\4\}\n\4return ([^\n]+)\n\1\}\(\)$/gm;
+const GO_TERNARY_ANY_STMT = /^([ \t]*)(?:var (\w+) any = |(\w+) := )func\(\) any \{\n([ \t]+)if ([^\n]+) \{\n([ \t]+)return ([^\n]+)\n\4\}\n\4return ([^\n]+)\n\1\}\(\)( \/\/[^\n]*)?$/gm;
 function goTernaryAnyArmType (arm: string, fn: string): string | undefined {
     if (arm === 'nil') { return 'nil'; }
     if (/^-?\d+$/.test (arm)) { return 'intlit'; }
@@ -7324,16 +7324,17 @@ function goTernaryAnyTyped (content: string): string {
     if (content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) {
         return content;
     }
-    return goRewriteFuncBlocks (content, (fn) => fn.replace (GO_TERNARY_ANY_STMT, (m: string, ind: string, vName: string, defName: string, body: string, cond: string, branch: string, a: string, b: string) => {
+    return goRewriteFuncBlocks (content, (fn) => fn.replace (GO_TERNARY_ANY_STMT, (m: string, ind: string, vName: string, defName: string, body: string, cond: string, branch: string, a: string, b: string, note: string | undefined) => {
         const lhs = vName ?? defName;
-        if ((branch !== body + body.substring (ind.length)) || new RegExp ('\\b' + lhs + '\\b').test (cond + '\n' + a + '\n' + b)) {
+        // a string literal naming the local (`this.SafeNumber(e, "x")`) is not a self-read
+        if ((branch !== body + body.substring (ind.length)) || new RegExp ('\\b' + lhs + '\\b').test ((cond + '\n' + a + '\n' + b).replace (/"(?:[^"\\]|\\.)*"/g, '""'))) {
             return m;
         }
         const ta = goTernaryAnyArmType (a, fn);
         const tb = goTernaryAnyArmType (b, fn);
         // no common arm type: keep the `any` box and fill it per branch (each store boxes what the literal returned)
         const [ a0, b0 ] = [ a, b ];
-        const box = () => ((vName !== undefined) && !/func\(|\}\(\)/.test (cond + a0 + b0)) ? ind + 'var ' + lhs + ' any\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a0 + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b0 + '\n' + ind + '}' : m;
+        const box = () => ((vName !== undefined) && !/func\(|\}\(\)/.test (cond + a0 + b0)) ? ind + 'var ' + lhs + ' any\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a0 + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b0 + '\n' + ind + '}' + (note ?? '') : m;
         if ((ta === undefined) || (tb === undefined)) { return box (); }
         let t: string | undefined = undefined;
         if ((ta === tb) && (ta !== 'nil') && (ta !== 'intlit')) { t = ta; } else if ((ta === 'intlit') && (tb === 'int64')) { a = 'int64(' + a + ')'; t = tb; } else if ((tb === 'intlit') && (ta === 'int64')) { b = 'int64(' + b + ')'; t = ta; }
@@ -7348,7 +7349,7 @@ function goTernaryAnyTyped (content: string): string {
         if (fn.split (m).length !== 2 || new RegExp ('(?:' + n + ' *(?:[=!]=|:?=[^=]|\\.\\(|\\[|\\+|-)|[=!]= *' + n + '|&' + lhs + '\\b|IsEqual\\([^\\n]*' + n + '|\\bvar ' + lhs + ' )').test (rest)) {
             return box ();
         }
-        return ind + 'var ' + lhs + ' ' + t + '\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b + '\n' + ind + '}';
+        return ind + 'var ' + lhs + ' ' + t + '\n' + ind + 'if ' + cond + ' {\n' + body + lhs + ' = ' + a + '\n' + ind + '} else {\n' + body + lhs + ' = ' + b + '\n' + ind + '}' + (note ?? '');
     }));
 }
 
@@ -7395,6 +7396,8 @@ function goTernaryAnyTypedCheck (): string[] {
     }
     const shadow = iife ('o', 'o', 'r') + '\treturn o\n';
     if (f (shadow) !== head + 'func (this *K) F(r map[string]any, e *int64, p any) any {\n' + shadow + '}\n') { problems.push ('ternary any box: self read kept: ' + f (shadow)); }
+    const named = f (iife ('o', 'this.SafeNumber(r, \"o\")', 'nil').replace ('}()\n', '}() // note\n') + '\treturn o\n');
+    if (!named.includes ('\tvar o any\n\tif r == nil {\n\t\to = this.SafeNumber(r, \"o\")\n\t} else {\n\t\to = nil\n\t} // note\n')) { problems.push ('ternary any box: literal key / trailing comment: ' + named); }
     return problems;
 }
 
