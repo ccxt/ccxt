@@ -4531,6 +4531,7 @@ function auditSelfTest (): string[] {
         javaR93j2ListLocalsSelfTest,
         javaR93j8LocalsSelfTest,
         javaH26J03AsDictReaderSelfTest,
+        h27J05HoistPureValuesSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -7929,6 +7930,7 @@ function containerOpsHoistPrefix (): RegExp {
 }
 function containerOpsHoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
+    const h27 = h27J05HoistPureValues (t, at, close, args, lineStart, indent, fresh); if (h27 !== undefined) return h27;
     const prefix = t.slice (lineStart, at);
     if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
@@ -9667,3 +9669,46 @@ function javaH26J03AsDictReaderSelfTest (): string[] {
     }
     return problems;
 }
+
+// ===== h27-J05: a newMap literal whose values are only member-declared locals/params or literals is hoisted
+// before its statement even after calls: a callee cannot write a Java local, so the values read the same.
+function h27J05HoistPureValues (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    if (/^\s*(?:(?:if|for|while|switch|else|case|do|try|catch|synchronized|yield|throw)\b|\}|\/\/)/.test (prefix) || /->|\binstanceof\b|\bswitch\b|\byield\b|"|\+\+|--/.test (prefix)) return undefined;
+    // no write inside the statement before the literal (only a leading `x = ` / `T x = `)
+    if (/[^=!<>]=(?!=)/.test (prefix.slice (prefix.indexOf ('(') + 1 || prefix.length))) return undefined;
+    // the previous statement ended (whole-line `//` comments in between are skipped)
+    const before = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    if (!/[;{}]$/.test (before) || /^\s*\/\//.test (before.slice (before.lastIndexOf ('\n') + 1))) return undefined;
+    // a name the member declares (any type) is a local or parameter, never a field
+    const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ];
+    const declared = (name: string) => [ ...t.matchAll (new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g')) ]
+        .some ((m) => !keywords.includes (m[1].replace (/^final /, '')));
+    const pure = (e: string): boolean => {
+        e = containerOpsUnparen (e);
+        if (/^(?:null|true|false|-?\d+(?:\.\d+)?[LD]?|"(?:[^"\\]|\\.)*")$/.test (e)) return true;
+        return /^[A-Za-z_]\w*$/.test (e) && e !== 'this' && declared (e);
+    };
+    if (args.some ((a, i) => i % 2 === 1 && !pure (a))) return undefined;
+    const n = fresh ();
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h27J05HoistPureValuesSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'after call, param + literal', '        return this.extend(this.f(p), Helpers.newMap("a", s, "b", null));', '        j39v1.put("a", s);\n        j39v1.put("b", null);\n        return this.extend(this.f(p), j39v1);' ],
+        // negatives: a call value (could depend on the earlier call), an undeclared name, a write before the literal, a condition
+        [ 'call value', '        return this.extend(this.f(p), Helpers.newMap("a", this.g()));', 'switch (0)' ],
+        [ 'field value', '        return this.extend(this.f(p), Helpers.newMap("a", this.x));', 'switch (0)' ],
+        [ 'write first', '        return this.extend(this.f(s = "q"), Helpers.newMap("a", s));', 'switch (0)' ],
+        [ 'two declared types', '        Object q = null;\n        if (o != null) { Long q = 1L; }\n        return this.extend(this.f(p), Helpers.newMap("a", q));', '        j39v1.put("a", q);\n        return this.extend(this.f(p), j39v1);' ],
+        [ 'after comment', '        Object q = 1L;\n        //\n        //   {}\n        return this.extend(this.f(p), Helpers.newMap("a", q));', '        //   {}\n        java.util.HashMap<String, Object> j39v1' ],
+        [ 'undeclared name', '        return this.extend(this.f(p), Helpers.newMap("a", fieldName));', 'switch (0)' ],
+        [ 'in if', '        if (this.f(p, Helpers.newMap("a", s)) != null) return null;', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h27-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h27-J05
