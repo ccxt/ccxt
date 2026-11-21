@@ -2004,12 +2004,14 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            response = this.toArray (transfers);
-            for (let i = 0; i < response.length; i++) {
-                const account_id = this.safeString (response[i], 'account_id');
+            const transferRows: List = this.toArray (transfers);
+            response = [];
+            for (let i = 0; i < transferRows.length; i++) {
+                const row: Dict = this.extend ({}, transferRows[i]);
+                const account_id = this.safeString (row, 'account_id');
                 const account = this.safeDict (this.accountsById, account_id);
-                const codeInner = this.safeString (account, 'code');
-                response[i]['currency'] = codeInner;
+                row['currency'] = this.safeString (account, 'code');
+                response.push (row);
             }
         } else {
             const accountTransfers = await this.privateGetAccountsIdTransfers (this.extend (request, params));
@@ -2039,9 +2041,12 @@ export default class coinbaseexchange extends Exchange {
             //        }
             //    ]
             //
-            response = this.toArray (accountTransfers);
-            for (let i = 0; i < response.length; i++) {
-                response[i]['currency'] = code;
+            const transferRows: List = this.toArray (accountTransfers);
+            response = [];
+            for (let i = 0; i < transferRows.length; i++) {
+                const row: Dict = this.extend ({}, transferRows[i]);
+                row['currency'] = code;
+                response.push (row);
             }
         }
         return this.parseTransactions (response, currency, since, limit);

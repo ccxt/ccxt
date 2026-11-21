@@ -2661,14 +2661,16 @@ export default class gate extends Exchange {
             if (withdrawFixOnChains === undefined) {
                 withdrawFees = this.safeNumber (entry, 'withdraw_fix');
             } else {
+                const networkFees: Dict = {};
                 const networkIds = Object.keys (withdrawFixOnChains);
                 for (let j = 0; j < networkIds.length; j++) {
                     const networkId = networkIds[j];
                     const networkCode = this.networkIdToCode (networkId, code);
                     if (networkCode !== undefined) {
-                        withdrawFees[networkCode] = this.parseNumber (withdrawFixOnChains[networkId]);
+                        networkFees[networkCode] = this.safeNumber (withdrawFixOnChains, networkId);
                     }
                 }
+                withdrawFees = networkFees;
             }
             result[code as string] = {
                 'withdraw': withdrawFees,
@@ -3480,7 +3482,7 @@ export default class gate extends Exchange {
             const keys = Object.keys (balances);
             for (let i = 0; i < keys.length; i++) {
                 const currencyId = keys[i];
-                const content = balances[currencyId];
+                const content: Dict = this.extend ({}, balances[currencyId]);
                 content['currency'] = currencyId;
                 flatBalances.push (content);
             }
@@ -3539,10 +3541,6 @@ export default class gate extends Exchange {
         const maxLimit = (this.safeBool (market, 'contract', false)) ? 1999 : 1000;
         const limitValue: Int = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
         const untilMs = this.safeInteger (paramsRequest, 'until');
-        let until: Int = undefined;
-        if (untilMs !== undefined) {
-            until = this.parseToInt (untilMs / 1000);
-        }
         const paramsOmitted = this.omit (paramsRequest, 'until');
         if (since !== undefined) {
             const duration = this.parseTimeframe (timeframe);
@@ -3552,14 +3550,19 @@ export default class gate extends Exchange {
             const toTimestamp = this.sum (fromTimestamp, distance);
             const currentTimestamp = this.seconds ();
             const to = Math.min (toTimestamp, currentTimestamp);
-            if (until !== undefined) {
-                request['to'] = Math.min (to, until);
+            if (untilMs !== undefined) {
+                const untilSeconds: number = this.parseToInt (untilMs / 1000);
+                let toValue: number = to;
+                if (untilSeconds < to) {
+                    toValue = untilSeconds;
+                }
+                request['to'] = toValue;
             } else {
                 request['to'] = to;
             }
         } else {
-            if (until !== undefined) {
-                request['to'] = until;
+            if (untilMs !== undefined) {
+                request['to'] = this.parseToInt (untilMs / 1000);
             }
             request['limit'] = limitValue;
         }
@@ -5620,7 +5623,11 @@ export default class gate extends Exchange {
         if (spot && (trigger === true)) {
             request = this.omit (request, 'account');
         }
-        request['status'] = (status === 'closed') ? 'finished' : status;
+        let requestStatus: Str = status;
+        if (status === 'closed') {
+            requestStatus = 'finished';
+        }
+        request['status'] = requestStatus;
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -6727,7 +6734,7 @@ export default class gate extends Exchange {
         }
         const requestedLimit = this.safeInteger (requestParams, 'limit', 100);
         const limit = this.parseToInt ((requestedLimit === undefined) ? 100 : Math.max (1, Math.min (requestedLimit, 100)));
-        let offset = this.safeInteger (requestParams, 'offset', 0);
+        let offset: number = this.safeInteger (requestParams, 'offset', 0);
         const contract = this.safeString (requestParams, 'contract', '');
         const paramsOmitted = this.omit (requestParams, [ 'limit', 'offset' ]);
         request['limit'] = limit;
