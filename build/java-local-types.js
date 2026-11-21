@@ -19225,6 +19225,7 @@ function javaPrimitiveNonNullValue (ctx, value, nn) {
     const e = longLimitStrip (value);
     if (javaPrimitiveKind (ctx, e, nn) !== undefined) return true;
     if (h29j02UnboxedChainKind (ctx, e, nn) !== undefined) return true;
+    if (h30j02SafeIntegerLiteralDefault (e)) return true;
     const t = longLimitSplitTernary (e);
     if (t !== undefined) {
         const g = /^(!?)java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (t.cond));
@@ -29328,3 +29329,15 @@ function h29j03ListSet (checker, node, receiver, key, keyType, declared, printed
     return `${receiver.text}.set((int) (long) (${printedKey}), ${value})`;
 }
 // ===== end h29-J03
+// ===== h30-J02
+// `this.safeInteger*(.., "key", <int literal>)`: SafeIntegerN answers the converted literal default on every miss,
+// so the Long is never null; the existing proof skips it only because longLimitCallArgs rejects string keys
+function h30j02SafeIntegerLiteralDefault (e) {
+    const { masked } = javaMaskedText (e);
+    const safe = /^this\.(safeInteger|safeInteger2|safeIntegerN)\(/.exec (masked);
+    if (safe === null) return false;
+    const args = longLimitCallArgs (masked, 'this.' + safe[1]);
+    const min = safe[1] === 'safeInteger2' ? 4 : 3;
+    return args !== undefined && args.length === min && /^-?\d+L?$/.test (args[min - 1]);
+}
+// ===== end h30-J02
