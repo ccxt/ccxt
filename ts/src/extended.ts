@@ -1207,10 +1207,17 @@ export default class extended extends Exchange {
         const sideRaw = this.safeString2 (trade, 'S', 'side');
         const side = (sideRaw !== undefined) ? sideRaw.toLowerCase () : undefined;
         const feeCost = this.safeString (trade, 'fee');
-        const fee = (feeCost === undefined) ? undefined : {
-            'cost': feeCost,
-            'currency': (marketResolved === undefined) ? undefined : marketResolved['settle'],
-        };
+        let fee: NullableDict = undefined;
+        if (feeCost !== undefined) {
+            const feeDict: Dict = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+            if (marketResolved !== undefined) {
+                feeDict['currency'] = marketResolved['settle'];
+            }
+            fee = feeDict;
+        }
         const isTaker = this.safeBool (trade, 'isTaker');
         let takerOrMaker: Str = undefined;
         if (isTaker !== undefined) {

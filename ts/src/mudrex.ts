@@ -299,12 +299,18 @@ export default class mudrex extends Exchange {
         const now = this.seconds ();
         const windowLength = duration * requestLimit;
         const defaultStart = now - windowLength;
-        const startTime = this.parseToInt ((since !== undefined) ? (since / 1000) : defaultStart);
+        let startTime = this.parseToInt (defaultStart);
+        if (since !== undefined) {
+            startTime = this.parseToInt (since / 1000);
+        }
         const windowEnd = this.parseToInt (startTime + duration * requestLimit);
         const until = this.safeInteger (params, 'until');
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         const cappedEnd = (windowEnd > now) ? now : windowEnd;
-        const endTime = this.parseToInt ((until !== undefined) ? (until / 1000) : cappedEnd);
+        let endTime = this.parseToInt (cappedEnd);
+        if (until !== undefined) {
+            endTime = this.parseToInt (until / 1000);
+        }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
         let response: Dict;

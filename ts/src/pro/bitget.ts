@@ -1374,7 +1374,11 @@ export default class bitget extends bitgetRest {
         } else {
             defaultType = (posMode !== undefined) ? 'contract' : 'spot';
         }
-        const marketResolved: Market = this.safeMarket ((market === undefined) ? instId : undefined, market, undefined, defaultType);
+        let instIdResolved: Str = undefined;
+        if (market === undefined) {
+            instIdResolved = instId;
+        }
+        const marketResolved: Market = this.safeMarket (instIdResolved, market, undefined, defaultType);
         const timestamp = this.safeIntegerN (trade, [ 'uTime', 'cTime', 'ts', 'T', 'execTime' ]);
         const feeDetail = this.safeList (trade, 'feeDetail', []);
         const first = this.safeDict (feeDetail, 0);

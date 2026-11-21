@@ -1992,7 +1992,10 @@ export default class okx extends okxRest {
             newPositions = await this.subscribeMultiple ('private', channel, symbolsNormalized, this.extend (request, params));
         }
         if (this.newUpdates) {
-            return (newPositions === undefined) ? [] : newPositions;
+            if (newPositions === undefined) {
+                return [];
+            }
+            return newPositions;
         }
         return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }

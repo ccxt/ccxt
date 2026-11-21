@@ -4371,9 +4371,13 @@ export default class bitget extends Exchange {
             const feeCostString = this.safeString2 (feeStructure, 'totalFee', 'fee');
             const deductionString = this.safeString (feeStructure, 'deduction');
             const deduction = (deductionString === 'yes');
+            let feeCostSigned = feeCostString;
+            if (!deduction) {
+                feeCostSigned = Precise.stringNeg (feeCostString);
+            }
             fee = {
                 'currency': currencyCode,
-                'cost': deduction ? feeCostString : Precise.stringNeg (feeCostString),
+                'cost': feeCostSigned,
             };
         }
         return this.safeTrade ({
