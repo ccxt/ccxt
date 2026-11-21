@@ -1480,9 +1480,6 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null) {
-        if ($transfer === null) {
-            throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
-        }
         throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
@@ -1847,21 +1844,23 @@ class BaseExchange extends \ccxt\BaseExchange {
         //
         // createOrder
         if (is_array($featuresObj) && array_key_exists('createOrder' ?? '', $featuresObj)) {
-            $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            $featuresObj['createOrder']['stopLoss'] = $value;
-            $featuresObj['createOrder']['takeProfit'] = $value;
+            $createOrder = $this->extend(array(), $featuresObj['createOrder']);
+            $value = $this->safe_dict($createOrder, 'attachedStopLossTakeProfit');
+            $createOrder['stopLoss'] = $value;
+            $createOrder['takeProfit'] = $value;
             if ($marketType === 'spot') {
                 // default 'hedged': false
-                $featuresObj['createOrder']['hedged'] = false;
+                $createOrder['hedged'] = false;
                 // default 'leverage': false
-                if (!(is_array($featuresObj['createOrder']) && array_key_exists('leverage' ?? '', $featuresObj['createOrder']))) {
-                    $featuresObj['createOrder']['leverage'] = false;
+                if (!(is_array($createOrder) && array_key_exists('leverage' ?? '', $createOrder))) {
+                    $createOrder['leverage'] = false;
                 }
             }
             // default 'GTC' to true
-            if ($this->safe_bool($featuresObj['createOrder']['timeInForce'], 'GTC') === null) {
-                $featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            if ($this->safe_bool($createOrder['timeInForce'], 'GTC') === null) {
+                $createOrder['timeInForce']['GTC'] = true;
             }
+            $featuresObj['createOrder'] = $createOrder;
         }
         // other methods
         $keys = is_array($featuresObj) ? array_keys($featuresObj) : array();
@@ -6158,16 +6157,10 @@ class BaseExchange extends \ccxt\BaseExchange {
          */
         $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
         $numNetworks = count($networkKeys);
-        if ($numNetworks === 1) {
-            $networkFee = $this->safe_dict($fee['networks'], $networkKeys[0], array());
-            $fee['withdraw'] = $networkFee['withdraw'];
-            $fee['deposit'] = $networkFee['deposit'];
-            return $fee;
-        }
         $currencyCode = $this->safe_string($currency, 'code');
         for ($i = 0; $i < $numNetworks; $i++) {
             $network = $networkKeys[$i];
-            if ($network === $currencyCode) {
+            if (($numNetworks === 1) || ($network === $currencyCode)) {
                 $networkFee = $this->safe_dict($fee['networks'], $networkKeys[$i], array());
                 $fee['withdraw'] = $networkFee['withdraw'];
                 $fee['deposit'] = $networkFee['deposit'];
@@ -6180,7 +6173,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseIncome () is not supported yet');
     }
 
-    public function parse_incomes(mixed $incomes, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_incomes(array $incomes, ?array $market = null, ?int $since = null, ?int $limit = null) {
         /**
          * @ignore
          * parses funding fee info from exchange response

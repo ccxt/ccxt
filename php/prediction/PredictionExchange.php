@@ -96,7 +96,18 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if ($singleQuery !== null) {
             return array( $singleQuery );
         }
-        return $this->safe_list($params, 'queries', array());
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        $rawQueries = $this->to_array($this->safe_list($params, 'queries', array()));
+        $rawQueriesLength = count($rawQueries);
+        $queries = array();
+        for ($i = 0; $i < $rawQueriesLength; $i++) {
+            $query = $this->safe_string($rawQueries, $i);
+            if ($query === null) {
+                throw new BadRequest($this->id . ' params.queries must be a list of strings');
+            }
+            $queries[] = $query;
+        }
+        return $queries;
     }
 
     public function require_event_query($params = array()) {

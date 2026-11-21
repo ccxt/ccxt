@@ -3833,12 +3833,7 @@ class mexc extends Exchange {
                 'clientOrderId' => $this->safe_string($order, 'newClientOrderId'),
             ));
         }
-        $id = null;
-        if (gettype($order) === 'string') {
-            $id = $order;
-        } else {
-            $id = $this->safe_string_2($order, 'orderId', 'id');
-        }
+        $id = $this->safe_string_2($order, 'orderId', 'id');
         $timeInForce = $this->parse_order_time_in_force($this->safe_string($order, 'timeInForce'));
         $typeRaw = $this->safe_string($order, 'type');
         if ($timeInForce === null) {
@@ -6458,15 +6453,16 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_leverage($data, $market);
+        return $this->parse_leverage_list($data, $market);
     }
 
-    public function parse_leverage(array $leverage, ?array $market = null): array {
+    public function parse_leverage_list(array $leverages, ?array $market = null): array {
         $marginMode = null;
         $longLeverage = null;
         $shortLeverage = null;
-        for ($i = 0; $i < count($leverage); $i++) {
-            $entry = $this->safe_dict($leverage, $i);
+        $numLeverages = count($leverages);
+        for ($i = 0; $i < $numLeverages; $i++) {
+            $entry = $this->safe_dict($leverages, $i);
             $openType = $this->safe_integer($entry, 'openType');
             $positionType = $this->safe_integer($entry, 'positionType');
             if ($positionType === 1) {
@@ -6477,11 +6473,22 @@ class mexc extends Exchange {
             $marginMode = ($openType === 1) ? 'isolated' : 'cross';
         }
         return array(
-            'info' => $leverage,
+            'info' => $leverages,
             'symbol' => $this->safe_string($market, 'symbol'),
             'marginMode' => $marginMode,
             'longLeverage' => $longLeverage,
             'shortLeverage' => $shortLeverage,
+        );
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return array(
+            'info' => $leverage,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'marginMode' => null,
+            'longLeverage' => null,
+            'shortLeverage' => null,
         );
     }
 

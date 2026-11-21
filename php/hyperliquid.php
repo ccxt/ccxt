@@ -1149,8 +1149,7 @@ class hyperliquid extends Exchange {
          */
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         $shouldRefresh = ($this->safe_string_2($params, 'user', 'address') !== null) && $this->safe_bool($params, 'enableUnifiedMargin') === null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchBalance', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchBalance', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchBalance', $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $paramsPublicAddress);
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchBalance', $paramsMarketType);
         list($isUnifiedEnabled, $paramsValue) = $this->is_unified_enabled('fetchBalance', $userAddress, $shouldRefresh, $paramsMarginMode);
@@ -1619,8 +1618,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchTrades', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchTrades', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchTrades', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1989,8 +1987,7 @@ class hyperliquid extends Exchange {
         $publicAddress = null;
         $paramsPublicAddress = array();
         if ($address === null) {
-            $publicAddress = $this->safe_string($this->handle_public_address('isUnifiedEnabled', $params), 0);
-            $paramsPublicAddress = $this->safe_dict($this->handle_public_address('isUnifiedEnabled', $params), 1, array());
+            list($publicAddress, $paramsPublicAddress) = $this->handle_public_address('isUnifiedEnabled', $params);
         }
         $userAddress = ($address !== null) ? $address : $publicAddress;
         $paramsAddress = ($address !== null) ? $params : $paramsPublicAddress;
@@ -3184,8 +3181,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->dex] perp dex name. default is null
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOpenOrders', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchOpenOrders', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOpenOrders', $params);
         list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPublicAddress, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         if ($this->markets === null) {
             $this->load_markets();
@@ -3296,8 +3292,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->dex] perp dex name. default is null
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOrders', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchOrders', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchOrders', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3373,8 +3368,7 @@ class hyperliquid extends Exchange {
          */
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchOrder', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchOrder', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchOrder', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3646,8 +3640,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->subAccountAddress] sub account user address
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchMyTrades', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchMyTrades', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyTrades', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3772,8 +3765,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->user] $user address, will default to $this->walletAddress if not provided
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=$liquidation-structure $liquidation structures~
          */
-        $userAddress = $this->safe_string($this->handle_public_address('fetchMyLiquidations', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchMyLiquidations', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchMyLiquidations', $params);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3920,8 +3912,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchPositions', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchPositions', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchPositions', $params);
         $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'type' => 'clearinghouseState',
@@ -4362,8 +4353,7 @@ class hyperliquid extends Exchange {
         $query = $params;
         list($transferMethod, $query) = $this->handle_option_string_and_params($query, 'transfer', 'method');
         $masterAddress = null;
-        $masterAddress = $this->safe_string($this->handle_public_address('transfer', $query), 0);
-        $query = $this->safe_dict($this->handle_public_address('transfer', $query), 1, array());
+        list($masterAddress, $query) = $this->handle_public_address('transfer', $query);
         $useSendAsset = ($transferMethod === 'sendAsset');
         if ($transferMethod === null) {
             $isUnified = null;
@@ -4609,8 +4599,7 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchTradingFee', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchTradingFee', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchTradingFee', $params);
         $market = $this->market($symbol);
         $request = array(
             'type' => 'userFees',
@@ -4722,8 +4711,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchLedger', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchLedger', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchLedger', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -4821,8 +4809,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchDepositsWithdrawals', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchDepositsWithdrawals', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -4891,8 +4878,7 @@ class hyperliquid extends Exchange {
         }
         $userAddress = null;
         $params2 = null;
-        $userAddress = $this->safe_string($this->handle_public_address('fetchDepositsWithdrawals', $params), 0);
-        $params2 = $this->safe_dict($this->handle_public_address('fetchDepositsWithdrawals', $params), 1, array());
+        list($userAddress, $params2) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
         $request = array(
             'type' => 'userNonFundingLedgerUpdates',
             'user' => $userAddress,
@@ -5030,8 +5016,7 @@ class hyperliquid extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $userAddress = $this->safe_string($this->handle_public_address('fetchFundingHistory', $params), 0);
-        $paramsPublicAddress = $this->safe_dict($this->handle_public_address('fetchFundingHistory', $params), 1, array());
+        list($userAddress, $paramsPublicAddress) = $this->handle_public_address('fetchFundingHistory', $params);
         $request = array(
             'user' => $userAddress,
             'type' => 'userFunding',
@@ -5044,7 +5029,8 @@ class hyperliquid extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $fundingResponse = $this->publicPostInfo($this->extend($request, $paramsOmitted));
+        $response = $this->info_list($fundingResponse);
         //
         // [
         //     {

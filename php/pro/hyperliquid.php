@@ -542,8 +542,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = $this->safe_string($this->handlePublicAddress('watchMyTrades', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('watchMyTrades', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchMyTrades', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -612,8 +611,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $userAddress = $this->safe_string($this->handlePublicAddress('watchMyLiquidationsForSymbols', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('watchMyLiquidationsForSymbols', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchMyLiquidationsForSymbols', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -669,8 +667,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        $userAddress = $this->safe_string($this->handlePublicAddress('unWatchMyTrades', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('unWatchMyTrades', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('unWatchMyTrades', $params);
         $messageHash = 'unsubscribe:myTrades';
         $url = $this->urls['api']['ws']['public'];
         $request = array(
@@ -1199,8 +1196,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = $this->safe_string($this->handlePublicAddress('watchBalance', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('watchBalance', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchBalance', $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $paramsValue);
         $unifiedResult = Async\await($this->isUnifiedEnabled('watchBalance', $userAddress, false, $paramsMarketType));
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
@@ -1255,8 +1251,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             Async\await($this->load_markets());
         }
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = $this->safe_string($this->handlePublicAddress('unWatchBalance', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('unWatchBalance', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('unWatchBalance', $params);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('unWatchBalance', null, $paramsValue);
         $unifiedResult = Async\await($this->isUnifiedEnabled('unWatchBalance', $userAddress, false, $paramsMarketType));
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
@@ -1448,8 +1443,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = $this->safe_string($this->handlePublicAddress('watchPositions', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('watchPositions', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchPositions', $params);
         $topic = 'clearinghouseState';
         $messageHash = $topic . '::positions';
         $hasSymbols = ($symbols !== null) && !$this->is_empty($symbols);
@@ -1550,8 +1544,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $messageHash = 'unsubscribe:clearinghouseState';
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = $this->safe_string($this->handlePublicAddress('unWatchPositions', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('unWatchPositions', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('unWatchPositions', $params);
         $request = array(
             'method' => 'unsubscribe',
             'subscription' => array(
@@ -1583,8 +1576,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = $this->safe_string($this->handlePublicAddress('watchOrders', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('watchOrders', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('watchOrders', $params);
         $market = null;
         $messageHash = 'order';
         if ($symbol !== null) {
@@ -1644,8 +1636,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
         $messageHash = 'unsubscribe:order';
         $url = $this->urls['api']['ws']['public'];
-        $userAddress = $this->safe_string($this->handlePublicAddress('unWatchOrders', $params), 0);
-        $paramsValue = $this->safe_dict($this->handlePublicAddress('unWatchOrders', $params), 1, $params);
+        list($userAddress, $paramsValue) = $this->handlePublicAddress('unWatchOrders', $params);
         $request = array(
             'method' => 'unsubscribe',
             'subscription' => array(
