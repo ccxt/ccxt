@@ -19341,6 +19341,7 @@ function nativeInt64ValueIsNonNull (csharp, node, depth) {
         const callee = current.expression;
         const position = (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
             ? NON_NULL_DEFAULT_INT64_READERS[callee.name?.text] : undefined;
+        if (h27c05ParseToIntOfLength (current)) return true;
         return (position !== undefined) && (current.arguments.length === position + 1) && nonNullIntKind (current.arguments[position]);
     }
     if (current.kind === ts.SyntaxKind.ConditionalExpression) {
@@ -24329,3 +24330,22 @@ function h27c04GuardedDoubleSubtractType (csharp, node) {
     return nullable ? 'double?' : undefined;
 }
 // ===== end h27-C04
+// ===== h27-C05
+// `this.parseToInt (x.length / N)`: a length over a positive integer literal is a finite non-negative
+// double, which parseToInt always converts to a non-null Int64 (a null x throws at `.length` first)
+function h27c05ParseToIntOfLength (call) {
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.text !== 'parseToInt' || call.arguments.length !== 1) {
+        return false;
+    }
+    const arg = stripParens (call.arguments[0]);
+    if (arg?.kind !== ts.SyntaxKind.BinaryExpression || arg.operatorToken.kind !== ts.SyntaxKind.SlashToken) {
+        return false;
+    }
+    const left = stripParens (arg.left);
+    const right = stripParens (arg.right);
+    return (left?.kind === ts.SyntaxKind.PropertyAccessExpression) && (left.name?.text === 'length')
+        && (right?.kind === ts.SyntaxKind.NumericLiteral) && /^[1-9]\d{0,8}$/.test (right.text);
+}
+// ===== end h27-C05
