@@ -3880,9 +3880,6 @@ export class BaseExchange {
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
-        if (transfer === undefined) {
-            throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
-        }
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
