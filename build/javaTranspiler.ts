@@ -4533,6 +4533,7 @@ function auditSelfTest (): string[] {
         javaH26J03AsDictReaderSelfTest,
         h27J05HoistPureValuesSelfTest,
         h28J05HoistSelfTest,
+        h29J05HoistSelfTest,
     ];
     return problems.concat(...wired.map((selfTest) => selfTest()));
 }
@@ -7936,6 +7937,7 @@ function containerOpsHoistStatement (t: string, at: number, close: number, args:
     if (args.length === 0 || args.length % 2 !== 0 || args.some ((a, i) => i % 2 === 0 && !/^"(?:[^"\\]|\\.)*"$/.test (a))) return undefined;
     const h27 = h27J05HoistPureValues (t, at, close, args, lineStart, indent, fresh); if (h27 !== undefined) return h27;
     const h28 = h28J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h28 !== undefined) return h28;
+    const h29 = h29J05HoistStatement (t, at, close, args, lineStart, indent, fresh); if (h29 !== undefined) return h29;
     const prefix = t.slice (lineStart, at);
     if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
     const before = t.slice (0, lineStart).trimEnd ();
@@ -9744,3 +9746,39 @@ function h28J05HoistSelfTest (): string[] {
     return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h28-J05 hoist self test: ${name}\n${out}`);
 }
 // ===== end h28-J05
+
+// ===== h29-J05: (1) a string literal in the statement prefix is masked before the h27/h28 proofs (it cannot read or write);
+// (2) the base pure-prefix rule may follow whole-line `//` comments or a statement ending in a trailing `//` comment.
+function h29J05HoistStatement (t: string, at: number, close: number, args: string[], lineStart: number, indent: string, fresh: () => string): { text: string, end: number } | undefined {
+    const prefix = t.slice (lineStart, at);
+    const masked = prefix.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
+    if (masked !== prefix && !masked.includes ('"')) {
+        const t2 = t.slice (0, lineStart) + masked + t.slice (at);
+        const h = h27J05HoistPureValues (t2, at, close, args, lineStart, indent, fresh) ?? h28J05HoistStatement (t2, at, close, args, lineStart, indent, fresh);
+        const cut = h === undefined ? -1 : h.text.lastIndexOf ('\n' + masked);
+        if (h !== undefined && cut !== -1) return { text: h.text.slice (0, cut + 1) + prefix + h.text.slice (cut + 1 + masked.length), end: h.end };
+    }
+    if (!containerOpsHoistPrefix ().test (prefix) || /^\s*(?:if|for|while|switch|else|case|do|try|catch|synchronized)\b/.test (prefix)) return undefined;
+    const prev = t.slice (0, lineStart).replace (/(?:\n[ \t]*\/\/[^\n]*)+\s*$/, '').trimEnd ();
+    const last = prev.slice (prev.lastIndexOf ('\n') + 1);
+    if (/^\s*\/\//.test (last) || !(/[;{}]$/.test (prev) || /^[^"\/]*;[ \t]*\/\/[^\n]*$/.test (last))) return undefined;
+    const n = fresh ();
+    const lines: string[] = [ `${indent}java.util.HashMap<String, Object> ${n} = new java.util.HashMap<String, Object>();` ];
+    for (let i = 0; i < args.length; i += 2) lines.push (`${indent}${n}.put(${args[i]}, ${args[i + 1]});`);
+    lines.push (`${prefix}${n}`);
+    return { text: lines.join ('\n'), end: close + 1 };
+}
+function h29J05HoistSelfTest (): string[] {
+    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
+    const cases: [string, string, string | undefined][] = [
+        [ 'string literal in prefix', '        return this.extend(this.omit(p, "k"), Helpers.newMap("a", s));', '        j39v1.put("a", s);\n        return this.extend(this.omit(p, "k"), j39v1);' ],
+        [ 'trailing comment before', '        Object q = o; // note\n        l.add(Helpers.newMap("a", this.safeString(p, "k")));', '        j39v1.put("a", this.safeString(p, "k"));\n        l.add(j39v1);' ],
+        // negatives: a write inside a masked prefix, a call value after an earlier call, a trailing comment after an open statement
+        [ 'write in prefix', '        return this.extend(this.f(s = "q"), Helpers.newMap("a", s));', 'switch (0)' ],
+        [ 'call value after call', '        return this.extend(this.omit(p, "k"), Helpers.newMap("a", this.g()));', 'switch (0)' ],
+        [ 'after comment lines', '        Object q = o;\n        // note\n        l.add(Helpers.newMap("a", this.g()));', '        j39v1.put("a", this.g());\n        l.add(j39v1);' ],
+        [ 'open statement', '        Object q = this.f(o, // note\n            l.add(Helpers.newMap("a", this.g())));', 'switch (0)' ],
+    ];
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `h29-J05 hoist self test: ${name}\n${out}`);
+}
+// ===== end h29-J05
