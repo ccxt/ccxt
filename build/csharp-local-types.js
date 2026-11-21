@@ -6534,6 +6534,7 @@ export function csharpTypeOfValue (csharp, node, context) {
         // `x = (a - b)` WRITE printed natively under a dominating null test
         // (nativeGuardedSubtractExpression): lifted Int64? minus an int-like, the same Int64 box
         // subtract() returns. Writes only: initialisers and arm types keep their old answer.
+        const h27c04 = h27c04GuardedDoubleSubtractType (csharp, node); if (h27c04 !== undefined) return h27c04;
         if (nativeOp === ts.SyntaxKind.MinusToken && (isPlainAssignmentValue (node) || isSoleDeclarationInitializer (node))
             && nativeGuardedSubtractExpression (csharp, node) !== undefined) {
             return 'Int64?';
@@ -24302,3 +24303,29 @@ function h27C03AsyncDictListDeclaration (csharp, node, printed) {
     return undefined;
 }
 // ===== end h27-C03
+
+// ===== h27-C04
+// `x = (a - b)` WRITE whose double? / double left and double? / double / int-like right are each non-null
+// (a non-null kind, or a never-rebound local under a dominating null test): subtract(object, object) takes its
+// double branch, `(double)a - Convert.ToDouble(b)`, the same value the lifted operator gives. Plain writes only (initialisers keep their old answer).
+function h27c04GuardedDoubleSubtractType (csharp, node) {
+    if (node.operatorToken?.kind !== ts.SyntaxKind.MinusToken || typeof csharp.csharpNullGuardAdmitsRead !== 'function'
+            || !isPlainAssignmentValue (node)) {
+        return undefined;
+    }
+    const sides = [ node.left, node.right ].map ((side) => {
+        const operand = stripParens (side);
+        const kind = nativeArithmeticOperandKind (csharp, operand);
+        if (kind === 'double?') {
+            return (operand.kind === ts.SyntaxKind.Identifier) && !nativeSubtractOperandIsRebound (csharp, operand)
+                && csharp.csharpNullGuardAdmitsRead (node, operand) ? 'double' : undefined;
+        }
+        return (kind === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (kind)) ? kind : undefined;
+    });
+    if (sides[0] !== 'double' || sides[1] === undefined) {
+        return undefined;
+    }
+    const nullable = [ node.left, node.right ].some ((side) => nativeArithmeticOperandKind (csharp, stripParens (side)) === 'double?');
+    return nullable ? 'double?' : undefined;
+}
+// ===== end h27-C04
