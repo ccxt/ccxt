@@ -1685,7 +1685,7 @@ export default class bitvavo extends Exchange {
         if (clientOrderId === undefined) {
             request['orderId'] = id;
         }
-        const operatorId = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId')[0];
+        const [ operatorId ] = this.handleOptionAndParams (paramsOmitted, 'editOrder', 'operatorId');
         if (operatorId !== undefined) {
             request['operatorId'] = this.parseToInt (operatorId);
         } else {
