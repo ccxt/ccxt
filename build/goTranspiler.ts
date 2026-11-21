@@ -8109,6 +8109,10 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     if (/^\w+$/.test (text)) {
         return scalarLocals.has (text) || safeLocal (text);
     }
+    // the in-range native index of a []string (a guard proved the literal index): a plain string, never nil
+    if (/^\w+\[\d+\]$/.test (text) && stringSlices.has (text.slice (0, text.indexOf ('[')))) {
+        return true;
+    }
     // the deref of a pair-bind pointer temp (`x = *xPtr`, printed by the tuple-result join) is a plain scalar
     if (/^\*\w+Ptr$/.test (text)) {
         return true;
