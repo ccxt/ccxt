@@ -1419,7 +1419,7 @@ export default class toobit extends Exchange {
         //        },
         //        ...
         //
-        const rows = [];
+        const rows: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
             const marketId = this.safeString (ticker, 's');
