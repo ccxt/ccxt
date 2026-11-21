@@ -5201,14 +5201,13 @@ public class Hyperliquid extends HyperliquidApi
         String transferType = this.safeString(parameters, "type");
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
-        String transferMethod = null;
-        Object query = parameters;
-        Pair<String, Map<String, Object>> transferMethodqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (query), "transfer", "method", (String) null);
-        transferMethod = transferMethodqueryVariable.first();
-        query = transferMethodqueryVariable.second();
-        String masterAddress = null;
-        masterAddress = this.safeString(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 0);
-        query = this.safeDict(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 1, new HashMap<String, Object>() {{}});
+        Pair<String, Map<String, Object>> transferMethodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "method", (String) null);
+        String transferMethod = transferMethodparamsMethodVariable.first();
+        Map<String, Object> paramsMethod = transferMethodparamsMethodVariable.second();
+        List<Object> masterAddressparamsAddressVariable = (List<Object>) this.handlePublicAddress("transfer", (Map<String, Object>) (paramsMethod));
+        String masterAddress = (String) ((List<Object>) masterAddressparamsAddressVariable).get(0);
+        Map<String, Object> paramsAddress = (Map<String, Object>) ((List<Object>) masterAddressparamsAddressVariable).get(1);
+        Object query = paramsAddress;
         Boolean useSendAsset = (java.util.Objects.equals(transferMethod, "sendAsset"));
         if (java.util.Objects.equals(transferMethod, null))
         {
