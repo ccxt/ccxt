@@ -10056,6 +10056,7 @@ function accumulatorWriteInfo (printer, node) {
         return (resolvesToBaseOrStrippedAccessor (printer, value, name) && safeListInitializerIsList (printer, value)
             && safeListDefaultIsList (printer, value, name)) ? { type: JAVA_ARRAY_TYPE, cast: JAVA_SAFE_LIST_CAST } : undefined;
     }
+    const h28 = h28j04SafeDictMapWrite (printer, value, name); if (h28 !== undefined) return h28;
     if (SAFE_DICT_ACCESSORS.has (name)) {
         return safeDictLocalType (printer, value, name) !== undefined
             ? { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' } : undefined;
@@ -29144,3 +29145,14 @@ function h28j03FrameParam (param, depth) {
     return true;
 }
 // ===== end h28-J03
+// ===== h28-J04
+// `x = this.safeDict (a, k[, {}])` binds the hand-written Map-default overload (safeDictLocalType's
+// `cast: undefined`), which already returns Map<String, Object>: the write needs no checkcast.
+function h28j04SafeDictMapWrite (printer, value, name) {
+    if (name !== 'safeDict') {
+        return undefined;
+    }
+    const local = safeDictLocalType (printer, value, name);
+    return local !== undefined && local.cast === undefined ? { type: JAVA_STRUCTURE_TYPE, cast: '' } : undefined;
+}
+// ===== end h28-J04
