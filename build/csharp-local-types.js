@@ -9328,11 +9328,6 @@ export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'quote', 'baseId', 'quot
 export const MARKET_ROW_BOOL_KEYS = [ 'spot', 'swap', 'contract', 'future', 'option', 'linear',
     'inverse', 'index', 'stock' ];
 
-// `market['precision']` — the DICT keys: every market-row writer is an object literal or a
-// dict-typed identifier, boxed as Dictionary<string, object>, so the IDictionary cast is exact.
-// `info`, `fees` and marginModes are excluded (non-dict or unproven writers).
-const MARKET_ROW_DICT_KEYS = [ 'precision', 'limits' ];
-
 // `parseTrade (trade, market: Market = undefined)` — a MARKET-ROW PARAMETER. The annotation is
 // the market-row type itself (ts/src/base/types.ts: `Market = MarketInterface | undefined`), so
 // every ts/src caller passes a market row or nothing; the same use scan as the local receiver
@@ -10234,11 +10229,6 @@ function plusChainStringBoxLeaf (csharp, initializer) {
     return stringBoxLeafProof (csharp, leaf);
 }
 
-function marketRowDictReadType (csharp, initializer) {
-    const key = marketRowReadKey (csharp, initializer);
-    return (key !== undefined && MARKET_ROW_DICT_KEYS.includes (key)) ? 'dict' : undefined;
-}
-
 // The NUMERIC keys (contractSize / strike / expiry / numericId) have no table: writers box
 // either double or Int64, so a `(double?)` or `(Int64?)` cast could throw on the other box.
 
@@ -10292,66 +10282,6 @@ function typeIsStringOrNullish (type) {
     }
     return false;
 }
-// `recv['k']` on a receiver the declared-local table names a Dictionary: for the keys below every
-// write into the typed row shapes is a string, so the local takes `string?` + `(string)`.
-// Numeric elements, bool keys and other keys keep the local `object`.
-const DICT_ELEMENT_STRING_KEYS_Typed = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type', 'code', 'r', 's', 'uppercaseId', 'referenceId' ];
-
-function checkerElementScalar (csharp, node) {
-    if (typeof csharp.getChecker !== 'function') {
-        return undefined;
-    }
-    let type;
-    try {
-        type = csharp.getChecker ().getTypeAtLocation (node);
-    } catch (e) {
-        return undefined;
-    }
-    const scalarOf = (member) => {
-        const flags = member?.flags ?? 0;
-        if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
-            return 'string';
-        }
-        if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
-            return 'bool';
-        }
-        if (flags & (ts.TypeFlags.Number | ts.TypeFlags.NumberLiteral)) {
-            return 'number';
-        }
-        return undefined;
-    };
-    if ((type?.flags & ts.TypeFlags.Union) && Array.isArray (ts.typeParts (type))) {
-        const members = ts.typeParts (type).filter ((member) => !(member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
-        if (members.length === 0) {
-            return undefined;
-        }
-        const scalars = new Set (members.map (scalarOf));
-        return (scalars.size === 1) ? [ ...scalars ][0] : undefined;
-    }
-    return scalarOf (type);
-}
-
-// the element type of `recv['literal key']`, proven a string by the checker AND a key whose
-// every write into the row shapes the checker types is a string (see the family comment)
-function elementAccessStringReadType (csharp, initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
-        return undefined;
-    }
-    const key = elementAccessLiteralKey (initializer.argumentExpression);
-    if (key === undefined || !DICT_ELEMENT_STRING_KEYS_Typed.includes (key)) {
-        return undefined;
-    }
-    const receiver = initializer.expression;
-    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
-        return undefined;
-    }
-    const receiverType = localIdentifierType (csharp, receiver);
-    if (receiverType !== 'Dictionary<string, object>' && receiverType !== 'IDictionary<string, object>') {
-        return undefined;
-    }
-    return (checkerElementScalar (csharp, initializer) === 'string') ? 'string' : undefined;
-}
-
 // ---- describe()-literal url reads ------------------------------------------------------
 // `const x = this.urls['api']['ws']` prints `object x = getValue(getValue(this.urls, "api"),
 // "ws")`. `this.urls` is filled by Exchange.Options.cs#initializeProperties from
@@ -10890,42 +10820,6 @@ function constSelfCopyRead (csharp, operand, declaration) {
         return false;
     }
     return isSelfRead (csharp, stripParens (copy.initializer), declaration);
-}
-
-// `c ? parseInt (v) : null` / `null : parseInt (v)`: the arms' own C# types are `object` (the
-// hand-written `public static object parseInt (object a)` in Exchange.TranspileHelpers.cs) and
-// null, so the conditional has no nameable C# type — but its BOX is exact on every path, so the
-// declaration names `Int64?` behind one boundary cast on the whole expression
-// (`((Int64?)(...))`), the same shape the other cast-carrying producers emit. Exact because
-// parseInt has a single value path: `parsedValue = (Convert.ToInt64 (Math.Floor
-// (Convert.ToDouble (a))))` — an Int64 box — inside a try, and null when the conversion throws;
-// no Int32 / double / string return path exists (read off the hand-written body, not the TS
-// annotation). EVERY arm must be null-ish or a parseInt call: any other arm can hold an
-// arbitrary box, and naming it would make the cast the deliverable's own risk.
-function parseIntTernaryCastType (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
-        return undefined;
-    }
-    let sawParseInt = false;
-    for (const raw of [ node.whenTrue, node.whenFalse ]) {
-        let arm = raw;
-        while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-            arm = arm.expression;
-        }
-        if (arm?.kind === ts.SyntaxKind.NullKeyword || (arm?.kind === ts.SyntaxKind.Identifier && arm.text === 'undefined')) {
-            continue;
-        }
-        if (arm?.kind === ts.SyntaxKind.CallExpression && arm.expression?.kind === ts.SyntaxKind.Identifier && arm.expression.text === 'parseInt') {
-            sawParseInt = true;
-            continue;
-        }
-        return undefined;
-    }
-    return sawParseInt ? 'Int64?' : undefined;
 }
 
 // the safeDict*/safeList* typed-local family (their CSHARP_LOCAL_THIS_RETURN_TYPES entries): the
@@ -11634,33 +11528,6 @@ function guardedConcatLeftUse (csharp, n, csharpType, scan) {
     return ok;
 }
 
-// ral-90c4 R4 use gate: the seed is compared `===` / `!==` with a string literal somewhere in its function
-// (`(x is "lit")` on object becomes the native `x == "lit"` once typed)
-function nullSeedLiteralCompare90c4 (declaration) {
-    const name = declaration.name.text;
-    const scope = enclosingFunction (declaration);
-    let found = false;
-    const visit = (n) => {
-        if (found) {
-            return;
-        }
-        if (n.kind === ts.SyntaxKind.BinaryExpression && (n.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken || n.operatorToken.kind === ts.SyntaxKind.ExclamationEqualsEqualsToken)) {
-            const l = stripParens (n.left);
-            const r = stripParens (n.right);
-            const isName = (x) => x?.kind === ts.SyntaxKind.Identifier && x.text === name;
-            const isLit = (x) => x?.kind === ts.SyntaxKind.StringLiteral && x.text.length > 0 && !/^[-+.0-9]|^(NaN|Infinity)$/.test (x.text);
-            if ((isName (l) && isLit (r)) || (isName (r) && isLit (l))) {
-                found = true;
-            }
-        }
-        n.forEachChild (visit);
-    };
-    if (scope?.body !== undefined) {
-        visit (scope.body);
-    }
-    return found;
-}
-
 // ral-90c4 R4: a write `x = a + r1 + …` into a Str null seed whose leftmost leaf `a` is a local the classifier
 // types `string` / `string?`: the left leaf selects add(string, *) / the native `+` / the printer's null guard
 // `(a == null ? null : a + …)`, all of static type string, so the write needs no cast and the value is the
@@ -11809,14 +11676,6 @@ function guardedConcatLocalRead (csharp, identifier) {
     }
     const declaration = resolveReference (csharp, identifier);
     return declaration?.kind === ts.SyntaxKind.VariableDeclaration && retypedDeclarationTypes.get (declaration) === 'string?';
-}
-
-function guardedConcatLocalReadSafe (csharp, identifier) {
-    try {
-        return guardedConcatLocalRead (csharp, identifier);
-    } catch (e) {
-        return false;
-    }
 }
 
 function installCsharpGuardedConcatLocals (csharp) {
