@@ -2173,7 +2173,7 @@ export default class mexc extends Exchange {
         let prevClose: Str = undefined;
         const isSwap = this.safeBool (marketResolved, 'swap', false);
         // if swap
-        if (isSwap || ('timestamp' in ticker)) {
+        if (isSwap || (this.safeString (ticker, 'timestamp') !== undefined)) {
             //
             //     {
             //         "symbol": "ETH_USDT",

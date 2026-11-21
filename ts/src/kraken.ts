@@ -1492,7 +1492,7 @@ export default class kraken extends Exchange {
         let orderId: Str = undefined;
         let fee: FeeString = undefined;
         let symbol: Str = undefined;
-        const isOrderTrade = (!Array.isArray (trade)) && (typeof trade !== 'string') && ('ordertxid' in trade);
+        const isOrderTrade = (!Array.isArray (trade)) && (typeof trade !== 'string') && (this.safeString (trade, 'ordertxid') !== undefined);
         let marketResolved = market;
         if (isOrderTrade) {
             marketResolved = this.resolveMarketByAltnameOrId (this.safeString (trade, 'pair'), market);
@@ -1517,13 +1517,14 @@ export default class kraken extends Exchange {
             type = this.safeString (trade, 'ordertype');
             price = this.safeString (trade, 'price');
             amount = this.safeString (trade, 'vol');
-            if ('fee' in trade) {
+            const tradeFee = this.safeString (trade, 'fee');
+            if (tradeFee !== undefined) {
                 let currency: Str = undefined;
                 if (marketResolved !== undefined) {
                     currency = this.safeString (marketResolved, 'quote');
                 }
                 fee = {
-                    'cost': this.safeString (trade, 'fee'),
+                    'cost': tradeFee,
                     'currency': currency,
                 };
             }
@@ -2106,8 +2107,8 @@ export default class kraken extends Exchange {
         const average = this.safeNumber (orderOmitted, 'price');
         if (marketResolved !== undefined) {
             symbol = this.safeString (marketResolved, 'symbol');
-            if ('fee' in orderOmitted) {
-                const feeCost = this.safeString (orderOmitted, 'fee');
+            const feeCost = this.safeString (orderOmitted, 'fee');
+            if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -3797,8 +3798,8 @@ export default class kraken extends Exchange {
                     }
                 }
                 // handleCreateOrdersErrors:
-                if ('result' in response) {
-                    const result = this.safeDict (response, 'result', {});
+                const result = this.safeDict (response, 'result');
+                if (result !== undefined) {
                     if ('orders' in result) {
                         const orders: Dict[] = this.safeList (result, 'orders', []);
                         for (let i = 0; i < orders.length; i++) {

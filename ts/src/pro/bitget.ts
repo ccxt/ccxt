@@ -2104,8 +2104,8 @@ export default class bitget extends bitgetRest {
         //         "stpMode": "none"
         //     }
         //
-        let isSpot = !('posMode' in order);
-        let isMargin = ('loanType' in order);
+        let isSpot = (this.safeString (order, 'posMode') === undefined);
+        let isMargin = (this.safeString (order, 'loanType') !== undefined);
         const category = this.safeStringLower (order, 'category');
         if (category === 'spot') {
             isSpot = true;
@@ -2622,7 +2622,7 @@ export default class bitget extends bitgetRest {
                     account['debt'] = Precise.stringAdd (borrow, interest);
                 }
                 let freeQuery: Str = 'available';
-                if ('maxTransferOut' in rawBalance) {
+                if (this.safeString (rawBalance, 'maxTransferOut') !== undefined) {
                     freeQuery = 'maxTransferOut';
                 }
                 account['free'] = this.safeString (rawBalance, freeQuery);
