@@ -32,6 +32,7 @@ import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
 import testUuid from './test.uuid.js';
 import testIsEmpty from './test.isEmpty.js';
+import testIsRoundNumber from './test.isRoundNumber.js';
 import testInArray from './test.inArray.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
@@ -113,6 +114,7 @@ async function baseTestsInit () {
     testNetworkMethods ();
     testRemoveRepeatedElementsFromArray ();
     testIsEmpty ();
+    testIsRoundNumber ();
     testBinaryConcat ();
     testUrlencodeWithArrayRepeat ();
     testParsePrecision ();

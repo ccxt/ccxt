@@ -4095,8 +4095,26 @@ export class BaseExchange {
     isRoundNumber (value: number): boolean {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-        const res = this.parseToNumeric ((value % 1));
-        return res === 0;
+        // decimal-string math keeps this exact in every language: a numeric `value % 1 === 0`
+        // compared a boxed int64/float64 with an int literal in go (never equal), and c#'s
+        // mod truncates the remainder to an integer (so 1.5 % 1 became 0)
+        // non-finite input (NaN, +/-Infinity) is not round: numberToString spells it with letters
+        // (NaN, Infinity, +Inf, nan, INF - all contain an n), which Precise either throws on (js) or
+        // silently reads as 0 (go), and c#/java throw inside numberToString itself
+        let isRound: boolean = false;
+        try {
+            const valueString = this.numberToString (value);
+            if (valueString !== undefined) {
+                const lowered = valueString.toLowerCase ();
+                if (lowered.indexOf ('n') < 0) {
+                    const remainder = Precise.stringMod (valueString, '1');
+                    isRound = (Precise.stringEq (remainder, '0') === true);
+                }
+            }
+        } catch (e) {
+            isRound = false;
+        }
+        return isRound;
     }
 
     isEmptyString (value: any): boolean {
