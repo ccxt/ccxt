@@ -1505,7 +1505,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), marketResolved)
         quoteVolume = self.from_er(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), marketResolved)
@@ -1881,7 +1881,7 @@ class phemex(Exchange, ImplicitAPI):
         feeCurrencyCode = None
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         orderId = None
         takerOrMaker = None
         if isinstance(trade, list):
@@ -2348,7 +2348,7 @@ class phemex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.from_ep(self.safe_string(order, 'priceEp'), marketResolved)
         amount = self.from_ev(self.safe_string(order, 'baseQtyEv'), marketResolved)
         remaining = self.omit_zero(self.from_ev(self.safe_string(order, 'leavesBaseQtyEv'), marketResolved))
@@ -3950,7 +3950,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         collateral = self.safe_string_2(position, 'positionMargin', 'positionMarginRv')
         notionalString = self.safe_string_2(position, 'value', 'valueRv')
         maintenanceMarginPercentageString = self.safe_string_2(position, 'maintMarginReq', 'maintMarginReqRr')

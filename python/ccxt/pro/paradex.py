@@ -243,7 +243,7 @@ class paradex(ccxt.async_support.paradex):
                 raise e
         return True
 
-    async def unsubscribe_channels_from(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], start: float, params: dict = {}) -> object:
+    async def unsubscribe_channels_from(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], start: int, params: dict = {}) -> object:
         """
  @ignore
         unsubscribes from the channels from an index on, after one was refused, their errors are dropped as the first one is thrown
@@ -265,7 +265,7 @@ class paradex(ccxt.async_support.paradex):
                     refused = refused + 1
         return refused
 
-    async def unsubscribe_channel_at(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], index: float, params: dict = {}) -> object:
+    async def unsubscribe_channel_at(self, url: str, topic: str, channels: list[str], subMessageHashes: list[str], symbols: list[str], index: int, params: dict = {}) -> object:
         """
  @ignore
         unsubscribes from one channel of a list, the reply forgets its subscription and rejects its watchers, the liquidations of a market with its trades

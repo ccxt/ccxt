@@ -555,9 +555,7 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.stock]: return tokenized stock assets only
         :returns dict: an associative dictionary of currencies
         """
-        selection = self.handle_stock_params('fetchCurrencies', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchCurrencies', 'stock', False)
         response = await self.publicGetApiV1Assets(query)
         #
         #     [
@@ -667,9 +665,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
-        selection = self.handle_stock_params('fetchMarkets', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchMarkets', 'stock', False)
         marketType = self.safe_string(query, 'marketType')
         defaultTypes = []
         if marketType is not None:
@@ -1322,9 +1318,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        selection = self.handle_stock_params('fetchTickers', params)
-        stockOnly = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stockOnly, query = self.handle_option_bool_and_params(params, 'fetchTickers', 'stock', False)
         source = self.safe_string(query, 'source', 'Venue')
         symbolsLength = 0
         if symbols is not None:
@@ -1967,9 +1961,7 @@ class backpack(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        selection = self.handle_stock_params('fetchBalance', params)
-        stock = self.safe_bool(selection, 0, False)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'fetchBalance', 'stock', False)
         response = await self.privateGetApiV1Capital(query)
         if stock:
             securities = self.safe_list(self.options, 'securities')
@@ -2434,12 +2426,10 @@ class backpack(Exchange, ImplicitAPI):
         :param boolean [params.stock]: selects tokenized stock spot execution for all orders, otherwise inferred per symbol
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        selection = self.handle_stock_params('createOrders', params)
-        query = self.safe_dict(selection, 1, {})
+        stock, query = self.handle_option_bool_and_params(params, 'createOrders', 'stock', False)
         if self.markets is None:
             await self.load_markets()
         ordersRequests = []
-        stock = self.safe_bool(selection, 0, False)
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')

@@ -1478,8 +1478,8 @@ class woo(ccxt.async_support.woo):
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
         unsubMessageHashes = self.safe_list(subscription, 'unsubMessageHashes', [])
         for i in range(0, len(subMessageHashes)):
-            subHash = subMessageHashes[i]
-            unsubHash = unsubMessageHashes[i]
+            subHash = self.safe_string(subMessageHashes, i)
+            unsubHash = self.safe_string(unsubMessageHashes, i)
             self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 

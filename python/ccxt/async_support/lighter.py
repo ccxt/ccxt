@@ -442,9 +442,9 @@ class lighter(Exchange, ImplicitAPI):
             })
 
     def get_lighter_private_key(self, strAccountIndex: str, strApiKeyIndex: str):
-        auths = self.safe_dict(self.options, 'auths')
-        accountAuths = self.safe_dict(auths, strAccountIndex)
-        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex)
+        auths = self.safe_dict(self.options, 'auths', {})
+        accountAuths = self.safe_dict(auths, strAccountIndex, {})
+        apiKeyAuths = self.safe_dict(accountAuths, strApiKeyIndex, {})
         return self.safe_string(apiKeyAuths, 'lighterPrivateKey')
 
     async def pre_load_lighter_library(self, params: dict = {}) -> bool:
@@ -552,9 +552,9 @@ class lighter(Exchange, ImplicitAPI):
         if accountIndex is None:
             res = self.handle_option_and_params_2({}, 'createAuth', 'accountIndex', 'account_index')
             accountIndex = self.safe_string(res, 0)
-        auths = self.safe_dict(self.options, 'auths')
-        accountAuths = self.safe_dict(auths, accountIndex)
-        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex)
+        auths = self.safe_dict(self.options, 'auths', {})
+        accountAuths = self.safe_dict(auths, accountIndex, {})
+        cachedAuth = self.safe_dict(accountAuths, apiKeyIndex, {})
         cachedDeadline = self.safe_integer(cachedAuth, 'deadline')
         minimumRemaining = self.safe_integer(self.options, 'authDeadlineMinimumRemaining', 60)
         if (cachedDeadline is not None) and (minimumRemaining is not None) and (cachedDeadline - minimumRemaining >= self.seconds()):
@@ -1783,11 +1783,11 @@ class lighter(Exchange, ImplicitAPI):
         result = {'info': response}
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
+            account = self.safe_dict(accounts, i, {})
             if type == 'spot':
                 assets = self.safe_list(account, 'assets', [])
                 for j in range(0, len(assets)):
-                    asset = self.safe_dict(assets, j)
+                    asset = self.safe_dict(assets, j, {})
                     codeId = self.safe_string(asset, 'symbol')
                     code = self.safe_currency_code(codeId)
                     balance = self.extend(self.account(), self.safe_dict(result, code, {}))
@@ -1893,7 +1893,7 @@ class lighter(Exchange, ImplicitAPI):
         allPositions = []
         accounts = self.safe_list(response, 'accounts', [])
         for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
+            account = self.safe_dict(accounts, i, {})
             positions = self.safe_list(account, 'positions', [])
             for j in range(0, len(positions)):
                 allPositions.append(positions[j])

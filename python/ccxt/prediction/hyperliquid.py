@@ -304,7 +304,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             bucketLabel = 'ABOVE_' + thresholds[lastIdx]
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
-                        return questionUnderlying.upper() + '_' + bucketLabel + questionExpiryPart
+                        upperUnderlying = questionUnderlying.upper()
+                        return upperUnderlying + '_' + bucketLabel + questionExpiryPart
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
                     return questionUnderlying.upper() + '_OTHER' + questionExpiryPart

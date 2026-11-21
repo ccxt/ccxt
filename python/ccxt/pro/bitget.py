@@ -557,9 +557,9 @@ class bitget(ccxt.async_support.bitget):
             await self.load_markets()
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
-        channel = None
+        channel = ''
         market = self.market(symbol)
-        messageHash = None
+        messageHash = ''
         values = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         uta = values[0]
         isStock = market['stock']
@@ -780,7 +780,8 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        messageHash = 'unsubscribe:' + messageHashTopic + ':' + marketSymbol
         uta, paramsUta = self.handle_option_bool_and_params(params, methodName, 'uta', False)
         privateChannel, paramsPrivateChannel = self.handle_option_bool_and_params(paramsUta, methodName, 'privateChannel', False)
         instType, paramsInstType = self.get_inst_type(methodName, market, uta, paramsPrivateChannel)
@@ -1585,7 +1586,8 @@ class bitget(ccxt.async_support.bitget):
             market = self.market(symbol)
             symbolResolved = self.safe_string(market, 'symbol')
             marketId = self.safe_string(market, 'id')
-            messageHash = messageHash + ':' + symbolResolved
+            marketSymbol = self.safe_string(market, 'symbol', '')
+            messageHash = messageHash + ':' + marketSymbol
         uta, paramsUta = self.handle_option_bool_and_params(paramsTrigger, 'watchOrders', 'uta', False)
         productType = self.safe_string(paramsUta, 'productType')
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, paramsUta)
@@ -1606,7 +1608,8 @@ class bitget(ccxt.async_support.bitget):
         if not useSpotInstType:
             instType, paramsInstType = self.get_inst_type('watchOrders', market, uta, paramsSubType)
         if type == 'spot' and (symbolResolved is not None):
-            subscriptionHash = subscriptionHash + ':' + symbolResolved
+            resolvedSymbol = symbolResolved
+            subscriptionHash = subscriptionHash + ':' + resolvedSymbol
         if isTrigger is True:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
         # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
@@ -1770,7 +1773,7 @@ class bitget(ccxt.async_support.bitget):
             market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_order(order, market)
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:
                 marketSymbols[symbol] = True
         keys = list(marketSymbols.keys())

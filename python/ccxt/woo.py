@@ -922,7 +922,7 @@ class woo(Exchange, ImplicitAPI):
         #         "isMaker": 0
         #     }
         #
-        isFromFetchOrder = ('id' in trade)
+        isFromFetchOrder = (self.safe_string(trade, 'id') is not None)
         timestampString = self.safe_string_2(trade, 'executed_timestamp', 'executedTimestamp')
         timestamp = None
         if timestampString is not None:

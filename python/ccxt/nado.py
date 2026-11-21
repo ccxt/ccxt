@@ -3040,11 +3040,13 @@ class nado(Exchange, ImplicitAPI):
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
         # the gateway weighs a query by its 'type' param, the archive by the query key of the
         # body, and every archive weight grows with the number of rows requested
-        if ('byType' in config) and ('type' in params):
-            queryType = params['type']
+        if 'byType' in config:
             byType = config['byType']
-            if queryType in byType:
-                return byType[queryType]
+            queryType = self.safe_string(params, 'type')
+            if queryType is not None:
+                typeCost = self.safe_integer(byType, queryType)
+                if typeCost is not None:
+                    return typeCost
         byQuery = self.safe_dict(config, 'byQuery')
         if byQuery is not None:
             queryNames = list(byQuery.keys())

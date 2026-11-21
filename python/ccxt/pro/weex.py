@@ -137,7 +137,9 @@ class weex(ccxt.async_support.weex):
         timestamp = str(self.nonce())
         payload = timestamp + '/v3/ws/private'
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-        originalHeaders = self.safe_dict(self.options['ws']['options'], 'headers')
+        wsOptions = self.safe_dict(self.options, 'ws', {})
+        wsInnerOptions = self.safe_dict(wsOptions, 'options', {})
+        originalHeaders = self.safe_dict(wsInnerOptions, 'headers', {})
         userAgent = self.safe_string(originalHeaders, 'User-Agent', 'ccxt')
         extendedOptions = {
             'ws': {
@@ -332,10 +334,8 @@ class weex(ccxt.async_support.weex):
         timestamp = self.safe_integer(ticker, 'C')
         close = self.safe_string(ticker, 'c')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -519,10 +519,8 @@ class weex(ccxt.async_support.weex):
         #
         timestamp = self.safe_integer(trade, 'T')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         isBuyerMaker = self.safe_bool(trade, 'm')  # m is the isBuyerMaker flag of the REST trades, true means the taker sold
         side = None
         takerOrMaker = None
@@ -1007,7 +1005,7 @@ class weex(ccxt.async_support.weex):
         if market is None:
             return
         ticker = self.parse_ws_bid_ask(message, market)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
         messageHash = 'bidask::' + symbol
@@ -1016,10 +1014,8 @@ class weex(ccxt.async_support.weex):
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(message, 'E')
         symbol = None
-        if market is None:
-            symbol = None
-        else:
-            symbol = market['symbol']
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,

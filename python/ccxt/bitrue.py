@@ -1756,7 +1756,8 @@ class bitrue(Exchange, ImplicitAPI):
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'  # this is a true side
         fee = None
-        if 'commission' in trade:
+        commission = self.safe_string(trade, 'commission')
+        if commission is not None:
             fee = {
                 'cost': self.safe_string_2(trade, 'commission', 'fee'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
@@ -1898,16 +1899,19 @@ class bitrue(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executedQty')
         timestamp = None
         lastTradeTimestamp = None
-        if 'time' in order:
-            timestamp = self.safe_integer(order, 'time')
-        elif 'transactTime' in order:
-            timestamp = self.safe_integer(order, 'transactTime')
-        elif 'updateTime' in order:
+        time = self.safe_integer(order, 'time')
+        transactTime = self.safe_integer(order, 'transactTime')
+        updateTime = self.safe_integer(order, 'updateTime')
+        if time is not None:
+            timestamp = time
+        elif transactTime is not None:
+            timestamp = transactTime
+        elif updateTime is not None:
             if status == 'open':
                 if Precise.string_gt(filled, '0'):
-                    lastTradeTimestamp = self.safe_integer(order, 'updateTime')
+                    lastTradeTimestamp = updateTime
                 else:
-                    timestamp = self.safe_integer(order, 'updateTime')
+                    timestamp = updateTime
         average = self.safe_string(order, 'avgPrice')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'origQty')
@@ -2734,10 +2738,10 @@ class bitrue(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         timestamp = self.safe_integer(transaction, 'createdAt')
         updated = self.safe_integer(transaction, 'updatedAt')
-        payAmount = ('payAmount' in transaction)
-        ctime = ('ctime' in transaction)
+        payAmount = self.safe_string(transaction, 'payAmount')
+        ctime = self.safe_string(transaction, 'ctime')
         type = 'deposit'
-        if payAmount or ctime:
+        if (payAmount is not None) or (ctime is not None):
             type = 'withdrawal'
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')

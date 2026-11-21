@@ -291,7 +291,7 @@ class pacifica(ccxt.async_support.pacifica):
         results = self.safe_list(data, 'results', [])
         ordersToReturn = []
         for i in range(0, len(results)):
-            order = self.safe_dict(results, i)
+            order = self.safe_dict(results, i, {})
             error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
@@ -526,7 +526,7 @@ class pacifica(ccxt.async_support.pacifica):
         entry = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         levels = self.safe_list(entry, 'l', [])
         result = {
             'bids': self.safe_list(levels, 0, []),
@@ -732,7 +732,7 @@ class pacifica(ccxt.async_support.pacifica):
             info = data[i]
             marketId = self.safe_string(info, 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             ticker = self.parse_ws_ticker(info, market)
             self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
@@ -780,7 +780,7 @@ class pacifica(ccxt.async_support.pacifica):
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = self.parse_ws_trade(rawTrade)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:
                 symbols[symbol] = True
             trades.append(parsed)
@@ -807,7 +807,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
@@ -845,7 +845,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         subMessageHash = 'trade:' + symbolValue
         messageHash = 'unsubscribe:' + subMessageHash
         isTestnet = self.isSandboxModeEnabled
@@ -889,7 +889,7 @@ class pacifica(ccxt.async_support.pacifica):
         first = self.safe_dict(entry, 0, {})
         marketId = self.safe_string(first, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbol
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -942,7 +942,7 @@ class pacifica(ccxt.async_support.pacifica):
         amount = self.safe_string(trade, 'a')
         marketId = self.safe_string(trade, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'h')
         fee = self.safe_string(trade, 'f')
         side = self.safe_string_2(trade, 'ts', 'd')
@@ -994,7 +994,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         parsedTf = self.safe_string(self.timeframes, timeframe, timeframe)
         urlKey = 'api'
@@ -1035,7 +1035,7 @@ class pacifica(ccxt.async_support.pacifica):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'api'
         if isTestnet:

@@ -5047,7 +5047,7 @@ class binance(Exchange, ImplicitAPI):
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limitValue,
         }
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         if marketId is None:
             raise ExchangeError(self.id + ' fetchOHLCV() missing marketId')
         if price == 'index':
@@ -5347,7 +5347,7 @@ class binance(Exchange, ImplicitAPI):
         if isSpotTrade:
             marketType = 'spot'
         marketResolved = self.safe_market(marketId, market, None, marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = None
         buyerMaker = self.safe_bool_2(trade, 'm', 'isBuyerMaker')
         takerOrMaker = None
@@ -6586,7 +6586,7 @@ class binance(Exchange, ImplicitAPI):
         if isContract:
             marketType = 'contract'
         marketResolved = self.safe_market(marketId, market, None, marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
         timestamp = self.safe_integer_2(order, 'time', 'createTime')  # order of the keys matters here
         if timestamp is None:
@@ -10362,7 +10362,7 @@ class binance(Exchange, ImplicitAPI):
             fees = self.to_array(response)
             for i in range(0, len(fees)):
                 fee = self.parse_trading_fee(fees[i])
-                symbol = fee['symbol']
+                symbol = self.safe_string(fee, 'symbol')
                 if symbol is not None:
                     spotFees[symbol] = fee
             return spotFees
@@ -11462,7 +11462,7 @@ class binance(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market, None, 'swap')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string_lower(position, 'side')
         quantity = self.safe_string(position, 'quantity')
         if side != 'long':

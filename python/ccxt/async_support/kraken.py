@@ -2915,7 +2915,7 @@ class kraken(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transactions_by_type(self, type: str, transactions: object, code: Str = None, since: Int = None, limit: Int = None) -> list[Transaction]:
+    def parse_transactions_by_type(self, type: str, transactions: list[dict], code: Str = None, since: Int = None, limit: Int = None) -> list[Transaction]:
         result = []
         for i in range(0, len(transactions)):
             transaction = self.parse_transaction(self.extend({

@@ -391,7 +391,7 @@ class p2b(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
             return None
-        limits = self.safe_dict(market, 'limits')
+        limits = self.safe_dict(market, 'limits', {})
         maxAmount = self.safe_string(limits, 'max_amount')
         maxPrice = self.safe_string(limits, 'max_price')
         return {
@@ -871,7 +871,7 @@ class p2b(Exchange, ImplicitAPI):
         keys = list(response.keys())
         for i in range(0, len(keys)):
             currencyId = keys[i]
-            balance = self.safe_dict(response, currencyId)
+            balance = self.safe_dict(response, currencyId, {})
             code = self.safe_currency_code(currencyId)
             used = self.safe_string(balance, 'freeze')
             available = self.safe_string(balance, 'available')

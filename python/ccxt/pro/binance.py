@@ -229,7 +229,7 @@ class binance(ccxt.async_support.binance):
     def is_spot_url(self, client: Client) -> bool:
         return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
 
-    def stream(self, type: Str, subscriptionHash: Str, numSubscriptions: Int = 1) -> Str:
+    def stream(self, type: Str, subscriptionHash: Str, numSubscriptions: Int = 1) -> str:
         streamBySubscriptionsHash = self.safe_dict(self.options, 'streamBySubscriptionsHash', self.create_safe_dictionary())
         stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
         if stream is None:
@@ -255,7 +255,8 @@ class binance(ccxt.async_support.binance):
         return stream
 
     def get_ws_url(self, type: str, category: str) -> str:
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         if (type == 'option') or (type == 'optionMarket') or (type == 'optionPrivate'):
             # eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             # see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -289,14 +290,16 @@ class binance(ccxt.async_support.binance):
             raise AuthenticationError(self.id + ' getPrivateWsUrl() requires a listenKey from authenticate()')
         if type == 'linear':
             return self.get_ws_url(type, 'private') + '?listenKey=' + listenKey
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         wsUrl = self.safe_string(wsUrls, type)
         if wsUrl is None:
             raise ExchangeError(self.id + ' getPrivateWsUrl() has no websocket url for self market type')
         return wsUrl + '/' + listenKey
 
     def get_stock_ws_url(self, streamType: Str = 'market') -> str:
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         baseUrl = wsUrls['stock']
         if streamType == 'combined':
             return baseUrl.replace('/ws', '/stream')
@@ -885,7 +888,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOrderBookWs', market, params)
         if marketType != 'linear':
             raise BadRequest(self.id + ' fetchOrderBookWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -1862,7 +1866,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTickerWs', market, params)
         if type != 'linear':
             raise BadRequest(self.id + ' fetchTickerWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -1907,7 +1912,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOHLCVWs', market, params)
         if marketType != 'spot' and marketType != 'linear':
             raise BadRequest(self.id + ' fetchOHLCVWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -2663,7 +2669,8 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<number> The subscription ID for the user data stream
         """
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -2743,7 +2750,8 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<void>
         """
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, 'spot')
         if url is None:
@@ -3080,7 +3088,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchBalanceWs', None, params)
         if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3210,7 +3219,8 @@ class binance(ccxt.async_support.binance):
             type = 'linear'
         if type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3292,7 +3302,8 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if type == 'spot' or type == 'margin':
             # route to WebSocket API connection where the user data stream is subscribed
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:
@@ -3495,7 +3506,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('createOrderWs', market, params)
         if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -3651,7 +3663,8 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('editOrderWs', market, params)
         if marketType != 'spot' and marketType != 'linear' and marketType != 'inverse':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, marketType)
         if url is None:
@@ -3807,7 +3820,8 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('cancelOrderWs', market, params)
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3863,7 +3877,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('cancelAllOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3906,7 +3921,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrderWs', market, params)
         if type != 'spot' and type != 'linear' and type != 'inverse':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -3957,7 +3973,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -4018,7 +4035,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOpenOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -4111,7 +4129,8 @@ class binance(ccxt.async_support.binance):
         url = ''
         if type == 'spot' or type == 'margin':
             # route orders to ws-api user data stream
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:
@@ -4959,7 +4978,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchMyTradesWs', market, params)
         if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchMyTradesWs does not support ' + type + ' markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -5010,7 +5030,8 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTradesWs', market, params)
         if type != 'spot' and type != 'linear':
             raise BadRequest(self.id + ' fetchTradesWs does not support ' + type + ' markets')
-        wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
         wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
         url = self.safe_string(wsApiDict, type)
         if url is None:
@@ -5118,7 +5139,8 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin = portfolioMarginAndParams[0]
         url = ''
         if type == 'spot' or type == 'margin':
-            wsApiUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+            urlsApi = self.safe_dict(self.urls, 'api', {})
+            wsApiUrls = self.safe_dict(urlsApi, 'ws', {})
             wsApiDict = self.safe_dict(wsApiUrls, 'ws-api', {})
             url = self.safe_string(wsApiDict, 'spot', '')
         else:

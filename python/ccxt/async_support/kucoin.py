@@ -4162,7 +4162,7 @@ class kucoin(Exchange, ImplicitAPI):
                 raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
             sizeString = self.amount_to_precision(symbol, amount)
             if sizeString is not None:
-                request['size'] = int(sizeString)
+                request['size'] = self.parse_to_int(sizeString)
         self.check_trigger_prices(paramsOmitted)
         triggerPrice = self.safe_number_2(paramsOmitted, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_number(paramsOmitted, 'stopLossPrice')
@@ -5940,7 +5940,7 @@ class kucoin(Exchange, ImplicitAPI):
         tradeType = self.safe_string(order, 'tradeType')
         utaTradeTypes = ['SPOT', 'CROSS', 'ISOLATED', 'FUTURES']  # tradeType specific for uta endpoint
         isUtaOrder = self.in_array(tradeType, utaTradeTypes)
-        if 'sizeUnit' in order:  # property specific for uta endpoint
+        if self.safe_string(order, 'sizeUnit') is not None:  # property specific for uta endpoint
             isUtaOrder = True
         if isUtaOrder:
             return self.parse_uta_order(order, market)
@@ -6818,7 +6818,7 @@ class kucoin(Exchange, ImplicitAPI):
         return self.parse_trades(tradesList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        if 'liquidityRole' in trade:  # property specific to myTrades from uta endpoint
+        if self.safe_string(trade, 'liquidityRole') is not None:  # property specific to myTrades from uta endpoint
             return self.parse_my_uta_trade(trade, market)
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
@@ -6924,7 +6924,7 @@ class kucoin(Exchange, ImplicitAPI):
         createdAt = self.safe_integer(trade, 'createdAt')
         # if it's a historical v1 trade, the exchange returns timestamp in seconds
         timestamp = createdAt
-        if ('dealValue' in trade) and (createdAt is not None):
+        if (self.safe_string(trade, 'dealValue') is not None) and (createdAt is not None):
             timestamp = createdAt * 1000
         if nanoseconds is not None:
             timestamp = self.parse_to_int(nanoseconds / 1000000)
@@ -7048,7 +7048,7 @@ class kucoin(Exchange, ImplicitAPI):
         createdAt = self.safe_integer(trade, 'createdAt')
         # if it's a historical v1 trade, the exchange returns timestamp in seconds
         timestamp = createdAt
-        if ('dealValue' in trade) and (createdAt is not None):
+        if (self.safe_string(trade, 'dealValue') is not None) and (createdAt is not None):
             timestamp = createdAt * 1000
         if nanoseconds is not None:
             timestamp = self.parse_to_int(nanoseconds / 1000000)
@@ -9463,7 +9463,7 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'leverage': str(leverage),
+            'leverage': self.number_to_string(leverage),
         }
         uta = await self.is_uta_enabled()
         utaOption, paramsUta = self.handle_option_bool_and_params(paramsMarginMode, 'setLeverage', 'uta', uta)
@@ -10313,9 +10313,9 @@ class kucoin(Exchange, ImplicitAPI):
                 collateralString = Precise.string_add(posMargin, unrealisedPnl) if (unrealisedPnl is not None) else posMargin
         lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
         if lastUpdateTimestamp is None:
-            if 'closingTime' in position:
+            if self.safe_string(position, 'closingTime') is not None:
                 lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
-            elif 'updateTime' in position:
+            elif self.safe_string(position, 'updateTime') is not None:
                 lastUpdateTimestamp = self.safe_integer_product(position, 'updateTime', 0.000001)
         return self.safe_position({
             'info': position,

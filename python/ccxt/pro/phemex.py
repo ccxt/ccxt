@@ -102,7 +102,7 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         lastString = self.from_ep(self.safe_string(ticker, 'close'), marketValue)
         last = self.parse_number(lastString)
@@ -162,7 +162,7 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(ticker, 0)
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         lastString = self.from_ep(self.safe_string(ticker, 4), marketValue)
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), marketValue))
@@ -420,7 +420,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'trade'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = name + ':' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -467,7 +467,7 @@ class phemex(ccxt.async_support.phemex):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         candles = self.safe_list_2(message, 'kline', 'kline_p', [])
         first = self.safe_list(candles, 0, [])
         interval = self.safe_string(first, 1)
@@ -839,7 +839,7 @@ class phemex(ccxt.async_support.phemex):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         type = self.safe_string(message, 'type')
         depth = self.safe_integer(message, 'depth')
         name = 'orderbook'
@@ -1016,7 +1016,7 @@ class phemex(ccxt.async_support.phemex):
             market = self.safe_market(marketId)
             parsed = self.parse_trade(rawTrade)
             cachedTrades.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if type is None:
                 marketSettle = self.safe_string(market, 'settle')
                 type = 'perpetual' if (marketSettle == 'USDT') else market['type']
@@ -1260,7 +1260,7 @@ class phemex(ccxt.async_support.phemex):
         for i in range(0, len(parsedOrders)):
             parsed = parsedOrders[i]
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             market = self.market(symbol)
             if type is None:
                 isUsdt = market['settle'] == 'USDT'
@@ -1404,7 +1404,7 @@ class phemex(ccxt.async_support.phemex):
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))

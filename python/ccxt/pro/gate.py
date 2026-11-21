@@ -186,7 +186,7 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageType = self.get_type_by_market(market)
         channel = messageType + '.order_place'
         url = self.get_url_by_market(market)
@@ -1006,7 +1006,7 @@ class gate(ccxt.async_support.gate):
         # todo add options support
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
@@ -1036,7 +1036,7 @@ class gate(ccxt.async_support.gate):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
@@ -1561,9 +1561,9 @@ class gate(ccxt.async_support.gate):
             messageHash = 'triggerOrders'
         payload = ['!' + 'all']
         if market is not None:
-            messageHash += ':' + market['id']
-            mid = market['id']
+            mid = self.safe_string(market, 'id')
             if mid is not None:
+                messageHash += ':' + mid
                 payload = [mid]
         subType = None
         subType, query = self.handle_sub_type_and_params('watchOrders', market, query)

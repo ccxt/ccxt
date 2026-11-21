@@ -1063,7 +1063,10 @@ class weex(Exchange, ImplicitAPI):
             pricePrecisionString = self.parse_precision(self.safe_string(market, 'pricePrecision'))
             amountPrecision = self.parse_number(amountPrecisionString)
             pricePrecision = self.parse_number(pricePrecisionString)
-        fees = self.safe_dict(self.fees, 'spot' if isSpot else 'contract', {})
+        feesKey = 'contract'
+        if isSpot:
+            feesKey = 'spot'
+        fees = self.safe_dict(self.fees, feesKey, {})
         if id is None:
             raise ExchangeError(self.id + ' method() missing id')
         return self.safe_market_structure({
@@ -3198,7 +3201,6 @@ class weex(Exchange, ImplicitAPI):
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         accountType = self.safe_string(accountsByType, marketType, marketType)
         request = {}
-        items = None
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3211,7 +3213,8 @@ class weex(Exchange, ImplicitAPI):
                 request['limit'] = limit
             requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsMarketType)
             contractResponse = self.contractPrivatePostCapiV3AccountIncome(self.extend(requestUntil, paramsUntil))
-            items = self.safe_list(contractResponse, 'items', [])
+            contractItems = self.safe_list(contractResponse, 'items', [])
+            return self.parse_ledger(contractItems, currency, since, limit)
         elif accountType == 'funding':
             if since is not None:
                 request['startTime'] = since
@@ -3219,7 +3222,8 @@ class weex(Exchange, ImplicitAPI):
                 request['pageSize'] = limit
             requestUntil, paramsUntil = self.handle_until_option('endTime', request, paramsMarketType)
             fundingResponse = self.privatePostApiV3AccountFundingBills(self.extend(requestUntil, paramsUntil))
-            items = self.safe_list(fundingResponse, 'items', [])
+            fundingItems = self.safe_list(fundingResponse, 'items', [])
+            return self.parse_ledger(fundingItems, currency, since, limit)
         else:
             if since is not None:
                 request['after'] = since
@@ -3227,8 +3231,8 @@ class weex(Exchange, ImplicitAPI):
                 request['limit'] = limit
             requestUntil, paramsUntil = self.handle_until_option('before', request, paramsMarketType)
             billsResponse = self.privatePostApiV3AccountBills(self.extend(requestUntil, paramsUntil))
-            items = self.to_array(billsResponse)
-        return self.parse_ledger(items, currency, since, limit)
+            billsItems = self.to_array(billsResponse)
+            return self.parse_ledger(billsItems, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
@@ -4075,7 +4079,7 @@ class weex(Exchange, ImplicitAPI):
             timestamp = self.number_to_string(self.nonce())
             payload = timestamp + method + '/' + endpoint
             if hasJsonBody:
-                payload += requestBody
+                payload = payload + self.json(query)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             requestHeaders = {
                 'ACCESS-KEY': self.apiKey,

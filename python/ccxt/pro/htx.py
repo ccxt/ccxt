@@ -164,7 +164,7 @@ class htx(ccxt.async_support.htx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol')
         options = self.safe_dict(self.options, 'watchTicker', {})
         topic = self.safe_string(options, 'name', 'market.{marketId}.detail')
         if topic == 'market.{marketId}.ticker' and market['type'] != 'spot':
@@ -239,7 +239,7 @@ class htx(ccxt.async_support.htx):
         timestamp = self.safe_integer(message, 'ts')
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.tickers[symbol] = ticker
         client.resolve(ticker, ch)
@@ -262,7 +262,7 @@ class htx(ccxt.async_support.htx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol')
         marketId = self.safe_string(market, 'id', '')
         messageHash = 'market.' + marketId + '.trade.detail'
         url = self.get_url_by_market_type(market['type'], market['linear'])
@@ -322,7 +322,7 @@ class htx(ccxt.async_support.htx):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         tradesCache = self.safe_value(self.trades, symbol)
         if tradesCache is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -352,7 +352,7 @@ class htx(ccxt.async_support.htx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         marketId = self.safe_string(market, 'id', '')
         messageHash = 'market.' + marketId + '.kline.' + interval
@@ -410,7 +410,7 @@ class htx(ccxt.async_support.htx):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(parts, 3)
         timeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
@@ -441,7 +441,7 @@ class htx(ccxt.async_support.htx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol')
         allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
         # which means whenever there is an order book change at that level, it pushes an update;
@@ -530,7 +530,7 @@ class htx(ccxt.async_support.htx):
             messages = orderbook.cache
             firstMessage = self.safe_dict(messages, 0, {})
             snapshot = self.parse_order_book(data, symbol)
-            tick = self.safe_dict(firstMessage, 'tick')
+            tick = self.safe_dict(firstMessage, 'tick', {})
             sequence = self.safe_integer(tick, 'prevSeqNum')
             nonce = self.safe_integer(data, 'seqNum')
             if nonce is None:
@@ -689,7 +689,7 @@ class htx(ccxt.async_support.htx):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         orderbook = self.orderbooks[symbol]
         tick = self.safe_dict(message, 'tick', {})
         seqNum = self.safe_integer(tick, 'seqNum')
@@ -2311,7 +2311,7 @@ class htx(ccxt.async_support.htx):
             if subscription is not None:
                 errorCode = self.safe_string(message, 'err-code')
                 try:
-                    self.throw_exactly_matched_exception(wsExceptions['exact'], errorCode, self.json(message))
+                    self.throw_exactly_matched_exception(self.safe_dict(wsExceptions, 'exact', {}), errorCode, self.json(message))
                     raise ExchangeError(self.json(message))
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')

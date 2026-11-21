@@ -2319,8 +2319,8 @@ class coinbase(Exchange, ImplicitAPI):
         ask = self.safe_number(ticker, 'ask')
         bidVolume = None
         askVolume = None
-        if ('bids' in ticker):
-            bids = self.safe_list(ticker, 'bids', [])
+        bids = self.safe_list(ticker, 'bids')
+        if bids is not None:
             asks = self.safe_list(ticker, 'asks', [])
             firstBid = self.safe_dict(bids, 0, {})
             firstAsk = self.safe_dict(asks, 0, {})
@@ -3282,7 +3282,11 @@ class coinbase(Exchange, ImplicitAPI):
             amount = self.safe_string(target, 'base_size')
             postOnly = self.safe_bool(target, 'post_only')
         elif isStop:
-            stopTarget = stopLimitGTC if (stopLimitGTC is not None) else stopLimitGTD
+            stopTarget = None
+            if stopLimitGTC is not None:
+                stopTarget = stopLimitGTC
+            else:
+                stopTarget = stopLimitGTD
             price = self.safe_string(stopTarget, 'limit_price')
             amount = self.safe_string(stopTarget, 'base_size')
             postOnly = self.safe_bool(stopTarget, 'post_only')

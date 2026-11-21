@@ -898,12 +898,10 @@ class indodax(Exchange, ImplicitAPI):
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
         openOrdersResult = self.safe_dict(response, 'return', {})
-        rawOrders = openOrdersResult['orders']
         # { success: 1, return: { orders: null }} if no orders
-        if (rawOrders is None) or (rawOrders is None):
-            return []
         # { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
         if symbol is not None:
+            rawOrders = self.safe_list(openOrdersResult, 'orders', [])
             return self.parse_orders(rawOrders, market, since, limit)
         # { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         ordersDict = self.safe_dict(openOrdersResult, 'orders', {})

@@ -3457,16 +3457,17 @@ class bingx(Exchange, ImplicitAPI):
         else:
             result = data
         # when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        fixedMembers = {}
         stopLossDict = self.safe_dict(result, 'stopLoss')
         stopLoss = self.safe_string(result, 'stopLoss')
         # for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         # so we need trick to check if it's non-parsed string yet
         if (stopLossDict is None) and (stopLoss is not None) and (stopLoss.find('{') == 0):
-            result['stopLoss'] = self.parse_json(stopLoss)
+            fixedMembers['stopLoss'] = self.parse_json(stopLoss)
         takeProfit = self.safe_string(result, 'takeProfit')
         if (takeProfit is not None) and (takeProfit.find('{') == 0):
-            result['takeProfit'] = self.parse_json(takeProfit)
-        return self.parse_order(result, market)
+            fixedMembers['takeProfit'] = self.parse_json(takeProfit)
+        return self.parse_order(self.extend(result, fixedMembers), market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """

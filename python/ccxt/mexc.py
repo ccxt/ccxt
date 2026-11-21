@@ -1685,7 +1685,8 @@ class mexc(Exchange, ImplicitAPI):
         costString = None
         marketResolved = None
         # if swap
-        if 'v' in trade:
+        swapVolume = self.safe_string(trade, 'v')
+        if swapVolume is not None:
             #
             # swap: fetchTrades
             #
@@ -1763,7 +1764,8 @@ class mexc(Exchange, ImplicitAPI):
             priceString = self.safe_string_2(trade, 'price', 'p')
             orderId = self.safe_string(trade, 'orderId')
             # if swap
-            if 'positionMode' in trade:
+            positionMode = self.safe_string(trade, 'positionMode')
+            if positionMode is not None:
                 timestamp = self.safe_integer(trade, 'timestamp')
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_contract_order_side(self.safe_string(trade, 'side'))

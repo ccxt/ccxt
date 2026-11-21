@@ -1672,24 +1672,37 @@ class aster(ccxt.async_support.aster):
                         # accumulate order fees
                         fees = self.safe_list(order, 'fees', [])
                         fee = self.safe_dict(order, 'fee')
+                        tradeFeeCurrency = self.safe_string(tradeFee, 'currency')
+                        tradeFeeCost = self.safe_number(tradeFee, 'cost')
                         if not self.is_empty(fees):
                             insertNewFeeCurrency = True
+                            newFees = []
                             for i in range(0, len(fees)):
-                                orderFee = fees[i]
-                                if self.safe_string(orderFee, 'currency') == self.safe_string(tradeFee, 'currency'):
-                                    feeCost = self.sum(tradeFee['cost'], orderFee['cost'])
-                                    feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
-                                    order['fees'][i]['cost'] = None if (feeCostString is None) else float(feeCostString)
+                                orderFee = self.extend({}, fees[i])
+                                if insertNewFeeCurrency and self.safe_string(orderFee, 'currency') == tradeFeeCurrency:
+                                    feeCost = self.sum(tradeFeeCost, self.safe_number(orderFee, 'cost'))
+                                    feeCostString = self.currency_to_precision(tradeFeeCurrency, feeCost)
+                                    if feeCostString is not None:
+                                        orderFee['cost'] = float(feeCostString)
+                                    else:
+                                        orderFee['cost'] = None
                                     insertNewFeeCurrency = False
-                                    break
+                                newFees.append(orderFee)
                             if insertNewFeeCurrency:
-                                order['fees'].append(tradeFee)
+                                newFees.append(tradeFee)
+                            order['fees'] = newFees
                         elif fee is not None:
-                            if self.safe_string(fee, 'currency') == self.safe_string(tradeFee, 'currency'):
-                                feeCost = self.sum(fee['cost'], tradeFee['cost'])
-                                feeCostString = self.currency_to_precision(tradeFee['currency'], feeCost)
-                                order['fee']['cost'] = None if (feeCostString is None) else float(feeCostString)
-                            elif self.safe_string(fee, 'currency') is None:
+                            feeCurrency = self.safe_string(fee, 'currency')
+                            if feeCurrency == tradeFeeCurrency:
+                                feeCost = self.sum(self.safe_number(fee, 'cost'), tradeFeeCost)
+                                feeCostString = self.currency_to_precision(tradeFeeCurrency, feeCost)
+                                newFee = self.extend({}, fee)
+                                if feeCostString is not None:
+                                    newFee['cost'] = float(feeCostString)
+                                else:
+                                    newFee['cost'] = None
+                                order['fee'] = newFee
+                            elif feeCurrency is None:
                                 order['fee'] = tradeFee
                             else:
                                 order['fees'] = [fee, tradeFee]

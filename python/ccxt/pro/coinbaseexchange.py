@@ -219,8 +219,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbolValue = self.symbol(symbol)
         name = 'user'
         messageHash = 'myTrades'
-        authentication = self.authenticate()
-        trades = await self.subscribe(name, symbolValue, messageHash, self.extend(params, authentication))
+        trades = await self.subscribe(name, symbolValue, messageHash, self.extend(params, self.authenticate()))
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolValue, limit)
@@ -240,8 +239,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             await self.load_markets()
         name = 'user'
         messageHash = 'myTrades'
-        authentication = self.authenticate()
-        trades = await self.subscribe_multiple(name, symbolsNormalized, messageHash, self.extend(params, authentication))
+        trades = await self.subscribe_multiple(name, symbolsNormalized, messageHash, self.extend(params, self.authenticate()))
         first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
@@ -263,8 +261,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbolsNormalized = self.market_symbols(symbols, None, False)
         name = 'user'
         messageHash = 'orders'
-        authentication = self.authenticate()
-        orders = await self.subscribe_multiple(name, symbolsNormalized, messageHash, self.extend(params, authentication))
+        orders = await self.subscribe_multiple(name, symbolsNormalized, messageHash, self.extend(params, self.authenticate()))
         first = self.safe_dict(orders, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
@@ -288,8 +285,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbolValue = self.symbol(symbol)
         name = 'user'
         messageHash = 'orders'
-        authentication = self.authenticate()
-        orders = await self.subscribe(name, symbolValue, messageHash, self.extend(params, authentication))
+        orders = await self.subscribe(name, symbolValue, messageHash, self.extend(params, self.authenticate()))
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolValue, limit)
@@ -329,8 +325,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'marketIds': marketIds,
             'limit': limit,
         }
-        authentication = self.authenticate()
-        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, authentication), messageHashes, subscription)
+        orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, self.authenticate()), messageHashes, subscription)
         return orderbook.limit()
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -345,7 +340,6 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
         messageHash = name + ':' + self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         subscribe = {
@@ -360,12 +354,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         request = self.extend(subscribe, params)
         subscription = {
             'messageHash': messageHash,
-            'symbol': symbolValue,
+            'symbol': self.safe_string(market, 'symbol'),
             'marketId': market['id'],
             'limit': limit,
         }
-        authentication = self.authenticate()
-        orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
+        orderbook = await self.watch(url, messageHash, self.extend(request, self.authenticate()), messageHash, subscription)
         return orderbook.limit()
 
     def handle_trade(self, client: Client, message: dict) -> dict:
@@ -386,7 +379,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
             trade = self.parse_ws_trade(message)
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             # the exchange sends type = 'match'
             # but requires 'matches' upon subscribing
             # therefore we resolve 'matches' here instead of 'match'
@@ -489,7 +482,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if isMaker:
             idKey = 'maker_order_id'
         parsed['order'] = self.safe_string(trade, idKey)
-        parsedSymbol = parsed['symbol']
+        parsedSymbol = self.safe_string(parsed, 'symbol', '')
         marketResolved = self.market(parsedSymbol)
         feeCurrency = marketResolved['quote']
         feeCost = None
@@ -735,7 +728,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
             ticker = self.parse_ticker(message)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = ticker
             messageHash = 'ticker:' + self.safe_string(ticker, 'symbol', '')
@@ -834,7 +827,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         type = self.safe_string(message, 'type')
         marketId = self.safe_string(message, 'product_id')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         name = 'level2'
         messageHash = name + ':' + self.safe_string(market, 'id', '')
         subscription = self.safe_dict(client.subscriptions, messageHash, {})

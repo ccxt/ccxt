@@ -904,7 +904,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 pricePrecision = self.calculate_price_precision(price, amountPrecision, 8)
             pricePrecisionStr = self.number_to_string(pricePrecision)
             # const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-            baseId = self.number_to_string(index + 10000)
+            indexInt = self.safe_integer(market, 'index', 0)
+            baseId = self.number_to_string(indexInt + 10000)
             entry = {
                 'id': marketName,
                 'symbol': mappedSymbol,
@@ -3315,7 +3316,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         if tif is not None:
             postOnly = (tif == 'ALO')
         isTrigger = self.safe_bool(entry, 'isTrigger', False)
-        triggerPx = self.safe_number(entry, 'triggerPx') if isTrigger else None
+        triggerPx = None
+        if isTrigger:
+            triggerPx = self.safe_number(entry, 'triggerPx')
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         # through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')

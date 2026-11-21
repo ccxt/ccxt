@@ -2111,7 +2111,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.parse_order(data, market)
 
     def convert_to_big_int_custom(self, x: object) -> int:
-        return int(self.number_to_string(x))
+        return self.parse_to_int(x)
 
     def eip_message_for_order(self, order: dict, structureType: Str) -> dict:
         priceMultiplier = 1000000000
@@ -2128,7 +2128,7 @@ class grvt(Exchange, ImplicitAPI):
             sizeParts = size.split('.')
             sizeDec = self.safe_string(sizeParts, 1, '')
             sizeDecLength = len(sizeDec) + 0  # php tr
-            sizeDigits = int(size.replace('.', ''))
+            sizeDigits = self.parse_to_int(size.replace('.', ''))
             denominator = math.pow(10, sizeDecLength)
             sizeInteger = sizeDigits * sizeMultiplier / denominator
             legOrder = {
@@ -2142,7 +2142,7 @@ class grvt(Exchange, ImplicitAPI):
                 limitParts = price.split('.')
                 limitDec = self.safe_string(limitParts, 1, '')
                 limitDecLength = len(limitDec) + 0  # php tr
-                priceDigits = int(price.replace('.', ''))
+                priceDigits = self.parse_to_int(price.replace('.', ''))
                 denominator = math.pow(10, limitDecLength)
                 priceInteger = priceDigits * priceMultiplier / denominator
                 legOrder['limitPrice'] = self.parse_to_int(priceInteger)
@@ -2162,7 +2162,7 @@ class grvt(Exchange, ImplicitAPI):
         }
         if structureType == 'EIP712_ORDER_WITH_BUILDER_TYPE' and self.safe_bool(self.options, 'builderFee', True):
             returnValue['builder'] = order['builder']
-            returnValue['builderFee'] = self.parse_to_int(self.convert_to_big_int_custom(self.fee_amount_multiplier()) * float(self.safe_string(order, 'builder_fee')))  # the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+            returnValue['builderFee'] = self.parse_to_int(Precise.string_mul(self.number_to_string(self.fee_amount_multiplier()), self.safe_string(order, 'builder_fee', '0')))
         return returnValue
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -2887,7 +2887,7 @@ class grvt(Exchange, ImplicitAPI):
         #        "ack": true
         #    }
         #
-        if 'ack' in order:
+        if self.safe_bool(order, 'ack') is not None:
             return self.safe_order({
                 'info': order,
                 'id': None,
@@ -3062,7 +3062,7 @@ class grvt(Exchange, ImplicitAPI):
         requestSignature = self.safe_dict(request, 'signature', {})
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
-            amountInt = request['num_tokens'] * amountMultiplier
+            amountInt = Precise.string_mul(self.safe_string(request, 'num_tokens', '0'), self.number_to_string(amountMultiplier))
             if currencyObj is None:
                 raise ExchangeError(self.id + ' createSignedRequest() missing currencyObj')
             messageData = {
@@ -3083,7 +3083,7 @@ class grvt(Exchange, ImplicitAPI):
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],
                 'tokenCurrency': currencyObj['numericId'],
-                'numTokens': self.parse_to_int(request['num_tokens'] * amountMultiplier),
+                'numTokens': self.parse_to_int(Precise.string_mul(self.safe_string(request, 'num_tokens', '0'), self.number_to_string(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             }
@@ -3094,8 +3094,8 @@ class grvt(Exchange, ImplicitAPI):
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
-                'maxFutureFeeRate': self.parse_to_int(float(self.safe_string(request, 'max_futures_fee_rate')) * amountMultiplier),
-                'maxSpotFeeRate': self.parse_to_int(float(self.safe_string(request, 'max_spot_fee_rate')) * amountMultiplier),
+                'maxFutureFeeRate': self.parse_to_int(Precise.string_mul(self.safe_string(request, 'max_futures_fee_rate', '0'), self.number_to_string(amountMultiplier))),
+                'maxSpotFeeRate': self.parse_to_int(Precise.string_mul(self.safe_string(request, 'max_spot_fee_rate', '0'), self.number_to_string(amountMultiplier))),
                 'nonce': requestSignature['nonce'],
                 'expiration': requestSignature['expiration'],
             }

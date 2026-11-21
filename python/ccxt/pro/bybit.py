@@ -379,7 +379,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'ticker:' + symbolValue
         url = await self.get_url_by_market_type(symbolValue, False, 'watchTicker', params)
         paramsValue = self.clean_params(params)
@@ -728,7 +728,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
             market = self.market(data[0])
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol', '')
             unfiedTimeframe = data[1]
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             marketId = self.safe_string(market, 'id', '')
@@ -764,7 +764,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(symbolsAndTimeframes)):
             data = symbolsAndTimeframes[i]
             market = self.market(data[0])
-            symbolString = market['symbol']
+            symbolString = self.safe_string(market, 'symbol', '')
             unfiedTimeframe = data[1]
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             marketId = self.safe_string(market, 'id', '')
@@ -828,7 +828,7 @@ class bybit(ccxt.async_support.bybit):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         if self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe) is None:
@@ -1024,7 +1024,7 @@ class bybit(ccxt.async_support.bybit):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer(message, 'ts')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -1180,7 +1180,7 @@ class bybit(ccxt.async_support.bybit):
             marketType = 'spot'
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1225,7 +1225,7 @@ class bybit(ccxt.async_support.bybit):
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'T', 'v'])
-        isContract = ('BT' in trade)
+        isContract = (self.safe_bool(trade, 'BT') is not None)
         marketType = 'spot'
         if isContract:
             marketType = 'contract'
@@ -1233,7 +1233,7 @@ class bybit(ccxt.async_support.bybit):
             marketType = self.safe_string(market, 'type')
         marketId = self.safe_string(trade, 's')
         marketResolved = self.safe_market(marketId, market, None, marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
@@ -1464,7 +1464,7 @@ class bybit(ccxt.async_support.bybit):
                 if (execTypes is not None) and not self.in_array(execType, execTypes):
                     continue
                 parsed = self.parse_trade(rawTrade)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is None:
                 continue
             symbols[symbol] = True
@@ -1659,7 +1659,7 @@ class bybit(ccxt.async_support.bybit):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         url = await self.get_url_by_market_type(symbolValue, False, 'watchLiquidations', params)
         method, paramsMethod = self.handle_option_string_and_params(self.clean_params(params), 'watchLiquidations', 'method', 'allLiquidation')
         messageHash = 'liquidations::' + symbolValue
@@ -1706,7 +1706,7 @@ class bybit(ccxt.async_support.bybit):
                 rawLiquidation = self.safe_dict(rawLiquidations, i)
                 marketId = self.safe_string(rawLiquidation, 's')
                 market = self.safe_market(marketId, None, '', 'contract')
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 liquidation = self.parse_ws_liquidation(rawLiquidation, market)
                 if self.liquidations is None:
                     limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -1719,7 +1719,7 @@ class bybit(ccxt.async_support.bybit):
             rawLiquidation = self.safe_dict(message, 'data', {})
             marketId = self.safe_string(rawLiquidation, 'symbol')
             market = self.safe_market(marketId, None, '', 'contract')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             liquidation = self.parse_ws_liquidation(rawLiquidation, market)
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -1960,7 +1960,7 @@ class bybit(ccxt.async_support.bybit):
             # } else {
             #     parsed = this.parseOrder (rawOrders[i]);
             # }
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is None:
                 continue
             symbols[symbol] = True

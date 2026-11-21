@@ -2146,10 +2146,10 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     async def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
-        fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+        fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
-                orderBook = await self.fetch_order_book(symbol, limit, params)
+                orderBook = await self.fetch_order_book(symbol, limit, fetchParams)
                 return orderBook
             except Exception as e:
                 if (i + 1) == fetchSnapshotMaxRetries:

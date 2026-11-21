@@ -1197,7 +1197,8 @@ class bitstamp(Exchange, ImplicitAPI):
                 seconds = self.parse_to_int(datetimeString)
                 timestamp = seconds * 1000
         # if it is a private trade
-        if 'id' in trade:
+        tradeId = self.safe_string(trade, 'id')
+        if tradeId is not None:
             if amountString is not None:
                 isAmountNeg = Precise.string_lt(amountString, '0')
                 if isAmountNeg:
@@ -2056,8 +2057,9 @@ class bitstamp(Exchange, ImplicitAPI):
         feeCost = self.safe_string(transaction, 'fee')
         feeCurrency = None
         amount = None
-        if 'amount' in transaction:
-            amount = self.safe_string(transaction, 'amount')
+        transactionAmount = self.safe_string(transaction, 'amount')
+        if transactionAmount is not None:
+            amount = transactionAmount
         elif currency is not None:
             amount = self.safe_string(transaction, currency['id'])
             feeCurrency = currency['code']
@@ -2068,12 +2070,13 @@ class bitstamp(Exchange, ImplicitAPI):
             # withdrawals have a negative amount
             amount = Precise.string_abs(amount)
         status = 'ok'
-        if 'status' in transaction:
-            status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        rawStatus = self.safe_string(transaction, 'status')
+        if rawStatus is not None:
+            status = self.parse_transaction_status(rawStatus)
         type = None
-        if 'type' in transaction:
+        rawType = self.safe_string(transaction, 'type')
+        if rawType is not None:
             # from fetchDepositsWithdrawals
-            rawType = self.safe_string(transaction, 'type')
             if rawType == '0':
                 type = 'deposit'
             elif rawType == '1':
@@ -2311,13 +2314,13 @@ class bitstamp(Exchange, ImplicitAPI):
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             transactionCurrency = self.safe_string(parsedTransaction, 'currency')
-            hasTransactionCurrency = not ('amount' in item) and (transactionCurrency is not None)
+            itemAmount = self.safe_string(item, 'amount')
+            hasTransactionCurrency = (itemAmount is None) and (transactionCurrency is not None)
             currencyResolved = currency
             if hasTransactionCurrency:
                 currencyResolved = self.currency(self.safe_string(parsedTransaction, 'currency'))
-            if 'amount' in item:
-                amount = self.safe_string(item, 'amount')
-                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
+            if itemAmount is not None:
+                direction = 'in' if Precise.string_gt(itemAmount, '0') else 'out'
             elif transactionCurrency is not None:
                 amount = self.safe_string(item, self.safe_string(currencyResolved, 'id'))
                 direction = 'in' if Precise.string_gt(amount, '0') else 'out'

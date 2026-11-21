@@ -6757,24 +6757,26 @@ class BaseExchange(object):
         if price is None:
             return None
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol')
         result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
         if result == '0':
             pricePrecision = self.number_to_string(market['precision']['price'])
             if pricePrecision is None:
-                raise BadSymbol(self.id + ' priceToPrecision() market ' + market['symbol'] + ' has no price precision')
-            raise InvalidOrder(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + pricePrecision)
+                raise BadSymbol(self.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision')
+            raise InvalidOrder(self.id + ' price of ' + marketSymbol + ' must be greater than minimum price precision of ' + pricePrecision)
         return result
 
     def amount_to_precision(self, symbol: Str, amount: object):
         if amount is None:
             return None
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol')
         result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
         if result == '0':
             amountPrecision = self.number_to_string(market['precision']['amount'])
             if amountPrecision is None:
-                raise BadSymbol(self.id + ' amountToPrecision() market ' + market['symbol'] + ' has no amount precision')
-            raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + amountPrecision)
+                raise BadSymbol(self.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision')
+            raise InvalidOrder(self.id + ' amount of ' + marketSymbol + ' must be greater than minimum amount precision of ' + amountPrecision)
         return result
 
     def fee_to_precision(self, symbol: Str, fee: object):
@@ -7040,8 +7042,9 @@ class BaseExchange(object):
         fundingRates = {}
         for i in range(0, len(response)):
             parsed = self.parse_funding_rate(response[i])
-            if parsed['symbol'] is not None:
-                fundingRates[parsed['symbol']] = parsed
+            symbol = self.safe_string(parsed, 'symbol')
+            if symbol is not None:
+                fundingRates[symbol] = parsed
         return self.index_by(self.filter_by_array(fundingRates, 'symbol', symbols, False), 'symbol')
 
     def parse_long_short_ratio(self, info: dict, market: Market = None):
@@ -7182,8 +7185,9 @@ class BaseExchange(object):
         result = {}
         for i in range(0, len(response)):
             parsed = self.parse_open_interest(response[i])
-            if parsed['symbol'] is not None:
-                result[parsed['symbol']] = parsed
+            symbol = self.safe_string(parsed, 'symbol')
+            if symbol is not None:
+                result[symbol] = parsed
         return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
     def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
@@ -7495,8 +7499,9 @@ class BaseExchange(object):
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data: list[list]):
         res = {}
-        res[symbol] = {}
-        res[symbol][timeframe] = data
+        inner = {}
+        inner[timeframe] = data
+        res[symbol] = inner
         return res
 
     def handle_max_entries_per_request_and_params(self, method: str, maxEntriesPerRequest: Int = None, params: dict = {}):
@@ -8627,10 +8632,10 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     def fetch_rest_order_book_safe(self, symbol: object, limit: Int = None, params: dict = {}):
-        fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+        fetchSnapshotMaxRetries, fetchParams = self.handle_option_integer_and_params(params, 'watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
-                orderBook = self.fetch_order_book(symbol, limit, params)
+                orderBook = self.fetch_order_book(symbol, limit, fetchParams)
                 return orderBook
             except Exception as e:
                 if (i + 1) == fetchSnapshotMaxRetries:

@@ -2412,9 +2412,9 @@ class htx(Exchange, ImplicitAPI):
         if response is None:
             raise NullResponse(self.id + ' fetchOrderBook() returned empty response')
         if 'tick' in response:
-            if self.safe_value(response, 'tick') is None:
-                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_dict(response, 'tick')
+            if tick is None:
+                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
             result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')

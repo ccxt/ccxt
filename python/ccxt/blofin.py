@@ -2587,22 +2587,21 @@ class blofin(Exchange, ImplicitAPI):
         if trigger is True:
             method = 'privatePostTradeCancelTpsl'
         if clientOrderIds is None:
-            orderIds = self.parse_ids(ids)
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
                         'tpslId': self.safe_string(tpslIds, i),
                         'instId': market['id'],
                     })
-            for i in range(0, len(orderIds)):
+            for i in range(0, len(ids)):
                 if trigger is True:
                     request.append({
-                        'tpslId': self.safe_string(orderIds, i),
+                        'tpslId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': self.safe_string(orderIds, i),
+                        'orderId': self.safe_string(ids, i),
                         'instId': market['id'],
                     })
         else:

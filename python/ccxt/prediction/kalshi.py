@@ -2028,8 +2028,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
             parsedMarkets = parsedEvent['markets']
             parsedMarketsLength = len(parsedMarkets)
             for mi in range(0, parsedMarketsLength):
-                m = parsedMarkets[mi]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(parsedMarkets[mi], 'market')
+                if marketKey is not None:
+                    self.markets[marketKey] = parsedMarkets[mi]
         self.populate_outcomes()
         # scoping already happened server-side, so strip the resolved scopes before the client-side
         # pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,

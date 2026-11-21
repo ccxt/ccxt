@@ -3122,7 +3122,7 @@ class predictfun(PredictionExchange, ImplicitAPI):
             return self.safe_outcome(tokenId, market)
         return self.safe_outcome(tokenId)
 
-    def outcomes_by_market_id(self, marketId: Str) -> list[object]:
+    def outcomes_by_market_id(self, marketId: Str) -> list[dict]:
         """
  @ignore
         the cached outcomes that belong to one venue market id

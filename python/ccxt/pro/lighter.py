@@ -1023,7 +1023,7 @@ class lighter(ccxt.async_support.lighter):
             assetIds = list(assets.keys())
             for i in range(0, len(assetIds)):
                 assetId = assetIds[i]
-                asset = self.safe_dict(assets, assetId)
+                asset = self.safe_dict(assets, assetId, {})
                 codeId = self.safe_string(asset, 'symbol')
                 code = self.safe_currency_code(codeId)
                 account = self.account()
@@ -1444,8 +1444,8 @@ class lighter(ccxt.async_support.lighter):
             for i in range(0, len(subscriptionHashes)):
                 subscriptionHash = subscriptionHashes[i]
                 if subscriptionHash.startswith('ticker'):
-                    subscription = self.safe_dict(client.subscriptions, subscriptionHash)
-                    subscriptionParams = self.safe_dict(subscription, 'params')
+                    subscription = self.safe_dict(client.subscriptions, subscriptionHash, {})
+                    subscriptionParams = self.safe_dict(subscription, 'params', {})
                     subscribedChannel = self.safe_string(subscriptionParams, 'channel')
                     if subscribedChannel == 'market_stats/all':
                         del client.subscriptions[subscriptionHash]

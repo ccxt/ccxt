@@ -1001,7 +1001,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
             market = self.safe_market(marketId, None, delimiter)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = self.parse_ticker_list(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
@@ -1108,7 +1108,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             side = 'buy' if (rawSide == 'buy') else 'sell'
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_trade({
             'id': id,
             'order': orderId,
@@ -1582,7 +1582,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             if costParam is not None:
                 request['funds'] = self.cost_to_precision(symbol, costParam)
             elif price is not None:
-                request['funds'] = self.cost_to_precision(symbol, amount * price)
+                request['funds'] = self.cost_to_precision(symbol, Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
             else:
                 request['size'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, paramsCost))
@@ -2138,7 +2138,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         response = await self.fetch2(path, api, method, params, config)
-        if not isinstance(response, str):
-            if 'message' in response:
-                raise ExchangeError(self.id + ' ' + self.json(response))
+        message = self.safe_string(response, 'message')
+        if message is not None:
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response

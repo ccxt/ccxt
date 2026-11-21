@@ -1463,7 +1463,9 @@ class deribit(Exchange, ImplicitAPI):
         defaultLimit = 1000
         windowLimit = defaultLimit if (limit is None) else limit
         limitResolved = defaultLimit if ((since is None) and (limit is None)) else limit
-        sinceResolved = None if (since is None) else max(since - 1, 0)
+        sinceResolved = None
+        if since is not None:
+            sinceResolved = max(since - 1, 0)
         if since is None:
             request['start_timestamp'] = now - (windowLimit - 1) * duration * 1000
             request['end_timestamp'] = now
