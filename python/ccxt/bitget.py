@@ -5987,8 +5987,7 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
-        firstOrder = self.safe_dict(orders, 0)
-        symbol = self.safe_string(firstOrder, 'symbol')
+        symbol = None
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)
@@ -6054,8 +6053,7 @@ class bitget(Exchange, ImplicitAPI):
         if uta is True:
             return self.create_uta_orders(orders, paramsUTA)
         ordersRequests = []
-        firstOrder = self.safe_dict(orders, 0)
-        symbol = self.safe_string(firstOrder, 'symbol')
+        symbol = None
         marginMode = None
         for i in range(0, len(orders)):
             rawOrder = self.safe_dict(orders, i)

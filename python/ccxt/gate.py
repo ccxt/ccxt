@@ -4404,8 +4404,11 @@ class gate(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_unified_status()
         ordersRequests = self.create_orders_request(orders, params)
-        firstOrder = orders[0]
-        market = self.market(firstOrder['symbol'])
+        symbol = None
+        for i in range(0, len(orders)):
+            if i == 0:
+                symbol = self.safe_string(orders[i], 'symbol')
+        market = self.market(symbol)
         response = None
         if self.safe_bool(market, 'spot', False):
             response = self.privateSpotPostBatchOrders(ordersRequests)

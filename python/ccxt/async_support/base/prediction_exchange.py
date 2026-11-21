@@ -1388,6 +1388,8 @@ class PredictionExchange(BaseExchange):
             return ''
         # RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         byteLength = self.parse_to_int(len(hex) / 2)
+        if byteLength is None:
+            return ''
         if byteLength == 0:
             return '80'
         if (byteLength == 1) and (hex < '80'):
@@ -1406,6 +1408,8 @@ class PredictionExchange(BaseExchange):
         for i in range(0, len(items)):
             concatenated = concatenated + self.safe_string(items, i, '')
         byteLength = self.parse_to_int(len(concatenated) / 2)
+        if byteLength is None:
+            return ''
         if byteLength < 56:
             return self.int_to_base16(192 + byteLength) + concatenated
         lengthHex = self.int_to_base16(byteLength)

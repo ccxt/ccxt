@@ -515,7 +515,7 @@ class lighter(Exchange, ImplicitAPI):
             # }
             #
             subAccounts = self.safe_list(res, 'sub_accounts')
-            if isinstance(subAccounts, list):
+            if subAccounts is not None:
                 account = self.safe_dict(subAccounts, 0)
                 if account is None:
                     raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter')

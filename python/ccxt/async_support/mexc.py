@@ -5314,7 +5314,6 @@ class mexc(Exchange, ImplicitAPI):
             request['toAccountType'] = self.safe_string(accountTypes, toAccountType, toAccountType)
         else:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a toAccountType parameter, one of "SPOT", "FUTURES"')
-        resultList = []
         if marketType == 'spot':
             if since is not None:
                 request['startTime'] = since
@@ -5341,13 +5340,13 @@ class mexc(Exchange, ImplicitAPI):
             #     ],
             #     "total": 1
             # }
-            resultList = self.safe_list(response, 'rows', [])
+            return self.parse_transfers(self.safe_list(response, 'rows', []), currency, since, limit)
         elif marketType == 'swap':
             if limit is not None:
                 request['page_size'] = limit
             response = await self.contractPrivateGetAccountTransferRecord(self.extend(request, paramsToAccountType))
             data = self.safe_dict(response, 'data')
-            resultList = self.safe_value(data, 'resultList')
+            return self.parse_transfers(self.safe_list(data, 'resultList', []), currency, since, limit)
             #
             #     {
             #         "success": true,
@@ -5372,7 +5371,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-        return self.parse_transfers(resultList, currency, since, limit)
+        return self.parse_transfers([], currency, since, limit)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """

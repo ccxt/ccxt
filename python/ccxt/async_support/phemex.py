@@ -3162,12 +3162,12 @@ class phemex(Exchange, ImplicitAPI):
             if isinstance(e, OrderNotFound):
                 return []
             raise e
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3242,12 +3242,12 @@ class phemex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        if isinstance(data, list):
-            return self.parse_orders(data, market, since, limit)
-        else:
-            rows = self.safe_list(data, 'rows', [])
-            return self.parse_orders(rows, market, since, limit)
+        dataList = self.safe_list(response, 'data')
+        if dataList is not None:
+            return self.parse_orders(dataList, market, since, limit)
+        dataDict = self.safe_dict(response, 'data')
+        rows = self.safe_list(dataDict, 'rows', [])
+        return self.parse_orders(rows, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

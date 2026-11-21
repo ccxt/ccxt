@@ -210,8 +210,11 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         request = self.createOrdersRequest(orders, params)
-        firstOrder = orders[0]
-        market = self.market(firstOrder['symbol'])
+        symbol = None
+        for i in range(0, len(orders)):
+            if i == 0:
+                symbol = self.safe_string(orders[i], 'symbol')
+        market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' createOrdersWs is not supported for swap markets')
         # todo add swap support

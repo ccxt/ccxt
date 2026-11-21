@@ -525,7 +525,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_ticker(result, market)
 
-    def parse_ticker(self, ticker: object, market: Market = None):
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # parseTickers
         #

@@ -4995,7 +4995,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         orders = self.safe_list(result, 'list')
-        if not isinstance(orders, list):
+        if orders is None:
             return [self.safe_order({'info': response})]
         return self.parse_orders(orders, market)
 

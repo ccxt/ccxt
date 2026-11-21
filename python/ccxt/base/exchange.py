@@ -3916,10 +3916,11 @@ class BaseExchange(object):
                 if marketType == 'spot':
                     self.features[marketType] = self.features_mapper(initialFeatures, marketType)
                 else:
-                    self.features[marketType] = {}
+                    subTypeFeatures = {}
                     for j in range(0, len(subTypes)):
                         subType = subTypes[j]
-                        self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
+                        subTypeFeatures[subType] = self.features_mapper(initialFeatures, marketType, subType)
+                    self.features[marketType] = subTypeFeatures
 
     def features_mapper(self, initialFeatures: dict, marketType: Str, subType: Str = None):
         featuresObj = self.safe_dict(initialFeatures, marketType)
@@ -4521,9 +4522,7 @@ class BaseExchange(object):
                 reducedFees = []
             reducedLength = len(reducedFees)
             for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
-                if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
+                reducedFees[i] = self.parse_fee_numeric(reducedFees[i])
             if not parseFee and (reducedLength == 0):
                 # copy fee to avoid modification by reference
                 feeCopy = self.deep_extend(fee)
@@ -4861,7 +4860,7 @@ class BaseExchange(object):
             result.append(itemWithKey)
         return result
 
-    def invert_flat_string_dictionary(self, dict: object):
+    def invert_flat_string_dictionary(self, dict: dict):
         reversed = {}
         keys = list(dict.keys())
         for i in range(0, len(keys)):
@@ -6816,6 +6815,8 @@ class BaseExchange(object):
         if precision is None:
             return None
         precisionNumber = int(precision)
+        if precisionNumber is None:
+            return None
         if precisionNumber == 0:
             return '1'
         if precisionNumber > 0:
@@ -6845,6 +6846,8 @@ class BaseExchange(object):
             if positivePrecisionString is None:
                 return None
             positivePrecision = int(positivePrecisionString)
+            if positivePrecision is None:
+                return None
             parsedPrecision = '1'
             for i in range(0, positivePrecision - 1):
                 parsedPrecision = parsedPrecision + '0'

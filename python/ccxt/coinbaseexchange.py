@@ -851,7 +851,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'sequence')
         return orderbook
 
-    def parse_ticker(self, ticker: dict | list, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTickers
         #
@@ -895,17 +895,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         open = None
         volume = None
         symbol = self.safe_string(market, 'symbol')
-        if isinstance(ticker, list):
-            last = self.safe_string(ticker, 4)
-        else:
-            timestamp = self.parse8601(self.safe_string(ticker, 'time'))
-            bid = self.safe_string(ticker, 'bid')
-            ask = self.safe_string(ticker, 'ask')
-            high = self.safe_string(ticker, 'high')
-            low = self.safe_string(ticker, 'low')
-            open = self.safe_string(ticker, 'open')
-            last = self.safe_string_2(ticker, 'price', 'last')
-            volume = self.safe_string(ticker, 'volume')
+        timestamp = self.parse8601(self.safe_string(ticker, 'time'))
+        bid = self.safe_string(ticker, 'bid')
+        ask = self.safe_string(ticker, 'ask')
+        high = self.safe_string(ticker, 'high')
+        low = self.safe_string(ticker, 'low')
+        open = self.safe_string(ticker, 'open')
+        last = self.safe_string_2(ticker, 'price', 'last')
+        volume = self.safe_string(ticker, 'volume')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -925,6 +922,39 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': volume,
+            'quoteVolume': None,
+            'info': ticker,
+        }, market)
+
+    def parse_ticker_list(self, ticker: list, market: Market = None) -> Ticker:
+        #
+        #      [
+        #         1639472400, // timestamp
+        #         4.26, // low
+        #         4.38, // high
+        #         4.35, // open
+        #         4.27 // close
+        #      ]
+        #
+        return self.safe_ticker({
+            'symbol': self.safe_string(market, 'symbol'),
+            'timestamp': None,
+            'datetime': None,
+            'high': None,
+            'low': None,
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': self.safe_string(ticker, 4),
+            'last': self.safe_string(ticker, 4),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
             'quoteVolume': None,
             'info': ticker,
         }, market)
@@ -972,7 +1002,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             entry = self.safe_list(response, marketId, [])
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
+            result[symbol] = self.parse_ticker_list(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:

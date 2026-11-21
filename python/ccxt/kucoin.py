@@ -4510,9 +4510,8 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         isSpot = False
         isContract = False
-        ordersList = self.to_array(orders)
-        for i in range(0, len(ordersList)):
-            order = self.safe_dict(ordersList, i)
+        for i in range(0, len(orders)):
+            order = self.safe_dict(orders, i)
             symbol = self.safe_string(order, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -4548,9 +4547,8 @@ class kucoin(Exchange, ImplicitAPI):
             self.load_markets()
         ordersRequests = []
         symbol = None
-        ordersList = self.to_array(orders)
-        for i in range(0, len(ordersList)):
-            rawOrder = self.safe_dict(ordersList, i)
+        for i in range(0, len(orders)):
+            rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             if marketId is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')
@@ -4630,9 +4628,8 @@ class kucoin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         ordersRequests = []
-        ordersList = self.to_array(orders)
-        for i in range(0, len(ordersList)):
-            rawOrder = self.safe_dict(ordersList, i)
+        for i in range(0, len(orders)):
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires a symbol for each order')

@@ -1177,7 +1177,7 @@ class bitfinex(Exchange, ImplicitAPI):
         result['asks'] = self.sort_by(asks, 0)
         return result
 
-    def parse_ticker(self, ticker: list, market: Market = None) -> Ticker:
+    def parse_ticker_list(self, ticker: list, market: Market = None) -> Ticker:
         #
         # on trading pairs (ex. tBTCUSD)
         #
@@ -1349,7 +1349,10 @@ class bitfinex(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
-        return self.parse_tickers(tickers, symbolsNormalized)
+        results = []
+        for i in range(0, len(tickers)):
+            results.append(self.parse_ticker_list(self.safe_list(tickers, i, [])))
+        return self.filter_by_array_tickers(results, 'symbol', symbolsNormalized)
 
     def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1368,7 +1371,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker_list(ticker, market)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
