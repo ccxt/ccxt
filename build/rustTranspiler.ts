@@ -6327,6 +6327,7 @@ function moveLocalsAtLastUse(content: string, sites?: RegExp): string {
         const stmt = loopEnd === undefined ? after.slice(stmtStart + 1) : rustDropOwnedReads(after.slice(stmtStart + 1), name);
         heads.push(stmt);
         if (heads.some(h => (divEnd < 0 ? /\b(?:loop|while|for)\b|\|/ : /\basync\b|\|/).test(h))) continue;
+        if (divEnd < 0 && m[1] === '{ ' && rustH27r03OptionTestArm(stmt, name)) { edits.push([pos, end, `${m[1]}${name}`]); continue; }
         if (divEnd < 0 ? word.test(stmt) : rustOnlyCloneMentions(stmt, name) || rustBorrowsFrom(after, code.slice(end, divEnd), name)) continue;
         edits.push([pos, end, `${m[1]}${name}`]);
     }
@@ -6334,6 +6335,14 @@ function moveLocalsAtLastUse(content: string, sites?: RegExp): string {
     for (const [a, b, t] of edits) { out += content.slice(last, a) + t; last = b; }
     return out + content.slice(last);
 }
+
+// ===== h27-R03
+// `(if (x.is_some()) { x.clone()..` : the condition only reads x, so the arm may move it when x is not named later
+function rustH27r03OptionTestArm(stmt: string, name: string): boolean {
+    const t = new RegExp(`\\(if \\(${name}\\.is_(?:some|none)\\(\\)\\) $`).exec(stmt);
+    return t !== null && !new RegExp(`(?<![\\w.])${name}\\b`).test(stmt.slice(0, t.index));
+}
+// ===== end h27-R03
 
 // helpers taking `impl ScalarArg`: [name, index of the lent argument, required argument count]
 const RUST_SCALAR_LENT_FNS: Array<[string, number, number?]> = [
@@ -9480,6 +9489,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     rustSyncTryBlocks,
     rustStrHaystackIndexOf,
     lendContainerArgs,
+    // re-run: tuple-slot passes above print fresh `x.clone()` call arguments at a last use
+    moveLocalsAtLastUse,
     rustDropUnusedMut,
     splitLongRustLines,
 ];
