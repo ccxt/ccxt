@@ -12494,7 +12494,8 @@ function goProvenParseMapMethods (): string[] {
         // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
         'ParseWsBidAsk', 'ParseWsPosition', 'ParseWsMyTrade', 'ParseWsOrderTrade', 'ParseWsUtaTrade', 'ParseWsFundingRate',
         'ParseLeverageList', // mexc: the fetchLeverage row-list parser, returns a Leverage literal
-        'Sign' ]; // base + every override return a request map literal
+        'Sign',
+        'SafePredictionPosition', 'ParsePredictionPosition', 'ParseWsOptionsPosition' ]; // map literal / converter on every override // base + every override return a request map literal
 }
 
 
