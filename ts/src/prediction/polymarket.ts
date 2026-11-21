@@ -762,8 +762,8 @@ export default class polymarket extends Exchange {
             // Build outcomes array
             const outcomes: any[] = [];
             for (let oi = 0; oi < outcomeLabels.length; oi++) {
-                const outcomeLabel = outcomeLabels[oi];
-                const clobTokenId = clobTokenIds[oi];
+                const outcomeLabel = this.safeString (outcomeLabels, oi);
+                const clobTokenId = this.safeString (clobTokenIds, oi);
                 const outcomePrice = this.safeNumber (outcomePrices, oi);
                 if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
@@ -1072,7 +1072,7 @@ export default class polymarket extends Exchange {
             }
             const bookParams: any[] = [];
             for (let i = startIndex; i < endIndex; i++) {
-                bookParams.push ({ 'token_id': tokenIds[i] });
+                bookParams.push ({ 'token_id': this.safeString (tokenIds, i) });
             }
             const promises = [
                 this.clobPublicPostBooks (bookParams),
@@ -3265,8 +3265,8 @@ export default class polymarket extends Exchange {
             'outcomeId': this.safeString (market, 'outcomeId'),
             'label': this.safeString (market, 'label'),
             'market': this.safeString (market, 'market'),
-            'timestamp': orderbook['timestamp'],
-            'datetime': orderbook['datetime'],
+            'timestamp': this.safeInteger (orderbook, 'timestamp'),
+            'datetime': this.safeString (orderbook, 'datetime'),
             'high': undefined,
             'low': undefined,
             'bid': bestBid,

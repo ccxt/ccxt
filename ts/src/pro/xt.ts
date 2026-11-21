@@ -379,7 +379,7 @@ export default class xt extends xtRest {
         }
         let market: Market = undefined;
         if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+            market = this.market (this.safeString (symbols, 0));
         }
         if (name !== undefined) {
             const tickers = await this.subscribe (name, 'public', 'watchTickers', market, symbols, params);
