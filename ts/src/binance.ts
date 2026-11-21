@@ -12877,9 +12877,9 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLeverages() supports linear and inverse contracts only');
         }
-        let leverages = this.safeList (response, 'positions', []);
+        let leverages: List = this.safeList (response, 'positions', []);
         if (Array.isArray (response)) {
-            leverages = response;
+            leverages = this.toArray (response);
         }
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
@@ -15104,9 +15104,9 @@ export default class binance extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
         }
-        let assets = this.safeList (response, 'positions', []);
+        let assets: List = this.safeList (response, 'positions', []);
         if (Array.isArray (response)) {
-            assets = response;
+            assets = this.toArray (response);
         }
         return this.parseMarginModes (assets, symbolsNormalized, 'symbol', 'swap');
     }

@@ -4895,8 +4895,11 @@ function rustTypedMergeResults (content: string): string {
         const open = m.index + m[0].length;
         const close = balancedCloseIndex (content, open);
         const conv = content.slice (close + 1).match (/^\.into_((?:opt_)?(?:dict|list))\(\)/);
-        if (close >= content.length || conv === null || !kinds[m[1]].test (conv[1])) continue;
-        out += content.slice (last, open - 1) + (conv[1].startsWith ('opt_') ? '_o(' : '_t(') + content.slice (open, close + 1);
+        // `to_array` always answers a list, so its `.into_opt_list()` is `Some` of the typed twin
+        const optList = (m[1] === 'to_array') && (conv !== null) && (conv[1] === 'opt_list');
+        if (close >= content.length || conv === null || (!kinds[m[1]].test (conv[1]) && !optList)) continue;
+        if (optList) { out += content.slice (last, m.index) + 'Some(' + content.slice (m.index, open - 1) + '_t(' + content.slice (open, close + 1) + ')'; }
+        else { out += content.slice (last, open - 1) + (conv[1].startsWith ('opt_') ? '_o(' : '_t(') + content.slice (open, close + 1); }
         last = close + 1 + conv[0].length;
         head.lastIndex = last;
     }
