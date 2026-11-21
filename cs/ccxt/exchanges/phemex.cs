@@ -2389,7 +2389,7 @@ public partial class phemex : Exchange
         //         ]
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -2415,7 +2415,7 @@ public partial class phemex : Exchange
                 timestamp = lastUpdateTimeNs;
             } else
             {
-                timestamp = mathMax(timestamp, lastUpdateTimeNs);
+                timestamp = Math.Max(timestamp.Value, lastUpdateTimeNs.Value);
             }
             account["total"] = total;
             account["used"] = used;
@@ -3799,15 +3799,14 @@ public partial class phemex : Exchange
             }
             throw e;
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(response, "data");
+        if ((dataList != null))
         {
-            return this.parseOrders(data, market, since, limit);
-        } else
-        {
-            List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return this.parseOrders(rows, market, since, limit);
+            return this.parseOrders(dataList, market, since, limit);
         }
+        IDictionary<string, object> dataDict = this.safeDict(response, "data");
+        List<object> rows = this.safeList(dataDict, "rows", new List<object>() {});
+        return this.parseOrders(rows, market, since, limit);
     }
 
     /**
@@ -3898,15 +3897,14 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> dataList = this.safeList(response, "data");
+        if ((dataList != null))
         {
-            return this.parseOrders(data, market, since, limit);
-        } else
-        {
-            List<object> rows = this.safeList(data, "rows", new List<object>() {});
-            return this.parseOrders(rows, market, since, limit);
+            return this.parseOrders(dataList, market, since, limit);
         }
+        IDictionary<string, object> dataDict = this.safeDict(response, "data");
+        List<object> rows = this.safeList(dataDict, "rows", new List<object>() {});
+        return this.parseOrders(rows, market, since, limit);
     }
 
     /**

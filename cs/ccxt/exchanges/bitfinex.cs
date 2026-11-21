@@ -1492,7 +1492,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
-    public override ccxt.Ticker parseTicker(object ticker, object market = null)
+    public virtual object parseTickerList(IList<object> ticker, IDictionary<string, object>? market = null)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1534,7 +1534,7 @@ public partial class bitfinex : Exchange
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        int length = getArrayLength(ticker);
+        int length = ticker?.Count ?? 0;
         // the list shapes (fetchTickers) carry the market id in slot 0, the singular
         // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
@@ -1549,7 +1549,7 @@ public partial class bitfinex : Exchange
             minusIndex = 1;
         }
         string? marketId = this.safeString(ticker, 0);
-        object marketResolved = null;
+        IDictionary<string, object> marketResolved = null;
         if (isFetchTicker)
         {
             marketResolved = market;
@@ -1591,7 +1591,7 @@ public partial class bitfinex : Exchange
             high = this.safeString(ticker, (9 - minusIndex));
             low = this.safeString(ticker, (10 - minusIndex));
         }
-        return this.safeTicker(new Dictionary<string, object>() {
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -1612,7 +1612,7 @@ public partial class bitfinex : Exchange
             { "baseVolume", volume },
             { "quoteVolume", null },
             { "info", ticker },
-        }, marketResolved);
+        }, marketResolved));
     }
 
     /**
@@ -1681,7 +1681,12 @@ public partial class bitfinex : Exchange
         //         ...
         //     ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
+        List<object> results = new List<object>() {};
+        for (int i = 0; i < (tickers?.Count ?? 0); i++)
+        {
+            results.Add(this.parseTickerList(this.safeList(tickers, i, new List<object>() {})));
+        }
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
     /**
@@ -1705,7 +1710,7 @@ public partial class bitfinex : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTickerList(ticker, market));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)

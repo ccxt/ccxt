@@ -1936,7 +1936,7 @@ public partial class opinion : PredictionExchange
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public async virtual Task<object> subscribeOpinionChannel(string? messageHash, string channel, object marketId)
+    public async virtual Task<T> subscribeOpinionChannel<T>(string? messageHash, string channel, object marketId)
     {
         await this.loadApiKey();
         string? url = this.opinionWsUrl();
@@ -1946,7 +1946,7 @@ public partial class opinion : PredictionExchange
             { "marketId", marketId },
         };
         string subscriptionKey = ((channel + ":") + this.safeString(subscribeMsg, "marketId", ""));
-        return await this.watch(url, messageHash, subscribeMsg, subscriptionKey);
+        return await this.watch<T>(url, messageHash, subscribeMsg, subscriptionKey);
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -2112,7 +2112,7 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string messageHash = ("ticker::" + sym);
-        return ccxt.BaseExchange.ToTicker(await this.subscribeOpinionChannel(messageHash, "market.last.price", marketId));
+        return ccxt.BaseExchange.ToTicker(await this.subscribeOpinionChannel<object>(messageHash, "market.last.price", marketId));
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -2170,8 +2170,8 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string messageHash = ("trades::" + sym);
-        object trades = await this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = await this.subscribeOpinionChannel<ccxt.pro.ArrayCache>(messageHash, "market.last.trade", marketId);
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -2249,7 +2249,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "orders";
-        object orders = await this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId);
+        object orders = await this.subscribeOpinionChannel<object>(messageHash, "trade.order.update", marketId);
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", sym, since, limit, "timestamp", true));
     }
@@ -2383,7 +2383,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "myTrades";
-        object trades = await this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId);
+        object trades = await this.subscribeOpinionChannel<object>(messageHash, "trade.record.new", marketId);
         string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
     }

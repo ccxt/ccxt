@@ -651,7 +651,7 @@ public partial class lighter : Exchange
             // }
             //
             List<object> subAccounts = this.safeList(res, "sub_accounts");
-            if (((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            if ((subAccounts != null))
             {
                 IDictionary<string, object> account = this.safeDict(subAccounts, 0);
                 if ((account == null))

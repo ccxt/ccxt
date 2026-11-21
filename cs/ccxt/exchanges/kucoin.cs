@@ -5444,10 +5444,9 @@ public partial class kucoin : Exchange
         }
         bool isSpot = false;
         bool isContract = false;
-        IList<object> ordersList = orders;
-        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = this.safeDict(ordersList, i);
+            IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
             if ((symbol == null))
             {
@@ -5499,10 +5498,9 @@ public partial class kucoin : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
-        IList<object> ordersList = orders;
-        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = this.safeDict(ordersList, i);
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -5607,10 +5605,9 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        IList<object> ordersList = orders;
-        for (int i = 0; i < (ordersList?.Count ?? 0); i++)
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawOrder = this.safeDict(ordersList, i);
+            IDictionary<string, object> rawOrder = this.safeDict(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {

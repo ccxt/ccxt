@@ -785,9 +785,9 @@ public partial class backpack : ccxt.backpack
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCV", parameters);
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query));
+        Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, query);
 
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && result.ContainsKey(symbol) ? result[symbol] : null), timeframeVar));
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbol != null && result.ContainsKey(symbol) && result[symbol] != null && timeframeVar != null && result[symbol].ContainsKey(timeframeVar) ? result[symbol][timeframeVar] : null));
     }
 
     /**

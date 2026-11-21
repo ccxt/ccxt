@@ -1675,12 +1675,13 @@ public partial class BaseExchange
                     this.features[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
                 } else
                 {
-                    this.features[(string)marketType] = new Dictionary<string, object>() {};
+                    Dictionary<string, object> subTypeFeatures = new Dictionary<string, object>() {};
                     for (int j = 0; j < (subTypes?.Count ?? 0); j++)
                     {
                         string? subType = ((string)subTypes[j]);
-                        ((IDictionary<string,object>)(this.features != null && marketType != null && this.features.ContainsKey(marketType) ? this.features[marketType] : null))[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
+                        subTypeFeatures[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
                     }
+                    this.features[(string)marketType] = subTypeFeatures;
                 }
             }
         }
@@ -2532,11 +2533,7 @@ public partial class BaseExchange
             int reducedLength = (reducedFees?.Count ?? 0);
             for (int i = 0; i < reducedLength; i++)
             {
-                ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["cost"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "cost");
-                if (inOp((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate"))
-                {
-                    ((IDictionary<string,object>)(reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null))["rate"] = this.safeNumber((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null), "rate");
-                }
+                reducedFees[Convert.ToInt32(i)] = this.parseFeeNumeric((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null));
             }
             if (!parseFee && ((reducedLength == 0)))
             {
@@ -4479,10 +4476,10 @@ public partial class BaseExchange
         return this.filterByCurrencySinceLimit(result,code, since, limit);
     }
 
-    public virtual object parseTransfers(object transfers, IDictionary<string, object> currency = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public virtual object parseTransfers(IList<object> transfers, IDictionary<string, object> currency = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> transfersArray = this.toArray(transfers);
+        IList<object> transfersArray = transfers;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (transfersArray?.Count ?? 0); i++)
         {
@@ -6210,6 +6207,10 @@ public partial class BaseExchange
             return ((string?)((object)(null)));
         }
         Int64? precisionNumber = parseInt(precision);
+        if ((precisionNumber == null))
+        {
+            return ((string?)((object)(null)));
+        }
         if ((precisionNumber == 0))
         {
             return ((string?)((object)("1")));
@@ -6225,7 +6226,7 @@ public partial class BaseExchange
         } else
         {
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, ((-1) - precisionNumber)); i++)
+            for (int i = 0; (i < (-1 - precisionNumber)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -6257,8 +6258,12 @@ public partial class BaseExchange
                 return null;
             }
             Int64? positivePrecision = JsParse.parseInt(positivePrecisionString);
+            if ((positivePrecision == null))
+            {
+                return null;
+            }
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, (positivePrecision - 1)); i++)
+            for (int i = 0; (i < (positivePrecision - 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }

@@ -1088,20 +1088,14 @@ public partial class coinbaseexchange : Exchange
         string? open = null;
         string? volume = null;
         string? symbol = this.safeString(market, "symbol");
-        if (((ticker is IList<object>) || (ticker.GetType().IsGenericType && ticker.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            last = this.safeString(ticker, 4);
-        } else
-        {
-            timestamp = this.parse8601(this.safeString(ticker, "time"));
-            bid = this.safeString(ticker, "bid");
-            ask = this.safeString(ticker, "ask");
-            high = this.safeString(ticker, "high");
-            low = this.safeString(ticker, "low");
-            open = this.safeString(ticker, "open");
-            last = this.safeString2(ticker, "price", "last");
-            volume = this.safeString(ticker, "volume");
-        }
+        timestamp = this.parse8601(this.safeString(ticker, "time"));
+        bid = this.safeString(ticker, "bid");
+        ask = this.safeString(ticker, "ask");
+        high = this.safeString(ticker, "high");
+        low = this.safeString(ticker, "low");
+        open = this.safeString(ticker, "open");
+        last = this.safeString2(ticker, "price", "last");
+        volume = this.safeString(ticker, "volume");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1124,6 +1118,41 @@ public partial class coinbaseexchange : Exchange
             { "quoteVolume", null },
             { "info", ticker },
         }, market);
+    }
+
+    public virtual object parseTickerList(IList<object> ticker, IDictionary<string, object>? market = null)
+    {
+        //
+        //      [
+        //         1639472400, // timestamp
+        //         4.26, // low
+        //         4.38, // high
+        //         4.35, // open
+        //         4.27 // close
+        //      ]
+        //
+        return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", this.safeString(market, "symbol") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "high", null },
+            { "low", null },
+            { "bid", null },
+            { "bidVolume", null },
+            { "ask", null },
+            { "askVolume", null },
+            { "vwap", null },
+            { "open", null },
+            { "close", this.safeString(ticker, 4) },
+            { "last", this.safeString(ticker, 4) },
+            { "previousClose", null },
+            { "change", null },
+            { "percentage", null },
+            { "average", null },
+            { "baseVolume", null },
+            { "quoteVolume", null },
+            { "info", ticker },
+        }, market));
     }
 
     /**
@@ -1174,7 +1203,7 @@ public partial class coinbaseexchange : Exchange
             List<object> entry = this.safeList(response, marketId, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeList(entry, 0, new List<object>() {}), market));
+            result[(string)symbol] = this.parseTickerList(this.safeList(entry, 0, new List<object>() {}), market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

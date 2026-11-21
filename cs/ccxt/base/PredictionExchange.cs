@@ -1983,6 +1983,10 @@ public partial class PredictionExchange : BaseExchange
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
         Int64? byteLength = this.parseToInt(((double)hex.Length / 2));
+        if ((byteLength == null))
+        {
+            return "";
+        }
         if ((byteLength == 0))
         {
             return "80";
@@ -1991,7 +1995,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((string?)((object)(hex)));
         }
-        if (((byteLength == null || byteLength < 56)))
+        if (byteLength.Value < 56)
         {
             return ((string?)((object)((this.intToBase16((128 + byteLength)) + hex))));
         }
@@ -2013,7 +2017,11 @@ public partial class PredictionExchange : BaseExchange
             concatenated = (concatenated + this.safeString(items, i, ""));
         }
         Int64? byteLength = this.parseToInt(((double)concatenated.Length / 2));
-        if (((byteLength == null || byteLength < 56)))
+        if ((byteLength == null))
+        {
+            return "";
+        }
+        if (byteLength.Value < 56)
         {
             return (this.intToBase16((192 + byteLength)) + concatenated);
         }

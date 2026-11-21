@@ -8352,8 +8352,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        IDictionary<string, object> firstOrder = this.safeDict(orders, 0);
-        string? symbol = this.safeString(firstOrder, "symbol");
+        string? symbol = null;
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -8442,8 +8441,7 @@ public partial class bitget : Exchange
             return await this.CreateUtaOrders(orders, paramsUTA);
         }
         List<object> ordersRequests = new List<object>() {};
-        IDictionary<string, object> firstOrder = this.safeDict(orders, 0);
-        string? symbol = this.safeString(firstOrder, "symbol");
+        string? symbol = null;
         string? marginMode = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {

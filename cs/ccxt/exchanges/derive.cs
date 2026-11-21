@@ -4323,7 +4323,7 @@ public partial class derive : Exchange
             rates.Add(this.parseBorrowRate(this.safeDict(rows, i, new Dictionary<string, object>() {}), currency));
         }
         List<Dictionary<string, object>> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterByCurrencySinceLimit(sorted,code, since, limit));
+        return this.filterByCurrencySinceLimit(sorted,code, since, limit);
     }
 
     public override Dictionary<string, object> parseBorrowRate(object info, Dictionary<string, object> currency = null)

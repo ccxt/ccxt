@@ -6161,7 +6161,6 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
-        object resultList = new List<object>() {};
         if ((marketType == "spot"))
         {
             if ((since != null))
@@ -6195,7 +6194,7 @@ public partial class mexc : Exchange
             //     ],
             //     "total": 1
             // }
-            resultList = this.safeList(response, "rows", new List<object>() {});
+            return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(this.safeList(response, "rows", new List<object>() {}), currency, since, limit));
         } else if ((marketType == "swap"))
         {
             if ((limit != null))
@@ -6204,9 +6203,9 @@ public partial class mexc : Exchange
             }
             Dictionary<string, object> response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, paramsToAccountType));
             IDictionary<string, object> data = this.safeDict(response, "data");
-            resultList = this.safeValue(data, "resultList");
+            return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(this.safeList(data, "resultList", new List<object>() {}), currency, since, limit));
         }
-        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(resultList, currency, since, limit));
+        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(new List<object>() {}, currency, since, limit));
     }
 
     /**

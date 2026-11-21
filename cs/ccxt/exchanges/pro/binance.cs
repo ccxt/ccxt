@@ -1913,7 +1913,7 @@ public partial class binance : ccxt.binance
         paramsStock["callerMethodName"] = "watchOHLCV";
         Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>> result = await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolValue, timeframeVar}}, since, limit, paramsStock);
 
-        return ccxt.BaseExchange.ToOHLCVList(getValue((result != null && symbolValue != null && result.ContainsKey(symbolValue) ? result[symbolValue] : null), timeframeVar));
+        return ccxt.BaseExchange.ToOHLCVList((result != null && symbolValue != null && result.ContainsKey(symbolValue) && result[symbolValue] != null && timeframeVar != null && result[symbolValue].ContainsKey(timeframeVar) ? result[symbolValue][timeframeVar] : null));
     }
 
     /**

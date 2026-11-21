@@ -5729,8 +5729,15 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
-        IDictionary<string, object> firstOrder = ((IDictionary<string, object>)(orders != null && 0 < orders.Count ? orders[0] : null));
-        Dictionary<string, object> market = this.market((firstOrder != null && firstOrder.ContainsKey("symbol") ? firstOrder["symbol"] : null));
+        string? symbol = null;
+        for (int i = 0; i < (orders?.Count ?? 0); i++)
+        {
+            if ((i == 0))
+            {
+                symbol = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "symbol");
+            }
+        }
+        Dictionary<string, object> market = this.market(symbol);
         List<object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
