@@ -977,7 +977,7 @@ public class Bitrue extends BitrueApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesRaw = new ArrayList<CompletableFuture<?>>();
         Object types = null;
         List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
@@ -994,19 +994,19 @@ public class Bitrue extends BitrueApi
             Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                ((List<Object>)promisesRaw).add(this.spotV1PublicGetExchangeInfo(parameters));
+                promisesRaw.add(this.spotV1PublicGetExchangeInfo(parameters));
             } else if (java.util.Objects.equals(marketType, "linear"))
             {
-                ((List<Object>)promisesRaw).add(this.fapiV1PublicGetContracts(parameters));
+                promisesRaw.add(this.fapiV1PublicGetContracts(parameters));
             } else if (java.util.Objects.equals(marketType, "inverse"))
             {
-                ((List<Object>)promisesRaw).add(this.dapiV1PublicGetContracts(parameters));
+                promisesRaw.add(this.dapiV1PublicGetContracts(parameters));
             } else
             {
                 throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
-        List<Object> promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(promisesRaw.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesRaw.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> spotMarkets = this.safeList(this.safeDict(promises, 0, null), "symbols", new ArrayList<Object>(Arrays.asList()));
         List<Object> futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> deliveryMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
@@ -3735,7 +3735,7 @@ public class Bitrue extends BitrueApi
                     put( "timestamp", Bitrue.this.nonce() );
                     put( "recvWindow", recvWindow );
                 }}, paramsOmitted));
-                String signature = (String) this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256());
+                String signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256());
                 String signedQuery = (((unsignedQuery + "&") + "signature=") + signature);
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
@@ -3769,7 +3769,7 @@ public class Bitrue extends BitrueApi
                     {
                         signMessage = (signMessage + ("?" + this.urlencode(paramsOmitted)));
                     }
-                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    String signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     {
                         HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                         hx4NewMap1.put("X-CH-APIKEY", this.apiKey);
@@ -3785,7 +3785,7 @@ public class Bitrue extends BitrueApi
                     }}, paramsOmitted);
                     requestBody = this.json(query);
                     signMessage = (signMessage + requestBody);
-                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    String signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     {
                         HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                         hx4NewMap2.put("Content-Type", "application/json");

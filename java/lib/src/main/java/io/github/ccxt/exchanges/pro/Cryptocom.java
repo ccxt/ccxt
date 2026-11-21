@@ -1895,7 +1895,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Long nonceValue = this.incrementingNonce();
             String nonce = this.numberToString(nonceValue);
             String auth = (((method + nonce) + this.apiKey) + nonce);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("id", nonce);
             request.put("nonce", nonce);

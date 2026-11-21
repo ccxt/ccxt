@@ -2254,7 +2254,7 @@ public class Bitopro extends BitoproApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 String payload = this.stringToBase64(signedBody);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
                 requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
                 requestHeaders.put("X-BITOPRO-SIGNATURE", signature);
@@ -2270,7 +2270,7 @@ public class Bitopro extends BitoproApi
                 }};
                 String data = this.json(rawData);
                 String payload = this.stringToBase64(data);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 requestHeaders.put("X-BITOPRO-APIKEY", this.apiKey);
                 requestHeaders.put("X-BITOPRO-PAYLOAD", payload);
                 requestHeaders.put("X-BITOPRO-SIGNATURE", signature);

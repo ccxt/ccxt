@@ -921,7 +921,9 @@ public class Backpack extends BackpackApi
             }
             String baseId = this.safeString(rawMarket, "baseSymbol");
             Map<String, Object> security = this.safeDict(securityById, baseId, null);
-            MarketInterface market = this.parseMarket((((java.util.Objects.equals(security, null)))) ? rawMarket : this.extend(rawMarket, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("security", security); yield j39v1; } })));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("security", security);
+            MarketInterface market = this.parseMarket((((java.util.Objects.equals(security, null)))) ? rawMarket : this.extend(rawMarket, j39v1));
             if (!java.util.Objects.equals(market, null))
             {
                 String marketId = this.safeString(market, "id");
@@ -4254,7 +4256,7 @@ public class Backpack extends BackpackApi
             }
             byte[] secretBytes = this.base64ToBinary(this.secret);
             List<Object> seed = this.arraySlice(secretBytes, 0, 32);
-            Object signature = eddsa(this.encode(payload), seed, ed25519());
+            String signature = eddsa(this.encode(payload), seed, ed25519());
             headersSigned = new HashMap<String, Object>() {{
                 put( "X-Timestamp", ts );
                 put( "X-Window", recvWindow );

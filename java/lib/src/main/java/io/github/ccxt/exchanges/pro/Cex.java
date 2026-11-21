@@ -1953,7 +1953,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.checkRequiredCredentials(true);
             String nonce = String.valueOf(this.seconds());
             String auth = (nonce + this.apiKey);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("e", "auth");
             HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();

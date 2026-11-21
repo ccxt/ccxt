@@ -4493,7 +4493,7 @@ public class Cryptocom extends CryptocomApi
             List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
             Object strSortKey = this.paramsToString(requestParams, 0);
             String payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Integer paramsKeysLength = paramsKeys.size();
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("id", nonce);

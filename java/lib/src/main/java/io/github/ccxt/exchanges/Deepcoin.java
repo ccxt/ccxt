@@ -592,13 +592,13 @@ public class Deepcoin extends DeepcoinApi
         {
             types = (List<Object>) this.safeList(this.options, "fetchMarkets", types); // backward-support
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < types.size(); i++)
         {
-            ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i), parameters));
+            promises.add(this.fetchMarketsByType(this.safeString(types, i), parameters));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < responses.size(); i++)
         {
             result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
@@ -3852,7 +3852,7 @@ public class Deepcoin extends DeepcoinApi
                 payload = (payload + body);
                 requestBody = body;
             }
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("DC-ACCESS-SIGN", signature);
             {
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

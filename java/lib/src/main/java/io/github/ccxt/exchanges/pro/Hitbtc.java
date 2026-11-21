@@ -139,7 +139,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 timestampEncoded = "";
             }
-            String signature = (String) this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
+            String signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "method", "login" );
                 put( "params", new HashMap<String, Object>() {{

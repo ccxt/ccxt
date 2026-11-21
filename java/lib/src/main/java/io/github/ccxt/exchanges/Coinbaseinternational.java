@@ -3968,7 +3968,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             String requestData = ((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + signedRequest) + "\n") + "\n"); // eslint-disable-line quotes
             String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("Content-Type", "application/json");

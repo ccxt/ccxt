@@ -4670,7 +4670,7 @@ public class Hitbtc extends HitbtcApi
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());
             String payloadString = (((((java.util.Objects.requireNonNullElse(method, "GET") + "/api/3/") + implodedPath) + getRequest) + bodyString) + timestamp);
-            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
+            String signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             String secondPayload = ((((this.apiKey + ":") + signature) + ":") + timestamp);
             headersValue.put("Authorization", ("HS256 " + this.stringToBase64(secondPayload)));
         }

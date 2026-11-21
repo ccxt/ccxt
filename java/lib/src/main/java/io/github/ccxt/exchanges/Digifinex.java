@@ -823,16 +823,16 @@ public class Digifinex extends DigifinexApi
         Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketsV2", parameters, (String) null);
         String marginMode = marginModequeryVariable.first();
         Map<String, Object> query = marginModequeryVariable.second();
-        List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesRaw = new ArrayList<CompletableFuture<?>>();
         if (!java.util.Objects.equals(marginMode, null))
         {
-            ((List<Object>)promisesRaw).add(this.publicSpotGetMarginSymbols(query));
+            promisesRaw.add(this.publicSpotGetMarginSymbols(query));
         } else
         {
-            ((List<Object>)promisesRaw).add(this.publicSpotGetTradesSymbols(query));
+            promisesRaw.add(this.publicSpotGetTradesSymbols(query));
         }
-        ((List<Object>)promisesRaw).add(this.publicSwapGetPublicInstruments(parameters));
-        List<Object> promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        promisesRaw.add(this.publicSwapGetPublicInstruments(parameters));
+        List<Object> promises = (CompletableFuture.allOf(promisesRaw.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesRaw.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> spotMarkets = this.safeDict(promises, 0, null);
         Map<String, Object> swapMarkets = this.safeDict(promises, 1, null);
         //
@@ -5533,7 +5533,9 @@ public class Digifinex extends DigifinexApi
             status = "ok";
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.extend(this.parseMarginModification(data, market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("status", status); yield j39v5; } }));
+        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+        j39v5.put("status", status);
+        return this.extend(this.parseMarginModification(data, market), j39v5);
 
     }
 
@@ -5736,7 +5738,7 @@ public class Digifinex extends DigifinexApi
                 nonce = String.valueOf(this.seconds());
                 auth = urlencoded;
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if ((!java.util.Objects.equals(urlencoded, "")))

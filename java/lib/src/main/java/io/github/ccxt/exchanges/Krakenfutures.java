@@ -4538,7 +4538,7 @@ public class Krakenfutures extends KrakenfuturesApi
             auth = (auth + endpoint); // 1
             Object hash = this.hash(this.encode(auth), sha256(), "binary"); // 2
             byte[] secret = this.base64ToBinary(this.secret); // 3
-            String signature = (String) this.hmac(hash, secret, sha512(), "base64"); // 4-5
+            String signature = this.hmac(hash, secret, sha512(), "base64"); // 4-5
             privateHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "Accept", "application/json" );

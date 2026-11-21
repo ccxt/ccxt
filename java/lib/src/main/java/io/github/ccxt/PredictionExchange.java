@@ -122,7 +122,20 @@ public Map<String, Object> describe()
         {
             return new ArrayList<Object>(Arrays.asList(singleQuery));
         }
-        return (List<Object>) (this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList())));
+        // every element must be a string (a number is stringified like safeString does), so all ports see string[]
+        List<Object> rawQueries = this.toArray(this.safeList(parameters, "queries", new ArrayList<Object>(Arrays.asList())));
+        Integer rawQueriesLength = rawQueries.size();
+        List<Object> queries = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; (rawQueriesLength != null && i < rawQueriesLength); i++)
+        {
+            String query = this.safeString(rawQueries, i);
+            if (java.util.Objects.equals(query, null))
+            {
+                throw new BadRequest((this.id + " params.queries must be a list of strings")) ;
+            }
+            ((List<Object>)queries).add(query);
+        }
+        return queries;
     }
 
     public Object requireEventQuery(Map<String, Object> parameters)

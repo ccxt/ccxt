@@ -1261,7 +1261,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             Long nonce = this.incrementingNonce();
             String payload = ("AUTH" + String.valueOf(nonce));
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
             String eventVar = "auth";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "apiKey", Bitfinex.this.apiKey );

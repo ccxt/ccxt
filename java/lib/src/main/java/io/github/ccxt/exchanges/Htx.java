@@ -2537,7 +2537,7 @@ public class Htx extends HtxApi
         types = ((List<Object>) typesparamsTypesVariable).get(0);
         paramsTypes = (Map<String, Object>) ((List<Object>) typesparamsTypesVariable).get(1);
         List<Object> allMarkets = new ArrayList<Object>(Arrays.asList());
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
         for (var i = 0; i < keys.size(); i++)
         {
@@ -2546,18 +2546,18 @@ public class Htx extends HtxApi
             {
                 if (java.util.Objects.equals(key, "spot"))
                 {
-                    ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("spot", (String) (null), paramsTypes));
+                    promises.add(this.fetchMarketsByTypeAndSubType("spot", (String) (null), paramsTypes));
                 } else if (java.util.Objects.equals(key, "linear"))
                 {
-                    ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType((String) (null), "linear", paramsTypes));
+                    promises.add(this.fetchMarketsByTypeAndSubType((String) (null), "linear", paramsTypes));
                 } else if (java.util.Objects.equals(key, "inverse"))
                 {
-                    ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("swap", "inverse", paramsTypes));
-                    ((List<Object>)promises).add(this.fetchMarketsByTypeAndSubType("future", "inverse", paramsTypes));
+                    promises.add(this.fetchMarketsByTypeAndSubType("swap", "inverse", paramsTypes));
+                    promises.add(this.fetchMarketsByTypeAndSubType("future", "inverse", paramsTypes));
                 }
             }
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < responses.size(); i++)
         {
             allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
@@ -9455,7 +9455,7 @@ public class Htx extends HtxApi
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), this.hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9567,7 +9567,7 @@ public class Htx extends HtxApi
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(method, "GET"), hostname, url, auth));
                 String payload = String.join("\n", (List<String>)content2); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = (auth + ("&" + this.urlencode(new HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));

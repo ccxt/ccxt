@@ -7947,7 +7947,7 @@ public class Bingx extends BingxApi
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             String encodeRequestSafe = (((java.util.Objects.equals(encodeRequest, null)))) ? "" : encodeRequest;
-            String signature = (String) this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "X-BX-APIKEY", Bingx.this.apiKey );
                 put( "X-SOURCE-KEY", Bingx.this.safeString(Bingx.this.options, "broker", "CCXT") );

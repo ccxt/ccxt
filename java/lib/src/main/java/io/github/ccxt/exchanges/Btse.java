@@ -4505,7 +4505,7 @@ public class Btse extends BtseApi
                 signPath = this.cleanPath((String) (path));
             }
             String payload = ((signPath + String.valueOf(nonce)) + bodyString);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "request-api", Btse.this.apiKey );
                 put( "request-nonce", Btse.this.numberToString(nonce) );

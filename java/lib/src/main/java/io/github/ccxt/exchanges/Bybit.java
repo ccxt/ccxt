@@ -2941,7 +2941,7 @@ public class Bybit extends BybitApi
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
         Object types = null;
         List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse", "option"));
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
@@ -2958,15 +2958,15 @@ public class Bybit extends BybitApi
             Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                ((List<Object>)promisesUnresolved).add(this.fetchSpotMarkets(parameters));
+                promisesUnresolved.add(this.fetchSpotMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "linear"))
             {
-                ((List<Object>)promisesUnresolved).add(this.fetchFutureMarkets(new HashMap<String, Object>() {{
+                promisesUnresolved.add(this.fetchFutureMarkets(new HashMap<String, Object>() {{
                     put( "category", "linear" );
                 }}));
             } else if (java.util.Objects.equals(marketType, "inverse"))
             {
-                ((List<Object>)promisesUnresolved).add(this.fetchFutureMarkets(new HashMap<String, Object>() {{
+                promisesUnresolved.add(this.fetchFutureMarkets(new HashMap<String, Object>() {{
                     put( "category", "inverse" );
                 }}));
             } else if (java.util.Objects.equals(marketType, "option"))
@@ -2975,7 +2975,7 @@ public class Bybit extends BybitApi
                 for (var j = 0; j < optionsCurrencies.size(); j++)
                 {
                     Object currency = (optionsCurrencies == null || j < 0 || j >= optionsCurrencies.size() ? null : optionsCurrencies.get(j));
-                    ((List<Object>)promisesUnresolved).add(this.fetchOptionMarkets(new HashMap<String, Object>() {{
+                    promisesUnresolved.add(this.fetchOptionMarkets(new HashMap<String, Object>() {{
                         put( "baseCoin", currency );
                     }}));
                 }
@@ -2984,7 +2984,7 @@ public class Bybit extends BybitApi
                 throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
-        List<Object> promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(promisesUnresolved.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesUnresolved.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < promises.size(); i++)
         {
@@ -12471,7 +12471,7 @@ public class Bybit extends BybitApi
                     requestBody = "{}";
                 }
                 String payload = ((timestamp + this.apiKey) + requestBody);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 {
                     HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();
                     hx4NewMap3.put("Content-Type", "application/json");
@@ -12507,7 +12507,7 @@ public class Bybit extends BybitApi
                     authFull = (auth_base + queryEncoded);
                     url = ((((this.implodeHostname(apiUrl) + "/") + path) + "?") + queryEncoded);
                 }
-                Object signature = null;
+                String signature = null;
                 if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
                 {
                     signature = rsa(authFull, this.secret, sha256());
@@ -12525,7 +12525,7 @@ public class Bybit extends BybitApi
                 Map<String, Object> query = this.extend(parameters, j39v13);
                 Map<String,Object> sortedQuery = this.keysort(query);
                 String auth = this.rawencode(sortedQuery, true);
-                Object signature = null;
+                String signature = null;
                 if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
                 {
                     signature = rsa(auth, this.secret, sha256());

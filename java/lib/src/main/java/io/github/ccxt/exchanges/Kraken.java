@@ -719,13 +719,13 @@ public class Kraken extends KrakenApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)promises).add(this.publicGetAssetPairs(parameters));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.publicGetAssetPairs(parameters));
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
         {
-            ((List<Object>)promises).add(this.loadTimeDifference(new HashMap<String, Object>() {{}}));
+            promises.add(this.loadTimeDifference(new HashMap<String, Object>() {{}}));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> assetsResponse = this.safeDict(responses, 0, null);
         //
         //     {
@@ -4428,7 +4428,7 @@ public class Kraken extends KrakenApi
             byte[] binary = this.encode(url);
             byte[] binhash = this.binaryConcat(binary, hash);
             byte[] secret = this.base64ToBinary(this.secret);
-            String signature = (String) this.hmac(binhash, secret, sha512(), "base64");
+            String signature = this.hmac(binhash, secret, sha512(), "base64");
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );

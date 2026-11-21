@@ -296,7 +296,7 @@ public class Revolutx extends RevolutxApi
             }
             String requestPath = ("/api/" + implodedPath);
             String message = ((((timestamp + ((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase()) + requestPath) + queryString) + bodyString);
-            Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
+            String signature = eddsa(this.encode(message), this.privateKey, ed25519());
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("X-Revx-API-Key", this.apiKey);

@@ -2463,7 +2463,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.0001);
         // Convert precision to decimal places
-        Object decimals = 4;
+        Integer decimals = 4;
         if (java.util.Objects.equals(prec, null))
         {
             throw new ExchangeError((this.id + " amountToPrecision() missing prec")) ;
@@ -2479,7 +2479,7 @@ public class Hyperliquid extends HyperliquidApi
     {
         Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
-        Object decimals = 4;
+        Integer decimals = 4;
         if (java.util.Objects.equals(prec, null))
         {
             throw new ExchangeError((this.id + " priceToPrecision() missing prec")) ;

@@ -4386,14 +4386,7 @@ public class Mexc extends MexcApi
                 put( "clientOrderId", Mexc.this.safeString(order, "newClientOrderId") );
             }}, (Map<String, Object>) null);
         }
-        Object id = null;
-        if ((order instanceof String))
-        {
-            id = order;
-        } else
-        {
-            id = this.safeString2(order, "orderId", "id");
-        }
+        String id = this.safeString2(order, "orderId", "id");
         String timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
         String typeRaw = this.safeString(order, "type");
         if (java.util.Objects.equals(timeInForce, null))
@@ -7211,18 +7204,19 @@ public class Mexc extends MexcApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseLeverage((Map<String, Object>) (data), market);
+        return this.parseLeverageList(data, market);
 
     }
 
-    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    public Map<String, Object> parseLeverageList(List<Object> leverages, Map<String, Object> market)
     {
         String marginMode = null;
         Long longLeverage = null;
         Long shortLeverage = null;
-        for (var i = 0; i < ((List<?>)leverage).size(); i++)
+        Integer numLeverages = leverages.size();
+        for (var i = 0; (numLeverages != null && i < numLeverages); i++)
         {
-            Map<String, Object> entry = this.safeDict(leverage, i, null);
+            Map<String, Object> entry = this.safeDict(leverages, i, null);
             Long openType = this.safeInteger(entry, "openType");
             Long positionType = this.safeInteger(entry, "positionType");
             if ((positionType != null && positionType == 1))
@@ -7236,13 +7230,25 @@ public class Mexc extends MexcApi
         }
         {
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
-            h2kMap5.put("info", leverage);
+            h2kMap5.put("info", leverages);
             h2kMap5.put("symbol", this.safeString(market, "symbol"));
             h2kMap5.put("marginMode", marginMode);
             h2kMap5.put("longLeverage", longLeverage);
             h2kMap5.put("shortLeverage", shortLeverage);
             return h2kMap5;
         }
+    }
+
+    public Object parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
+    {
+        // setMarginMode answers { success, code }: no per-side leverage rows to read
+        return new HashMap<String, Object>() {{
+            put( "info", leverage );
+            put( "symbol", Mexc.this.safeString(market, "symbol") );
+            put( "marginMode", null );
+            put( "longLeverage", null );
+            put( "shortLeverage", null );
+        }};
     }
 
     public Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
@@ -7473,7 +7479,7 @@ public class Mexc extends MexcApi
             if (java.util.Objects.equals(access, "private"))
             {
                 this.checkRequiredCredentials(true);
-                String signature = (String) this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
+                String signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
                 url = ((url + "&signature=") + signature);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "X-MEXC-APIKEY", Mexc.this.apiKey );
@@ -7522,7 +7528,7 @@ public class Mexc extends MexcApi
                     }
                 }
                 String auth = ((this.apiKey + timestamp) + payload);
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "ApiKey", Mexc.this.apiKey );
                     put( "Request-Time", timestamp );

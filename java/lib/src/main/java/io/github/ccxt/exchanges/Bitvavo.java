@@ -3221,7 +3221,7 @@ public class Bitvavo extends BitvavoApi
             }
             String timestamp = String.valueOf(this.milliseconds());
             String auth = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + url) + payload);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             {
                 HashMap<String, Object> hx4NewMap4 = new HashMap<String, Object>();

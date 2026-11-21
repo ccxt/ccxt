@@ -699,13 +699,13 @@ public class Bithumb extends BithumbApi
         {
             Map<String, Object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
             List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             for (var i = 0; i < quotes.size(); i++)
             {
                 request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
-                ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
+                promises.add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
             }
-            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             for (var i = 0; i < quotes.size(); i++)
             {
                 String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
@@ -1183,7 +1183,7 @@ public class Bithumb extends BithumbApi
                 return result;
             }
             List<Object> marketIdsChunks = new ArrayList<Object>(Arrays.asList());
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             // the exchange rejects more than 200 market ids per request
             Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
             Long maxMarketIdsPerRequest = this.parseToInt(((((java.util.Objects.equals(maxMarketIdsOption, null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))))) ? 200 : maxMarketIdsOption);
@@ -1197,7 +1197,7 @@ public class Bithumb extends BithumbApi
                 {
                     ((List<Object>)marketIdsChunks).add(marketIdsChunk);
                     request.put("markets", String.join(",", (List<String>)marketIdsChunk));
-                    ((List<Object>)promises).add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
+                    promises.add(this.publicGetV1Ticker(this.extend(request, paramsGeneration)));
                     marketIdsChunk = new ArrayList<String>(Arrays.asList());
                 }
             }
@@ -1233,7 +1233,7 @@ public class Bithumb extends BithumbApi
             //         },
             //     ]
             //
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             Integer responsesLength = responses.size();
             for (var i = 0; (responsesLength != null && i < responsesLength); i++)
             {
@@ -1314,13 +1314,13 @@ public class Bithumb extends BithumbApi
                     quotes = requiredQuoteIds;
                 }
             }
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             for (var i = 0; i < quotes.size(); i++)
             {
                 request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
-                ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
+                promises.add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Object responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             for (var i = 0; i < quotes.size(); i++)
             {
                 String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
@@ -2134,13 +2134,13 @@ public class Bithumb extends BithumbApi
         {
             throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
         }
-        return this.extend(this.parseOrder(response, market), (switch (0) { default -> { HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-            j39v12.put("info", response);
-            j39v12.put("symbol", symbol);
-            j39v12.put("type", type);
-            j39v12.put("side", side);
-            j39v12.put("id", id);
-            yield j39v12; } }));
+        HashMap<String, Object> j39v12 = new HashMap<String, Object>();
+        j39v12.put("info", response);
+        j39v12.put("symbol", symbol);
+        j39v12.put("type", type);
+        j39v12.put("side", side);
+        j39v12.put("id", id);
+        return this.extend(this.parseOrder(response, market), j39v12);
 
     }
 
@@ -3971,7 +3971,7 @@ public class Bithumb extends BithumbApi
                 requestBody = String.join("+", bodyParts);
                 String nonce = this.numberToString(this.nonce());
                 String authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());
+                String signature = this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());
                 String signature64 = this.stringToBase64(signature);
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );

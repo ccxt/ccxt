@@ -133,7 +133,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             String accessPath = "/ws";
             String requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
-            String signature = (String) this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256(), "base64");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "channel", new ArrayList<Object>(Arrays.asList("auth")) );

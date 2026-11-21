@@ -2401,7 +2401,7 @@ public class Latoken extends LatokenApi
         {
             this.checkRequiredCredentials(true);
             String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + request) + urlencodedQuery);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "X-LA-APIKEY", Latoken.this.apiKey );
                 put( "X-LA-SIGNATURE", signature );

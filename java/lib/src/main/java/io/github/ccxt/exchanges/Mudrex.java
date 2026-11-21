@@ -1752,7 +1752,9 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)rows).add((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)));
             } else
             {
-                ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("rebate_amount", rebate); yield j39v3; } })));
+                HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+                j39v3.put("rebate_amount", rebate);
+                ((List<Object>)rows).add(this.extend((transactions == null || i < 0 || i >= transactions.size() ? null : transactions.get(i)), j39v3));
             }
         }
         return this.parseTrades(rows, market, since, limit, new HashMap<String, Object>() {{}});

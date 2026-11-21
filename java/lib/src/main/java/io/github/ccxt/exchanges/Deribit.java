@@ -4860,7 +4860,7 @@ public class Deribit extends DeribitApi
             }
             String requestData = (((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
             String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce));
             String baseApiUrl = this.safeString(this.urls.get("api"), "rest");

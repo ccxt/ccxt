@@ -2763,13 +2763,13 @@ public class Okx extends OkxApi
         {
             types = (List<Object>) this.safeList(this.options, "fetchMarkets", types); // backward-support
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < types.size(); i++)
         {
-            ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i, ""), parameters));
+            promises.add(this.fetchMarketsByType(this.safeString(types, i, ""), parameters));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < responses.size(); i++)
         {
             result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
@@ -2983,14 +2983,14 @@ public class Okx extends OkxApi
         if (java.util.Objects.equals(type, "option"))
         {
             List<Object> optionsUnderlying = this.safeList(this.options, "defaultUnderlying", new ArrayList<Object>(Arrays.asList("BTC-USD", "ETH-USD")));
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             for (var i = 0; i < optionsUnderlying.size(); i++)
             {
                 Object underlying = (optionsUnderlying == null || i < 0 || i >= optionsUnderlying.size() ? null : optionsUnderlying.get(i));
                 request.put("uly", underlying);
-                ((List<Object>)promises).add(this.publicGetPublicInstruments(this.extend(request, parameters)));
+                promises.add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
-            List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < promisesResult.size(); i++)
             {
@@ -8677,7 +8677,7 @@ public class Okx extends OkxApi
                 }
                 privateHeaders.put("Content-Type", "application/json");
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("OK-ACCESS-SIGN", signature);
         }
         String requestBody = null;

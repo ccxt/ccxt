@@ -424,7 +424,7 @@ public class Myriad extends MyriadApi
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
         Integer collected = 0;
-        Object page = 1;
+        Long page = 1L;
         while (true)
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -448,7 +448,7 @@ public class Myriad extends MyriadApi
                     collected = allRawMarkets.size();
                 }
             }
-            page = this.sum(page, 1);
+            page = (page + 1L);
             if ((limit != null && (rawMarketsLength == null || rawMarketsLength < limit)) || (maxMarkets == null || (collected != null && collected >= maxMarkets)))
             {
                 break;
@@ -648,7 +648,7 @@ public class Myriad extends MyriadApi
         List<Object> allRawQuestions = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         Integer collected = 0;
-        Object page = 1;
+        Long page = 1L;
         while (true)
         {
             Map<String, Object> request = new HashMap<String, Object>();
@@ -684,7 +684,7 @@ public class Myriad extends MyriadApi
                     collected = allRawQuestions.size();
                 }
             }
-            page = this.sum(page, 1);
+            page = (page + 1L);
             if (((limit != null && (rawQuestionsLength == null || rawQuestionsLength < limit))) || ((maxQuestions == null || (collected != null && collected >= maxQuestions))))
             {
                 break;
@@ -2574,16 +2574,16 @@ public class Myriad extends MyriadApi
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    public Map<String, Object> parseMarketToEvent(Map<String, Object> raw, Object market)
+    public Map<String, Object> parseMarketToEvent(Map<String, Object> raw, Map<String, Object> market)
     {
         String slug = this.safeString(raw, "slug", this.safeString(raw, "id"));
         String state = this.safeString(raw, "state", "open");
         String endDate = this.safeString(raw, "expiresAt");
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("id", Helpers.GetValue(market, "id"));
+            h2kMap2.put("id", market.get("id"));
             h2kMap2.put("slug", slug);
-            h2kMap2.put("event", Helpers.GetValue(market, "market"));
+            h2kMap2.put("event", market.get("market"));
             h2kMap2.put("title", this.safeString2(raw, "title", "shortName"));
             h2kMap2.put("description", this.safeString(raw, "description"));
             h2kMap2.put("markets", new ArrayList<Object>(Arrays.asList(market)));
@@ -3474,19 +3474,19 @@ public class Myriad extends MyriadApi
             grouped.add(outcomeObj);
             outcomesByMarket.put(key, grouped);
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; i < marketKeys.size(); i++)
         {
             Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
             Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
             Map<String, Object> firstOutcome = this.safeDict(grouped, 0, null);
             Map<String, Object> info = this.safeDict(firstOutcome, "info", new HashMap<String, Object>() {{}});
-            ((List<Object>)promises).add(this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
+            promises.add(this.myriadPublicGetMarketsId(this.extend(new HashMap<String, Object>() {{
                 put( "id", Myriad.this.safeString(info, "marketId") );
                 put( "network_id", Myriad.this.safeString(info, "networkId") );
             }}, parameters)));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < marketKeys.size(); i++)
         {
             Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));

@@ -4471,7 +4471,7 @@ public class Woofipro extends WoofiproApi
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                 secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
-            Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
+            String signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             authHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
             requestHeaders = authHeaders;
         }

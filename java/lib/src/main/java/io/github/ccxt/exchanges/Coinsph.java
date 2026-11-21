@@ -2787,7 +2787,7 @@ public class Coinsph extends CoinsphApi
                 }
             }
             String signedQuery = this.urlEncodeQuery(query);
-            String signature = (String) this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(signedQuery), this.encode(this.secret), sha256());
             url = ((((((apiUrl + "/") + endpoint) + "?") + signedQuery) + "&signature=") + signature);
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );

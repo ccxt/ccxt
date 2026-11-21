@@ -1775,7 +1775,7 @@ public class Btcmarkets extends BtcmarketsApi
                 requestBody = jsonBody;
                 auth = (((java.util.Objects.requireNonNullElse(method, "GET") + request) + nonce) + jsonBody);
             }
-            String signature = (String) this.hmac(this.encode(auth), secret, sha512(), "base64");
+            String signature = this.hmac(this.encode(auth), secret, sha512(), "base64");
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Accept-Charset", "UTF-8" );

@@ -2742,7 +2742,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 throw new AuthenticationError((this.id + " sign() invalid base64 secret")) ;
             }
-            String signature = (String) this.hmac(this.encode(what), secret, sha256(), "base64");
+            String signature = this.hmac(this.encode(what), secret, sha256(), "base64");
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("CB-ACCESS-KEY", this.apiKey);

@@ -186,7 +186,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         }
         String timestamp = String.valueOf(this.nonce());
         String payload = (timestamp + "/v3/ws/private");
-        String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+        String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
         Map<String, Object> originalHeaders = this.safeDict(Helpers.GetValue(this.options.get("ws"), "options"), "headers", null);
         String userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
         Map<String, Object> extendedOptions = new HashMap<String, Object>();

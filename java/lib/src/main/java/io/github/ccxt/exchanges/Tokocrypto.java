@@ -3135,7 +3135,7 @@ public class Tokocrypto extends TokocryptoApi
             {
                 query = this.urlencode(extendedParams);
             }
-            String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             query = (query + (("&" + "signature=") + signature));
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", Tokocrypto.this.apiKey );

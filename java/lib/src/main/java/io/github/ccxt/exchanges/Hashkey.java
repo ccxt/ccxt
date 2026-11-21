@@ -4676,10 +4676,10 @@ public class Hashkey extends HashkeyApi
         //         "timestamp": "1726869763318"
         //     }
         //
-        return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("type", type);
-            j39v1.put("amount", amount);
-            yield j39v1; } }));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("type", type);
+        j39v1.put("amount", amount);
+        return this.extend(this.parseMarginModification(response, market), j39v1);
 
     }
 
@@ -4994,7 +4994,7 @@ public class Hashkey extends HashkeyApi
                 put( "X-HK-APIKEY", Hashkey.this.apiKey );
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            Object signature = null;
+            String signature = null;
             String bodySigned = null;
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && ((java.util.Objects.equals(path, "api/v1/spot/batchOrders")) || (java.util.Objects.equals(path, "api/v1/futures/batchOrders"))))
             {

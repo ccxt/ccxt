@@ -6476,17 +6476,17 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
         if (java.util.Objects.equals(subType, "inverse"))
         {
-            ((List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
-            ((List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
+            promisesUnresolved.add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
+            promisesUnresolved.add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
         } else
         {
-            ((List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
-            ((List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
+            promisesUnresolved.add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
+            promisesUnresolved.add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
         }
-        var responsebreakResponseVariable = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        var responsebreakResponseVariable = (CompletableFuture.allOf(promisesUnresolved.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesUnresolved.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var response = ((List<Object>) responsebreakResponseVariable).get(0);
         var breakResponse = ((List<Object>) responsebreakResponseVariable).get(1);
         //
@@ -6574,17 +6574,17 @@ public class Xt extends XtApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositions", (Map<String, Object>) null, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
         if (java.util.Objects.equals(subType, "inverse"))
         {
-            ((List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(paramsSubType));
-            ((List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionBreakList(paramsSubType));
+            promisesUnresolved.add(this.privateInverseGetFutureUserV1PositionList(paramsSubType));
+            promisesUnresolved.add(this.privateInverseGetFutureUserV1PositionBreakList(paramsSubType));
         } else
         {
-            ((List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(paramsSubType));
-            ((List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionBreakList(paramsSubType));
+            promisesUnresolved.add(this.privateLinearGetFutureUserV1PositionList(paramsSubType));
+            promisesUnresolved.add(this.privateLinearGetFutureUserV1PositionBreakList(paramsSubType));
         }
-        var responsebreakResponseVariable = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        var responsebreakResponseVariable = (CompletableFuture.allOf(promisesUnresolved.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesUnresolved.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var response = ((List<Object>) responsebreakResponseVariable).get(0);
         var breakResponse = ((List<Object>) responsebreakResponseVariable).get(1);
         //

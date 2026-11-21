@@ -3513,7 +3513,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }}, parameters);
         extendedParams = this.keysort(extendedParams);
         String query = this.rawencode(extendedParams);
-        Object signature = null;
+        String signature = null;
         if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
         {
             if (this.secret.length() > 120)

@@ -4203,15 +4203,15 @@ public class Bitget extends BitgetApi
     {
 
         List<String> subTypes = new ArrayList<String>(Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; i < subTypes.size(); i++)
         {
             HashMap<String, Object> j39v2 = new HashMap<String, Object>();
             j39v2.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i)));
             Map<String, Object> req = this.extend(parameters, j39v2);
-            ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
+            promises.add(this.publicUtaGetV3MarketInstruments(req));
         }
-        List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> markets = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < results.size(); i++)
         {
@@ -15312,7 +15312,7 @@ public class Bitget extends BitgetApi
                     auth = (auth + ("?" + this.rawencode(sortedParams, true)));
                 }
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             String broker = this.safeString(this.options, "broker");
             {
                 HashMap<String, Object> hx4NewMap3 = new HashMap<String, Object>();

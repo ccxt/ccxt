@@ -3786,7 +3786,7 @@ public class Toobit extends ToobitApi
             {
                 payload = (privateBody + queryString);
             }
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (!java.util.Objects.equals(queryString, ""))
             {
                 queryString = (queryString + ("&signature=" + signature));

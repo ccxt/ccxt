@@ -2175,7 +2175,7 @@ public class Bit2me extends Bit2meApi
                 message = (message + (":" + requestBody));
             }
             Object digest = this.hash(this.encode(message), sha256(), "binary");
-            String signature = (String) this.hmac(digest, this.encode(this.secret), sha512(), "base64");
+            String signature = this.hmac(digest, this.encode(this.secret), sha512(), "base64");
             {
                 HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                 hx4NewMap2.put("x-api-key", this.apiKey);

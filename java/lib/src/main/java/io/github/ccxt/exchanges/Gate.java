@@ -2174,7 +2174,7 @@ public class Gate extends GateApi
         {
             (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>();
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
         List<Object> types = this.safeList(fetchMarketsOptions, "types", new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")));
         for (var i = 0; i < types.size(); i++)
@@ -2184,19 +2184,19 @@ public class Gate extends GateApi
             {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
-                ((List<Object>)rawPromises).add(this.fetchSpotMarkets(parameters));
+                rawPromises.add(this.fetchSpotMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((List<Object>)rawPromises).add(this.fetchSwapMarkets(parameters));
+                rawPromises.add(this.fetchSwapMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "future"))
             {
-                ((List<Object>)rawPromises).add(this.fetchFutureMarkets(parameters));
+                rawPromises.add(this.fetchFutureMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "option"))
             {
-                ((List<Object>)rawPromises).add(this.fetchOptionMarkets(parameters));
+                rawPromises.add(this.fetchOptionMarkets(parameters));
             }
         }
-        List<Object> results = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         return this.arraysConcat(results);
 
     }
@@ -9114,7 +9114,7 @@ public class Gate extends GateApi
             Object payloadArray = new ArrayList<Object>(Arrays.asList(((String)java.util.Objects.requireNonNullElse(method, "GET")).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
             String payload = String.join("\n", (List<String>)payloadArray);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             signedHeaders = new HashMap<String, Object>() {{
                 put( "KEY", Gate.this.apiKey );
                 put( "Timestamp", timestampString );

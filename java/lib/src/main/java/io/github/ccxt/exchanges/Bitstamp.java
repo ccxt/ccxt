@@ -3795,7 +3795,7 @@ public class Bitstamp extends BitstampApi
                 authBody = postBody;
             }
             String auth = (((((((xAuth + java.util.Objects.requireNonNullElse(method, "GET")) + ((String)url).replaceFirst("https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             privateHeaders.put("X-Auth-Signature", signature);
         }
         Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "public")))) ? null : privateHeaders;

@@ -2047,17 +2047,17 @@ public class Kalshi extends KalshiApi
         Map<String, Object> response = (this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters))).join();
         List<Object> rawSettlements = this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
         Integer rawSettlementsLength = rawSettlements.size();
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList());
+        List<Map<String, Object>> parsed = new ArrayList<Map<String, Object>>();
         for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
         {
-            ((List<Object>)parsed).add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
+            parsed.add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
         }
         Object wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
         {
-            Object settlement = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> settlement = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             if ((java.util.Objects.equals(wantedOutcome, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcome"), wantedOutcome)))
             {
                 ((List<Object>)result).add(settlement);

@@ -3785,7 +3785,7 @@ public class Bitfinex extends BitfinexApi
             String nonce = String.valueOf(this.incrementingNonce());
             requestBody = this.json(query);
             String auth = ((("/api/" + request) + nonce) + requestBody);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha384());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "bfx-nonce", nonce );
                 put( "bfx-apikey", Bitfinex.this.apiKey );

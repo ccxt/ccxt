@@ -1601,7 +1601,7 @@ public class Bitbns extends BitbnsApi
                 put( "body", requestBody );
             }};
             String payload = this.stringToBase64(this.json(auth));
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             requestHeaders.put("X-BITBNS-PAYLOAD", payload);
             requestHeaders.put("X-BITBNS-SIGNATURE", signature);
             requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");

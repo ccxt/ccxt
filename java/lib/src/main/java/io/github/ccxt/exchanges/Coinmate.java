@@ -1633,7 +1633,7 @@ public class Coinmate extends CoinmateApi
             // coinmate requires each nonce to be greater than the previous one for the key
             String nonce = String.valueOf(this.incrementingNonce());
             String auth = ((nonce + this.uid) + this.apiKey);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             HashMap<String, Object> j39v2 = new HashMap<String, Object>();
             j39v2.put("clientId", this.uid);
             j39v2.put("nonce", nonce);

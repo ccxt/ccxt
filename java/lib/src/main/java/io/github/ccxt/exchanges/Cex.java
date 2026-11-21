@@ -404,8 +404,8 @@ public class Cex extends CexApi
     private Object fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)promises).add(this.publicPostGetCurrenciesInfo(parameters));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.publicPostGetCurrenciesInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -420,7 +420,7 @@ public class Cex extends CexApi
         //            },
         //            ...
         //
-        ((List<Object>)promises).add(this.publicPostGetProcessingInfo(parameters));
+        promises.add(this.publicPostGetProcessingInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -442,7 +442,7 @@ public class Cex extends CexApi
         //            },
         //            ...
         //
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> dataCurrencies = this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> dataNetworks = this.safeDict((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "data", new HashMap<String, Object>() {{}});
         Map<String,Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
@@ -2239,7 +2239,7 @@ public class Cex extends CexApi
             String seconds = String.valueOf(this.seconds());
             String bodySigned = this.json(query);
             String auth = ((path + seconds) + bodySigned);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-AGGR-KEY", Cex.this.apiKey );

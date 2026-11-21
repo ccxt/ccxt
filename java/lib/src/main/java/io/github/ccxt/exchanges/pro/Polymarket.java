@@ -1276,7 +1276,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         client.resolve(this.balance, "balance");
     }
 
-    public void handleAck(Client client, Object message)
+    public void handleAck(Client client, Map<String, Object> message)
     {
         //
         // subscribe or unsubscribe acknowledgement

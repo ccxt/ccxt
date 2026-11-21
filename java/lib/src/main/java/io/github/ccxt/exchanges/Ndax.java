@@ -3260,7 +3260,7 @@ public class Ndax extends NdaxApi
             {
                 String nonce = String.valueOf(this.nonce());
                 String auth = ((nonce + this.uid) + this.apiKey);
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 if (Boolean.TRUE.equals(isPost))
                 {
                     {

@@ -789,8 +789,8 @@ public class Grvt extends GrvtApi
         {
             throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
-        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
-        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
+        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
         (this.loadAccountInfos()).join();
         return true;
 
@@ -2405,8 +2405,8 @@ public class Grvt extends GrvtApi
         {
             return false;
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.privateTradingPostFullV1AggregatedAccountSummary(new HashMap<String, Object>() {{}}));
         //
         //     {
         //         "result": {
@@ -2434,14 +2434,14 @@ public class Grvt extends GrvtApi
         Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
         if (Boolean.TRUE.equals(accountIsUndefined))
         {
-            ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
+            promises.add(this.privateTradingPostFullV1GetSubAccounts(new HashMap<String, Object>() {{}}));
         }
         //
         //     {
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> result1 = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
         String mainAccountId = this.safeString(result1, "main_account_id");
         this.options.put("userMainAccountId", mainAccountId);
@@ -2767,7 +2767,7 @@ public class Grvt extends GrvtApi
 
     public Long convertToBigIntCustom(Object x)
     {
-        return ((Long) (switch ((Object) (Long.parseLong(this.numberToString(x)))) { case null -> (Long) null; case Long hx4J40v4 -> hx4J40v4; case Number hx4J40v4 -> Long.valueOf(hx4J40v4.longValue()); case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v4.getClass().getName()); }));
+        return ((Long) (switch ((Object) (Long.parseLong(this.numberToString(x)))) { case null -> (Long) null; case Long hx4J40v3 -> hx4J40v3; case Number hx4J40v3 -> Long.valueOf(hx4J40v3.longValue()); case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v3.getClass().getName()); }));
     }
 
     public Map<String, Object> eipMessageForOrder(Map<String, Object> order, String structureType)
@@ -2780,7 +2780,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> leg = (Map<String, Object>) (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = this.market(leg.get("instrument"));
             Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
-            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
+            Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(precisionValue)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
             {

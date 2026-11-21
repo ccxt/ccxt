@@ -5315,7 +5315,7 @@ public class Whitebit extends WhitebitApi
                 put( "nonceWindow", nonceWindow );
             }}, requestParams));
             String payload = this.stringToBase64(privateBody);
-            String signature = (String) this.hmac(this.encode(payload), secret, sha512());
+            String signature = this.hmac(this.encode(payload), secret, sha512());
             privateHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-TXC-APIKEY", Whitebit.this.apiKey );

@@ -2388,7 +2388,7 @@ public class Bitso extends BitsoApi
                     request = (request + jsonBody);
                 }
             }
-            String signature = (String) this.hmac(this.encode(request), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(request), this.encode(this.secret), sha256());
             String auth = ((((this.apiKey + ":") + nonce) + ":") + signature);
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", ("Bitso " + auth) );

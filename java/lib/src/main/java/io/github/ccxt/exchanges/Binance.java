@@ -5043,7 +5043,7 @@ public class Binance extends BinanceApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesRaw = new ArrayList<CompletableFuture<?>>();
         Object rawFetchMarkets = null;
         List<String> defaultTypes = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
@@ -5082,33 +5082,33 @@ public class Binance extends BinanceApi
             String marketType = this.safeString(fetchMarkets, i);
             if (java.util.Objects.equals(marketType, "spot"))
             {
-                ((List<Object>)promisesRaw).add(this.publicGetExchangeInfo(parameters));
+                promisesRaw.add(this.publicGetExchangeInfo(parameters));
                 if (Boolean.TRUE.equals(fetchMargins) && this.checkRequiredCredentials(false) && (!Boolean.TRUE.equals(isDemoEnv)))
                 {
-                    ((List<Object>)promisesRaw).add(this.sapiGetMarginAllPairs(parameters));
-                    ((List<Object>)promisesRaw).add(this.sapiGetMarginIsolatedAllPairs(parameters));
+                    promisesRaw.add(this.sapiGetMarginAllPairs(parameters));
+                    promisesRaw.add(this.sapiGetMarginIsolatedAllPairs(parameters));
                 }
             } else if (java.util.Objects.equals(marketType, "linear"))
             {
-                ((List<Object>)promisesRaw).add(this.fapiPublicGetExchangeInfo(parameters));
+                promisesRaw.add(this.fapiPublicGetExchangeInfo(parameters));
             } else if (java.util.Objects.equals(marketType, "inverse"))
             {
-                ((List<Object>)promisesRaw).add(this.dapiPublicGetExchangeInfo(parameters));
+                promisesRaw.add(this.dapiPublicGetExchangeInfo(parameters));
             } else if (java.util.Objects.equals(marketType, "option"))
             {
-                ((List<Object>)promisesRaw).add(this.eapiPublicGetExchangeInfo(parameters));
+                promisesRaw.add(this.eapiPublicGetExchangeInfo(parameters));
             } else if (java.util.Objects.equals(marketType, "stock"))
             {
                 if ((!Boolean.TRUE.equals(isDemoEnv)) && (!java.util.Objects.equals(this.apiKey, null) && !java.util.Objects.equals(this.apiKey, "")))
                 {
-                    ((List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
+                    promisesRaw.add(this.sapiGetEquityMarketExchangeInfo(parameters));
                 }
             } else
             {
                 throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
-        List<Object> results = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> results = (CompletableFuture.allOf(promisesRaw.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesRaw.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> markets = new ArrayList<Object>(Arrays.asList());
         this.options.put("crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
         this.options.put("isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -14323,7 +14323,7 @@ public class Binance extends BinanceApi
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
             Integer pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
-            Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 1L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 1L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 1L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "1"); default -> (Object) null; }));
+            Object pricePrecisionPlusOne = (((long) pricePrecision) + 1L);
             String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
@@ -16501,7 +16501,7 @@ public class Binance extends BinanceApi
             {
                 query = this.urlencode(extendedParams);
             }
-            Object signature = null;
+            String signature = null;
             if (((String)this.secret).indexOf("PRIVATE KEY") > -1)
             {
                 if (this.secret.length() > 120)
@@ -16810,7 +16810,9 @@ public class Binance extends BinanceApi
         {
             throw new NullResponse((this.id + " parseMarginModification() returned empty response")) ;
         }
-        return this.extend(this.parseMarginModification(response, market), (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>(); j39v5.put("code", code); yield j39v5; } }));
+        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+        j39v5.put("code", code);
+        return this.extend(this.parseMarginModification(response, market), j39v5);
 
     }
 

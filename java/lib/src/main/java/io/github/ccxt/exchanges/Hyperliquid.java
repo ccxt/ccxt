@@ -622,22 +622,22 @@ public class Hyperliquid extends HyperliquidApi
 
         Map<String, Object> options = this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
         List<Object> types = this.safeList(options, "types", new ArrayList<Object>(Arrays.asList()));
-        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; i < types.size(); i++)
         {
             String marketType = this.safeString(types, i);
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((List<Object>)rawPromises).add(this.fetchSwapMarkets(parameters));
+                rawPromises.add(this.fetchSwapMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
-                ((List<Object>)rawPromises).add(this.fetchSpotMarkets(parameters));
+                rawPromises.add(this.fetchSpotMarkets(parameters));
             } else if (java.util.Objects.equals(marketType, "hip3"))
             {
-                ((List<Object>)rawPromises).add(this.fetchHip3Markets(parameters));
+                rawPromises.add(this.fetchHip3Markets(parameters));
             }
         }
-        List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < promises.size(); i++)
         {
@@ -731,15 +731,15 @@ public class Hyperliquid extends HyperliquidApi
                 ((List<Object>)fetchDexesList).add(dexName);
             }
         }
-        List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> rawPromises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; i < fetchDexesList.size(); i++)
         {
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("type", "metaAndAssetCtxs");
             request.put("dex", this.safeString(fetchDexesList, i));
-            ((List<Object>)rawPromises).add(this.publicPostInfo(this.extend(request, parameters)));
+            rawPromises.add(this.publicPostInfo(this.extend(request, parameters)));
         }
-        List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(rawPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(rawPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         this.options.put("hip3TokensByName", new HashMap<String, Object>() {{}});
         List<Object> markets = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < promises.size(); i++)
@@ -1291,8 +1291,9 @@ public class Hyperliquid extends HyperliquidApi
 
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
         Boolean shouldRefresh = (!java.util.Objects.equals(this.safeString2(parameters, "user", "address"), null)) && java.util.Objects.equals(this.safeBool(parameters, "enableUnifiedMargin", (Object) null), null);
-        String userAddress = this.safeString(this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchBalance", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsPublicAddress, (String) null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -1835,8 +1836,9 @@ public class Hyperliquid extends HyperliquidApi
     private Object fetchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String userAddress = this.safeString(this.handlePublicAddress("fetchTrades", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchTrades", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchTrades", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2338,14 +2340,15 @@ public class Hyperliquid extends HyperliquidApi
     {
 
         String publicAddress = null;
-        Map<String, Object> paramsPublicAddress = new HashMap<String, Object>() {{}};
+        Object paramsPublicAddress = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(address, null))
         {
-            publicAddress = this.safeString(this.handlePublicAddress("isUnifiedEnabled", (Map<String, Object>) (parameters)), 0);
-            paramsPublicAddress = (Map<String, Object>) this.safeDict(this.handlePublicAddress("isUnifiedEnabled", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+            List<Object> publicAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("isUnifiedEnabled", (Map<String, Object>) (parameters));
+            publicAddress = (String) ((List<Object>) publicAddressparamsPublicAddressVariable).get(0);
+            paramsPublicAddress = ((List<Object>) publicAddressparamsPublicAddressVariable).get(1);
         }
         String userAddress = (((!java.util.Objects.equals(address, null)))) ? address : publicAddress;
-        Map<String, Object> paramsAddress = (((!java.util.Objects.equals(address, null)))) ? parameters : paramsPublicAddress;
+        Map<String, Object> paramsAddress = (Map<String, Object>) ((((!java.util.Objects.equals(address, null)))) ? parameters : paramsPublicAddress);
         Pair<Boolean, Map<String, Object>> enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable = this.handleOptionBoolAndParams(paramsAddress, (String) (method), "enableUnifiedMargin", (Object) null);
         Boolean enableUnifiedMarginOption = enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.first();
         Map<String, Object> paramsEnableUnifiedMargin = enableUnifiedMarginOptionparamsEnableUnifiedMarginVariable.second();
@@ -3802,9 +3805,10 @@ public class Hyperliquid extends HyperliquidApi
     private Object fetchOpenOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String userAddress = this.safeString(this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOpenOrders", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOpenOrders", "method", "frontendOpenOrders");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         if (java.util.Objects.equals(this.markets, null))
@@ -3964,8 +3968,9 @@ public class Hyperliquid extends HyperliquidApi
     private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String userAddress = this.safeString(this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrders", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4056,9 +4061,10 @@ public class Hyperliquid extends HyperliquidApi
     {
 
         String userAddress = null;
-        Map<String, Object> params2 = null;
-        userAddress = this.safeString(this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters)), 0);
-        params2 = (Map<String, Object>) this.safeDict(this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        Object params2 = null;
+        List<Object> userAddressparams2Variable = (List<Object>) this.handlePublicAddress("fetchOrder", (Map<String, Object>) (parameters));
+        userAddress = (String) ((List<Object>) userAddressparams2Variable).get(0);
+        params2 = ((List<Object>) userAddressparams2Variable).get(1);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4355,8 +4361,9 @@ public class Hyperliquid extends HyperliquidApi
     private Object fetchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String userAddress = this.safeString(this.handlePublicAddress("fetchMyTrades", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchMyTrades", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchMyTrades", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4498,8 +4505,9 @@ public class Hyperliquid extends HyperliquidApi
     private Object fetchMyLiquidationsCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        String userAddress = this.safeString(this.handlePublicAddress("fetchMyLiquidations", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchMyLiquidations", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchMyLiquidations", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4678,8 +4686,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String userAddress = this.safeString(this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchPositions", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", "clearinghouseState" );
@@ -5198,8 +5207,9 @@ public class Hyperliquid extends HyperliquidApi
         transferMethod = transferMethodqueryVariable.first();
         query = transferMethodqueryVariable.second();
         String masterAddress = null;
-        masterAddress = this.safeString(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 0);
-        query = this.safeDict(this.handlePublicAddress("transfer", (Map<String, Object>) (query)), 1, new HashMap<String, Object>() {{}});
+        List<Object> masterAddressqueryVariable = (List<Object>) this.handlePublicAddress("transfer", (Map<String, Object>) (query));
+        masterAddress = (String) ((List<Object>) masterAddressqueryVariable).get(0);
+        query = ((List<Object>) masterAddressqueryVariable).get(1);
         Boolean useSendAsset = (java.util.Objects.equals(transferMethod, "sendAsset"));
         if (java.util.Objects.equals(transferMethod, null))
         {
@@ -5481,8 +5491,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String userAddress = this.safeString(this.handlePublicAddress("fetchTradingFee", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchTradingFee", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchTradingFee", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "type", "userFees" );
@@ -5605,9 +5616,10 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String userAddress = null;
-        Map<String, Object> params2 = null;
-        userAddress = this.safeString(this.handlePublicAddress("fetchLedger", (Map<String, Object>) (parameters)), 0);
-        params2 = (Map<String, Object>) this.safeDict(this.handlePublicAddress("fetchLedger", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        Object params2 = null;
+        List<Object> userAddressparams2Variable = (List<Object>) this.handlePublicAddress("fetchLedger", (Map<String, Object>) (parameters));
+        userAddress = (String) ((List<Object>) userAddressparams2Variable).get(0);
+        params2 = ((List<Object>) userAddressparams2Variable).get(1);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("type", "userNonFundingLedgerUpdates");
         request.put("user", userAddress);
@@ -5721,9 +5733,10 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String userAddress = null;
-        Map<String, Object> params2 = null;
-        userAddress = this.safeString(this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters)), 0);
-        params2 = (Map<String, Object>) this.safeDict(this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        Object params2 = null;
+        List<Object> userAddressparams2Variable = (List<Object>) this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters));
+        userAddress = (String) ((List<Object>) userAddressparams2Variable).get(0);
+        params2 = ((List<Object>) userAddressparams2Variable).get(1);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("type", "userNonFundingLedgerUpdates");
         request.put("user", userAddress);
@@ -5758,7 +5771,7 @@ public class Hyperliquid extends HyperliquidApi
         //
         List<Object> records = (List<Object>) this.extractTypeFromDelta(depositLedger);
         String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress", (String) null);
+        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
         vaultAddress = vaultAddressparams2Variable.first();
         params2 = vaultAddressparams2Variable.second();
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5810,9 +5823,10 @@ public class Hyperliquid extends HyperliquidApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String userAddress = null;
-        Map<String, Object> params2 = null;
-        userAddress = this.safeString(this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters)), 0);
-        params2 = (Map<String, Object>) this.safeDict(this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        Object params2 = null;
+        List<Object> userAddressparams2Variable = (List<Object>) this.handlePublicAddress("fetchDepositsWithdrawals", (Map<String, Object>) (parameters));
+        userAddress = (String) ((List<Object>) userAddressparams2Variable).get(0);
+        params2 = ((List<Object>) userAddressparams2Variable).get(1);
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("type", "userNonFundingLedgerUpdates");
         request.put("user", userAddress);
@@ -5843,7 +5857,7 @@ public class Hyperliquid extends HyperliquidApi
         //
         List<Object> records = (List<Object>) this.extractTypeFromDelta(withdrawalLedger);
         String vaultAddress = null;
-        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams(params2, "fetchDepositsWithdrawals", "vaultAddress", (String) null);
+        Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams((Map<String, Object>) (params2), "fetchDepositsWithdrawals", "vaultAddress", (String) null);
         vaultAddress = vaultAddressparams2Variable.first();
         params2 = vaultAddressparams2Variable.second();
         vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -5994,8 +6008,9 @@ public class Hyperliquid extends HyperliquidApi
         {
             market = this.market(symbol);
         }
-        String userAddress = this.safeString(this.handlePublicAddress("fetchFundingHistory", (Map<String, Object>) (parameters)), 0);
-        Map<String, Object> paramsPublicAddress = this.safeDict(this.handlePublicAddress("fetchFundingHistory", (Map<String, Object>) (parameters)), 1, new HashMap<String, Object>() {{}});
+        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchFundingHistory", (Map<String, Object>) (parameters));
+        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
+        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "user", userAddress );
             put( "type", "userFunding" );
@@ -6010,7 +6025,8 @@ public class Hyperliquid extends HyperliquidApi
         {
             request.put("endTime", until);
         }
-        Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
+        Object fundingResponse = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
+        List<Object> response = this.infoList(fundingResponse);
         //
         // [
         //     {

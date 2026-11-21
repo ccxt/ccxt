@@ -1828,13 +1828,13 @@ public class Coinbase extends CoinbaseApi
         Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "usePrivate", false);
         Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
         Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
-        List<Object> spotUnresolvedPromises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> spotUnresolvedPromises = new ArrayList<CompletableFuture<?>>();
         if (Boolean.TRUE.equals(usePrivate))
         {
-            ((List<Object>)spotUnresolvedPromises).add(this.v3PrivateGetBrokerageProducts(paramsUsePrivate));
+            spotUnresolvedPromises.add(this.v3PrivateGetBrokerageProducts(paramsUsePrivate));
         } else
         {
-            ((List<Object>)spotUnresolvedPromises).add(this.v3PublicGetBrokerageMarketProducts(paramsUsePrivate));
+            spotUnresolvedPromises.add(this.v3PublicGetBrokerageMarketProducts(paramsUsePrivate));
         }
         //
         //    {
@@ -1883,7 +1883,7 @@ public class Coinbase extends CoinbaseApi
         //
         if (this.checkRequiredCredentials(false))
         {
-            ((List<Object>)spotUnresolvedPromises).add(this.v3PrivateGetBrokerageTransactionSummary(paramsUsePrivate));
+            spotUnresolvedPromises.add(this.v3PrivateGetBrokerageTransactionSummary(paramsUsePrivate));
         }
         //
         //    {
@@ -1908,7 +1908,7 @@ public class Coinbase extends CoinbaseApi
         //        has_promo_fee: false
         //    }
         //
-        List<Object> promises = (((List<?>)(spotUnresolvedPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(spotUnresolvedPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(spotUnresolvedPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> unresolvedContractPromises = new ArrayList<Object>(Arrays.asList());
         try
         {
@@ -6421,7 +6421,7 @@ public class Coinbase extends CoinbaseApi
                     Long timestamp = this.parseToInt((((double) nonce) / ((double) 1000)));
                     String timestampString = String.valueOf(timestamp);
                     String auth = (((timestampString + java.util.Objects.requireNonNullElse(method, "GET")) + savedPath) + payload);
-                    String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                    String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                     {
                         HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                         hx4NewMap0.put("CB-ACCESS-KEY", this.apiKey);

@@ -3065,7 +3065,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long time = this.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         String signatureString = String.join("\n", (List<String>)(List)new ArrayList<Object>(Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
-        String signature = (String) this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
+        String signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
         Map<String, Object> payload = new HashMap<String, Object>() {{
             put( "req_id", requestIdResolved );
             put( "timestamp", String.valueOf(time) );
@@ -3116,7 +3116,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Long time = this.seconds();
         String eventVar = "subscribe";
         String signaturePayload = ((((((("channel=" + channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));
-        String signature = (String) this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
+        String signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
         Map<String, Object> auth = new HashMap<String, Object>() {{
             put( "method", "api_key" );
             put( "KEY", Gate.this.apiKey );

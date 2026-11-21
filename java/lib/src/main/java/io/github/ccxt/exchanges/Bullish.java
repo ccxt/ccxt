@@ -3616,7 +3616,7 @@ public class Bullish extends BullishApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 String payload = ((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 {
                     HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                     hx4NewMap1.put("BX-TIMESTAMP", timestamp);
@@ -3628,7 +3628,7 @@ public class Bullish extends BullishApi
             {
                 requestBody = this.json(parameters);
                 String payload = (((((timestamp + nonce) + java.util.Objects.requireNonNullElse(method, "GET")) + "/trading-api/") + path) + requestBody);
-                String signature = (String) this.hmac(this.encode(this.hash(this.encode(payload), sha256(), "hex")), this.encode(this.secret), sha256(), "hex");
+                String signature = this.hmac(this.encode(this.hash(this.encode(payload), sha256(), "hex")), this.encode(this.secret), sha256(), "hex");
                 {
                     HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
                     hx4NewMap2.put("BX-TIMESTAMP", timestamp);

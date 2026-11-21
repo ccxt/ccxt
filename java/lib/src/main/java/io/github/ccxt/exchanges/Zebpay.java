@@ -479,7 +479,7 @@ public class Zebpay extends ZebpayApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
         Map<String, Object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets", null);
         List<String> defaultMarkets = new ArrayList<String>(Arrays.asList("spot", "swap"));
         List<Object> types = (List<Object>) this.safeList(fetchMarketsOptions, "types", defaultMarkets);
@@ -488,16 +488,16 @@ public class Zebpay extends ZebpayApi
             String type = this.safeString(types, i, "");
             if (java.util.Objects.equals(type, "spot"))
             {
-                ((List<Object>)promisesUnresolved).add(this.fetchSpotMarkets(parameters));
+                promisesUnresolved.add(this.fetchSpotMarkets(parameters));
             } else if (java.util.Objects.equals(type, "swap"))
             {
-                ((List<Object>)promisesUnresolved).add(this.fetchSwapMarkets(parameters));
+                promisesUnresolved.add(this.fetchSwapMarkets(parameters));
             } else
             {
                 throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + type) + "\" is not a supported market type")) ;
             }
         }
-        List<Object> promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> promises = (CompletableFuture.allOf(promisesUnresolved.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesUnresolved.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> spotMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
         List<Object> futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         return this.arrayConcat(spotMarkets, futureMarkets);
@@ -2439,7 +2439,7 @@ public class Zebpay extends ZebpayApi
         String tail = ("/api/" + this.implodeParams(path, paramsOmitted));
         String suffix = "";
         String timestamp = String.valueOf(this.milliseconds());
-        Object signature = "";
+        String signature = "";
         Object query = this.omit(paramsOmitted, this.extractParams(path));
         String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (java.util.Objects.equals(access, "public"))

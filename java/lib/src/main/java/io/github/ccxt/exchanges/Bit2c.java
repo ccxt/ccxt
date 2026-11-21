@@ -1310,7 +1310,7 @@ public class Bit2c extends Bit2cApi
             {
                 requestBody = auth;
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2c.this.apiKey );

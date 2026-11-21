@@ -2412,7 +2412,7 @@ public class Apex extends ApexApi
             {
                 messageString = (messageString + signBody);
             }
-            String signature = (String) this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
+            String signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             headersValue.put("APEX-SIGNATURE", signature);
             headersValue.put("APEX-API-KEY", this.apiKey);
             headersValue.put("APEX-TIMESTAMP", timestamp);

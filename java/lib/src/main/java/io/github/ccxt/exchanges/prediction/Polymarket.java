@@ -618,7 +618,7 @@ public class Polymarket extends PolymarketApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> queries = (List<Object>)(this.parseSearchQueries(parameters));
+        List<Object> queries = this.parseSearchQueries(parameters);
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
         Integer queriesLength = queries.size();
         List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
@@ -744,15 +744,15 @@ public class Polymarket extends PolymarketApi
             {
                 ((List<Object>)remainingPages).add(p);
             }
-            List<Object> restPromises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> restPromises = new ArrayList<CompletableFuture<?>>();
             for (var pi = 0; pi < remainingPages.size(); pi++)
             {
                 Map<String, Object> pageRequest = new HashMap<String, Object>();
                 pageRequest.put("page", (remainingPages == null || pi < 0 || pi >= remainingPages.size() ? null : remainingPages.get(pi)));
                 pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
-                ((List<Object>)restPromises).add(this.gammaPublicGetPublicSearch(pageRequest));
+                restPromises.add(this.gammaPublicGetPublicSearch(pageRequest));
             }
-            List<Object> restResponses = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> restResponses = (CompletableFuture.allOf(restPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(restPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             List<Object> allEvents = new ArrayList<Object>(Arrays.asList());
             for (var fi = 0; fi < firstEvents.size(); fi++)
             {
@@ -927,15 +927,15 @@ public class Polymarket extends PolymarketApi
             {
                 ((List<Object>)offsets).add((((long) p) * pageSize));
             }
-            List<Object> restPromises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> restPromises = new ArrayList<CompletableFuture<?>>();
             for (var oi = 0; oi < offsets.size(); oi++)
             {
                 Map<String, Object> pageRequest = new HashMap<String, Object>();
                 pageRequest.put("offset", (offsets == null || oi < 0 || oi >= offsets.size() ? null : offsets.get(oi)));
                 pageRequest = this.extend(pageRequest, baseRequest);
-                ((List<Object>)restPromises).add(this.gammaPublicGetEvents(pageRequest));
+                restPromises.add(this.gammaPublicGetEvents(pageRequest));
             }
-            List<Object> restPages = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> restPages = (CompletableFuture.allOf(restPromises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(restPromises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             for (var ri = 0; ri < restPages.size(); ri++)
             {
                 List<Object> page = this.safeList(restPages, ri, new ArrayList<Object>(Arrays.asList()));
@@ -3653,7 +3653,7 @@ public class Polymarket extends PolymarketApi
                 String plusSecret = (secret == null ? null : ((String)secret).replace("-", "+"));
                 String normalizedSecret = (plusSecret == null ? null : ((String)plusSecret).replace("_", "/"));
                 byte[] secretBytes = this.base64ToBinary(normalizedSecret);
-                Object signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
+                String signature = this.hmac(this.encode(auth), secretBytes, sha256(), "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = (signature == null ? null : ((String)signature).replace("+", "-"));
                 signature = (signature == null ? null : ((String)signature).replace("/", "_"));

@@ -2446,7 +2446,7 @@ public class Hollaex extends HollaexApi
                     auth = (auth + requestBody);
                 }
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             requestHeaders.put("api-signature", signature);
         }
         String bodyResult = requestBody;

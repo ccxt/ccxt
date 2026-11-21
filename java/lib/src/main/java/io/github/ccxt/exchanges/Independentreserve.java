@@ -1471,7 +1471,7 @@ public class Independentreserve extends IndependentreserveApi
                 ((List<Object>)auth).add(((key + "=") + value));
             }
             String message = String.join(",", (List<String>)auth);
-            String signature = (String) this.hmac(this.encode(message), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             Map<String, Object> query = new HashMap<String, Object>() {{}};
             query.put("apiKey", this.apiKey);
             query.put("nonce", nonce);

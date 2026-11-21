@@ -363,7 +363,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
         byte[] secretBytes = this.base64ToBinary(this.secret);
         List<Object> seed = this.arraySlice(secretBytes, 0, 32);
-        Object signature = eddsa(this.encode(payload), seed, ed25519());
+        String signature = eddsa(this.encode(payload), seed, ed25519());
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("method", method);
         request.put("params", topics);

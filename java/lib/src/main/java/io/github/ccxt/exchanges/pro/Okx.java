@@ -2090,7 +2090,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String method = "GET";
             String path = "/users/self/verify";
             String auth = ((timestamp + method) + path);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
             String operation = "login";
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("op", operation);

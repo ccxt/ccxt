@@ -4855,7 +4855,7 @@ public class Aster extends AsterApi
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
             Integer pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
-            Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }));
+            Object pricePrecisionPlusOne = (((long) pricePrecision) + 1L);
             // round half up
             String pricePrecisionPlusOneString = this.numberToString(pricePrecisionPlusOne);
             String rounderString = ("5e-" + pricePrecisionPlusOneString);
@@ -5018,7 +5018,7 @@ public class Aster extends AsterApi
         return this.signHash((String) (this.keccakMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
-    public String signWithdrawPayload(Object withdrawPayload, Object network)
+    public String signWithdrawPayload(Map<String, Object> withdrawPayload, Object network)
     {
         Long chainId = this.safeInteger(withdrawPayload, "chainId");
         Map<String, Object> domain = new HashMap<String, Object>() {{

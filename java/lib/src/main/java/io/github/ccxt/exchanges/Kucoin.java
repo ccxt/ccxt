@@ -2233,14 +2233,14 @@ public class Kucoin extends KucoinApi
         }
         boolean fetchSpotMarkets = this.inArray("spot", types);
         fetchTickersFees = Boolean.TRUE.equals(fetchTickersFees) && fetchSpotMarkets; // tickers and fees are only fetched for spot markets
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         if (fetchSpotMarkets)
         {
-            ((List<Object>)promises).add(this.publicGetSymbols(paramsRequest));
+            promises.add(this.publicGetSymbols(paramsRequest));
         }
         if (Boolean.TRUE.equals(requestMarginables))
         {
-            ((List<Object>)promises).add(this.privateGetMarginSymbols(paramsRequest)); // cross margin symbols
+            promises.add(this.privateGetMarginSymbols(paramsRequest)); // cross margin symbols
             //
             //    {
             //        "code": "200000",
@@ -2252,7 +2252,7 @@ public class Kucoin extends KucoinApi
             //                    "minFunds": "0.1"
             //                },
             //
-            ((List<Object>)promises).add(this.privateGetIsolatedSymbols(paramsRequest)); // isolated margin symbols
+            promises.add(this.privateGetIsolatedSymbols(paramsRequest)); // isolated margin symbols
         }
         if (Boolean.TRUE.equals(fetchTickersFees))
         {
@@ -2281,18 +2281,18 @@ public class Kucoin extends KucoinApi
             //                     "makerCoefficient": "1" // Maker Fee Coefficient
             //                 }
             //
-            ((List<Object>)promises).add(this.publicGetMarketAllTickers(paramsRequest));
+            promises.add(this.publicGetMarketAllTickers(paramsRequest));
         }
         if (Boolean.TRUE.equals(fetchContractMarkets))
         {
-            ((List<Object>)promises).add(this.fetchContractMarkets(paramsRequest));
+            promises.add(this.fetchContractMarkets(paramsRequest));
         }
         if (Boolean.TRUE.equals(credentialsSet))
         {
             // load migration status for account
-            ((List<Object>)promises).add(this.loadMigrationStatus(false));
+            promises.add(this.loadMigrationStatus(false));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         List<Object> symbolsData = new ArrayList<Object>(Arrays.asList());
         if (fetchSpotMarkets)
         {
@@ -2610,8 +2610,8 @@ public class Kucoin extends KucoinApi
     private Object fetchUTAMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
-        ((List<Object>)promises).add(this.utaGetMarketInstrument(this.extend(parameters, new HashMap<String, Object>() {{
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+        promises.add(this.utaGetMarketInstrument(this.extend(parameters, new HashMap<String, Object>() {{
             put( "tradeType", "SPOT" );
         }})));
         //
@@ -2646,7 +2646,7 @@ public class Kucoin extends KucoinApi
         //         }
         //     }
         //
-        ((List<Object>)promises).add(this.utaGetMarketInstrument(this.extend(parameters, new HashMap<String, Object>() {{
+        promises.add(this.utaGetMarketInstrument(this.extend(parameters, new HashMap<String, Object>() {{
             put( "tradeType", "FUTURES" );
         }})));
         //
@@ -2686,7 +2686,7 @@ public class Kucoin extends KucoinApi
         //         }
         //     }
         //
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> data = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new HashMap<String, Object>() {{}});
         Map<String, Object> contractData = this.safeDict((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "data", new HashMap<String, Object>() {{}});
         List<Object> spotData = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
@@ -14189,14 +14189,14 @@ public class Kucoin extends KucoinApi
             String apiKeyVersion = this.safeString(headersSigned, "KC-API-KEY-VERSION");
             if (java.util.Objects.equals(apiKeyVersion, "2"))
             {
-                String passphrase = (String) this.hmac(this.encode(this.password), this.encode(this.secret), sha256(), "base64");
+                String passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256(), "base64");
                 headersSigned.put("KC-API-PASSPHRASE", passphrase);
             } else
             {
                 headersSigned.put("KC-API-PASSPHRASE", this.password);
             }
             String payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + endpoint) + endpart);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             headersSigned.put("KC-API-SIGN", signature);
             Object partner = this.safeDict(this.options, "partner", new HashMap<String, Object>() {{}});
             Boolean isUtaFuturePrivate = Boolean.TRUE.equals(isUtaPrivate) && (java.util.Objects.equals(tradeType, "FUTURES"));
@@ -14207,7 +14207,7 @@ public class Kucoin extends KucoinApi
             if ((!java.util.Objects.equals(partnerId, null)) && (!java.util.Objects.equals(partnerSecret, null)))
             {
                 String partnerPayload = ((timestamp + partnerId) + this.apiKey);
-                String partnerSignature = (String) this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256(), "base64");
+                String partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256(), "base64");
                 headersSigned.put("KC-API-PARTNER-SIGN", partnerSignature);
                 headersSigned.put("KC-API-PARTNER", partnerId);
                 headersSigned.put("KC-API-PARTNER-VERIFY", "true");

@@ -217,7 +217,7 @@ public class Binance extends BinanceApi
     private Object fetchMarketsCore(Map<String, Object> parameters)
     {
 
-        List<Object> queries = (List<Object>)(this.parseSearchQueries(parameters));
+        List<Object> queries = this.parseSearchQueries(parameters);
         Integer queriesLength = queries.size();
         if ((queriesLength != null && queriesLength > 0))
         {
@@ -1978,7 +1978,7 @@ public class Binance extends BinanceApi
     {
         Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "price", 0.0001);
-        Object decimals = 4;
+        Integer decimals = 4;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
@@ -1990,7 +1990,7 @@ public class Binance extends BinanceApi
     {
         Map<String, Object> market = this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(market, "precision", new HashMap<String, Object>() {{}}), "amount", 0.01);
-        Object decimals = 2;
+        Integer decimals = 2;
         if ((!java.util.Objects.equals(prec, null)) && ((prec != null && prec > 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
@@ -2311,7 +2311,7 @@ public class Binance extends BinanceApi
         String querystring = this.urlencodeNested(extendedParams);
         querystring = (querystring == null ? null : ((String)querystring).replace("%5B", "["));
         querystring = (querystring == null ? null : ((String)querystring).replace("%5D", "]"));
-        String signature = (String) this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
+        String signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = ((querystring + "&signature=") + signature);
         Map<String, Object> headersValue = new HashMap<String, Object>() {{
             put( "X-MBX-APIKEY", Binance.this.apiKey );

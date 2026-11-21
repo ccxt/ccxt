@@ -3519,7 +3519,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             signatureParams = this.keysort(signatureParams);
             String auth = this.urlencode(signatureParams, true); // true required in go
             String payload = (((((("GET" + "\n") + hostname) + "\n") + relativePath) + "\n") + auth); // eslint-disable-line quotes
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             Map<String, Object> request = null;
             if (java.util.Objects.equals(type, "spot"))
             {

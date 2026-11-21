@@ -823,10 +823,10 @@ public class Gemini extends GeminiApi
         String method = this.safeString(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
         if (java.util.Objects.equals(method, "fetch_markets_from_web"))
         {
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            ((List<Object>)promises).add(this.fetchMarketsFromWeb(parameters)); // get usd markets
-            ((List<Object>)promises).add(this.fetchUSDTMarkets(parameters)); // get usdt markets
-            List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
+            promises.add(this.fetchMarketsFromWeb(parameters)); // get usd markets
+            promises.add(this.fetchUSDTMarkets(parameters)); // get usdt markets
+            List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             return this.arrayConcat((promisesResult == null || 0 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(0)), (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1)));
         }
         return (this.fetchMarketsFromAPI(parameters)).join();
@@ -1036,16 +1036,16 @@ public class Gemini extends GeminiApi
         }
         if (Boolean.TRUE.equals(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
         {
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             for (var i = 0; i < marketIds.size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", marketId );
                 }};
-                ((List<Object>)promises).add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
+                promises.add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             for (var i = 0; i < responses.size(); i++)
             {
                 MarketInterface parsed = this.parseMarket((responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
@@ -2586,10 +2586,10 @@ public class Gemini extends GeminiApi
             put( "network", networkId );
         }};
         List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode))).join();
-        Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, (switch (0) { default -> { HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-            j39v5.put("network", networkCode);
-            j39v5.put("currency", codeValue);
-            yield j39v5; } }));
+        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+        j39v5.put("network", networkCode);
+        j39v5.put("currency", codeValue);
+        Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, j39v5);
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, "network");
@@ -2619,7 +2619,7 @@ public class Gemini extends GeminiApi
             }}, query);
             String payload = this.json(request);
             payload = this.stringToBase64(payload);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("Content-Type", "text/plain");

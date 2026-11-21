@@ -5424,7 +5424,7 @@ public class Weex extends WeexApi
             {
                 payload = (payload + requestBody);
             }
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("ACCESS-KEY", this.apiKey);

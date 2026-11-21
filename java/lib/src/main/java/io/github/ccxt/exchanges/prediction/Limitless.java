@@ -390,7 +390,7 @@ public class Limitless extends LimitlessApi
             Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
             List<Object> firstData = this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
             allRaw = (List<Object>) this.arrayConcat(allRaw, firstData);
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             Double cappedPages = Math.ceil(Double.parseDouble(String.valueOf((((double) maxMarkets) / ((double) pageSize)))));
             Long knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
             Long allPages = this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) knownTotal) / ((double) pageSize))))));
@@ -402,9 +402,9 @@ public class Limitless extends LimitlessApi
                 }
                 page = i;
                 request.put("page", page);
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
+                promises.add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             Integer length = responses.size();
             for (var j = 0; (length != null && j < length); j++)
             {
@@ -1433,18 +1433,18 @@ public class Limitless extends LimitlessApi
                 outcomesBySlug.put(slug, grouped);
             }
         }
-        List<Object> promises = new ArrayList<Object>(Arrays.asList());
+        List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
         for (var i = 0; i < slugs.size(); i++)
         {
             String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
             HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
             mapLiteral5.put("addressOrSlug", slug);
-            ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral5, parameters)));
+            promises.add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral5, parameters)));
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("slug", slug);
-            ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(mapLiteral6));
+            promises.add(this.limitlessPublicGetMarketsSlugOrderbook(mapLiteral6));
         }
-        List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+        List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < slugs.size(); i++)
         {
             String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
@@ -3669,7 +3669,7 @@ public class Limitless extends LimitlessApi
         Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
         Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
         List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
-        Object page = 1;
+        Long page = 1L;
         while (true)
         {
             Map<String, Object> request = new HashMap<String, Object>();
@@ -3698,7 +3698,7 @@ public class Limitless extends LimitlessApi
                     ((List<Object>)allRaw).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
                 }
             }
-            page = this.sum(page, 1);
+            page = (page + 1L);
             Integer collectedTotal = allRaw.size();
             if ((pageSize != null && (dataLength == null || dataLength < pageSize)) || (maxMarkets == null || (collectedTotal != null && collectedTotal >= maxMarkets)))
             {
@@ -3834,7 +3834,7 @@ public class Limitless extends LimitlessApi
             String timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
             String payload = ((((((timestamp + newline) + java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
-            String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
             HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
             mapLiteral14.put("lmts-timestamp", timestamp);
             mapLiteral14.put("lmts-signature", signature);

@@ -1185,7 +1185,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String ts = String.valueOf(this.nonce());
             String auth = ("|" + ts);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", eventVar );
                 put( "params", new HashMap<String, Object>() {{

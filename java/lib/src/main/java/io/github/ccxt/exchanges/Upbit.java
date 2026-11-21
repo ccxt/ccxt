@@ -1085,15 +1085,15 @@ public class Upbit extends UpbitApi
         } else
         {
             List<String> ids = this.marketIds(symbolsNormalized);
-            List<Object> promises = new ArrayList<Object>(Arrays.asList());
+            List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             List<Object> queries = (List<Object>) this.idsQueryStrings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
             for (var i = 0; i < queries.size(); i++)
             {
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
                 mapLiteral5.put("markets", this.safeString(queries, i, ""));
-                ((List<Object>)promises).add(this.publicGetTicker(this.extend(mapLiteral5, parameters)));
+                promises.add(this.publicGetTicker(this.extend(mapLiteral5, parameters)));
             }
-            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
             tickers = this.arraysConcat(responses);
         }
         //
