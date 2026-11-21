@@ -12562,6 +12562,7 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
         'ParsePublicDepositWithdrawFees',
         'ParseAllGreeksList', 'ParseAllGreeksDict',
+        'ParseTickersList', 'ParseTickersDict', 'ParseLastPricesList', 'ParseLastPricesDict',
         'SetApiCredentials' ]; // opinion/polymarket return their creds map literal
 }
 
