@@ -569,7 +569,7 @@ export default class woofipro extends woofiproRest {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -840,7 +840,7 @@ export default class woofipro extends woofiproRest {
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.market (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (order, 'timestamp');
         const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
@@ -1007,7 +1007,7 @@ export default class woofipro extends woofiproRest {
         const messageHash = 'myTrades';
         const marketId = this.safeString (message, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const trade = this.parseWsTrade (message, market);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1150,7 +1150,7 @@ export default class woofipro extends woofiproRest {
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const positionSymbol: string = market['symbol'];
+            const positionSymbol = this.safeString (market, 'symbol', '');
             const messageHash = 'positions::' + positionSymbol;
             client.resolve (position, messageHash);
         }
