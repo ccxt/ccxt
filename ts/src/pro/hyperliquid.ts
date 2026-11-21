@@ -1351,7 +1351,7 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = 'clearinghouseState';
         let messageHash = topic + '::positions';
         const hasSymbols = (symbols !== undefined) && !this.isEmpty (symbols);
-        let symbolsNormalized = symbols;
+        let symbolsNormalized: Strings = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols (symbols);
         }
