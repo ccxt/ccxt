@@ -2411,7 +2411,7 @@ export default class kucoin extends kucoinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = 'myTrades';
+        let messageHash: string = 'myTrades';
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2420,8 +2420,8 @@ export default class kucoin extends kucoinRest {
         if (market !== undefined) {
             symbolResolved = this.safeString (market, 'symbol');
         }
-        if (market !== undefined) {
-            messageHash = messageHash + ':' + market['symbol'];
+        if (symbolResolved !== undefined) {
+            messageHash = messageHash + ':' + symbolResolved;
         }
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
@@ -3590,7 +3590,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    getMessageHash (elementName: Str, symbol: Str = undefined): string {
+    getMessageHash (elementName: string, symbol: Str = undefined): string {
         // method from kucoinfutures
         // elementName can be 'ticker', 'bidask', ...
         if (symbol !== undefined) {
