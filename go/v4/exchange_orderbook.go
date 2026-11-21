@@ -217,7 +217,7 @@ func (this *WsOrderBook) GetCache() []any {
 // AppendCache buffers a delta like AppendToArray did; a scalar pointer is stored as its value
 // (every reader derefs it), so the cached elements never hold a Go pointer.
 func (this *WsOrderBook) AppendCache(message any) {
-	AppendToArray(&this.Cache, derefScalar(message))
+	this.Cache = append(this.GetCache(), derefScalar(message))
 }
 
 func (this *WsOrderBook) SetCache(cache any) {
