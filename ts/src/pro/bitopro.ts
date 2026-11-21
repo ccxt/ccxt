@@ -441,7 +441,7 @@ export default class bitopro extends bitoproRest {
         this.extendExchangeOptions (defaultOptions);
         const wsOptions = this.safeDict (this.options, 'ws', {});
         const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
-        const originalHeaders = wsInnerOptions['headers'];
+        const originalHeaders = this.safeDict (wsInnerOptions, 'headers');
         const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
