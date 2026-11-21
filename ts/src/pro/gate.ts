@@ -1457,8 +1457,10 @@ export default class gate extends gateRest {
         //
         const result: Dict[] = this.safeList (message, 'result', []);
         this.balance['info'] = result;
-        for (let i = 0; i < result.length; i++) {
-            const rawBalance = this.safeDict (result, i);
+        const rows = this.safeList (message, 'result', []);
+        const rowsLength = rows.length;
+        for (let i = 0; i < rowsLength; i++) {
+            const rawBalance = this.safeDict (rows, i);
             const account = this.account ();
             const currencyId = this.safeString (rawBalance, 'currency', 'USDT'); // when not present it is USDT
             const code = this.safeCurrencyCode (currencyId);
