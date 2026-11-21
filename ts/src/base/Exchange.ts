@@ -4238,21 +4238,23 @@ export class BaseExchange {
         //
         // createOrder
         if ('createOrder' in featuresObj) {
-            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
-            featuresObj['createOrder']['stopLoss'] = value;
-            featuresObj['createOrder']['takeProfit'] = value;
+            const createOrder = this.extend ({}, featuresObj['createOrder']);
+            const value = this.safeDict (createOrder, 'attachedStopLossTakeProfit');
+            createOrder['stopLoss'] = value;
+            createOrder['takeProfit'] = value;
             if (marketType === 'spot') {
                 // default 'hedged': false
-                featuresObj['createOrder']['hedged'] = false;
+                createOrder['hedged'] = false;
                 // default 'leverage': false
-                if (!('leverage' in featuresObj['createOrder'])) {
-                    featuresObj['createOrder']['leverage'] = false;
+                if (!('leverage' in createOrder)) {
+                    createOrder['leverage'] = false;
                 }
             }
             // default 'GTC' to true
-            if (this.safeBool (featuresObj['createOrder']['timeInForce'], 'GTC') === undefined) {
-                featuresObj['createOrder']['timeInForce']['GTC'] = true;
+            if (this.safeBool (createOrder['timeInForce'], 'GTC') === undefined) {
+                createOrder['timeInForce']['GTC'] = true;
             }
+            featuresObj['createOrder'] = createOrder;
         }
         // other methods
         const keys = Object.keys (featuresObj);
