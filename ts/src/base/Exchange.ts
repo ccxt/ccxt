@@ -10192,10 +10192,10 @@ export default class Exchange extends BaseExchange {
     }
 
     async fetchRestOrderBookSafe (symbol: any, limit: Int = undefined, params: Dict = {}): Promise<OrderBook | undefined> {
-        const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        const [ fetchSnapshotMaxRetries, fetchParams ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const orderBook = await this.fetchOrderBook (symbol, limit, fetchParams);
                 return orderBook;
             } catch (e) {
                 if ((i + 1) === fetchSnapshotMaxRetries) {
