@@ -1805,7 +1805,8 @@ export default class bitrue extends Exchange {
             side = isBuyer ? 'buy' : 'sell'; // this is a true side
         }
         let fee: FeeString = undefined;
-        if ('commission' in trade) {
+        const commission = this.safeString (trade, 'commission');
+        if (commission !== undefined) {
             fee = {
                 'cost': this.safeString2 (trade, 'commission', 'fee'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAssert')),
@@ -1955,16 +1956,19 @@ export default class bitrue extends Exchange {
         const filled = this.safeString (order, 'executedQty');
         let timestamp: Int = undefined;
         let lastTradeTimestamp: Int = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        } else if ('transactTime' in order) {
-            timestamp = this.safeInteger (order, 'transactTime');
-        } else if ('updateTime' in order) {
+        const time = this.safeInteger (order, 'time');
+        const transactTime = this.safeInteger (order, 'transactTime');
+        const updateTime = this.safeInteger (order, 'updateTime');
+        if (time !== undefined) {
+            timestamp = time;
+        } else if (transactTime !== undefined) {
+            timestamp = transactTime;
+        } else if (updateTime !== undefined) {
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
-                    lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+                    lastTradeTimestamp = updateTime;
                 } else {
-                    timestamp = this.safeInteger (order, 'updateTime');
+                    timestamp = updateTime;
                 }
             }
         }
@@ -2863,10 +2867,10 @@ export default class bitrue extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'createdAt');
         const updated = this.safeInteger (transaction, 'updatedAt');
-        const payAmount = ('payAmount' in transaction);
-        const ctime = ('ctime' in transaction);
+        const payAmount = this.safeString (transaction, 'payAmount');
+        const ctime = this.safeString (transaction, 'ctime');
         let type: Str = 'deposit';
-        if (payAmount || ctime) {
+        if ((payAmount !== undefined) || (ctime !== undefined)) {
             type = 'withdrawal';
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
