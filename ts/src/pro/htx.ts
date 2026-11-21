@@ -1635,14 +1635,15 @@ export default class htx extends htxRest {
         }
         let market: Market = undefined;
         let messageHash = '';
-        if ((!this.isEmpty (symbols)) && (symbols !== undefined)) {
+        const hasMarket = (!this.isEmpty (symbols)) && (symbols !== undefined);
+        if (hasMarket) {
             market = this.getMarketFromSymbols (symbols);
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
         let subType: Str = undefined;
         let paramsSubType: Dict = {};
-        if (market !== undefined) {
+        if (hasMarket) {
             type = this.safeString (market, 'type');
             if (this.safeBool (market, 'linear', false)) {
                 subType = 'linear';
@@ -1655,7 +1656,7 @@ export default class htx extends htxRest {
             [ subType, paramsSubType ] = this.handleOptionStringAndParams (paramsMarketType, 'watchPositions', 'subType', subType);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
-        const paramsPositions: Dict = (market !== undefined) ? params : paramsSubType;
+        const paramsPositions: Dict = hasMarket ? params : paramsSubType;
         const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('watchPositions', paramsPositions, 'cross');
         let paramsRequest: Dict = paramsMarginMode;
         const linear = (subType === 'linear');

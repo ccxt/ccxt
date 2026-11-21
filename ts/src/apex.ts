@@ -1295,7 +1295,7 @@ export default class apex extends Exchange {
                     const markets: MarketInterface[] = this.markets_by_id[newMarketId];
                     const numMarkets = markets.length;
                     for (let i = 0; i < numMarkets; i++) {
-                        if ((i === 0) && (markets[i]['id2'] === marketId)) {
+                        if ((i === 0) && (this.safeString (markets[i], 'id2') === marketId)) {
                             marketResolved = markets[i];
                         }
                     }

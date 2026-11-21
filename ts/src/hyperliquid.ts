@@ -2303,7 +2303,7 @@ export default class hyperliquid extends Exchange {
         const ordersToBeParsed: List = [];
         for (let i = 0; i < statuses.length; i++) {
             const order = statuses[i];
-            if (order === 'waitingForTrigger') {
+            if (this.safeString (statuses, i) === 'waitingForTrigger') {
                 ordersToBeParsed.push ({ 'status': order }); // tp/sl orders can return a string like "waitingForTrigger",
             } else {
                 ordersToBeParsed.push (order);
