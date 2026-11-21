@@ -534,8 +534,8 @@ export default class bitfinex extends Exchange {
     }
 
     isFiat (code: any): boolean {
-        const fiat = this.safeDict (this.options, 'fiat', {});
-        return (code in fiat);
+        const fiat: Dict = this.safeDict (this.options, 'fiat', {});
+        return this.safeString (fiat, code) !== undefined;
     }
 
     getCurrencyName (code: string): string {
@@ -2729,7 +2729,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const fiat = this.safeDict (this.options, 'fiat', {});
+        const fiat: Dict = this.safeDict (this.options, 'fiat', {});
         const feeData = this.safeList (response, 4, []);
         const makerData = this.safeList (feeData, 0, []);
         const takerData = this.safeList (feeData, 1, []);
@@ -2748,7 +2748,9 @@ export default class bitfinex extends Exchange {
                 'percentage': true,
                 'tierBased': true,
             };
-            if (market['quote'] in fiat) {
+            const quote = this.safeString (market, 'quote');
+            const fiatQuote = this.safeString (fiat, quote);
+            if (fiatQuote !== undefined) {
                 fee['maker'] = makerFeeFiat;
                 fee['taker'] = takerFeeFiat;
             } else if (this.safeBool (market, 'contract', false)) {
