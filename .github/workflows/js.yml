@@ -109,8 +109,10 @@ jobs:
           # prediction-market exchanges live under ts/src/prediction/
           if [ -f "ts/src/$exchange.ts" ]; then
             npm run lint "ts/src/$exchange.ts"
+            npm run lint-typed-operands "ts/src/$exchange.ts"
           elif [ -f "ts/src/prediction/$exchange.ts" ]; then
             npm run lint "ts/src/prediction/$exchange.ts"
+            npm run lint-typed-operands "ts/src/prediction/$exchange.ts"
           fi
         done
     - name: Lint Ws (specific)
@@ -120,6 +122,7 @@ jobs:
         for exchange in $cleaned_ws_files; do
           if [ -f "ts/src/pro/$exchange.ts" ]; then
             npm run lint "ts/src/pro/$exchange.ts"
+            npm run lint-typed-operands "ts/src/pro/$exchange.ts"
           fi
         done
     - name: Run Base Tests
