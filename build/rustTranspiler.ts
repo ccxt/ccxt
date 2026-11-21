@@ -6836,6 +6836,8 @@ const RUST_PARSE_LIST_FNS = [
     'separate_bids_or_asks',
     'fetch_hip3_markets',
     'get_v5_linear_channel_and_message_hash',
+    'fetch_raw_events_by_search',
+    'fetch_raw_events_list',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
@@ -6861,7 +6863,8 @@ function typeParseListReturns(content: string): string {
             || new RegExp(String.raw`^\s*return ${self}.*\);$`).test(l)
             || (name === 'parse_positions' && /^\s*return self\.filter_by_array_positions\(.*\);$/.test(l))
             || listLocalRet(l) || new RegExp(String.raw`^\s*return Value::Arr\(${self}.*\)\);$`).test(l)
-            || h29r03ValueVecRet(l, sig, body) !== undefined);
+            || h29r03ValueVecRet(l, sig, body) !== undefined
+            || h30r05ArraySliceRet(l) !== undefined);
         if (!ok) { failed.add(name); return whole; }
         typed.add(name);
         const b = body.replace(/^(\s*return )Value::Arr\((self\.filter_by_\w+\(.*\))\);$/gm, '$1$2;')
@@ -6870,7 +6873,7 @@ function typeParseListReturns(content: string): string {
             .replace(/^(\s*return )Value::from\((vec!\[Value::.*\])\);$/gm, '$1std::sync::Arc::new($2);')
             .replace(new RegExp(String.raw`^(\s*return )Value::from\((${vecs.join('|') || '(?!)'})\);$`, 'gm'), '$1std::sync::Arc::new($2);')
             .replace(/^(\s*return self\.filter_by_array_positions\(.*\));$/gm, '$1.into_list();')
-            .split('\n').map((l) => h29r03ValueVecRet(l, sig, body) ?? l).join('\n');
+            .split('\n').map((l) => h29r03ValueVecRet(l, sig, body) ?? l).map((l) => h30r05ArraySliceRet(l) ?? l).join('\n');
         return `${sig}crate::value::List${open}${b}\n}`;
     });
     // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
@@ -6896,6 +6899,7 @@ function typeParseListReturns(content: string): string {
         if (conv !== null) rep = conv[1] ? `Some(${call}${aw})` : call + aw;
         const vec = conv === null ? content.slice(close + 1 + aw.length).match(/^\.as_array\(\)\.cloned\(\)\.unwrap_or_default\(\)/) : null;
         if (vec !== null) rep = `${call}${aw}.to_vec()`;
+        const bp = h30r05BoxPinAwait(content, m.index, close); if (bp !== undefined) { out += content.slice(last, m.index) + call + bp[0]; last = bp[1]; head.lastIndex = last; continue; }
         out += content.slice(last, m.index) + rep;
         last = close + 1 + aw.length + (conv?.[0].length ?? 0) + (vec?.[0].length ?? 0);
         head.lastIndex = last;
@@ -6913,6 +6917,20 @@ function h29r03ValueVecRet(l: string, sig: string, body: string): string | undef
     return ok ? `${r[1]}std::sync::Arc::new(${r[2]});` : undefined;
 }
 // ===== end h29-H29-R03
+
+// ===== h30-H30-R05
+// `return Value::Arr(self.array_slice(..));`: array_slice is declared `-> crate::value::List`
+function h30r05ArraySliceRet(l: string): string | undefined {
+    const r = /^(\s*return )Value::Arr\((self\.array_slice\(.*\))\);$/.exec(l);
+    return r === null ? undefined : `${r[1]}${r[2]};`;
+}
+// a recursive async member call `Box::pin(self.f(..)).await.into_list()`: the typed call needs no conversion
+function h30r05BoxPinAwait(content: string, at: number, close: number): [string, number] | undefined {
+    const tail = ').await.into_list()';
+    if (content.slice(at - 9, at) !== 'Box::pin(' || !content.startsWith(tail, close + 1)) return undefined;
+    return [').await', close + 1 + tail.length];
+}
+// ===== end h30-H30-R05
 
 // A venue `Vec<Value>` local (or a parse_prediction_positions result) used only by `push(Value::Dict(x))`, `.len()`
 // and element reads (`.get(i)..into_dict()` or `safe_dict_t(&v, Value::Int(i))`) holds proven maps: it becomes
