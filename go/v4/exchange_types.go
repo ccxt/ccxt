@@ -1339,25 +1339,22 @@ func NewOrderRequest(requestData map[string]any) OrderRequest {
 }
 
 func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
-	result := make([]any, 0, len(orderRequests))
-	for _, orderRequest := range orderRequests {
-		symbol := *orderRequest.Symbol
-		orderType := *orderRequest.Type
-		side := *orderRequest.Side
-		amount := *orderRequest.Amount
-		price := *orderRequest.Price
-		parameters := orderRequest.Parameters
-		individualOrderRequest := map[string]any{
-			"symbol": symbol,
-			"type":   orderType,
-			"side":   side,
-			"amount": amount,
-			"price":  price,
-			"params": parameters,
-		}
-		result = append(result, individualOrderRequest)
-	}
+	return MapSliceToList(ConvertOrderRequestListToMapRows(orderRequests))
+}
 
+// ConvertOrderRequestListToMapRows hands typed order requests to a core taking map rows
+func ConvertOrderRequestListToMapRows(orderRequests []OrderRequest) []map[string]any {
+	result := make([]map[string]any, 0, len(orderRequests))
+	for _, orderRequest := range orderRequests {
+		result = append(result, map[string]any{
+			"symbol": *orderRequest.Symbol,
+			"type":   *orderRequest.Type,
+			"side":   *orderRequest.Side,
+			"amount": *orderRequest.Amount,
+			"price":  *orderRequest.Price,
+			"params": orderRequest.Parameters,
+		})
+	}
 	return result
 }
 

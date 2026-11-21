@@ -7387,7 +7387,7 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'handleDeltas': { 1: '[]any' },
     // row-list params every ts/src caller hands a `[]any` (literals, typed locals); the typed wrapper keeps
     // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
-    'cancelOrdersForSymbols': { 0: '[]map[string]any' }, 'editOrders': { 0: '[]any' },
+    'cancelOrdersForSymbols': { 0: '[]map[string]any' }, 'editOrders': { 0: '[]map[string]any' },
     // symbol-list params every caller hands a `[]any` literal; the typed wrapper converts its []string
     'watchOrderBookForSymbols': { 0: '[]any' }, 'watchTradesForSymbols': { 0: '[]any' },
     // base List params with no override and no interface line; every ts/src caller hands a `[]any` local or ToArray
@@ -7413,6 +7413,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'filterByLimit': { 0: '[]any' },
     // base-only number[][] param with no ts/src caller, no override and no typed wrapper
     'convertOHLCVToTradingView': { 0: '[][]any' },
+    // hyperliquid editOrdersRequest (orders: List): callers are editOrders and editOrderWs, both handing map rows
+    'editOrdersRequest': { 0: '[]map[string]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -14071,6 +14073,9 @@ class NewTranspiler {
             }
 
             const sliceConversion = GO_WRAPPER_SLICE_CONVERSIONS[String (param.type ?? '')];
+            if ((String (param.type ?? '') === 'OrderRequest[]') && (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0] === '[]map[string]any') && (methodWrapper.parameters.indexOf (param) === 0)) {
+                return `ConvertOrderRequestListToMapRows(${this.safeGoName(param.name)})`;
+            }
             if ((sliceConversion !== undefined) && /(?:\[\]any|\[\]map\[string\]any)$/.test (String (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0])) && (methodWrapper.parameters.indexOf (param) === 0)) {
                 return `${sliceConversion}(${this.safeGoName(param.name)})`;
             }
