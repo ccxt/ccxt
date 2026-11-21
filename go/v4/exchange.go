@@ -1630,7 +1630,14 @@ func (this *BaseExchange) UpdateProxySettings() {
 	socksProxy := this.SafeString(proxies, 2)
 
 	hasHttProxyDefined := (httProxy != nil) || (httpsProxy != nil) || (socksProxy != nil)
-	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
+	// same pick as the ts fetch path: the first non-empty agent proxy, else socksProxy
+	anyProxySet := socksProxy
+	if httProxy != nil && *httProxy != "" {
+		anyProxySet = httProxy
+	} else if httpsProxy != nil && *httpsProxy != "" {
+		anyProxySet = httpsProxy
+	}
+	this.CheckConflictingProxies(anyProxySet, proxyUrl)
 
 	if hasHttProxyDefined {
 		proxyUrlStr := ""
