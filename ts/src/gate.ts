@@ -5467,9 +5467,14 @@ export default class gate extends Exchange {
         const paramsOrder = (clientOrderIdRaw !== undefined) ? this.omit (paramsOmitted, [ 'text', 'clientOrderId' ]) : paramsOmitted;
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, paramsOrder);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
-        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, trigger, query);
-        request['order_id'] = orderId.toString ();
-        return [ request, requestParams ];
+        if (contract) {
+            const [ contractRequest, contractParams ] = this.prepareRequest (market, type, query);
+            const contractOrder: Dict = this.extend (contractRequest, { 'order_id': orderId.toString () });
+            return [ contractOrder, contractParams ];
+        }
+        const [ request, requestParams ] = this.spotOrderPrepareRequest (market, trigger, query);
+        const spotOrder: Dict = this.extend (request, { 'order_id': orderId });
+        return [ spotOrder, requestParams ];
     }
 
     /**
