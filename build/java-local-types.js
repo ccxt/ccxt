@@ -397,6 +397,10 @@ const J92J7_MAP_VIEW_RETURNS = new Set ([ 'safeBalance', 'indexBy' ]);
 // a result local takes Map only when it feeds a Map core parameter
 const J92J7_MAP_GATED_RETURNS = [ 'parseTickers', 'filterByArrayTickers' ];
 const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS, ...J92J7_MAP_RETURN_METHODS ]);
+// parsePosition: base throws, every override returns this.safePosition (..) or a literal;
+// PredictionExchange safePredictionTrade returns its own Map `result` (no override)
+const H30T07_MAP_RETURN_METHODS = [ 'parsePosition', 'safePredictionTrade' ];
+H30T07_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -2004,6 +2008,8 @@ const VENUE_RETURN_KINDS = {
     'parseWsPosition': [ JAVA_ARRAY_TYPE_MAP () ], 'parseMyTrade': [ JAVA_ARRAY_TYPE_MAP () ],
 };
 const H29T07_MAP_VIEW_RETURNS = new Set ([ 'safePosition', 'safeTrade' ]);
+// base parsePosition / safePredictionTrade are Map returns (H30T07_MAP_RETURN_METHODS)
+[ 'parsePosition', 'safePredictionTrade' ].forEach ((m) => H29T07_MAP_VIEW_RETURNS.add (m));
 // these rows hold only when every return is a literal, null or one of the calls above (never a box)
 const H29T07_UNCAST_RETURN_METHODS = new Set ([ 'parseWsPosition', 'parseMyTrade' ]);
 function h29t07ReturnsUncast (method) {
