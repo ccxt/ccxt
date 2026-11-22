@@ -1920,8 +1920,11 @@ export default class binance extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'sapi' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sapi'] as string);
+        const baseUrls: Dict = this.safeDict (this.urls, 'api', {});
+        let baseUrl: string = this.safeString (baseUrls, apiGroup, '');
+        if (baseUrl === '') {
+            baseUrl = this.safeString (baseUrls, 'sapi', '');
+        }
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         this.checkRequiredCredentials ();
