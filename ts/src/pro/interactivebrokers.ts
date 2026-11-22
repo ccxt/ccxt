@@ -1207,7 +1207,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         for (let i = 0; i < args.length; i++) {
             const rawTrade = args[i];
             const trade = this.parseTrade (rawTrade);
-            const tradeTimestamp = trade['timestamp'];
+            const tradeTimestamp = this.safeInteger (trade, 'timestamp');
             if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
                 continue;
             }
