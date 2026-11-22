@@ -472,7 +472,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         const hasBidAsk = ('84' in message) || ('85' in message) || ('86' in message) || ('88' in message);
-        const hasQuote = (ticker['bid'] !== undefined) || (ticker['ask'] !== undefined);
+        const hasQuote = (this.safeString (ticker, 'bid') !== undefined) || (this.safeString (ticker, 'ask') !== undefined);
         if (hasBidAsk && hasQuote) {
             const bidAsk = this.safeTicker ({
                 'symbol': symbol,
