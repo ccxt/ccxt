@@ -3576,7 +3576,7 @@ export default class hyperliquid extends Exchange {
         } else {
             marketResolved = this.safeMarket (marketId, market);
         }
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (entry, 'timestamp');
         const status = this.safeString2 (order, 'status', 'ccxtStatus');
         const orderOmitted: Dict = this.omit (order, [ 'ccxtStatus' ]);
@@ -3754,7 +3754,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (trade, 'coin');
         const marketId = this.coinToMarketId (coin);
         const marketResolved: Market = this.safeMarket (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString (trade, 'tid');
         let side = this.safeString (trade, 'side');
         if (side !== undefined) {
@@ -3876,7 +3876,7 @@ export default class hyperliquid extends Exchange {
         const timestamp = this.safeInteger (liquidation, 'time');
         const marketId = this.coinToMarketId (this.safeString (liquidation, 'coin'));
         let marketResolved: Market = this.safeMarket (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         // swap ids are asset indexes, so the market is looked up by symbol
         if ((symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets)) {
             marketResolved = this.market (symbol);
@@ -4048,7 +4048,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
         const marketResolved: Market = this.safeMarket (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const leverage = this.safeDict (entry, 'leverage', {});
         const marginMode = this.safeString (leverage, 'type');
         const isIsolated = (marginMode === 'isolated');

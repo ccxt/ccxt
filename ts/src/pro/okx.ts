@@ -1619,7 +1619,7 @@ export default class okx extends okxRest {
         const data: Dict[] = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const depths: Dict = {
             'bbo-tbt': 1,
             'books': 400,
