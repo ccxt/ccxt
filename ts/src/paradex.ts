@@ -1575,10 +1575,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const trades = this.safeList (response, 'results', []) as List;
+        const tagged: List = [];
         for (let i = 0; i < trades.length; i++) {
-            trades[i]['next'] = this.safeString (response, 'next');
+            tagged.push (this.extend (trades[i], { 'next': this.safeString (response, 'next') }));
         }
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (tagged, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -2819,10 +2820,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const trades = this.safeList (response, 'results', []) as List;
+        const tagged: List = [];
         for (let i = 0; i < trades.length; i++) {
-            trades[i]['next'] = this.safeString (response, 'next');
+            tagged.push (this.extend (trades[i], { 'next': this.safeString (response, 'next') }));
         }
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (tagged, market, since, limit);
     }
 
     /**
@@ -3243,10 +3245,11 @@ export default class paradex extends Exchange {
         const rows = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
+        const tagged: List = [];
         for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
+            tagged.push (this.extend (rows[i], { 'next': next }));
         }
-        return this.parseTransfers (rows, currency, since, limit);
+        return this.parseTransfers (tagged, currency, since, limit);
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -3914,10 +3917,11 @@ export default class paradex extends Exchange {
         const results: Dict[] = this.safeList (response, 'results', []);
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
+        const tagged: List = [];
         for (let i = 0; i < results.length; i++) {
-            results[i]['next'] = next;
+            tagged.push (this.extend (results[i], { 'next': next }));
         }
-        return this.parseIncomes (results, market, since, limit);
+        return this.parseIncomes (tagged, market, since, limit);
     }
 
     override parseIncome (income: Dict, market: Market = undefined): object {
