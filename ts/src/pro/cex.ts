@@ -386,7 +386,7 @@ export default class cex extends cexRest {
         //
         const data = this.safeDict (message, 'data', {});
         const ticker = this.parseWsTicker (data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol === undefined) {
             return;
         }
@@ -507,7 +507,7 @@ export default class cex extends cexRest {
         await this.authenticate (params);
         const url = this.safeString (this.urls['api'], 'ws', '');
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         const messageHash = 'orders:' + symbolValue;
         const message: Dict = {
             'e': 'open-orders',

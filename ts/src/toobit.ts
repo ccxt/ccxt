@@ -736,7 +736,7 @@ export default class toobit extends Exchange {
             const coin = coins[i];
             const parsed = this.parseCurrency (coin);
             if (parsed !== undefined) {
-                const code = parsed['code'];
+                const code: string = this.safeString (parsed, 'code', '');
                 result[code] = parsed;
             }
         }
@@ -1203,7 +1203,7 @@ export default class toobit extends Exchange {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const marketResolved: Market = this.safeMarket (undefined, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,

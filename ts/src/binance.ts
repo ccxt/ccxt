@@ -3225,7 +3225,7 @@ export default class binance extends Exchange {
             if (parsed === undefined) {
                 throw new ExchangeError (this.id + ' parseCurrenciesCustom() could not resolve parsed');
             }
-            const code = parsed['code'];
+            const code: string = this.safeString (parsed, 'code', '');
             if (parsed === undefined) {
                 throw new ExchangeError (this.id + ' parseCurrenciesCustom() could not resolve parsed');
             }
@@ -10863,7 +10863,7 @@ export default class binance extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const type = market['type'];
+        const type: string = this.safeString (market, 'type', '');
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
         const [ isPortfolioMargin, paramsPapi ] = this.handleOptionBoolAndParams2 (paramsSubType, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         const isLinear = this.isLinear (type, subType);

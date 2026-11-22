@@ -1149,7 +1149,7 @@ export default class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -1584,7 +1584,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const id = market['id'];
+        const id = this.safeString (market, 'id');
         const request: Dict = {
             'pair': id,
         };

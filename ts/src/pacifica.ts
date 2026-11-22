@@ -1002,7 +1002,7 @@ export default class pacifica extends Exchange {
             const setting = settings[i];
             const marketId = this.safeString (setting, 'symbol');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;

@@ -198,7 +198,7 @@ export default class bittrade extends bittradeRest {
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         let tradesCache = this.safeValue (this.trades, symbol);
         if (tradesCache === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -283,7 +283,7 @@ export default class bittrade extends bittradeRest {
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});

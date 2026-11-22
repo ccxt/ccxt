@@ -1819,7 +1819,7 @@ export default class paradex extends paradexRest {
         const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const channel = this.safeString (params, 'channel');
         const ticker = this.parseTicker (data, market);
         this.tickers[symbol] = ticker;
