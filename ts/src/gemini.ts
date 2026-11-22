@@ -572,7 +572,7 @@ export default class gemini extends Exchange {
     async fetchMarketsFromWeb (params: Dict = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
-        const tables = data.split ('tbody>');
+        const tables = (data as string).split ('tbody>');
         const numTables = tables.length;
         if (numTables < 2) {
             throw new NotSupported (error);

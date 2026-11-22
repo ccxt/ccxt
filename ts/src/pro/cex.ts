@@ -208,7 +208,7 @@ export default class cex extends cexRest {
         //
         let tradeParts = trade;
         if (!Array.isArray (trade)) {
-            tradeParts = trade.split (':');
+            tradeParts = (trade as string).split (':');
         }
         const side = this.safeString (tradeParts, 0);
         const timestamp = this.safeInteger (tradeParts, 1);
