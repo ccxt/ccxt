@@ -2417,7 +2417,8 @@ export default class bitstamp extends Exchange {
         if (type === 'trade') {
             const parsedTrade = this.parseTrade (item);
             let market: Market = undefined;
-            const keys = Object.keys (item);
+            const itemDict: Dict = this.extend ({}, item);
+            const keys = Object.keys (itemDict);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey: string = keys[i];
                 if (currentKey.indexOf ('_') >= 0) {
