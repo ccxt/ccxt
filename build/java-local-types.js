@@ -16638,14 +16638,54 @@ function javaPrintsString (printer, node, depth = 0) {
     return false;
 }
 
-// a never-written `const x: Str = undefined` / `: string` local: always null, so String is exact
+// a `x: Str = undefined` / `: string` local: the annotation is the type; every write must print a Java String
 function javaNullStringLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer) || !javaStringAnnotated (declaration)
-        || !(declaration.parent?.flags & ts.NodeFlags.Const) || declaration.parent?.declarations?.length !== 1) {
+        || declaration.parent?.declarations?.length !== 1) {
         return false;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
-    return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile, { nonNull: false });
+    return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile,
+        { nonNull: false, writeOkOnly: true, writeOk: (right) => javaNullStringLocalWrite (printer, right) });
+}
+
+// another `x: Str = undefined` local this rule types String (a guard stops a write cycle)
+const JAVA_NULL_STRING_VISITING = new Set ();
+function javaNullStringLocalNested (printer, declaration) {
+    if (JAVA_NULL_STRING_LOCALS.has (declaration)) {
+        return true;
+    }
+    if (JAVA_NULL_STRING_VISITING.has (declaration) || !javaStringAnnotated (declaration) || !isNullishInitializer (declaration.initializer)) {
+        return false;
+    }
+    JAVA_NULL_STRING_VISITING.add (declaration);
+    try {
+        // the printed declaration is the authority: another rule may already declare it String
+        return /^\s*String \w+ = null\s*;?\s*$/.test (String (printer.printVariableDeclarationList (declaration.parent, 0)));
+    } finally {
+        JAVA_NULL_STRING_VISITING.delete (declaration);
+    }
+}
+
+// a write the Java side declares String: a literal, a String-declared local, a base safeString* call, or a ternary of those
+function javaNullStringLocalWrite (printer, node) {
+    const value = unwrapParens (node);
+    if (value !== undefined && ts.isConditionalExpression (value)) {
+        return javaNullStringLocalWrite (printer, value.whenTrue) && javaNullStringLocalWrite (printer, value.whenFalse);
+    }
+    if (value !== undefined && ts.isIdentifier (value) && value.text !== 'undefined') {
+        if (printer.printNode (value, 0) !== value.text) {
+            return false;
+        }
+        const declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve?.();
+        return String (printer.javaDeclaredTypeOf (value) ?? '').trim () === 'String'
+            || (declaration !== undefined && ts.isVariableDeclaration (declaration) && javaNullStringLocalNested (printer, declaration));
+    }
+    if (value !== undefined && ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return javaNullStringLocalWrite (printer, value.left) && isStaticallyStringExpression (printer, value, undefined);
+    }
+    return value !== undefined && (isNullishInitializer (value) || ts.isStringLiteralLike (value)
+        || (isThisCall (value) && SAFE_STRING_ACCESSORS.has (String (value.expression.name.text)) && isPlainSafeStringBaseCall (printer, value)));
 }
 
 export function installJavaStringCoreArgs (transpiler) {
