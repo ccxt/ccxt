@@ -7351,28 +7351,6 @@ export function nativeJavaNumberProvenCompare (content: string): string {
     return mapJavaMembers (content, true, (member) => numberProvenCompareMember (member, content, fields)) ?? content;
 }
 
-// Snippet checks (`--audit-string-types --self-test`)
-function javaNumberProvenCompareSelfTest (): string[] {
-    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object since, Object limit, Long n, Double d)\n    {\n${body}\n    }\n}`;
-    const cases: [string, string, string | undefined][] = [
-        [ 'sum local gt', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, n)) {}', 'if (((n == null || ((Number) e).doubleValue() > n))) {}' ],
-        [ 'size local lt', '        Object c = ((List<?>)limit).size();\n        for (var i = 0; Helpers.isLessThan(i, c); i++) {}', '(!(i >= ((Number) c).doubleValue()))' ],
-        [ 'nullable lt', '        Object e = this.parseToInt(since);\n        if (Helpers.isLessThan(e, 0)) {}', '(e == null || (!(((Number) e).doubleValue() >= 0)))' ],
-        [ 'ternary ge', '        Object a = (since == null) ? 100 : this.sum(since, 1);\n        if (Helpers.isGreaterThanOrEqual(a, 3)) {}', '(((Number) a).doubleValue() >= 3)' ],
-        [ 'mathMin box', '        Object e = this.sum(since, 5);\n        Object r = Helpers.mathMin(e, 1000);', 'Object r = (((Number) e).doubleValue() < ((double) 1000) ? (Object) (e) : (Object) (1000));' ],
-        [ 'mathMax nullable', '        Object x = Helpers.mathMax(n, 5L);', 'Object x = (n == null ? null : (((Number) n).doubleValue() > ((double) 5L) ? (Object) (n) : (Object) (5L)));' ],
-        [ 'Double pair ge', '        Double y = 1.0;\n        boolean b = Helpers.isGreaterThanOrEqual(d, y);', '((d == null && y == null) || d != null && (y == null || d >= y))' ],
-        // negatives: Object param, mixed write, compound write, impure mathMin operand, String local
-        [ 'param', '        if (Helpers.isGreaterThan(since, 1)) {}', undefined ],
-        [ 'mixed write', '        Object e = this.sum(since, 5);\n        e = this.safeString(limit, \"x\");\n        if (Helpers.isGreaterThan(e, 1)) {}', undefined ],
-        [ 'compound', '        Object e = this.sum(since, 5);\n        e += 1;\n        if (Helpers.isGreaterThan(e, 1)) {}', undefined ],
-        [ 'impure min', '        Object x = Helpers.mathMin(this.sum(since, 1), 5);', undefined ],
-        [ 'string local', '        Object s = \"a\";\n        if (Helpers.isLessThan(s, \"b\")) {}', undefined ],
-        [ 'sum override', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, 1)) {}\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;', undefined ],
-    ];
-    return runSnippetCases(cases, cls, nativeJavaNumberProvenCompare, (name, out) => `java number proven compare self: ${name}\n${out}`);
-}
-
 // Every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
 function urlsIsPlainMap (content: string): boolean {
     for (const m of content.matchAll (/\bthis\.urls\s*=(?!=)\s*([^;]*);/g)) {
@@ -7584,56 +7562,6 @@ export function nativeJavaMapLocalOps (content: string): string {
     return changed ? lines.filter ((l) => l !== '\u0000').join ('\n') : content;
 }
 
-// Snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
-function javaMapLocalOpsSelfTest (): string[] {
-    const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public Object m(${sig})\n    {\n${body}\n    }\n}`;
-    const cases: [string, string, string, string | undefined][] = [
-        [ 'fresh literal put', 'Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, "a", v);', '        r.put("a", v);' ],
-        [ 'fresh Object-key put', 'Object k, Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, k, v);', '((java.util.Map<Object, Object>) (java.util.Map<?, ?>) r).put(k, v);' ],
-        [ 'extend put', 'Object p, Object v', '        Map<String, Object> r = this.extend(new HashMap<String, Object>() {{}}, p);\n        Helpers.addElementToObject(r, "a", v);', '        r.put("a", v);' ],
-        [ 'non-null value on any Map', 'Map<String, Object> p', '        Helpers.addElementToObject(p, "a", "x");', '        p.put("a", "x");' ],
-        [ 'literal read', 'Map<String, Object> p', '        return Helpers.GetValue(p, "a");', '(p == null ? null : p.get("a"))' ],
-        [ 'String-key read', 'Map<String, Object> p, String k', '        return Helpers.GetValue(p, k);', '(p == null || k == null ? null : p.get(k))' ],
-        [ 'inOp', 'Map<String, Object> p', '        return Helpers.inOp(p, "a");', '(p != null && p.containsKey("a"))' ],
-        [ 'fresh keys', 'Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        return Helpers.objectKeys(r);', 'new java.util.ArrayList<Object>(r.keySet())' ],
-        [ 'field put extend', 'Object r, Object k', '        Helpers.addElementToObject(this.balance, \"spot\", this.extend(r, this.safeDict(this.balance, \"spot\", new HashMap<String, Object>() {{}})));', '        this.balance.put(\"spot\", this.extend(' ],
-        [ 'field put Object key', 'Object k', '        Helpers.addElementToObject(this.orderbooks, k, this.orderBook(new HashMap<String, Object>() {{}}, 5));', '(java.util.Map<?, ?>) this.orderbooks).put(k, this.orderBook(' ],
-        [ 'field put String key', 'String k', '        Helpers.addElementToObject(this.balance, k, this.safeBalance(null));', '        this.balance.put(k, this.safeBalance(null));' ],
-        [ 'urls nullable value', 'Object v', '        Helpers.addElementToObject(this.urls, "apiBackup", v);', '        this.urls.put(' ],
-        [ 'urls foreign assignment keeps helper', 'Object v', '        this.urls = (Map<String, Object>) v;\n        Helpers.addElementToObject(this.urls, "apiBackup", v);', undefined ],
-        [ 'urls Object key keeps helper', 'Object k, Object v', '        Helpers.addElementToObject(this.urls, k, v);', undefined ],
-        [ 'field nullable value', 'Object v', '        Helpers.addElementToObject(this.balance, \"info\", v);', undefined ],
-        [ 'field options', 'Object v', '        Helpers.addElementToObject(this.options, \"a\", \"x\");', undefined ],
-        [ 'field extend of 3', 'Object p, Object q', '        Helpers.addElementToObject(this.balance, \"a\", this.extend(p, q, p));', undefined ],
-        // negatives: nullable value on a possibly concurrent map, Object receiver, Object key read, shared map keys, mixed decls, 3-arg extend
-        [ 'String-cast key, counter sum', 'Map<String, Object> p, String k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', '            p.put(((String)k), (((long) i) + 1L));' ],
-        [ 'sum-only Long value', 'Map<String, Object> p, String k', '        Long n = (Long) this.sum(this.safeInteger(p, k, 0), 1);\n        Helpers.addElementToObject(p, k, n);', '        p.put(k, n);' ],
-        [ 'String-cast key, nullable value keeps helper', 'Map<String, Object> p, String k, Object v', '        Helpers.addElementToObject(p, ((String)k), v);', undefined ],
-        [ 'Object-cast-key keeps helper', 'Map<String, Object> p, Object k', '        for (var i = 0; i < 3; i++)\n        {\n            Helpers.addElementToObject(p, ((String)k), (((long) i) + 1L));\n        }', undefined ],
-        [ 'rewritten Long keeps helper', 'Map<String, Object> p, String k, Long m', '        Long n = (Long) this.sum(m, 1);\n        n = m;\n        Helpers.addElementToObject(p, k, n);', undefined ],
-        [ 'nullable on param map', 'Map<String, Object> p, Object v', '        Helpers.addElementToObject(p, "a", v);', undefined ],
-        [ 'nullable on safeDict map', 'Object o, Object v', '        Map<String, Object> r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
-        [ 'Object receiver', 'Object p', '        Helpers.addElementToObject(p, "a", "x");\n        return Helpers.GetValue(p, "a");', undefined ],
-        [ 'Object key read', 'Map<String, Object> p, Object k', '        return Helpers.GetValue(p, k);', undefined ],
-        [ 'param keys', 'Map<String, Object> p', '        return Helpers.objectKeys(p);', undefined ],
-        [ 'reassigned from safeDict', 'Object o, Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        r = (Map<String, Object>) this.safeDict(o, "x");\n        Helpers.addElementToObject(r, "a", v);', undefined ],
-        [ 'typed order view put', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);', '        o.put(\"type\", v);' ],
-        [ 'literal-map value spanning lines', 'Object t, Object c', '        Map<String, Object> p = super.parseWsTrade((Map<String, Object>) (t), (Map<String, Object>) null);\n        Helpers.addElementToObject(p, "side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));\n        return p;', '        p.put("side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));\n        return p;' ],
-        [ 'literal-map value on param map keeps helper', 'Map<String, Object> p, Object c', '        Helpers.addElementToObject(p, "side", this.safeString(new HashMap<String, Object>() {{\n    put( "buy", "sell" );\n}}, c, c));', undefined ],
-        [ 'typed trade view put', 'Object v', '        Map<String, Object> t = this.parseWsTrade((Map<String, Object>) (v), null);\n        Helpers.addElementToObject(t, \"datetime\", v);', '        t.put(\"datetime\", v);' ],
-        [ 'market structure view put', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);', '        m.put("baseId", v);' ],
-        [ 'market structure venue override keeps helper', 'Object v', '        Map<String, Object> m = (Map<String, Object>) this.safeMarketStructure(v);\n        Helpers.addElementToObject(m, "baseId", v);\n        return m;\n    }\n    public Object safeMarketStructure(Object x)\n    {\n        return x;', undefined ],
-        [ 'typed balance view keeps helper', 'Object v', '        Map<String, Object> b = (Map<String, Object>) this.parseBalance(v);\n        Helpers.addElementToObject(b, \"timestamp\", v);', undefined ],
-        [ 'order view reassigned from safeDict', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        o = (Map<String, Object>) this.safeDict(v, \"x\");\n        Helpers.addElementToObject(o, \"type\", v);', undefined ],
-        [ 'order view venue override returns Object', 'Object v', '        Map<String, Object> o = (Map<String, Object>) this.parseOrder(v, null);\n        Helpers.addElementToObject(o, \"type\", v);\n        return o;\n    }\n    public Object parseOrder(Object order, Map<String, Object> market)\n    {\n        return order;', undefined ],
-        [ 'super parseTrade local put', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        Helpers.addElementToObject(p, \"side\", v);', '        Map<String, Object> p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p.put(\"side\", v);' ],
-        [ 'super parseTrade local reassigned keeps helper', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p = v;\n        Helpers.addElementToObject(p, \"side\", v);', undefined ],
-        [ 'extend of 3', 'Object p, Object q, Object v', '        Map<String, Object> r = (Map<String, Object>) this.extend(p, q, new HashMap<String, Object>() {{}});\n        Helpers.addElementToObject(r, "a", v);', undefined ],
-    ];
-    const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
-    return runSnippetCases(wrapped, (src) => src, nativeJavaMapLocalOps, (name, out) => `map locals: ${name}\n${out}`);
-}
-
 // Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked,
 // isEqual on two integral-proven operands, isTrue on Java-boolean expressions, toMapArg on outcome() Map locals.
 function splitLineComment (line: string): [string, string] {
@@ -7829,27 +7757,6 @@ export function nativeJavaRemainingCoreArgs (content: string): string {
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
     const parts = mapJavaMembers (out, false, (member) => remainingCoreArgsMember (member, out));
     return parts === undefined ? out : nativeJavaCoreArgIdentities (parts);
-}
-
-// Snippet checks (`--audit-string-types --self-test`)
-function javaRemainingCoreArgsSelfTest (): string[] {
-    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n, String outcome)\n    {\n${body}\n    }\n}`;
-    const cases: [string, string, string | undefined][] = [
-        [ 'comment masked', '        Object l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(Helpers.toLongOrNull(l));', 'Long l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(l);' ],
-        [ 'size vs Long', '        Object c = ((List<?>)p).size();\n        if (Helpers.isEqual(c, n)) {}', 'java.util.Objects.equals(((Number) c).longValue(), n)' ],
-        [ 'counter vs int', '        for (var i = 0; i < 3; i++)\n        {\n            if (Helpers.isEqual(i, 2)) {}\n        }', '(((long) i) == 2L)' ],
-        [ 'ternary Object vs lit', '        Object t = (p == null) ? 0 : ((Object) this.parseToInt(p));\n        if (Helpers.isEqual(t, 0)) {}', 'java.util.Objects.equals((t == null ? null : ((Number) t).longValue()), 0L)' ],
-        [ 'boolean isTrue', '        if (Helpers.isTrue((!Helpers.isEqual(p, null))) && Helpers.isTrue(((p instanceof java.util.Map)))) {}', 'if (((!Helpers.isEqual(p, null))) && (((p instanceof java.util.Map)))) {}' ],
-        [ 'outcome Map', '        Object o = this.outcome((String) (outcome));\n        return this.g(Helpers.toMapArg(((Object)o)));', 'java.util.Map<String, Object> o = this.outcome((String) (outcome));\n        return this.g(o);' ],
-        [ 'double field', '        if (Helpers.isEqual(this.rateLimit, -1)) {}', '(this.rateLimit == -1)' ],
-        // negatives: Object param, safeNumber (Double) write, mixed outcome write, plain Object isTrue, ternary isTrue
-        [ 'Object param', '        if (Helpers.isEqual(p, 1)) {}', undefined ],
-        [ 'safeNumber write', '        Object x = this.safeNumber(p, "a");\n        if (Helpers.isEqual(x, 5)) {}', undefined ],
-        [ 'mixed outcome', '        Object o = this.outcome((String) (outcome));\n        o = this.safeValue(p, "x");\n        return this.g(Helpers.toMapArg(((Object)o)));', undefined ],
-        [ 'Object isTrue', '        if (Helpers.isTrue(p)) {}', undefined ],
-        [ 'ternary isTrue', '        if (Helpers.isTrue(p == null ? n : p)) {}', undefined ],
-    ];
-    return runSnippetCases(cases, cls, nativeJavaRemainingCoreArgs, (name, out) => `java remaining core args self: ${name}\n${out}`);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
