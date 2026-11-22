@@ -672,7 +672,7 @@ export default class predictfun extends Exchange {
             //     }
             //
             const data: Dict = this.safeDict (response, 'data', {});
-            const categories = this.safeList (data, 'categories', []) as any[];
+            const categories: Dict[] = this.safeList (data, 'categories', []);
             const categoriesLength = categories.length;
             for (let ci = 0; ci < categoriesLength; ci++) {
                 const category = this.safeDict (categories, ci);
