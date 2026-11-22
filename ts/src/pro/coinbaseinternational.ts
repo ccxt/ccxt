@@ -1358,7 +1358,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         const error = this.safeDict (message, 'error');
         if (error === undefined) {
             return false;
