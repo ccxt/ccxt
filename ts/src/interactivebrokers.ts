@@ -3922,24 +3922,42 @@ export default class interactivebrokers extends Exchange {
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    ibkrImplodePath (path: string, params: Dict): List {
+    ibkrImplodePath (path: string, params: Dict): string {
         const segments = path.split ('/');
-        const pathParams = [];
         const imploded: string[] = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith (':')) {
                 const name = segment.slice (1);
-                pathParams.push (name);
                 const value: string = this.safeString (params, name, segment);
                 imploded.push (value);
             } else {
                 imploded.push (segment);
             }
         }
-        return [ imploded.join ('/'), pathParams ];
+        return imploded.join ('/');
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    ibkrPathParams (path: string): string[] {
+        const segments = path.split ('/');
+        const pathParams: string[] = [];
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (segment.startsWith (':')) {
+                pathParams.push (segment.slice (1));
+            }
+        }
+        return pathParams;
     }
 
     /**
@@ -4005,11 +4023,12 @@ export default class interactivebrokers extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
-        const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
+        const implodedPath = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
-        const baseUrl = this.urls['api'][apiBase] + implodedPath;
+        const apiUrl: string = this.safeString (this.urls['api'], apiBase, '');
+        const baseUrl = apiUrl + implodedPath;
         let url = baseUrl;
-        const query = this.omit (params, pathParams);
+        const query = this.omit (params, this.ibkrPathParams (path));
         const hasQuery = Object.keys (query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = undefined;
@@ -4018,7 +4037,7 @@ export default class interactivebrokers extends Exchange {
         if (this.ibkrIsGatewayRequest (path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl') as string;
-            url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
+            url = this.ibkrGatewayBaseUrl (apiUrl, gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
                 if (hasQuery) {
                     url += '?' + this.urlencode (query);
