@@ -2957,7 +2957,7 @@ export default class kucoin extends kucoinRest {
         }
         const url = await this.getUtaUrl ();
         const client = this.client (url);
-        this.setPositionsCache (client, utaOption);
+        this.setPositionsCache (client, utaOption === true);
         const fetchPositionSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.positions;

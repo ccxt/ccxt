@@ -1153,7 +1153,7 @@ export default class polymarket extends polymarketRest {
                 }
             }
             for (let i = 0; i < messageHashes.length; i++) {
-                this.cleanUnsubscription (client, subMessageHashes[i], messageHashes[i]);
+                this.cleanUnsubscription (client, this.safeString (subMessageHashes, i), messageHashes[i]);
             }
         }
     }
