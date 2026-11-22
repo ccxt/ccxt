@@ -247,10 +247,6 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
         }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
-        }
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
@@ -287,10 +283,6 @@ export default class hyperliquid extends hyperliquidRest {
         let wireCoin: string = this.safeString (market, 'id', '');
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
-        }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
         }
         const request: Dict = {
             'id': id,
@@ -377,10 +369,6 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
         }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
-        }
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
@@ -416,10 +404,6 @@ export default class hyperliquid extends hyperliquidRest {
         let wireCoin: string = this.safeString (market, 'id', '');
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
-        }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
         }
         const request: Dict = {
             'method': 'unsubscribe',
@@ -855,10 +839,6 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
         }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
-        }
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
@@ -897,10 +877,6 @@ export default class hyperliquid extends hyperliquidRest {
         let wireCoin: string = this.safeString (market, 'id', '');
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
-        }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
         }
         const request: Dict = {
             'method': 'unsubscribe',
@@ -1042,10 +1018,6 @@ export default class hyperliquid extends hyperliquidRest {
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
         }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
-        }
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
@@ -1085,10 +1057,6 @@ export default class hyperliquid extends hyperliquidRest {
         let wireCoin: string = this.safeString (market, 'id', '');
         if (this.safeBool (market, 'swap', false)) {
             wireCoin = this.safeString (market, 'baseName', '');
-        }
-        let subscriptionCoin: string = this.safeString (market, 'id', '');
-        if (this.safeBool (market, 'swap', false)) {
-            subscriptionCoin = this.safeString (market, 'baseName', '');
         }
         const request: Dict = {
             'method': 'unsubscribe',
