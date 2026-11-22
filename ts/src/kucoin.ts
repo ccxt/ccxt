@@ -2236,7 +2236,7 @@ export default class kucoin extends Exchange {
      * @returns {any} ignore
      */
     async loadMigrationStatus (force: boolean = false): Promise<boolean> {
-        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
+        if (!('hf' in this.options) || (this.safeBool (this.options, 'hf') === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
             this.options['hf'] = this.safeBool (result, 'data');
         }

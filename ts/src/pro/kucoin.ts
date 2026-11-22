@@ -2298,7 +2298,7 @@ export default class kucoin extends kucoinRest {
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (order['average'] !== undefined) {
+            if (this.safeNumber (order, 'average') !== undefined) {
                 parsed['average'] = this.safeNumber (order, 'average');
                 parsed['cost'] = this.safeNumber (order, 'cost');
             }
