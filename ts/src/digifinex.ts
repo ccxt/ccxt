@@ -2187,7 +2187,7 @@ export default class digifinex extends Exchange {
             }
             const ordersRequests: Dict[] = [];
             for (let i = 0; i < ids.length; i++) {
-                const market = this.market (symbols[i]);
+                const market = this.market (this.safeString (symbols, i));
                 const marketId = this.safeString (market, 'id');
                 const orderId = ids[i];
                 ordersRequests.push ({
@@ -2215,7 +2215,7 @@ export default class digifinex extends Exchange {
                 result.push (this.safeOrder ({
                     'info': orderId,
                     'id': orderId,
-                    'symbol': symbols[i],
+                    'symbol': this.safeString (symbols, i),
                     'status': status,
                 }));
             }

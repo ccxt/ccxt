@@ -2031,8 +2031,8 @@ export default class polymarket extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 const rawItem = response[i];
-                const enriched = this.extend (requests[i], rawItem);
-                const parsedItem = this.parsePredictionOrder (enriched, outcomes[i] as any);
+                const enriched = this.extend (this.safeDict (requests, i), rawItem);
+                const parsedItem = this.parsePredictionOrder (enriched, this.safeDict (outcomes, i) as any);
                 parsedItem['info'] = rawItem;   // keep info the raw exchange response
                 result.push (parsedItem);
             }
