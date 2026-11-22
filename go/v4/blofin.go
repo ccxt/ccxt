@@ -3633,7 +3633,7 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
 }
-func (this *Blofin) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//
 	// fetchDeposits
@@ -3775,7 +3775,7 @@ func (this *Blofin) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Blofin) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Blofin) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "currency")

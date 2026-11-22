@@ -2344,7 +2344,7 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(result, currency, since, limit))}
 	return nil
 }
-func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Extended) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "1951255127004282880",
@@ -2972,7 +2972,7 @@ func (this *Extended) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Extended) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": "1951255127004282880",

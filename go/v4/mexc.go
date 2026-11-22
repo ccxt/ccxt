@@ -2180,7 +2180,7 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var id any = nil
+	var id *string = nil
 	var timestamp *int64 = nil
 	var orderId *string = nil
 	var symbol any = nil
@@ -2269,11 +2269,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		var marketId *string = this.SafeString(trade, "symbol")
 		marketResolved = this.SafeMarket(marketId, market)
 		symbol = marketResolved["symbol"]
-		if derefPtr := this.SafeString2(trade, "id", "a"); derefPtr != nil {
-			id = *derefPtr
-		} else {
-			id = nil
-		}
+		id = this.SafeString2(trade, "id", "a")
 		priceString = this.SafeString2(trade, "price", "p")
 		orderId = this.SafeString(trade, "orderId")
 		// if swap
@@ -2339,11 +2335,11 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 	}
-	if IsEqual(id, nil) && (*this.SafeBool(this.Options, "useCcxtTradeId", true)) {
+	if (id == nil) && (*this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
 	var literal182731 map[string]any = map[string]any{
-		"id":           id,
+		"id":           nil,
 		"order":        nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -2356,6 +2352,9 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"cost":         nil,
 		"fee":          fee,
 		"info":         trade,
+	}
+	if id != nil {
+		literal182731["id"] = *id
 	}
 	if orderId != nil {
 		literal182731["order"] = *orderId
@@ -6716,7 +6715,7 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
-func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Mexc) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

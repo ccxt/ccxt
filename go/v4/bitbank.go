@@ -1470,7 +1470,7 @@ func (this *Bitbank) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
 }
-func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitbank) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//

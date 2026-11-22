@@ -797,7 +797,7 @@ func (this *Interactivebrokers) HandleTicker(client any, message map[string]any)
 	_, has3 := message["86"]
 	_, has4 := message["88"]
 	var hasBidAsk bool = has1 || has2 || has3 || has4
-	var hasQuote bool = (!ccxt.IsEqual(ticker["bid"], nil)) || (!ccxt.IsEqual(ticker["ask"], nil))
+	var hasQuote bool = (this.SafeString(ticker, "bid") != nil) || (this.SafeString(ticker, "ask") != nil)
 	if hasBidAsk && hasQuote {
 		var bidAsk map[string]any = ccxt.TickerToMap(this.SafeTicker(map[string]any{
 			"symbol":    symbol,
@@ -1003,7 +1003,7 @@ func (this *Interactivebrokers) HandleOHLCV(client any, message map[string]any) 
 	//
 	var topic string = *this.SafeString(message, "topic", "")
 	var parts []string = strings.Split(topic, "+")
-	var marketId *string = this.SafeString(parts, 1)
+	var marketId string = *this.SafeString(parts, 1, "")
 	var serverId *string = this.SafeString(message, "serverId")
 	if serverId != nil {
 		// the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -1017,7 +1017,7 @@ func (this *Interactivebrokers) HandleOHLCV(client any, message map[string]any) 
 		var key string = keys[i]
 		// the base watch () stores internal futures (connected/authenticated) under an undefined
 		// subscription hash, which is a None dict key in python, so it cannot be assumed a string
-		if (true) && ccxt.StartsWith(key, ccxt.Add(ccxt.Add("smh::", marketId), "::")) {
+		if (true) && strings.HasPrefix(key, "smh::"+marketId+"::") {
 			var candidate any = client.(ccxt.ClientInterface).SubscriptionGet(key)
 			var duration *int64 = this.SafeInteger(candidate, "duration")
 			if (subscription == nil) || (duration == barLength || (duration != nil && barLength != nil && *duration == *barLength)) {
@@ -1237,7 +1237,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var unifiedSymbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
 	r1 := <-this.LoadAccountIdAsync(params)
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -1253,7 +1253,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	}
 	url := r2.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	var messageHash string = "orderbook::" + *unifiedSymbol
+	var messageHash string = "orderbook::" + unifiedSymbol
 	// reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var request any = ccxt.Add(ccxt.Add(ccxt.Add("sbd+", accountId), "+"), market["id"])
@@ -1306,7 +1306,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 		panic(r.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var unifiedSymbol *string = &market.Symbol
+	var unifiedSymbol string = market.Symbol
 	r1 := <-this.LoadAccountIdAsync(params)
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -1326,7 +1326,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 		"symbols": []any{unifiedSymbol},
 	}, query)
 
-	r3 := <-this.IbkrUnsubscribeAsync(client, []any{"orderbook::" + *unifiedSymbol}, ccxt.Add("ubd+", accountId), subscription)
+	r3 := <-this.IbkrUnsubscribeAsync(client, []any{"orderbook::" + unifiedSymbol}, ccxt.Add("ubd+", accountId), subscription)
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -1703,7 +1703,7 @@ func (this *Interactivebrokers) HandleOrders(client any, message map[string]any)
 		}
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(merged))
 		orders.Append(parsed)
-		var orderSymbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var orderSymbol *string = this.SafeString(parsed, "symbol")
 		if orderSymbol != nil {
 			symbols[*orderSymbol] = true
 		}
@@ -1913,8 +1913,8 @@ func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]an
 	for i := 0; i < len(args); i++ {
 		var rawTrade any = args[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
-		var tradeTimestamp any = trade["timestamp"]
-		if (threshold != nil) && (!ccxt.IsEqual(tradeTimestamp, nil)) && (ccxt.IsLessThan(tradeTimestamp, threshold)) {
+		var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
+		if (threshold != nil) && (tradeTimestamp != nil) && (*tradeTimestamp < *threshold) {
 			continue
 		}
 		if skipDuplicates != nil && *skipDuplicates {
@@ -1932,10 +1932,8 @@ func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]an
 			}
 		}
 		trades.Append(trade)
-		var tradeSymbol *string = ccxt.SafeStringPtr(trade["symbol"])
-		if tradeSymbol != nil {
-			symbols[*tradeSymbol] = true
-		}
+		var tradeSymbol string = *this.SafeString(trade, "symbol", "")
+		symbols[tradeSymbol] = true
 	}
 	var keys []string = nil
 	if symbols != nil {

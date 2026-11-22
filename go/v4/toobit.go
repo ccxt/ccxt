@@ -1246,35 +1246,25 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 	if isContract {
 		ternaryStr99720 = "swap"
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type":     ternaryStr99720,
-		"spot":     !isContract,
-		"margin":   false,
-		"swap":     isContract,
-		"future":   false,
-		"option":   false,
-		"active":   active,
-		"contract": isContract,
-		"linear": func() any {
-			if isContract {
-				return (inverse == nil || *inverse != true)
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isContract {
-				return inverse
-			}
-			return nil
-		}(),
+	var result map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           ternaryStr99720,
+		"spot":           !isContract,
+		"margin":         false,
+		"swap":           isContract,
+		"future":         false,
+		"option":         false,
+		"active":         active,
+		"contract":       isContract,
+		"linear":         nil,
+		"inverse":        nil,
 		"contractSize":   this.SafeNumber(market, "contractMultiplier"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1304,7 +1294,12 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if isContract {
+		result["linear"] = (inverse == nil || *inverse != true)
+		result["inverse"] = inverse
+	}
+	return this.SafeMarketStructure(result)
 }
 
 /**
@@ -2099,11 +2094,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes165919 []any = r1.Value
-		if retRes165919 == nil {
+		var retRes166419 []any = r1.Value
+		if retRes166419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166419)}
 		}
 		return nil
 	}
@@ -3288,7 +3283,7 @@ func (this *Toobit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, currency, since, limit))}
 	return nil
 }
-func (this *Toobit) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Toobit) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "coinId")
@@ -3437,11 +3432,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277215 []any = TransactionsToList(r.Value)
-	if retRes277215 == nil {
+	var retRes277715 []any = TransactionsToList(r.Value)
+	if retRes277715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277715)}
 	}
 	return nil
 }
@@ -3478,11 +3473,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278715 []any = TransactionsToList(r.Value)
-	if retRes278715 == nil {
+	var retRes279215 []any = TransactionsToList(r.Value)
+	if retRes279215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279215)}
 	}
 	return nil
 }
@@ -3565,7 +3560,7 @@ func (this *Toobit) ParseTransactionWithType(transaction map[string]any, optiona
 	}
 	return result
 }
-func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Toobit) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//

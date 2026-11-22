@@ -1111,7 +1111,7 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(returnData, currency)}
 	return nil
 }
-func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Zaif) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": 23634,

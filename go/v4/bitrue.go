@@ -3416,7 +3416,7 @@ func (this *Bitrue) ParseTransactionStatusByType(status *string, optionalArgs ..
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitrue) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -3500,8 +3500,10 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var txid *string = this.SafeString(transaction, "txid")
 	var timestamp *int64 = this.SafeInteger(transaction, "createdAt")
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
-	var payAmount bool = (InOp(transaction, "payAmount"))
-	var ctime bool = (InOp(transaction, "ctime"))
+	_, has1 := transaction["payAmount"]
+	var payAmount bool = has1
+	_, has2 := transaction["ctime"]
+	var ctime bool = has2
 	var typeVar string = "deposit"
 	if payAmount || ctime {
 		typeVar = "withdrawal"

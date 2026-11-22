@@ -2731,7 +2731,7 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
 }
-func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Alpaca) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
 	//

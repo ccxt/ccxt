@@ -2645,7 +2645,7 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response))}
 	return nil
 }
-func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Gemini) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//

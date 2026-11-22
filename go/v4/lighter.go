@@ -4037,7 +4037,7 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
 }
-func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Lighter) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//     {
@@ -4658,9 +4658,10 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 		panic(r2.Err)
 	}
 	var nonce *int64 = &r2.Value
+	var leverageNum *float64 = this.ParseNumber(leverage)
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
-		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
+		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverageNum)),
 		"margin_mode": func() int {
 			if marginMode == "cross" {
 				return 0

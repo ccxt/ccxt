@@ -3750,7 +3750,7 @@ func (this *Digifinex) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Digifinex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Digifinex) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	// spot and margin
 	//
@@ -4193,7 +4193,7 @@ func (this *Digifinex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Digifinex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//

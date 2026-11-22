@@ -1853,8 +1853,8 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any
 		orderParams, _ = rawOrder["params"].(map[string]any)
 		if orderParams == nil {
@@ -3029,7 +3029,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var isPrior bool = false
 	var fixed bool = false
 	var statusId *string = nil
-	var price any = nil
+	var price *string = nil
 	var trades []any = []any{}
 	if orderEventsLength > 0 {
 		var executions []any = []any{}
@@ -3050,11 +3050,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 					var orderPriorExecution map[string]any = SafeMapTyped(item, "orderPriorExecution")
 					details = this.SafeValue2(item, "orderPriorExecution", "orderPriorEdit")
 					if executedPrice == nil {
-						if derefPtr := this.SafeString(orderPriorExecution, "limitPrice"); derefPtr != nil {
-							price = *derefPtr
-						} else {
-							price = nil
-						}
+						price = this.SafeString(orderPriorExecution, "limitPrice")
 					} else {
 						price = executedPrice
 					}
@@ -3085,7 +3081,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(details, "quantity")
 	var filled *string = this.SafeString2(details, "filledSize", "filled", "0.0")
 	var remaining *string = this.SafeString(details, "unfilledSize")
-	var average any = nil
+	var average *string = nil
 	filled2Lit406 := "0.0"
 	var filled2 *string = &filled2Lit406
 	var tradesLength int = len(trades)
@@ -3127,15 +3123,18 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var cost *string = nil
 	if (filled != nil) && (marketResolved != nil) {
-		var whichPrice any = price
+		var isLinear *bool = this.SafeBool(marketResolved, "linear", false)
 		if average != nil {
-			whichPrice = average
-		}
-		if !IsEqual(whichPrice, nil) {
-			if *this.SafeBool(marketResolved, "linear", false) {
-				cost = Precise.StringMul(filled, whichPrice) // in quote
+			if isLinear != nil && *isLinear {
+				cost = Precise.StringMul(filled, average) // in quote
 			} else {
-				cost = Precise.StringDiv(filled, whichPrice) // in base
+				cost = Precise.StringDiv(filled, average) // in base
+			}
+		} else if price != nil {
+			if isLinear != nil && *isLinear {
+				cost = Precise.StringMul(filled, price) // in quote
+			} else {
+				cost = Precise.StringDiv(filled, price) // in base
 			}
 		}
 	}
@@ -3155,7 +3154,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")
 	}
-	var literal247231 map[string]any = map[string]any{
+	var literal247531 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       this.SafeStringN(details, []any{"clientOrderId", "clientId", "cliOrdId"}),
@@ -3169,12 +3168,12 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		"postOnly":            (typeVar != nil && *typeVar == "post"),
 		"reduceOnly":          this.SafeBool2(details, "reduceOnly", "reduce_only"),
 		"side":                this.SafeStringLower2(details, "side", "direction"),
-		"price":               price,
+		"price":               nil,
 		"triggerPrice":        triggerPrice,
 		"stopPrice":           triggerPrice,
 		"amount":              amount,
 		"cost":                nil,
-		"average":             average,
+		"average":             nil,
 		"filled":              filled,
 		"remaining":           remaining,
 		"status":              status,
@@ -3182,10 +3181,16 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		"fees":                nil,
 		"trades":              trades,
 	}
-	if cost != nil {
-		literal247231["cost"] = *cost
+	if price != nil {
+		literal247531["price"] = *price
 	}
-	return this.SafeOrder(literal247231)
+	if cost != nil {
+		literal247531["cost"] = *cost
+	}
+	if average != nil {
+		literal247531["average"] = *average
+	}
+	return this.SafeOrder(literal247531)
 }
 
 /**
@@ -3543,7 +3548,7 @@ func (this *Krakenfutures) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Krakenfutures) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//    {
 	//        "asset": "usd",
@@ -4384,7 +4389,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Posi
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var literal344534 map[string]any = map[string]any{
+	var literal344834 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4411,9 +4416,9 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Posi
 		"percentage":                  nil,
 	}
 	if datetime != nil {
-		literal344534["datetime"] = *datetime
+		literal344834["datetime"] = *datetime
 	}
-	return this.SafePosition(literal344534)
+	return this.SafePosition(literal344834)
 }
 
 /**

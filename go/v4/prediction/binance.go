@@ -1242,7 +1242,7 @@ func (this *Binance) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	var result map[string]any = map[string]any{
 		"info": responseReply.Raw,
 	}
-	var balances []any = ccxt.SafeListTyped(response, "items")
+	var balances, _ = response["items"].([]any)
 	for i := 0; i < len(balances); i++ {
 		var balance, _ = balances[i].(map[string]any)
 		var accountType *string = this.SafeString(balance, "accountType")

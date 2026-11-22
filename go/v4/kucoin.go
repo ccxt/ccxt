@@ -4283,7 +4283,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	if since != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64(*since) / float64(denominator)))
 	} else if limit != nil {
-		request["startAt"] = this.ParseToInt(math.Floor(float64((now - (*limit * duration))) / float64(denominator)))
+		request["startAt"] = this.ParseToInt(math.Floor(float64(now-(*limit*duration)) / float64(denominator)))
 	}
 	request["endAt"] = this.ParseToInt(math.Floor(float64(endAt) / float64(denominator)))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate)
@@ -4425,7 +4425,7 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if since != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64(*since) / float64(denominator)))
 	} else if limit != nil {
-		request["startAt"] = this.ParseToInt(math.Floor(float64((now - (*limit * duration))) / float64(denominator)))
+		request["startAt"] = this.ParseToInt(math.Floor(float64(now-(*limit*duration)) / float64(denominator)))
 	}
 	request["endAt"] = this.ParseToInt(math.Floor(float64(endAt) / float64(denominator)))
 
@@ -4669,14 +4669,11 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			panic(r.Err)
 		}
 	}
-	var accountType any = "main"
+	var accountType string = "main"
 	var paramsRequest map[string]any = nil
 	var accountTypePtr *string = nil
 	accountTypePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchDepositAddress", "accountType", accountType)
-	accountType = nil
-	if accountTypePtr != nil {
-		accountType = *accountTypePtr
-	}
+	accountType = *accountTypePtr
 	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 
@@ -5858,14 +5855,11 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	}
 	var isSpot bool = market.Spot
 	var isContract bool = market.Contract
-	var accountMode any = "unified"
+	var accountMode string = "unified"
 	var paramsRequest map[string]any = nil
 	var accountModePtr *string = nil
 	accountModePtr, paramsRequest = this.HandleOptionStringAndParams(params, "createOrder", "accountMode", accountMode)
-	accountMode = nil
-	if accountModePtr != nil {
-		accountMode = *accountModePtr
-	}
+	accountMode = *accountModePtr
 	var isUnified bool = (accountMode == "unified")
 	var marginMode *string = nil
 	marginMode, paramsRequest = this.HandleMarginModeAndParams("createOrder", paramsRequest)
@@ -5898,14 +5892,11 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 			panic(NotSupported(this.Id + " createOrder() with cost is supported for spot market orders only"))
 		}
 	} else {
-		var sizeUnit any = "BASECCY"
+		var sizeUnit string = "BASECCY"
 		if isContract == true {
 			var sizeUnitPtr *string = nil
 			sizeUnitPtr, paramsRequest = this.HandleOptionStringAndParams(paramsRequest, "createOrder", "sizeUnit", "UNIT")
-			sizeUnit = nil
-			if sizeUnitPtr != nil {
-				sizeUnit = *sizeUnitPtr
-			}
+			sizeUnit = *sizeUnitPtr
 		}
 		request["sizeUnit"] = sizeUnit
 		request["size"] = this.AmountToPrecision(symbol, amount)
@@ -6952,13 +6943,10 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 	}
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
-	var accountMode any = "unified"
+	var accountMode string = "unified"
 	var accountModePtr *string = nil
 	accountModePtr, paramsOmitted = this.HandleOptionStringAndParams(paramsOmitted, "cancelOrder", "accountMode", accountMode)
-	accountMode = nil
-	if accountModePtr != nil {
-		accountMode = *accountModePtr
-	}
+	accountMode = *accountModePtr
 	request["accountMode"] = accountMode
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
@@ -8550,13 +8538,10 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 	}
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
-	var accountMode any = "unified"
+	var accountMode string = "unified"
 	var accountModePtr *string = nil
 	accountModePtr, paramsOmitted = this.HandleOptionStringAndParams(paramsOmitted, "fetchOrder", "accountMode", accountMode)
-	accountMode = nil
-	if accountModePtr != nil {
-		accountMode = *accountModePtr
-	}
+	accountMode = *accountModePtr
 	request["accountMode"] = accountMode
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
@@ -9663,13 +9648,10 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 	} else {
 		isContract = true
 	}
-	var accountMode any = "unified"
+	var accountMode string = "unified"
 	var accountModePtr *string = nil
 	accountModePtr, paramsOmitted = this.HandleOptionStringAndParams(paramsOmitted, "fetchMyTrades", "accountMode", accountMode)
-	accountMode = nil
-	if accountModePtr != nil {
-		accountMode = *accountModePtr
-	}
+	accountMode = *accountModePtr
 	request["accountMode"] = accountMode
 	var marginMode *string = nil
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted)
@@ -10449,7 +10431,7 @@ func (this *Kucoin) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Kucoin) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -10631,14 +10613,11 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 			panic(r.Err)
 		}
 	}
-	var accountType any = "main"
+	var accountType string = "main"
 	var paramsRequest map[string]any = nil
 	var accountTypePtr *string = nil
 	accountTypePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchDeposits", "accountType", accountType)
-	accountType = nil
-	if accountTypePtr != nil {
-		accountType = *accountTypePtr
-	}
+	accountType = *accountTypePtr
 	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 	if accountId != nil && *accountId == "contract" {
@@ -10886,14 +10865,11 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 			panic(r.Err)
 		}
 	}
-	var accountType any = "main"
+	var accountType string = "main"
 	var paramsRequest map[string]any = nil
 	var accountTypePtr *string = nil
 	accountTypePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchWithdrawals", "accountType", accountType)
-	accountType = nil
-	if accountTypePtr != nil {
-		accountType = *accountTypePtr
-	}
+	accountType = *accountTypePtr
 	var accountsByType, _ = this.Options["accountsByType"].(map[string]any)
 	var accountId *string = this.SafeString(accountsByType, accountType, accountType)
 	if accountId != nil && *accountId == "contract" {
@@ -11478,13 +11454,10 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan AsyncResult[Balances], optionalA
 	}
 	if requestedType == "margin" {
 		// assume cross margin if margin is specified but marginMode is not specified
-		var marginMode any = "cross"
+		var marginMode string = "cross"
 		var marginModePtr *string = nil
 		marginModePtr, paramsRequest = this.HandleOptionStringAndParams(paramsRequest, "fetchUtaBalance", "marginMode", marginMode)
-		marginMode = nil
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		marginMode = *marginModePtr
 		requestedType = marginMode
 	}
 	var utaAccountsByType, _ = this.Options["utaAccountsByType"].(map[string]any)
@@ -12100,7 +12073,7 @@ func (this *Kucoin) ParseLedgerStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Kucoin) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "611a1e7c6a053300067a88d9", //unique key for each ledger entry
@@ -14976,13 +14949,10 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 	var response map[string]any = nil
 	var orders []any = []any{}
 	if uta == true {
-		var accountMode any = "unified"
+		var accountMode string = "unified"
 		var accountModePtr *string = nil
 		accountModePtr, paramsRequest = this.HandleOptionStringAndParams(paramsRequest, "cancelOrders", "accountMode", accountMode)
-		accountMode = nil
-		if accountModePtr != nil {
-			accountMode = *accountModePtr
-		}
+		accountMode = *accountModePtr
 		request["accountMode"] = accountMode
 		var marginMode *string = nil
 		marginMode, paramsRequest = this.HandleMarginModeAndParams("cancelOrders", paramsRequest)

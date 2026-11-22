@@ -5558,7 +5558,7 @@ func (this *Xt) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArgs
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}
 	return nil
 }
-func (this *Xt) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Xt) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "207260567109387524",
@@ -5944,7 +5944,7 @@ func (this *Xt) withdrawBody(ch chan AsyncResult[Transaction], code string, amou
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(result, currency)}
 	return nil
 }
-func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Xt) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

@@ -1485,7 +1485,7 @@ func (this *Coinbase) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coinbase) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fiat deposit
 	//
@@ -1644,7 +1644,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var transactionType *string = this.SafeString(transaction, "type")
 	var amountAndCurrencyObject map[string]any = nil
 	var feeObject map[string]any = nil
-	var network map[string]any = SafeMapTyped(transaction, "network")
+	var network, _ = transaction["network"].(map[string]any)
 	if transactionType != nil && *transactionType == "send" {
 		amountAndCurrencyObject = this.SafeDictMap(network, "transaction_amount")
 		feeObject = this.SafeDictMap(network, "transaction_fee", map[string]any{})
@@ -1683,7 +1683,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) Tra
 			typeVar = &typeVarStr2
 		}
 	}
-	var toObject map[string]any = SafeMapTyped(transaction, "to")
+	var toObject, _ = transaction["to"].(map[string]any)
 	var addressTo *string = this.SafeString(toObject, "address")
 	var networkId *string = this.SafeString(network, "network_name")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -3715,7 +3715,7 @@ func (this *Coinbase) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Coinbase) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	// crypto deposit transaction
 	//
@@ -3961,7 +3961,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var amountInfo map[string]any = SafeMapTyped(item, "amount")
+	var amountInfo, _ = item["amount"].(map[string]any)
 	var amount *string = this.SafeString(amountInfo, "amount")
 	var direction string
 	if Precise.StringLt(amount, "0") {
@@ -3983,7 +3983,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	//     let txid = undefined;
 	//
 	var fee map[string]any = nil
-	var networkInfo map[string]any = SafeMapTyped(item, "network")
+	var networkInfo, _ = item["network"].(map[string]any)
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
 	var feeInfo, _ = networkInfo["transaction_fee"].(map[string]any)
 	if feeInfo != nil {

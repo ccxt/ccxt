@@ -3940,8 +3940,11 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) map[string]any {
 	if (accessLevel == "private") && (this.ApiKey == "") {
 		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
+	var baseUrl *string = this.SafeString(this.Urls["api"], "sxbet", "")
+	var groupUrl *string = this.SafeString(this.Urls["api"], apiGroup)
+	if groupUrl != nil {
+		baseUrl = groupUrl
+	}
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var existingHeaders map[string]any = map[string]any{}

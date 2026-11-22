@@ -3178,7 +3178,7 @@ func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Backpack) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//     [

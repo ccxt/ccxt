@@ -968,7 +968,7 @@ func (this *Coinmate) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coinmate) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// deposits
 	//
@@ -1069,14 +1069,7 @@ func (this *Coinmate) withdrawBody(ch chan AsyncResult[Transaction], code string
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if tagWithdrawTagPtr != nil {
-			return *tagWithdrawTagPtr
-		}
-		return nil
-	}()
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -1104,7 +1097,7 @@ func (this *Coinmate) withdrawBody(ch chan AsyncResult[Transaction], code string
 		"address": address,
 	}
 	if tagWithdrawTag != nil {
-		request["destinationTag"] = tagWithdrawTag
+		request["destinationTag"] = *tagWithdrawTag
 	}
 	var requestParams map[string]any = this.Extend(request, paramsWithdrawTag)
 	var response map[string]any = nil
@@ -1194,7 +1187,11 @@ func (this *Coinmate) withdrawBody(ch chan AsyncResult[Transaction], code string
 		transaction["amount"] = amount
 		transaction["currency"] = code
 		transaction["address"] = address
-		transaction["tag"] = tagWithdrawTag
+		if tagWithdrawTag != nil {
+			transaction["tag"] = *tagWithdrawTag
+		} else {
+			transaction["tag"] = nil
+		}
 		transaction["type"] = "withdrawal"
 		transaction["status"] = "pending"
 	}

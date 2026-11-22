@@ -3497,7 +3497,7 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bithumb) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// generation 1: withdraw
 	//

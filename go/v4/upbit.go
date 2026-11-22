@@ -2358,7 +2358,7 @@ func (this *Upbit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Upbit) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits, fetchDeposit
 	//

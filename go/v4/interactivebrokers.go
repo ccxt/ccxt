@@ -1044,7 +1044,8 @@ func (this *Interactivebrokers) signInBody(ch chan AsyncResult[any], optionalArg
 	var dhResponse string = *this.SafeString(response, "diffie_hellman_response", "")
 	var sharedSecret any = this.ModPow(this.ConvertToBigInt("0x"+dhResponse), dhRandom, dhPrime)
 	var liveSessionToken string = this.Hmac(this.Base16ToBinary(accessTokenSecretHex), this.BigToBytes(sharedSecret), sha1, "base64")
-	var check string = this.Hmac(this.Encode(this.Options["consumer_key"]), this.Base64ToBinary(liveSessionToken), sha1, "hex")
+	var consumerKey string = *this.SafeString(this.Options, "consumer_key", "")
+	var check string = this.Hmac(this.Encode(consumerKey), this.Base64ToBinary(liveSessionToken), sha1, "hex")
 	if this.SafeString(response, "live_session_token_signature") == nil || *this.SafeString(response, "live_session_token_signature") != check {
 		panic(AuthenticationError(this.Id + " signIn() live session token validation failed"))
 	}
@@ -1235,7 +1236,12 @@ func (this *Interactivebrokers) ibkrGatewaySignInBody(ch chan AsyncResult[any], 
 		}
 		var regainTimestamp any = this.Sum(lostTimestamp, regainDelay)
 		if IsLessThan(this.Milliseconds(), regainTimestamp) {
-			panic(AuthenticationError(Add(Add(Add(this.Id+" the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ", this.Iso8601(regainTimestamp)), " (options.autoRegainSession), "), this.Json(response))))
+			var regainDatetime *string = this.Iso8601(regainTimestamp)
+			if regainDatetime != nil {
+				messageText := this.Id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at " + *regainDatetime + " (options.autoRegainSession), " + this.Json(response)
+				panic(AuthenticationError(messageText))
+			}
+			panic(AuthenticationError(nil))
 		}
 
 		r2 := <-this.IbkrGatewayRegainSessionAsync(params)
@@ -1248,7 +1254,12 @@ func (this *Interactivebrokers) ibkrGatewaySignInBody(ch chan AsyncResult[any], 
 			// try again options.autoRegainSession seconds later
 			this.Options["gatewaySessionLostTimestamp"] = this.Milliseconds()
 			this.IbkrGatewayScheduleRegain()
-			panic(AuthenticationError(Add(Add(Add(this.Id+" failed to take back the brokerage session of the client portal gateway, retrying at ", this.Iso8601(this.Sum(this.Milliseconds(), regainDelay))), " (options.autoRegainSession), "), this.Json(response))))
+			var retryDatetime *string = this.Iso8601(this.Sum(this.Milliseconds(), regainDelay))
+			if retryDatetime != nil {
+				messageText := this.Id + " failed to take back the brokerage session of the client portal gateway, retrying at " + *retryDatetime + " (options.autoRegainSession), " + this.Json(response)
+				panic(AuthenticationError(messageText))
+			}
+			panic(AuthenticationError(nil))
 		}
 	}
 	this.Options["gatewaySessionLostTimestamp"] = nil
@@ -2460,7 +2471,7 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	var promises []any = []any{}
 	for i := 0; i < len(cfdExchanges); i++ {
 		var request map[string]any = map[string]any{
-			"exchange":   DerefScalar(cfdExchanges[i]),
+			"exchange":   this.SafeString(cfdExchanges, i, ""),
 			"assetClass": "CFD",
 		}
 		promises = append(promises, this.MarketsEndpointCallAsync(request, "webapiGetV1ApiTrsrvAllConids", []any{}))
@@ -2533,7 +2544,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	var searchPromises []any = []any{}
 	for i := 0; i < len(bondSymbols); i++ {
 		var searchRequest map[string]any = map[string]any{
-			"symbol":  DerefScalar(bondSymbols[i]),
+			"symbol":  this.SafeString(bondSymbols, i, ""),
 			"secType": "BOND",
 		}
 		searchPromises = append(searchPromises, this.MarketsEndpointCallAsync(this.Extend(searchRequest, params), "webapiPostV1ApiIserverSecdefSearch", []any{}))
@@ -2662,7 +2673,7 @@ func (this *Interactivebrokers) fetchStockMarketsBody(ch chan AsyncResult[any], 
 	var exchangesDict, _ = options["exchanges"].(map[string]any)
 	var stockExchanges []any = SafeListTyped(exchangesDict, "STK")
 	for j := 0; j < len(stockExchanges); j++ {
-		var exchange any = DerefScalar(stockExchanges[j])
+		var exchange string = *this.SafeString(stockExchanges, j, "")
 		var stockRequest map[string]any = map[string]any{
 			"exchange":   exchange,
 			"assetClass": "STK",
@@ -3013,7 +3024,7 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	var literal208541 map[string]any = map[string]any{
+	var literal208841 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"quote":          quote,
@@ -3061,16 +3072,16 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if isContract {
-		literal208541["linear"] = true
+		literal208841["linear"] = true
 	} else {
-		literal208541["linear"] = nil
+		literal208841["linear"] = nil
 	}
 	if isContract {
-		literal208541["inverse"] = false
+		literal208841["inverse"] = false
 	} else {
-		literal208541["inverse"] = nil
+		literal208841["inverse"] = nil
 	}
-	return this.SafeMarketStructure(literal208541)
+	return this.SafeMarketStructure(literal208841)
 }
 
 /**
@@ -3543,32 +3554,28 @@ func (this *Interactivebrokers) IbkrParseValue(value *string) any {
 		return nil
 	}
 	var valueParts []string = strings.Split(*value, ",")
-	var result any = strings.Join(valueParts, "")
-	if StartsWith(result, "C") || StartsWith(result, "H") || StartsWith(result, "+") || StartsWith(result, "$") {
-		result = Slice(result, 1, nil)
+	var result string = strings.Join(valueParts, "")
+	if strings.HasPrefix(result, "C") || strings.HasPrefix(result, "H") || strings.HasPrefix(result, "+") || strings.HasPrefix(result, "$") {
+		result = result[1:]
 	}
-	if EndsWith(result, "%") {
-		result = Slice(result, 0, GetLength(result)-1)
+	if strings.HasSuffix(result, "%") {
+		result = Slice(result, 0, len(result)-1)
 	}
 	var multiplier *string = nil
-	if EndsWith(result, "K") {
+	if strings.HasSuffix(result, "K") {
 		multiplierStr := "1000"
 		multiplier = &multiplierStr
-	} else if EndsWith(result, "M") {
+	} else if strings.HasSuffix(result, "M") {
 		multiplierStr2 := "1000000"
 		multiplier = &multiplierStr2
-	} else if EndsWith(result, "B") {
+	} else if strings.HasSuffix(result, "B") {
 		multiplierStr3 := "1000000000"
 		multiplier = &multiplierStr3
 	}
 	if multiplier != nil {
-		var scaled *string = Precise.StringMul(Slice(result, 0, GetLength(result)-1), multiplier)
-		if scaled == nil {
-			return nil
-		}
-		result = scaled
+		return Precise.StringMul(Slice(result, 0, len(result)-1), multiplier)
 	}
-	if IsEqual(result, "") {
+	if result == "" {
 		return nil
 	}
 	return result
@@ -3696,16 +3703,16 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
 }
-func (this *Interactivebrokers) IbkrPeriod(duration any, limit any) any {
+func (this *Interactivebrokers) IbkrPeriod(duration int64, limit any) any {
 	// duration of one bar in seconds, the period is expressed in the largest fitting unit
 	var total any = Multiply(duration, limit)
-	if IsLessThan(duration, 3600) {
+	if duration < 3600 {
 		return *this.NumberToString(this.ParseToInt(Divide(total, 60))) + "min"
-	} else if IsLessThan(duration, 86400) {
+	} else if duration < 86400 {
 		return *this.NumberToString(this.ParseToInt(Divide(total, 3600))) + "h"
-	} else if IsLessThan(duration, 604800) {
+	} else if duration < 604800 {
 		return *this.NumberToString(this.ParseToInt(Divide(total, 86400))) + "d"
-	} else if IsLessThan(duration, 2592000) {
+	} else if duration < 2592000 {
 		return *this.NumberToString(this.ParseToInt(Divide(total, 604800))) + "w"
 	}
 	// monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
@@ -3716,7 +3723,7 @@ func (this *Interactivebrokers) IbkrPeriod(duration any, limit any) any {
 	var years any = min(this.ParseToInt(float64(months+11)/12), 15) // 15y is the documented maximum period
 	return Add(this.NumberToString(years), "y")
 }
-func (this *Interactivebrokers) IbkrFormatTime(timestamp any) string {
+func (this *Interactivebrokers) IbkrFormatTime(timestamp int64) string {
 	// YYYYMMDD-hh:mm:ss in UTC
 	var iso *string = this.Iso8601(timestamp)
 	return this.Yyyymmdd(timestamp, "") + "-" + func() string {
@@ -5143,8 +5150,10 @@ func (this *Interactivebrokers) fetchMyTradesBody(ch chan AsyncResult[[]Trade], 
 	}
 	var options, _ = this.Options["fetchMyTrades"].(map[string]any)
 	var defaultMethod string = "privateGetIserverAccountTrades"
-	if !IsEqual(market, nil) {
-		var assetClass *string = this.SafeString(GetValue(market, "info"), "assetClass")
+	if symbol != nil {
+		var symbolMarket map[string]any = this.Market(symbol)
+		var symbolInfo, _ = symbolMarket["info"].(map[string]any)
+		var assetClass *string = this.SafeString(symbolInfo, "assetClass")
 		if assetClass != nil && *assetClass == "CRYPTO" {
 			defaultMethod = "privatePostPaTransactions"
 		}
@@ -5246,7 +5255,7 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	}
 	var request map[string]any = map[string]any{
 		"acctIds":  []any{accountId},
-		"conids":   []any{this.ParseToInt(GetValue(market, "id"))},
+		"conids":   []any{this.ParseToInt(this.SafeString(market, "id"))},
 		"currency": currency,
 		"days":     days,
 	}
@@ -5929,7 +5938,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, 
 							// catch block:
 							var message string = this.ExceptionMessage(e, false)
 							var mustQueryAccounts bool = (strings.Index(message, "query /accounts first") >= 0)
-							if isAccountsPath || !mustQueryAccounts || (IsEqual(i, retries)) {
+							if isAccountsPath || !mustQueryAccounts || (int64(i) >= retries) {
 								panic(e)
 							}
 							this.Options["serviceAccountsLoaded"] = false

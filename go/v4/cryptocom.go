@@ -3564,7 +3564,7 @@ func (this *Cryptocom) ParseWithdrawalStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Cryptocom) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -3613,7 +3613,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var status *string = nil
-	if InOp(transaction, "client_wid") {
+	if _, ok := transaction["client_wid"]; ok {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)
 	} else {
@@ -3884,7 +3884,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}
 	return nil
 }
-func (this *Cryptocom) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Cryptocom) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",

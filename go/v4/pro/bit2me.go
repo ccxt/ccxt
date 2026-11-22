@@ -282,22 +282,20 @@ func (this *Bit2me) HandleTrades(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var data map[string]any
 	data, _ = message["data"].(map[string]any)
 	if data == nil {
 		data = map[string]any{}
 	}
 	var trade map[string]any = this.ParseWsTrade(data, market)
-	if !(symbol != nil && this.Trades[*symbol] != nil) {
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		if symbol != nil {
-			this.Trades[*symbol] = ccxt.NewArrayCache(limit)
-		}
+		this.Trades[symbol] = ccxt.NewArrayCache(limit)
 	}
-	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	tradesArray.Append(trade)
-	client.(ccxt.ClientInterface).Resolve(tradesArray, "trades:"+*symbol)
+	client.(ccxt.ClientInterface).Resolve(tradesArray, "trades:"+symbol)
 }
 func (this *Bit2me) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//

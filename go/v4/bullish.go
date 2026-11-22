@@ -2190,12 +2190,7 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 		until = untilParam
 	}
 	var sinceFromUntil bool = (since == nil) && (untilParam != nil)
-	var paramsResult map[string]any
-	if sinceFromUntil {
-		paramsResult = this.OmitDict(params, "until")
-	} else {
-		paramsResult = params
-	}
+	var timeParams map[string]any = map[string]any{}
 	if (since != nil) || (untilParam != nil) {
 		var timeDelta int64 = (7 * 24) * 60 * 60 * 1000 // 7 days
 		var sinceResolved *int64 = since
@@ -2212,20 +2207,23 @@ func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
 				until = this.Sum(since, timeDelta)
 			}
 		}
-		if paramsResult != nil {
-			if ptrValue := this.Iso8601(sinceResolved); ptrValue != nil {
-				paramsResult[sinceKey] = *ptrValue
-			} else {
-				paramsResult[sinceKey] = nil
-			}
+		if ptrValue := this.Iso8601(sinceResolved); ptrValue != nil {
+			timeParams[sinceKey] = *ptrValue
+		} else {
+			timeParams[sinceKey] = nil
 		}
-		if paramsResult != nil {
-			if ptrValue := this.Iso8601(until); ptrValue != nil {
-				paramsResult[untilKey] = *ptrValue
-			} else {
-				paramsResult[untilKey] = nil
-			}
+		if ptrValue := this.Iso8601(until); ptrValue != nil {
+			timeParams[untilKey] = *ptrValue
+		} else {
+			timeParams[untilKey] = nil
 		}
+	}
+	var merged map[string]any = this.Extend(params, timeParams)
+	var paramsResult map[string]any
+	if sinceFromUntil {
+		paramsResult = this.OmitDict(merged, "until")
+	} else {
+		paramsResult = merged
 	}
 	return paramsResult
 }
@@ -2280,11 +2278,11 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes165215 []any = OrdersToList(r.Value)
-	if retRes165215 == nil {
+	var retRes165415 []any = OrdersToList(r.Value)
+	if retRes165415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes165215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes165415)}
 	}
 	return nil
 }
@@ -2326,11 +2324,11 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes167215 []any = OrdersToList(r.Value)
-	if retRes167215 == nil {
+	var retRes167415 []any = OrdersToList(r.Value)
+	if retRes167415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes167215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes167415)}
 	}
 	return nil
 }
@@ -2372,11 +2370,11 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes169215 []any = OrdersToList(r.Value)
-	if retRes169215 == nil {
+	var retRes169415 []any = OrdersToList(r.Value)
+	if retRes169415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes169215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes169415)}
 	}
 	return nil
 }
@@ -2418,11 +2416,11 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes171215 []any = OrdersToList(r.Value)
-	if retRes171215 == nil {
+	var retRes171415 []any = OrdersToList(r.Value)
+	if retRes171415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes171215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes171415)}
 	}
 	return nil
 }
@@ -3102,7 +3100,7 @@ func (this *Bullish) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bullish) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "custodyTransactionId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
@@ -3135,7 +3133,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "createdAtDateTime"))
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "updatedAtDateTime"))
 	var network *string = this.SafeString(transaction, "network")
-	var transactionDetails map[string]any = SafeMapTyped(transaction, "transactionDetails")
+	var transactionDetails, _ = transaction["transactionDetails"].(map[string]any)
 	var txid *string = this.SafeString(transactionDetails, "blockchainTxId")
 	var address *string = this.SafeString(transactionDetails, "address")
 	var amount *float64 = this.SafeNumber(transaction, "quantity")
@@ -3750,11 +3748,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes267219 []any = r2.Value
-		if retRes267219 == nil {
+		var retRes267419 []any = r2.Value
+		if retRes267419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267219)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267419)}
 		}
 		return nil
 	}
@@ -4226,16 +4224,16 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var literal305115 map[string]any = map[string]any{
+	var literal305315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal305115["body"] = *requestBody
+		literal305315["body"] = *requestBody
 	}
-	return literal305115
+	return literal305315
 }
 
 /**

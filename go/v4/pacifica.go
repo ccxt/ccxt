@@ -4414,7 +4414,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, nil, since, limit))}
 	return nil
 }
-func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Pacifica) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//       "amount": "100.000000",
@@ -4591,7 +4591,7 @@ func (this *Pacifica) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(withdrawals, since, limit, "timestamp"))}
 	return nil
 }
-func (this *Pacifica) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Pacifica) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "amount": "5000",

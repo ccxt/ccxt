@@ -850,33 +850,32 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 	var makerFeeRate *string = this.SafeString(market, "makerFee")
 	var maker *string = Precise.StringDiv(makerFeeRate, "100")
 	var isSpot bool = !swap
-	var literal55641 map[string]any = map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   nil,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": nil,
-		"type":     typeVar,
-		"spot":     isSpot,
-		"margin":   margin,
-		"swap":     swap,
-		"future":   false,
-		"option":   false,
-		"active":   active,
-		"contract": contract,
-		"linear":   linear,
-		"inverse":  inverse,
-		"taker":    this.ParseNumber(taker),
-		"maker":    this.ParseNumber(maker),
-		"contractSize": func() any {
-			if isSpot {
-				return nil
-			}
-			return this.ParseNumber("1")
-		}(),
+	var contractSize *float64 = this.ParseNumber("1")
+	if isSpot {
+		contractSize = nil
+	}
+	var literal56041 map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         nil,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       nil,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         margin,
+		"swap":           swap,
+		"future":         false,
+		"option":         false,
+		"active":         active,
+		"contract":       contract,
+		"linear":         linear,
+		"inverse":        inverse,
+		"taker":          this.ParseNumber(taker),
+		"maker":          this.ParseNumber(maker),
+		"contractSize":   contractSize,
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -907,12 +906,12 @@ func (this *Whitebit) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if settle != nil {
-		literal55641["settle"] = *settle
+		literal56041["settle"] = *settle
 	}
 	if settleId != nil {
-		literal55641["settleId"] = *settleId
+		literal56041["settleId"] = *settleId
 	}
-	return this.SafeMarketStructure(literal55641)
+	return this.SafeMarketStructure(literal56041)
 }
 
 /**
@@ -1049,9 +1048,9 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 			}
 		}
 	}
-	var ternaryStr73820 string = "crypto"
+	var ternaryStr74220 string = "crypto"
 	if hasProvider {
-		ternaryStr73820 = "fiat"
+		ternaryStr74220 = "fiat"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -1063,7 +1062,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 		"withdraw":  this.SafeBool(rawCurrency, "can_withdraw"),
 		"fee":       nil,
 		"networks":  networks,
-		"type":      ternaryStr73820,
+		"type":      ternaryStr74220,
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "currency_precision"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -2764,18 +2763,18 @@ func (this *Whitebit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	//
 	var status *string = this.SafeString(response, 0)
 
-	var literal200215 map[string]any = map[string]any{
+	var literal200615 map[string]any = map[string]any{
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
 	}
 	if status != nil && *status == "pong" {
-		literal200215["status"] = "ok"
+		literal200615["status"] = "ok"
 	} else {
-		literal200215["status"] = status
+		literal200615["status"] = status
 	}
-	ch <- AsyncResult[Status]{Value: StatusFromMap(literal200215)}
+	ch <- AsyncResult[Status]{Value: StatusFromMap(literal200615)}
 	return nil
 }
 
@@ -4544,7 +4543,7 @@ func (this *Whitebit) withdrawBody(ch chan AsyncResult[Transaction], code string
 	}))}
 	return nil
 }
-func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Whitebit) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
@@ -4591,9 +4590,9 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	} else if method != nil && *method == "2" {
 		addressTo = address
 	}
-	var ternaryStr325820 string = "withdrawal"
+	var ternaryStr326220 string = "withdrawal"
 	if method != nil && *method == "1" {
-		ternaryStr325820 = "deposit"
+		ternaryStr326220 = "deposit"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString(transaction, "uniqueId"),
@@ -4605,7 +4604,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		"address":     address,
 		"addressTo":   addressTo,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr325820,
+		"type":        ternaryStr326220,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -5981,11 +5980,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes426219 []any = r.Value
-		if retRes426219 == nil {
+		var retRes426619 []any = r.Value
+		if retRes426619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes426219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes426619)}
 		}
 		return nil
 	}
@@ -6096,17 +6095,17 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var literal435115 map[string]any = map[string]any{
+	var literal435515 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if isPrivate {
-		literal435115["headers"] = privateHeaders
+		literal435515["headers"] = privateHeaders
 	} else {
-		literal435115["headers"] = publicHeaders
+		literal435515["headers"] = publicHeaders
 	}
-	return literal435115
+	return literal435515
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {

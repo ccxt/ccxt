@@ -1362,7 +1362,7 @@ func (this *BaseExchange) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	panic(NotSupported(this.Id + " parseTrade() is not supported yet"))
 }
-func (this *BaseExchange) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *BaseExchange) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	panic(NotSupported(this.Id + " parseTransaction() is not supported yet"))
@@ -1375,7 +1375,7 @@ func (this *BaseExchange) ParseTransfer(transfer any, optionalArgs ...any) Trans
 func (this *BaseExchange) ParseAccount(account any) map[string]any {
 	panic(NotSupported(this.Id + " parseAccount() is not supported yet"))
 }
-func (this *BaseExchange) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *BaseExchange) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	panic(NotSupported(this.Id + " parseLedgerEntry() is not supported yet"))
@@ -3137,7 +3137,7 @@ func (this *BaseExchange) SafeTrade(trade map[string]any, optionalArgs ...any) T
 	trade["cost"] = this.ParseNumber(cost)
 	return TradeFromMap(trade)
 }
-func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
+func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) *string {
 	// this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
 	var timestamp *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
@@ -3163,7 +3163,7 @@ func (this *BaseExchange) CreateCcxtTradeId(optionalArgs ...any) any {
 		if takerOrMaker != nil {
 			id += "-" + *takerOrMaker
 		}
-		return id
+		return &id
 	}
 	return nil
 }
@@ -4721,7 +4721,11 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	var transactionsArray []any = this.ToArray(transactions)
 	var result []any = []any{}
 	for i := 0; i < len(transactionsArray); i++ {
-		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(this.SafeDict(transactionsArray, i, map[string]any{}), currency)), params)
+		transactionsArrayDict658268, _ := transactionsArray[i].(map[string]any)
+		if transactionsArrayDict658268 == nil {
+			transactionsArrayDict658268 = map[string]any{}
+		}
+		var transaction map[string]any = this.Extend(TransactionToMap(this.DerivedExchange.ParseTransaction(transactionsArrayDict658268, currency)), params)
 		result = append(result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4770,14 +4774,12 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) []any {
 	var arrayData []any = this.ToArray(data)
 	for i := 0; i < len(arrayData); i++ {
 
-		var itemOrItems map[string]any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(arrayData[i], currency))
-		if false {
-			for j := 0; j < GetArrayLength(itemOrItems); j++ {
-				result = append(result, this.Extend(GetValue(itemOrItems, j), params))
-			}
-		} else {
-			result = append(result, this.Extend(itemOrItems, params))
+		arrayDataDict660649, _ := arrayData[i].(map[string]any)
+		if arrayDataDict660649 == nil {
+			arrayDataDict660649 = map[string]any{}
 		}
+		var entry map[string]any = LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(arrayDataDict660649, currency))
+		result = append(result, this.Extend(entry, params))
 	}
 	result = this.SortBy(result, "timestamp")
 	var code any
@@ -5682,11 +5684,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes716715 map[string]any = r.Value
-	if retRes716715 == nil {
+	var retRes716115 map[string]any = r.Value
+	if retRes716115 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes716715}
+		ch <- AsyncResult[map[string]any]{Value: retRes716115}
 	}
 	return nil
 }
@@ -8886,7 +8888,7 @@ func (this *BaseExchange) ParseConversion(conversion any, optionalArgs ...any) C
 	}
 	panic(NotSupported(this.Id + " parseConversion () is not supported yet"))
 }
-func (this *BaseExchange) ConvertExpireDate(date *string) any {
+func (this *BaseExchange) ConvertExpireDate(date *string) *string {
 	if date == nil {
 		return nil
 	}
@@ -8897,9 +8899,9 @@ func (this *BaseExchange) ConvertExpireDate(date *string) any {
 	// the milliseconds are spelled out because every caller writes the result into
 	// expiryDatetime, which types.ts documents in the ISO 8601 form with them
 	var reconstructedDate string = "20" + year + "-" + month + "-" + day + "T00:00:00.000Z"
-	return reconstructedDate
+	return &reconstructedDate
 }
-func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date *string) any {
+func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date *string) *string {
 	if date == nil {
 		return nil
 	}
@@ -8949,7 +8951,7 @@ func (this *BaseExchange) ConvertExpireDateToMarketIdDate(date *string) any {
 		panic(BadSymbol(this.Id + " invalid expiry date " + *date))
 	}
 	var reconstructedDate string = day + *month + year
-	return reconstructedDate
+	return &reconstructedDate
 }
 func (this *BaseExchange) ConvertMarketIdExpireDate(date *string) *string {
 	if date == nil {
@@ -11542,12 +11544,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1061915Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1061915 []any = retRes1061915Recv
-	if retRes1061915 == nil {
+	retRes1061315Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1061315 []any = retRes1061315Recv
+	if retRes1061315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1061915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1061315)}
 	}
 	return nil
 }

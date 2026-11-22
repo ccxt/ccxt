@@ -1132,7 +1132,7 @@ func (this *Mercado) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(withdrawal, currency)}
 	return nil
 }
-func (this *Mercado) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Mercado) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": 1,

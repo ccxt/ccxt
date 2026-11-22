@@ -398,18 +398,13 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "instrument_name")
-	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
-	var symbol *string
-	if market.Symbol != "" {
-		symbol = &market.Symbol
-	}
+	var market map[string]any = this.SafeMarket(marketId)
+	var symbol *string = this.SafeString(market, "symbol", "")
 	var data any = this.SafeDict(this.SafeList(message, "data"), 0)
 	var timestamp *int64 = this.SafeInteger(data, "t")
-	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
+	if !(this.Orderbooks[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(message, "depth")
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var channel *string = this.SafeString(message, "channel")
@@ -435,9 +430,7 @@ func (this *Cryptocom) HandleOrderBook(client any, message map[string]any) {
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(books, "asks", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(books, "bids", []any{}))
 	orderbook.SetNonce(nonce)
-	if symbol != nil {
-		this.Orderbooks[*symbol] = orderbook
-	}
+	this.Orderbooks[*symbol] = orderbook
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -2255,10 +2248,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 			if messageHashes != nil {
 				for j := 0; j < len(messageHashes); j++ {
 					var unsubHash string = messageHashes[j]
-					var subHash *string = nil
-					if j >= 0 && j < len(subMessageHashes) {
-						subHash = ccxt.SafeStringPtr(subMessageHashes[j])
-					}
+					var subHash *string = this.SafeString(subMessageHashes, j, "")
 					this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 				}
 			}

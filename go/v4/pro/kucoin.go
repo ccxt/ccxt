@@ -2539,11 +2539,10 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 			if symbol != nil {
 				this.Orderbooks[*symbol] = this.OrderBook()
 			}
-		} else {
-			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-			orderbook.Reset()
 		}
-		ccxt.AddElementToObject(this.Orderbooks[*symbol], "symbol", symbol)
+		var storedBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		storedBook.Reset()
+		storedBook.SetSymbol(this.SafeSymbol(marketId, nil, "-"))
 	} else {
 		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 			if symbol != nil {

@@ -1693,7 +1693,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	var timestamp *int64 = this.SafeInteger(bookData, "timestamp")
 	var quoteVolume *float64 = nil
 	if market != nil {
-		quoteVolume = this.SafeNumber2(market["info"], "volume24hr", "volume")
+		quoteVolume = this.SafeNumber2(this.SafeDict(market, "info"), "volume24hr", "volume")
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,

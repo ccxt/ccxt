@@ -2783,7 +2783,7 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
-func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coinsph) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//     {

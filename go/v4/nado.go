@@ -3571,7 +3571,7 @@ func (this *Nado) ParseBalance(response map[string]any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Nado) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "submission_idx": "563011",
@@ -3601,8 +3601,8 @@ func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var currencyId *string = this.SafeString(transaction, "product_id")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeTimestamp(transaction, "timestamp")
-	var preBalance map[string]any = SafeMapTyped(transaction, "pre_balance")
-	var postBalance map[string]any = SafeMapTyped(transaction, "post_balance")
+	var preBalance, _ = transaction["pre_balance"].(map[string]any)
+	var postBalance, _ = transaction["post_balance"].(map[string]any)
 	var preSpot, _ = preBalance["spot"].(map[string]any)
 	var postSpot, _ = postBalance["spot"].(map[string]any)
 	var preSpotBalance, _ = preSpot["balance"].(map[string]any)

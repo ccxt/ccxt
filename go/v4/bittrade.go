@@ -2897,7 +2897,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limitResolved))}
 	return nil
 }
-func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bittrade) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

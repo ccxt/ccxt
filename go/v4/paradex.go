@@ -1211,12 +1211,18 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		optionType = *this.SafeString(parts, 4, "")
 	}
 	// the id carries the day without a leading zero, 6NOV26
-	var idDate any = this.ConvertExpireDateToMarketIdDate(expiryDate)
-	if StartsWith(idDate, "0") {
-		idDate = Slice(idDate, 1, nil)
+	var idDate *string = this.ConvertExpireDateToMarketIdDate(expiryDate)
+	if strings.HasPrefix(*idDate, "0") {
+		var idDatePart string
+		if idDate != nil {
+			str := *idDate
+			idDatePart = str[1:]
+		}
+		idDateStr := idDatePart
+		idDate = &idDateStr
 	}
 	// the id names the expiry day only, the hour depends on the underlying
-	var datetime any = this.ConvertExpireDate(expiryDate)
+	var datetime *string = this.ConvertExpireDate(expiryDate)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var active any = nil
 	if (timestamp != nil) && ((*timestamp + 86400000) <= this.Milliseconds()) {
@@ -1230,7 +1236,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		ternaryStr92226 = "call"
 	}
 	return map[string]any{
-		"id":             Add(Add(base+"-"+quote+"-", idDate), idTail),
+		"id":             base + "-" + quote + "-" + *idDate + idTail,
 		"symbol":         Add(Add(base+"/"+quote+":"+*settle+"-", expiryDate), symbolTail),
 		"base":           base,
 		"quote":          quote,
@@ -2523,11 +2529,13 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[map[string]any], optiona
 	}
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, this.SafeString(account, "address"))
 	var signature any = this.StarknetSign(msg, account["privateKey"])
-	params["signature"] = signature
-	params["account"] = this.SafeString(account, "address")
-	params["public_key"] = this.SafeString(account, "publicKey")
+	var request map[string]any = map[string]any{
+		"signature":  signature,
+		"account":    this.SafeString(account, "address"),
+		"public_key": this.SafeString(account, "publicKey"),
+	}
 
-	r2 := <-this.PrivatePostOnboarding(params)
+	r2 := <-this.PrivatePostOnboarding(this.Extend(params, request))
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -2600,12 +2608,14 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	}
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, this.SafeString(account, "address"))
 	var signature any = this.StarknetSign(msg, account["privateKey"])
-	params["signature"] = signature
-	params["account"] = this.SafeString(account, "address")
-	params["timestamp"] = req["timestamp"]
-	params["expiration"] = req["expiration"]
+	var request map[string]any = map[string]any{
+		"signature":  signature,
+		"account":    this.SafeString(account, "address"),
+		"timestamp":  now,
+		"expiration": expires,
+	}
 
-	r2 := <-this.PrivatePostAuth(params)
+	r2 := <-this.PrivatePostAuth(this.Extend(params, request))
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -2705,7 +2715,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	if flags != nil {
 		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
-	var literal194431 map[string]any = map[string]any{
+	var literal194831 map[string]any = map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"timestamp":           timestamp,
@@ -2736,12 +2746,12 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 		"info": order,
 	}
 	if takeProfitPrice != nil {
-		literal194431["takeProfitPrice"] = *takeProfitPrice
+		literal194831["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal194431["stopLossPrice"] = *stopLossPrice
+		literal194831["stopLossPrice"] = *stopLossPrice
 	}
-	return this.SafeOrder(literal194431, marketResolved)
+	return this.SafeOrder(literal194831, marketResolved)
 }
 func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -2931,14 +2941,14 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	if !isMarket {
 		orderPrice = this.ScaleNumber(this.SafeString(request, "price"))
 	}
-	var ternaryStr213820 string = "2"
+	var ternaryStr214220 string = "2"
 	if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
-		ternaryStr213820 = "1"
+		ternaryStr214220 = "1"
 	}
 	var orderReq map[string]any = map[string]any{
 		"timestamp": now,
 		"market":    this.StringToBase16(this.SafeString(request, "market")),
-		"side":      ternaryStr213820,
+		"side":      ternaryStr214220,
 		"orderType": this.StringToBase16(this.SafeString(request, "type")),
 		"size":      this.ScaleNumber(this.SafeString(request, "size")),
 		"price":     orderPrice,
@@ -3687,11 +3697,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes260119 []any = r2.Value
-		if retRes260119 == nil {
+		var retRes260519 []any = r2.Value
+		if retRes260519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes260119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes260519)}
 		}
 		return nil
 	}
@@ -3977,11 +3987,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes278419 []any = r2.Value
-		if retRes278419 == nil {
+		var retRes278819 []any = r2.Value
+		if retRes278819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278819)}
 		}
 		return nil
 	}
@@ -4624,11 +4634,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes320619 []any = r2.Value
-		if retRes320619 == nil {
+		var retRes321019 []any = r2.Value
+		if retRes321019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320619)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321019)}
 		}
 		return nil
 	}
@@ -4732,7 +4742,7 @@ func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 		"status":      this.ParseTransactionStatus(this.SafeString(transfer, "status")),
 	})
 }
-func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Paradex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits & fetchWithdrawals
 	//
@@ -5580,11 +5590,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388219 []any = r2.Value
-		if retRes388219 == nil {
+		var retRes388619 []any = r2.Value
+		if retRes388619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388219)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
 		}
 		return nil
 	}
@@ -5715,9 +5725,14 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		// end_at is set to as many full pages from since as the calls allow, so the rows begin at since
 		paginationCalls, paramsCalls := this.HandleOptionIntegerAndParams(paramsPaginate, "fetchFundingRateHistory", "paginationCalls", 10)
 		var until *int64 = this.SafeInteger(paramsCalls, "until")
-		var endAt any = mathMin(this.Milliseconds(), this.Sum(since, ((paginationCalls*5000)*int64(rowSpacing))))
+		var pageSpan int64 = this.ParseToInt((paginationCalls * 5000) * int64(rowSpacing))
+		var sinceEnd int64 = *since + pageSpan
+		var endAt int64 = this.Milliseconds()
+		if sinceEnd < endAt {
+			endAt = sinceEnd
+		}
 		if until != nil {
-			endAt = until
+			endAt = *until
 		}
 		var paramsEndAt map[string]any = this.Extend(this.Omit(paramsPaginate, "until"), map[string]any{
 			"end_at": endAt,

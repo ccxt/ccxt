@@ -1782,7 +1782,7 @@ func (this *Bitteam) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey string, preciseObject map[string]any, precisionKey string) *string {
+func (this *Bitteam) ParseValueToPricision(valueObject map[string]any, valueKey string, preciseObject map[string]any, precisionKey string) *string {
 	var valueRawString *string = this.SafeString(valueObject, valueKey)
 	var precisionRawString *string = this.SafeString(preciseObject, precisionKey)
 	if (valueRawString == nil) || (precisionRawString == nil) {
@@ -2879,7 +2879,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
 	return nil
 }
-func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitteam) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": 1329229,
@@ -2929,11 +2929,11 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) Tran
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var currencyObject map[string]any = SafeMapTyped(transaction, "currency")
+	var currencyObject, _ = transaction["currency"].(map[string]any)
 	var currencyId *string = this.SafeString(currencyObject, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var id *string = this.SafeString(transaction, "id")
-	var params map[string]any = SafeMapTyped(transaction, "params")
+	var params, _ = transaction["params"].(map[string]any)
 	var txid *string = this.SafeString(params, "tx_id")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var networkId *string = this.SafeString(transaction, "blockChain")

@@ -3125,7 +3125,7 @@ func (this *Tokocrypto) ParseTransactionStatusByType(status *string, optionalArg
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Tokocrypto) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -3223,7 +3223,7 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) T
 	}
 	var id *string = this.SafeString(transaction, "id")
 	if id == nil {
-		var data map[string]any = SafeMapTyped(transaction, "data")
+		var data, _ = transaction["data"].(map[string]any)
 		id = this.SafeString(data, "withdrawId")
 		typeVarStr3 := "withdrawal"
 		typeVar = &typeVarStr3

@@ -1595,10 +1595,7 @@ func (this *Binance) HandleUnSubscription(client any, subscription map[string]an
 	if messageHashes != nil {
 		for j := 0; j < len(messageHashes); j++ {
 			var unsubHash string = messageHashes[j]
-			var subHash *string = nil
-			if j >= 0 && j < len(subMessageHashes) {
-				subHash = ccxt.SafeStringPtr(subMessageHashes[j])
-			}
+			var subHash *string = this.SafeString(subMessageHashes, j, "")
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 		}
 	}
@@ -5122,7 +5119,11 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		var delta *string = this.SafeString(message, "d")
-		if (code != nil) && (ccxt.InOp(balance, code)) {
+		var codeInBalance bool
+		if code != nil {
+			_, codeInBalance = balance[*code]
+		}
+		if (code != nil) && (codeInBalance) {
 			var previousValue *string = this.SafeString(balance[*code], "free")
 			account["free"] = ccxt.Precise.StringAdd(previousValue, delta)
 		} else {

@@ -2559,7 +2559,7 @@ func (this *Coinbaseexchange) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Coinbaseexchange) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//  {
 	//      "id": "12087495079",
 	//      "amount": "-0.0100000000000000",
@@ -2603,7 +2603,7 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) Le
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)
-	var details map[string]any = SafeMapTyped(item, "details")
+	var details, _ = item["details"].(map[string]any)
 	var account *string = nil
 	var referenceAccount *string = nil
 	var referenceId *string = nil
@@ -2960,7 +2960,7 @@ func (this *Coinbaseexchange) fetchWithdrawalsBody(ch chan AsyncResult[[]Transac
 	}
 	return nil
 }
-func (this *Coinbaseexchange) ParseTransactionStatus(transaction any) string {
+func (this *Coinbaseexchange) ParseTransactionStatus(transaction map[string]any) string {
 	var canceled *string = this.SafeString(transaction, "canceled_at")
 	if canceled != nil {
 		return "canceled"
@@ -2975,7 +2975,7 @@ func (this *Coinbaseexchange) ParseTransactionStatus(transaction any) string {
 		return "pending"
 	}
 }
-func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coinbaseexchange) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// privateGetTransfers
 	//
@@ -3008,7 +3008,7 @@ func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var details map[string]any = SafeMapTyped(transaction, "details")
+	var details, _ = transaction["details"].(map[string]any)
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)

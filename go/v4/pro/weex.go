@@ -940,15 +940,12 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
 	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
-	var priceType any = "LAST_PRICE"
+	var priceType string = "LAST_PRICE"
 	var paramsPriceType map[string]any = paramsOmitted
 	if isContract != nil && *isContract == true {
 		var priceTypePtr *string = nil
 		priceTypePtr, paramsPriceType = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
-		priceType = nil
-		if priceTypePtr != nil {
-			priceType = *priceTypePtr
-		}
+		priceType = *priceTypePtr
 	}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = symbolsAndTimeframes[i]
@@ -961,7 +958,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
-		var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId+"@kline_"+*interval+"_", priceType))
+		var channel string = marketId + "@kline_" + *interval + "_" + priceType
 		var messageHash string = "ohlcv::" + symbolString + "::" + *unifiedTimeframe
 		channels = append(channels, channel)
 		messageHashes = append(messageHashes, messageHash)
@@ -1053,15 +1050,12 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	var firstSymbol *string = this.SafeString(firstEntry, 0)
 	var firstMarket map[string]any = this.Market(firstSymbol)
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
-	var priceType any = "LAST_PRICE"
+	var priceType string = "LAST_PRICE"
 	var paramsPriceType map[string]any = paramsOmitted
 	if isContract != nil && *isContract == true {
 		var priceTypePtr *string = nil
 		priceTypePtr, paramsPriceType = this.HandleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType)
-		priceType = nil
-		if priceTypePtr != nil {
-			priceType = *priceTypePtr
-		}
+		priceType = *priceTypePtr
 	}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
 		var data []any = symbolsAndTimeframes[i]
@@ -1074,7 +1068,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 		var unifiedTimeframe *string = this.SafeString(data, 1, "1")
 		var interval *string = this.SafeString(this.Timeframes, unifiedTimeframe, unifiedTimeframe)
 		var marketId string = *this.SafeString(market, "id", "")
-		var channel *string = ccxt.SafeStringPtr(ccxt.Add(marketId+"@kline_"+*interval+"_", priceType))
+		var channel string = marketId + "@kline_" + *interval + "_" + priceType
 		var messageHash string = "ohlcv::" + symbolString + "::" + *unifiedTimeframe
 		var unSubMessageHash string = "unsubscribe::" + messageHash
 		channels = append(channels, channel)

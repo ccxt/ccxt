@@ -1839,7 +1839,7 @@ func (this *Ndax) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Ndax) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "TransactionId": 2663709493,
@@ -3367,7 +3367,7 @@ func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Ndax) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

@@ -1348,7 +1348,7 @@ func (this *Blockchaincom) ParseTransactionState(state *string) *string {
 	}
 	return this.SafeString(states, state, state)
 }
-func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Blockchaincom) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// deposit
 	//

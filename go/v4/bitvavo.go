@@ -3066,7 +3066,7 @@ func (this *Bitvavo) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Bitvavo) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var rawType *string = this.SafeString(item, "type")
@@ -3377,7 +3377,7 @@ func (this *Bitvavo) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitvavo) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//

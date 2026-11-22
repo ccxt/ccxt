@@ -2058,7 +2058,7 @@ func (this *Bitopro) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(states, status, status)
 }
-func (this *Bitopro) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitopro) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

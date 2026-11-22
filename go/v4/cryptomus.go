@@ -700,14 +700,16 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	}
 	var level int = 0
 	var levelOptionparamsLevelVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchOrderBook", "level", level)
-	levelOption := func() any {
-		if p, _ := levelOptionparamsLevelVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	var levelOption *int64 = nil
+	if p, ok := levelOptionparamsLevelVariable[0].(*int64); ok {
+		levelOption = p
+	}
 	paramsLevel := levelOptionparamsLevelVariable[1]
-	request["level"] = levelOption
+	if levelOption != nil {
+		request["level"] = *levelOption
+	} else {
+		request["level"] = nil
+	}
 
 	r1 := <-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))
 	if r1.Err != nil {

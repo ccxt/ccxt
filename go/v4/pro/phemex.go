@@ -1488,7 +1488,7 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Phemex) HandleOrders(client any, message any) {
+func (this *Phemex) HandleOrders(client any, message map[string]any) {
 	// spot update
 	// {
 	//        "closed":[
@@ -1647,35 +1647,41 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	//        ...
 	//    ]
 	//
+	// spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
 	var trades []any = []any{}
 	var parsedOrders []any = []any{}
-	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
-		var closed []any = this.SafeListSlice(message, "closed", []any{})
-		var open []any = this.SafeListSlice(message, "open", []any{})
+	var ordersDict map[string]any = ccxt.SafeDict2Typed(message, "orders", "orders_p")
+	_, has1 := ordersDict["closed"]
+	_, has2 := ordersDict["fills"]
+	_, has3 := ordersDict["open"]
+	if has1 || has2 || has3 {
+		var closed []any = this.SafeListSlice(ordersDict, "closed", []any{})
+		var open []any = this.SafeListSlice(ordersDict, "open", []any{})
 		var orders []any = this.ArrayConcat(open, closed)
 		var ordersLength int = len(orders)
 		if ordersLength == 0 {
 			return
 		}
-		trades = ccxt.ArrayTyped(this.SafeList(message, "fills", []any{}))
+		trades = ccxt.ArrayTyped(this.SafeList(ordersDict, "fills", []any{}))
 		for i := 0; i < len(orders); i++ {
 			var rawOrder any = orders[i]
 			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {
-		var messageLength int = ccxt.GetArrayLength(message)
-		if messageLength == 0 {
+		var updates, _ = message["orders_p"].([]any)
+		var updatesLength int = len(updates)
+		if updatesLength == 0 {
 			return
 		}
-		for i := 0; i < messageLength; i++ {
-			var update any = ccxt.GetValue(message, i)
+		for i := 0; i < updatesLength; i++ {
+			var update, _ = updates[i].(map[string]any)
 			var action *string = this.SafeString(update, "action")
 			if (action != nil) && (action == nil || *action != "Cancel") {
 				// order + trade info together
-				trades = append(trades, update)
+				trades = append(trades, updates[i])
 			}
-			var parsedOrder any = this.ParseWSSwapOrder(update)
+			var parsedOrder any = this.ParseWSSwapOrder(updates[i])
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	}
@@ -2028,8 +2034,7 @@ func (this *Phemex) HandleMessage(client any, message map[string]any) {
 	_, has12 := message["orders"]
 	_, has13 := message["orders_p"]
 	if has12 || has13 {
-		var orders map[string]any = ccxt.SafeDict2Typed(message, "orders", "orders_p", map[string]any{})
-		this.HandleOrders(client, orders)
+		this.HandleOrders(client, message)
 	}
 	_, has14 := message["accounts"]
 	_, has15 := message["accounts_p"]

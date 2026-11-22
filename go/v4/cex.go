@@ -2053,7 +2053,7 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
 }
-func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Cex) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var amount *string = this.SafeString(item, "amount")
@@ -2179,7 +2179,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
 }
-func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Cex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")

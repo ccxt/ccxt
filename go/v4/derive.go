@@ -5492,7 +5492,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawals, currency, since, limit, paramsDeriveSubaccountId))}
 	return nil
 }
-func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Derive) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "operation_id": "01a0f7f4-008c-7322-81c6-7c80e1b98a79",

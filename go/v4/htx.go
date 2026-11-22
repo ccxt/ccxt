@@ -9102,7 +9102,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limitValue))}
 	return nil
 }
-func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Htx) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -11131,7 +11131,7 @@ func (this *Htx) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Htx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Htx) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "accountId": 10000001,

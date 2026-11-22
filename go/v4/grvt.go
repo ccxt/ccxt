@@ -2247,7 +2247,7 @@ func (this *Grvt) internalFetchTransfersBody(ch chan AsyncResult[[]TransferEntry
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(transfers)}
 	return nil
 }
-func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Grvt) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -3084,8 +3084,8 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 		var sizeDec string = *this.SafeString(sizeParts, 1, "")
 		var sizeDecLength int = len(sizeDec) + 0 // php tr
 		var sizeDigits int64 = this.ParseToInt(strings.Replace(*size, ".", "", 1))
-		var denominator float64 = math.Pow(10, float64(sizeDecLength))
-		var sizeInteger any = ((float64(sizeDigits) * sizeMultiplier) / denominator)
+		var sizeDenominator float64 = math.Pow(10, float64(sizeDecLength))
+		var sizeInteger any = ((float64(sizeDigits) * sizeMultiplier) / sizeDenominator)
 		var legOrder map[string]any = map[string]any{
 			"assetID":          this.SafeString(market["info"], "instrument_hash"),
 			"contractSize":     this.ParseToInt(sizeInteger),
@@ -3098,8 +3098,8 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 			var limitDec string = *this.SafeString(limitParts, 1, "")
 			var limitDecLength int = len(limitDec) + 0 // php tr
 			var priceDigits int64 = this.ParseToInt(strings.Replace(*price, ".", "", 1))
-			denominator = math.Pow(10, float64(limitDecLength))
-			var priceInteger any = (float64((priceDigits * int64(priceMultiplier))) / denominator)
+			var priceDenominator float64 = math.Pow(10, float64(limitDecLength))
+			var priceInteger any = (float64((priceDigits * int64(priceMultiplier))) / priceDenominator)
 			legOrder["limitPrice"] = this.ParseToInt(priceInteger)
 		} else {
 			legOrder["limitPrice"] = 0 // should be zero to validate type-check

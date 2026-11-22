@@ -136,7 +136,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	var url any = this.GetWsPublicUrl()
+	var url string = this.GetWsPublicUrl()
 	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
@@ -317,7 +317,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var url any = this.GetWsPublicUrl()
+	var url string = this.GetWsPublicUrl()
 	var topics []string = []string{}
 	var messageHashes []string = []string{}
 	var limitValue int64
@@ -344,12 +344,12 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Apex) WatchTopicsAsync(url any, messageHashes any, topics []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Apex) WatchTopicsAsync(url string, messageHashes any, topics []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchTopicsBody(ch, url, messageHashes, topics, optionalArgs...)
 	return ch
 }
-func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, topics []string, optionalArgs ...any) any {
+func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url string, messageHashes any, topics []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// apex's server rejects a subscribe whose args include any
@@ -384,7 +384,7 @@ func (this *Apex) watchTopicsBody(ch chan ccxt.AsyncResult[any], url any, messag
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Apex) GetWsPublicUrl() any {
+func (this *Apex) GetWsPublicUrl() string {
 	// apex appends a millisecond timestamp to the WS URL for connection-time
 	// signing. CCXT's client manager keys clients by URL, so recomputing the
 	// timestamp on every watch* call would open a new connection each time.
@@ -396,9 +396,9 @@ func (this *Apex) GetWsPublicUrl() any {
 		this.Options["wsPublicUrl"] = wsEndpoint + "&timestamp=" + timeStamp
 		url = this.SafeString(this.Options, "wsPublicUrl", "")
 	}
-	return url
+	return *url
 }
-func (this *Apex) GetWsPrivateUrl() any {
+func (this *Apex) GetWsPrivateUrl() string {
 	var url *string = this.SafeString(this.Options, "wsPrivateUrl")
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
@@ -406,7 +406,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 		this.Options["wsPrivateUrl"] = wsEndpoint + "&timestamp=" + timeStamp
 		url = this.SafeString(this.Options, "wsPrivateUrl", "")
 	}
-	return url
+	return *url
 }
 func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	//
@@ -518,7 +518,7 @@ func (this *Apex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
-	var url any = this.GetWsPublicUrl()
+	var url string = this.GetWsPublicUrl()
 	var messageHash string = "ticker:" + symbolValue
 	var marketId string = *this.SafeString(market, "id2", "")
 	var topics []string = []string{"instrumentInfo" + ".H." + marketId}
@@ -561,7 +561,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var messageHashes []string = []string{}
-	var url any = this.GetWsPublicUrl()
+	var url string = this.GetWsPublicUrl()
 	var topics []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
@@ -734,7 +734,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 			panic(r.Err)
 		}
 	}
-	var url any = this.GetWsPublicUrl()
+	var url string = this.GetWsPublicUrl()
 	var rawHashes []string = []string{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
@@ -890,7 +890,7 @@ func (this *Apex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 		symbolResolved = &symbolText
 		messageHash = "myTrades" + ":" + *symbolResolved
 	}
-	var url any = this.GetWsPrivateUrl()
+	var url string = this.GetWsPrivateUrl()
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -955,7 +955,7 @@ func (this *Apex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	if !this.IsEmpty(symbols) {
 		messageHash = "::" + ccxt.Join(symbolsNormalized2, ",")
 	}
-	var url any = this.GetWsPrivateUrl()
+	var url string = this.GetWsPrivateUrl()
 	messageHash = "positions" + messageHash
 	var client ccxt.ClientInterface = this.Client(url)
 
@@ -1044,7 +1044,7 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		symbolResolved = &symbolText
 		messageHash = "orders" + ":" + *symbolResolved
 	}
-	var url any = this.GetWsPrivateUrl()
+	var url string = this.GetWsPrivateUrl()
 
 	r1 := <-this.AuthenticateAsync(url)
 	if r1.Err != nil {
@@ -1284,12 +1284,12 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Apex) AuthenticateAsync(url any, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+func (this *Apex) AuthenticateAsync(url string, optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
 }
-func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, optionalArgs ...any) any {
+func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

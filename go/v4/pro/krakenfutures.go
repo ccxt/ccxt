@@ -2312,11 +2312,15 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message map[string]any
 	var event *string = this.SafeString(message, "event")
 	var messageHash string = "challenge"
 	if event == nil || *event != "error" {
-		var challenge any = this.SafeValue(message, "message")
+		var challenge *string = this.SafeString(message, "message", "")
 		var hashedChallenge any = this.Hash(this.Encode(challenge), ccxt.Sha256, "binary")
 		var base64Secret []byte = this.Base64ToBinary(this.Secret)
 		var signature string = this.Hmac(hashedChallenge, base64Secret, ccxt.Sha512, "base64")
-		this.Options["challenge"] = challenge
+		if challenge != nil {
+			this.Options["challenge"] = *challenge
+		} else {
+			this.Options["challenge"] = nil
+		}
 		this.Options["signedChallenge"] = signature
 		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 		future.Resolve(true)

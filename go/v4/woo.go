@@ -3945,7 +3945,7 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
 }
-func (this *Woo) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Woo) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "createdTime": "1734964440.523",
@@ -4159,7 +4159,7 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(rows, currency, since, limit, this.Omit(params, "tokenSide")))}
 	return nil
 }
-func (this *Woo) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Woo) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "createdTime": "1734964440.523",
@@ -4576,9 +4576,9 @@ func (this *Woo) repayMarginBody(ch chan AsyncResult[MarginLoan], code string, a
 			panic(r.Err)
 		}
 	}
-	var symbolResolved any
+	var symbolResolved *string
 	if symbol != nil {
-		symbolResolved = this.Market(symbol)["symbol"]
+		symbolResolved = this.SafeString(this.Market(symbol), "symbol")
 	} else {
 		symbolResolved = nil
 	}

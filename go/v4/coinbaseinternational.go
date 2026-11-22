@@ -1464,12 +1464,12 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan AsyncResult[map[stri
 	}
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(symbolsResolved); i++ {
-		var symbol *string = this.SafeString(symbolsResolved, i)
-		if symbol == nil {
+		var symbol string = symbolsResolved[i]
+		if symbol == "" {
 			continue
 		}
 
-		r1 := <-this.FetchTickerAsync(*symbol, paramsResolved)
+		r1 := <-this.FetchTickerAsync(symbol, paramsResolved)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1477,7 +1477,7 @@ func (this *Coinbaseinternational) fetchTickersBody(ch chan AsyncResult[map[stri
 		if !StructAbsent(r1.Value) {
 			ticker = StructBox(r1.Value, TickerToMap)
 		}
-		AddElementToObject(tickers, symbol, ticker)
+		tickers[symbol] = ticker
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsResolved))}
@@ -2771,7 +2771,7 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	}
 	return nil
 }
-func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coinbaseinternational) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "balance": 3003.72054712,
@@ -2803,7 +2803,7 @@ func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArg
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var transactionTimestamp *int64 = this.SafeInteger(transaction, "timestamp")
-	var info map[string]any = SafeMapTyped(transaction, "info")
+	var info, _ = transaction["info"].(map[string]any)
 	var transactionType *string = this.SafeString(transaction, "type")
 	var transactionId *string = this.SafeString(transaction, "id")
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -3179,7 +3179,7 @@ func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Or
 	var fee map[string]any = map[string]any{}
 	if this.IsNativeDeribitCredentials() {
 		lastTradeTimestamp = nil
-		if filled != nil && *filled > 0 {
+		if (filled != nil) && (*filled > 0) {
 			lastTradeTimestamp = lastUpdateTimestamp
 		}
 		nativeLastUpdateTimestamp = lastUpdateTimestamp

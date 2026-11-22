@@ -2682,10 +2682,10 @@ func (this *Foxbit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Foxbit) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var cryptoDetails map[string]any = SafeMapTyped(transaction, "details_crypto")
+	var cryptoDetails, _ = transaction["details_crypto"].(map[string]any)
 	var address *string = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn *string = this.SafeString(transaction, "sn")
 	var typeVar string = "withdrawal"
@@ -2744,7 +2744,7 @@ func (this *Foxbit) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Foxbit) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	// {
 	//     "uuid": "f8e9f2d6-3c1e-4f2d-8f8e-9f2d6c1e4f2d",
 	//     "amount": "0.0001",

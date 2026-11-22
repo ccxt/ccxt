@@ -1648,7 +1648,7 @@ func (this *Bitflyer) ParseWithdrawalStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitflyer) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

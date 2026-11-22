@@ -2080,7 +2080,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	}
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var optionType string = *this.SafeString(optionParts, 3, "")
-	var datetime any = this.ConvertExpireDate(expiry)
+	var datetime *string = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var ternaryStr133226 string = "put"
 	if optionType == "C" {
@@ -6121,7 +6121,7 @@ func (this *Gate) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Gate) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -10829,7 +10829,7 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, currency, since, limit))}
 	return nil
 }
-func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Gate) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	// spot
 	//

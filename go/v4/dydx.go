@@ -2393,7 +2393,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "size"))}
 	return nil
 }
-func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Dydx) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2431,8 +2431,8 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	}
 	var amount *string = this.SafeString(item, "size")
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "createdAt"))
-	var sender map[string]any = SafeMapTyped(item, "sender")
-	var recipient map[string]any = SafeMapTyped(item, "recipient")
+	var sender, _ = item["sender"].(map[string]any)
+	var recipient, _ = item["recipient"].(map[string]any)
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
@@ -2816,7 +2816,7 @@ func (this *Dydx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit))}
 	return nil
 }
-func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Dydx) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// {
 	//     "id": "6a6075bc-7183-5fd9-bc9d-894e238aa527",
@@ -2839,8 +2839,8 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
-	var sender map[string]any = SafeMapTyped(transaction, "sender")
-	var recipient map[string]any = SafeMapTyped(transaction, "recipient")
+	var sender, _ = transaction["sender"].(map[string]any)
+	var recipient, _ = transaction["recipient"].(map[string]any)
 	var addressTo *string = this.SafeString(recipient, "address")
 	var addressFrom *string = this.SafeString(sender, "address")
 	var txid *string = this.SafeString(transaction, "transactionHash")

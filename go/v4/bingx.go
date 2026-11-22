@@ -7054,7 +7054,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
 }
-func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bingx) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//
@@ -7104,7 +7104,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var data map[string]any = SafeMapTyped(transaction, "data")
+	var data, _ = transaction["data"].(map[string]any)
 	var dataId *string
 	if data == nil {
 		dataId = nil
@@ -8657,7 +8657,7 @@ func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInter
 		"tierBased":  false,
 	})
 }
-func (this *Bingx) CustomEncode(params map[string]any) any {
+func (this *Bingx) CustomEncode(params map[string]any) string {
 	var sortedParams map[string]any = this.Keysort(params)
 	var rawKeys []string = nil
 	if sortedParams != nil {
@@ -8668,10 +8668,19 @@ func (this *Bingx) CustomEncode(params map[string]any) any {
 	}
 	var rawKeysLength int = len(rawKeys)
 	var adjustedValue string
-	var result any = nil
+	var result string = ""
 	for i := 0; i < rawKeysLength; i++ {
 		var key string = rawKeys[i]
 		var value any = sortedParams[key]
+		var pair string = *this.SafeString(sortedParams, key, "")
+		var flag *bool = this.SafeBool(sortedParams, key)
+		if flag != nil {
+			if flag != nil && *flag {
+				pair = "true"
+			} else {
+				pair = "false"
+			}
+		}
 		if IsArray(value) {
 			var arrStr string
 			for j := 0; j < GetArrayLength(value); j++ {
@@ -8694,11 +8703,12 @@ func (this *Bingx) CustomEncode(params map[string]any) any {
 			}
 			adjustedValue = "[" + arrStr + "]"
 			value = adjustedValue
+			pair = "[" + arrStr + "]"
 		}
 		if i == 0 {
-			result = Add(key+"=", value)
+			result = key + "=" + pair
 		} else {
-			result = Add(result, Add("&"+key+"=", value))
+			result += "&" + key + "=" + pair
 		}
 	}
 	return result
@@ -8886,16 +8896,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal744115 map[string]any = map[string]any{
+	var literal744715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal744115["body"] = *requestBody
+		literal744715["body"] = *requestBody
 	}
-	return literal744115
+	return literal744715
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

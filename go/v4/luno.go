@@ -2074,7 +2074,7 @@ func (this *Luno) ParseLedgerComment(comment string) map[string]any {
 	}
 	return literal149615
 }
-func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) LedgerEntry {
+func (this *Luno) ParseLedgerEntry(entry map[string]any, optionalArgs ...any) LedgerEntry {
 	// const details = this.safeValue (entry, 'details', {});
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency

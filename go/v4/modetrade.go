@@ -3878,7 +3878,7 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], optio
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
 }
-func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Modetrade) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "230707030600002",
@@ -3991,7 +3991,7 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
 }
-func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Modetrade) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id": "230707030600002",

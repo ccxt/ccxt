@@ -645,7 +645,7 @@ func (this *Kalshi) FetchOutcomesAsync(outcomeSymbols any) <-chan ccxt.AsyncResu
 func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var tickers []any = []any{}
+	var tickers []string = []string{}
 	var seen map[string]any = map[string]any{}
 	var outcomeSymbolsLength int = ccxt.GetArrayLength(outcomeSymbols)
 	for i := 0; i < outcomeSymbolsLength; i++ {
@@ -653,24 +653,18 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		if strings.Index(*outcomeSymbol, ":") >= 0 {
 			continue
 		}
-		var baseTicker *string = outcomeSymbol
+		var tickerText string = *this.SafeString(outcomeSymbols, i, "")
+		var baseTicker string = tickerText
 		if strings.HasSuffix(*outcomeSymbol, "-NO") {
 			var outcomeSymbolPart string
 			if outcomeSymbol != nil {
 				str := *outcomeSymbol
 				outcomeSymbolPart = str[0 : len(str)-3]
 			}
-			baseTickerStr := outcomeSymbolPart
-			baseTicker = &baseTickerStr
+			baseTicker = outcomeSymbolPart
 		}
-		var baseTickerInSeen bool
-		if baseTicker != nil {
-			_, baseTickerInSeen = seen[*baseTicker]
-		}
-		if !(baseTickerInSeen) {
-			if baseTicker != nil {
-				seen[*baseTicker] = true
-			}
+		if _, ok := seen[baseTicker]; !ok {
+			seen[baseTicker] = true
 			tickers = append(tickers, baseTicker)
 		}
 	}
@@ -680,19 +674,19 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchOutcomesBatchSize", 100)
 	var tickersLength int = len(tickers)
 	var lastTickerIndex int64 = int64(tickersLength) - 1
-	var chunk []any = []any{}
+	var chunk []string = []string{}
 	// flush a request every chunkSize tickers and once more for the trailing partial chunk
 	for ti := 0; ti < tickersLength; ti++ {
-		chunk = append(chunk, ccxt.DerefScalar(tickers[ti]))
+		chunk = append(chunk, tickers[ti])
 		var chunkLength int = len(chunk)
 		if (chunkSize != nil && int64(chunkLength) < *chunkSize) && (int64(ti) < lastTickerIndex) {
 			continue
 		}
 		var request map[string]any = map[string]any{
-			"tickers": ccxt.Join(chunk, ","),
+			"tickers": strings.Join(chunk, ","),
 			"limit":   chunkSize,
 		}
-		chunk = []any{}
+		chunk = []string{}
 
 		r := <-this.KalshiPublicGetMarkets(request)
 		if r.Err != nil {
@@ -929,7 +923,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome *string = resolvedOutcome
-	var literal65115 map[string]any = map[string]any{
+	var literal65215 map[string]any = map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
 		"base":            "USD",
@@ -994,11 +988,11 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		"created": nil,
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal65115["expiry"] = this.Parse8601(endDate)
+		literal65215["expiry"] = this.Parse8601(endDate)
 	} else {
-		literal65115["expiry"] = nil
+		literal65215["expiry"] = nil
 	}
-	return literal65115
+	return literal65215
 }
 
 /**
@@ -1129,12 +1123,12 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//     { "exchange_active": true, "trading_active": true }
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
-	var ternaryStr79722 string = "maintenance"
+	var ternaryStr79822 string = "maintenance"
 	if tradingActive != nil && *tradingActive {
-		ternaryStr79722 = "ok"
+		ternaryStr79822 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr79722,
+		"status":  ternaryStr79822,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3682,7 +3676,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal262128 map[string]any = map[string]any{
+	var literal262228 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3705,9 +3699,9 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal262128["event"] = *eventSlug
+		literal262228["event"] = *eventSlug
 	}
-	return this.Extend(literal262128)
+	return this.Extend(literal262228)
 }
 
 /**

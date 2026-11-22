@@ -454,7 +454,7 @@ func (this *Bitso) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Bitso) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -524,7 +524,7 @@ func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var currencyId *string = this.SafeString(firstBalance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var details map[string]any = SafeMapTyped(item, "details")
+	var details, _ = item["details"].(map[string]any)
 	var referenceId *string = this.SafeString2(details, "fid", "wid")
 	if referenceId == nil {
 		referenceId = this.SafeString(details, "tid")
@@ -2499,14 +2499,7 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if tagWithdrawTagPtr != nil {
-			return *tagWithdrawTagPtr
-		}
-		return nil
-	}()
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -2528,9 +2521,13 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 		panic(ExchangeError(this.Id + " not valid withdraw coin: " + code))
 	}
 	var request map[string]any = map[string]any{
-		"amount":          amount,
-		"address":         address,
-		"destination_tag": tagWithdrawTag,
+		"amount":  amount,
+		"address": address,
+	}
+	if tagWithdrawTag != nil {
+		request["destination_tag"] = *tagWithdrawTag
+	} else {
+		request["destination_tag"] = nil
 	}
 	var withdrawRequest map[string]any = this.Extend(request, paramsWithdrawTag)
 	var response map[string]any = nil
@@ -2599,7 +2596,7 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(first, currency)}
 	return nil
 }
-func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitso) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// deposit
 	//     {
@@ -2640,7 +2637,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	_ = currency
 	var currencyId *string = this.SafeString2(transaction, "currency", "asset")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var details map[string]any = SafeMapTyped(transaction, "details")
+	var details, _ = transaction["details"].(map[string]any)
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var withdrawalAddress *string = this.SafeString(details, "withdrawal_address")
 	var receivingAddress *string = this.SafeString(details, "receiving_address")

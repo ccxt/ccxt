@@ -1334,7 +1334,7 @@ func (this *Coincheck) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Coincheck) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

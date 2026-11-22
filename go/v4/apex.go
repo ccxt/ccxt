@@ -1968,13 +1968,20 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var accountId *string = this.SafeString(accountData, "id", "")
 	var currency any = map[string]any{}
 	var isContract bool = (strings.ToLower(fromAccount) == "contract")
-	var assets any = this.SafeList(spotConfig, "assets", []any{})
+	var assets []any
+	assets, _ = spotConfig["assets"].([]any)
 	if isContract {
-		assets = this.SafeList(contractConfig, "assets", []any{})
+		assets, _ = contractConfig["assets"].([]any)
+		if assets == nil {
+			assets = []any{}
+		}
 	}
-	var numAssets int = GetArrayLength(assets)
+	var numAssets int = len(assets)
 	for i := 0; i < numAssets; i++ {
-		var asset map[string]any = this.SafeDictMap(assets, i, map[string]any{})
+		var asset, _ = assets[i].(map[string]any)
+		if asset == nil {
+			asset = map[string]any{}
+		}
 		if this.SafeString(asset, "token", "") != nil && *this.SafeString(asset, "token", "") == code {
 			currency = asset
 		}

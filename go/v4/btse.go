@@ -2809,13 +2809,10 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if positionMode == nil {
 		var hedged bool = false
 		hedged, query = this.HandleOptionBoolAndParams(query, "createOrder", "hedged", hedged)
-		var marginMode any = "cross"
+		var marginMode string = "cross"
 		var marginModePtr *string = nil
 		marginModePtr, query = this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode)
-		marginMode = nil
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		marginMode = *marginModePtr
 		if marginMode == "isolated" {
 			if hedged {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
@@ -3947,7 +3944,7 @@ func (this *Btse) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 	}
 	return nil
 }
-func (this *Btse) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Btse) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "username": "user",
@@ -4115,7 +4112,7 @@ func (this *Btse) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit))}
 	return nil
 }
-func (this *Btse) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Btse) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(item, "currency", "asset")

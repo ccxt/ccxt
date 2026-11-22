@@ -1612,7 +1612,7 @@ func (this *Bitbns) ParseTransactionStatusByType(status *string, optionalArgs ..
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitbns) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

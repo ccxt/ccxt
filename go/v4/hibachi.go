@@ -2491,7 +2491,7 @@ func (this *Hibachi) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Hibachi) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var transactionType *string = this.SafeString(item, "transactionType")
@@ -2735,7 +2735,7 @@ func (this *Hibachi) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	})}
 	return nil
 }
-func (this *Hibachi) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Hibachi) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeIntegerProduct(transaction, "timestampSec", 1000)

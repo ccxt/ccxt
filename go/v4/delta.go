@@ -471,7 +471,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var expiry string = expiryYear + expiryMonth + expiryDay
 	var settle string = quote
 	var strike string = *this.SafeString(optionParts, 2, "")
-	var datetime any = this.ConvertExpireDate(&expiry)
+	var datetime *string = this.ConvertExpireDate(&expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
 	var optionTypeUnified string = "put"
 	if optionType == "C" {
@@ -3252,7 +3252,7 @@ func (this *Delta) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Delta) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "amount":"29.889184",
@@ -3273,7 +3273,7 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
 	var id *string = this.SafeString(item, "uuid")
 	var direction *string = nil
 	var account any = nil
-	var metaData map[string]any = SafeMapTyped(item, "meta_data")
+	var metaData, _ = item["meta_data"].(map[string]any)
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")

@@ -2427,7 +2427,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 	var expiry *string = this.SafeString(optionParts, 2, "")
 	var strike string = *this.SafeString(optionParts, 3, "")
 	var optionType string = *this.SafeString(optionParts, 4, "")
-	var datetime any
+	var datetime *string
 	if expiry != nil && *expiry == "" {
 		datetime = nil
 	} else {
@@ -7536,7 +7536,7 @@ func (this *Okx) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Okx) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Okx) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	// privateGetAccountBills, privateGetAccountBillsArchive
 	//
@@ -8364,7 +8364,7 @@ func (this *Okx) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Okx) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// withdraw
 	//

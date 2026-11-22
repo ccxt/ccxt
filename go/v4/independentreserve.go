@@ -1561,7 +1561,7 @@ func (this *Independentreserve) withdrawBody(ch chan AsyncResult[Transaction], c
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Independentreserve) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//    {
 	//        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1581,8 +1581,8 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var amount map[string]any = SafeMapTyped(transaction, "Amount")
-	var destination map[string]any = SafeMapTyped(transaction, "Destination")
+	var amount, _ = transaction["Amount"].(map[string]any)
+	var destination, _ = transaction["Destination"].(map[string]any)
 	var currencyId *string = this.SafeString(transaction, "PrimaryCurrencyCode")
 	var datetime *string = this.SafeString(transaction, "CreatedTimestampUtc")
 	var address *string = this.SafeString(destination, "Address")

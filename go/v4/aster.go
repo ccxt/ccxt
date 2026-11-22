@@ -4689,7 +4689,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(response, market, since, limit))}
 	return nil
 }
-func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Aster) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "symbol": "",
@@ -5654,7 +5654,7 @@ func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Aster) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return TransactionFromMap(map[string]any{

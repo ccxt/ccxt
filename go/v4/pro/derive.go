@@ -753,11 +753,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 	//
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any
-	data, _ = params["data"].(map[string]any)
-	if data == nil {
-		data = map[string]any{}
-	}
+	var data, _ = params["data"].([]any)
 	var topic *string = this.SafeString(params, "channel", "")
 	var parsedTopic []string = strings.Split(*topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
@@ -768,8 +764,8 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(ccxt.GetValue(data, i)))
+	for i := 0; i < len(data); i++ {
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i]))
 		tradesArray.Append(trade)
 	}
 	this.Trades[symbol] = tradesArray

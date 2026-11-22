@@ -2456,7 +2456,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
 	var average *string = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
-	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
+	var fee *float64 = this.SafeNumber2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions []any = SafeListTyped(order, "Transactions")
 	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
@@ -2795,8 +2795,8 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any
 		orderParams, _ = rawOrder["params"].(map[string]any)
 		if orderParams == nil {
@@ -3967,7 +3967,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan AsyncResult[[]any], option
 	ch <- AsyncResult[[]any]{Value: rows}
 	return nil
 }
-func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Woofipro) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "token")
@@ -4053,7 +4053,7 @@ func (this *Woofipro) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit, params))}
 	return nil
 }
-func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Woofipro) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	// example in fetchLedger
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency

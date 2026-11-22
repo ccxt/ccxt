@@ -1085,7 +1085,7 @@ func (this *Kraken) SafeCurrencyCode(currencyId any, optionalArgs ...any) *strin
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	if IsEqual(currencyId, nil) {
-		return SafeStringPtr(currencyId)
+		return nil
 	}
 	if GetIndexOf(currencyId, ".") > 0 {
 		// if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
@@ -1562,7 +1562,7 @@ func (this *Kraken) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Kraken) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Kraken) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         'LTFK7F-N2CUX-PNY4SX': {
@@ -4004,7 +4004,7 @@ func (this *Kraken) ParseNetwork(network *string) *string {
 	var withdrawMethods, _ = this.Options["withdrawMethods"].(map[string]any)
 	return this.SafeString(withdrawMethods, network, network)
 }
-func (this *Kraken) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Kraken) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//

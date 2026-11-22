@@ -1728,7 +1728,7 @@ func (this *Bitstamp) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
 }
-func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) *string {
+func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction map[string]any) *string {
 	//
 	//     {
 	//         "fee": "0.00000000",
@@ -1746,7 +1746,7 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) *string {
 	if currencyId != nil {
 		return currencyId
 	}
-	var transactionOmitted map[string]any = MapTyped(this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"}))
+	var transactionOmitted map[string]any = this.OmitDict(transaction, []any{"fee", "price", "datetime", "type", "status", "id"})
 	var ids []string = nil
 	if transactionOmitted != nil {
 		ids = make([]string, 0, len(transactionOmitted))
@@ -3289,7 +3289,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, nil, since, limit))}
 	return nil
 }
-func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Bitstamp) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDepositsWithdrawals
 	//
@@ -3552,7 +3552,7 @@ func (this *Bitstamp) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Bitstamp) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     [
 	//         {
@@ -4003,7 +4003,7 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
+	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(this.Extend(map[string]any{}, response), currency)}
 	return nil
 }
 

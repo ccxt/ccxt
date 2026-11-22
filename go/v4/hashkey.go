@@ -2611,7 +2611,7 @@ func (this *Hashkey) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Hashkey) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//  fetchDeposits
 	//     {
@@ -3002,7 +3002,7 @@ func (this *Hashkey) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Hashkey) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "id": "1740844413612065537",

@@ -4595,7 +4595,14 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	_ = currencyIdKey
 	var depositWithdrawFees map[string]any = map[string]any{}
 	var codesValue []any = this.MarketCodes(codes)
-	var responseKeys []string = ObjectKeys(response)
+	var feesById map[string]any = this.Extend(map[string]any{}, response)
+	var responseKeys []string = nil
+	if feesById != nil {
+		responseKeys = make([]string, 0, len(feesById))
+		for objectKey := range feesById {
+			responseKeys = append(responseKeys, objectKey)
+		}
+	}
 	for i := 0; i < len(responseKeys); i++ {
 		var currencyId string = responseKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -4614,17 +4621,16 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
+					var withdrawObject map[string]any = map[string]any{
+						"fee":        withdrawFee,
+						"percentage": nil,
+					}
+					if withdrawFee != nil {
+						withdrawObject["percentage"] = false
+					}
 					if networkCode != nil {
 						networkObject[*networkCode] = map[string]any{
-							"withdraw": map[string]any{
-								"fee": withdrawFee,
-								"percentage": func() any {
-									if withdrawFee != nil {
-										return false
-									}
-									return nil
-								}(),
-							},
+							"withdraw": withdrawObject,
 							"deposit": map[string]any{
 								"fee":        nil,
 								"percentage": nil,
@@ -4732,7 +4738,7 @@ func (this *Poloniex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Poloniex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// deposits
 	//
@@ -4772,7 +4778,7 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var transactionValue any = transaction
-	if InOp(transaction, "withdrawNetworkEntry") {
+	if _, ok := transaction["withdrawNetworkEntry"]; ok {
 		transactionValue = this.SafeDict(transaction, "response", map[string]any{})
 	}
 	var timestamp *int64 = this.SafeTimestamp(transactionValue, "timestamp")

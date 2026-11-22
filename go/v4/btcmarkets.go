@@ -567,7 +567,7 @@ func (this *Btcmarkets) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(statuses, typeVar, typeVar)
 }
-func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Btcmarkets) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//    {
 	//         "id": "6500230339",
@@ -622,7 +622,7 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) T
 		typeVarStr := "withdrawal"
 		typeVar = &typeVarStr
 	}
-	var cryptoPaymentDetail map[string]any = SafeMapTyped(transaction, "paymentDetail")
+	var cryptoPaymentDetail, _ = transaction["paymentDetail"].(map[string]any)
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
 	var addressRaw *string = this.SafeString(cryptoPaymentDetail, "address")
 	var address any = nil

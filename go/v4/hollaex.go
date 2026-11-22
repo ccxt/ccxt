@@ -2435,7 +2435,7 @@ func (this *Hollaex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(data, currency, since, limit))}
 	return nil
 }
-func (this *Hollaex) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Hollaex) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchWithdrawals, fetchDeposits
 	//

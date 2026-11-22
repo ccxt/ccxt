@@ -3369,7 +3369,7 @@ func (this *Lbank) ParseTransactionStatus(status *string, typeVar any) *string {
 	}
 	return this.SafeString(this.SafeDict(statuses, typeVar, map[string]any{}), status, status)
 }
-func (this *Lbank) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Lbank) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits (private)
 	//

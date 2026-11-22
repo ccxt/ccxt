@@ -794,11 +794,15 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 		var position any = positions[i]
 		if this.SafeString(position, "side") == nil {
 			// flat (direction: zero) position, the cache is keyed by side so reset both sides
-			ccxt.AddElementToObject(position, "side", "long")
 			var shortPosition map[string]any = this.Extend(position, map[string]any{
 				"side": "short",
 			})
 			this.Positions.Append(shortPosition)
+			var longPosition map[string]any = this.Extend(position, map[string]any{
+				"side": "long",
+			})
+			this.Positions.Append(longPosition)
+			continue
 		}
 		this.Positions.Append(position)
 	}
@@ -2105,18 +2109,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		var deltas130312 []any
-		deltas130312, _ = data["asks"].([]any)
-		if deltas130312 == nil {
-			deltas130312 = []any{}
+		var deltas130512 []any
+		deltas130512, _ = data["asks"].([]any)
+		if deltas130512 == nil {
+			deltas130512 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas130312)
-		var deltas130412 []any
-		deltas130412, _ = data["bids"].([]any)
-		if deltas130412 == nil {
-			deltas130412 = []any{}
+		this.HandleDeltas(orderbook.GetAsks(), deltas130512)
+		var deltas130612 []any
+		deltas130612, _ = data["bids"].([]any)
+		if deltas130612 == nil {
+			deltas130612 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130412)
+		this.HandleDeltas(orderbook.GetBids(), deltas130612)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2148,13 +2152,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr132622 string = "public/unsubscribe"
+	var ternaryStr132822 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr132622 = "private/unsubscribe"
+		ternaryStr132822 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr132622,
+		"method":  ternaryStr132822,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},
@@ -2370,14 +2374,15 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if !ccxt.IsEqual(future, nil) {
+	var subscribed bool = (!ccxt.IsEqual(future, nil))
+	if subscribed {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {
 			client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
-			future = nil
+			subscribed = false
 		}
 	}
-	if ccxt.IsEqual(future, nil) {
+	if !subscribed {
 		this.CheckRequiredCredentials()
 		var requestId int64 = this.RequestId()
 		this.Options["wsAuthRequestId"] = requestId

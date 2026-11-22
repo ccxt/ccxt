@@ -1558,7 +1558,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(items, currency, since, limit, transactionParams))}
 	return nil
 }
-func (this *Deepcoin) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Deepcoin) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchDeposits
 	//     {
@@ -1898,7 +1898,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(data, currency, since, limit))}
 	return nil
 }
-func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Deepcoin) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     {
 	//         "billId": "1001044652247714",

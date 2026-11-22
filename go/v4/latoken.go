@@ -2376,7 +2376,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], o
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(content, currency, since, limit))}
 	return nil
 }
-func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Latoken) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	//     {
 	//         "id":"fbf7d0d1-2629-4ad8-9def-7a1dba423362",

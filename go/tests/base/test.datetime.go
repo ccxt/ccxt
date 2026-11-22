@@ -167,7 +167,7 @@ func TestConvertExpireDate() {
 	argStr5 := "260503"
 	argStr6 := "260503"
 	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(&argStr5), exchange.Iso8601(exchange.Parse8601(exchange.ConvertExpireDate(&argStr6)))))
-	Assert(ccxt.IsEqual(exchange.ConvertExpireDate(nil), nil))
+	Assert((exchange.ConvertExpireDate(nil) == nil))
 }
 func TestYymmdd() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)

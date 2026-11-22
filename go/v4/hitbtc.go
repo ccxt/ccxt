@@ -1939,7 +1939,7 @@ func (this *Hitbtc) ParseTransactionType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Hitbtc) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// transaction
 	//
@@ -1979,7 +1979,7 @@ func (this *Hitbtc) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "updated_at"))
 	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var native map[string]any = SafeMapTyped(transaction, "native")
+	var native, _ = transaction["native"].(map[string]any)
 	var currencyId *string = this.SafeString(native, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var txhash *string = this.SafeString(native, "hash")
@@ -5039,7 +5039,8 @@ func (this *Hitbtc) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
-	if (leverage < 1) || (leverage > maxLeverage) {
+	var leverageNum *float64 = this.ParseNumber(leverage)
+	if (leverageNum == nil || !(*leverageNum >= 1)) || (leverageNum != nil && *leverageNum > float64(maxLeverage)) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and " + strconv.FormatInt(maxLeverage, 10) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -5342,17 +5343,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394315 map[string]any = map[string]any{
+	var literal394415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394315["body"] = nil
+		literal394415["body"] = nil
 	} else {
-		literal394315["body"] = bodyString
+		literal394415["body"] = bodyString
 	}
-	return literal394315
+	return literal394415
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

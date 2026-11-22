@@ -4326,7 +4326,7 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		return typeVar
 	}
 }
-func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry {
+func (this *Bitfinex) ParseLedgerEntry(item map[string]any, optionalArgs ...any) LedgerEntry {
 	//
 	//     [
 	//         [

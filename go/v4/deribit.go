@@ -832,7 +832,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var splitBase string = *this.SafeString(strings.Split(baseResolved, "_"), 0, "")
 	var strike string = *this.SafeString(optionParts, 2, "")
 	var optionType string = *this.SafeString(optionParts, 3, "")
-	var datetime any = this.ConvertExpireDate(expiry)
+	var datetime *string = this.ConvertExpireDate(expiry)
 	var ternaryStr58326 string = "put"
 	if optionType == "C" {
 		ternaryStr58326 = "call"
@@ -3716,7 +3716,7 @@ func (this *Deribit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Deribit) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// fetchWithdrawals
 	//

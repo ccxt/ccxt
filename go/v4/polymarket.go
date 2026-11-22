@@ -3135,7 +3135,7 @@ func (this *Polymarket) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Polymarket) ParseTransaction(transaction any, optionalArgs ...any) Transaction {
+func (this *Polymarket) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
 	//
 	// deposit row
 	//

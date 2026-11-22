@@ -446,13 +446,10 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	for i := 0; i < len(expandedRaw); i++ {
 		var raw any = expandedRaw[i]
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
-		var eventKey any = nil
-		if (groupId != nil) && (groupId == nil || *groupId != "") {
-			eventKey = this.ShortenSlug(groupId)
-		}
+		var eventKey string = this.ShortenSlug(groupId)
 		var m any = this.ParseMarket(raw)
 		markets = append(markets, m)
-		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
+		if eventKey != "" {
 			var eventGroup any = this.SafeDict(eventGroups, eventKey, map[string]any{
 				"groupId": groupId,
 				"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
@@ -462,7 +459,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			var groupMarkets any = ccxt.GetValue(eventGroup, "markets")
 			ccxt.AppendToArray(&groupMarkets, m)
 			ccxt.AddElementToObject(eventGroup, "markets", groupMarkets)
-			ccxt.AddElementToObject(eventGroups, eventKey, eventGroup)
+			eventGroups[eventKey] = eventGroup
 		}
 	}
 	var eventsDict map[string]any = map[string]any{}
@@ -1987,11 +1984,11 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes157615 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes157615 == nil {
+	var retRes157315 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes157315 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes157615)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes157315)}
 	}
 	return nil
 }
@@ -2039,11 +2036,11 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes159815 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes159815 == nil {
+	var retRes159515 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes159515 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes159815)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes159515)}
 	}
 	return nil
 }
@@ -3275,11 +3272,11 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes249419 []any = r1.Value
-		if retRes249419 == nil {
+		var retRes249119 []any = r1.Value
+		if retRes249119 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249419)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249119)}
 		}
 		return nil
 	}
@@ -3866,16 +3863,13 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = expandedMarkets[i]
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
-		var eventKey any = nil
-		if (groupId != nil) && (groupId == nil || *groupId != "") {
-			eventKey = this.ShortenSlug(groupId)
-		}
+		var eventKey string = this.ShortenSlug(groupId)
 		var m map[string]any = this.ParseMarket(raw)
 		if m == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing m"))
 		}
 		this.AddMarketsEntry(m["market"], m)
-		if (eventKey != nil) && (eventKey != "") {
+		if eventKey != "" {
 			var eventGroup any = this.SafeDict(eventGroups, eventKey, map[string]any{
 				"groupId": groupId,
 				"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
@@ -3885,7 +3879,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			var groupMarkets any = ccxt.GetValue(eventGroup, "markets")
 			ccxt.AppendToArray(&groupMarkets, m)
 			ccxt.AddElementToObject(eventGroup, "markets", groupMarkets)
-			ccxt.AddElementToObject(eventGroups, eventKey, eventGroup)
+			eventGroups[eventKey] = eventGroup
 		}
 	}
 	var result []any = []any{}
