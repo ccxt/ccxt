@@ -474,10 +474,9 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchTicker', 'channel', 'tickers');
-        paramsChannel['channel'] = channel;
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const ticker = await this.watchTickers ([ symbolValue ], paramsChannel);
+        const ticker = await this.watchTickers ([ symbolValue ], this.extend (paramsChannel, { 'channel': channel }));
         return this.safeValue (ticker, symbolValue);
     }
 
@@ -533,10 +532,9 @@ export default class okx extends okxRest {
             await this.loadMarkets ();
         }
         const [ channel, paramsChannel ] = this.handleOptionStringAndParams (params, 'watchMarkPrice', 'channel', 'mark-price');
-        paramsChannel['channel'] = channel;
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const ticker = await this.watchMarkPrices ([ symbolValue ], paramsChannel);
+        const ticker = await this.watchMarkPrices ([ symbolValue ], this.extend (paramsChannel, { 'channel': channel }));
         return this.safeValue (ticker, symbolValue);
     }
 
@@ -2084,8 +2082,7 @@ export default class okx extends okxRest {
             const contracts = this.safeNumber (position, 'contracts');
             if (contracts === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
-                const shortPosition = this.clone (position);
-                shortPosition['side'] = 'short';
+                const shortPosition = this.extend (this.clone (position), { 'side': 'short' });
                 cache.append (shortPosition);
                 newPositions.push (shortPosition);
             }

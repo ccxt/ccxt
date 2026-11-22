@@ -1162,8 +1162,7 @@ export default class bithumb extends Exchange {
                     }
                     const symbol = base + '/' + quote;
                     const market = this.safeMarket (symbol);
-                    ticker['date'] = timestamp;
-                    result[symbol] = this.parseTicker (ticker, market);
+                    result[symbol] = this.parseTicker (this.extend (ticker, { 'date': timestamp }), market);
                 }
             }
         }
