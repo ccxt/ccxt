@@ -4797,7 +4797,7 @@ export default class phemex extends Exchange {
                 if (isOrderPlacement) {
                     if (this.safeString (params, 'clOrdID') === undefined) {
                         const id = this.safeString (this.options, 'brokerId', 'CCXT123456');
-                        params = this.extend (params, { 'clOrdID': id + this.uuid16 () });
+                        params['clOrdID'] = id + this.uuid16 ();
                     }
                 }
                 payload = this.json (params);

@@ -2883,7 +2883,7 @@ export default class binance extends binanceRest {
                 tickerMarketType = this.safeString (tickerMarketById, 'type');
             }
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
-            const symbol = this.safeString (parsedTicker, 'symbol');
+            const symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {
                 newTickers[symbol] = parsedTicker;
             }

@@ -712,7 +712,7 @@ export default class paradex extends paradexRest {
         const params: Dict = this.safeDict (message, 'params', {});
         const data: Dict = this.safeDict (params, 'data', {});
         const parsedTrade = this.parseTrade (data);
-        const symbol = this.safeString (parsedTrade, 'symbol');
+        const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -1406,7 +1406,7 @@ export default class paradex extends paradexRest {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const bidAsk = this.parseWsBidAsk (data);
-        const symbol = this.safeString (bidAsk, 'symbol');
+        const symbol = bidAsk['symbol'];
         this.bidsasks[(symbol as string)] = bidAsk;
         client.resolve (bidAsk, 'bidask:' + symbol);
         // an SBE frame does not tell bbo.ALL from the per-market channel
@@ -1669,7 +1669,7 @@ export default class paradex extends paradexRest {
         }
         const cache = this.positions;
         const position = this.parsePosition (data);
-        const symbol = this.safeString (position, 'symbol');
+        const symbol = position['symbol'];
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here

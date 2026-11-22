@@ -507,7 +507,7 @@ export default class cex extends cexRest {
         await this.authenticate (params);
         const url = this.safeString (this.urls['api'], 'ws', '');
         const market = this.market (symbol);
-        const symbolValue: Str = this.safeString (market, 'symbol');
+        const symbolValue: Str = market['symbol'];
         const messageHash = 'orders:' + symbolValue;
         const message: Dict = {
             'e': 'open-orders',
