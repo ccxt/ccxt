@@ -5042,9 +5042,9 @@ export default class binance extends binanceRest {
                 'info': rate,
             });
             this.tickers[symbol] = parsed;
-            tickers[symbol] = parsed;
             const priceSymbol: string = this.safeString (parsed, 'symbol', '');
             client.resolve (parsed, 'stock:price:' + priceSymbol);
+            tickers[priceSymbol] = parsed;
         }
         client.resolve (tickers, 'stock:price');
     }

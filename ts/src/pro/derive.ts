@@ -702,7 +702,7 @@ export default class derive extends deriveRest {
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }
-                    (parsed as Dict)['trades'] = this.safeList (order, 'trades');
+                    parsed['trades'] = this.safeList (order, 'trades') as Trade[];
                     parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                     parsed['datetime'] = this.safeString (order, 'datetime');
                 }
