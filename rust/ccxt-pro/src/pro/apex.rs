@@ -1104,8 +1104,10 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (lists.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
-            let parsed: crate::value::Dict = self.parse_ws_trade(&rawTrade, None);
+            let parsed: crate::value::Dict = self.parse_ws_trade(self.safe_dict(&lists, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             self.myTrades.append(Value::Dict(parsed));
@@ -1267,8 +1269,10 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (lists.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&lists, Value::Int(i));
-            let mut position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
+            let mut position: crate::value::Dict = self.parse_position(self.safe_dict(&lists, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let side: Option<String> = self.safe_string_k_opt(&position, "side", &[]);
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

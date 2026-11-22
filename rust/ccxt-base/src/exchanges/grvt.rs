@@ -2291,7 +2291,8 @@ impl Grvt {
         if approvedBuilderFee {
             return Value::Bool(true);
         }
-        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await, self.load_account_infos().await])).await);
+        self.load_account_infos().await;
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await])).await);
         //
         // {
         //     "results": [{

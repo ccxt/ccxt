@@ -6477,7 +6477,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }
         }
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) || (e.as_deref() == Some("ALGO_UPDATE")) {
-            let oField: Option<crate::value::List> = (match __pro_message.get("o").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+            let oField: Option<crate::value::List> = (match __pro_message.get("o").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
             if (oField.is_some()) {
                 // eOptions format: o is an array of orders with nested fi fills
                 self.handle_options_order_update(client, &message);

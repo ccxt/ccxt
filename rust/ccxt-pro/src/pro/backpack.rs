@@ -341,9 +341,9 @@ impl Backpack {
             if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 continue;
             }
-            let marketSelection = self.parent.handle_stock_params(methodName, &query, Some(&market));
-            let marketStock: bool = marketSelection.0.unwrap_or(false);
-            let marketParams: crate::value::Dict = marketSelection.1;
+            let marketStockmarketParamsVariable = self.parent.handle_stock_params(methodName, &query, Some(&market));
+            let mut marketStock: Option<bool> = marketStockmarketParamsVariable.0;
+            let marketParams: crate::value::Dict = marketStockmarketParamsVariable.1;
             let isRfq: bool = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ");
             let mut source: Option<String> = explicitSource.clone();
             if (source.is_none()) {
@@ -351,7 +351,7 @@ impl Backpack {
             }
             let requestParams: crate::value::Dict = self.extend_t(marketParams, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("stock".to_string(), Value::Bool(marketStock));
+                    m.insert("stock".to_string(), marketStock.map_or(Value::Null, Value::Bool));
                     m.insert("source".to_string(), Value::from(source.as_deref()));
                 m
             })]);

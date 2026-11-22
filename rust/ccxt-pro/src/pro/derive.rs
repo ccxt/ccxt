@@ -1689,7 +1689,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
             if !matched {
-                let loginResult: Option<crate::value::List> = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+                let loginResult: Option<crate::value::List> = (match __pro_message.get("result").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
                 if (loginResult.is_some()) {
                     // the login acknowledgement is the only id reply whose result is a bare list (the subaccount ids)
                     // in java the acknowledgement can arrive before the subscription record is stored

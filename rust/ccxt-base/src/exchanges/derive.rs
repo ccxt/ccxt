@@ -2781,7 +2781,7 @@ impl Derive {
         let settlements: crate::value::List = self.safe_list_k_t(&result, "settlements");
         let parsed: crate::value::List = self.parse_settlements(&settlements, market.as_ref());
         let sorted: crate::value::List = self.sort_by_t(Value::Arr(parsed), Value::Str("timestamp".into()), &[]);
-        let symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
+        let symbolResolved: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return Value::Arr(self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since, limit, &[]));
 
     Value::Null

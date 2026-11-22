@@ -1760,8 +1760,10 @@ impl Luno {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let ticker: crate::value::Dict = crate::value::KeyRead::read(&&tickers, &Value::from(id)).into_dict();
-            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict));
+            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::from(id.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -2078,6 +2080,7 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
@@ -2089,15 +2092,15 @@ impl Luno {
             request.insert("type".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side.as_str() == Some("buy")) {
-                request.insert("counter_volume".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), &Value::from(amount))));
+                request.insert("counter_volume".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), &Value::from(amount))));
             }  else {
-                request.insert("base_volume".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), &Value::from(amount))));
+                request.insert("base_volume".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), &Value::from(amount))));
             }
             let __ws_arg_11 = self.extend(&request, &[&params]);
             response = self.private_post_marketorder(&[&__ws_arg_11]).await;
         }  else {
-            request.insert("volume".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
-            request.insert("price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), Value::from(price))));
+            request.insert("volume".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
+            request.insert("price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), Value::from(price))));
             request.insert("type".into(), (if (side.as_str() == Some("buy")) { Value::Str("BID".into()) } else { Value::Str("ASK".into()) }));
             let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
             response = self.private_post_postorder(&[&__ws_arg_12]).await;

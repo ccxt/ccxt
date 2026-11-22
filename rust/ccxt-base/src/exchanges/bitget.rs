@@ -9561,7 +9561,10 @@ if _try_result.is_err() {
         //     }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, data.get(0).cloned().unwrap_or(Value::Null), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -9607,7 +9610,10 @@ if _try_result.is_err() {
             response = self.public_mix_get_v2_mix_market_symbol_price(&[&__ws_arg_23]).await;
         }
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, data.get(0).cloned().unwrap_or(Value::Null), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -14579,7 +14585,10 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (position.len() as i64) } {
-            let parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, position.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).unwrap_or_default();
+            let parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&position, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).unwrap_or_default();
             result.push(Value::Dict(parsedPosition));
         }
         }

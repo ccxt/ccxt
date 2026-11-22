@@ -697,8 +697,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let addressTo: Option<String> = address.clone();
         let tag: Option<String> = self.safe_string_k_opt(&native, "payment_id", &[]);
         let tagTo: Option<String> = tag.clone();
-        let sender: crate::value::List = self.safe_list_k_t(&native, "senders");
-        let addressFrom: Option<String> = self.safe_string_opt(&sender, Value::Int(0), &[]);
+        let addressFrom: Option<String> = self.safe_string_opt(self.safe_list_k(&native, "senders", &[Value::from(vec![])]), Value::Int(0), &[]);
         let amount: Option<f64> = self.safe_number_k(&native, "amount", &[]).as_f64();
         let subType: Option<String> = self.safe_string_k_opt(&transaction, "subtype", &[]);
         let internal: bool = subType.as_deref() == Some("OFFCHAIN");
@@ -3513,28 +3512,11 @@ impl Hitbtc {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrder() not support this market type")));
             }
         }
-        //
-        //     [
-        //       {
-        //         "id": "685965182082",
-        //         "client_order_id": "B3CBm9uGg9oYQlw96bBSEt38-6gbgBO0",
-        //         "symbol": "BTCUSDT",
-        //         "side": "buy",
-        //         "status": "new",
-        //         "type": "limit",
-        //         "time_in_force": "GTC",
-        //         "quantity": "0.00010",
-        //         "quantity_cumulative": "0",
-        //         "price": "50000.00",
-        //         "price_average": "0",
-        //         "created_at": "2021-10-26T11:40:09.287Z",
-        //         "updated_at": "2021-10-26T11:40:09.287Z"
-        //       }
-        //     ]
-        //
-        let order: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref());
-        None
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&response, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).map_or(Value::Null, Value::Dict);
+        Value::Null
         }).await?))
     }
 
@@ -5049,8 +5031,8 @@ impl Hitbtc {
         if (Some((market).market_type.as_str()) != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " setLeverage() supports swap contracts only")));
         }
-        let leverageNum: Value = self.parse_number(&leverage, &[]);
-        if (leverageNum.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverageNum.as_f64().unwrap_or(f64::NAN) > (maxLeverage as f64)) {
+        let mut leverageNum: Option<f64> = self.parse_number(&leverage, &[]).as_f64();
+        if ((leverageNum.is_some() && leverageNum < Some(1.0))) || (matches!(leverageNum, Some(__p) if __p > (maxLeverage as f64))) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " setLeverage() leverage should be between 1 and ").into()), Value::Str(format!("{}", maxLeverage).into())).into()), " for ").into()), symbol)));
         }
         let request: indexmap::IndexMap<String, Value> = ({

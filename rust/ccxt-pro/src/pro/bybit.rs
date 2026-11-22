@@ -2899,7 +2899,10 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (rawOrders.len() as i64) } {
-            let mut parsed: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let mut parsed: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

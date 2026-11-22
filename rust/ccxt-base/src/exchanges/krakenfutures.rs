@@ -2302,7 +2302,8 @@ impl Krakenfutures {
             let mut symbol: Option<String> = id.clone();
             let mut split: crate::value::List = crate::value::List::new(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut splitMarket: String = self.safe_string(&split, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let baseId: String = ({ let (__l, __b, __e) = (splitMarket.chars().count() as i64, 0, ((((splitMarket.chars().count() as i64)) - 3))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); splitMarket.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
+            let baseIdLength: i64 = (((splitMarket.chars().count() as i64)) - 3);
+            let baseId: String = ({ let (__l, __b, __e) = (splitMarket.chars().count() as i64, 0, baseIdLength); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); splitMarket.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
             let quoteId: String = "usd".to_string(); // always USD
             let base: Option<String> = self.safe_currency_code(Some(baseId.as_str()), None);
             let quote: Option<String> = self.safe_currency_code(Some(quoteId.as_str()), None);

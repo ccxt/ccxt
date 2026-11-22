@@ -4864,7 +4864,7 @@ impl Poloniex {
         let feesById: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[&response]);
+        }), &[response]);
         let responseKeys: Vec<Value> = Value::Array(feesById.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -4872,7 +4872,7 @@ impl Poloniex {
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (responseKeys.len() as i64) } {
             let currencyId: Option<&str> = responseKeys.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let feeInfo: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(currencyId.as_deref()));
+            let feeInfo: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = feesById.get(currencyId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, &codesValue))) {
                 let mut currency: crate::types::Currency = self.currency(code.as_deref());
                 depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_deposit_withdraw_fee(self, &feeInfo, Some(&currency)));
@@ -4890,7 +4890,7 @@ impl Poloniex {
                         let mut rawNetworkId: String = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         let networkId: String = (if let Some(__o) = code.as_deref() { rawNetworkId.replace(__o, "") } else { rawNetworkId });
                         let networkCode: Option<String> = self.network_id_to_code(Value::from(Value::from(networkId.as_str())).as_text().as_deref(), self.safe_string_k(&currency, "code", &[]).as_str());
-                        let networkInfo: crate::value::Dict = self.safe_dict_t(&response, Value::from(networkId));
+                        let networkInfo: crate::value::Dict = (if let Some(Value::Dict(__m)) = feesById.get(networkId.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
                         let mut networkObject: indexmap::IndexMap<String, Value> = ({
                             let m = indexmap::IndexMap::new();
                             m

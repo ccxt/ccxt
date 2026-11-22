@@ -1923,10 +1923,9 @@ impl Hyperliquid {
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < dexesCount } {
             // builder-deployed perp dexs start at 110000
-            let dex: crate::value::Dict = self.safe_dict_t(&fetchDexes, Value::Int(i));
             let secondPart: i64 = (((i * 10000)) - 10000);
             let offset: i64 = (110000 + secondPart);
-            let dexKey: String = self.safe_string_k(&dex, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let dexKey: String = self.safe_string(self.safe_dict(&fetchDexes, Value::Int(i), &[]), Value::Str("name".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             perpDexesOffset.insert(dexKey, Value::from(offset));
         }
         }
@@ -1955,11 +1954,7 @@ impl Hyperliquid {
                 if i >= fetchDexesLength {
                     break;
                 }
-                let dex: crate::value::Dict = self.safe_dict_t(&fetchDexes, Value::Int(i));
-                if (false) {
-                    continue;
-                }
-                let dexName: Option<String> = self.safe_string_k_opt(&dex, "name", &[]);
+                let dexName: Option<String> = self.safe_string_k_opt(self.safe_dict(&fetchDexes, Value::Int(i), &[]), "name", &[]);
                 std::sync::Arc::make_mut(&mut fetchDexesList).push(dexName.map(Value::from).unwrap_or(Value::Null));
             }
             }
@@ -5688,7 +5683,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (data.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, data.get(i as usize).cloned().unwrap_or(Value::Null), None).map_or(Value::Null, Value::Dict));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

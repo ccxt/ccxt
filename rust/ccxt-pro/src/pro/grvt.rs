@@ -65,7 +65,6 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -107,7 +106,6 @@ impl Grvt {
             "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_ohlcv" => self.parse_ws_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()),
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "request_id" => crate::Value::from(self.request_id()),
@@ -1217,19 +1215,12 @@ impl Grvt {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let data: crate::value::Dict = message.key_dict("feed");
-        let position: crate::value::Dict = self.parse_ws_position(&data, None);
+        let position: crate::value::Dict = self.parse_position(Value::Dict(data), None);
         self.positions.append(Value::from(&position));
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
         client.resolve(&newPositions, &(Value::Str(format!("{}{}", Value::Str("positions::".into()), self.safe_string_k(&position, "symbol", &[Value::Str("".into())])).into())));
         client.resolve(Value::Arr(newPositions), "positions");
-}
-
-    pub fn parse_ws_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let position: Value = position.into();
-        return self.parse_position(position, market);
-
-    Default::default()
 }
 
 /*

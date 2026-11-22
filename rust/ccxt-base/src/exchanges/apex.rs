@@ -2555,7 +2555,10 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, Value::from(vec![]), &[]);
+        if (endTimeExclusive.is_some()) {
+            paramsOmitted = self.omit_t(params, &["endTime", "endTimeExclusive", "until"], &[]);
+        }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_get_v3_history_orders(&[&__ws_arg_19]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
@@ -2664,7 +2667,10 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, Value::from(vec![]), &[]);
+        if (endTimeExclusive.is_some()) {
+            paramsOmitted = self.omit_t(params, &["endTime", "endTimeExclusive", "until"], &[]);
+        }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_get_v3_fills(&[&__ws_arg_21]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
@@ -2723,7 +2729,10 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(&params, &["endTime", "endTimeExclusive", "until"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, Value::from(vec![]), &[]);
+        if (endTimeExclusive.is_some()) {
+            paramsOmitted = self.omit_t(params, &["endTime", "endTimeExclusive", "until"], &[]);
+        }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_get_v3_funding(&[&__ws_arg_22]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");

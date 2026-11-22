@@ -1969,6 +1969,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         //  ]
         //
         let mut tiers: Vec<Value> = Vec::new();
+        let mut minNotional: Option<f64> = Some(0_f64);
         {
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
@@ -1976,22 +1977,20 @@ impl crate::exchange::DerivedExchange for Bybit {
             let mut tier: Option<crate::value::Dict> = self.safe_dict_o(&info, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&tier, "symbol", &[]);
             let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
-            let mut minNotional: Option<f64> = Some(0_f64);
-            if (i != 0) {
-                minNotional = self.safe_number(get_value(&info, &Value::Int((i - 1))), Value::Str("riskLimitValue".into()), &[]).as_f64();
-            }
+            let tierMaxNotional: Option<f64> = self.safe_number_k(&tier, "riskLimitValue", &[]).as_f64();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer_k(&tier, "id", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "settle"));
                     m.insert("minNotional".to_string(), Value::from(minNotional));
-                    m.insert("maxNotional".to_string(), self.safe_number_k(&tier, "riskLimitValue", &[]));
+                    m.insert("maxNotional".to_string(), Value::from(tierMaxNotional));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&tier, "maintenanceMargin", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_number_k(&tier, "maxLeverage", &[]));
                     m.insert("info".to_string(), tier.map_or(Value::Null, Value::Dict));
                 m
             }));
+            minNotional = tierMaxNotional;
         }
         }
         return Value::from(tiers);
@@ -10821,18 +10820,25 @@ impl Bybit {
         //         "time": 1657713693182
         //     }
         //
-        let positions: Value = Value::Arr(self.add_pagination_cursor_to_result(&response));
+        let positions: crate::value::List = self.add_pagination_cursor_to_result(&response);
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (positions.len() as i64) } {
-            let mut rawPosition: Value = get_value(&positions, &Value::Int(i));
+            let rawPosition: Value = crate::value::KeyRead::read(&&positions, &Value::Int(i));
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
-                rawPosition = self.safe_dict_k(&rawPosition, "data", &[]);
+                results.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict_k(&rawPosition, "data", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict));
+            }  else {
+                results.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict));
             }
-            results.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, rawPosition, None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized]);

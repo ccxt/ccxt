@@ -2624,10 +2624,7 @@ impl Kraken {
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_2]).await;
-        let tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
+        let tickers: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let ids: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2640,7 +2637,7 @@ impl Kraken {
             let id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(id.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let ticker: crate::value::Dict = tickers.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
+            let ticker: crate::value::Dict = (if let Some(Value::Dict(__m)) = tickers.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
@@ -3689,7 +3686,10 @@ impl Kraken {
         //         }
         //     }
         //
-        let result: Value = self.safe_dict_k(&response, "result", &[Value::from(vec![])]);
+        let result: Value = self.safe_dict_k(&response, "result", &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]);
         if !(matches!((&result, &id), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order id ").into()), id)));
         }

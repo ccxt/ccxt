@@ -3008,8 +3008,8 @@ impl Whitebit {
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (currencyKeys.len() as i64) } {
             let code: Option<String> = currencyKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let currency: Value = crate::value::KeyRead::read(&&currenciesData, &Value::from(code.as_deref()));
-            if (currency == Value::Null) {
+            let mut currency: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = currenciesData.get(code.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
+            if (currency.is_none()) {
                 continue;
             }
             if (codes != Value::Null) && !self.in_array(&code, &codes) {
@@ -3106,7 +3106,7 @@ impl Whitebit {
             }
             result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), currency);
+        m.insert("info".to_string(), currency.map_or(Value::Null, Value::Dict));
         m.insert("limits".to_string(), Value::Map(limits));
     m
 }));
@@ -4434,7 +4434,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut j: i64 = 0;
                 let mut __for_first_15: bool = true;
                 while { if !__for_first_15 { j += 1; } __for_first_15 = false; j < (orders.len() as i64) } {
-                let order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, orders.get(j as usize).cloned().unwrap_or(Value::Null), Some(&marketNew)).unwrap_or_default();
+                let order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&orders, Value::Int(j), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&marketNew)).unwrap_or_default();
                 results.push(self.extend(order, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("status".to_string(), Value::Str("closed".into()));

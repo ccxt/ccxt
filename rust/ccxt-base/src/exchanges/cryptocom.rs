@@ -753,7 +753,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut requestHeaders: Option<crate::value::Dict> = None;
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let type_var: Option<&str> = api.get(0).and_then(Value::as_str);
         let access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
@@ -778,16 +778,16 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             let payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(path), nonce.as_deref().unwrap_or("null")).into()), self.apiKey).into()), strSortKey).into()), nonce.as_deref().unwrap_or("null"));
             let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[]);
             let paramsKeysLength: i64 = paramsKeys.len() as i64;
-            requestBody = self.json(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::from(nonce.as_deref()));
-                    m.insert("method".to_string(), Value::from(path));
-                    m.insert("params".to_string(), params);
-                    m.insert("api_key".to_string(), self.apiKey.clone());
-                    m.insert("sig".to_string(), Value::from(signature));
-                    m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                m
-            }));
+            let mut jsonBody: Option<String> = self.json(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::from(nonce.as_deref()));
+        m.insert("method".to_string(), Value::from(path));
+        m.insert("params".to_string(), params);
+        m.insert("api_key".to_string(), self.apiKey.clone());
+        m.insert("sig".to_string(), Value::from(signature));
+        m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
+    m
+})).as_str().map(str::to_owned);
             // fix issue https://github.com/ccxt/ccxt/issues/11179
             // php always encodes dictionaries as arrays
             // if an array is empty, php will put it in square brackets
@@ -796,8 +796,9 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             if (paramsKeysLength == 0) {
                 let paramsString: String = "{}".to_string();
                 let arrayString: String = "[]".to_string();
-                requestBody = match (requestBody.as_str(), Some(arrayString.as_str()), Some(paramsString.as_str())) { (Some(__s), Some(__p), Some(__r)) => Value::Str(__s.replace(__p, __r).into()), _ => requestBody.clone() }
+                jsonBody = (if let Some(__s) = jsonBody.as_deref() { Some(__s.replace(arrayString.as_str(), paramsString.as_str())) } else { None });
             }
+            requestBody = jsonBody.take();
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -808,7 +809,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
@@ -4834,7 +4835,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::List = self.safe_list_k_t(&result, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(0), &[]), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5001,6 +5005,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
@@ -5013,7 +5018,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("type".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         }
         if (price.is_some()) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), price.map(Value::from).unwrap_or(Value::Null))));
+            request.insert("price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), price.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.v1_private_post_private_close_position(&[&__ws_arg_23]).await.unwrap_or_default();

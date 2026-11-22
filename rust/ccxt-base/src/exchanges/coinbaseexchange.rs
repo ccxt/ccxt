@@ -2762,7 +2762,7 @@ impl Coinbaseexchange {
         }  else {
             request.insert("client_oid".into(), Value::from(clientOrderId.as_deref()));
         }
-        let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["clientOrderId", "client_oid"], &[]) } else { params }).into_dict();
+        let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_oid"], &[]);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2969,7 +2969,7 @@ impl Coinbaseexchange {
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(until));
         }
-        let paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
+        let paramsUntil: crate::value::Dict = self.omit_t(params, &["until"], &[]);
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsUntil]);
         let response: crate::value::List = self.private_get_accounts_id_ledger(&[&__ws_arg_25]).await.unwrap_or_default();
         let entries: crate::value::List = self.to_array_t(&response);

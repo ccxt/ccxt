@@ -5298,7 +5298,10 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_122: bool = true;
             while { if !__for_first_122 { i += 1; } __for_first_122 = false; i < (positionsArray.len() as i64) } {
-            let position: crate::value::Dict = self.extend_t(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, positionsArray.get(i as usize).cloned().unwrap_or(Value::Null), None)), &[&params]);
+            let position: crate::value::Dict = self.extend_t(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_position(self, self.safe_dict(&positionsArray, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None)), &[&params]);
             result.push(Value::Dict(position));
         }
         }
@@ -6641,8 +6644,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // type from param
         let type_var: Option<String> = self.safe_string2_opt(&params, Value::Str("defaultType".into()), Value::Str("type".into()), &[]);
         if (type_var.is_some()) {
-            let paramsOmitted: Value = self.omit(&params, &["defaultType", "type"], &[]);
-            return (type_var.map(Value::from).unwrap_or(Value::Null), paramsOmitted.into_dict());
+            let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["defaultType", "type"], &[]);
+            return (type_var.map(Value::from).unwrap_or(Value::Null), paramsOmitted);
         }
         // type from market
         if (market.is_some()) {
@@ -6681,8 +6684,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (subTypeInParams.as_deref() == Some("linear")) || (subTypeInParams.as_deref() == Some("inverse")) {
                 subType = subTypeInParams.map(Value::from).unwrap_or(Value::Null);
             }
-            let paramsOmitted: Value = self.omit(&params, &["subType", "defaultSubType"], &[]);
-            return (subType, paramsOmitted.into_dict());
+            let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["subType", "defaultSubType"], &[]);
+            return (subType, paramsOmitted);
         }  else {
             // at first, check from market object
             if (market.is_some()) {
@@ -7074,8 +7077,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), Value::Map(stopLossRequest)); }
         }
-        let paramsOmitted: Value = self.omit(params, &["takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"], &[]);
-        return paramsOmitted.into_dict();
+        let paramsOmitted: crate::value::Dict = self.omit_t(params, &["takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"], &[]);
+        return paramsOmitted;
 
     Default::default()
 }
@@ -8442,8 +8445,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }  else {
                     keysToOmit = Value::from(vec![Value::Str("postOnly".into())]);
                 }
-                let paramsOmitted: Value = self.omit(&params, keysToOmit, &[]);
-                return (Value::Bool(true), paramsOmitted.into_dict());
+                let paramsOmitted: crate::value::Dict = self.omit_t(&params, keysToOmit, &[]);
+                return (Value::Bool(true), paramsOmitted);
             }
         }
         return (Value::Bool(false), params.into_dict());

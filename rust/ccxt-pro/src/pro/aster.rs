@@ -981,7 +981,7 @@ impl Aster {
         let timestamp: Option<i64> = self.safe_integer_k(&message, "T", &[]).as_i64();
         let mut bidAskSymbol: Option<String> = None;
         if (market.is_some()) {
-            bidAskSymbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
+            bidAskSymbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();

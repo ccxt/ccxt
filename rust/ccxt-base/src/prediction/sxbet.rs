@@ -157,7 +157,11 @@ impl crate::exchange::DerivedExchange for Sxbet {
             baseUrl = groupUrl;
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), &params));
-        let mut query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
+        let __ws_arg_21 = self.omit(params, self.extract_params(Value::from(path)), &[]);
+        let query: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_21]);
         let existingHeaders: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -173,9 +177,13 @@ impl crate::exchange::DerivedExchange for Sxbet {
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
-        let mut sendAsQuery: bool = method.as_str() == Some("GET");
+        let mut sendAsQuery: bool = (method.as_str() == Some("GET"));
         if (method.as_str() == Some("DELETE")) {
-            sendAsQuery = !(query.contains_key("orders"));
+            if (query.contains_key("orders")) {
+                sendAsQuery = false;
+            }  else {
+                sendAsQuery = true;
+            }
         }
         let mut bodyValue: Option<String> = None;
         if sendAsQuery {

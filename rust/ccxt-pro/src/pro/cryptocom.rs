@@ -1711,7 +1711,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let messageHash: Option<String> = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let data: crate::value::List = message.key_list("data");
-        let positionBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into())));
+        let positionBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(self.safe_dict(&data, Value::Int(0), &[]), Value::Str("position_balances".into())));
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(data)); }
         {
                         let mut i: i64 = 0;

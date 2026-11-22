@@ -6921,16 +6921,10 @@ impl Mexc {
         let mut networkId: Option<String> = None;
         if (networkCode.is_some()) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-            let networkUnified: Value = Value::from(self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref()));
+            let mut networkUnified: Option<String> = self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref());
             let networks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-            if (networkUnified != Value::Null) && (matches!(&networkUnified, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
-                let network: crate::value::Dict = (if (networkUnified == Value::Null) { Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) } else { self.safe_dict(&networks, networkUnified, &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]) }).into_dict();
+            if (networkUnified.is_some()) && (matches!(networkUnified.as_deref(), Some(__k) if networks.contains_key(__k))) {
+                let network: crate::value::Dict = (if let Some(Value::Dict(__m)) = networks.get(networkUnified.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
                 let networkInfo: crate::value::Dict = self.safe_dict_k_t(&network, "info");
                 networkId = self.safe_string_k_opt(&networkInfo, "network", &[]);
             }  else {
@@ -6997,16 +6991,10 @@ impl Mexc {
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         let mut networkId: Option<String> = None;
-        let networkUnified: Value = Value::from(self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref()));
+        let mut networkUnified: Option<String> = self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref());
         let networks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-        if (networkUnified != Value::Null) && (matches!(&networkUnified, Value::Str(__k) if networks.contains_key(__k.as_ref()))) {
-            let network: crate::value::Dict = (if (networkUnified == Value::Null) { Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) } else { self.safe_dict(&networks, networkUnified, &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]) }).into_dict();
+        if (networkUnified.is_some()) && (matches!(networkUnified.as_deref(), Some(__k) if networks.contains_key(__k))) {
+            let network: crate::value::Dict = (if let Some(Value::Dict(__m)) = networks.get(networkUnified.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let networkInfo: crate::value::Dict = self.safe_dict_k_t(&network, "info");
             networkId = self.safe_string_k_opt(&networkInfo, "network", &[]);
         }  else {

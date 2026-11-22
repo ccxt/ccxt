@@ -611,12 +611,11 @@ impl crate::exchange::DerivedExchange for Hashkey {
             }
         }
         let tradingFees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "trading");
-        let mut fees: Option<crate::value::Dict> = None;
+        let mut feeKey: String = "swap".to_string();
         if isSpot {
-            fees = self.safe_dict_k_o(&tradingFees, "spot");
-        }  else {
-            fees = self.safe_dict_k_o(&tradingFees, "swap");
+            feeKey = "spot".to_string();
         }
+        let fees: crate::value::Dict = (if let Some(Value::Dict(__m)) = tradingFees.get(feeKey.as_str()) { std::sync::Arc::clone(__m) } else { Default::default() });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));

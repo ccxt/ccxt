@@ -2263,7 +2263,8 @@ impl Bullish {
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2647,7 +2648,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let paginate: bool = self.safe_bool_k_opt(&params, "paginate", &[Value::Bool(false)]).unwrap_or(false);
         if paginate {
@@ -2975,7 +2977,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
@@ -3027,7 +3030,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3106,7 +3110,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3165,7 +3170,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
@@ -3207,7 +3213,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3285,7 +3292,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3374,7 +3382,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         // todo check this method properly
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3479,7 +3488,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let response: crate::value::List = self.private_get_v1_accounts_trading_accounts(&[&params]).await.unwrap_or_default();
         return self.parse_accounts(&response, &[params]);
         Value::Null
@@ -3508,7 +3518,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3594,7 +3605,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3682,7 +3694,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3733,7 +3746,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let maxLimit: i64 = 100;
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchTransfers".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
@@ -3802,7 +3816,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         // todo check this method properly
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let request: indexmap::IndexMap<String, Value> = ({
@@ -3867,7 +3882,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
-        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        self.handle_token(&[]).await;
         let tradingAccountId: Option<String> = self.load_account(&[&params]).await.as_str().map(str::to_owned);
         let mut currency: crate::types::Currency = self.currency(Some(code));
         let mut request: indexmap::IndexMap<String, Value> = ({

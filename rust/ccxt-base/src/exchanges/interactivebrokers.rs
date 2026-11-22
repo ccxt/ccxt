@@ -804,13 +804,12 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let implodedPathpathParamsVariable: Vec<Value> = self.ibkr_implode_path(path, params.clone()).as_array().cloned().unwrap_or_default();
-        let implodedPath: Value = implodedPathpathParamsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let pathParams: Value = implodedPathpathParamsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let apiBase: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let baseUrl: Value = add(&(if let (Some(__m), Some(__k)) = (self.urls.get("api").cloned().unwrap_or(Value::Null).as_map(), apiBase.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &implodedPath);
-        let mut url: Value = baseUrl.clone();
-        let query: crate::value::Dict = self.omit_t(params, pathParams, &[]);
+        let implodedPath: Option<String> = self.ibkr_implode_path(path, params.clone());
+        let apiBase: Option<&str> = api.get(0).and_then(Value::as_str);
+        let apiUrl: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiBase.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let baseUrl: String = format!("{}{}", apiUrl, implodedPath.as_deref().unwrap_or("null"));
+        let mut url: String = baseUrl.clone();
+        let query: crate::value::Dict = self.omit_t(params, self.ibkr_path_params(path), &[]);
         let hasQuery: bool = ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64);
         let isGetOrDelete: bool = (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"));
         let mut requestBody: Option<String> = None;
@@ -819,10 +818,10 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         if self.ibkr_is_gateway_request(path).as_bool() == Some(true) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
-            url = add(&self.ibkr_gateway_base_url((if let (Some(__m), Some(__k)) = (self.urls.get("api").cloned().unwrap_or(Value::Null).as_map(), apiBase.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), gatewayUrl.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null), &implodedPath);
+            url = format!("{}{}", self.ibkr_gateway_base_url(apiUrl.as_str(), gatewayUrl.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null), implodedPath.as_deref().unwrap_or("null"));
             if isGetOrDelete {
                 if hasQuery {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                 }
             }  else {
                 // the gateway rejects bodiless POST/PUT requests with http 411 (Length Required)
@@ -836,7 +835,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
             }));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone());
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(requestBody.as_deref()));
         m.insert("headers".to_string(), requestHeaders.clone().map_or(Value::Null, Value::Dict));
@@ -852,7 +851,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
             let signatureKey: Value = self.read_file(self.options.get("signaturePemPath").cloned().unwrap_or(Value::Null));
             std::sync::Arc::make_mut(&mut oauthParams).insert("oauth_signature_method".into(), Value::Str("RSA-SHA256".into()));
             let mut authParams: crate::value::Dict = self.extend_t(&oauthParams, &[&query]);
-            let auth: Value = self.ibkr_base_string(method.as_str().unwrap_or_default(), baseUrl.clone(), &authParams, &[Value::from(accessTokenSecretHex)]).map(Value::from).unwrap_or(Value::Null);
+            let auth: Value = self.ibkr_base_string(method.as_str().unwrap_or_default(), baseUrl.as_str(), &authParams, &[Value::from(accessTokenSecretHex)]).map(Value::from).unwrap_or(Value::Null);
             let signature: String = rsa(auth.clone(), signatureKey, Value::Str("sha256".into()));
             std::sync::Arc::make_mut(&mut authParams).insert("oauth_signature".into(), self.ibkr_encrypt(signature.as_str()).map(Value::from).unwrap_or(Value::Null));
             requestHeaders = Some(crate::value::Dict::new({
@@ -871,14 +870,14 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
             let mut signingParams: Value = Value::from(&oauthParams);
             if isGetOrDelete {
                 if hasQuery {
-                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])).into())).into());
+                    url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
                     // the query-string params are part of the signature base string too
                     signingParams = self.extend(&oauthParams, &[&query]);
                 }
             }  else if hasQuery {
                 requestBody = json_stringify(&query).as_str().map(str::to_owned);
             }
-            let auth: Option<String> = self.ibkr_base_string(method.as_str().unwrap_or_default(), baseUrl, signingParams, &[]);
+            let auth: Option<String> = self.ibkr_base_string(method.as_str().unwrap_or_default(), baseUrl.as_str(), signingParams, &[]);
             let signature: String = self.hmac(self.encode(auth.map(Value::from).unwrap_or(Value::Null)), self.base64_to_binary(liveSessionToken.map(Value::from).unwrap_or(Value::Null), &[]), "sha256", &[Value::Str("base64".into())]);
             std::sync::Arc::make_mut(&mut oauthParams).insert("oauth_signature".into(), self.ibkr_encrypt(signature.as_str()).map(Value::from).unwrap_or(Value::Null));
             requestHeaders = Some(crate::value::Dict::new({
@@ -891,7 +890,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url);
+        m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
@@ -942,8 +941,8 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
-                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_test_order" => self.create_test_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -995,11 +994,11 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_gateway_start_keep_alive" => self.ibkr_gateway_start_keep_alive().await,
                 "ibkr_handle_order_replies" => self.ibkr_handle_order_replies(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
                 "ibkr_has_fresh_session_token" => self.ibkr_has_fresh_session_token(),
-                "ibkr_implode_path" => self.ibkr_implode_path(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "ibkr_is_auth_request" => self.ibkr_is_auth_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_is_authenticated" => self.ibkr_is_authenticated(),
                 "ibkr_is_gateway_request" => self.ibkr_is_gateway_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_oauth_base" => crate::Value::Dict(self.ibkr_oauth_base(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
+                "ibkr_path_params" => self.ibkr_path_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_snapshot_ready" => self.ibkr_snapshot_ready(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "load_account_id" => self.load_account_id(&args[..]).await,
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
@@ -3524,7 +3523,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbols: Value = self.unique(targetSymbols);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), join(&symbols, &Value::Str(",".into())));
+                m.insert("symbols".to_string(), Value::Str(symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -4326,13 +4325,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let maxLimit: i64 = self.safe_integer(self.safe_dict_k(&self.options, "fetchOHLCV", &[Value::Map({
+        let mut maxLimit: Option<i64> = Some(1000);
+        let configuredLimit: Option<i64> = self.safe_integer(self.safe_dict_k(&self.options, "fetchOHLCV", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), Value::Str("limit".into()), &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-        let mut requestLimit: Option<i64> = Some(maxLimit);
+})]), Value::Str("limit".into()), &[]).as_i64();
+        if (configuredLimit.is_some()) {
+            maxLimit = configuredLimit;
+        }
+        let mut requestLimit: Option<i64> = maxLimit;
         if (limit.is_some()) {
-            requestLimit = (if let Some(__m0) = limit { Some(i64::min(__m0, maxLimit)) } else { None });
+            requestLimit = (if let (Some(__m0), Some(__m1)) = (limit, maxLimit) { Some(i64::min(__m0, __m1)) } else { None });
         }
         let duration: i64 = self.parse_timeframe(&timeframe);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4346,7 +4349,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request.insert("startTime".into(), self.ibkr_format_time(Value::from((if let Some(__l) = since { Some(__l - ((duration * 1000))) } else { None }))).map(Value::from).unwrap_or(Value::Null));
             request.insert("direction".into(), Value::Str("1".into())); // forward from startTime, by default startTime is the end of the range
-            requestLimit = (if let Some(__m0) = ((if let Some(__l) = requestLimit { Some(__l + 1) } else { None })) { Some(i64::min(__m0, maxLimit)) } else { None });
+            if (limit.is_some()) {
+                if (limit.is_some() && maxLimit.is_some() && limit < maxLimit) {
+                    requestLimit = (if let Some(__l) = limit { Some(__l + 1) } else { None });
+                }
+            }
         }
         request.insert("period".into(), self.ibkr_period(duration, Value::from(requestLimit).as_i64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
@@ -4577,7 +4584,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let accountIdparamsWithoutAccoundIdVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
         let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let paramsWithoutAccoundId: Value = accountIdparamsWithoutAccoundIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&paramsWithoutAccoundId]).into_dict();
+        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&paramsWithoutAccoundId]);
         std::sync::Arc::make_mut(&mut orderRequest).insert("acctId".into(), Value::from(accountId.as_deref()));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4605,7 +4612,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let accountIdparamsWithoutAccoundIdVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
         let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let paramsWithoutAccoundId: Value = accountIdparamsWithoutAccoundIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol, type_var, side, amount.as_f64().unwrap_or_default(), price.as_f64(), &[&paramsWithoutAccoundId]).into_dict();
+        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol, type_var, side, amount.as_f64().unwrap_or_default(), price.as_f64(), &[&paramsWithoutAccoundId]);
         std::sync::Arc::make_mut(&mut orderRequest).insert("acctId".into(), Value::from(accountId.as_deref()));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4632,7 +4639,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the order ticket
  */
-    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, optional_args: &[&Value]) -> Value {
+    pub fn create_order_request(&self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4703,11 +4710,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             clientOrderId = Some(format!("{}{}", Value::Str("ccxt".into()), self.uuid22(&[])));
         }
         request.insert("cOID".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        let query: crate::value::Dict = self.omit_t(params, &["triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"], &[]);
-        let orderTicket: crate::value::Dict = self.extend_t(Value::Map(request), &[&query]); // typed local, so the go transpiler returns a dict
-        return Value::Dict(orderTicket);
-
-    Value::Null
+        let query: indexmap::IndexMap<String, Value> = self.omit(params, &["triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"], &[]).as_map().cloned().unwrap_or_default();
+        let queryKeys: Vec<Value> = Value::Array(query.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_45: bool = true;
+            while { if !__for_first_45 { i += 1; } __for_first_45 = false; i < (queryKeys.len() as i64) } {
+            let key: Option<&str> = queryKeys.get(i as usize).and_then(Value::as_str);
+            request.insert(key.as_deref().unwrap_or("null").to_string(), query.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
+        }
+        }
+        return std::sync::Arc::new(request);
 }
 
 /*
@@ -4727,8 +4740,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut current: Value = response;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_45: bool = true;
-            while { if !__for_first_45 { i += 1; } __for_first_45 = false; i <= maxReplies } {
+            let mut __for_first_46: bool = true;
+            while { if !__for_first_46 { i += 1; } __for_first_46 = false; i <= maxReplies } {
             if !(matches!(&current, Value::Arr(_))) {
                 //
                 // advanced order reject
@@ -4810,7 +4823,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let accountIdqueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
         let accountId: Option<String> = accountIdqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: indexmap::IndexMap<String, Value> = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.unwrap_or_default(), price, &[&query]).as_map().cloned().unwrap_or_default();
+        let mut orderRequest: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.unwrap_or_default(), price, &[&query])).as_map().cloned().unwrap_or_default();
         orderRequest.insert("acctId".into(), Value::from(accountId.as_deref()));
         orderRequest.insert("accountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
         orderRequest.insert("orderId".into(), id);
@@ -5110,8 +5123,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_46: bool = true;
-            while { if !__for_first_46 { i += 1; } __for_first_46 = false; i < (parsed.len() as i64) } {
+            let mut __for_first_47: bool = true;
+            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (parsed.len() as i64) } {
             let status: Option<String> = self.safe_string_k_opt(parsed.get(i as usize).cloned().unwrap_or(Value::Null), "status", &[]);
             if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("canceled")) {
                 result.push(parsed.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -5548,9 +5561,12 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_47: bool = true;
-            while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, positions.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)).unwrap_or_default();
+            let mut __for_first_48: bool = true;
+            while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (positions.len() as i64) } {
+            let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).unwrap_or_default();
             if crate::precise::Precise::stringGt(&self.safe_string_k(&position, "contracts", &[Value::Str("0".into())]), &Value::Str("0".into())).as_bool() == Some(true) {
                 result.push(Value::Dict(position));
             }
@@ -5572,11 +5588,11 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         return Value::from(encoded.chars().skip(2).collect::<String>()).as_str().map(str::to_owned);
 }
 
-    pub fn ibkr_base_string(&self, method: &str, mut url: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Option<String> {
+    pub fn ibkr_base_string(&self, method: &str, url: &str, params: impl Into<crate::Value>, optional_args: &[Value]) -> Option<String> {
         let params: Value = params.into();
         let prepend = get_arg(optional_args, 0, Value::Str("".into()));
         let query: String = self.rawencode(self.keysort(params, &[]), &[]);
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prepend, Value::from(method)).into()), "&").into()), self.ibkr_encrypt(url.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null)).into()), "&").into()), self.ibkr_encrypt(query.as_str()).map(Value::from).unwrap_or(Value::Null)));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prepend, Value::from(method)).into()), "&").into()), self.ibkr_encrypt(url).map(Value::from).unwrap_or(Value::Null)).into()), "&").into()), self.ibkr_encrypt(query.as_str()).map(Value::from).unwrap_or(Value::Null)));
 }
 
     pub fn ibkr_auth_header(&self, params: impl Into<crate::Value>) -> Option<String> {
@@ -5586,8 +5602,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let mut parts: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_48: bool = true;
-            while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (keys.len() as i64) } {
+            let mut __for_first_49: bool = true;
+            while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).copied();
             let value: String = self.safe_string(&sorted, Value::from(key.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             parts.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=\"").into()), value).into()), "\"").into()));
@@ -5615,21 +5631,19 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
  * @ignore
  * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
  * @param {object} params the request params, the path params are read from here
- * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+ * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
  */
-    pub fn ibkr_implode_path(&self, path: &str, params: impl Into<crate::Value>) -> Value {
+    pub fn ibkr_implode_path(&self, path: &str, params: impl Into<crate::Value>) -> Option<String> {
         let params: Value = params.into();
         let segments: Vec<Value> = Value::Array(if let Some(__s) = Some(path) { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-        let mut pathParams: Vec<Value> = vec![];
         let mut imploded: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_49: bool = true;
-            while { if !__for_first_49 { i += 1; } __for_first_49 = false; i < (segments.len() as i64) } {
+            let mut __for_first_50: bool = true;
+            while { if !__for_first_50 { i += 1; } __for_first_50 = false; i < (segments.len() as i64) } {
             let segment: Option<String> = segments.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (segment.as_deref().unwrap_or_default().starts_with(":")) {
                 let name: Option<String> = (if let Some(__s) = segment.as_deref() { Some(__s.chars().skip(1).collect::<String>()) } else { None });
-                pathParams.push(Value::from(name.as_deref()));
                 let value: Option<String> = self.safe_string_opt(&params, &name, &[&Value::from(segment.as_deref())]);
                 imploded.push(value.map(Value::from).unwrap_or(Value::Null));
             }  else {
@@ -5637,7 +5651,31 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
             }
         }
         }
-        return Value::from(vec![Value::Str(imploded.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("/").into()), Value::Array(pathParams)]);
+        return Value::Str(imploded.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("/").into()).as_str().map(str::to_owned);
+}
+
+/*
+ * @method
+ * @name interactivebrokers#ibkrPathParams
+ * @description the names of the ':name' path parameters of a webapi endpoint
+ * @ignore
+ * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+ * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+ */
+    pub fn ibkr_path_params(&self, path: &str) -> Value {
+        let segments: Vec<Value> = Value::Array(if let Some(__s) = Some(path) { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let mut pathParams: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_51: bool = true;
+            while { if !__for_first_51 { i += 1; } __for_first_51 = false; i < (segments.len() as i64) } {
+            let segment: Option<String> = segments.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (segment.as_deref().unwrap_or_default().starts_with(":")) {
+                pathParams.push((if let Some(__s) = segment.as_deref() { Some(__s.chars().skip(1).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
+            }
+        }
+        }
+        return Value::from(pathParams);
 
     Value::Null
 }
@@ -5651,17 +5689,17 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
  * @param {string} gatewayUrl options.gatewayUrl
  * @returns {string} the gateway base url
  */
-    pub fn ibkr_gateway_base_url(&self, mut baseUrl: Value, gatewayUrl: &str) -> Option<String> {
+    pub fn ibkr_gateway_base_url(&self, baseUrl: &str, gatewayUrl: &str) -> Option<String> {
         let mut gateway: String = gatewayUrl.to_string();
         if !(gateway.ends_with("/")) {
             gateway = format!("{}{}", gateway, "/");
         }
         let prefix: String = "https://api.ibkr.com/".to_string();
-        if (baseUrl.as_str().zip(Some(prefix.as_str())).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
-            let path: Value = baseUrl.as_str().zip(Some(prefix.as_str())).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| baseUrl.clone());
+        if (Some(baseUrl).zip(Some(prefix.as_str())).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
+            let path: Value = Some(baseUrl).zip(Some(prefix.as_str())).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| Value::from(baseUrl));
             return Some(format!("{}{}", gateway, path));
         }
-        return baseUrl.as_str().map(str::to_owned);
+        return Some(baseUrl).map(str::to_owned);
 }
 
 /*
@@ -5755,8 +5793,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let retryDelay: i64 = self.safe_integer_k(&options, "retryDelay", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_50: bool = true;
-            while { if !__for_first_50 { i += 1; } __for_first_50 = false; i <= retries } {
+            let mut __for_first_52: bool = true;
+            while { if !__for_first_52 { i += 1; } __for_first_52 = false; i <= retries } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 return self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), config.clone()]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;

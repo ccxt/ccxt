@@ -2286,8 +2286,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
-            let mut position: Value = Value::Dict(self.parse_position(Value::Dict(rawPosition), None));
+            let mut position: Value = Value::Dict(self.parse_position(self.safe_dict(&rawPositions, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None));
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), Value::from(timestamp)); }
             if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.iso8601(timestamp)); }
             let mut marginMode: Value = self.safe_string_lower_k(&position, "marginMode", &[Value::from(defaultMarginMode.as_str())]);

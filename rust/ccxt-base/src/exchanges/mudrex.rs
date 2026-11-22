@@ -1662,7 +1662,10 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rows.len() as i64) } {
-            orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
+            orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::Arr(self.filter_by_symbol_since_limit(Value::from(orders), symbol, since, limit, &[]));
@@ -1797,10 +1800,12 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rows.len() as i64) } {
-            let p: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
-            let symRaw: Option<String> = self.safe_string_k_opt(&p, "symbol", &[]);
-            let m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
-            let pos: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, &p, Some(&m)).unwrap_or_default();
+            let symRaw: Option<String> = self.safe_string_k_opt(rows.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
+            let mut m: crate::types::Market = self.safe_market(symRaw.as_deref(), None, &[]);
+            let pos: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&m)).unwrap_or_default();
             outPos.push(Value::Dict(pos));
         }
         }

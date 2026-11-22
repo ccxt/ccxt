@@ -639,7 +639,8 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
         let access: Option<String> = api.get(1).and_then(Value::as_str).map(str::to_owned);
         let baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
-        let baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[&self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())])]);
+        let baseUrlDefault: String = self.safe_string_k(&baseUrls, "kalshi", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[&baseUrlDefault]);
         let implodedPath: String = self.implode_params(Value::from(path), &params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), implodedPath);
         let query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);

@@ -6486,7 +6486,10 @@ impl Okx {
         // }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, Value::Int(0), &[]), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -10226,7 +10229,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (positions.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, positions.get(i as usize).cloned().unwrap_or(Value::Null), None).map_or(Value::Null, Value::Dict));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr)]);

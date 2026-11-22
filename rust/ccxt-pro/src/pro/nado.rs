@@ -2526,8 +2526,8 @@ impl Nado {
                         m.insert("info".to_string(), Value::Dict(bbo));
                     m
                 }), Some(&market)));
-                let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+                let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                result.insert(symbol, Value::Map(ticker));
             }
         }
         }

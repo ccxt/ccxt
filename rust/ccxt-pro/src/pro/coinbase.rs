@@ -1440,7 +1440,7 @@ impl Coinbase {
         //        ]
         //    }
         //
-        let events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (events.is_none()) {
             return;
         }

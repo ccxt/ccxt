@@ -4054,7 +4054,10 @@ impl Xt {
         //
         if (market).spot {
             let tickers: crate::value::List = self.safe_list_k_t(&response, "result");
-            return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, tickers.get(0).cloned().unwrap_or(Value::Null), Some(&market)).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         }
         let ticker: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
@@ -4172,7 +4175,10 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (tickers.len() as i64) } {
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, tickers.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));

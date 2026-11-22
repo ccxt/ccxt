@@ -1585,8 +1585,7 @@ impl Bitfinex {
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-                let value: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-                let parsed: crate::value::Dict = self.parse_ws_order(value, None);
+                let parsed: crate::value::Dict = self.parse_ws_order(data.get(i as usize).cloned().unwrap_or(Value::Null), None);
                 let symbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 symbolIds.insert(symbol, Value::Bool(true));
                 self.orders.append(Value::Dict(parsed));

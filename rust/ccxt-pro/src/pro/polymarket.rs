@@ -1610,12 +1610,12 @@ impl Polymarket {
                                 let mut i: i64 = 0;
                 let mut __for_first_12: bool = true;
                 while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (messageHashes.len() as i64) } {
-                client.reject(error.clone(), &messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
+                let messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
+                client.reject(error.clone(), &messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                let messageHash: Value = messageHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (__ch.has_subscription(&messageHash)) {
                     __ch.remove_subscription(&messageHash);
                 }

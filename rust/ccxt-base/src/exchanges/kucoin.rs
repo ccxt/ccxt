@@ -4914,7 +4914,10 @@ impl Kucoin {
         let responses: crate::value::List = promise_all(&Value::from(promises)).await;
         let mut symbolsData: crate::value::List = std::sync::Arc::new(Vec::new());
         if fetchSpotMarkets {
-            symbolsData = self.safe_list_t(crate::value::KeyRead::read(&&responses, &Value::Int(0)), Value::Str("data".into()));
+            symbolsData = self.safe_list_t(self.safe_dict(&responses, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("data".into()));
         }
         let mut crossIndex: i64 = 0;
         let mut isolatedIndex: i64 = 0;
@@ -4937,7 +4940,10 @@ impl Kucoin {
         if fetchContractMarkets {
             contractIndex = nextIndex;
         }
-        let crossData: crate::value::Dict = (if (requestMarginables) { self.safe_dict(crate::value::KeyRead::read(&&responses, &Value::from(crossIndex)), Value::Str("data".into()), &[Value::Map({
+        let crossData: crate::value::Dict = (if (requestMarginables) { self.safe_dict(self.safe_dict(&responses, crossIndex, &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("data".into()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -4946,7 +4952,10 @@ impl Kucoin {
 }) }).into_dict();
         let crossItems: crate::value::List = self.safe_list_k_t(&crossData, "items");
         let crossById: crate::value::Dict = self.index_by(Value::Arr(crossItems), Value::Str("symbol".into()));
-        let isolatedData: crate::value::Dict = (if (requestMarginables) { crate::value::KeyRead::read(&&responses, &Value::from(isolatedIndex)) } else { Value::Map({
+        let isolatedData: crate::value::Dict = (if (requestMarginables) { self.safe_dict(&responses, isolatedIndex, &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]) } else { Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
@@ -14487,7 +14496,10 @@ impl Kucoin {
         let utaOption: bool = utaOptionparamsUtaVariable.0 == Some(true);
         let paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.1;
         let mut response: Option<crate::value::Dict> = None;
-        let mut position: Option<crate::value::Dict> = None;
+        let mut position: crate::value::Dict = std::sync::Arc::new({
+            let m = indexmap::IndexMap::new();
+            m
+        });
         if utaOption {
             request.insert("accountMode".into(), Value::Str("unified".into()));
             let __ws_arg_137 = self.extend(&request, &[&paramsUta]);
@@ -14517,10 +14529,7 @@ impl Kucoin {
             //     }
             //
             let data: crate::value::List = self.safe_list_k_t(&response, "data");
-            position = self.safe_dict_or_o(&data, Value::Int(0), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+            position = self.safe_dict_t(&data, Value::Int(0));
         }  else {
             let __ws_arg_138 = self.extend(Value::Map(request), &[&paramsUta]);
             response = self.futures_private_get_position(&[&__ws_arg_138]).await;
@@ -14568,10 +14577,7 @@ impl Kucoin {
             //        }
             //    }
             //
-            position = self.safe_dict_k_or_o(&response, "data", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+            position = self.safe_dict_k_t(&response, "data");
         }
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, &position, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null

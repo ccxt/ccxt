@@ -327,13 +327,18 @@ impl Lighter {
 }
 
     pub async fn subscribe_private(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut params = get_arg(optional_args, 0, Value::Map({
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         self.parent.pre_load_lighter_library(&[]).await;
-        { let __be_tmp = self.parent.create_auth(&[&params]).map(Value::from).unwrap_or(Value::Null); if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("auth".into(), __be_tmp); } }
-        return self.subscribe_public(messageHash, &[&params]).await;
+        let __ws_arg_3 = self.parent.create_auth(&[&params]);
+        let request: crate::value::Dict = self.extend_t(params, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("auth".to_string(), __ws_arg_3.map(Value::from).unwrap_or(Value::Null));
+            m
+        })]);
+        return self.subscribe_public(messageHash, &[&Value::Dict(request)]).await;
 
     Value::Null
 }
@@ -455,8 +460,8 @@ impl Lighter {
             m
         });
         let messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::from(symbolValue)]);
-        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_3]).await.into();
+        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_4]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -494,8 +499,8 @@ impl Lighter {
         });
         let subMessageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::from(symbolValue)]);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
-        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_4]).await;
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_5]).await;
         Value::Null
         }).await?))
     }
@@ -618,8 +623,8 @@ impl Lighter {
             m
         });
         let messageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from(symbolValue)]);
-        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_5]).await;
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+        return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_6]).await;
         Value::Null
         }).await?))
     }
@@ -659,8 +664,8 @@ impl Lighter {
         });
         let subMessageHash: Option<String> = self.get_message_hash("ticker", &[&Value::from(symbolValue)]);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
-        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_6]).await;
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_7]).await;
         Value::Null
         }).await?))
     }
@@ -715,8 +720,8 @@ impl Lighter {
             }
             }
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let newTicker: crate::value::Dict = self.subscribe_public_multiple(Value::from(messageHashes), &[&__ws_arg_7]).await.into_dict();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let newTicker: crate::value::Dict = self.subscribe_public_multiple(Value::from(messageHashes), &[&__ws_arg_8]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -768,8 +773,8 @@ impl Lighter {
         });
         let subMessageHash: Option<String> = self.get_message_hash("ticker", &[]);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_8]).await;
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_9]).await;
         Value::Null
         }).await?))
     }
@@ -1038,8 +1043,8 @@ impl Lighter {
             m
         });
         let messageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_9]).await.into();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_10]).await.into();
         return Value::Arr(self.filter_by_since_limit(&trades, since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
@@ -1076,8 +1081,8 @@ impl Lighter {
         });
         let subMessageHash: Option<String> = self.get_message_hash("trade", &[&Value::from((market).symbol.clone())]);
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_10]).await;
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_11]).await;
         Value::Null
         }).await?))
     }
@@ -1304,8 +1309,8 @@ impl Lighter {
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_11]).await.into();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_12]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -1349,8 +1354,8 @@ impl Lighter {
                 m.insert("channel".to_string(), Value::Str(format!("{}{}", Value::Str("account_all_trades/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_12]).await;
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_13]).await;
         Value::Null
         }).await?))
     }
@@ -1515,8 +1520,8 @@ impl Lighter {
             m
         });
         let messageHash: Option<String> = self.get_message_hash("liquidations", &[&symbol]);
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_13]).await;
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+        return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_14]).await;
         Value::Null
         }).await?))
     }
@@ -1557,12 +1562,12 @@ impl Lighter {
         });
         if (type_var.as_deref() == Some("spot")) {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_assets/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
-            let __ws_arg_14 = self.extend(&request, &[&paramsAccountIndex]);
-            return self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_14]).await;
+            let __ws_arg_15 = self.extend(&request, &[&paramsAccountIndex]);
+            return self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_15]).await;
         }  else {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("user_stats/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
-            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-            return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_15]).await;
+            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+            return self.subscribe_public(messageHash.as_deref().unwrap_or_default(), &[&__ws_arg_16]).await;
         }
         Value::Null
         }).await?))
@@ -1714,8 +1719,8 @@ impl Lighter {
             messageHash = self.get_message_hash("orders", &[]);
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_16]).await.into();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_private(messageHash.as_deref().unwrap_or_default(), &[__ws_arg_17]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit);
@@ -1765,8 +1770,8 @@ impl Lighter {
             request.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("account_all_orders/".into()), Value::from(self.number_to_string(Value::from(accountIndex)))).into()));
         }
         let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_17]).await;
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        return self.unsubscribe(messageHash.as_str(), &[__ws_arg_18]).await;
         Value::Null
         }).await?))
     }
@@ -2014,7 +2019,10 @@ impl Lighter {
                                 let mut j: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { j += 1; } __for_first_8 = false; j < (orders.len() as i64) } {
-                let order: crate::value::Dict = self.parse_order(orders.get(j as usize).cloned().unwrap_or(Value::Null), Some(&market));
+                let order: crate::value::Dict = self.parse_order(self.safe_dict(&orders, Value::Int(j), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), Some(&market));
                 self.orders.append(Value::from(&order));
                 let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
                 if (symbol.is_some()) {

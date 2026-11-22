@@ -394,7 +394,7 @@ impl Gemini {
         //
         let marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let mut trades: Option<crate::value::List> = (match __pro_message.get("trades").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (trades.is_some()) {
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let tradesLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1256,7 +1256,7 @@ impl Gemini {
         if (type_var == "update") {
             let ts: Option<i64> = self.safe_integer_k(message, "timestampms", &[Value::Int(self.milliseconds())]).as_i64();
             let eventId: Option<i64> = (match __pro_message.get("eventId") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
-            let events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+            let events: Option<crate::value::List> = (match __pro_message.get("events").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
             if (events.is_none()) {
                 return;
             }

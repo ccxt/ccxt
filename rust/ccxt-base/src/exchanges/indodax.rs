@@ -1251,10 +1251,7 @@ impl Indodax {
         // }
         //
         let response: crate::value::Dict = self.public_get_api_ticker_all(&[&params]).await.unwrap_or_default();
-        let tickers: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "tickers", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
+        let tickers: crate::value::Dict = self.safe_dict_k_t(&response, "tickers");
         let mut keys: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut parsedTickers: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -1265,10 +1262,12 @@ impl Indodax {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let rawTicker: crate::value::Dict = tickers.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
             let marketId: Option<String> = (if let Some(__s) = key.as_deref() { Some(__s.replace("_", "")) } else { None });
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let parsed: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+            let parsed: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::from(key.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             parsedTickers.insert(marketId.as_deref().unwrap_or("null").to_string(), Value::Map(parsed));
         }
         }

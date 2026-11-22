@@ -401,7 +401,7 @@ impl Luno {
 })]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (asks.is_none()) {
             let inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), &message, symbol.as_str()).as_bool() == Some(true);
             if !inSequence {

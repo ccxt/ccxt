@@ -2347,6 +2347,7 @@ impl Gemini {
     let m = indexmap::IndexMap::new();
     m
 }));
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[&params]).await.into_dict();
         let tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[&params]).await.into_dict();
         let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.to_vec();

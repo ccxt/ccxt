@@ -2503,12 +2503,15 @@ impl Backpack {
         let params: Value = params.into();
         let defaultStock: bool = self.safe_bool_k_opt(&market, "stock", &[Value::Bool(false)]).unwrap_or(false);
         let stockqueryVariable = self.handle_option_bool_and_params(params, Value::from(methodName), Value::Str("stock".into()), &[Value::Bool(defaultStock)]);
-        let stock: Option<bool> = stockqueryVariable.0;
+        let stock: bool = stockqueryVariable.0 == Some(true);
         let query: crate::value::Dict = stockqueryVariable.1;
-        if (market.is_some()) && (stock == Some(true)) && !matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market.is_some()) && stock && !matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(methodName)).into()), "() requires a stock market")));
         }
-        return (stock, query);
+        if (stock) {
+            return (Value::Bool(true).as_bool(), query);
+        }
+        return (Value::Bool(false).as_bool(), query);
 }
 
 /*
@@ -2550,8 +2553,8 @@ impl Backpack {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("fetchStockIndicativeQuote", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("fetchStockIndicativeQuote", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchStockIndicativeQuote() requires a stock market")));
         }
@@ -2763,8 +2766,8 @@ impl Backpack {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let market: crate::types::Market = self.rfq_conversion_market(fromCode.as_str().unwrap_or_default(), toCode.as_str().unwrap_or_default());
-        let selection = self.handle_stock_params("createConvertTrade", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("createConvertTrade", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         let quoteId: Option<String> = self.safe_string_k_opt(&query, "quoteId", &[]);
         if (quoteId.is_some()) {
             let acceptParams: crate::value::Dict = self.omit_t(&query, &["quoteId", "price", "baseAmount", "clientOrderId"], &[]);
@@ -2874,9 +2877,10 @@ impl Backpack {
  */
     pub fn stock_data_request(&self, methodName: &str, params: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let mut params: Value = params.into();
-        let selection = self.handle_stock_params(methodName, params, market);
-        let mut stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockValuequeryVariable = self.handle_stock_params(methodName, params, market);
+        let stockValue: bool = stockValuequeryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockValuequeryVariable.1;
+        let mut stock: bool = stockValue;
         let mut request: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
@@ -3145,8 +3149,8 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("fetchOrderBook", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("fetchOrderBook", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         let source: Option<String> = self.safe_string_k_opt(&query, "source", &[&Value::Str("Venue".into())]);
         if (source.as_deref() != Some("Venue")) || (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices")));
@@ -3466,8 +3470,8 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("fetchTrades", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("fetchTrades", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(&query, "source", &[Value::Str("Venue".into())]).as_str() != Some("Venue")) || (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills")));
         }
@@ -3538,9 +3542,10 @@ impl Backpack {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
-        let selection = self.handle_stock_params("fetchMyTrades", params, market.as_ref());
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockValuequeryVariable = self.handle_stock_params("fetchMyTrades", params, market.as_ref());
+        let stockValue: bool = stockValuequeryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockValuequeryVariable.1;
+        let stock: bool = stockValue;
         let rfq: bool = self.safe_bool_k(&query, "rfq", &[Value::Bool(false)]).as_bool() == Some(true) || (self.safe_string_k(self.safe_dict_k(&market, "info", &[]), "marketType", &[]).as_str() == Some("RFQ"));
         let aggregate: bool = stock && (market.is_none()) && !rfq;
         if rfq && (market.is_some()) && (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
@@ -4020,12 +4025,12 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("createOrder", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
-        let __ws_arg_19 = Value::Bool(selection.0.unwrap_or(false));
+        let stockqueryVariable = self.handle_stock_params("createOrder", params, Some(&market));
+        let mut stock: Option<bool> = stockqueryVariable.0;
+        let query: crate::value::Dict = stockqueryVariable.1;
         let orderParams: crate::value::Dict = self.extend_t(query, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("stock".to_string(), __ws_arg_19);
+                m.insert("stock".to_string(), stock.map_or(Value::Null, Value::Bool));
             m
         })]);
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
@@ -4068,8 +4073,9 @@ impl Backpack {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("createRfqOrder", params.clone(), Some(&market));
-        let paramsResolved: crate::value::Dict = selection.1;
+        let rfqParamsVariable = self.handle_stock_params("createRfqOrder", params.clone(), Some(&market));
+        let rfqParams: crate::value::Dict = rfqParamsVariable.1;
+        let paramsResolved: crate::value::Dict = std::sync::Arc::clone(&rfqParams);
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " createRfqOrder() requires an RFQ market")));
         }
@@ -4160,8 +4166,8 @@ impl Backpack {
             request.insert("clientId".into(), Value::from(clientOrderId));
         }
         let query: crate::value::Dict = self.omit_t(&paramsResolved, Value::Str("clientOrderId".into()), &[]);
-        let __ws_arg_20 = self.extend(query, &[Value::Map(request)]);
-        let response: crate::value::Dict = self.private_post_api_v1_rfq(&[&__ws_arg_20]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(query, &[Value::Map(request)]);
+        let response: crate::value::Dict = self.private_post_api_v1_rfq(&[&__ws_arg_19]).await.unwrap_or_default();
         let mut order: Option<crate::value::Dict> = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         if let Some(__rda) = &mut order { std::sync::Arc::make_mut(__rda).insert("type".to_string(), Value::from(type_var)); }
         return order;
@@ -4188,8 +4194,8 @@ impl Backpack {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("acceptRfqQuote", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("acceptRfqQuote", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " acceptRfqQuote() requires an RFQ market")));
         }
@@ -4199,8 +4205,8 @@ impl Backpack {
                 m.insert("quoteId".to_string(), Value::from(quoteId));
             m
         });
-        let __ws_arg_21 = self.extend(query, &[Value::Map(request)]);
-        let response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(query, &[Value::Map(request)]);
+        let response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[&__ws_arg_20]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
 
     Default::default()
@@ -4289,8 +4295,8 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("createOrder", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("createOrder", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrders() does not support RFQ batches; use createOrder()")));
         }
@@ -4312,7 +4318,7 @@ impl Backpack {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
             request.insert(quantityKey, Value::from(self.amount_to_precision(symbol, Value::from(amount))));
         }  else if (type_var == Some("market")) {
-            let cost: Option<String> = self.safe_string2_opt(&query, Value::Str("cost".into()), Value::Str("quoteQuantity".into()), &[]);
+            let cost: Option<String> = self.safe_string2_opt(Value::from(&query), Value::Str("cost".into()), Value::Str("quoteQuantity".into()), &[]);
             if (cost.is_some()) {
                 request.insert("quoteQuantity".into(), Value::from(self.cost_to_precision(symbol, cost.map(Value::from).unwrap_or(Value::Null))));
                 omitKeys.push(Value::Str("cost".into()));
@@ -4428,9 +4434,10 @@ impl Backpack {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
-        let selection = self.handle_stock_params("fetchOpenOrders", params, market.as_ref());
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockValuequeryVariable = self.handle_stock_params("fetchOpenOrders", params, market.as_ref());
+        let stockValue: bool = stockValuequeryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockValuequeryVariable.1;
+        let stock: bool = stockValue;
         let rfq: bool = self.safe_bool_k(&query, "rfq", &[Value::Bool(false)]).as_bool() == Some(true) || (self.safe_string_k(self.safe_dict_k(&market, "info", &[]), "marketType", &[]).as_str() == Some("RFQ"));
         if rfq && (market.is_some()) && (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchOpenOrders() rfq requires an RFQ market symbol")));
@@ -4439,12 +4446,12 @@ impl Backpack {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if !rfq {
             let venueParams: crate::value::Dict = self.omit_t(&accountParams, &["rfqId", "deferredSettlement"], &[]);
-            let __ws_arg_22 = self.extend(&request, &[&venueParams]);
-            response = self.private_get_api_v1_orders(&[&__ws_arg_22]).await.unwrap_or_default();
+            let __ws_arg_21 = self.extend(&request, &[&venueParams]);
+            response = self.private_get_api_v1_orders(&[&__ws_arg_21]).await.unwrap_or_default();
         }
         if rfq || (stock && (market.is_none())) {
-            let __ws_arg_23 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
-            let rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[&__ws_arg_23]).await.unwrap_or_default();
+            let __ws_arg_22 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
+            let rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[&__ws_arg_22]).await.unwrap_or_default();
             response = self.array_concat_t(Value::Arr(response), &rfqResponse);
         }
         let mut orders: Value = Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since)]));
@@ -4487,16 +4494,16 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrder() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("fetchOpenOrder", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("fetchOpenOrder", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
-            let __ws_arg_24 = self.extend(&query, &[Value::Map({
+            let __ws_arg_23 = self.extend(&query, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                     m.insert("rfqId".to_string(), id.clone());
                 m
             })]);
-            let rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[&__ws_arg_24]).await.unwrap_or_default();
+            let rfqResponse: crate::value::List = self.private_get_api_v1_rfqs(&[&__ws_arg_23]).await.unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_16: bool = true;
@@ -4518,8 +4525,8 @@ impl Backpack {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::Dict = self.private_get_api_v1_order(&[&__ws_arg_25]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::Dict = self.private_get_api_v1_order(&[&__ws_arg_24]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4555,8 +4562,9 @@ impl Backpack {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("fetchOrder", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let stockSelectedqueryVariable = self.handle_stock_params("fetchOrder", params, Some(&market));
+        let mut stockSelected: Option<bool> = stockSelectedqueryVariable.0;
+        let query: crate::value::Dict = stockSelectedqueryVariable.1;
         let rfq: bool = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ");
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4570,11 +4578,11 @@ impl Backpack {
         }
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if rfq {
-            let __ws_arg_26 = self.extend(&query, &[&request]);
-            response = self.private_get_wapi_v1_history_rfq(&[&__ws_arg_26]).await.unwrap_or_default();
+            let __ws_arg_25 = self.extend(&query, &[&request]);
+            response = self.private_get_wapi_v1_history_rfq(&[&__ws_arg_25]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_27 = self.extend(&query, &[Value::Map(request)]);
-            response = self.private_get_wapi_v1_history_orders(&[&__ws_arg_27]).await.unwrap_or_default();
+            let __ws_arg_26 = self.extend(&query, &[Value::Map(request)]);
+            response = self.private_get_wapi_v1_history_orders(&[&__ws_arg_26]).await.unwrap_or_default();
         }
         {
                         let mut i: i64 = 0;
@@ -4589,10 +4597,9 @@ impl Backpack {
             }
         }
         }
-        let __ws_arg_28 = Value::Bool(selection.0.unwrap_or(false));
         let openOrderParams: crate::value::Dict = self.extend_t(query, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("stock".to_string(), __ws_arg_28);
+                m.insert("stock".to_string(), stockSelected.map_or(Value::Null, Value::Bool));
             m
         })]);
         return crate::types::IntoRaw::into_raw(self.fetch_open_order(id.as_str().unwrap_or_default(), symbol.as_str(), Value::Dict(openOrderParams)).await);
@@ -4632,8 +4639,8 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("cancelOrder", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("cancelOrder", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             let clientOrderId: Option<i64> = self.safe_integer_k(&query, "clientOrderId", &[]).as_i64();
             let mut rfqRequest: indexmap::IndexMap<String, Value> = ({
@@ -4645,8 +4652,8 @@ impl Backpack {
             }  else {
                 rfqRequest.insert("clientId".into(), Value::from(clientOrderId));
             }
-            let __ws_arg_29 = self.extend(self.omit(&query, Value::Str("clientOrderId".into()), &[]), &[Value::Map(rfqRequest)]);
-            let rfqResponse: crate::value::Dict = self.private_post_api_v1_rfq_cancel(&[&__ws_arg_29]).await.unwrap_or_default();
+            let __ws_arg_27 = self.extend(self.omit(&query, Value::Str("clientOrderId".into()), &[]), &[Value::Map(rfqRequest)]);
+            let rfqResponse: crate::value::Dict = self.private_post_api_v1_rfq_cancel(&[&__ws_arg_27]).await.unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rfqResponse, Some(&market));
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -4655,8 +4662,8 @@ impl Backpack {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_30 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::Dict = self.private_delete_api_v1_order(&[&__ws_arg_30]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::Dict = self.private_delete_api_v1_order(&[&__ws_arg_28]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         None
         }).await?))
@@ -4691,8 +4698,8 @@ impl Backpack {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a symbol argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let selection = self.handle_stock_params("cancelAllOrders", params, Some(&market));
-        let query: crate::value::Dict = selection.1;
+        let queryVariable = self.handle_stock_params("cancelAllOrders", params, Some(&market));
+        let query: crate::value::Dict = queryVariable.1;
         if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()")));
         }
@@ -4701,8 +4708,8 @@ impl Backpack {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::List = self.private_delete_api_v1_orders(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::List = self.private_delete_api_v1_orders(&[&__ws_arg_29]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, Some(&market), &[]));
         Value::Null
         }).await?))
@@ -4753,9 +4760,10 @@ impl Backpack {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let selection = self.handle_stock_params("fetchOrders", params, market.as_ref());
-        let stock: bool = selection.0.unwrap_or(false);
-        let query: crate::value::Dict = selection.1;
+        let stockValuequeryVariable = self.handle_stock_params("fetchOrders", params, market.as_ref());
+        let stockValue: bool = stockValuequeryVariable.0 == Some(true);
+        let query: crate::value::Dict = stockValuequeryVariable.1;
+        let stock: bool = stockValue;
         let rfq: bool = self.safe_bool_k(&query, "rfq", &[Value::Bool(false)]).as_bool() == Some(true) || (self.safe_string_k(self.safe_dict_k(&market, "info", &[]), "marketType", &[]).as_str() == Some("RFQ"));
         if rfq && (market.is_some()) && (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " fetchOrders() rfq requires an RFQ market symbol")));
@@ -4764,12 +4772,12 @@ impl Backpack {
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if !rfq {
             let venueParams: crate::value::Dict = self.omit_t(&accountParams, &["rfqId", "status", "side", "deferredSettlement"], &[]);
-            let __ws_arg_32 = self.extend(&request, &[&venueParams]);
-            response = self.private_get_wapi_v1_history_orders(&[&__ws_arg_32]).await.unwrap_or_default();
+            let __ws_arg_30 = self.extend(&request, &[&venueParams]);
+            response = self.private_get_wapi_v1_history_orders(&[&__ws_arg_30]).await.unwrap_or_default();
         }
         if rfq || (stock && (market.is_none())) {
-            let __ws_arg_33 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
-            let rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq(&[&__ws_arg_33]).await.unwrap_or_default();
+            let __ws_arg_31 = self.extend(Value::Map(request), &[self.omit(&accountParams, Value::Str("marketType".into()), &[])]);
+            let rfqResponse: crate::value::List = self.private_get_wapi_v1_history_rfq(&[&__ws_arg_31]).await.unwrap_or_default();
             response = self.array_concat_t(Value::Arr(response), &rfqResponse);
         }
         let mut orders: Value = Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since)]));
@@ -4881,8 +4889,8 @@ impl Backpack {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::List = self.private_get_wapi_v1_history_funding(&[&__ws_arg_34]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::List = self.private_get_wapi_v1_history_funding(&[&__ws_arg_32]).await.unwrap_or_default();
         return self.parse_incomes(&response, &[crate::Value::from(market.as_ref()), Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))

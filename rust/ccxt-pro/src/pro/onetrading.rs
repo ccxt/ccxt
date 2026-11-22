@@ -1042,7 +1042,10 @@ impl Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (rawOrders.len() as i64) } {
-            let order: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let order: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[&Value::Str("".into())]);
             self.orders.append(Value::Dict(order));
             client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", "orders:", symbol.as_deref().unwrap_or("null")).into())));

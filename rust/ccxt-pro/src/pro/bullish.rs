@@ -741,7 +741,10 @@ impl Bullish {
                                 let mut i: i64 = 0;
                 let mut __for_first_2: bool = true;
                 while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (rawOrders.len() as i64) } {
-                let parsedOrder: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None);
+                let parsedOrder: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), None);
                 self.orders.append(Value::from(&parsedOrder));
                 let symbol: Option<String> = self.safe_string_k_opt(&parsedOrder, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -1109,7 +1112,10 @@ impl Bullish {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (rawPositions.len() as i64) } {
-            let position: crate::value::Dict = self.parse_position(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let position: crate::value::Dict = self.parse_position(self.safe_dict(&rawPositions, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             self.positions.append(Value::from(&position));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
         }

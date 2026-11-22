@@ -269,7 +269,7 @@ impl Interactivebrokers {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
             let replacedUrl: String = wsUrl.replace("wss://", "https://");
-            let restUrl: Option<String> = self.parent.ibkr_gateway_base_url(Value::from(replacedUrl), gatewayUrl.as_deref().unwrap_or_default());
+            let restUrl: Option<String> = self.parent.ibkr_gateway_base_url(replacedUrl.as_str(), gatewayUrl.as_deref().unwrap_or_default());
             url = (if let Some(__s) = restUrl.as_deref() { Some(__s.replace("https://", "wss://")) } else { None }).map(Value::from).unwrap_or(Value::Null);
             url = url.as_str().map(|__s| Value::Str(__s.replace("http://", "ws://").into())).unwrap_or_else(|| url.clone());
         }  else {

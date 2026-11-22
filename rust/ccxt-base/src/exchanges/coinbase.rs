@@ -4116,10 +4116,7 @@ if _try_result.is_err() {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rates: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "rates", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
+        let rates: crate::value::Dict = self.safe_dict_k_t(&data, "rates");
         let quoteId: String = self.safe_string_k(&data, "currency", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -4135,7 +4132,10 @@ if _try_result.is_err() {
             let marketId: String = format!("{}{}", Value::Str(format!("{}{}", baseId.as_deref().unwrap_or("null"), delimiter).into()), quoteId);
             let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[Value::from(delimiter.as_str())]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, rates.get(baseId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market)).map_or(Value::Null, Value::Dict));
+            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&rates, Value::from(baseId.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

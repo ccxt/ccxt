@@ -7931,6 +7931,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let positionSide: Option<String> = self.safe_string_k_opt(&params, "positionSide", &[]);
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) && (positionSide.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setMargin() requires a positionSide parameter for Coin-M markets")));
@@ -7939,7 +7940,7 @@ impl Bingx {
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
             amountString = self.currency_to_precision((Value::from((market).settle.as_deref())).as_str(), Value::from(amount), &[]);
         }  else {
-            amountString = self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount));
+            amountString = self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount));
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

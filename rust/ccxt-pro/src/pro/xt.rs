@@ -362,9 +362,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (obBids.len() as i64) } {
-            let bid: crate::value::List = self.safe_list_t(&obBids, Value::Int(i));
-            let price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
-            let quantity: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
+            let price: Option<f64> = self.safe_number(obBids.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+            let quantity: Option<f64> = self.safe_number(obBids.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
             bids.store(price, quantity);
         }
         }
@@ -372,9 +371,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (obAsks.len() as i64) } {
-            let ask: crate::value::List = self.safe_list_t(&obAsks, Value::Int(i));
-            let price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
-            let quantity: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
+            let price: Option<f64> = self.safe_number(obAsks.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+            let quantity: Option<f64> = self.safe_number(obAsks.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
             asks.store(price, quantity);
         }
         }
@@ -1743,9 +1741,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                         let mut i: i64 = 0;
                     let mut __for_first_7: bool = true;
                     while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let ask: crate::value::List = self.safe_list_t(&obAsks, Value::Int(i));
-                    let price: Option<f64> = self.safe_number(&ask, Value::Int(0), &[]).as_f64();
-                    let quantity: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
+                    let price: Option<f64> = self.safe_number(obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+                    let quantity: Option<f64> = self.safe_number(obAsks.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
                     asks.store(price, quantity);
                 }
                 }
@@ -1756,9 +1753,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                         let mut i: i64 = 0;
                     let mut __for_first_8: bool = true;
                     while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (obBids.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                    let bid: crate::value::List = self.safe_list_t(&obBids, Value::Int(i));
-                    let price: Option<f64> = self.safe_number(&bid, Value::Int(0), &[]).as_f64();
-                    let quantity: Option<f64> = self.safe_number(&bid, Value::Int(1), &[]).as_f64();
+                    let price: Option<f64> = self.safe_number(obBids.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_f64();
+                    let quantity: Option<f64> = self.safe_number(obBids.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]).as_f64();
                     bids.store(price, quantity);
                 }
                 }

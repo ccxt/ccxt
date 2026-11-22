@@ -75,7 +75,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "fetch_positions_ws" => crate::types::IntoRaw::into_raw(self.fetch_positions_ws(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "get_cancel_on_disconnect" => self.get_cancel_on_disconnect(&args[..]).await,
                 "get_ws_url" => self.get_ws_url(&args[..]),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_trades" => self.handle_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -157,7 +157,7 @@ impl Coinbaseinternational {
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_error_message" => self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
+            "handle_error_message" => self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_heartbeat" => { crate::exchange_stubs::enqueue_spawn("handle_heartbeat", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -2254,22 +2254,24 @@ impl Coinbaseinternational {
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let error: Option<crate::value::Dict> = self.safe_dict_k_o(&message, "error");
+        let __pro_message_empty = indexmap::IndexMap::new();
+        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let error: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "error");
         if (error.is_none()) {
             return Value::Bool(false);
         }
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message));
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
-            let requestId: Option<String> = self.safe_string_k_opt(message, "id", &[]);
+            let requestId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let authRequestId: Option<String> = self.safe_string_k_opt(&self.options, "wsAuthRequestId", &[]);
             let messageHash: Option<String> = (if (requestId == authRequestId) { Some("authenticated".to_string()) } else { requestId });
             if (messageHash.as_deref() == Some("authenticated")) && (__ch.has_subscription((&messageHash).as_deref())) {
@@ -2308,7 +2310,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client, message.clone()).as_bool() == Some(true)) {
+        if (self.handle_error_message(&client, &message).as_bool() == Some(true)) {
             return;
         }
         let method: Option<String> = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

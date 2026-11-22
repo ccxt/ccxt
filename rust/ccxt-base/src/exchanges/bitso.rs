@@ -1881,16 +1881,17 @@ impl Bitso {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("book".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), side);
                 m.insert("type".to_string(), type_var.clone());
-                m.insert("major".to_string(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
+                m.insert("major".to_string(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), Value::from(price))));
+            request.insert("price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), Value::from(price))));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_orders(&[&__ws_arg_8]).await.unwrap_or_default();
@@ -2178,10 +2179,13 @@ impl Bitso {
         let payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let numOrders: i64 = payload.len() as i64;
         if (numOrders == 1) {
-            return <Self as crate::exchange::DerivedExchange>::parse_order(self, payload.get(0).cloned().unwrap_or(Value::Null), None);
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&payload, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, ": The order ").into()), id).into()), " not found.")));
-        None
+        Value::Null
         }).await?))
     }
 

@@ -2967,7 +2967,7 @@ if _try_result.is_err() {
                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } },
                 _ => Value::Null })).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
-            result = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1), Some(__m2)) = (result, ((if let Some(__r) = factor { Some(((high * 16)) * __r) } else { None })), ((if let Some(__r) = factor { Some(low * __r) } else { None }))) { Some((__m0 + __m1 + __m2)) } else { None })));
+            result = self.parse_to_int(Value::from((if let (Some(__m0), Some(__m1), Some(__m2)) = (result, ((if let Some(__l) = ((if let Some(__r) = factor { Some(high * __r) } else { None })) { Some(__l * 16) } else { None })), ((if let Some(__r) = factor { Some(low * __r) } else { None }))) { Some((__m0 + __m1 + __m2)) } else { None })));
             factor = self.parse_to_int(Value::from((if let Some(__l) = factor { Some(__l * 256) } else { None })));
             position = self.parse_to_int(Value::from(next));
         }

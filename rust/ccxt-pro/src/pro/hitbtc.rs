@@ -591,19 +591,16 @@ impl Hitbtc {
         //        }
         //    }
         //
-        let snapshot: Value = self.safe_dict2(message, Value::Str("snapshot".into()), Value::Str("data".into()), &[]);
-        let mut data: Value = (match __pro_message.get("update").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) });
-        if (snapshot != Value::Null) {
-            data = snapshot.clone();
+        let snapshot: Option<crate::value::Dict> = self.safe_dict2_o(message, Value::Str("snapshot".into()), Value::Str("data".into()));
+        let mut data: crate::value::Dict = __pro_message.key_dict("update");
+        if (snapshot.is_some()) {
+            data = snapshot.clone().unwrap_or_default();
         }
         let mut type_var: String = "update".to_string();
-        if (snapshot != Value::Null) && (snapshot != Value::Null) {
+        if (snapshot.is_some()) && (snapshot.is_some()) {
             type_var = "snapshot".to_string();
         }
-        let marketIds: Vec<Value> = object_keys(&data).as_array().cloned().unwrap_or_default();
+        let marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
@@ -611,7 +608,7 @@ impl Hitbtc {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
-            let item: crate::value::Dict = get_value(&data, marketId.as_deref()).into_dict();
+            let item: crate::value::Dict = crate::value::KeyRead::read(&&data, &Value::from(marketId)).into_dict();
             let messageHash: String = format!("{}{}", "orderbooks::", symbol.as_deref().unwrap_or("null"));
             if !(self.orderbooks.has(&symbol)) {
                 let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
@@ -2057,29 +2054,25 @@ impl Hitbtc {
         //    }
         //
         let messageHash: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let result: Value = (match __pro_message.get("result").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Map({
+        let rows: Option<crate::value::List> = (match __pro_message.get("result").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
+        if (rows.is_none()) {
+            let parsedOrder: crate::value::Dict = self.parse_ws_order((match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}), Some(__v) => __v, None => Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) });
-        if (matches!(&result, Value::Arr(_))) {
+}) }), None);
+            client.resolve(Value::Dict(parsedOrder), messageHash.as_deref());
+        }  else {
             let mut parsedOrders: crate::value::List = std::sync::Arc::new(Vec::new());
-            let rows: crate::value::List = __pro_message.key_list("result");
-            let rowsLength: i64 = rows.len() as i64;
+            let rowsLength: i64 = rows.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < rowsLength } {
-                let parsedOrder: crate::value::Dict = self.parse_ws_order(rows.get(i as usize).cloned().unwrap_or(Value::Null), None);
+                let parsedOrder: crate::value::Dict = self.parse_ws_order(rows.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut parsedOrders).push(Value::Dict(parsedOrder));
             }
             }
             client.resolve(Value::Arr(parsedOrders), messageHash.as_deref());
-        }  else {
-            let parsedOrder: crate::value::Dict = self.parse_ws_order(result, None);
-            client.resolve(Value::Dict(parsedOrder), messageHash.as_deref());
         }
         return message;
 

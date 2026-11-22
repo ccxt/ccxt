@@ -4592,10 +4592,10 @@ impl Phemex {
                 request.insert("clOrdID".into(), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into()));
             }
         }  else {
-            request.insert("clOrdID".into(), Value::from(clientOrderId.as_deref()));
+            request.insert("clOrdID".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["clOrdID", "clientOrderId"], &[]) } else { params }).into_dict();
-        let triggerPrice: Option<String> = self.safe_string_n_opt(Value::from(&paramsOmitted), Value::from(vec![Value::Str("stopPx".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]);
+        let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clOrdID", "clientOrderId"], &[]);
+        let triggerPrice: Option<String> = self.safe_string_n_opt(&paramsOmitted, Value::from(vec![Value::Str("stopPx".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
             if isStableSettled {
                 request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
@@ -4890,6 +4890,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
@@ -4906,7 +4907,7 @@ impl Phemex {
         }
         if (price.is_some()) {
             if isStableSettled {
-                request.insert("priceRp".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), &Value::from(price))));
+                request.insert("priceRp".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), &Value::from(price))));
             }  else {
                 request.insert("priceEp".into(), self.to_ep(Value::from(price), Some(&market)));
             }
@@ -4918,7 +4919,7 @@ impl Phemex {
             request.insert("baseQtyEV".into(), finalQty.map(Value::from).unwrap_or(Value::Null));
         }  else if (amount.is_some()) {
             if isStableSettled {
-                request.insert("orderQtyRq".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), &Value::from(amount))));
+                request.insert("orderQtyRq".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), &Value::from(amount))));
             }  else {
                 request.insert("baseQtyEV".into(), self.to_ev(Value::from(amount), &[&(market).raw]));
             }

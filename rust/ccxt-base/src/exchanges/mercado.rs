@@ -1160,6 +1160,7 @@ impl Mercado {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin_pair".to_string(), Value::from((market).id.as_deref()));
@@ -1167,8 +1168,8 @@ impl Mercado {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), &Value::from(price))));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), &Value::from(amount))));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), &Value::from(price))));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), &Value::from(amount))));
             if (side.as_str() == Some("buy")) {
                 let __ws_arg_5 = self.extend(&request, &[&params]);
                 response = self.private_post_place_buy_order(&[&__ws_arg_5]).await;
@@ -1183,11 +1184,11 @@ impl Mercado {
                 }
                 let amountString: Option<String> = self.number_to_string(&amount);
                 let priceString: Option<String> = self.number_to_string(price);
-                request.insert("cost".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
+                request.insert("cost".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)))));
                 let __ws_arg_7 = self.extend(&request, &[&params]);
                 response = self.private_post_place_market_buy_order(&[&__ws_arg_7]).await;
             }  else {
-                request.insert("quantity".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
+                request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
                 let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
                 response = self.private_post_place_market_sell_order(&[&__ws_arg_8]).await;
             }

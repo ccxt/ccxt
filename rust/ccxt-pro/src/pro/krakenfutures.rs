@@ -645,7 +645,7 @@ impl Krakenfutures {
             // https://github.com/ccxt/ccxt/issues/29709
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let rawPositions: Option<crate::value::List> = (match __pro_message.get("positions").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let rawPositions: Option<crate::value::List> = (match __pro_message.get("positions").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (rawPositions.is_none()) {
             return;
         }
@@ -1713,11 +1713,11 @@ impl Krakenfutures {
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let bids: Option<crate::value::List> = (match __pro_message.get("bids").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let bids: Option<crate::value::List> = (match __pro_message.get("bids").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (bids.is_none()) {
             return;
         }
-        let asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (asks.is_none()) {
             return;
         }

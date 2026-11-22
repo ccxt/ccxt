@@ -1280,7 +1280,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let __ws_arg_4 = self.extend(data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1996,10 +1996,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //    }
         //
         let data: crate::value::Dict = message.key_dict("data");
-        let rawPositions: indexmap::IndexMap<String, Value> = self.safe_dict_k(&data, "positions", &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]).as_map().cloned().unwrap_or_default();
+        let rawPositions: crate::value::Dict = self.safe_dict_k_t(&data, "positions");
         let postitionsIds: Vec<Value> = Value::Array(rawPositions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -2011,8 +2008,10 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (postitionsIds.len() as i64) } {
             let marketId: Option<&str> = postitionsIds.get(i as usize).and_then(Value::as_str);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let rawPosition: crate::value::Dict = rawPositions.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_dict();
-            let position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), Some(&market));
+            let position: crate::value::Dict = self.parse_position(self.safe_dict(&rawPositions, Value::from(marketId.as_deref()), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::from(&position));
             let marketSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

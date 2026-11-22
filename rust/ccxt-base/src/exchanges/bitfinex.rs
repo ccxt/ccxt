@@ -3642,8 +3642,16 @@ impl Bitfinex {
                 m
             }));
         }
-        let paramsOmitted: crate::value::Dict = (if (cid.is_some()) { self.omit(&params, &["cid", "clientOrderId"], &[]) } else { params }).into_dict();
-        let __ws_arg_8 = self.extend(request.map_or(Value::Null, Value::Dict), &[&paramsOmitted]);
+        let mut paramsOmitted: Value = Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        });
+        if (cid.is_some()) {
+            paramsOmitted = self.omit(&params, &["cid", "clientOrderId"], &[]);
+        }  else {
+            paramsOmitted = params;
+        }
+        let __ws_arg_8 = self.extend(request.map_or(Value::Null, Value::Dict), &[paramsOmitted]);
         let response: crate::value::List = self.private_post_auth_w_order_cancel(&[&__ws_arg_8]).await.unwrap_or_default();
         let mut order: Option<crate::value::List> = self.safe_list_o(&response, Value::Int(4));
         let newOrder: indexmap::IndexMap<String, Value> = ({

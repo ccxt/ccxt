@@ -2728,12 +2728,13 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (amount.is_none()) || (price.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires both the amount and the price arguments")));
         }
         let orderId: Option<i64> = self.parse_to_int(id);
-        let priceString: Option<String> = self.price_to_precision(Some((market).symbol.as_str()), Value::from(price));
-        let quantity: Option<String> = self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount));
+        let priceString: Option<String> = self.price_to_precision(Some(precisionSymbol.as_str()), Value::from(price));
+        let quantity: Option<String> = self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount));
         let signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), Value::from(priceString.as_deref()), Value::from(quantity.as_deref())])])]);
         let bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

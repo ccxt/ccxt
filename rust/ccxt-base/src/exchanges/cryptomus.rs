@@ -1526,7 +1526,10 @@ impl Cryptomus {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (result.len() as i64) } {
-            orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, result.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
+            orders.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&result, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(orders);

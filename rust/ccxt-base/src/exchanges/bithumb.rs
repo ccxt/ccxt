@@ -1652,7 +1652,7 @@ impl Bithumb {
     pub fn amount_to_precision(&self, symbol: Option<&str>, amount: impl crate::value::ScalarArg) -> Option<String> {
         let amount: Value = crate::value::ScalarArg::scalar(&amount).to_value();
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+        return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_integer_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
     pub fn get_gen2_market_id(&self, market: Option<&crate::types::Market>) -> Option<String> {

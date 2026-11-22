@@ -3139,7 +3139,10 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (result.len() as i64) } {
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, result.get(i as usize).cloned().unwrap_or(Value::Null), None).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&result, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -3293,7 +3296,10 @@ impl Deribit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000))); }; // default 10
         }
         let until: Option<i64> = self.safe_integer2(&params, Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(&params, Value::from(vec![]), &[]);
+        if (until.is_some()) {
+            paramsOmitted = self.omit_t(params, &["until"], &[]);
+        }
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), Value::from(until)); }
         }
@@ -3926,9 +3932,9 @@ impl Deribit {
         }
         let trailingAmount: Option<String> = self.safe_string2_opt(&params, Value::Str("trailingAmount".into()), Value::Str("trigger_offset".into()), &[]);
         let isTrailingAmountOrder: bool = trailingAmount.is_some();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit_t(params, Value::from(vec![]), &[]);
         if isTrailingAmountOrder {
-            paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("trigger_offset".into()), &[]);
+            paramsOmitted = self.omit_t(Value::Dict(paramsOmitted), Value::Str("trigger_offset".into()), &[]);
         }
         if isTrailingAmountOrder {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));

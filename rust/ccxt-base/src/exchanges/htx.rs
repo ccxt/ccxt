@@ -1882,9 +1882,11 @@ impl crate::exchange::DerivedExchange for Htx {
                     }  else {
                         bodyRequest = query;
                     }
-                    signedBody = json_stringify(&bodyRequest).as_str().map(str::to_owned);
-                    if !isArrayParams && (((signedBody.as_deref().unwrap_or_default().chars().count() as i64)) == 2) {
+                    let bodyJson: Option<String> = json_stringify(&bodyRequest).as_str().map(str::to_owned);
+                    if !isArrayParams && (((bodyJson.as_deref().unwrap_or_default().chars().count() as i64)) == 2) {
                         signedBody = Some("{}".to_string());
+                    }  else {
+                        signedBody = bodyJson;
                     }
                     signedHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
@@ -12816,7 +12818,7 @@ impl Htx {
                 }
                 }
             }  else {
-                result.push(Value::Dict(self.parse_settlement(get_value(&settlements, &Value::Int(i)), market)));
+                result.push(Value::Dict(self.parse_settlement(&settlement, market)));
             }
         }
         }

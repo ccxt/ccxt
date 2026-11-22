@@ -3013,8 +3013,10 @@ if _try_result.is_err() {
         let spotTickers: crate::value::List = self.safe_list_k_t(&response, "spot_order_book_details");
         let swapTickers: crate::value::List = self.safe_list_k_t(&response, "order_book_details");
         let tickers: crate::value::List = self.array_concat_t(&spotTickers, &swapTickers);
-        let first: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4567,11 +4569,11 @@ if _try_result.is_err() {
         let signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default()).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[&Value::from(&paramsAccountIndex)]).await;
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[&Value::from(&paramsAccountIndex)]).await.as_i64();
-        let leverageNum: Value = self.parse_number(leverage, &[]);
+        let leverageNum: Option<f64> = self.parse_number(leverage, &[]).as_f64();
         let signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (leverageNum).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int(Value::from((if let (Some(__x), Some(__y)) = (Some(10000.0), leverageNum) { if __y != 0.0 { Some(__x / __y) } else { None } } else { None })))));
                 m.insert("margin_mode".to_string(), (if (marginMode == "cross") { Value::Int(0) } else { Value::Int(1) }));
                 m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));

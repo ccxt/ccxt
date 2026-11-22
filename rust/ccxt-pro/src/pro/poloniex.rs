@@ -473,6 +473,7 @@ impl Poloniex {
         }
         self.authenticate(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrderWs() side is required")));
@@ -514,7 +515,7 @@ impl Poloniex {
             }
             request.insert("amount".into(), quoteAmount.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
             if (price.is_some()) {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }

@@ -3931,12 +3931,11 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
+            let id: Option<String> = self.safe_string_k_opt(orders.get(i as usize).cloned().unwrap_or(Value::Null), "id", &[]);
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrdersForSymbols() requires an id for each order")));
             }
-            let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
+            let symbol: Option<String> = self.safe_string_k_opt(orders.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrdersForSymbols() requires a symbol for each order")));
             }
@@ -5118,9 +5117,9 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (data.len() as i64) } {
-            let mut entry: Option<crate::value::Dict> = data.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
-            if (self.safe_string_k(&entry, "currency", &[]).as_str() == code.as_str()) {
-                result = entry.map_or(Value::Null, Value::Dict);
+            let entryCurrency: String = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "currency", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (entryCurrency == code.as_str().unwrap_or_default().to_string()) {
+                result = data.get(i as usize).cloned().unwrap_or(Value::Null);
             }
         }
         }
@@ -5598,7 +5597,10 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (positions.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, positions.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -5715,7 +5717,10 @@ impl Digifinex {
             dataRequest = "data".to_string();
         }
         let data: crate::value::List = self.safe_list_t(&response, Value::from(dataRequest));
-        let mut position: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_position(self, data.get(0).cloned().unwrap_or(Value::Null), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut position: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         if (marketType.as_deref() == Some("swap")) {
             return Value::Map(position);
         }  else {

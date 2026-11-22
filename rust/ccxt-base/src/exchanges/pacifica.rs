@@ -3092,18 +3092,22 @@ if _try_result.is_err() {
             let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
             let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
             let type_var: String = self.safe_string_k(&order, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-            let mut orderParams: indexmap::IndexMap<String, Value> = self.safe_dict_k(&order, "params", &[Value::Map({
+            let __ws_arg_12 = self.safe_dict_k(&order, "params", &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            })]).as_map().cloned().unwrap_or_default();
-            orderParams.insert("timestamp".into(), Value::from(timestamp));
+            })]);
+            let orderParams: crate::value::Dict = self.extend_t(__ws_arg_12, &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
+                m
+            })]);
             let amount: Option<String> = self.safe_string_k_opt(&order, "amount", &[]);
             let amountNumber: Option<f64> = self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             let priceNumber: Option<f64> = self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
             if (type_var != "limit") {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrders() supports only type = \"limit\"! Your value type=").into()), type_var)));
             }
-            let requestList = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, priceNumber, &[&Value::Map(orderParams)]);
+            let requestList = self.create_order_request(symbol.as_deref(), Some(type_var.as_str()), side.as_deref(), amountNumber, priceNumber, &[&Value::Dict(orderParams)]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Create".into()));
@@ -3141,8 +3145,8 @@ if _try_result.is_err() {
         }
         self.initialize_client().await;
         let request: crate::value::Dict = self.create_orders_request(orders, &[]);
-        let __ws_arg_12 = self.extend(request, &[params]);
-        let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_12]).await;
+        let __ws_arg_13 = self.extend(request, &[params]);
+        let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_13]).await;
         // {
         //   "success": true,
         //   "data": {
@@ -3225,8 +3229,8 @@ if _try_result.is_err() {
         }
         let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "clientOrderIds"], &[]);
-        let __ws_arg_13 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_13]).await;
+        let __ws_arg_14 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_14]).await;
         //
         // {
         //   "success": true,
@@ -3309,8 +3313,8 @@ if _try_result.is_err() {
                     m.insert("clientOrderId".to_string(), cloid.clone());
                 m
             });
-            let __ws_arg_14 = self.extend(Value::Map(cloidParams), &[&paramsOmitted]);
-            let request: crate::value::Dict = self.cancel_order_request(cloid, symbol, &[__ws_arg_14]);
+            let __ws_arg_15 = self.extend(Value::Map(cloidParams), &[&paramsOmitted]);
+            let request: crate::value::Dict = self.cancel_order_request(cloid, symbol, &[__ws_arg_15]);
             let action: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("Cancel".into()));
@@ -3351,8 +3355,8 @@ if _try_result.is_err() {
         self.initialize_client().await;
         let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&params]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["excludeReduceOnly", "expiryWindow"], &[]);
-        let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_orders_cancel_all(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_orders_cancel_all(&[&__ws_arg_16]).await.unwrap_or_default();
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -3425,11 +3429,11 @@ if _try_result.is_err() {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
-            let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_orders_stop_cancel(&[&__ws_arg_16]).await;
+            let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_post_orders_stop_cancel(&[&__ws_arg_17]).await;
         }  else {
-            let __ws_arg_17 = self.extend(request, &[&paramsOmitted]);
-            response = self.private_post_orders_cancel(&[&__ws_arg_17]).await;
+            let __ws_arg_18 = self.extend(request, &[&paramsOmitted]);
+            response = self.private_post_orders_cancel(&[&__ws_arg_18]).await;
         }
         //
         // response:
@@ -3521,8 +3525,8 @@ if _try_result.is_err() {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[&params]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "clientOrderId"], &[]);
-        let __ws_arg_18 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_orders_edit(&[&__ws_arg_18]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_orders_edit(&[&__ws_arg_19]).await.unwrap_or_default();
         //
         // {
         //     'data': {
@@ -3630,8 +3634,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let response: crate::value::Dict = self.public_get_funding_rate_history(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginate]);
+        let response: crate::value::Dict = self.public_get_funding_rate_history(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         // {
         //   "success": true,
@@ -3889,8 +3893,8 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.call_method_t("public_get_orders", &[&__ws_arg_20]).await;
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.call_method_t("public_get_orders", &[&__ws_arg_21]).await;
         //
         // {
         //   "success": true,
@@ -3975,8 +3979,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_orders_history(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_orders_history(&[&__ws_arg_22]).await.unwrap_or_default();
         //
         // {
         //   "success": true,
@@ -4068,8 +4072,8 @@ if _try_result.is_err() {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_orders_history_by_id(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_orders_history_by_id(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         // {
         //   "success": true,
@@ -4120,7 +4124,10 @@ if _try_result.is_err() {
         let sorted: Vec<Value> = self.sort_by(Value::Arr(data), Value::Str("history_id".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let lastIdx: i64 = sorted.len() as i64;
         if lastIdx > 0 {
-            return <Self as crate::exchange::DerivedExchange>::parse_order(self, sorted.get(0).cloned().unwrap_or(Value::Null), market.as_ref()).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&sorted, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref()).map_or(Value::Null, Value::Dict);
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4250,8 +4257,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_positions(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_positions(&[&__ws_arg_24]).await.unwrap_or_default();
         // {
         //   "success": true,
         //   "data": [
@@ -4277,7 +4284,10 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, data.get(i as usize).cloned().unwrap_or(Value::Null), None).map_or(Value::Null, Value::Dict));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), None).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -4413,8 +4423,8 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow"], &[]);
-        let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_account_withdraw(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_25 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_account_withdraw(&[&__ws_arg_25]).await.unwrap_or_default();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -4457,8 +4467,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_25]).await.unwrap_or_default();
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_26]).await.unwrap_or_default();
         // {
         //   "success": true,
         //   "data": {
@@ -4517,8 +4527,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_26]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_27]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -4689,8 +4699,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_28]).await.unwrap_or_default();
         // {
         //   "success": true,
         //   "data": [
@@ -4772,8 +4782,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsAddress]);
-        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_28]).await.unwrap_or_default();
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
+        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_29]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), None)), &[]);
         let deposits: crate::value::List = self.filter_by(Value::Arr(transactions), Value::Str("type".into()), Value::Str("deposit".into()), &[]);
@@ -4818,8 +4828,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
-        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_29]).await.unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsAddress]);
+        let response: crate::value::Dict = self.public_get_account_balance_history(&[&__ws_arg_30]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let transactions: crate::value::List = self.parse_transactions(&data, Some(&self.safe_currency(code.as_str(), None)), &[]);
         let withdrawals: crate::value::List = self.filter_by(Value::Arr(transactions), Value::Str("type".into()), Value::Str("withdrawal".into()), &[]);
@@ -4881,8 +4891,8 @@ if _try_result.is_err() {
         if paginate {
             return self.fetch_paginated_call_cursor(Value::Str("fetchFundingHistory".into()), &[&symbol, &Value::from(since), &Value::from(limit), &Value::from(&paramsOriginAndSingleAddress), &Value::Str("next_cursor".into()), &Value::Str("cursor".into()), &Value::Null, &Value::from(defaultLimit)]).await;
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
-        let response: crate::value::Dict = self.public_get_funding_history(&[&__ws_arg_30]).await.unwrap_or_default();
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
+        let response: crate::value::Dict = self.public_get_funding_history(&[&__ws_arg_31]).await.unwrap_or_default();
         // {
         //   "success": true,
         //   "data": [
@@ -4947,8 +4957,8 @@ if _try_result.is_err() {
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow"], &[]);
-        let __ws_arg_31 = self.extend(&request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_account_subaccount_transfer(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(&request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_account_subaccount_transfer(&[&__ws_arg_32]).await.unwrap_or_default();
         //
         // {
         //   "success": true,
@@ -4961,12 +4971,12 @@ if _try_result.is_err() {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_32 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
-        let __ws_arg_33 = self.safe_string_k(&request, "account", &[]);
-        return self.extend(__ws_arg_32, &[Value::Map({
+        let __ws_arg_33 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_34 = self.safe_string_k(&request, "account", &[]);
+        return self.extend(__ws_arg_33, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));
-        m.insert("fromAccount".to_string(), __ws_arg_33);
+        m.insert("fromAccount".to_string(), __ws_arg_34);
         m.insert("toAccount".to_string(), toAccount);
     m
 })]);
@@ -5058,8 +5068,8 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".into(), Value::from(expiryWindow)); }
         let request: Value = finalHeaders;
-        let __ws_arg_34 = self.extend(request, &[&paramsExpiryWindow]);
-        let response: crate::value::Dict = self.private_post_account_subaccount_create(&[&__ws_arg_34]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(request, &[&paramsExpiryWindow]);
+        let response: crate::value::Dict = self.private_post_account_subaccount_create(&[&__ws_arg_35]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -5086,8 +5096,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_35 = self.extend(request, &[params]);
-        return self.private_post_agent_bind(&[&__ws_arg_35]).await;
+        let __ws_arg_36 = self.extend(request, &[params]);
+        return self.private_post_agent_bind(&[&__ws_arg_36]).await;
 
     Value::Null
 }
@@ -5110,8 +5120,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_36 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys_create(&[&__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(request, &[params]);
+        return self.private_post_account_api_keys_create(&[&__ws_arg_37]).await;
 
     Value::Null
 }
@@ -5136,8 +5146,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_37 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys_revoke(&[&__ws_arg_37]).await;
+        let __ws_arg_38 = self.extend(request, &[params]);
+        return self.private_post_account_api_keys_revoke(&[&__ws_arg_38]).await;
 
     Value::Null
 }
@@ -5160,8 +5170,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_38 = self.extend(request, &[params]);
-        return self.private_post_account_api_keys(&[&__ws_arg_38]).await;
+        let __ws_arg_39 = self.extend(request, &[params]);
+        return self.private_post_account_api_keys(&[&__ws_arg_39]).await;
 
     Value::Null
 }
@@ -5189,8 +5199,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_39 = self.extend(request, &[params]);
-        return self.private_post_account_builder_codes_approve(&[&__ws_arg_39]).await;
+        let __ws_arg_40 = self.extend(request, &[params]);
+        return self.private_post_account_builder_codes_approve(&[&__ws_arg_40]).await;
 
     Value::Null
 }
@@ -5209,8 +5219,8 @@ if _try_result.is_err() {
                 m.insert("account".to_string(), Value::from(address));
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[]);
-        return self.call_method(Value::Str("public_get_account_builder_codes_approvals".into()), &[&__ws_arg_40]).await;
+        let __ws_arg_41 = self.extend(Value::Map(request), &[]);
+        return self.call_method(Value::Str("public_get_account_builder_codes_approvals".into()), &[&__ws_arg_41]).await;
 
     Value::Null
 }
@@ -5236,8 +5246,8 @@ if _try_result.is_err() {
             m
         });
         let request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone());
-        let __ws_arg_41 = self.extend(request, &[params]);
-        return self.private_post_account_builder_codes_revoke(&[&__ws_arg_41]).await;
+        let __ws_arg_42 = self.extend(request, &[params]);
+        return self.private_post_account_builder_codes_revoke(&[&__ws_arg_42]).await;
 
     Value::Null
 }

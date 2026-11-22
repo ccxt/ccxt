@@ -74,7 +74,6 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "fetch_orders_by_status_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_by_status_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_type_by_market" => self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
-                "get_url_by_market" => self.get_url_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -131,7 +130,6 @@ impl Gate {
             "fetch_orders_by_status_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_orders_by_status_ws", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
             "get_cache_index" => self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "get_type_by_market" => self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref()),
-            "get_url_by_market" => self.get_url_by_market(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).copied().and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]),
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
@@ -600,7 +598,7 @@ impl Gate {
         let requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel");
-        let url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let orderRequest: crate::value::Dict = self.extend_t(request, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -699,7 +697,7 @@ impl Gate {
         let requestParams: crate::value::Dict = requestrequestParamsVariable.1;
         let messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_status");
-        let url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let __ws_arg_2 = self.extend(request, &[&requestParams]);
         let rawOrder: Value = self.request_private(url.as_deref(), __ws_arg_2, Some(channel.as_str()), None).await;
@@ -812,7 +810,7 @@ impl Gate {
         let newRequest: crate::value::Dict = self.omit_t(&request, &["settle"], &[]);
         let messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_list");
-        let url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let __ws_arg_3 = self.extend(newRequest, &[&requestParams]);
         let rawOrders: Value = self.request_private(url.as_deref(), __ws_arg_3, Some(channel.as_str()), None).await;
@@ -3185,7 +3183,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn get_url_by_market(&self, market: impl crate::value::KeyRead) -> Value {
+    pub fn get_url_by_market(&self, market: impl KeyRead) -> Value {
         if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let settleKey: String = (if matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) { "usdt".to_string() } else { "btc".to_string() });
             let contractUrl: String = self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null), &crate::value::KeyRead::key_read(&market, "type")), Value::from(settleKey), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();

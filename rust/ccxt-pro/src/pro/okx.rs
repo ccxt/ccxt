@@ -1201,7 +1201,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let ticker: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(data.get(i as usize).cloned().unwrap_or(Value::Null), None));
+            let ticker: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker.clone())); }
             newTickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
         }

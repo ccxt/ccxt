@@ -3379,16 +3379,17 @@ impl Delta {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let orderType: String = format!("{}{}", type_var, "_order");
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("product_id".to_string(), crate::value::KeyRead::key_read(&&market, "numericId"));
-                m.insert("size".to_string(), Value::from(self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount))));
+                m.insert("size".to_string(), Value::from(self.amount_to_precision(Some(precisionSymbol.as_str()), Value::from(amount))));
                 m.insert("side".to_string(), side);
                 m.insert("order_type".to_string(), Value::from(orderType));
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            request.insert("limit_price".into(), Value::from(self.price_to_precision(Some((market).symbol.as_str()), Value::from(price))));
+            request.insert("limit_price".into(), Value::from(self.price_to_precision(Some(precisionSymbol.as_str()), Value::from(price))));
         }
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "client_order_id"], &[]);

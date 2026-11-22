@@ -565,11 +565,11 @@ impl crate::exchange::DerivedExchange for Limitless {
         //         }
         //     }
         let data: crate::value::Dict = self.safe_dict_k_t(&order, "data");
-        let mut rawOrder: Value = self.safe_dict_k(&data, "order", &[order.clone()]);
+        let mut rawOrder: crate::value::Dict = self.safe_dict_k_or(&data, "order", &order);
         // createOrder returns the order nested under an 'order' key
-        let wrappedOrder: Value = self.safe_dict_k(&rawOrder, "order", &[]);
-        if (wrappedOrder != Value::Null) {
-            rawOrder = wrappedOrder;
+        let wrappedOrder: Option<crate::value::Dict> = self.safe_dict_k_o(&rawOrder, "order");
+        if (wrappedOrder.is_some()) {
+            rawOrder = wrappedOrder.unwrap_or_default();
         }
         let id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
         let tokenId: Option<String> = self.safe_string2_opt(&rawOrder, Value::Str("token".into()), Value::Str("tokenId".into()), &[]);
@@ -711,8 +711,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
-        let baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[&crate::value::KeyRead::key_read(&&baseUrls, "limitless")]);
+        let baseUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiGroup.as_deref()), &[&self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("limitless".into()), &[Value::Str("".into())])]);
         let mut url: String = format!("{}{}", Value::Str("/".into()), self.implode_params(Value::from(path), &params));
         let query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
         let querystring: String = self.urlencode_with_array_repeat(&query);

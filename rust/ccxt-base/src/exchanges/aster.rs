@@ -4947,11 +4947,10 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (leverageBracket.len() as i64) } {
-            let bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
-            maintenanceMarginPercentageString = self.safe_string_opt(&bracket, Value::Int(1), &[]);
+            maintenanceMarginPercentageString = self.safe_string_opt(leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
         }
         }
         let notional: Option<f64> = self.parse_number(Value::from(notionalStringAbs.as_deref()), &[]).as_f64();
@@ -5311,11 +5310,10 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (leverageBracket.len() as i64) } {
-            let bracket: crate::value::List = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(&bracket, Value::Int(0), &[])).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
             }
-            maintenanceMarginPercentageString = self.safe_string_opt(&bracket, Value::Int(1), &[]);
+            maintenanceMarginPercentageString = self.safe_string_opt(leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
         }
         }
         let maintenanceMarginPercentage: Option<f64> = self.parse_number(&maintenanceMarginPercentageString, &[]).as_f64();

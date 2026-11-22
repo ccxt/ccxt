@@ -3899,7 +3899,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //  or
         // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
-        let mut argsList: Option<crate::value::List> = (match __pro_message.get("args").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).into_opt_list();
+        let mut argsList: Option<crate::value::List> = (match __pro_message.get("args").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (argsList.is_none()) {
             let arg: crate::value::Dict = __pro_message.key_dict("arg");
             argsList = Some(std::sync::Arc::new(vec![Value::Dict(arg)]));

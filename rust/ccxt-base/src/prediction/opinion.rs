@@ -2174,22 +2174,33 @@ impl Opinion {
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let trades: crate::value::List = self.safe_list_k_t(&result, "list");
         let tradesLength: i64 = trades.len() as i64;
+        let mut filled: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_14: bool = true;
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < tradesLength } {
-            let mut trade: Option<crate::value::Dict> = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
-            let tokenId: Option<String> = self.safe_string_k_opt(&trade, "tokenId", &[]);
-            let marketId: Option<i64> = self.safe_integer_k(&trade, "marketId", &[]).as_i64();
+            let tokenId: Option<String> = self.safe_string_k_opt(trades.get(i as usize).cloned().unwrap_or(Value::Null), "tokenId", &[]);
+            let marketId: Option<i64> = self.safe_integer_k(trades.get(i as usize).cloned().unwrap_or(Value::Null), "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
                 let tradeMarket: Value = self.load_trade_market(Value::from(marketId)).await;
                 let info: crate::value::Dict = self.safe_dict_k_t(&tradeMarket, "info");
-                let isYes: bool = self.safe_string_lower_k(&trade, "outcomeSideEnum", &[]).as_str() == Some("yes");
-                if let Some(__d) = &mut trade { std::sync::Arc::make_mut(__d).insert("tokenId".into(), (if isYes { self.safe_string_k(&info, "yesTokenId", &[]) } else { self.safe_string_k(&info, "noTokenId", &[]) })); }
+                let isYes: bool = self.safe_string_lower_k(trades.get(i as usize).cloned().unwrap_or(Value::Null), "outcomeSideEnum", &[]).as_str() == Some("yes");
+                let mut extra: indexmap::IndexMap<String, Value> = ({
+                    let m = indexmap::IndexMap::new();
+                    m
+                });
+                if isYes {
+                    extra.insert("tokenId".into(), self.safe_string_k(&info, "yesTokenId", &[]));
+                }  else {
+                    extra.insert("tokenId".into(), self.safe_string_k(&info, "noTokenId", &[]));
+                }
+                filled.push(self.extend(trades.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map(extra)]));
+            }  else {
+                filled.push(trades.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
-        return Value::Arr(self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
+        return Value::Arr(self.parse_prediction_trades(Value::from(filled), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
