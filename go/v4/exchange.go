@@ -843,7 +843,7 @@ func optionMethodLabel(methodName any) string {
 // entries (options init, SetSandboxMode, EnableDemoTrading). urls is written at config time
 // only, so the generated reads are plain map indexes on these views.
 func (this *BaseExchange) RefreshUrlsViews() {
-	this.UrlsApi = MapTyped(this.Urls["api"])
+	this.UrlsApi, _ = this.Urls["api"].(map[string]any)
 	this.UrlsApiSections = nil
 	this.UrlsApiStrings = nil
 	this.UrlsApiSectionStrings = nil
@@ -854,12 +854,18 @@ func (this *BaseExchange) RefreshUrlsViews() {
 	leaves := make(map[string]*string, len(this.UrlsApi))
 	sectionLeaves := make(map[string]map[string]*string, len(this.UrlsApi))
 	for key, value := range this.UrlsApi {
-		leaves[key] = SafeStringPtr(value)
-		if section := MapTyped(value); section != nil {
+		leaves[key] = nil
+		if leaf, ok := value.(string); ok {
+			leaves[key] = &leaf
+		}
+		if section, _ := value.(map[string]any); section != nil {
 			sections[key] = section
 			sectionLeaves[key] = make(map[string]*string, len(section))
 			for entry, leaf := range section {
-				sectionLeaves[key][entry] = SafeStringPtr(leaf)
+				sectionLeaves[key][entry] = nil
+				if text, ok := leaf.(string); ok {
+					sectionLeaves[key][entry] = &text
+				}
 			}
 		}
 	}
@@ -2625,22 +2631,22 @@ func (this *BaseExchange) auxTablesEdit(edit func(*auxTables) any) any {
 }
 
 // the table is handed to the owner, which then holds the only copy of record
-func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table any) {
+func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table map[string]any) {
 	this.auxTablesEdit(func(next *auxTables) any {
-		slot(next, MapTyped(table))
+		slot(next, table)
 		return nil
 	})
 }
 
-func (this *BaseExchange) PublishBaseCurrencies(table any) {
+func (this *BaseExchange) PublishBaseCurrencies(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.baseCurrencies = published }, table)
 }
 
-func (this *BaseExchange) PublishQuoteCurrencies(table any) {
+func (this *BaseExchange) PublishQuoteCurrencies(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.quoteCurrencies = published }, table)
 }
 
-func (this *BaseExchange) PublishTransactions(table any) {
+func (this *BaseExchange) PublishTransactions(table map[string]any) {
 	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.transactions = published }, table)
 }
 

@@ -281,7 +281,10 @@ func (this *BaseExchange) _decimalToPrecision(x any, roundingMode2, numPrecision
 		if roundingMode == TRUNCATE {
 			xStr := NumberToString(x)
 			truncatedX := this.truncateToString(xStr, int(math.Max(0, float64(newNumPrecisionDigits))))
-			truncatedParsedX := ToFloat64(truncatedX)
+			truncatedParsedX, err := strconv.ParseFloat(truncatedX, 64)
+			if err != nil {
+				truncatedParsedX = math.NaN()
+			}
 			scale := math.Pow(10, math.Max(float64(newNumPrecisionDigits), 10))
 			xScaled := math.Round(truncatedParsedX * scale)
 			tickScaled := math.Round(numPrecisionDigits * scale)
