@@ -1779,7 +1779,10 @@ export default class bitget extends bitgetRest {
             instType = 'UTA';
             channel = 'order';
         }
-        subscriptionHash = subscriptionHash + ':' + instType;
+        let subscriptionHashInst: string = subscriptionHash + ':';
+        if (instType !== undefined) {
+            subscriptionHashInst = subscriptionHashInst + instType;
+        }
         const args: Dict = {
             'instType': instType,
         };
@@ -1795,7 +1798,7 @@ export default class bitget extends bitgetRest {
         if (!uta) {
             args['instId'] = instId;
         }
-        const orders = await this.watchPrivate (uta, messageHash, subscriptionHash, args, paramsRequest);
+        const orders = await this.watchPrivate (uta, messageHash, subscriptionHashInst, args, paramsRequest);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
