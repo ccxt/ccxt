@@ -3102,14 +3102,11 @@ export default class paradex extends Exchange {
         const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
-        }
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (allKinds || (this.safeString (row, 'kind') === 'DEPOSIT')) {
-                deposits.push (row);
+            if (allKinds || (this.safeString (rows[i], 'kind') === 'DEPOSIT')) {
+                const withCursor: Dict = this.extend (rows[i], { 'next': next });
+                deposits.push (withCursor);
             }
         }
         return this.parseTransactions (deposits, undefined, since, limit);
@@ -3175,14 +3172,11 @@ export default class paradex extends Exchange {
         const rows: Dict[] = this.safeList (response, 'results', []) as List;
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString (response, 'next');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
-        }
         const deposits: List = [];
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (allKinds || (this.safeString (row, 'kind') === 'WITHDRAWAL')) {
-                deposits.push (row);
+            if (allKinds || (this.safeString (rows[i], 'kind') === 'WITHDRAWAL')) {
+                const withCursor: Dict = this.extend (rows[i], { 'next': next });
+                deposits.push (withCursor);
             }
         }
         return this.parseTransactions (deposits, undefined, since, limit);
@@ -3798,7 +3792,8 @@ export default class paradex extends Exchange {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 const market = this.safeMarket (marketId);
                 if (market['option'] === true) {
-                    result[market['symbol']] = this.parseOption (entry, undefined, market);
+                    const optionSymbol: string = this.safeString (market, 'symbol', '');
+                    result[optionSymbol] = this.parseOption (entry, undefined, market);
                 }
             }
         }
