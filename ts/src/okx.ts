@@ -6915,9 +6915,10 @@ export default class okx extends Exchange {
                         const entry = params[i];
                         const clientOrderId = this.safeString (entry, 'clOrdId');
                         if (clientOrderId === undefined) {
-                            entry['clOrdId'] = brokerId + this.uuid16 ();
-                            entry['tag'] = brokerId;
-                            params[i] = entry;
+                            const taggedEntry: Dict = this.extend ({}, entry);
+                            taggedEntry['clOrdId'] = brokerId + this.uuid16 ();
+                            taggedEntry['tag'] = brokerId;
+                            params[i] = taggedEntry;
                         }
                     }
                 } else {
