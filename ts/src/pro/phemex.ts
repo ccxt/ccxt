@@ -1748,7 +1748,7 @@ export default class phemex extends phemexRest {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const expiryDelta = this.safeInteger (this.options, 'expires', 120);
-            const expiration = this.seconds () + expiryDelta;
+            const expiration: number = this.sum (this.seconds (), expiryDelta);
             const payload = this.apiKey + expiration.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const method = 'user.auth';
