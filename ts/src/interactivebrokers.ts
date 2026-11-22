@@ -3656,7 +3656,8 @@ export default class interactivebrokers extends Exchange {
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
-        if ('qty' in trade) {
+        const transactionQty = this.safeString (trade, 'qty');
+        if (transactionQty !== undefined) {
             //
             // pa/transactions
             //
@@ -3897,9 +3898,11 @@ export default class interactivebrokers extends Exchange {
         const parts: string[] = [];
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            parts.push (key + '="' + sorted[key] + '"');
+            const value: string = this.safeString (sorted, key, '');
+            parts.push (key + '="' + value + '"');
         }
-        return 'OAuth realm="' + this.options['realm'] + '", ' + parts.join (', ');
+        const realm: string = this.safeString (this.options, 'realm', '');
+        return 'OAuth realm="' + realm + '", ' + parts.join (', ');
     }
 
     ibkrOauthBase (consumerKey: string, consumerAccessToken: string): Dict {
@@ -3923,15 +3926,19 @@ export default class interactivebrokers extends Exchange {
     ibkrImplodePath (path: string, params: Dict): List {
         const segments = path.split ('/');
         const pathParams = [];
+        const imploded: string[] = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith (':')) {
                 const name = segment.slice (1);
                 pathParams.push (name);
-                segments[i] = this.safeString (params, name, segment);
+                const value: string = this.safeString (params, name, segment);
+                imploded.push (value);
+            } else {
+                imploded.push (segment);
             }
         }
-        return [ segments.join ('/'), pathParams ];
+        return [ imploded.join ('/'), pathParams ];
     }
 
     /**
