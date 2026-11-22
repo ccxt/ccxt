@@ -879,6 +879,7 @@ export default class coinbase extends coinbaseRest {
             return;
         }
         const marketIds: string[] = [];
+        const seenMarketIds: Dict = {};
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -895,7 +896,8 @@ export default class coinbase extends coinbaseRest {
                 const cachedOrders = this.orders;
                 const marketId = this.safeString (responseOrder, 'product_id');
                 if (marketId !== undefined) {
-                    if (!(marketId in marketIds)) {
+                    if (!(marketId in seenMarketIds)) {
+                        seenMarketIds[marketId] = true;
                         marketIds.push (marketId);
                     }
                 }
