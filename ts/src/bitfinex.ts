@@ -1760,7 +1760,9 @@ export default class bitfinex extends Exchange {
          */
         const market = this.market (symbol);
         let amountString = this.amountToPrecision (symbol, amount);
-        amountString = (side === 'buy') ? amountString : (Precise.stringNeg (amountString) as string);
+        if (side !== 'buy') {
+            amountString = Precise.stringNeg (amountString) as string;
+        }
         const request: Dict = {
             'symbol': market['id'],
             'amount': amountString,
@@ -3994,7 +3996,9 @@ export default class bitfinex extends Exchange {
         };
         if (amount !== undefined) {
             let amountString = this.amountToPrecision (symbol, amount);
-            amountString = (side === 'buy') ? amountString : (Precise.stringNeg (amountString) as string);
+            if (side !== 'buy') {
+                amountString = Precise.stringNeg (amountString) as string;
+            }
             request['amount'] = amountString;
         }
         const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');

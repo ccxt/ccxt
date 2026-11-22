@@ -342,14 +342,17 @@ export default class sxbet extends Exchange {
             gameTime = this.safeTimestamp (raw, 'gameTime');
         }
         const outcomeLabels = [ outcomeOneName, outcomeTwoName ];
-        const outcomeIds = [ marketHash, marketHash + '-2' ];
         const outcomes: any[] = [];
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol (eventSlug, marketSlug, label);
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-2';
+            }
             outcomes.push ({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': marketHash + outcomeSuffix,
+                'outcomeId': marketHash + outcomeSuffix,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,

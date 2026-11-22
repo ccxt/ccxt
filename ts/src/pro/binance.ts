@@ -3443,8 +3443,11 @@ export default class binance extends binanceRest {
             'params': this.signParams (this.extend (payload, paramsMethod)),
         };
         const subscription: Dict = {
-            'method': (method === 'account.status') ? this.handleAccountStatusWs : this.handleBalanceWs,
+            'method': this.handleBalanceWs,
         };
+        if (method === 'account.status') {
+            subscription['method'] = this.handleAccountStatusWs;
+        }
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 

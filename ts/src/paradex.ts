@@ -2128,13 +2128,17 @@ export default class paradex extends Exchange {
             throw new ExchangeError (this.id + ' signOrderRequest() missing orderType');
         }
         const isMarket = (orderType.indexOf ('MARKET') >= 0);
+        let orderPrice: Str = '0';
+        if (!isMarket) {
+            orderPrice = this.scaleNumber (this.safeString (request, 'price'));
+        }
         const orderReq: Dict = {
             'timestamp': now,
             'market': this.stringToBase16 (this.safeString (request, 'market')),
             'side': (this.safeString (request, 'side') === 'BUY') ? '1' : '2',
             'orderType': this.stringToBase16 (this.safeString (request, 'type')),
             'size': this.scaleNumber (this.safeString (request, 'size')),
-            'price': (isMarket) ? '0' : this.scaleNumber (this.safeString (request, 'price')),
+            'price': orderPrice,
         };
         const orderFields = [
             { 'name': 'timestamp', 'type': 'felt' },
