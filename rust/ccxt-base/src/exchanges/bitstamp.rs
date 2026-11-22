@@ -91,7 +91,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -205,7 +205,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         if (datetimeString.is_some()) {
             if datetimeString.as_deref().unwrap_or_default().contains(" ") {
                 // iso8601
-                timestamp = self.parse8601(&datetimeString);
+                timestamp = self.parse8601(Value::from(datetimeString.as_deref()));
             }  else {
                 // string unix epoch in seconds
                 let seconds: Option<i64> = self.parse_to_int(datetimeString.map(Value::from).unwrap_or(Value::Null));
@@ -803,15 +803,15 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             let mut contentType: String = "".to_string();
             privateHeaders = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("X-Auth".to_string(), Value::from(xAuth.clone()));
-                    m.insert("X-Auth-Nonce".to_string(), Value::from(xAuthNonce.clone()));
+                    m.insert("X-Auth".to_string(), Value::from(xAuth.as_str()));
+                    m.insert("X-Auth-Nonce".to_string(), Value::from(xAuthNonce.as_str()));
                     m.insert("X-Auth-Timestamp".to_string(), Value::from(xAuthTimestamp.as_str()));
-                    m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.clone()));
+                    m.insert("X-Auth-Version".to_string(), Value::from(xAuthVersion.as_str()));
                 m
             });
             if (method.as_str() == Some("POST")) {
                 contentType = "application/x-www-form-urlencoded".to_string();
-                privateHeaders.insert("Content-Type".into(), Value::from(contentType.clone()));
+                privateHeaders.insert("Content-Type".into(), Value::from(contentType.as_str()));
             }
             let mut authBody: String = "".to_string();
             if isPrivatePost && (postBody != "") {
@@ -890,8 +890,8 @@ impl crate::exchange::DerivedExchange for Bitstamp {
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (errors.len() as i64) } {
                 let value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(value.as_deref()), &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &value, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(value.as_deref()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &value, feedback.as_str());
             }
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -3223,7 +3223,7 @@ impl Bitstamp {
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (ids.len() as i64) } {
             let id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if !id.as_deref().unwrap_or_default().contains("_") {
-                let value: Option<i64> = self.safe_integer(&transactionOmitted, &id, &[]).as_i64();
+                let value: Option<i64> = self.safe_integer(&transactionOmitted, Value::from(id.as_deref()), &[]).as_i64();
                 if (value.is_some()) && (value != Some(0)) {
                     return id;
                 }
@@ -3731,7 +3731,7 @@ impl Bitstamp {
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }
         let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["clientOrderId"], &[]) } else { params }).into_dict();
         let mut response: Option<crate::value::Dict> = None;
@@ -3816,7 +3816,7 @@ impl Bitstamp {
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("id".into(), id);
         }
@@ -3961,7 +3961,7 @@ impl Bitstamp {
             m
         });
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("id".into(), id);
         }
@@ -4008,7 +4008,7 @@ impl Bitstamp {
             m
         });
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("id".into(), id);
         }
@@ -4458,7 +4458,7 @@ impl Bitstamp {
         let response: Value = self.request(Value::Str(format!("{}{}", self.get_currency_name(code.as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null), Value::Str("_address/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), params]).await;
         let address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
         let tag: Option<String> = self.safe_string2_opt(&response, Value::Str("memo_id".into()), Value::Str("destination_tag".into()), &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);

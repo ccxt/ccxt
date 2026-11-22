@@ -213,7 +213,7 @@ impl crate::exchange::DerivedExchange for Weex {
         if (realizedPnl.is_some()) {
             tradeMarketType = "swap".to_string();
         }
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[Value::Null, Value::from(tradeMarketType.clone())]);
+        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[Value::Null, Value::from(tradeMarketType.as_str())]);
         let mut isSpot: Value = Value::Bool(false);
         if (market.is_none()) {
             isSpot = Value::Bool(tradeMarketType == "spot");
@@ -542,7 +542,7 @@ impl crate::exchange::DerivedExchange for Weex {
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("lowercaseId".to_string(), id.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), self.safe_integer_k(&market, "contractId", &[]));
         m.insert("symbol".to_string(), Value::from(symbol));
@@ -891,14 +891,14 @@ impl crate::exchange::DerivedExchange for Weex {
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type(rawType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), self.parse_number(before.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("after".to_string(), self.parse_number(after.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number2(item, Value::Str("fees".into()), Value::Str("fillFee".into()), &[]));
     m
 }));
@@ -1263,8 +1263,8 @@ impl crate::exchange::DerivedExchange for Weex {
                 return Value::Null;
             }
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
         }
@@ -3193,7 +3193,7 @@ impl Weex {
         let useHistory: bool = historical || (since != Value::Null) || (until.is_some());
         if useHistory {
             if (priceType.is_some()) {
-                request.insert("priceType".into(), priceType.map(Value::from).unwrap_or(Value::Null));
+                request.insert("priceType".into(), Value::from(priceType.as_deref()));
             }
             let now: i64 = self.milliseconds();
             let mut startTime: Option<i64> = since.as_i64();
@@ -3915,7 +3915,7 @@ impl Weex {
             if (timeInForce.is_some()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() cannot use the timeInForce parameter with trigger orders")));
             }
-            request.insert("clientAlgoId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clientAlgoId".into(), Value::from(clientOrderId.as_deref()));
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null)))); }
             if isMarketOrder {
                 if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("STOP_MARKET".into())); }
@@ -3952,7 +3952,7 @@ impl Weex {
             if isStopLoss && isTakeProfit {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time")));
             }
-            request.insert("clientAlgoId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clientAlgoId".into(), Value::from(clientOrderId.as_deref()));
             let mut orderType: Option<String> = None;
             if isStopLoss {
                 let stopLossPriceType: Option<String> = self.safe_string2_opt(&params, Value::Str("stopLossPriceType".into()), Value::Str("triggerPriceType".into()), &[]);
@@ -4779,10 +4779,10 @@ impl Weex {
             return;
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&order));
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorMessageValue, &feedback);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCodeValue, &feedback);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessageValue, &feedback);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCodeValue, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessageValue.as_deref()), feedback.as_str());
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCodeValue.as_deref()), feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessageValue, feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCodeValue, feedback.as_str());
         panic!("{}", crate::exchange_errors::invalid_order(feedback));
 }
 

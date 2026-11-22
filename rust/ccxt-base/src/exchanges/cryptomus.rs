@@ -70,7 +70,7 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -437,14 +437,14 @@ impl crate::exchange::DerivedExchange for Cryptomus {
                     url.push_str(&format!("{}{}", "?", query));
                 }
             }
-            let jsonParamsBase64: String = self.string_to_base64(jsonParams.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let jsonParamsBase64: String = self.string_to_base64(Value::from(jsonParams.as_deref()), &[]);
             let stringToSign: String = format!("{}{}", jsonParamsBase64, self.secret);
             let signature: String = self.hash(self.encode(Value::from(stringToSign)), "md5", &[]);
             privateHeaders.insert("sign".into(), Value::from(signature));
             let privateBody: Option<String> = (if (method.as_str() != Some("GET")) { jsonParams } else { None });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), privateBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
@@ -476,14 +476,14 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         if (codeError.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else if (message.is_some()) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -1374,7 +1374,7 @@ impl Cryptomus {
                 }
                 request.insert("value".into(), cost.map(Value::from).unwrap_or(Value::Null));
             }  else {
-                request.insert("quantity".into(), amountToString.map(Value::from).unwrap_or(Value::Null));
+                request.insert("quantity".into(), Value::from(amountToString.as_deref()));
             }
             let __ws_arg_4 = self.extend(&request, &[&paramsMarket]);
             response = self.private_post_v2_user_api_exchange_orders_market(&[&__ws_arg_4]).await;
@@ -1711,8 +1711,8 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
-        m.insert("maker".to_string(), self.parse_number(&makerFee, &[]));
-        m.insert("taker".to_string(), self.parse_number(&takerFee, &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::from(makerFee.as_deref()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::from(takerFee.as_deref()), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map(tiers.clone()));

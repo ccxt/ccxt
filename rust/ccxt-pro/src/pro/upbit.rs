@@ -500,7 +500,7 @@ impl Upbit {
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        let data: crate::value::List = __pro_message.key_list("orderbook_units");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("orderbook_units"));
         let timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         let mut bidsSnapshot: Vec<Value> = Vec::new();
         let mut asksSnapshot: Vec<Value> = Vec::new();
@@ -508,7 +508,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
             let askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
@@ -606,7 +606,7 @@ impl Upbit {
                 m
             });
             let token: String = jwt(&auth, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            wsOptions.insert("token".into(), Value::from(token.clone()));
+            wsOptions.insert("token".into(), Value::from(token.as_str()));
             wsOptions.insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
@@ -637,7 +637,7 @@ impl Upbit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
             let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            request.insert("codes".into(), self.market_ids(Some(&vec![Value::from(symbolResolved.clone())])).map_or(Value::Null, Value::Arr));
+            request.insert("codes".into(), self.market_ids(Some(&vec![Value::from(symbolResolved.as_str())])).map_or(Value::Null, Value::Arr));
             messageHashResolved = format!("{}{}", Value::Str(format!("{}{}", Value::from(messageHash), ":").into()), symbolResolved);
             channelKey = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), symbolResolved).into());
         }
@@ -1054,7 +1054,7 @@ impl Upbit {
         //     "stream_type": "REALTIME"
         // }
         //
-        let data: crate::value::List = __pro_message.key_list("assets");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("assets"));
         let timestamp: Option<i64> = self.safe_integer_k(message, "timestamp", &[]).as_i64();
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
@@ -1062,7 +1062,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let available: Option<String> = self.safe_string_k_opt(&balance, "balance", &[]);

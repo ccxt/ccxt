@@ -168,7 +168,7 @@ impl crate::exchange::DerivedExchange for Delta {
         let timestamp: Option<i64> = self.safe_integer_product_k(&ticker, "timestamp", Value::Float(0.001), &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let last: Option<String> = self.safe_string_k_opt(&ticker, "close", &[]);
         let quotes: crate::value::Dict = self.safe_dict_k_t(&ticker, "quotes");
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -190,7 +190,7 @@ impl crate::exchange::DerivedExchange for Delta {
         m.insert("askVolume".to_string(), self.safe_number_k(&quotes, "ask_size", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -384,7 +384,7 @@ impl crate::exchange::DerivedExchange for Delta {
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(&order, "product_id", &[]);
         let marketsByNumericId: crate::value::Dict = self.safe_dict_k_t(&self.options, "marketsByNumericId");
-        let marketValue: Value = self.safe_dict(&marketsByNumericId, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[crate::Value::from(market)]);
+        let marketValue: Value = self.safe_dict(&marketsByNumericId, Value::from(marketId.as_deref()), &[crate::Value::from(market)]);
         let mut symbol: Option<String> = None;
         if (marketValue == Value::Null) {
             symbol = marketId.take();
@@ -450,7 +450,7 @@ impl crate::exchange::DerivedExchange for Delta {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
-        let balances: crate::value::List = self.safe_list_k_t(&response, "result");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -461,9 +461,9 @@ impl crate::exchange::DerivedExchange for Delta {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset_id", &[]);
-            let currency: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, &currencyId);
+            let currency: Option<crate::value::Dict> = self.safe_dict_o(&currenciesByNumericId, Value::from(currencyId.as_deref()));
             let mut code: Option<String> = currencyId;
             if (currency.is_some()) {
                 code = self.safe_string_k_opt(&currency, "code", &[]);
@@ -511,7 +511,7 @@ impl crate::exchange::DerivedExchange for Delta {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "product_symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_product_k(&position, "timestamp", Value::Float(0.001), &[]).as_i64();
         let sizeString: Option<String> = self.safe_string_k_opt(&position, "size", &[]);
         let mut side: Option<String> = None;
@@ -648,11 +648,11 @@ impl crate::exchange::DerivedExchange for Delta {
         let marketId: Option<String> = self.safe_string_k_opt(&depositAddress, "asset_symbol", &[]);
         let networkId: Option<String> = self.safe_string_k_opt(&depositAddress, "network", &[]);
         let code: Option<String> = self.safe_currency_code(marketId.as_deref(), currency);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
@@ -1092,7 +1092,7 @@ impl crate::exchange::DerivedExchange for Delta {
         m.insert("rank".to_string(), self.safe_integer_k(info, "adl_level", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -1241,9 +1241,9 @@ impl crate::exchange::DerivedExchange for Delta {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", optionType, "-").into()), base).into()), "-").into()), strike).into()), "-").into()), expiry).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", base, "/", quote, ":", settle, "-", expiry, "-", strike, "-", optionType).into()));
-        m.insert("base".to_string(), Value::from(base.clone()));
-        m.insert("quote".to_string(), Value::from(quote.clone()));
-        m.insert("settle".to_string(), Value::from(settle.clone()));
+        m.insert("base".to_string(), Value::from(base.as_str()));
+        m.insert("quote".to_string(), Value::from(quote.as_str()));
+        m.insert("settle".to_string(), Value::from(settle.as_str()));
         m.insert("baseId".to_string(), Value::from(base));
         m.insert("quoteId".to_string(), Value::from(quote));
         m.insert("settleId".to_string(), Value::from(settle));
@@ -1368,8 +1368,8 @@ impl crate::exchange::DerivedExchange for Delta {
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         if (errorCode.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -4663,7 +4663,7 @@ impl Delta {
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("price".to_string(), self.safe_number_k(settlement, "settlement_price", &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
     m
 });

@@ -482,7 +482,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -564,10 +564,10 @@ impl crate::exchange::DerivedExchange for Hibachi {
             if (status.as_deref() == Some("failed")) {
                 let codeError: Option<String> = self.safe_string_k_opt(&response, "errorCode", &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
                 let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -1178,8 +1178,8 @@ impl Hibachi {
         let networkId: String = "ARBITRUM".to_string();
         networks.insert(networkId.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::from(networkId.clone()));
-        m.insert("network".to_string(), Value::from(networkId));
+        m.insert("id".to_string(), Value::from(networkId.as_str()));
+        m.insert("network".to_string(), Value::from(networkId.as_str()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -1540,8 +1540,8 @@ impl Hibachi {
         let one: String = "1".to_string();
         let feeRateFactor: String = "100000000".to_string(); // 10^8
         let priceFactor: String = "4294967296".to_string(); // 2^32
-        let quantityInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::from(underlying.clone())), &Value::from(one.clone()), &Value::Int(0)).as_str().map(str::to_owned);
-        let feeRateInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&feeRateStr.map(Value::from).unwrap_or(Value::Null), &Value::from(feeRateFactor)), &Value::from(one.clone()), &Value::Int(0)).as_str().map(str::to_owned);
+        let quantityInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &Value::from(underlying.as_str())), &Value::from(one.as_str()), &Value::Int(0)).as_str().map(str::to_owned);
+        let feeRateInternal: Option<String> = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&feeRateStr.map(Value::from).unwrap_or(Value::Null), &Value::from(feeRateFactor)), &Value::from(one.as_str()), &Value::Int(0)).as_str().map(str::to_owned);
         // Encoding
         let nonce16: String = self.int_to_base16(nonce, &[]);
         let noncePadded: String = format!("{:0>16}", nonce16);
@@ -2151,7 +2151,7 @@ impl Hibachi {
                 m.insert("accountId".to_string(), self.get_account_id());
                 m.insert("coin".to_string(), Value::Str("USDT".into()));
                 m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
-                m.insert("withdrawAddress".to_string(), Value::from(withdrawAddress.clone()));
+                m.insert("withdrawAddress".to_string(), Value::from(withdrawAddress.as_str()));
                 m.insert("selfWithdrawal".to_string(), Value::Bool(false));
                 m.insert("quantity".to_string(), Value::from(self.number_to_string(&amount)));
                 m.insert("maxFees".to_string(), Value::from(self.number_to_string(Value::from(maxFees))));

@@ -82,7 +82,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), priceChange.map(Value::from).unwrap_or(Value::Null));
@@ -103,8 +103,8 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let symbol: Option<String> = self.safe_symbol(tradeSymbol.as_deref(), market, &[Value::Str("/".into())]).as_str().map(str::to_owned);
         let priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amountString: Option<String> = self.safe_string_k_opt(&trade, "quantity", &[]);
-        let price: Option<f64> = self.parse_number(&priceString, &[]).as_f64();
-        let amount: Option<f64> = self.parse_number(&amountString, &[]).as_f64();
+        let price: Option<f64> = self.parse_number(Value::from(priceString.as_deref()), &[]).as_f64();
+        let amount: Option<f64> = self.parse_number(Value::from(amountString.as_deref()), &[]).as_f64();
         let side: Option<String> = self.safe_string_lower_k_opt(&trade, "side", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
         let mut cost: Option<f64> = None;
@@ -396,8 +396,8 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "oid", &[]);
         let priceString: Option<String> = self.safe_string_k_opt(&trade, "p", &[]);
         let amountString: Option<String> = self.safe_string_k_opt(&trade, "q", &[]);
-        let price: Option<f64> = self.parse_number(&priceString, &[]).as_f64();
-        let amount: Option<f64> = self.parse_number(&amountString, &[]).as_f64();
+        let price: Option<f64> = self.parse_number(Value::from(priceString.as_deref()), &[]).as_f64();
+        let amount: Option<f64> = self.parse_number(Value::from(amountString.as_deref()), &[]).as_f64();
         let side: Option<String> = self.safe_string_lower_k_opt(&trade, "s", &[]);
         let timestamp: Option<i64> = self.safe_integer2(&trade, Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
         let isMaker: bool = self.safe_bool_k_opt(&trade, "im", &[Value::Bool(false)]).unwrap_or(false);
@@ -1599,7 +1599,7 @@ impl Revolutx {
                 m
             });
             if (cost.is_some()) {
-                conditionalConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), &cost)));
+                conditionalConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(cost.as_deref()))));
             }  else {
                 conditionalConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
             }
@@ -1634,13 +1634,13 @@ impl Revolutx {
                 m
             });
             if (cost.is_some()) {
-                limitConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), &cost)));
+                limitConfig.insert("quote_size".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(cost.as_deref()))));
             }  else {
                 limitConfig.insert("base_size".into(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
             }
             limitConfig.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             if (timeInForce.is_some()) {
-                limitConfig.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+                limitConfig.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
             if (executionInstructions != Value::Null) {
                 limitConfig.insert("execution_instructions".into(), executionInstructions.clone());

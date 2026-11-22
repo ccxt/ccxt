@@ -321,7 +321,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             }
         }
         if (id.is_none()) && matches!(self.safe_bool_k(&self.options, "useCcxtTradeId", &[Value::Bool(true)]), Value::Bool(true)) {
-            id = self.create_ccxt_trade_id(&[Value::from(timestamp), side.clone().map(Value::from).unwrap_or(Value::Null), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            id = self.create_ccxt_trade_id(&[Value::from(timestamp), Value::from(side.as_deref()), amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), Value::from(takerOrMaker.as_deref())]).as_str().map(str::to_owned);
         }
         return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -778,7 +778,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(depositAddress, "memo", &[]));
@@ -1017,8 +1017,8 @@ impl crate::exchange::DerivedExchange for Mexc {
         if (feeCostString.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(&feeCostString, &[]));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("cost".to_string(), self.parse_number(Value::from(feeCostString.as_deref()), &[]));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -1034,7 +1034,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), self.safe_string_k(&transaction, "memo", &[]));
@@ -1140,8 +1140,8 @@ impl crate::exchange::DerivedExchange for Mexc {
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("minNotional".to_string(), self.parse_number(&floor, &[]));
-                    m.insert("maxNotional".to_string(), self.parse_number(&cap, &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.parse_number(&maintenanceMarginRate, &[]));
+                    m.insert("maxNotional".to_string(), self.parse_number(Value::from(cap.as_deref()), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.parse_number(Value::from(maintenanceMarginRate.as_deref()), &[]));
                     m.insert("maxLeverage".to_string(), Value::from(maxLev));
                     m.insert("info".to_string(), info.clone());
                 m
@@ -1182,7 +1182,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         //        ]
         //    }
         //
-        let networkList: crate::value::List = self.safe_list_k_t(&fee, "networkList");
+        let networkList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fee, "networkList"));
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -1192,7 +1192,7 @@ impl crate::exchange::DerivedExchange for Mexc {
                         let mut j: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { j += 1; } __for_first_12 = false; j < (networkList.len() as i64) } {
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
+            let networkEntry: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), self.safe_string_k(&currency, "code", &[]).as_str());
             if (networkCode.is_some()) {
@@ -1298,7 +1298,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(pathValue.clone()), &paramsValue));
+            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(pathValue.as_str()), &paramsValue));
             let paramsOmitted: Value = self.omit(paramsValue, self.extract_params(Value::from(pathValue)), &[]);
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
@@ -1363,8 +1363,8 @@ impl crate::exchange::DerivedExchange for Mexc {
         let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
         if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) && (responseCode.as_deref() != Some("0")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -4679,7 +4679,7 @@ impl Mexc {
         let paramsWithoutCost: crate::value::Dict = self.omit_t(&params, if (type_var == Some("market")) { Value::Str("cost".into()) } else { Value::Null }, &[]);
         let clientOrderId: Option<String> = self.safe_string_k_opt(&paramsWithoutCost, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("newClientOrderId".into(), Value::from(clientOrderId.as_deref()));
         }
         let paramsWithoutClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit_t(&paramsWithoutCost, &["type", "clientOrderId"], &[]) } else { paramsWithoutCost });
         if (marginMode.is_some()) {
@@ -5049,7 +5049,7 @@ impl Mexc {
         if (market).spot {
             let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
             if (clientOrderId.is_some()) {
-                request.insert("origClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("origClientOrderId".into(), Value::from(clientOrderId.as_deref()));
             }  else {
                 request.insert("orderId".into(), id);
             }
@@ -7055,7 +7055,7 @@ impl Mexc {
                 key = self.safe_string_opt(&keys, Value::Int(0), &[]);
             }
         }
-        if (key.is_none()) || (self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), key.clone().map(Value::from).unwrap_or(Value::Null), &[]) == Value::Null) {
+        if (key.is_none()) || (self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), Value::from(key.as_deref()), &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() cannot find a deposit address for ").into()), code).into()), ", and network").into()),
                 network.map(Value::from).unwrap_or(Value::Null)).into()), "consider creating one using .createDepositAddress() method or in MEXC website")));
         }
@@ -7663,7 +7663,7 @@ impl Mexc {
         }
         let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let networkRaw: Option<String> = self.safe_string2_opt(Value::from(&paramsWithdrawTag), Value::Str("network".into()), Value::Str("netWork".into()), &[]); // this line allows the user to specify either ERC20 or ETH
-        let network: Option<String> = self.network_code_to_id(Value::from(self.safe_string(&networks, networkRaw.clone().map(Value::from).unwrap_or(Value::Null), &[networkRaw.map(Value::from).unwrap_or(Value::Null)])).as_text().as_deref(), self.safe_string_k(&currency, "code", &[]).as_str()).as_str().map(str::to_owned); // handle ETH > ERC-20 alias
+        let network: Option<String> = self.network_code_to_id(Value::from(self.safe_string(&networks, Value::from(networkRaw.as_deref()), &[networkRaw.map(Value::from).unwrap_or(Value::Null)])).as_text().as_deref(), self.safe_string_k(&currency, "code", &[]).as_str()).as_str().map(str::to_owned); // handle ETH > ERC-20 alias
         self.check_address(&[&address, &code, &tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7676,7 +7676,7 @@ impl Mexc {
             request.insert("memo".into(), tagResolved.map(Value::from).unwrap_or(Value::Null));
         }
         if (network.is_some()) {
-            request.insert("netWork".into(), network.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("netWork".into(), Value::from(network.as_deref()));
         }
         let paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit_t(&paramsWithdrawTag, &["network", "netWork"], &[]) } else { paramsWithdrawTag });
         let __ws_arg_59 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -7841,7 +7841,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let networkList: crate::value::List = transaction.key_list("networkList");
+        let networkList: Vec<crate::value::Dict> = crate::value::dict_rows(transaction.key_list("networkList"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -7850,9 +7850,9 @@ impl Mexc {
                         let mut j: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { j += 1; } __for_first_11 = false; j < (networkList.len() as i64) } {
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
+            let networkEntry: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
-            let networkCode: Option<String> = self.safe_string_opt(self.options.get("networks").cloned().unwrap_or(Value::Null), &networkId, &[&networkId]);
+            let networkCode: Option<String> = self.safe_string_opt(self.options.get("networks").cloned().unwrap_or(Value::Null), Value::from(networkId.as_deref()), &[&networkId]);
             let fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
             result.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
         }

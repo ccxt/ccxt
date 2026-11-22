@@ -196,7 +196,7 @@ impl Gemini {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str("trades:".into()), Value::from((market).symbol.as_str()));
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTrades() marketId is required")));
         }
@@ -550,7 +550,7 @@ impl Gemini {
         let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
         let symbol: Option<String> = self.safe_symbol(Some(marketId.as_str()), Some(&market), &[]).as_str().map(str::to_owned);
         let changes: crate::value::List = __pro_message.key_list("changes");
-        let timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId.clone()), &[]);
+        let timeframe: Option<String> = self.find_timeframe(Value::from(timeframeId.as_str()), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
@@ -605,7 +605,7 @@ impl Gemini {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.as_str()));
-        let marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
+        let marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
         if (marketId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOrderBook() marketId is required")));
         }
@@ -667,7 +667,7 @@ impl Gemini {
                     m.insert("bids".to_string(), Value::from(bidsSnapshot));
                     m.insert("asks".to_string(), Value::from(asksSnapshot));
                 m
-            }), Value::from(symbol.clone()), &[]);
+            }), Value::from(symbol.as_str()), &[]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
             return;
@@ -688,7 +688,7 @@ impl Gemini {
             }
         }
         }
-        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         let __resolved_orderbook = Value::from(&orderbook);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook);
         client.resolve(__resolved_orderbook, messageHash.as_str());
@@ -925,7 +925,7 @@ impl Gemini {
             }
         }
         }
-        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         orderbook.set_book_meta("nonce", nonce);
         orderbook.set_book_meta("timestamp", timestamp.clone());
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1010,7 +1010,7 @@ impl Gemini {
         }
         let authParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("url".to_string(), Value::from(url.clone()));
+                m.insert("url".to_string(), Value::from(url.as_str()));
             m
         });
         self.authenticate(&[&Value::Map(authParams)]).await;
@@ -1247,7 +1247,7 @@ impl Gemini {
             self.handle_ohlcv(&client, message.clone());
             return;
         }
-        let method: Option<String> = self.safe_value(&methods, Value::from(type_var.clone()), &[]).as_str().map(str::to_owned);
+        let method: Option<String> = self.safe_value(&methods, Value::from(type_var.as_str()), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[&client, &message]);
         }
@@ -1327,7 +1327,7 @@ impl Gemini {
             m
         });
         let b64: String = self.string_to_base64(json_stringify(&Value::Map(payload)), &[]);
-        let signature: String = self.hmac(self.encode(Value::from(b64.clone())), self.encode(&self.secret), "sha384", &[Value::Str("hex".into())]);
+        let signature: String = self.hmac(self.encode(Value::from(b64.as_str())), self.encode(&self.secret), "sha384", &[Value::Str("hex".into())]);
         let defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({

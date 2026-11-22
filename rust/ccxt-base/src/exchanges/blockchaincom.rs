@@ -255,7 +255,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -271,7 +271,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -361,7 +361,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         let errorMessage: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
         // code is an int: it is never undefined, the guard was dead
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, Value::from(feedback));
         return Value::Null;
 
@@ -1216,7 +1216,7 @@ impl Blockchaincom {
         self.check_required_argument(Value::Str("createOrder".into()), &side, Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ordType".to_string(), uppercaseOrderType.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("ordType".to_string(), Value::from(uppercaseOrderType.as_deref()));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("orderQty".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
@@ -1848,7 +1848,7 @@ impl Blockchaincom {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("account".into()), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), Value::from(accountName.clone()));
+                m.insert("account".to_string(), Value::from(accountName.as_str()));
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
@@ -1868,7 +1868,7 @@ impl Blockchaincom {
         //         ]
         //     }
         //
-        let balances: Option<crate::value::List> = self.safe_list_o(&response, Value::from(accountName.clone()));
+        let balances: Option<crate::value::List> = self.safe_list_o(&response, Value::from(accountName.as_str()));
         if (balances.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() could not find the \"").into()), accountName).into()), "\" account")));
         }

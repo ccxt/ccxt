@@ -100,7 +100,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "opening_price", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(&ticker, "prev_closing_price", &[]));
         m.insert("change".to_string(), Value::Null);
@@ -296,8 +296,8 @@ impl crate::exchange::DerivedExchange for Upbit {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let trades: crate::value::List = self.parse_trades(self.safe_list_k(&order, "trades", &[Value::from(vec![])]), Some(&marketResolved), &[&Value::Null, &Value::Null, &Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("order".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("order".to_string(), Value::from(id.as_deref()));
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
     m
 })]);
         let numTrades: i64 = trades.len() as i64;
@@ -385,7 +385,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quote".to_string(), Value::from(quote.as_deref()));
         m.insert("settle".to_string(), Value::Null);
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
@@ -400,7 +400,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
-        m.insert("taker".to_string(), self.safe_number(&tradingFeesByQuoteCurrency, quote.clone().map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "taker", &[])]));
+        m.insert("taker".to_string(), self.safe_number(&tradingFeesByQuoteCurrency, Value::from(quote.as_deref()), &[self.safe_number_k(&tradingFees, "taker", &[])]));
         m.insert("maker".to_string(), self.safe_number(&tradingFeesByQuoteCurrency, quote.map(Value::from).unwrap_or(Value::Null), &[self.safe_number_k(&tradingFees, "maker", &[])]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("expiry".to_string(), Value::Null);
@@ -468,11 +468,11 @@ impl crate::exchange::DerivedExchange for Upbit {
         let currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "currency", &[]);
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let networkId: Option<String> = self.safe_string_k_opt(&depositAddress, "net_type", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
@@ -516,7 +516,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         let address: Option<String> = None; // not present in the data structure received from the exchange
         let tag: Option<String> = None; // not present in the data structure received from the exchange
         let updatedRaw: Option<String> = self.safe_string_k_opt(&transaction, "done_at", &[]);
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&transaction, "created_at", &[updatedRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&transaction, "created_at", &[Value::from(updatedRaw.as_deref())]));
         let mut type_var: Option<String> = self.safe_string_k_opt(&transaction, "type", &[]);
         if (type_var.as_deref() == Some("withdraw")) {
             type_var = Some("withdrawal".to_string());
@@ -527,7 +527,7 @@ impl crate::exchange::DerivedExchange for Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(&transaction, "uuid", &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), Value::from(address.as_deref()));
@@ -546,7 +546,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
     m
 }));
@@ -646,10 +646,10 @@ impl crate::exchange::DerivedExchange for Upbit {
             let message: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
             let name: Option<String> = self.safe_string_k_opt(&error, "name", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &name, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &name, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(name.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &name, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1406,7 +1406,7 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("fee".to_string(), self.safe_number_k(&currencyInfo, "withdraw_fee", &[]));
@@ -1891,7 +1891,7 @@ impl Upbit {
             }
             idsString = format!("{}{}", idsString, self.safe_string(&ids, Value::Int(i), &[Value::Str("".into())]));
             if ((idsString.chars().count() as i64)) >= 4000 {
-                queries.push(Value::from(idsString.clone()));
+                queries.push(Value::from(idsString.as_str()));
                 idsString = "".to_string();
             }
         }
@@ -2345,7 +2345,7 @@ impl Upbit {
         }
         if (timeInForce.is_some()) {
             if (timeInForce.as_deref() == Some("ioc")) || (timeInForce.as_deref() == Some("fok")) {
-                request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
         }
         if (self.safe_string_k(&request, "ord_type", &[]).as_str() == Some("best")) && (timeInForce.is_none()) {
@@ -2511,7 +2511,7 @@ impl Upbit {
         }
         if (timeInForce.is_some()) {
             if (timeInForce.as_deref() == Some("ioc")) || (timeInForce.as_deref() == Some("fok")) {
-                request.insert("new_time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("new_time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
         }
         if (self.safe_string_k(&request, "new_ord_type", &[]).as_str() == Some("best")) && (timeInForce.is_none()) {

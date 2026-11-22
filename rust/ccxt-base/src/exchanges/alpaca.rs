@@ -176,7 +176,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
             }
         }
         let datetime: Option<String> = self.safe_string_k_opt(&order, "submitted_at", &[]);
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
@@ -367,7 +367,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         //     ]
         //
         let mut account: crate::value::Dict = self.safe_dict_k_t(&response, "account");
-        let positions: crate::value::List = self.safe_list_k_t(&response, "positions");
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "positions"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -387,7 +387,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (positions.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
+            let position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             let mut positionSymbol: String = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (positionSymbol == "") {
                 continue;
@@ -619,11 +619,11 @@ impl crate::exchange::DerivedExchange for Alpaca {
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         // code is an int: it is never undefined, the guard was dead
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             let codeAsString: String = format!("{}", code);
             let statusCode: Option<i64> = self.parse_to_int(code);
             if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
@@ -1710,7 +1710,7 @@ impl Alpaca {
         let method: String = self.safe_string_k(&params, "method", &[Value::Str("marketPublicGetV1beta3CryptoLocTrades".into())]).as_str().unwrap_or("marketPublicGetV1beta3CryptoLocTrades").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbols".to_string(), Value::from(marketId.as_deref()));
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
@@ -1742,7 +1742,7 @@ impl Alpaca {
             //    }
             //
             let trades: crate::value::Dict = self.safe_dict_k_t(&response, "trades");
-            symbolTrades = self.safe_list_or_o(&trades, &marketId, Value::from(vec![]));
+            symbolTrades = self.safe_list_or_o(&trades, Value::from(marketId.as_deref()), Value::from(vec![]));
         }  else if (method == "marketPublicGetV1beta3CryptoLocLatestTrades") {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
             let response: crate::value::Dict = self.market_public_get_v1beta3_crypto_loc_latest_trades(&[&__ws_arg_2]).await.unwrap_or_default();
@@ -1805,7 +1805,7 @@ impl Alpaca {
         let loc: String = self.safe_string_k(&params, "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbols".to_string(), Value::from(id.as_deref()));
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
@@ -1904,7 +1904,7 @@ impl Alpaca {
         query = Value::Dict(queryPagination);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbols".to_string(), Value::from(marketId.as_deref()));
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });
@@ -1958,7 +1958,7 @@ impl Alpaca {
     let m = indexmap::IndexMap::new();
     m
 }));
-            ohlcvs = self.safe_list(&bars, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+            ohlcvs = self.safe_list(&bars, Value::from(marketId.as_deref()), &[Value::from(vec![])]);
             if paginate {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 let mut pageToken: Option<String> = self.safe_string_k_opt(&response, "next_page_token", &[]);
@@ -1970,14 +1970,14 @@ impl Alpaca {
                     if (pageToken.is_none()) || ((limit.is_some()) && ((limit.is_some() && Some(ohlcvsLength) >= limit))) {
                         break;
                     }
-                    request.insert("page_token".into(), pageToken.clone().map(Value::from).unwrap_or(Value::Null));
+                    request.insert("page_token".into(), Value::from(pageToken.as_deref()));
                     let __ws_arg_5 = self.extend(&request, &[&query]);
                     response = self.market_public_get_v1beta3_crypto_loc_bars(&[&__ws_arg_5]).await;
                     bars = self.safe_dict_k_or_o(&response, "bars", Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-                    let page: crate::value::List = self.safe_list_t(&bars, &marketId);
+                    let page: crate::value::List = self.safe_list_t(&bars, Value::from(marketId.as_deref()));
                     let pageLength: i64 = page.len() as i64;
                     if (pageLength == 0) {
                         break;
@@ -2160,7 +2160,7 @@ impl Alpaca {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.map_or(Value::Null, Value::Dict));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
-                    m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+                    m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
                     m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                     m.insert("high".to_string(), self.safe_string_k(&dailyBar, "h", &[]));
                     m.insert("low".to_string(), self.safe_string_k(&dailyBar, "l", &[]));
@@ -2372,7 +2372,7 @@ impl Alpaca {
         }
         let cost: Option<String> = self.safe_string_k_opt(&params, "cost", &[]);
         if (cost.is_some()) {
-            request.insert("notional".into(), Value::from(self.cost_to_precision(symbol.as_str(), &cost)));
+            request.insert("notional".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(cost.as_deref()))));
         }  else {
             request.insert("qty".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
         }
@@ -2689,7 +2689,7 @@ impl Alpaca {
         }
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stop_price".into()), &[]);
         if (triggerPrice.is_some()) {
-            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("stop_price".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
         }
         let paramsTrigger: crate::value::Dict = self.omit_t(&params, if (triggerPrice.is_some()) { Value::Str("triggerPrice".into()) } else { Value::Null }, &[]);
         if (price.is_some()) {

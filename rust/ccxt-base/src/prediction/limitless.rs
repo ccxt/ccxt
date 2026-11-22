@@ -135,10 +135,10 @@ impl crate::exchange::DerivedExchange for Limitless {
         // }
         //
         let slug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[]);
-        let address: Option<String> = self.safe_string_k_opt(&raw, "address", &[&slug]);
+        let address: Option<String> = self.safe_string_k_opt(&raw, "address", &[&Value::from(slug.as_deref())]);
         // groupSlug is stamped by expandGroupRows on children of a group row — prefer it over
         // the child's own numeric groupId so symbols/handles derive from the readable slug
-        let groupId: Option<String> = self.safe_string_n_opt(&raw, Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[slug.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let groupId: Option<String> = self.safe_string_n_opt(&raw, Value::from(vec![Value::Str("groupSlug".into()), Value::Str("groupId".into())]), &[Value::from(slug.as_deref())]);
         // CTF condition id — needed to redeem a resolved winning position
         let conditionId: Option<String> = self.safe_string_k_opt(&raw, "conditionId", &[]);
         let tokens: crate::value::Dict = self.safe_dict_k_t(&raw, "tokens");
@@ -155,7 +155,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let winningOutcomeIndex: Option<i64> = self.safe_integer_k(&raw, "winningOutcomeIndex", &[]).as_i64();
         let marketResolved: bool = (winningOutcomeIndex.is_some());
         let mut resolvedOutcome: Option<String> = None;
-        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), Value::from(slug.as_deref())).as_str().map(str::to_owned);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         let collateralToken: crate::value::Dict = self.safe_dict_k_t(&raw, "collateralToken");
@@ -175,7 +175,7 @@ impl crate::exchange::DerivedExchange for Limitless {
             let outcomeLabel: Option<&str> = tokenEntries.get(i as usize).and_then(Value::as_str);
             let tokenData: Value = crate::value::KeyRead::read(&&tokens, &Value::from(outcomeLabel));
             let tokenId: Value = tokenData;
-            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null), Value::from(outcomeLabel.as_deref())).as_str().map(str::to_owned);
+            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(groupId.as_deref()), Value::from(slug.as_deref()), Value::from(outcomeLabel.as_deref())).as_str().map(str::to_owned);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
@@ -212,9 +212,9 @@ impl crate::exchange::DerivedExchange for Limitless {
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("slug".to_string(), Value::from(slug.as_deref()));
         m.insert("address".to_string(), Value::from(address.as_deref()));
-        m.insert("conditionId".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("conditionId".to_string(), Value::from(conditionId.as_deref()));
         m.insert("outcomeLabel".to_string(), Value::from(outcomeLabel.as_deref()));
         m.insert("tokenId".to_string(), tokenId);
         m.insert("volume24h".to_string(), Value::from(volume24h));
@@ -229,15 +229,15 @@ impl crate::exchange::DerivedExchange for Limitless {
         let marketResolvedOutcome: Option<String> = resolvedOutcome;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(slug.as_deref()));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("marketType".to_string(), (if (outcomesLength > 2) { Value::Str("categorical".into()) } else { Value::Str("binary".into()) }));
         m.insert("executionModel".to_string(), Value::Str("clob".into()));
         m.insert("collateral".to_string(), Value::Str("USDC".into()));
-        m.insert("base".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("base".to_string(), Value::from(slug.as_deref()));
         m.insert("quote".to_string(), Value::Str("USDC".into()));
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), Value::from(slug.as_deref()));
         m.insert("quoteId".to_string(), Value::Str("USDC".into()));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("prediction".into()));
@@ -295,7 +295,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("outcomes".to_string(), Value::from(outcomes));
         m.insert("info".to_string(), self.extend(raw, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
+        m.insert("slug".to_string(), Value::from(slug.as_deref()));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("volume24h".to_string(), Value::from(volume24h));
     m
@@ -586,7 +586,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         let amount: Option<String> = self.safe_string_opt(&rawOrder, Value::from(amountKey), &[]);
         let remaining: Option<String> = self.safe_string_k_opt(&rawOrder, "remainingSize", &[]);
         let datetime: Option<String> = self.safe_string_k_opt(&rawOrder, "createdAt", &[]);
-        let ts: Option<i64> = self.parse8601(&datetime);
+        let ts: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let timeInForce: Option<String> = self.safe_string2_opt(&rawOrder, Value::Str("type".into()), Value::Str("orderType".into()), &[]);
         let mut type_var: Option<String> = None;
         if (timeInForce.as_deref() == Some("GTC")) {
@@ -780,9 +780,9 @@ impl crate::exchange::DerivedExchange for Limitless {
         // the API returns either a string message or an array of field-validation errors
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
         }
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error
@@ -1584,7 +1584,7 @@ impl Limitless {
             let nestedMarkets: Option<crate::value::List> = self.safe_list_k_o(&raw, "markets");
             if (rowType.as_deref() == Some("group")) && (nestedMarkets.is_some()) {
                 let groupSlug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[]);
-                let groupTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&groupSlug]);
+                let groupTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&Value::from(groupSlug.as_deref())]);
                 let nestedMarketsLength: i64 = nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
                 {
                                         let mut j: i64 = 0;
@@ -1593,7 +1593,7 @@ impl Limitless {
                     // extend copies — the raw child stays untouched
                     let tagged: crate::value::Dict = self.extend_t(nestedMarkets.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("groupSlug".to_string(), groupSlug.clone().map(Value::from).unwrap_or(Value::Null));
+                            m.insert("groupSlug".to_string(), Value::from(groupSlug.as_deref()));
                             m.insert("groupTitle".to_string(), Value::from(groupTitle.as_deref()));
                         m
                     })]);
@@ -1935,7 +1935,7 @@ impl Limitless {
         let slug: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "slug", &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("addressOrSlug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("addressOrSlug".to_string(), Value::from(slug.as_deref()));
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
@@ -2188,7 +2188,7 @@ impl Limitless {
         m.insert("askVolume".to_string(), self.parse_number(askSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), self.parse_number(&lastStr, &[]));
+        m.insert("close".to_string(), self.parse_number(Value::from(lastStr.as_deref()), &[]));
         m.insert("last".to_string(), self.parse_number(lastStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -2252,10 +2252,10 @@ impl Limitless {
                 if (slug.is_some()) {
                     outcomesBySlug.insert(slug.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
-                slugs.push(slug.clone().map(Value::from).unwrap_or(Value::Null));
+                slugs.push(Value::from(slug.as_deref()));
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = self.safe_list(&outcomesBySlug, slug.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+            let mut grouped: Value = self.safe_list(&outcomesBySlug, Value::from(slug.as_deref()), &[Value::from(vec![])]);
             if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(crate::Value::from(outcomeObj.as_ref())); }
             if (slug.is_some()) {
                 outcomesBySlug.insert(slug.as_deref().unwrap_or("null").to_string(), grouped);
@@ -3191,7 +3191,7 @@ if _try_result.is_err() {
         let mut taker: Option<String> = self.safe_string_k_opt(&self.options, "nullAddress", &[&Value::Str("0x0000000000000000000000000000000000000000".into())]);
         { let __destr_tmp = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(&taker)]); taker = __destr_tmp.0.as_str().map(str::to_owned); paramsValue = __destr_tmp.1; }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.check_address(&[&taker.clone().map(Value::from).unwrap_or(Value::Null)]);
+            self.check_address(&[&Value::from(taker.as_deref())]);
          #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id, " createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.")));
@@ -3264,7 +3264,7 @@ if _try_result.is_err() {
         }  else {
             let calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
-                makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                makerAmount = self.cost_to_prediction_precision(outcome.clone(), Value::from(calculatedCost.as_deref())).as_str().map(str::to_owned);
                 takerAmount = self.amount_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
             }  else {
                 makerAmount = self.amount_to_prediction_precision(outcome.clone(), Value::from(amount)).as_str().map(str::to_owned);
@@ -3576,7 +3576,7 @@ if _try_result.is_err() {
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("conditionId".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("conditionId".to_string(), Value::from(conditionId.as_deref()));
             m
         });
         let rest: crate::value::Dict = self.omit_t(params, &["conditionId", "condition_id"], &[]);
@@ -3585,7 +3585,7 @@ if _try_result.is_err() {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
-        m.insert("id".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(conditionId.as_deref()));
         m.insert("conditionId".to_string(), conditionId.map(Value::from).unwrap_or(Value::Null));
     m
 });

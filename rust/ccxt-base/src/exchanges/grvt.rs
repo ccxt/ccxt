@@ -494,18 +494,18 @@ impl crate::exchange::DerivedExchange for Grvt {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let spotBalances: crate::value::List = self.safe_list_k_t(&response, "spot_balances");
+        let spotBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "spot_balances"));
         let availableBalance: Option<String> = self.safe_string_k_opt(response, "available_balance", &[]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (spotBalances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
+            let balance: crate::value::Dict = spotBalances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-            account.insert("free".into(), availableBalance.clone().map(Value::from).unwrap_or(Value::Null)); // todo: revise after API team clarification
+            account.insert("free".into(), Value::from(availableBalance.as_deref())); // todo: revise after API team clarification
             if (code.is_some()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
@@ -936,7 +936,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let mut requestPath: String = path.to_string();
-        let query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(requestPath.clone())), &[]);
+        let query: crate::value::Dict = self.omit_t(&params, self.extract_params(Value::from(requestPath.as_str())), &[]);
         let apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
@@ -1083,7 +1083,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "format_signature_rs" => self.format_signature_rs(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
-                "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client(&args[..]).await,
                 "internal_fetch_transfers" => Value::Arr(self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "load_account_infos" => self.load_account_infos().await,
@@ -2636,7 +2636,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&params, &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_5 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.public_market_post_full_v1_trade_history(&[&__ws_arg_5]).await.unwrap_or_default();
@@ -2729,7 +2729,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&Value::from(&paramsPaginate), &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_6 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.public_market_post_full_v1_kline(&[&__ws_arg_6]).await.unwrap_or_default();
@@ -2811,7 +2811,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&Value::from(&paramsPaginate), &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_7 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.public_market_post_full_v1_funding(&[&__ws_arg_7]).await.unwrap_or_default();
@@ -2951,7 +2951,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&params, &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let useTransfersEndpoint: bool = self.safe_bool_k_opt(&self.options, "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
@@ -3029,7 +3029,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&params, &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let useTransfersEndpoint: bool = self.safe_bool_k_opt(&self.options, "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
@@ -3160,7 +3160,7 @@ if _try_result.is_err() {
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&Value::from(&paramsPaginate), &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_13 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.private_trading_post_full_v1_transfer_history(&[&__ws_arg_13]).await.unwrap_or_default();
@@ -3292,8 +3292,8 @@ if _try_result.is_err() {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("from_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_account_id", &[defaultFromAccountId.clone().map(Value::from).unwrap_or(Value::Null)]));
-                m.insert("from_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_sub_account_id", &[fromSubAccount.clone().map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("from_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_account_id", &[Value::from(defaultFromAccountId.as_deref())]));
+                m.insert("from_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "from_sub_account_id", &[Value::from(fromSubAccount.as_deref())]));
                 m.insert("to_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_account_id", &[defaultFromAccountId.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("to_sub_account_id".to_string(), self.safe_string_k(&paramsFundingAccountId, "to_sub_account_id", &[toSubAccount.map(Value::from).unwrap_or(Value::Null)]));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -3736,7 +3736,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m
             });
             let limitPrice: Option<String> = self.safe_string_k_opt(&leg, "limit_price", &[]);
-            if (limitPrice.is_some()) && (Value::from(self.omit_zero(limitPrice.clone().map(Value::from).unwrap_or(Value::Null))) != Value::Null) {
+            if (limitPrice.is_some()) && (Value::from(self.omit_zero(Value::from(limitPrice.as_deref()))) != Value::Null) {
                 let price: Option<String> = limitPrice;
                 let limitParts: crate::value::List = crate::value::List::new(if let Some(__s) = price.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 let mut limitDec: String = self.safe_string(&limitParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3829,7 +3829,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&Value::from(&paramsPaginate), &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_17 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.private_trading_post_full_v1_fill_history(&[&__ws_arg_17]).await.unwrap_or_default();
@@ -4135,7 +4135,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&Value::from(&paramsPaginate), &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_22 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.private_trading_post_full_v1_funding_payment_history(&[&__ws_arg_22]).await.unwrap_or_default();
@@ -4208,7 +4208,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))));
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable = self.handle_until_option_string("end_time", Value::Map(request), &[&params, &Value::Int(1000000)]);
-        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0.into_dict();
+        let requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.0;
         let paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.1;
         let __ws_arg_23 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let response: crate::value::Dict = self.private_trading_post_full_v1_order_history(&[&__ws_arg_23]).await.unwrap_or_default();
@@ -4410,7 +4410,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("order_id".into(), id);
         }
@@ -4601,7 +4601,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("order_id".into(), id);
         }
@@ -4755,7 +4755,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
     Value::Null
 }
 
-    pub fn handle_until_option_string(&self, key: &str, mut request: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub fn handle_until_option_string(&self, key: &str, mut request: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let key: Value = key.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4766,9 +4766,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(self.number_to_string(Value::from(self.parse_to_int((match (&(Value::from(until)), &(multiplier)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                 (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))))); }
-            return (request, self.omit(&params, &["until", "till"], &[]).into_dict());
+            return (request.into_dict(), self.omit(&params, &["until", "till"], &[]).into_dict());
         }
-        return (request, params.into_dict());
+        return (request.into_dict(), params.into_dict());
 }
 
     pub fn request_id(&mut self) -> i64 {

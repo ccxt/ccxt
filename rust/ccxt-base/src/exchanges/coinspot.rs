@@ -79,7 +79,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -242,7 +242,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         if isVersionedApi {
             fullPath = format!("{}{}", Value::Str(format!("{}{}", "/", api.as_array().into_iter().flatten().nth(0).cloned().unwrap_or(Value::Null)).into()), endpoint);
         }
-        let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), &accessType, &[]);
+        let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(accessType.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }

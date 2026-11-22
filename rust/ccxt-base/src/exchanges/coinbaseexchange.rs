@@ -245,7 +245,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         }
         let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let filled: Option<String> = self.safe_string_k_opt(&order, "filled_size", &[]);
-        let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[&filled]);
+        let amount: Option<String> = self.safe_string_k_opt(&order, "size", &[&Value::from(filled.as_deref())]);
         let cost: Option<String> = self.safe_string_k_opt(&order, "executed_value", &[]);
         let feeCost: Option<f64> = self.safe_number_k(&order, "fill_fees", &[]).as_f64();
         let mut fee: Option<crate::value::Dict> = None;
@@ -536,7 +536,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
                     amount = (if let (Some(__l), Some(__r)) = (amountRaw, feeCost) { Some(__l - __r) } else { None });
                 }
                 fee.insert("cost".into(), Value::from(feeCost));
-                fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                fee.insert("currency".into(), Value::from(code.as_deref()));
             }
         }
         let networkId: Option<String> = self.safe_string_k_opt(&details, "network", &[]);
@@ -546,7 +546,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         m.insert("id".to_string(), self.safe_string_k(&transaction, "id", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&details, "crypto_transaction_hash", &[]));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("status".to_string(), self.parse_transaction_status(transaction.clone()));
@@ -636,8 +636,8 @@ if _try_result.is_err() {
             if (body.as_str().unwrap_or("").starts_with("{")) {
                 let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null"));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
@@ -1762,8 +1762,8 @@ impl Coinbaseexchange {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
-                    m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("base".to_string(), Value::from(base.as_deref()));
+                    m.insert("quote".to_string(), Value::from(quote.as_deref()));
                     m.insert("settle".to_string(), Value::Null);
                     m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
@@ -2083,7 +2083,7 @@ impl Coinbaseexchange {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let entry: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
-            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::from(delimiter.clone())]);
+            let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::from(delimiter.as_str())]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result.insert(symbol, self.parse_ticker_list(self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
         }
@@ -2760,7 +2760,7 @@ impl Coinbaseexchange {
         if (clientOrderId.is_none()) {
             request.insert("id".into(), id);
         }  else {
-            request.insert("client_oid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_oid".into(), Value::from(clientOrderId.as_deref()));
         }
         let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["clientOrderId", "client_oid"], &[]) } else { params }).into_dict();
         let mut market: Option<crate::types::Market> = None;
@@ -3033,7 +3033,7 @@ impl Coinbaseexchange {
             m
         });
         if (id.is_some()) {
-            request.insert("id".into(), id.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("id".into(), Value::from(id.as_deref()));
         }
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));

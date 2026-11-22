@@ -628,7 +628,7 @@ impl crate::exchange::DerivedExchange for Gemini {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
@@ -736,7 +736,7 @@ impl crate::exchange::DerivedExchange for Gemini {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeAmount));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -852,7 +852,7 @@ impl crate::exchange::DerivedExchange for Gemini {
             let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null"));
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &reasonInner, feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -3158,7 +3158,7 @@ impl Gemini {
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_v1_deposit_currency_new_address(&[&__ws_arg_13]).await.unwrap_or_default();
         let address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code);

@@ -440,7 +440,7 @@ impl Dydx {
         if (orderbook.is_none()) {
             orderbook = Some(self.order_book(&[]));
         }
-        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         let asks: crate::value::List = self.safe_list_k_t(&content, "asks");
         let bids: crate::value::List = self.safe_list_k_t(&content, "bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));

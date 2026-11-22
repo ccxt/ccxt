@@ -336,7 +336,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("transactionId".into()), Value::Str("id".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(&transaction, "transferType", &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "walletType", &[]).as_str(), code.as_deref())));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "transferStatus", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -354,7 +354,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("rate".to_string(), Value::Null);
     m
 }));
@@ -433,8 +433,8 @@ impl crate::exchange::DerivedExchange for Coinmate {
         let errorMessage: Option<String> = self.safe_string_k_opt(response, "errorMessage", &[]);
         if (errorMessage.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorMessage, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessage.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

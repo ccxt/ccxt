@@ -552,7 +552,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -681,8 +681,8 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let error: Option<String> = self.safe_string_k_opt(&source, "error", &[]);
         if (status.as_deref() == Some("err")) || (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             if (code.as_f64() == Some(400.0)) {
                 panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
             }
@@ -1467,7 +1467,7 @@ impl Polymarket {
                 let currencyType: String = (if (category.as_deref() == Some("crypto")) { "crypto".to_string() } else { "other".to_string() });
                 result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(baseId.as_deref()));
         m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::from(&instrument));
@@ -1520,7 +1520,7 @@ impl Polymarket {
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             result.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(currencyId.as_deref()));
         m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), Value::from(&asset));
@@ -1890,9 +1890,11 @@ impl Polymarket {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut paginate: bool = false;
         let mut paramsOmitted: crate::value::Dict = params.into_dict();
-        { let __destr_tmp = self.handle_option_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.0.as_bool() == Some(true); paramsOmitted = __destr_tmp.1; }
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
+        paramsOmitted = paramsPaginate;
         if paginate {
             return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since, limit, timeframe.as_str(), &[&Value::from(&paramsOmitted), &Value::Int(1000)]).await;
         }
@@ -2032,9 +2034,11 @@ impl Polymarket {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut paginate: bool = false;
         let mut paramsOmitted: crate::value::Dict = params.into_dict();
-        { let __destr_tmp = self.handle_option_and_params(&paramsOmitted, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]); paginate = __destr_tmp.0.as_bool() == Some(true); paramsOmitted = __destr_tmp.1; }
+        let paginateparamsPaginateVariable = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
+        let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
+        let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
+        paramsOmitted = paramsPaginate;
         if paginate {
             return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since, limit, Some("1h"), &[&Value::from(&paramsOmitted), &Value::Int(100)]).await;
         }
@@ -2216,7 +2220,7 @@ impl Polymarket {
             result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&entry));
-        m.insert("symbol".to_string(), Value::from(symbol));
+        m.insert("symbol".to_string(), Value::from(symbol.as_str()));
         m.insert("maker".to_string(), self.safe_number_k(&entry, "maker_fee_rate", &[]));
         m.insert("taker".to_string(), self.safe_number_k(&entry, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -2292,7 +2296,7 @@ impl Polymarket {
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
         // trigger - undefined entries are removed and later entries shift left,
         // the venue rebuilds the same compact array from the body to verify
-        let row: Value = Value::from(vec![Value::from(instrumentId), Value::Bool(isBuy), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null), tif.clone().map(Value::from).unwrap_or(Value::Null), postOnly.clone(), reduceOnlyValue.map_or(Value::Null, Value::Bool), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let row: Value = Value::from(vec![Value::from(instrumentId), Value::Bool(isBuy), Value::from(priceString.as_deref()), Value::from(quantity.as_deref()), Value::from(tif.as_deref()), postOnly.clone(), reduceOnlyValue.map_or(Value::Null, Value::Bool), Value::from(clientOrderId.as_deref())]);
         let signable: crate::value::List = self.compact_signable(row);
         let mut entry: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2376,8 +2380,8 @@ impl Polymarket {
             let firstInfo: crate::value::Dict = self.safe_dict_k_t(&first, "info");
             let errorId: Option<String> = self.safe_string_k_opt(&firstInfo, "error", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() rejected: ").into()), json_stringify(&firstInfo));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorId, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorId, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorId.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorId, feedback.as_str());
             panic!("{}", crate::exchange_errors::invalid_order(feedback));
         }
         let mut created: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
@@ -2727,7 +2731,7 @@ impl Polymarket {
         let orderId: Option<i64> = self.parse_to_int(id);
         let priceString: Option<String> = self.price_to_precision(Some((market).symbol.as_str()), Value::from(price));
         let quantity: Option<String> = self.amount_to_precision(Some((market).symbol.as_str()), Value::from(amount));
-        let signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), priceString.clone().map(Value::from).unwrap_or(Value::Null), quantity.clone().map(Value::from).unwrap_or(Value::Null)])])]);
+        let signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("modifyOrders".into()), Value::from(vec![Value::from(vec![Value::from(orderId), Value::from(priceString.as_deref()), Value::from(quantity.as_deref())])])]);
         let bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("modifyOrders".into()));
@@ -3404,7 +3408,7 @@ impl Polymarket {
         let decimals: String = self.safe_string_k(&collateral, "decimals", &[Value::Str("6".into())]).as_str().unwrap_or("6").to_string();
         let precision: Option<String> = self.parse_precision(&[Value::from(decimals)]).as_str().map(str::to_owned);
         // the signed amount is denominated using raw base units of the token
-        let precised: Option<String> = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), self.parse_number(&precision, &[]), &[Value::Int(crate::runtime::TICK_SIZE)]).as_str().map(str::to_owned);
+        let precised: Option<String> = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), self.parse_number(Value::from(precision.as_deref()), &[]), &[Value::Int(crate::runtime::TICK_SIZE)]).as_str().map(str::to_owned);
         let baseUnits: Option<String> = crate::precise::Precise::stringDiv(&precised, &precision).as_str().map(str::to_owned);
         let ts: i64 = self.seconds();
         let salt: i64 = self.rand_number(Value::Int(9));
@@ -3461,8 +3465,8 @@ impl Polymarket {
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), Value::from(owner.as_deref()));
-                m.insert("token".to_string(), tokenAddress.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("amount".to_string(), Value::from(self.parse_to_int(&baseUnits)));
+                m.insert("token".to_string(), Value::from(tokenAddress.as_deref()));
+                m.insert("amount".to_string(), Value::from(self.parse_to_int(Value::from(baseUnits.as_deref()))));
                 m.insert("fee".to_string(), Value::Int(0));
                 m.insert("to".to_string(), address.clone());
                 m.insert("salt".to_string(), Value::from(salt));
@@ -3708,13 +3712,13 @@ impl Polymarket {
         if (type_var == "reduce") {
             amountString = Some(format!("{}{}", "-", amountString.as_deref().unwrap_or("null")));
         }
-        let signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("updateMargin".into()), Value::from(vec![Value::from(instrumentId), amountString.clone().map(Value::from).unwrap_or(Value::Null)])]);
+        let signable: crate::value::List = std::sync::Arc::new(vec![Value::Str("updateMargin".into()), Value::from(vec![Value::from(instrumentId), Value::from(amountString.as_deref())])]);
         let bodyOp: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateMargin".into()));
                 m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amt".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amt".to_string(), Value::from(amountString.as_deref()));
         m.insert("iid".to_string(), Value::from(instrumentId));
     m
 }));
@@ -3835,7 +3839,7 @@ impl Polymarket {
         let nonceMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("polymarket-perps-proxy:".into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), ":").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(9)))).into()));
         let seedSignature: Option<String> = self.sign_message(Value::from(nonceMessage), (self.privateKey.clone()).as_str());
         let proxyPrivateKey: String = self.hash(self.encode(seedSignature.map(Value::from).unwrap_or(Value::Null)), "keccak", &[Value::Str("hex".into())]);
-        let proxyAddress: Option<String> = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.clone()), &[]).as_str().map(str::to_owned);
+        let proxyAddress: Option<String> = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.as_str()), &[]).as_str().map(str::to_owned);
         let owner: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
         let ts: i64 = self.milliseconds();
         let lifetime: i64 = self.safe_integer_k(&self.options, "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);

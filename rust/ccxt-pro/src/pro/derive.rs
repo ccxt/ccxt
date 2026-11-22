@@ -277,14 +277,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from(topic.clone()));
+                m.insert("name".to_string(), Value::from(topic.as_str()));
                 m.insert("symbol".to_string(), symbol);
                 m.insert("limit".to_string(), Value::from(limitResolved));
                 m.insert("params".to_string(), params);
@@ -368,14 +368,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from(topic.clone()));
+                m.insert("name".to_string(), Value::from(topic.as_str()));
                 m.insert("symbol".to_string(), symbol);
                 m.insert("params".to_string(), params);
             m
@@ -417,7 +417,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -610,7 +610,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -656,7 +656,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -822,14 +822,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from(topic.clone()));
+                m.insert("name".to_string(), Value::from(topic.as_str()));
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("params".to_string(), params);
             m
@@ -887,7 +887,7 @@ impl Derive {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
             let now: Option<String> = self.number_to_string(self.nonce());
@@ -987,7 +987,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -1069,7 +1069,7 @@ impl Derive {
                     let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                     self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
                 }
-                let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), &symbol);
+                let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
                 let order: Option<crate::value::Dict> = (if (orderId.is_none()) { None } else { self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null)) });
                 if (order.is_some()) {
                     let mut fee: Option<crate::value::Dict> = self.safe_dict_k_o(&order, "fee");
@@ -1130,7 +1130,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -1190,7 +1190,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -1274,7 +1274,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -1353,14 +1353,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), Value::from(topic.clone()));
+                m.insert("name".to_string(), Value::from(topic.as_str()));
                 m.insert("params".to_string(), Value::from(&paramsDeriveSubaccountId));
             m
         });
@@ -1447,7 +1447,7 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.as_str())]));
     m
 }));
             m
@@ -1477,7 +1477,7 @@ impl Derive {
         let side: String = (if isShort { "short".to_string() } else { "long".to_string() });
         let contracts: Option<String> = crate::precise::Precise::stringAbs(&newSize).as_str().map(str::to_owned);
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&Value::from(subaccountIdKey));
-        let symbolPositions: crate::value::Dict = self.safe_dict_t(cache.hashmap(), Value::from(symbol.clone()));
+        let symbolPositions: crate::value::Dict = self.safe_dict_t(cache.hashmap(), Value::from(symbol.as_str()));
         // a fill through zero flattens the opposite side first
         let oppositeSide: String = (if isShort { "long".to_string() } else { "short".to_string() });
         let mut opposite: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(oppositeSide));
@@ -1489,14 +1489,14 @@ impl Derive {
                 cache.append(opposite.map_or(Value::Null, Value::Dict));
             }
         }
-        let mut position: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(side.clone()));
+        let mut position: Option<crate::value::Dict> = self.safe_dict_o(&symbolPositions, Value::from(side.as_str()));
         if (position.is_none()) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
             let timestamp: i64 = self.milliseconds();
             position = Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("side".to_string(), Value::from(side.clone()));
+        m.insert("side".to_string(), Value::from(side.as_str()));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("info".to_string(), entry.clone());
@@ -1608,7 +1608,7 @@ impl Derive {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode.is_some()) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             return Value::Bool(false);

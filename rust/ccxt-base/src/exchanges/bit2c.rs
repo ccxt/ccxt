@@ -72,7 +72,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -331,7 +331,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             let currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let uppercase: String = currencyId.to_uppercase();
-            if (self.safe_string(&response, Value::from(uppercase.clone()), &[]) != Value::Null) {
+            if (self.safe_string(&response, Value::from(uppercase.as_str()), &[]) != Value::Null) {
                 account.insert("free".into(), self.safe_string(&response, Value::Str(format!("{}{}", "AVAILABLE_", uppercase).into()), &[]));
                 account.insert("total".into(), self.safe_string(&response, Value::from(uppercase), &[]));
             }
@@ -351,7 +351,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
         //     }
         //
         let address: Option<String> = self.safe_string_k_opt(&depositAddress, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         let code: Option<String> = self.safe_currency_code(None, currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -437,8 +437,8 @@ impl crate::exchange::DerivedExchange for Bit2c {
         }
         if (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

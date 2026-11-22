@@ -126,7 +126,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -383,7 +383,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into()));
         let networkEntry: crate::value::Dict = self.safe_dict_t(&networksById, networkId.map(Value::from).unwrap_or(Value::Null));
         let network: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -518,14 +518,14 @@ impl crate::exchange::DerivedExchange for Bittrade {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction, "updated-at", &[]));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -635,10 +635,10 @@ impl crate::exchange::DerivedExchange for Bittrade {
             if (status.as_deref() == Some("error")) {
                 let codeError: Option<String> = self.safe_string_k_opt(&response, "err-code", &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
                 let message: Option<String> = self.safe_string_k_opt(response, "err-msg", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -3261,7 +3261,8 @@ impl Bittrade {
         if (network.is_some()) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network.as_deref() == Some("erc20")) {
-                request.insert("chain".into(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), network.as_deref().unwrap_or("null")).into()));
+                let currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                request.insert("chain".into(), Value::Str(format!("{}{}", currencyId, network.as_deref().unwrap_or("null")).into()));
             }  else {
                 request.insert("chain".into(), Value::Str(format!("{}{}", network.as_deref().unwrap_or("null"), crate::value::KeyRead::key_read(&&currency, "id")).into()));
             }

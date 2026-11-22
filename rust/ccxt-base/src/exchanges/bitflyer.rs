@@ -66,7 +66,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -288,7 +288,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
             let additionalFee: Option<String> = self.safe_string_k_opt(&transaction, "additional_fee", &[]);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAdd(&feeCost, &additionalFee), &[]));
                 m
             }));
@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -393,7 +393,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
         let errorMessage: Option<String> = self.safe_string_k_opt(&response, "error_message", &[]);
         let statusCode: Option<String> = self.safe_string_k_opt(response, "status", &[]);
         if (errorMessage.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &statusCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &statusCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

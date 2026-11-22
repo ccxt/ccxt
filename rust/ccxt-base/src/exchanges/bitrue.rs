@@ -112,7 +112,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askQty", &[]));
         m.insert("vwap".to_string(), self.safe_string_k(&ticker, "weightedAvgPrice", &[]));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "openPrice", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(&ticker, "priceChange", &[]));
@@ -193,8 +193,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) }); // this is a true side
         }
         let mut fee: Option<crate::value::Dict> = None;
-        let commission: Option<String> = self.safe_string_k_opt(&trade, "commission", &[]);
-        if (commission.is_some()) {
+        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("commission"))) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string2(&trade, Value::Str("commission".into()), Value::Str("fee".into()), &[]));
@@ -805,10 +804,10 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let txid: Option<String> = self.safe_string_k_opt(&transaction, "txid", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "createdAt", &[]).as_i64();
         let updated: Option<i64> = self.safe_integer_k(&transaction, "updatedAt", &[]).as_i64();
-        let payAmount: Option<String> = self.safe_string_k_opt(&transaction, "payAmount", &[]);
-        let ctime: Option<String> = self.safe_string_k_opt(&transaction, "ctime", &[]);
+        let payAmount: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("payAmount"));
+        let ctime: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("ctime"));
         let mut type_var: String = "deposit".to_string();
-        if (payAmount.is_some()) || (ctime.is_some()) {
+        if payAmount || ctime {
             type_var = "withdrawal".to_string();
         }
         let status: Option<String> = self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "status", &[]).as_str(), Some(type_var.as_str()));
@@ -829,7 +828,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -871,7 +870,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        let chainDetails: crate::value::List = self.safe_list_k_t(&fee, "chainDetail");
+        let chainDetails: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fee, "chainDetail"));
         let chainDetailLength: i64 = chainDetails.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -899,7 +898,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < chainDetailLength } {
-                let chainDetail: crate::value::Dict = self.safe_dict_t(&chainDetails, Value::Int(i));
+                let chainDetail: crate::value::Dict = chainDetails.get(i as usize).cloned().unwrap_or_default();
                 let networkId: Option<String> = self.safe_string_k_opt(&chainDetail, "chain", &[]);
                 let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
                 let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), currencyCode.as_deref());
@@ -972,7 +971,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
     m
 }), &[&paramsOmitted]);
                 let unsignedQuery: String = self.urlencode(__ws_arg_42, &[]);
-                let mut signature: String = self.hmac(self.encode(Value::from(unsignedQuery.clone())), self.encode(&self.secret), "sha256", &[]);
+                let mut signature: String = self.hmac(self.encode(Value::from(unsignedQuery.as_str())), self.encode(&self.secret), "sha256", &[]);
                 let signedQuery: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unsignedQuery, "&").into()), "signature=").into()), signature);
                 if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
                     url.push_str(&format!("{}{}", "?", signedQuery));
@@ -1003,7 +1002,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
                     if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                         signMessage.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
                     }
-                    let signature: String = self.hmac(self.encode(Value::from(signMessage.clone())), self.encode(&self.secret), "sha256", &[]);
+                    let signature: String = self.hmac(self.encode(Value::from(signMessage.as_str())), self.encode(&self.secret), "sha256", &[]);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
@@ -1084,8 +1083,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let errorResponse: crate::value::Dict = (if (parsedMessage != Value::Null) { parsedMessage } else { response }).into_dict();
         let message: Option<String> = self.safe_string_k_opt(&errorResponse, "msg", &[]);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
         let error: Option<String> = self.safe_string_k_opt(&errorResponse, "code", &[]);
@@ -1102,7 +1101,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
                 panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " temporary banned: ").into()), body)));
             }
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !success {
@@ -3126,7 +3125,7 @@ impl Bitrue {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
+                m.insert("type".to_string(), Value::from(uppercaseType.as_str()));
             m
         });
         if (uppercaseType == "LIMIT") {
@@ -3169,7 +3168,7 @@ impl Bitrue {
                     if (cost.is_some()) {
                         requestAmount = cost;
                     }
-                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), &requestAmount)));
+                    request.insert("amount".into(), Value::from(self.cost_to_precision(symbol.as_str(), Value::from(requestAmount.as_deref()))));
                     request.insert("volume".into(), Value::from(self.cost_to_precision(symbol.as_str(), requestAmount.map(Value::from).unwrap_or(Value::Null))));
                 }
             }  else {
@@ -3199,7 +3198,7 @@ impl Bitrue {
             }
             let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("newClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
             if (clientOrderId.is_some()) {
-                request.insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("newClientOrderId".into(), Value::from(clientOrderId.as_deref()));
             }
             let paramsNoClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["newClientOrderId", "clientOrderId"], &[]) } else { params }).into_dict();
             let triggerPrice: Option<f64> = self.safe_number2(Value::from(&paramsNoClientOrderId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
@@ -3263,7 +3262,7 @@ impl Bitrue {
             request.insert("orderId".into(), id.clone());
         }  else {
             if (market).swap {
-                request.insert("clientOrderId".into(), origClientOrderId.map(Value::from).unwrap_or(Value::Null));
+                request.insert("clientOrderId".into(), Value::from(origClientOrderId.as_deref()));
             }  else {
                 request.insert("origClientOrderId".into(), origClientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
@@ -3451,7 +3450,7 @@ impl Bitrue {
             request.insert("orderId".into(), id);
         }  else {
             if (market).swap {
-                request.insert("clientOrderId".into(), origClientOrderId.map(Value::from).unwrap_or(Value::Null));
+                request.insert("clientOrderId".into(), Value::from(origClientOrderId.as_deref()));
             }  else {
                 request.insert("origClientOrderId".into(), origClientOrderId.map(Value::from).unwrap_or(Value::Null));
             }

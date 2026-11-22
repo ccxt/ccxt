@@ -239,12 +239,12 @@ impl crate::exchange::DerivedExchange for Zebpay {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let currencyList: crate::value::List = self.safe_list_k_t(response, "data");
+        let currencyList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (currencyList.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&currencyList, Value::Int(i));
+            let entry: crate::value::Dict = currencyList.get(i as usize).cloned().unwrap_or_default();
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&entry, "total", &[]));
             account.insert("free".into(), self.safe_string_k(&entry, "free", &[]));
@@ -289,7 +289,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(&position, "id", &[]));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("initialMargin".to_string(), Value::from(initialMargin));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
@@ -495,7 +495,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
         if isV1 {
             marketType = "swap".to_string();
         }
-        let baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(marketType.clone()), &[]);
+        let baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(marketType.as_str()), &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -539,7 +539,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
             if (method.as_str() == Some("GET")) || ((method.as_str() == Some("DELETE")) && isSpot) {
                 // For GET/DELETE: Append params to URL and sign the query string
                 let queryString: String = self.urlencode(&paramsSigned, &[]);
-                signature = self.hmac(self.encode(Value::from(queryString.clone())), self.encode(&self.secret), "sha256", &[Value::Str("hex".into())]);
+                signature = self.hmac(self.encode(Value::from(queryString.as_str())), self.encode(&self.secret), "sha256", &[Value::Str("hex".into())]);
                 suffix = format!("{}{}", "?", queryString);
             }  else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
@@ -584,8 +584,8 @@ impl crate::exchange::DerivedExchange for Zebpay {
         let errorCode: Option<String> = self.safe_string2_opt(&response, Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
         let message: String = self.safe_string2(response, Value::Str("msg".into()), Value::Str("statusDescription".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.clone()), &feedback);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message), &feedback);
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_str()), feedback.as_str());
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message), feedback.as_str());
         self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, Value::from(feedback));
         return Value::Null;
 
@@ -2101,7 +2101,7 @@ impl Zebpay {
         let timeInForce: String = self.safe_string_k(&params, "timeInForce", &[Value::Str("GTC".into())]).as_str().unwrap_or("GTC").to_string();
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[&Value::from(self.uuid(&[]))]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stopLossPrice", "cost", "timeInForce", "clientOrderId"], &[]);
-        request.insert("type".into(), Value::from(upperCaseType.clone()));
+        request.insert("type".into(), Value::from(upperCaseType.as_str()));
         request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         request.insert("timeInForce".into(), Value::from(timeInForce));
         if (upperCaseType == "MARKET") {

@@ -87,7 +87,7 @@ impl crate::exchange::DerivedExchange for Indodax {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -436,8 +436,8 @@ impl crate::exchange::DerivedExchange for Indodax {
             }
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.clone()), &feedback);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(error), &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_str()), feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(error), feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
@@ -2105,7 +2105,7 @@ impl Indodax {
             let code: Option<String> = self.safe_currency_code(marketId.as_deref(), None);
             let address: Option<String> = self.safe_string_opt(&addresses, Value::from(marketId.as_deref()), &[]);
             if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, codes.clone()))) {
-                self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+                self.check_address(&[&Value::from(address.as_deref())]);
                 let mut network: Value = Value::Null;
                 if (matches!(marketId.as_deref(), Some(__k) if networks.contains_key(__k))) {
                     let networkId: Option<String> = self.safe_string_opt(&networks, Value::from(marketId.as_deref()), &[]);

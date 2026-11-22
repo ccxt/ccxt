@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("askVolume".to_string(), self.safe_string2(&ticker, Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_n(&ticker, Value::from(vec![Value::Str("open".into()), Value::Str("open24h".into()), Value::Str("openPrice24h".into())]), &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -1373,7 +1373,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
         let timestamp: Option<i64> = self.safe_integer2(&item, Value::Str("cTime".into()), Value::Str("ts".into()), &[]).as_i64();
         let balanceString: Option<String> = self.safe_string_k_opt(&item, "balance", &[]);
-        let after: Option<f64> = self.parse_number(&balanceString, &[]).as_f64();
+        let after: Option<f64> = self.parse_number(Value::from(balanceString.as_deref()), &[]).as_f64();
         let feeCostString: Option<String> = self.safe_string2_opt(&item, Value::Str("fees".into()), Value::Str("fee".into()), &[]);
         let mut feeCost: Option<f64> = None;
         if (feeCostString.is_some()) {
@@ -1401,14 +1401,14 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_type(businessType.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("before".to_string(), Value::from(before));
         m.insert("after".to_string(), Value::from(after));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), Value::from(feeCost));
     m
 }));
@@ -1448,9 +1448,9 @@ impl crate::exchange::DerivedExchange for Bitget {
         let currencyId: Option<String> = self.safe_string_k_opt(&transfer, "coin", &[]);
         let fromAccountRaw: Option<String> = self.safe_string_k_opt(&transfer, "fromType", &[]);
         let accountsById: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsById");
-        let fromAccount: Option<String> = self.safe_string_opt(&accountsById, &fromAccountRaw, &[&fromAccountRaw]);
+        let fromAccount: Option<String> = self.safe_string_opt(&accountsById, Value::from(fromAccountRaw.as_deref()), &[&fromAccountRaw]);
         let toAccountRaw: Option<String> = self.safe_string_k_opt(&transfer, "toType", &[]);
-        let toAccount: Option<String> = self.safe_string_opt(&accountsById, &toAccountRaw, &[&toAccountRaw]);
+        let toAccount: Option<String> = self.safe_string_opt(&accountsById, Value::from(toAccountRaw.as_deref()), &[&toAccountRaw]);
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
@@ -1773,7 +1773,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         if (feeCostAbsString.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), self.parse_number(&feeCostAbsString, &[]));
                 m
             }));
@@ -1797,7 +1797,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("uTime".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
@@ -2112,7 +2112,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         //         "transfer": "true""
         //     }
         //
-        let chains: crate::value::List = self.safe_list_k_t(&fee, "chains");
+        let chains: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fee, "chains"));
         let chainsLength: i64 = chains.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2141,7 +2141,7 @@ impl crate::exchange::DerivedExchange for Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < chainsLength } {
-            let chain: crate::value::Dict = self.safe_dict_t(&chains, Value::Int(i));
+            let chain: crate::value::Dict = chains.get(i as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
             let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), currencyCode.as_deref());
@@ -2299,13 +2299,13 @@ impl crate::exchange::DerivedExchange for Bitget {
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some("")) && (message.as_deref() != Some("success"));
         if nonEmptyMessage {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
         }
         let errorCode: Option<String> = self.safe_string2_opt(response, Value::Str("code".into()), Value::Str("err_code".into()), &[]);
         let nonZeroErrorCode: bool = (errorCode.is_some()) && (errorCode.as_deref() != Some("00000"));
         if nonZeroErrorCode {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         }
         if nonZeroErrorCode || nonEmptyMessage {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -8117,7 +8117,7 @@ if _try_result.is_err() {
                     let entryBorrowable: bool = self.safe_bool_k_opt(&entry, "isBorrowable", &[Value::Bool(true)]).unwrap_or(true);
                     let isCrossBorrowable: bool = self.safe_bool_k_opt(&entry, "isCrossBorrowable", &[Value::Bool(true)]).unwrap_or(true);
                     if entryBorrowable && isCrossBorrowable {
-                        std::sync::Arc::make_mut(&mut crossKeys).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null));
+                        std::sync::Arc::make_mut(&mut crossKeys).push(Value::from(entrySymbol.as_deref()));
                     }
                     let isolatedBase: bool = self.safe_bool_k_opt(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).unwrap_or(true);
                     let isolatedQuote: bool = self.safe_bool2_opt(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).unwrap_or(true);
@@ -8653,7 +8653,7 @@ if _try_result.is_err() {
                 }
             }
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            request.insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_2 = self.extend(&request, &[&paramsMarginMode]);
             response = self.public_uta_get_v3_market_position_tier(&[&__ws_arg_2]).await;
         }  else if (market).swap || (market).future {
@@ -9927,7 +9927,7 @@ if _try_result.is_err() {
                     productType = Some("MARGIN".to_string());
                 }
             }
-            std::sync::Arc::make_mut(&mut request).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
+            std::sync::Arc::make_mut(&mut request).insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_28 = self.extend(&request, &[&paramsPaginate]);
             response = self.public_uta_get_v3_market_fills(&[&__ws_arg_28]).await;
         }  else if (market).spot {
@@ -10194,7 +10194,7 @@ if _try_result.is_err() {
                 if (entryMarketId.is_none()) || (self.markets_by_id.is_none()) || !(matches!((&self.markets_by_id, entryMarketId.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
                     continue;
                 }
-                let entryMarket: crate::types::Market = self.safe_market(entryMarketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let entryMarket: crate::types::Market = self.safe_market(entryMarketId.as_deref(), None, &[Value::Null, Value::from(marketType.as_deref())]);
                 let entrySymbol: Option<String> = self.safe_string_k_opt(&entryMarket, "symbol", &[]);
                 if (entrySymbol.is_none()) || (entrySymbol == entryMarketId) {
                     continue;
@@ -10306,7 +10306,7 @@ if _try_result.is_err() {
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (data.len() as i64) } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
-            let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.as_deref())]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(&entry, Some(&market)));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
@@ -11274,10 +11274,10 @@ if _try_result.is_err() {
             { let __destr_tmp = self.handle_product_type_and_params(Some(&market), &[Value::from(&paramsMarketType)]); productType = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null)); }
             if (clientOrderId.is_some()) {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), Value::from(clientOrderId.as_deref())); }
             }
             if isTriggerOrder || isStopLossOrTakeProfitTrigger || isTrailingPercentOrder {
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), Value::from(triggerPriceType.clone())); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("triggerType".into(), Value::from(triggerPriceType.as_str())); }
             }
             if isTrailingPercentOrder {
                 if !isMarketOrder {
@@ -11415,9 +11415,9 @@ if _try_result.is_err() {
             if (marginMode.is_some()) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("loanType".into(), Value::Str("normal".into())); }
                 if isMarketOrder && (side == Some("buy")) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteSize".into(), quantity.clone().map(Value::from).unwrap_or(Value::Null)); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("quoteSize".into(), Value::from(quantity.as_deref())); }
                 }  else {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("baseSize".into(), quantity.clone().map(Value::from).unwrap_or(Value::Null)); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("baseSize".into(), Value::from(quantity.as_deref())); }
                 }
             }  else {
                 if (quantity.is_some()) {
@@ -11971,7 +11971,7 @@ if _try_result.is_err() {
             });
             if (clientOrderId.is_some()) {
                 paramsMarginMode = self.omit_t(&paramsMarginMode, Value::Str("clientOrderId".into()), &[]);
-                orderId.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
+                orderId.insert("clientOid".into(), Value::from(clientOrderId.as_deref()));
             }  else {
                 orderId.insert("orderId".into(), id);
             }
@@ -12331,7 +12331,7 @@ if _try_result.is_err() {
                     productType = Some("MARGIN".to_string());
                 }
             }
-            request.insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_71 = self.extend(&request, &[&paramsMarginMode]);
             response = self.private_uta_post_v3_trade_cancel_symbol_order(&[&__ws_arg_71]).await;
         }  else if (market).spot {
@@ -12436,7 +12436,7 @@ if _try_result.is_err() {
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("clientOid".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("clientOid".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clientOid".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("orderId".into(), id.clone());
         }
@@ -12709,7 +12709,7 @@ if _try_result.is_err() {
                     productType = Some("SPOT".to_string());
                 }
             }
-            std::sync::Arc::make_mut(&mut request).insert("category".into(), productType.clone().map(Value::from).unwrap_or(Value::Null));
+            std::sync::Arc::make_mut(&mut request).insert("category".into(), Value::from(productType.as_deref()));
             if (trigger == Some(true)) {
                 let __ws_arg_79 = self.extend(&request, &[&paramsMarginMode]);
                 response = self.private_uta_get_v3_trade_unfilled_strategy_orders(&[&__ws_arg_79]).await;
@@ -13659,13 +13659,13 @@ if _try_result.is_err() {
                 paramsOmitted = self.extend_t(&paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("uta".to_string(), Value::Bool(true));
-        m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(marketType.as_deref()));
     m
 })]);
                 if (symbol.is_some()) {
                     paramsOmitted = self.extend_t(&paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
     m
 })]);
                 }
@@ -13677,13 +13677,13 @@ if _try_result.is_err() {
             }
             paramsOmitted = self.extend_t(&paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("type".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(marketType.as_deref()));
     m
 })]);
             if (symbol.is_some()) {
                 paramsOmitted = self.extend_t(&paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
     m
 })]);
             }
@@ -14434,7 +14434,7 @@ if _try_result.is_err() {
         let mut uta: Option<bool> = None;
         { let __destr_tmp = self.handle_uta_and_params(&paramsPaginate, Some("fetchPositions"), &[&Value::Bool(false)]).await; uta = __destr_tmp.0.as_bool(); paramsPaginate = __destr_tmp.1; }
         if (uta == Some(true)) {
-            request.insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_108 = self.extend(&request, &[&paramsPaginate]);
             response = self.private_uta_get_v3_position_current_position(&[&__ws_arg_108]).await;
         }  else if (method.as_deref() == Some("privateMixGetV2MixPositionAllPosition")) {
@@ -14455,7 +14455,7 @@ if _try_result.is_err() {
                 }
             }
             request.insert("marginCoin".into(), marginCoin.map(Value::from).unwrap_or(Value::Null));
-            request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            request.insert("productType".into(), Value::from(productType.as_deref()));
             let __ws_arg_109 = self.extend(&request, &[&paramsPaginate]);
             response = self.private_mix_get_v2_mix_position_all_position(&[&__ws_arg_109]).await;
         }  else {
@@ -15339,7 +15339,7 @@ if _try_result.is_err() {
                 }
             }
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&market, "settleId"));
-            request.insert("category".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            request.insert("category".into(), Value::from(productType.as_deref()));
             let __ws_arg_125 = self.extend(&request, &[&paramsProductType]);
             response = self.private_uta_post_v3_account_set_leverage(&[&__ws_arg_125]).await;
         }  else {
@@ -15452,7 +15452,7 @@ if _try_result.is_err() {
         let uta: bool = utaparamsUTAVariable.0.as_bool() == Some(true);
         let paramsUTA: crate::value::Dict = utaparamsUTAVariable.1;
         if (uta) {
-            request.insert("holdMode".into(), Value::from(posMode.clone()));
+            request.insert("holdMode".into(), Value::from(posMode.as_str()));
             let __ws_arg_128 = self.extend(&request, &[&paramsUTA]);
             response = self.private_uta_post_v3_account_set_hold_mode(&[&__ws_arg_128]).await;
         }  else {

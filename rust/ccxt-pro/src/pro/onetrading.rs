@@ -452,7 +452,7 @@ impl Onetrading {
             let ticker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instrument", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
-            let timestamp: Option<i64> = self.parse8601(&datetime);
+            let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
             let isoDatetime: Option<String> = self.iso8601(timestamp).as_str().map(str::to_owned);
             let parsedTicker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None, Value::from(timestamp), isoDatetime.map(Value::from).unwrap_or(Value::Null));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsedTicker)); }
@@ -757,7 +757,7 @@ impl Onetrading {
                 m.insert("bp_remaining_quota".to_string(), Value::from(bpRemainingQuota));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), Value::from(subscribeHash.clone()));
+        m.insert("name".to_string(), Value::from(subscribeHash.as_str()));
     m
 })]));
             m
@@ -927,7 +927,7 @@ impl Onetrading {
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_id", &[]));
         m.insert("info".to_string(), order.clone());
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1300,7 +1300,7 @@ impl Onetrading {
         if (updateType.as_deref() == Some("ORDER_REJECTED")) || (updateType.as_deref() == Some("ORDER_CLOSED")) || (updateType.as_deref() == Some("STOP_ORDER_TRIGGERED")) {
             let orderId: Option<String> = self.safe_string_k_opt(&update, "order_id", &[]);
             let datetime: Option<String> = self.safe_string2_opt(&update, Value::Str("time".into()), Value::Str("timestamp".into()), &[]);
-            let previousOrderArray: crate::value::List = self.filter_by_array(&self.orders, Value::Str("id".into()), orderId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).into_list();
+            let previousOrderArray: crate::value::List = self.filter_by_array(&self.orders, Value::Str("id".into()), Value::from(orderId.as_deref()), &[Value::Bool(false)]).into_list();
             let previousOrder: crate::value::Dict = self.safe_dict_t(&previousOrderArray, Value::Int(0));
             symbol = self.safe_string_k_opt(&previousOrder, "symbol", &[]);
             let filled: Option<String> = self.safe_string_k_opt(&update, "filled_amount", &[]);
@@ -1311,9 +1311,9 @@ impl Onetrading {
             let orderObject: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
                     m.insert("status".to_string(), status);
-                    m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+                    m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
                     m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m
             });
@@ -1420,7 +1420,7 @@ impl Onetrading {
         }
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv.", symbolValue).into()), ".").into()), timeframe);
         let subscriptionHash: Value = Value::Str("CANDLESTICKS".into());
-        let client: Value = self.safe_value(self.clients.clone(), &url, &[]);
+        let client: Value = self.safe_value(self.clients.clone(), Value::from(url.as_deref()), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let mut type_var: String = "SUBSCRIBE".to_string();
         let mut subscription: Value = Value::Map({
@@ -1687,7 +1687,7 @@ impl Onetrading {
             marketIds = self.market_ids(symbols.as_array()).map_or(Value::Null, Value::Arr);
         }
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
-        let client: Value = self.safe_value(self.clients.clone(), &url, &[]);
+        let client: Value = self.safe_value(self.clients.clone(), Value::from(url.as_deref()), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let mut type_var: String = "SUBSCRIBE".to_string();
         let mut subscription: Value = Value::Map({
@@ -1741,7 +1741,7 @@ impl Onetrading {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
-        let authenticated: Option<crate::value::Dict> = self.safe_dict_o(&(client).subscriptions, Value::from(messageHash.clone()));
+        let authenticated: Option<crate::value::Dict> = self.safe_dict_o(&(client).subscriptions, Value::from(messageHash.as_str()));
         if (authenticated.is_none()) {
             self.check_required_credentials(&[]);
             let request: indexmap::IndexMap<String, Value> = ({

@@ -239,7 +239,7 @@ impl Krakenfutures {
         let messageHash: String = "challenge".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1160,7 +1160,7 @@ impl Krakenfutures {
             }
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
             let orderId: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
-            let previousOrders: crate::value::Dict = self.safe_dict_t(orders.hashmap(), &symbol);
+            let previousOrders: crate::value::Dict = self.safe_dict_t(orders.hashmap(), Value::from(symbol.as_deref()));
             let mut previousOrder: Option<crate::value::Dict> = self.safe_dict_o(&previousOrders, orderId.map(Value::from).unwrap_or(Value::Null));
             let reason: Option<String> = (match __pro_message.get("reason") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (previousOrder.is_none()) || (reason.as_deref() == Some("edited_by_user")) {
@@ -1194,7 +1194,7 @@ impl Krakenfutures {
                 let filledString: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
                 let stringOrderFilled: String = self.safe_string_k(&previousOrder, "filled", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                 let totalFilled: Option<String> = crate::precise::Precise::stringAdd(&stringOrderFilled, &filledString).as_str().map(str::to_owned);
-                if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("filled".into(), totalFilled.clone().map(Value::from).unwrap_or(Value::Null)); }
+                if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("filled".into(), Value::from(totalFilled.as_deref())); }
                 let prevAmountString: Option<String> = self.safe_string_k_opt(&previousOrder, "amount", &[]);
                 let remaining: Option<String> = crate::precise::Precise::stringSub(&prevAmountString, &totalFilled).as_str().map(str::to_owned);
                 if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("remaining".into(), remaining.map(Value::from).unwrap_or(Value::Null)); }
@@ -1258,7 +1258,7 @@ impl Krakenfutures {
                         })]);
                         add_element_to_object(&mut orders, &Value::Int(i), self.extend(&currentOrder, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), Value::from(status.clone()));
+        m.insert("status".to_string(), Value::from(status.as_str()));
         m.insert("info".to_string(), Value::Dict(info));
     m
 })]));
@@ -1475,7 +1475,7 @@ impl Krakenfutures {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("id".to_string(), self.safe_string_k(&unparsedOrder, "order_id", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(timestamp.map(Value::from).unwrap_or(Value::Null)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(&unparsedOrder, "type", &[]));
@@ -1650,7 +1650,7 @@ impl Krakenfutures {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "ask_size", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(&ticker, "change", &[]));

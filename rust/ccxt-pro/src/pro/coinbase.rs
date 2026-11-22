@@ -290,7 +290,7 @@ impl Coinbase {
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unWatchMessageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unWatchMessageHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(watchMessageHash)]));
                 m.insert("topic".to_string(), Value::from(topic));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -694,15 +694,15 @@ impl Coinbase {
         //
         //
         let channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let events: crate::value::List = __pro_message.key_list("events");
+        let events: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("events"));
         let datetime: Option<String> = self.safe_string_k_opt(message, "timestamp", &[]);
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let mut newTickers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (events.len() as i64) } {
-            let tickersObj: crate::value::Dict = self.safe_dict_t(&events, Value::Int(i));
+            let tickersObj: crate::value::Dict = events.get(i as usize).cloned().unwrap_or_default();
             let tickers: crate::value::List = self.safe_list_k_t(&tickersObj, "tickers");
             {
                                 let mut j: i64 = 0;
@@ -715,7 +715,7 @@ impl Coinbase {
                 }
                 let mut result: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), None);
                 std::sync::Arc::make_mut(&mut result).insert("timestamp".into(), Value::from(timestamp));
-                std::sync::Arc::make_mut(&mut result).insert("datetime".into(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut result).insert("datetime".into(), Value::from(datetime.as_deref()));
                 let symbol: String = self.safe_string_k(&result, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (true) {
                     { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&result)); }
@@ -1360,7 +1360,7 @@ impl Coinbase {
         m.insert("symbol".to_string(), self.safe_string_k(&marketResolved, "symbol", &[]));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_k(&order, "order_type", &[]));
@@ -1368,7 +1368,7 @@ impl Coinbase {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower2(&order, Value::Str("side".into()), Value::Str("order_side".into()), &[]));
         m.insert("price".to_string(), self.safe_string_k(&order, "limit_price", &[]));
-        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(stopPrice.as_deref()));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(&order, "cumulative_quantity", &[]));
         m.insert("cost".to_string(), Value::from(self.omit_zero(self.safe_string_k(&order, "filled_value", &[]))));
@@ -1454,7 +1454,7 @@ impl Coinbase {
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let messageHash: String = format!("{}{}", "level2::", symbol);
-            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
             let type_var: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
             if (type_var.as_deref() == Some("snapshot")) {
@@ -1476,8 +1476,8 @@ impl Coinbase {
                 }));
             }
             self.handle_order_book_helper(Value::from(&orderbook), &updates);
-            orderbook.set_book_meta("timestamp", Value::from(self.parse8601(&datetime)));
-            orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("timestamp", Value::from(self.parse8601(Value::from(datetime.as_deref()))));
+            orderbook.set_book_meta("datetime", Value::from(datetime.as_deref()));
             orderbook.set_book_meta("symbol", Value::from(symbol));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
             self.try_resolve_usdc(&client, messageHash.as_str(), Value::from(&orderbook));

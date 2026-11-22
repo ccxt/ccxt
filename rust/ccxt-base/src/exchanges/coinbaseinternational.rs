@@ -379,7 +379,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let lowercaseId: Option<String> = self.safe_string_lower_k_opt(&market, "instrument_name", &[]);
         let baseId: Option<String> = self.safe_string_k_opt(&market, "base_currency", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&market, "counter_currency", &[]);
-        let settleId: Option<String> = self.safe_string_k_opt(&market, "settlement_currency", &[&quoteId]);
+        let settleId: Option<String> = self.safe_string_k_opt(&market, "settlement_currency", &[&Value::from(quoteId.as_deref())]);
         let kind: String = self.safe_string_k(&market, "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let settlementPeriod: Option<String> = self.safe_string_k_opt(&market, "settlement_period", &[]);
         let isSpot: bool = kind == "spot";
@@ -871,7 +871,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("timestamp".to_string(), Value::from(transactionTimestamp));
         m.insert("datetime".to_string(), self.iso8601(transactionTimestamp));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -1039,8 +1039,8 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
@@ -3667,7 +3667,7 @@ impl Coinbaseinternational {
                     m.insert("GTD".to_string(), Value::Str("good_til_day".into()));
                 m
             });
-            request.insert("time_in_force".into(), self.safe_string(&timeInForces, &timeInForce, &[timeInForce.clone().map(Value::from).unwrap_or(Value::Null)]));
+            request.insert("time_in_force".into(), self.safe_string(&timeInForces, Value::from(timeInForce.as_deref()), &[Value::from(timeInForce.as_deref())]));
         }
         let clientOrderId: Option<String> = self.safe_string2_opt(&paramsResolved, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         if (clientOrderId.is_some()) {
@@ -4524,7 +4524,7 @@ impl Coinbaseinternational {
         });
         if (uri.is_some()) {
             if !useEddsa {
-                std::sync::Arc::make_mut(&mut request).insert("uri".into(), uri.clone().map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut request).insert("uri".into(), Value::from(uri.as_deref()));
             }  else {
                 std::sync::Arc::make_mut(&mut request).insert("uris".into(), Value::from(vec![uri.map(Value::from).unwrap_or(Value::Null)]));
             }
@@ -4604,8 +4604,8 @@ impl Coinbaseinternational {
         let ratio: Option<f64> = self.safe_number_k(&self.options, "accessTokenRefreshRatio", &[]).as_f64();
         let refreshRatio: f64 = ratio.unwrap_or(0.8);
         let tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })) { Some((__l as f64) * refreshRatio) } else { None })));
-        self.token = accessToken.clone().map(Value::from).unwrap_or(Value::Null);
-        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+        self.token = Value::from(accessToken.as_deref());
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), Value::from(accessToken.as_deref())); }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }
         return accessToken.map(Value::from).unwrap_or(Value::Null);
 

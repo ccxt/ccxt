@@ -92,7 +92,7 @@ impl crate::exchange::DerivedExchange for Paymium {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -295,7 +295,7 @@ impl crate::exchange::DerivedExchange for Paymium {
             signedHeaders.insert("Api-Signature".into(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[])));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));

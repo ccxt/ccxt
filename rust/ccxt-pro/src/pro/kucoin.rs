@@ -564,7 +564,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
                     let utaTokenString: Option<String> = self.safe_string_k_opt(&data, "token", &[]);
                     { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("utaTokenLastUpdate".into(), Value::from(now)); }
-                    { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("utaToken".into(), utaTokenString.clone().map(Value::from).unwrap_or(Value::Null)); }
+                    { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("utaToken".into(), Value::from(utaTokenString.as_deref())); }
                     client.resolve(utaTokenString.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
@@ -630,7 +630,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let requestId: String = format!("{}", self.request_id());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(requestId.clone()));
+                m.insert("id".to_string(), Value::from(requestId.as_str()));
                 m.insert("type".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("topic".to_string(), Value::from(topic));
                 m.insert("response".to_string(), Value::Bool(true));
@@ -638,7 +638,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
         if (subscription != Value::Null) {
-            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(requestId.clone(), Value::from(requestId.clone())); }
+            if let Value::Dict(__d) = &mut subscription { std::sync::Arc::make_mut(__d).insert(requestId.clone(), Value::from(requestId.as_str())); }
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url));
         {
@@ -740,7 +740,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let paramsUta: crate::value::Dict = utaparamsUtaVariable.1;
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
             m
@@ -748,9 +748,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: String = format!("{}{}", "ticker:", symbolValue);
         if uta {
             subMessageHash = format!("{}{}", "uta:", subMessageHash);
-            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.clone())]));
+            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.as_str())]));
             let utaMessageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(utaMessageHash.clone())]));
+            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(utaMessageHash.as_str())]));
             return self.subscribe_public_uta(utaMessageHash.as_str(), "ticker", symbolValue.as_str(), &[&Value::from(&paramsUta), &Value::Map(subscription)]).await;
         }  else {
             let url: Option<String> = self.negotiate(false, &[&Value::Bool(isFuturesMethod)]).await.as_str().map(str::to_owned);
@@ -761,8 +761,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let query: crate::value::Dict = (if (isFuturesMethod == true) { paramsUta } else { paramsSpotMethod });
             let topic: String = format!("{}{}", Value::Str(format!("{}{}", method.as_deref().unwrap_or("null"), ":").into()), Value::from((market).id.as_deref()));
             let messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
-            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.clone()), Value::from(topic.clone())]));
+            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.as_str()), Value::from(topic.as_str())]));
+            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.as_str()), Value::from(topic.as_str())]));
             return self.un_subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), topic.as_str(), subMessageHash.as_str(), &[&Value::Dict(query), &Value::Map(subscription)]).await;
         }
         Value::Null
@@ -1434,10 +1434,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let utaOption: bool = utaOptionparamsUtaVariable.0 == Some(true);
         let paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.1;
         let period: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
-        let symbolAndTimeframe: Value = Value::from(vec![Value::from(symbolValue.clone()), timeframe.clone()]);
+        let symbolAndTimeframe: Value = Value::from(vec![Value::from(symbolValue.as_str()), timeframe.clone()]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.clone())]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![symbolAndTimeframe]));
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -1446,9 +1446,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", symbolValue).into()), ":").into()), timeframe);
         if utaOption {
             subMessageHash = format!("{}{}", "uta:", subMessageHash);
-            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.clone())]));
+            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash.as_str())]));
             let utaMessageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
-            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(utaMessageHash.clone())]));
+            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(utaMessageHash.as_str())]));
             let extendedParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("interval".to_string(), Value::from(period.as_deref()));
@@ -1468,8 +1468,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // we have to add the topic to the messageHashes and subMessageHashes
             // because handleSubscriptionStatus needs them to remove the subscription from the client
             // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.clone()), Value::from(topic.clone())]));
-            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash), Value::from(topic.clone())]));
+            subscription.insert("messageHashes".into(), Value::from(vec![Value::from(messageHash.as_str()), Value::from(topic.as_str())]));
+            subscription.insert("subMessageHashes".into(), Value::from(vec![Value::from(subMessageHash), Value::from(topic.as_str())]));
             return self.un_subscribe(url.as_deref().unwrap_or_default(), messageHash.as_str(), topic.as_str(), messageHash.as_str(), &[&Value::Dict(paramsUta), &Value::Map(subscription)]).await;
         }
         Value::Null
@@ -1753,8 +1753,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.clone()));
-        subscriptionHashes.push(Value::from(topic.clone()));
+        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.as_str()));
+        subscriptionHashes.push(Value::from(topic.as_str()));
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::Arr(messageHashes.clone()));
@@ -1805,11 +1805,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let channel: String = "trade".to_string();
             let subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
                     m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
                     m.insert("topic".to_string(), Value::Str("trades".into()));
                     m.insert("unsubscribe".to_string(), Value::Bool(true));
-                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.clone())]));
+                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.as_str())]));
                 m
             });
             return self.subscribe_public_uta(messageHash.as_str(), channel.as_str(), symbolResolved.as_str(), &[&Value::from(&paramsUta), &Value::Map(subscription)]).await;
@@ -2009,7 +2009,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 subscription = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()));
-                        m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.clone())]));
+                        m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.as_str())]));
                         m.insert("limit".to_string(), Value::from(limit));
                     m
                 });
@@ -2068,7 +2068,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let paramsDepth: crate::value::Dict = depthparamsDepthVariable.1;
             let paramsExtended: crate::value::Dict = self.extend_t(paramsDepth, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("depth".to_string(), depth.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("depth".to_string(), Value::from(depth.as_deref()));
                 m
             })]);
             let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbolResolved).into()), ":depth:").into()), depth.as_deref().unwrap_or("null"));
@@ -2076,11 +2076,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let channel: String = "obu".to_string();
             let subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
                     m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
                     m.insert("topic".to_string(), Value::Str("orderbook".into()));
                     m.insert("unsubscribe".to_string(), Value::Bool(true));
-                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.clone())]));
+                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolResolved.as_str())]));
                 m
             });
             return self.subscribe_public_uta(messageHash.as_str(), channel.as_str(), symbolResolved.as_str(), &[&Value::Dict(paramsExtended), &Value::Map(subscription)]).await;
@@ -2258,8 +2258,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.clone()));
-        subscriptionHashes.push(Value::from(topic.clone()));
+        std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(topic.as_str()));
+        subscriptionHashes.push(Value::from(topic.as_str()));
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::Arr(messageHashes.clone()));
@@ -2323,7 +2323,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let topicParts: crate::value::List = crate::value::List::new(if let Some(__s) = topic.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() });
         let topicSymbol: Option<String> = self.safe_string_opt(&topicParts, Value::Int(1), &[]);
         let topicChannel: Option<String> = self.safe_string_opt(&topicParts, Value::Int(0), &[]);
-        let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[&topicSymbol]);
+        let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[&Value::from(topicSymbol.as_deref())]);
         let symbol: Value = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]);
         let messageHash: String = format!("{}{}", "orderbook:", symbol);
         // let orderbook = this.safeDict (this.orderbooks, symbol);
@@ -2360,7 +2360,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 if (cacheLength == snapshotDelay) {
-                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.clone()), symbol.clone(), Value::from(limit), Value::Map({
+                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), symbol.clone(), Value::from(limit), Value::Map({
                         let m = indexmap::IndexMap::new();
                         m
                     })]);
@@ -2419,7 +2419,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let deltaEnd: Option<i64> = self.safe_integer_k(&data, "C", &[]).as_i64();
             if (nonce.is_none()) {
                 let cacheLength: Option<i64> = self.parse_to_int(Value::Int(orderbook.book_field("cache").len() as i64));
-                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 let utaParams: indexmap::IndexMap<String, Value> = ({
@@ -2428,7 +2428,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m
                 });
                 if (cacheLength == snapshotDelay) {
-                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.clone()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
+                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
                 }
                 orderbook.cache_push(Value::from(&data));
                 return;
@@ -2577,10 +2577,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        if !(__ch.has_subscription(&(id.clone().map(Value::from).unwrap_or(Value::Null)))) {
+        if !(__ch.has_subscription(&(Value::from(id.as_deref())))) {
             return;
         }
-        let subscriptionHash: Option<String> = self.safe_string_opt(&__ch.subscriptions, &id, &[]);
+        let subscriptionHash: Option<String> = self.safe_string_opt(&__ch.subscriptions, Value::from(id.as_deref()), &[]);
         let subscription: Value = self.safe_dict(&__ch.subscriptions, subscriptionHash.map(Value::from).unwrap_or(Value::Null), &[]);
         __ch.remove_subscription(&(id.map(Value::from).unwrap_or(Value::Null)));
         let method: bool = self.safe_value_k(&subscription, "method", &[]) != Value::Null;
@@ -2716,7 +2716,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (symbolResolved.is_none()) {
                 channel.push_str("All");
             }
-            orders = self.subscribe_private_uta(&[Value::from(messageHash.clone())], messageHash.as_str(), channel.as_str(), symbolResolved.as_deref(), &[&Value::Dict(paramsExtended)]).await;
+            orders = self.subscribe_private_uta(&[Value::from(messageHash.as_str())], messageHash.as_str(), channel.as_str(), symbolResolved.as_deref(), &[&Value::Dict(paramsExtended)]).await;
         }  else {
             let trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsUta), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsUta, &["stop", "trigger"], &[]);
@@ -2875,7 +2875,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower_k(&order, "side", &[]));
         m.insert("price".to_string(), self.safe_string2(&order, Value::Str("price".into()), Value::Str("orderPrice".into()), &[]));
-        m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(triggerPrice.as_deref()));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_string_k(&order, "size", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -3050,7 +3050,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let matchCost: Option<String> = crate::precise::Precise::stringMul(&matchPrice, &matchSize).as_str().map(str::to_owned);
             let previousCost: Option<String> = (if (order.is_none()) { Some("0".to_string()) } else { self.number_to_string(self.safe_number_k(&order, "cost", &[Value::Int(0)])) });
             let costString: Option<String> = crate::precise::Precise::stringAdd(&previousCost, &matchCost).as_str().map(str::to_owned);
-            std::sync::Arc::make_mut(&mut parsed).insert("cost".into(), self.parse_number(&costString, &[]));
+            std::sync::Arc::make_mut(&mut parsed).insert("cost".into(), self.parse_number(Value::from(costString.as_deref()), &[]));
             let filledString: Option<String> = self.number_to_string(crate::value::KeyRead::key_read(&&parsed, "filled"));
             if (filledString.is_some()) && crate::precise::Precise::stringGt(&filledString, &Value::Str("0".into())).as_bool() == Some(true) {
                 std::sync::Arc::make_mut(&mut parsed).insert("average".into(), self.parse_number(crate::precise::Precise::stringDiv(&costString, &filledString), &[]));
@@ -3187,7 +3187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             })]);
             messageHash = format!("{}{}", "uta:", messageHash);
             let channel: String = "execution.lite".to_string();
-            trades = self.subscribe_private_uta(&[Value::from(messageHash.clone())], channel.as_str(), channel.as_str(), None, &[&Value::Dict(paramsExtended)]).await;
+            trades = self.subscribe_private_uta(&[Value::from(messageHash.as_str())], channel.as_str(), channel.as_str(), None, &[&Value::Dict(paramsExtended)]).await;
         }  else {
             let url: Option<String> = self.negotiate(true, &[&Value::Bool(isFuturesMethod)]).await.as_str().map(str::to_owned);
             let mut defaultTopic: String = "/spotMarket/tradeOrders".to_string();
@@ -3470,14 +3470,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             let channel: String = "balance".to_string();
             let __ws_arg_4 = self.extend(Value::Map(extendedParams), &[&paramsOmitted]);
-            return self.subscribe_private_uta(&[Value::from(messageHash.clone())], subscriptionHash.as_deref().unwrap_or_default(), channel.as_str(), None, &[&__ws_arg_4]).await;
+            return self.subscribe_private_uta(&[Value::from(messageHash.as_str())], subscriptionHash.as_deref().unwrap_or_default(), channel.as_str(), None, &[&__ws_arg_4]).await;
         }  else {
             let requestId: String = format!("{}", self.request_id());
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(requestId.as_str()));
                     m.insert("type".to_string(), Value::Str("subscribe".into()));
-                    m.insert("topic".to_string(), subscriptionHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("topic".to_string(), Value::from(subscriptionHash.as_deref()));
                     m.insert("response".to_string(), Value::Bool(true));
                     m.insert("privateChannel".to_string(), Value::Bool(true));
                 m
@@ -3793,7 +3793,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHashes: Vec<Value> = Vec::new();
         let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         if (symbolsNormalized.is_none()) {
-            messageHashes.push(Value::from(messageHash));
+            messageHashes.push(Value::from(messageHash.as_str()));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -4222,11 +4222,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let unSubMessageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone().map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_deref())]));
                 m.insert("topic".to_string(), Value::Str("fundingRate".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubMessageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubMessageHash.as_str())]));
             m
         });
         return self.subscribe_public_uta(unSubMessageHash.as_str(), channel.as_str(), symbolValue.as_deref().unwrap_or_default(), &[&params, &Value::Map(subscription)]).await;
@@ -4365,11 +4365,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let unSubMessageHash: String = format!("{}{}", "unsubscribe:", subMessageHash);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone().map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_deref())]));
                 m.insert("topic".to_string(), Value::Str("ticker".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubMessageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubMessageHash.as_str())]));
             m
         });
         return self.subscribe_public_uta(unSubMessageHash.as_str(), channel.as_str(), symbolValue.as_deref().unwrap_or_default(), &[&params, &Value::Map(subscription)]).await;

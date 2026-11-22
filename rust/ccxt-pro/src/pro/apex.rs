@@ -372,7 +372,7 @@ impl Apex {
         let id: Option<String> = self.safe_string_n_opt(&trade, Value::from(vec![Value::Str("i".into()), Value::Str("id".into()), Value::Str("v".into())]), &[]);
         let marketId: Option<String> = self.safe_string2_opt(&trade, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_n(&trade, Value::from(vec![Value::Str("t".into()), Value::Str("T".into()), Value::Str("createdAt".into())]), &[]).as_i64();
         let side: Option<String> = self.safe_string_lower2_opt(&trade, Value::Str("S".into()), Value::Str("side".into()), &[]);
         let price: Option<String> = self.safe_string2_opt(&trade, Value::Str("p".into()), Value::Str("price".into()), &[]);
@@ -841,7 +841,7 @@ impl Apex {
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candle.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", (market).symbol).into()), "::").into()), unfiedTimeframe).into()));
         }
@@ -1319,7 +1319,7 @@ impl Apex {
         let messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url));
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             // auth sign
             let message: indexmap::IndexMap<String, Value> = ({
@@ -1397,9 +1397,9 @@ impl Apex {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) && (code.as_deref() != Some("0")) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, feedback.as_str());
                 let msg: Option<String> = self.safe_string2_opt(message, Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Option<bool> = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null }).as_bool();

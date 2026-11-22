@@ -127,7 +127,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -586,7 +586,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         if (currency.is_some()) {
             code = self.safe_string_k_opt(&currency, "code", &[]);
         }
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
@@ -791,7 +791,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         if (feeCost.is_some()) {
             fee = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             });
@@ -803,7 +803,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         m.insert("txid".to_string(), self.safe_string2(&templateForm, Value::Str("TxId".into()), Value::Str("TXId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), self.safe_string_k(&templateForm, "FromAddress", &[]));
         m.insert("tag".to_string(), Value::Null);
@@ -877,7 +877,7 @@ impl crate::exchange::DerivedExchange for Ndax {
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Nonce".to_string(), Value::from(nonce.as_str()));
                             m.insert("APIKey".to_string(), self.apiKey.clone());
-                            m.insert("Signature".to_string(), Value::from(signature.clone()));
+                            m.insert("Signature".to_string(), Value::from(signature.as_str()));
                             m.insert("UserId".to_string(), self.uid.clone());
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m
@@ -895,7 +895,7 @@ impl crate::exchange::DerivedExchange for Ndax {
             }  else if isPost {
                 headersSigned = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("APToken".to_string(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("APToken".to_string(), Value::from(sessionToken.as_deref()));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
                 }));
@@ -941,8 +941,8 @@ impl crate::exchange::DerivedExchange for Ndax {
         let message: Option<String> = self.safe_string_k_opt(response, "errormsg", &[]);
         if (message.is_some()) && (message.as_deref() != Some("")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1956,7 +1956,7 @@ impl Ndax {
         //
         let mut sessionToken: Option<String> = self.safe_string_k_opt(&response, "SessionToken", &[]);
         if (sessionToken.is_some()) {
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("sessionToken".into(), Value::from(sessionToken.as_deref())); }
             return Value::from(&response);
         }
         let pending2faToken: Option<String> = self.safe_string_k_opt(&response, "Pending2FaToken", &[]);
@@ -2324,7 +2324,7 @@ impl Ndax {
             let accountId: Option<String> = self.safe_string_opt(&response, Value::Int(i), &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(accountId.as_deref()));
                     m.insert("type".to_string(), Value::Null);
                     m.insert("currency".to_string(), Value::Null);
                     m.insert("info".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -3390,7 +3390,7 @@ impl Ndax {
         if (self.twofa == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " withdraw() requires exchange.twofa credentials")));
         }
-        self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&address, &code, &Value::from(tagWithdrawTag.as_deref())]);
         let omsId: i64 = self.safe_integer_k(&self.options, "omsId", &[Value::Int(1)]).as_i64().unwrap_or(1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3431,7 +3431,7 @@ impl Ndax {
                 m.insert("omsId".to_string(), Value::from(omsId));
                 m.insert("AccountId".to_string(), Value::from(accountId));
                 m.insert("ProductId".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("TemplateType".to_string(), templateName.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("TemplateType".to_string(), Value::from(templateName.as_deref()));
                 m.insert("AccountProviderId".to_string(), crate::value::KeyRead::key_read(&&firstTemplateType, "AccountProviderId"));
             m
         });

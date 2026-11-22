@@ -283,7 +283,7 @@ impl Hitbtc {
         let messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let timestamp: i64 = self.milliseconds();
             let mut timestampString: Option<String> = self.number_to_string(Value::from(timestamp));
@@ -390,7 +390,7 @@ impl Hitbtc {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbols.len() as i64) } {
             let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(messageHashPrefix), "::").into()), symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-            subMessageHashes.push(Value::from(subMessageHash.clone()));
+            subMessageHashes.push(Value::from(subMessageHash.as_str()));
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()));
         }
         }
@@ -486,7 +486,7 @@ impl Hitbtc {
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::from(name));
                 m.insert("params".to_string(), params);
-                m.insert("id".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), Value::from(messageHash.as_deref()));
             m
         });
         return self.watch(url.as_deref(), (&messageHash).as_deref(), Value::Map(subscribe), (&messageHash).as_deref(), Value::Null).await;
@@ -614,7 +614,7 @@ impl Hitbtc {
             let item: crate::value::Dict = get_value(&data, marketId.as_deref()).into_dict();
             let messageHash: String = format!("{}{}", "orderbooks::", symbol.as_deref().unwrap_or("null"));
             if !(self.orderbooks.has(&symbol)) {
-                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 { let __cv = self.order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -625,7 +625,7 @@ impl Hitbtc {
             let timestamp: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
             let nonce: Option<i64> = self.safe_integer_k(&item, "s", &[]).as_i64();
             if (type_var == "snapshot") {
-                let parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
+                let parsedSnapshot: crate::value::Dict = self.parse_order_book(&item, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("b".into()), Value::Str("a".into())]);
                 orderbook.reset(Value::Dict(parsedSnapshot));
             }  else {
                 let asks: crate::value::List = self.safe_list_k_t(&item, "a");
@@ -636,7 +636,7 @@ impl Hitbtc {
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("nonce", Value::from(nonce));
-            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
             let __resolved_orderbook = Value::from(&orderbook);
             CacheStore::put(&mut self.orderbooks, &symbol, orderbook);
             client.resolve(__resolved_orderbook, messageHash.as_str());
@@ -881,7 +881,7 @@ impl Hitbtc {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "A", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "o", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -1678,7 +1678,7 @@ impl Hitbtc {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(&order, "id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "client_order_id", &[]));
-        m.insert("timestamp".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(timestamp.map(Value::from).unwrap_or(Value::Null)));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -2241,8 +2241,8 @@ impl Hitbtc {
                 let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
                 let description: Option<String> = self.safe_string_k_opt(&error, "description", &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), description.as_deref().unwrap_or("null"));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);

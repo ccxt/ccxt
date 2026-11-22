@@ -314,7 +314,7 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("status".to_string(), self.parse_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(orderType.as_deref()));
         m.insert("timeInForce".to_string(), self.parse_time_in_force(orderType.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(&order, "reduceOnly", &[]));
@@ -459,12 +459,12 @@ impl crate::exchange::DerivedExchange for Woo {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "holding");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "holding"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -654,7 +654,7 @@ impl crate::exchange::DerivedExchange for Woo {
     fn parse_deposit_address(&self, depositEntry: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let depositEntry: Value = depositEntry.into();
         let address: Option<String> = self.safe_string_k_opt(&depositEntry, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         let networkId: Option<String> = self.safe_string_k_opt(&depositEntry, "network", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -945,7 +945,7 @@ impl crate::exchange::DerivedExchange for Woo {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("type".to_string(), movementDirection.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_timestamp2(&transaction, Value::Str("updated_time".into()), Value::Str("updatedTime".into()), &[]));
         m.insert("comment".to_string(), Value::Null);
@@ -1251,7 +1251,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         if !success {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, Value::from(feedback));
         }
         return Value::Null;
@@ -3367,7 +3367,7 @@ impl Woo {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), Value::from(orderSide.clone()));
+                m.insert("side".to_string(), Value::from(orderSide.as_str()));
             m
         });
         let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[&Value::Dict(paramsOmitted)]);
@@ -3470,7 +3470,7 @@ impl Woo {
                 let stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[stopLoss]);
                 let stopLossOrder: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), Value::from(closeSide.clone()));
+                        m.insert("side".to_string(), Value::from(closeSide.as_str()));
                         m.insert("algoType".to_string(), Value::Str("STOP_LOSS".into()));
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.as_str(), stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("CLOSE_POSITION".into()));
@@ -5244,7 +5244,7 @@ impl Woo {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_30 = self.safe_string_k(&data, "withdrawId", &[]);
         let __ws_arg_31 = self.safe_integer_k(&response, "timestamp", &[]);
-        let __ws_arg_32 = self.safe_string(&self.networkAliases, &network, &[network.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let __ws_arg_32 = self.safe_string(&self.networkAliases, Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
         let transactionData: crate::value::Dict = self.extend_t(&data, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), __ws_arg_30);

@@ -352,7 +352,7 @@ impl Backpack {
             let requestParams: crate::value::Dict = self.extend_t(marketParams, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("stock".to_string(), Value::Bool(marketStock));
-                    m.insert("source".to_string(), source.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("source".to_string(), Value::from(source.as_deref()));
                 m
             })]);
             let request: crate::value::Dict = self.parent.stock_data_request(methodName, &requestParams, Some(&market));
@@ -390,7 +390,7 @@ impl Backpack {
             let symbol: String = (market).symbol.clone();
             let messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", kind, ":").into()), symbol).into()), "@").into()), topic).into());
             let subscriptionKey: String = format!("{}{}", "marketData:", topic);
-            let mut subscriptions: Value = self.safe_dict(&(client).subscriptions, Value::from(subscriptionKey.clone()), &[Value::Map({
+            let mut subscriptions: Value = self.safe_dict(&(client).subscriptions, Value::from(subscriptionKey.as_str()), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]);
@@ -437,7 +437,7 @@ impl Backpack {
                     m
                 }), &[&payload]);
                 let messageHash: String = format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
-                self.watch_multiple(url.as_str(), Value::from(vec![Value::from(messageHash.clone())]), &request, Value::Null, Value::Null).await;
+                self.watch_multiple(url.as_str(), Value::from(vec![Value::from(messageHash.as_str())]), &request, Value::Null, Value::Null).await;
                 client.resolve(Value::Bool(true), messageHash.as_str());
             }
         }  else {
@@ -745,7 +745,7 @@ impl Backpack {
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < hashesLength } {
             let messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, &messageHash);
+            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::from(messageHash.as_deref()));
             let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
@@ -810,7 +810,7 @@ impl Backpack {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -851,7 +851,7 @@ impl Backpack {
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < hashesLength } {
             let messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, &messageHash);
+            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::from(messageHash.as_deref()));
             let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
@@ -971,7 +971,7 @@ impl Backpack {
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < hashesLength } {
             let messageHash: Option<String> = hashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, &messageHash);
+            let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::from(messageHash.as_deref()));
             let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             if (symbol.is_none()) {
                 continue;
@@ -1143,7 +1143,7 @@ impl Backpack {
             let marketId: Option<String> = self.safe_string_opt(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let tf: String = self.safe_string(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, &tf, &[&tf]);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", (market).symbol).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
@@ -1202,7 +1202,7 @@ impl Backpack {
             let marketId: Option<String> = self.safe_string_opt(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let tf: String = self.safe_string(self.safe_list(&symbolsAndTimeframes, Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, &tf, &[&tf]);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(tf.as_str()), &[&tf]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:candles:", (market).symbol).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
@@ -1733,7 +1733,7 @@ impl Backpack {
             let defaultSnapshotDelay: i64 = (if isStockMarket { 0 } else { 10 });
             let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::from(defaultSnapshotDelay)]));
             if (cacheLength == snapshotDelay) {
-                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1951,7 +1951,7 @@ impl Backpack {
         let data: crate::value::Dict = message.key_dict("data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let event: String = self.safe_string_k(&data, "e", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parsed: Value = Value::Null;
         if (((if let (Some(__h), Some(__n)) = (Some(event.as_str()), Some("rfq")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) || (((if let (Some(__h), Some(__n)) = (Some(event.as_str()), Some("quote")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
@@ -1965,7 +1965,7 @@ impl Backpack {
         }
         self.orders.append(parsed);
         client.resolve(Value::from(&self.orders), messageHash.as_str());
-        let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
+        let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol);
         client.resolve(Value::from(&self.orders), symbolSpecificMessageHash.as_str());
 }
 
@@ -2421,7 +2421,7 @@ impl Backpack {
         let id: Option<String> = self.safe_string_k_opt(&position, "i", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&position, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let notional: Option<String> = self.safe_string_k_opt(&position, "n", &[]);
         let liquidationPrice: Option<String> = self.safe_string_k_opt(&position, "l", &[]);
         let entryPrice: Option<String> = self.safe_string_k_opt(&position, "b", &[]);
@@ -2448,7 +2448,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("notional".to_string(), notional.map(Value::from).unwrap_or(Value::Null));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), liquidationPrice.map(Value::from).unwrap_or(Value::Null));

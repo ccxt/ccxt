@@ -355,7 +355,7 @@ impl Deepcoin {
         let subscriptionExtended: crate::value::Dict = self.extend_t(subscription, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subHash".to_string(), Value::from(messageHash));
-                m.insert("unsubHash".to_string(), Value::from(unsubHash.clone()));
+                m.insert("unsubHash".to_string(), Value::from(unsubHash.as_str()));
                 m.insert("symbols".to_string(), Value::from(vec![crate::value::KeyRead::key_read(&market, "symbol")]));
                 m.insert("id".to_string(), Value::from(requestId));
             m
@@ -1785,8 +1785,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let messageHash: Option<String> = self.safe_string_k_opt(&subscription, "subHash", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(messageText.clone()), &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(messageText), &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(messageText.as_str()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(messageText), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);

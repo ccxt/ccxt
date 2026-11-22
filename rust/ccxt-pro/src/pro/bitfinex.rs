@@ -264,14 +264,14 @@ impl Bitfinex {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("chanId".to_string(), Value::from(channelId.clone()));
+                m.insert("chanId".to_string(), Value::from(channelId.as_str()));
             m
         });
         let unSubChanMsg: String = format!("{}{}", "unsubscribe:", channelId);
-        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.clone()));
+        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.as_str()));
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
                 m.insert("topic".to_string(), Value::from(topic));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -388,14 +388,14 @@ impl Bitfinex {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
-                m.insert("chanId".to_string(), Value::from(channelId.clone()));
+                m.insert("chanId".to_string(), Value::from(channelId.as_str()));
             m
         });
         let unSubChanMsg: String = format!("{}{}", "unsubscribe:", channelId);
-        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.clone()));
+        client.add_subscription(unSubChanMsg.as_str(), Value::from(subMessageHash.as_str()));
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subMessageHash)]));
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
@@ -472,7 +472,7 @@ impl Bitfinex {
         let interval: String = self.safe_string(&keyParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let marketId: String = self.safe_string(&keyParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
-        let timeframe: Option<String> = self.find_timeframe(Value::from(interval.clone()), &[]);
+        let timeframe: Option<String> = self.find_timeframe(Value::from(interval.as_str()), &[]);
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), interval).into()), ":").into()), marketId);
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -724,7 +724,7 @@ impl Bitfinex {
         let marketId: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
         let tradesLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             stored = Some(ArrayCache::new(Value::from(tradesLimit)));
@@ -932,12 +932,12 @@ impl Bitfinex {
         //     ]
         //
         let marketResolved: crate::types::Market = self.safe_market(None, market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let last: Option<String> = self.safe_string_opt(&ticker, Value::Int(6), &[]);
         let change: Option<String> = self.safe_string_opt(&ticker, Value::Int(4), &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), self.safe_string(&ticker, Value::Int(8), &[]));
@@ -948,7 +948,7 @@ impl Bitfinex {
         m.insert("askVolume".to_string(), self.safe_string(&ticker, Value::Int(3), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -1093,7 +1093,7 @@ impl Bitfinex {
                 }
                 }
             }
-            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else {
             let orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
@@ -1355,7 +1355,7 @@ impl Bitfinex {
         //
         let channelId: String = (match message.get("chanId") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let unSubChannel: String = format!("{}{}", "unsubscribe:", channelId);
-        let subMessageHash: String = self.safe_string(&__ch.subscriptions, Value::from(unSubChannel.clone()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let subMessageHash: String = self.safe_string(&__ch.subscriptions, Value::from(unSubChannel.as_str()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         __ch.remove_subscription(unSubChannel.as_str());
         let messageHashes: crate::value::List = self.safe_list_k_t(&subscription, "messageHashes");
@@ -1437,12 +1437,12 @@ impl Bitfinex {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             let nonce: i64 = self.incrementing_nonce();
             let payload: String = format!("{}{}", Value::Str("AUTH".into()), Value::Str(format!("{}", nonce).into()));
-            let signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(&self.secret), "sha384", &[Value::Str("hex".into())]);
+            let signature: String = self.hmac(self.encode(Value::from(payload.as_str())), self.encode(&self.secret), "sha384", &[Value::Str("hex".into())]);
             let event: String = "auth".to_string();
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -1700,7 +1700,7 @@ impl Bitfinex {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(stopPrice.as_deref()));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -1723,7 +1723,7 @@ impl Bitfinex {
         if (heartbeat.as_deref() == Some("hb")) {
             return;
         }
-        let subscription: Value = self.safe_dict(&__ch.subscriptions, channelId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::from(channelId.as_deref()), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
@@ -1751,7 +1751,7 @@ impl Bitfinex {
         });
         let mut method: Option<String> = None;
         if (channelId.as_deref() == Some("0")) {
-            method = self.safe_value(&privateMethods, &name, &[]).as_str().map(str::to_owned);
+            method = self.safe_value(&privateMethods, Value::from(name.as_deref()), &[]).as_str().map(str::to_owned);
         }  else {
             method = self.safe_value2(&publicMethods, name.map(Value::from).unwrap_or(Value::Null), channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }

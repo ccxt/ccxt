@@ -104,7 +104,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -268,7 +268,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let filters: crate::value::List = self.safe_list_k_t(&entry, "filters");
+        let filters: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "filters"));
         let mut minPrice: Option<f64> = None;
         let mut maxPrice: Option<f64> = None;
         let mut minAmount: Option<f64> = None;
@@ -278,7 +278,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (filters.len() as i64) } {
-            let filter: crate::value::Dict = self.safe_dict_t(&filters, Value::Int(j));
+            let filter: crate::value::Dict = filters.get(j as usize).cloned().unwrap_or_default();
             let filterType: Option<String> = self.safe_string_k_opt(&filter, "filterType", &[]);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(&filter, "minPrice", &[]).as_f64();
@@ -363,7 +363,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -375,7 +375,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -455,7 +455,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         if (message.is_some()) {
             feedback = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null"));
         }
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
         if (errorCode.as_deref() != Some("0")) && (errorCode.as_deref() != Some("SUCCESS")) {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
@@ -1234,15 +1234,15 @@ impl Btcturk {
             }
             let seconds: i64 = self.parse_timeframe(&timeframe);
             let limitCount: i64 = i64::min(limit.as_i64().unwrap_or(100), 11000);
-            let limitSeconds: Option<i64> = self.parse_to_int(Value::Int((seconds * ((limitCount - 1)))));
+            let limitSeconds: i64 = (seconds * ((limitCount - 1)));
             if (since.is_some()) {
                 let sinceSeconds: Option<i64> = self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-                let to: Option<i64> = (if let (Some(__l), Some(__r)) = (sinceSeconds, limitSeconds) { Some(__l + __r) } else { None });
+                let to: Option<i64> = (if let Some(__l) = sinceSeconds { Some(__l + limitSeconds) } else { None });
                 if (to.is_some() && untilSeconds.is_some() && to < untilSeconds) {
                     request.insert("to".into(), Value::from(to));
                 }
             }  else {
-                request.insert("from".into(), Value::from((if let Some(__r) = limitSeconds { Some(0 - __r) } else { None })));
+                request.insert("from".into(), Value::Int((0 - limitSeconds)));
             }
         }
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);

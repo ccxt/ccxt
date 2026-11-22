@@ -83,7 +83,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -899,9 +899,8 @@ impl Mercado {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (coins.len() as i64) } {
             let coin: String = self.safe_string(&coins, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let baseId: String = coin.clone();
             let quoteId: String = "BRL".to_string();
-            let base: Option<String> = self.safe_currency_code(Some(baseId.as_str()), None);
+            let base: Option<String> = self.safe_currency_code(Some(coin.as_str()), None);
             let quote: Option<String> = self.safe_currency_code(Some(quoteId.as_str()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
@@ -914,7 +913,7 @@ impl Mercado {
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), Value::Null);
-                    m.insert("baseId".to_string(), Value::from(baseId.clone()));
+                    m.insert("baseId".to_string(), Value::from(coin.as_str()));
                     m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::Str("spot".into()));
@@ -948,7 +947,7 @@ impl Mercado {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number(&amountLimits, Value::from(baseId), &[]));
+        m.insert("min".to_string(), self.safe_number(&amountLimits, Value::from(coin.as_str()), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

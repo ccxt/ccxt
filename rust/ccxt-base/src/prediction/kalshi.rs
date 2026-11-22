@@ -131,7 +131,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         if (subtitle.is_some()) {
             subtitleOrTicker = subtitle.clone();
         }
-        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventTicker.as_deref()), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventTicker.as_deref()), Value::from(subtitleOrTicker.as_deref())).as_str().map(str::to_owned);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
@@ -150,7 +150,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         });
         // Build outcomes
         let outcomeLabels: crate::value::List = std::sync::Arc::new(vec![Value::Str("YES".into()), Value::Str("NO".into())]);
-        let outcomeIds: crate::value::List = std::sync::Arc::new(vec![ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", ticker.as_deref().unwrap_or("null"), "-NO").into())]);
+        let outcomeIds: crate::value::List = std::sync::Arc::new(vec![Value::from(ticker.as_deref()), Value::Str(format!("{}{}", ticker.as_deref().unwrap_or("null"), "-NO").into())]);
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcome: Option<String> = None;
         {
@@ -158,7 +158,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { oi += 1; } __for_first_8 = false; oi < (outcomeLabels.len() as i64) } {
             let label: Option<&str> = outcomeLabels.get(oi as usize).and_then(Value::as_str);
-            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventTicker.as_deref()), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::from(label.as_deref())).as_str().map(str::to_owned);
+            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventTicker.as_deref()), Value::from(subtitleOrTicker.as_deref()), Value::from(label.as_deref())).as_str().map(str::to_owned);
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
@@ -185,7 +185,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("ticker".to_string(), Value::from(ticker.as_deref()));
         m.insert("eventTicker".to_string(), Value::from(eventTicker.as_deref()));
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
         m.insert("subtitle".to_string(), Value::from(subtitle.as_deref()));
@@ -203,12 +203,12 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let marketResolvedOutcome: Option<String> = resolvedOutcome;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(ticker.as_deref()));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("base".to_string(), Value::Str("USD".into()));
         m.insert("quote".to_string(), Value::Str("USD".into()));
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), Value::from(ticker.as_deref()));
         m.insert("quoteId".to_string(), Value::Str("USD".into()));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("prediction".into()));
@@ -227,8 +227,8 @@ impl crate::exchange::DerivedExchange for Kalshi {
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("expiry".to_string(), (if ((endDate.is_some()) && (endDate.as_deref() != Some(""))) { Value::from(self.parse8601(&endDate)) } else { Value::Null }));
-        m.insert("expiryDatetime".to_string(), endDate.map(Value::from).unwrap_or(Value::Null));
+        m.insert("expiry".to_string(), (if ((endDate.is_some()) && (endDate.as_deref() != Some(""))) { Value::from(self.parse8601(Value::from(endDate.as_deref()))) } else { Value::Null }));
+        m.insert("expiryDatetime".to_string(), Value::from(endDate.as_deref()));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::Float(0.07));
@@ -268,7 +268,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         m.insert("outcomes".to_string(), Value::from(outcomes));
         m.insert("info".to_string(), self.extend(raw, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ticker".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
+        m.insert("ticker".to_string(), Value::from(ticker.as_deref()));
         m.insert("eventTicker".to_string(), eventTicker.map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker);
         m.insert("subtitle".to_string(), subtitle.map(Value::from).unwrap_or(Value::Null));
@@ -694,7 +694,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         if (error.is_some()) {
             let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCode, Value::from(feedback));
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
@@ -1396,11 +1396,11 @@ impl Kalshi {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), Value::from(limit));
-                    m.insert("status".to_string(), Value::from(status.clone()));
+                    m.insert("status".to_string(), Value::from(status.as_str()));
                 m
             });
             if (cursor.is_some()) {
-                request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("cursor".into(), Value::from(cursor.as_deref()));
             }
             let __ws_arg_0 = self.extend(Value::Map(request), &[&rest]);
             let response: crate::value::Dict = self.kalshi_public_get_markets(&[&__ws_arg_0]).await.unwrap_or_default();
@@ -1413,7 +1413,7 @@ impl Kalshi {
                 let raw: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
                 let parsed: Vec<Value> = self.parse_binary_market_to_outcomes(Value::from(&raw)).as_array().cloned().unwrap_or_default();
                 let eventTicker: Option<String> = self.safe_string_k_opt(&raw, "event_ticker", &[]);
-                let eventTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&eventTicker]);
+                let eventTitle: Option<String> = self.safe_string_k_opt(&raw, "title", &[&Value::from(eventTicker.as_deref())]);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_2: bool = true;
@@ -1425,8 +1425,8 @@ impl Kalshi {
                         if !(matches!(&eventKey, Value::Str(__k) if eventsDict.contains_key(__k.as_ref()))) {
                             eventsDict.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("slug".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(eventTicker.as_deref()));
+        m.insert("slug".to_string(), Value::from(eventTicker.as_deref()));
         m.insert("event".to_string(), eventKey.clone());
         m.insert("title".to_string(), Value::from(eventTitle.as_deref()));
         m.insert("markets".to_string(), Value::from(vec![]));
@@ -2048,10 +2048,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             if !(matches!(ticker.as_deref(), Some(__k) if outcomesByTicker.contains_key(__k))) {
                 outcomesByTicker.insert(ticker.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
-                tickers.push(ticker.clone().map(Value::from).unwrap_or(Value::Null));
+                tickers.push(Value::from(ticker.as_deref()));
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            let mut grouped: Value = self.safe_list(&outcomesByTicker, ticker.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(vec![])]);
+            let mut grouped: Value = self.safe_list(&outcomesByTicker, Value::from(ticker.as_deref()), &[Value::from(vec![])]);
             if let Value::Arr(__a) = &mut grouped { std::sync::Arc::make_mut(__a).push(crate::Value::from(outcomeObj.as_ref())); }
             outcomesByTicker.insert(ticker.as_deref().unwrap_or("null").to_string(), grouped);
         }
@@ -2267,7 +2267,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
         let ticker: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "ticker", &[]);
-        let seriesTicker: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "seriesTicker", &[&ticker]);
+        let seriesTicker: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "seriesTicker", &[&Value::from(ticker.as_deref())]);
         let periodMin: Option<i64> = self.safe_integer(&self.timeframes, &timeframe, &[]).as_i64();
         if (periodMin.is_none()) {
             // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
@@ -2402,7 +2402,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let ticker: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "ticker", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("ticker".to_string(), Value::from(ticker.as_deref()));
             m
         });
         if (limit.is_some()) {
@@ -2756,7 +2756,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("id".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
-        m.insert("outcome".to_string(), self.safe_string_k(&mkt, "outcome", &[heldTicker.clone().map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("outcome".to_string(), self.safe_string_k(&mkt, "outcome", &[Value::from(heldTicker.as_deref())]));
         m.insert("outcomeId".to_string(), self.safe_string2(crate::Value::from(mkt.as_ref()), Value::Str("outcomeId".into()), Value::Str("id".into()), &[heldTicker.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("market".to_string(), self.safe_string2(crate::Value::from(mkt.as_ref()), Value::Str("market".into()), Value::Str("outcome".into()), &[]));
         m.insert("event".to_string(), Value::Null);
@@ -3643,7 +3643,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m
                 });
                 if (cursor.is_some()) {
-                    request.insert("cursor".into(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+                    request.insert("cursor".into(), Value::from(cursor.as_deref()));
                 }
                 let __ws_arg_17 = self.extend(Value::Map(request), &[&rest]);
                 let response: crate::value::Dict = self.kalshi_public_get_events(&[&__ws_arg_17]).await.unwrap_or_default();
@@ -3833,7 +3833,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let hasTitle: bool = (title.is_some()) && (title.as_deref() != Some(""));
         let mut eventSlug: Option<String> = None;
         if hasTitle {
-            eventSlug = Some(self.shorten_slug(title.clone().map(Value::from).unwrap_or(Value::Null)));
+            eventSlug = Some(self.shorten_slug(Value::from(title.as_deref())));
         }
         let mut created: Option<i64> = self.parse8601(self.safe_string_k(&rawEvent, "created_date_iso", &[]));
         if (created.is_none()) {
@@ -3849,8 +3849,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_25 = self.safe_string_k(&rawEvent, "resolution_source", &[]);
         return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("slug".to_string(), ticker.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(ticker.as_deref()));
+        m.insert("slug".to_string(), Value::from(ticker.as_deref()));
         m.insert("event".to_string(), eventSlug.map(Value::from).unwrap_or(Value::Null));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("markets".to_string(), Value::from(marketsList));

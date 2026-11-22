@@ -808,7 +808,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let mut precision: Option<f64> = None;
         if (valueScaleString.is_some()) {
             let precisionString: Option<String> = self.parse_precision(&[valueScaleString.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-            precision = self.parse_number(&precisionString, &[]).as_f64();
+            precision = self.parse_number(Value::from(precisionString.as_deref()), &[]).as_f64();
             minAmount = self.parse_number(crate::precise::Precise::stringMul(&minValueEv, &precisionString), &[]).as_f64();
             maxAmount = self.parse_number(crate::precise::Precise::stringMul(&maxValueEv, &precisionString), &[]).as_f64();
         }
@@ -1022,7 +1022,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::from(tag.as_deref()));
@@ -1386,8 +1386,8 @@ impl crate::exchange::DerivedExchange for Phemex {
         let message: Option<String> = self.safe_string_k_opt(&error, "msg", &[]);
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("0")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3232,7 +3232,7 @@ impl Phemex {
             let type_var: Option<String> = self.safe_string_lower_k_opt(&market, "type", &[]);
             if (type_var.as_deref() == Some("perpetual")) || (type_var.as_deref() == Some("perpetualv2")) || (type_var.as_deref() == Some("perpetualpilot")) {
                 let id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-                let riskLimitValues: crate::value::Dict = self.safe_dict_t(&riskLimitsById, &id);
+                let riskLimitValues: crate::value::Dict = self.safe_dict_t(&riskLimitsById, Value::from(id.as_deref()));
                 market = self.extend(&market, &[&riskLimitValues]);
                 let v1ProductsValues: crate::value::Dict = self.safe_dict_t(&v1ProductsById, id.map(Value::from).unwrap_or(Value::Null));
                 market = self.extend(&market, &[&v1ProductsValues]);
@@ -3861,12 +3861,12 @@ impl Phemex {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let data: crate::value::List = self.safe_list_k_t(response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let currency: crate::value::Dict = self.safe_dict_t(&self.currencies, Value::from(code.as_deref()));
@@ -3944,8 +3944,8 @@ impl Phemex {
         let accountBalanceEv: Option<String> = self.safe_string2_opt(&balance, Value::Str("accountBalanceEv".into()), Value::Str("accountBalanceRv".into()), &[]);
         let totalUsedBalanceEv: Option<String> = self.safe_string2_opt(&balance, Value::Str("totalUsedBalanceEv".into()), Value::Str("totalUsedBalanceRv".into()), &[]);
         let needsConversion: bool = code.as_deref() != Some("USDT");
-        account.insert("total".into(), (if needsConversion { self.from_en(accountBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { accountBalanceEv.map(Value::from).unwrap_or(Value::Null) }));
-        account.insert("used".into(), (if needsConversion { self.from_en(totalUsedBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { totalUsedBalanceEv.map(Value::from).unwrap_or(Value::Null) }));
+        account.insert("total".into(), (if needsConversion { self.from_en(accountBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { Value::from(accountBalanceEv.as_deref()) }));
+        account.insert("used".into(), (if needsConversion { self.from_en(totalUsedBalanceEv.as_deref(), Some(valueScale)).map(Value::from).unwrap_or(Value::Null) } else { Value::from(totalUsedBalanceEv.as_deref()) }));
         result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         return Value::Dict(self.safe_balance(Value::Map(result)));
 
@@ -4571,7 +4571,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), Value::from(requestSide));
-                m.insert("ordType".to_string(), Value::from(typeValue.clone()));
+                m.insert("ordType".to_string(), Value::from(typeValue.as_str()));
             m
         });
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), &[]);
@@ -4587,15 +4587,15 @@ impl Phemex {
                 request.insert("clOrdID".into(), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into()));
             }
         }  else {
-            request.insert("clOrdID".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clOrdID".into(), Value::from(clientOrderId.as_deref()));
         }
         let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&params, &["clOrdID", "clientOrderId"], &[]) } else { params }).into_dict();
         let triggerPrice: Option<String> = self.safe_string_n_opt(Value::from(&paramsOmitted), Value::from(vec![Value::Str("stopPx".into()), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
             }  else {
-                request.insert("stopPxEp".into(), self.to_ep(triggerPrice.clone().map(Value::from).unwrap_or(Value::Null), Some(&market)));
+                request.insert("stopPxEp".into(), self.to_ep(Value::from(triggerPrice.as_deref()), Some(&market)));
             }
         }
         let mut orderParams: Value = self.omit(&paramsOmitted, &["stopPx", "stopPrice", "stopLoss", "takeProfit", "triggerPrice"], &[]);
@@ -4614,7 +4614,7 @@ impl Phemex {
                 }
                 request.insert("trigger".into(), Value::Str("ByLastPrice".into()));
             }
-            request.insert("qtyType".into(), Value::from(qtyType.clone()));
+            request.insert("qtyType".into(), Value::from(qtyType.as_str()));
             if (qtyType == "ByQuote") {
                 let costParam: Option<f64> = self.safe_number_k(&orderParams, "cost", &[]).as_f64();
                 let mut cost: Option<f64> = Some(amount);
@@ -4705,7 +4705,7 @@ impl Phemex {
                     }
                     let stopLossTriggerPriceType: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPriceType".into()), Value::Str("slTrigger".into()), &[]);
                     if (stopLossTriggerPriceType.is_some()) {
-                        request.insert("slTrigger".into(), self.safe_string(self.options.get("triggerPriceTypesMap").cloned().unwrap_or(Value::Null), stopLossTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[stopLossTriggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
+                        request.insert("slTrigger".into(), self.safe_string(self.options.get("triggerPriceTypesMap").cloned().unwrap_or(Value::Null), Value::from(stopLossTriggerPriceType.as_deref()), &[stopLossTriggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
                     }
                     let slLimitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
                     if (slLimitPrice.is_some()) {
@@ -4724,7 +4724,7 @@ impl Phemex {
                     }
                     let takeProfitTriggerPriceType: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPriceType".into()), Value::Str("tpTrigger".into()), &[]);
                     if (takeProfitTriggerPriceType.is_some()) {
-                        request.insert("tpTrigger".into(), self.safe_string(self.options.get("triggerPriceTypesMap").cloned().unwrap_or(Value::Null), takeProfitTriggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[takeProfitTriggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
+                        request.insert("tpTrigger".into(), self.safe_string(self.options.get("triggerPriceTypesMap").cloned().unwrap_or(Value::Null), Value::from(takeProfitTriggerPriceType.as_deref()), &[takeProfitTriggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
                     }
                     let tpLimitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
                     if (tpLimitPrice.is_some()) {
@@ -4744,7 +4744,7 @@ impl Phemex {
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&orderParams, "takeProfitPrice", &[]);
         if (takeProfitPrice.is_some()) {
             if isStableSettled {
-                request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.as_str(), &takeProfitPrice)));
+                request.insert("takeProfitRp".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(takeProfitPrice.as_deref()))));
             }  else {
                 request.insert("takeProfitEp".into(), self.to_ep(takeProfitPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -4753,7 +4753,7 @@ impl Phemex {
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[]);
         if (stopLossPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol.as_str(), &stopLossPrice)));
+                request.insert("stopLossRp".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(stopLossPrice.as_deref()))));
             }  else {
                 request.insert("stopLossEp".into(), self.to_ep(stopLossPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -4921,7 +4921,7 @@ impl Phemex {
         let triggerPrice: Option<String> = self.safe_string_n_opt(&paramsOmitted2, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
             if isStableSettled {
-                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+                request.insert("stopPxRp".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
             }  else {
                 request.insert("stopPxEp".into(), self.to_ep(triggerPrice.map(Value::from).unwrap_or(Value::Null), Some(&market)));
             }
@@ -5107,7 +5107,7 @@ impl Phemex {
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("clOrdID".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "clOrdID"], &[]);
         if (clientOrderId.is_some()) {
-            request.insert("clOrdID".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clOrdID".into(), Value::from(clientOrderId.as_deref()));
         }  else {
             request.insert("orderID".into(), id.clone());
         }
@@ -5654,7 +5654,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let address: Option<String> = self.safe_string_k_opt(&data, "address", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&data, "tag", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -6136,7 +6136,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), self.safe_string_k(&entry, "symbol", &[]));
-                    m.insert("code".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("code".to_string(), Value::from(currencyCode.as_deref()));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("id".to_string(), Value::Null);

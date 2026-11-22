@@ -270,7 +270,7 @@ impl Phemex {
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
         let openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string_k(&ticker, "open", &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
-        let open: Option<f64> = self.parse_number(&openString, &[]).as_f64();
+        let open: Option<f64> = self.parse_number(Value::from(openString.as_deref()), &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
@@ -335,7 +335,7 @@ impl Phemex {
         let mut percentage: Option<f64> = None;
         let mut average: Option<f64> = None;
         let openString: Option<String> = self.omit_zero(self.from_ep(self.safe_string(&ticker, Value::Int(1), &[]), &[&crate::Value::from(marketValue)]).map(Value::from).unwrap_or(Value::Null));
-        let open: Option<f64> = self.parse_number(&openString, &[]).as_f64();
+        let open: Option<f64> = self.parse_number(Value::from(openString.as_deref()), &[]).as_f64();
         if (openString.is_some()) && (lastString.is_some()) {
             change = self.parse_number(crate::precise::Precise::stringSub(&lastString, &openString), &[]).as_f64();
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&lastString, &openString), &Value::Str("2".into())), &[]).as_f64();
@@ -513,7 +513,7 @@ impl Phemex {
         let paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.1;
         let usePerpetualApi: bool = self.safe_string_k(&paramsMarketType, "settle", &[]).as_str() == Some("USDT");
         let mut messageHash: String = "perpetual:balance".to_string();
-        if !usePerpetualApi {
+        if !usePerpetualApi && (type_var.is_some()) {
             messageHash = format!("{}{}", type_var.as_deref().unwrap_or("null"), ":balance");
         }
         return self.subscribe_private(type_var.as_deref(), messageHash.as_str(), &[Value::Dict(paramsMarketType)]).await;
@@ -740,7 +740,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let isSwap: bool = (market).swap;
         let settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
         let mut name: String = "spot_market24h".to_string();
@@ -753,7 +753,7 @@ impl Phemex {
         let messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::from(subscriptionHash.clone()));
+                m.insert("method".to_string(), Value::from(subscriptionHash.as_str()));
                 m.insert("id".to_string(), Value::from(requestId));
                 m.insert("params".to_string(), Value::from(vec![]));
             m
@@ -865,7 +865,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -924,7 +924,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -982,7 +982,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id();
         let isSwap: bool = (market).swap;
@@ -1034,7 +1034,7 @@ impl Phemex {
                 m.insert("id".to_string(), Value::from(requestId));
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("subMessageHash".to_string(), subMessageHash);
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
             m
         })]);
         let __ws_arg_1 = self.deep_extend(Value::Map(request), &[params]);
@@ -1329,7 +1329,7 @@ impl Phemex {
             let settle: Option<String> = self.safe_string_k_opt(&paramsType, "settle", &[]);
             if (settle.as_deref() == Some("USDT")) {
                 messageHash = "trades:perpetual".to_string();
-            }  else {
+            }  else if (type_var.is_some()) {
                 messageHash = format!("{}{}", "trades:", type_var.as_deref().unwrap_or("null"));
             }
         }
@@ -1542,7 +1542,7 @@ impl Phemex {
         if (symbol == Value::Null) {
             if isUSDTSettled {
                 messageHash = "orders:perpetual".to_string();
-            }  else {
+            }  else if (type_var.is_some()) {
                 messageHash = format!("{}{}", "orders:", type_var.as_deref().unwrap_or("null"));
             }
         }
@@ -1957,7 +1957,7 @@ impl Phemex {
         m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
-        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(stopPrice.as_deref()));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
@@ -2074,7 +2074,7 @@ impl Phemex {
         // }
         let id: String = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if (__ch.has_subscription(id.as_str())) {
-            let method: Value = self.safe_value(&__ch.subscriptions, Value::from(id.clone()), &[]);
+            let method: Value = self.safe_value(&__ch.subscriptions, Value::from(id.as_str()), &[]);
             __ch.remove_subscription(id.as_str());
             if !(match &(method) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
                 self.handle_authenticate(&client, &message);
@@ -2166,7 +2166,7 @@ impl Phemex {
         let mut request: crate::value::Dict = std::sync::Arc::new({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
-                m.insert("method".to_string(), Value::from(channel.clone()));
+                m.insert("method".to_string(), Value::from(channel.as_str()));
                 m.insert("params".to_string(), Value::from(vec![]));
             m
         });
@@ -2186,7 +2186,7 @@ impl Phemex {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let requestId: i64 = self.request_id();
         let messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]);
+        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]);
         if (future == Value::Null) {
             let expiryDelta: i64 = self.safe_integer_k(&self.options, "expires", &[Value::Int(120)]).as_i64().unwrap_or(120);
             let expiration: i64 = ((self.seconds()) + expiryDelta);

@@ -458,7 +458,8 @@ impl Bithumb {
         client.resolve((if let (__m, Some(__k)) = (&self.tickers, symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }
 
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        let ticker: Value = ticker.into();
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -519,8 +520,12 @@ impl Bithumb {
         //
         let code: Option<String> = self.safe_string_k_opt(&ticker, "code", &[]);
         if (code.is_some()) {
-            { let __be_tmp = self.safe_string_k(&ticker, "market", &[code.map(Value::from).unwrap_or(Value::Null)]); if let Value::Dict(__d) = &mut ticker { std::sync::Arc::make_mut(__d).insert("market".into(), __be_tmp); } }
-            return self.parse_ticker(ticker.clone(), market);
+            let __ws_arg_1 = self.extend(ticker.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("market".to_string(), self.safe_string_k(&ticker, "market", &[code.map(Value::from).unwrap_or(Value::Null)]));
+    m
+})]);
+            return self.parse_ticker(__ws_arg_1, market);
         }
         let date: Value = self.safe_string_k(&ticker, "date", &[Value::Str("".into())]);
         let time: Value = self.safe_string_k(&ticker, "time", &[Value::Str("".into())]);
@@ -696,7 +701,7 @@ impl Bithumb {
             let legacyTimestamp: Option<i64> = self.parse_to_int((if let Some(__s) = timestampStr.as_deref() { Some(__s.chars().skip(0).take(13).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
             if !(self.orderbooks.has(&legacySymbol)) {
                 let mut ob: crate::pro::order_book::Book = self.order_book(&[]);
-                ob.set_book_meta("symbol", legacySymbol.clone().map(Value::from).unwrap_or(Value::Null));
+                ob.set_book_meta("symbol", Value::from(legacySymbol.as_deref()));
                 CacheStore::put(&mut self.orderbooks, &legacySymbol, ob);
             }
             let mut legacyOrderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&legacySymbol);
@@ -721,7 +726,7 @@ impl Bithumb {
 }), Value::from(obLimit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let units: crate::value::List = __pro_message.key_list("orderbook_units");
+        let units: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("orderbook_units"));
         let gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Option<i64> = Some(self.milliseconds());
         if (gen2TimestampStr.is_some()) {
@@ -733,7 +738,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (units.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&units, Value::Int(i));
+            let entry: crate::value::Dict = units.get(i as usize).cloned().unwrap_or_default();
             let bidPrice: Option<f64> = self.safe_number_k(&entry, "bid_price", &[]).as_f64();
             let bidSize: Option<f64> = self.safe_number_k(&entry, "bid_size", &[]).as_f64();
             let askPrice: Option<f64> = self.safe_number_k(&entry, "ask_price", &[]).as_f64();
@@ -1080,7 +1085,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let messageHash: String = "myAsset".to_string();
         let request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::from(messageHash.clone()));
+                m.insert("type".to_string(), Value::from(messageHash.as_str()));
             m
         })).into_list();
         let balance: Value = self.watch(url.as_str(), &messageHash[..], Value::Arr(request), &messageHash[..], Value::Null).await;
@@ -1108,7 +1113,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let messageHash: String = "myAsset".to_string();
-        let assets: crate::value::List = __pro_message.key_list("assets");
+        let assets: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("assets"));
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
                 let m = indexmap::IndexMap::new();
@@ -1119,7 +1124,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (assets.len() as i64) } {
-            let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let asset: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&asset, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -1200,7 +1205,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m
             });
             let jwtToken: String = jwt(&payload, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            wsOptions.insert("token".into(), Value::from(jwtToken.clone()));
+            wsOptions.insert("token".into(), Value::from(jwtToken.as_str()));
             wsOptions.insert("options".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
@@ -1267,7 +1272,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let codes: crate::value::List = self.safe_list_k_t(params, "codes");
         let request: crate::value::List = self.build_gen2_subscription_request(messageHash.clone().as_str(), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::from(messageHash.clone()));
+                m.insert("type".to_string(), Value::from(messageHash.as_str()));
                 m.insert("codes".to_string(), Value::Arr(codes));
             m
         })).into_list();

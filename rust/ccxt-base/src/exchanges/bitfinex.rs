@@ -164,7 +164,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             side = "sell".to_string();
         }
         let orderType: Option<String> = self.safe_string_opt(&orderList, Value::Int(8), &[]);
-        let type_var: Option<String> = self.safe_string_opt(self.safe_dict_k(&self.options, "exchangeTypes", &[]), &orderType, &[]);
+        let type_var: Option<String> = self.safe_string_opt(self.safe_dict_k(&self.options, "exchangeTypes", &[]), Value::from(orderType.as_deref()), &[]);
         let timeInForce: Option<String> = self.parse_time_in_force(orderType.as_deref());
         let rawFlags: Option<String> = self.safe_string_opt(&orderList, Value::Int(12), &[]);
         let flags: Vec<Value> = self.parse_order_flags(rawFlags.as_deref()).as_array().cloned().unwrap_or_default();
@@ -385,14 +385,14 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         let amount: Option<String> = self.safe_string_opt(&positionList, Value::Int(2), &[]);
         let timestamp: Option<i64> = self.safe_integer(&positionList, Value::Int(12), &[]).as_i64();
         let meta: Option<String> = self.safe_string_opt(&positionList, Value::Int(19), &[]);
-        let tradePrice: Option<String> = self.safe_string_k_opt(meta.clone().map(Value::from).unwrap_or(Value::Null), "trade_price", &[]);
+        let tradePrice: Option<String> = self.safe_string_k_opt(Value::from(meta.as_deref()), "trade_price", &[]);
         let tradeAmount: Option<String> = self.safe_string_k_opt(meta.map(Value::from).unwrap_or(Value::Null), "trade_amount", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), positionList.clone().map_or(Value::Null, Value::Arr));
         m.insert("id".to_string(), self.safe_string(&positionList, Value::Int(11), &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("notional".to_string(), self.parse_number(&amount, &[]));
+        m.insert("notional".to_string(), self.parse_number(Value::from(amount.as_deref()), &[]));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("liquidationPrice".to_string(), self.safe_number(&positionList, Value::Int(8), &[]));
         m.insert("entryPrice".to_string(), self.safe_number(&positionList, Value::Int(3), &[]));
@@ -514,7 +514,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item);
-        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("direction".to_string(), Value::Null);
         m.insert("account".to_string(), Value::Null);
         m.insert("referenceId".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -697,9 +697,9 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
         m.insert("contracts".to_string(), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("price".to_string(), self.parse_number(&price, &[]));
+        m.insert("price".to_string(), self.parse_number(Value::from(price.as_deref()), &[]));
         m.insert("side".to_string(), Value::from(side));
-        m.insert("baseValue".to_string(), self.parse_number(&baseValue, &[]));
+        m.insert("baseValue".to_string(), self.parse_number(Value::from(baseValue.as_deref()), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&baseValue, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -846,7 +846,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             if !(matches!(&response, Value::Arr(_))) {
                 let message: Option<String> = self.safe_string2_opt(&response, Value::Str("message".into()), Value::Str("error".into()), &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
             }
@@ -861,9 +861,9 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             let errorCode: String = self.safe_string(&response, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let errorText: String = self.safe_string(&response, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(errorText.clone()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.clone()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorText.clone()), Value::from(feedback));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(errorText.as_str()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_str()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorText.as_str()), Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText).into()), " (#").into()), errorCode).into()), ")")));
         }
         return response;
@@ -2193,7 +2193,7 @@ impl Bitfinex {
         m.insert("0".to_string(), Value::Str("maintenance".into()));
         m.insert("1".to_string(), Value::Str("ok".into()));
     m
-}), statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.clone().map(Value::from).unwrap_or(Value::Null)]));
+}), Value::from(statusRaw.as_deref()), &[Value::from(statusRaw.as_deref())]));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2464,11 +2464,11 @@ impl Bitfinex {
                 continue;
             }
             let network: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
-            let dwStatuses: crate::value::List = self.safe_list_t(indexed.get("statuses").cloned().unwrap_or(Value::Null), &networkId);
+            let dwStatuses: crate::value::List = self.safe_list_t(indexed.get("statuses").cloned().unwrap_or(Value::Null), Value::from(networkId.as_deref()));
             if (network.is_some()) {
                 networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), networkId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("info".to_string(), Value::from(networkId.as_deref()));
         m.insert("id".to_string(), networkId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(network.as_deref()));
         m.insert("active".to_string(), Value::Null);
@@ -2552,7 +2552,7 @@ impl Bitfinex {
         }
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "v2AccountsByType");
         let requestedType: String = self.safe_string_k(&params, "type", &[Value::Str("exchange".into())]).as_str().unwrap_or("exchange").to_string();
-        let accountType: Option<String> = self.safe_string_opt(&accountsByType, &requestedType, &[&requestedType]);
+        let accountType: Option<String> = self.safe_string_opt(&accountsByType, Value::from(requestedType.as_str()), &[&Value::from(requestedType.as_str())]);
         if (accountType.is_none()) {
             let mut keys: crate::value::List = crate::value::List::new(accountsByType.keys().cloned().map(Value::from).collect());
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() type parameter must be one of ").into()), Value::Str(keys.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
@@ -2679,7 +2679,7 @@ impl Bitfinex {
         if (error.as_deref() == Some("error")) {
             let message: String = self.safe_string(&response, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // same message as in v1
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.clone()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message).into()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_str()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message).into()));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message)));
         }
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Value::Map({
@@ -2721,7 +2721,7 @@ impl Bitfinex {
             }
             return derivativesId.map(Value::from).unwrap_or(Value::Null);
         }  else if (type_var != "margin") {
-            return self.safe_string(&underlying, Value::Int(1), &[transferId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            return self.safe_string(&underlying, Value::Int(1), &[Value::from(transferId.as_deref())]);
         }
         return transferId.map(Value::from).unwrap_or(Value::Null);
 
@@ -2788,7 +2788,7 @@ impl Bitfinex {
             let signedAmount: Option<String> = self.safe_string_opt(&order, Value::Int(2), &[]);
             let amount: Option<String> = crate::precise::Precise::stringAbs(&signedAmount).as_str().map(str::to_owned);
             if crate::precise::Precise::stringGt(&signedAmount, &Value::Str("0".into())).as_bool() == Some(true) {
-                bids.push(Value::from(vec![Value::from(price), self.parse_number(&amount, &[])]));
+                bids.push(Value::from(vec![Value::from(price), self.parse_number(Value::from(amount.as_deref()), &[])]));
             }  else {
                 asks.push(Value::from(vec![Value::from(price), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[])]));
             }
@@ -3278,12 +3278,14 @@ impl Bitfinex {
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut amountString: Value = Value::from(self.amount_to_precision(symbol, amount));
-        amountString = (if (side == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
+        let mut amountString: Option<String> = self.amount_to_precision(symbol, amount);
+        if (side != Some("buy")) {
+            amountString = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
+        }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("amount".to_string(), amountString);
+                m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
             m
         });
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
@@ -3298,7 +3300,7 @@ impl Bitfinex {
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if (triggerPrice.is_some()) {
             // request['price'] is taken as triggerPrice for stop orders
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol, &triggerPrice)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(triggerPrice.as_deref()))));
             if (type_var == Some("limit")) {
                 orderType = Some("STOP LIMIT".to_string());
                 request.insert("price_aux_limit".into(), Value::from(self.price_to_precision(symbol, &price)));
@@ -4292,7 +4294,7 @@ impl Bitfinex {
         let poolAddress: Option<String> = self.safe_string_opt(&result, Value::Int(5), &[]);
         let address: Option<String> = (if (poolAddress.is_none()) { self.safe_string_opt(&result, Value::Int(4), &[]) } else { poolAddress.clone() });
         let tag: Option<String> = (if (poolAddress.is_none()) { None } else { self.safe_string_opt(&result, Value::Int(4), &[]) });
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code);
@@ -4587,7 +4589,7 @@ impl Bitfinex {
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&response));
-                    m.insert("symbol".to_string(), Value::from(symbol.clone()));
+                    m.insert("symbol".to_string(), Value::from(symbol.as_str()));
                     m.insert("percentage".to_string(), Value::Bool(true));
                     m.insert("tierBased".to_string(), Value::Bool(true));
                 m
@@ -4803,13 +4805,13 @@ impl Bitfinex {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), response);
             let message: String = self.safe_string(&response, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // same message as in v1
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.clone()), &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_str()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         let text: Option<String> = self.safe_string_opt(&response, Value::Int(7), &[]);
         if (text.as_deref() != Some("success")) {
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), text.clone().map(Value::from).unwrap_or(Value::Null), text.map(Value::from).unwrap_or(Value::Null));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(text.as_deref()), text.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transaction_row(response, &[&crate::Value::from(Some(&currency))]);
         Value::Null
@@ -5573,9 +5575,11 @@ impl Bitfinex {
             m
         });
         if (amount.is_some()) {
-            let mut amountString: Value = Value::from(self.amount_to_precision(symbol.as_str(), amount));
-            amountString = (if (side.as_str() == Some("buy")) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
-            request.insert("amount".into(), amountString);
+            let mut amountString: Option<String> = self.amount_to_precision(symbol.as_str(), amount);
+            if (side.as_str() != Some("buy")) {
+                amountString = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
+            }
+            request.insert("amount".into(), amountString.map(Value::from).unwrap_or(Value::Null));
         }
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let trailingAmount: Option<String> = self.safe_string_k_opt(&params, "trailingAmount", &[]);
@@ -5587,7 +5591,7 @@ impl Bitfinex {
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));
         }  else if (triggerPrice.is_some()) {
             // request['price'] is taken as triggerPrice for stop orders
-            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
             if (type_var.as_str() == Some("limit")) {
                 request.insert("price_aux_limit".into(), Value::from(self.price_to_precision(symbol.as_str(), &Value::from(price))));
             }

@@ -321,7 +321,7 @@ impl crate::exchange::DerivedExchange for Cex {
         let address: Option<String> = self.safe_string_k_opt(&depositAddress, "address", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "currency", &[]);
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
@@ -536,7 +536,7 @@ impl crate::exchange::DerivedExchange for Cex {
         m.insert("id".to_string(), self.safe_string_k(&transaction, "txId", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -552,7 +552,7 @@ impl crate::exchange::DerivedExchange for Cex {
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number_k(transaction, "commissionAmount", &[]));
     m
 }));
@@ -592,7 +592,7 @@ impl crate::exchange::DerivedExchange for Cex {
                 });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersJson));
@@ -615,7 +615,7 @@ impl crate::exchange::DerivedExchange for Cex {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -652,8 +652,8 @@ impl crate::exchange::DerivedExchange for Cex {
         let error: Option<String> = self.safe_string_k_opt(&responseParsed, "error", &[]);
         if (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
@@ -661,7 +661,7 @@ impl crate::exchange::DerivedExchange for Cex {
             let data: crate::value::Dict = self.safe_dict_k_t(&responseParsed, "data");
             let rejectReason: Option<String> = self.safe_string_k_opt(&data, "rejectReason", &[]);
             if (rejectReason.is_some()) {
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &rejectReason, rejectReason.clone().map(Value::from).unwrap_or(Value::Null));
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(rejectReason.as_deref()), Value::from(rejectReason.as_deref()));
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() ").into()), rejectReason.as_deref().unwrap_or("null"))));
             }
         }

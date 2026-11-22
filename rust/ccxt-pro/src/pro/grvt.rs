@@ -704,7 +704,7 @@ impl Grvt {
             let symbolString: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
             let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), timeframeId.as_deref().unwrap_or("null")).into()), "-TRADE").into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", (market).symbol).into()), "::").into()), unfiedTimeframe).into()));
         }
@@ -941,7 +941,7 @@ impl Grvt {
         let isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
         let isSnapshotMessage: bool = sequenceNumber <= 0;
         if isSnapshotChannel || isSnapshotMessage {
-            let snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.clone()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+            let snapshot: crate::value::Dict = self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             let asks: crate::value::List = self.safe_list_k_t(&data, "asks");
@@ -958,7 +958,7 @@ impl Grvt {
         // typed WsOrderBook surfaces this as `"symbol":null` in the output;
         // Python/JS dict-backed orderbooks happen to mask it but the
         // unconditional assignment is correct for every language.
-        orderbook.set_book_meta("symbol", Value::from(symbol.clone()));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_str()));
         orderbook.set_book_meta("nonce", Value::from(sequenceNumber));
         let __resolved_orderbook = Value::from(&orderbook);
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook);
@@ -1393,8 +1393,8 @@ impl Grvt {
             let body: Option<String> = json_stringify(&response).as_str().map(str::to_owned);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body.as_deref().unwrap_or("null"));
             let message: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body.as_deref().unwrap_or("null"))));
         }

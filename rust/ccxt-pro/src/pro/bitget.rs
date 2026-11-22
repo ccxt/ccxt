@@ -673,7 +673,7 @@ impl Bitget {
         m.insert("askVolume".to_string(), self.safe_string2(&ticker, Value::Str("askSz".into()), Value::Str("ask1Size".into()), &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string2(&ticker, Value::Str("open24h".into()), Value::Str("openPrice24h".into()), &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -937,7 +937,7 @@ impl Bitget {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
-                    m.insert("interval".to_string(), interval.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("interval".to_string(), Value::from(interval.as_deref()));
                 m
             })]);
         }
@@ -948,13 +948,13 @@ impl Bitget {
         });
         if isStockOrUta {
             channel = "kline".to_string();
-            args.insert("topic".into(), Value::from(channel.clone()));
+            args.insert("topic".into(), Value::from(channel.as_str()));
             args.insert("symbol".into(), Value::from((market).id.as_deref()));
-            args.insert("interval".into(), interval.map(Value::from).unwrap_or(Value::Null));
+            args.insert("interval".into(), Value::from(interval.as_deref()));
             messageHash = format!("{}{}", "kline", symbol);
         }  else {
             channel = format!("{}{}", "candle", interval.as_deref().unwrap_or("null"));
-            args.insert("channel".into(), Value::from(channel.clone()));
+            args.insert("channel".into(), Value::from(channel.as_str()));
             args.insert("instId".into(), Value::from((market).id.as_deref()));
             messageHash = format!("{}{}", "candles:", interval.as_deref().unwrap_or("null"));
         }
@@ -1243,7 +1243,7 @@ impl Bitget {
             args.insert("instId".into(), Value::from((market).id.as_deref()));
         }
         if privateChannel {
-            return self.un_watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash.clone()), Value::Map(args), &[&paramsRequest]).await;
+            return self.un_watch_private(uta.map_or(Value::Null, Value::Bool), Value::from(messageHash.as_str()), Value::Map(args), &[&paramsRequest]).await;
         }
         return self.un_watch_public((uta == Some(true)), messageHash.as_str(), Value::Map(args), &[paramsRequest]).await;
 
@@ -1419,7 +1419,7 @@ impl Bitget {
     let m = indexmap::IndexMap::new();
     m
 })]);
-                ob.set_book_meta("symbol", Value::from(symbol.clone()));
+                ob.set_book_meta("symbol", Value::from(symbol.as_str()));
                 CacheStore::put(&mut self.orderbooks, &symbol, ob);
             }
             let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
@@ -1429,7 +1429,7 @@ impl Bitget {
                 // a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
                 storedOrderBook.reset(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("symbol".to_string(), Value::from(symbol.clone()));
+                        m.insert("symbol".to_string(), Value::from(symbol.as_str()));
                     m
                 }));
             }
@@ -1471,7 +1471,7 @@ impl Bitget {
                 let calculatedChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(true)]);
                 if (Some(calculatedChecksum) != responseChecksum) {
                     let __ws_arg_1 = self.orderbook_checksum_message(self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
-                    self.spawn(&[Value::Str("handle_check_sum_error".into()), client, Value::from(symbol), Value::from(messageHash), __ws_arg_1]);
+                    self.spawn(&[Value::Str("handle_check_sum_error".into()), client, Value::from(symbol.as_str()), Value::from(messageHash.as_str()), __ws_arg_1]);
                     return;
                 }
             }
@@ -1500,7 +1500,7 @@ impl Bitget {
                     bidsKey = "b".to_string();
                 }
             }
-            let parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, Value::from(symbol.clone()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
+            let parsedOrderbook: crate::value::Dict = self.parse_order_book(rawOrderBook, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
             orderbook.reset(Value::Dict(parsedOrderbook));
         }
         client.resolve(Value::from(self.orderbooks.at(&symbol)), messageHash.as_str());
@@ -1630,7 +1630,11 @@ impl Bitget {
             if (uta == Some(true)) {
                 symbolOrInstId = "symbol".to_string();
             }
-            args.insert(topicOrChannel, (if (uta == Some(true)) { Value::Str("publicTrade".into()) } else { Value::Str("trade".into()) }));
+            let mut tradeTopic: String = "trade".to_string();
+            if (uta == Some(true)) {
+                tradeTopic = "publicTrade".to_string();
+            }
+            args.insert(topicOrChannel, Value::from(tradeTopic));
             args.insert(symbolOrInstId, Value::from((market).id.as_deref()));
             topics.push(Value::Map(args));
             messageHashes.push(Value::Str(format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null")).into()));
@@ -2289,7 +2293,9 @@ impl Bitget {
             marketId = Some("default".to_string());
         }
         if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved.is_none()) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), subType.as_deref().unwrap_or("null"));
+            if (subType.is_some()) {
+                messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), subType.as_deref().unwrap_or("null"));
+            }
         }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
             messageHash = format!("{}{}", messageHash, ":linear");
         }  else if (productType.as_deref() == Some("COIN-FUTURES")) {
@@ -2304,7 +2310,8 @@ impl Bitget {
             { let __destr_tmp = self.get_inst_type(Value::Str("watchOrders".into()), market.as_ref(), &[&uta.map_or(Value::Null, Value::Bool), &Value::Dict(paramsSubType)]); instType = __destr_tmp.0.as_str().map(str::to_owned); paramsInstType = __destr_tmp.1; }
         }
         if (type_var.as_deref() == Some("spot")) && (symbolResolved.is_some()) {
-            subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), symbolResolved.as_deref().unwrap_or("null"));
+            let resolvedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, ":").into()), resolvedSymbol);
         }
         if (isTrigger) {
             subscriptionHash = format!("{}{}", subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
@@ -2464,7 +2471,7 @@ impl Bitget {
         }
         let data: crate::value::List = message.key_list("data");
         let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
-        let category: Option<String> = self.safe_string_lower_k_opt(&first, "category", &[instType.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let category: Option<String> = self.safe_string_lower_k_opt(&first, "category", &[Value::from(instType.as_deref())]);
         let isLinearSwap: bool = category.as_deref() == Some("usdt-futures");
         let isInverseSwap: bool = category.as_deref() == Some("coin-futures");
         let isUSDCFutures: bool = category.as_deref() == Some("usdc-futures");
@@ -2499,7 +2506,7 @@ impl Bitget {
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
             let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
-            let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("instId".into()), Value::Str("symbol".into()), &[&argInstId]);
+            let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("instId".into()), Value::Str("symbol".into()), &[&Value::from(argInstId.as_deref())]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
             let parsed: crate::value::Dict = self.parse_ws_order(&order, Some(&market));
             stored.append(Value::from(&parsed));
@@ -2704,7 +2711,7 @@ impl Bitget {
         let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer2(&order, Value::Str("cTime".into()), Value::Str("createdTime".into()), &[]).as_i64();
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rawStatus: Option<String> = self.safe_string2_opt(&order, Value::Str("status".into()), Value::Str("orderStatus".into()), &[]);
         let orderFee: crate::value::List = self.safe_list_k_t(&order, "feeDetail");
         let fee: crate::value::Dict = self.safe_dict_t(&orderFee, Value::Int(0));
@@ -2779,7 +2786,7 @@ impl Bitget {
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("id".to_string(), self.safe_string_k(&order, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clientOid", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -3244,12 +3251,12 @@ impl Bitget {
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (data.len() as i64) } {
             let rawBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (instType.as_deref() == Some("uta")) {
-                let coins: crate::value::List = self.safe_list_k_t(&rawBalance, "coin");
+                let coins: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawBalance, "coin"));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_13: bool = true;
                     while { if !__for_first_13 { j += 1; } __for_first_13 = false; j < (coins.len() as i64) } {
-                    let entry: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(j));
+                    let entry: crate::value::Dict = coins.get(j as usize).cloned().unwrap_or_default();
                     let currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
                     let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     let mut coinAccount: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -3438,7 +3445,7 @@ impl Bitget {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let timestamp: String = format!("{}", self.seconds());
             let auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, "GET").into()), "/user/verify");
@@ -3523,9 +3530,9 @@ impl Bitget {
             if (event.as_deref() == Some("error")) {
                 let code: Option<String> = (match __pro_message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("ws").at("exact"), &code, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("ws").at("exact"), &code, feedback.as_str());
                 let msg: String = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-                self.throw_broadly_matched_exception(self.exceptions.at("ws").at("broad"), Value::from(msg), &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("ws").at("broad"), Value::from(msg), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             return Value::Bool(false);
@@ -3679,7 +3686,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let arg: crate::value::Dict = __pro_message.key_dict("arg");
         let topic: String = self.safe_string2(&arg, Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let method: Option<String> = self.safe_value(&methods, Value::from(topic.clone()), &[]).as_str().map(str::to_owned);
+        let method: Option<String> = self.safe_value(&methods, Value::from(topic.as_str()), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[&client, &message]);
         }
@@ -3729,9 +3736,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let instId: Option<String> = self.safe_string2_opt(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let market: crate::types::Market = self.safe_market(instId.as_deref(), None, &[Value::Null, Value::from(type_var)]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
-        let subMessageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
+        let subMessageHash: String = format!("{}{}", "orderbook:", symbol);
         if (self.orderbooks.has(&symbol)) {
             CacheStore::forget(&mut self.orderbooks, &symbol);
         }
@@ -3741,7 +3748,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (__ch.has_subscription(messageHash.as_str())) {
             __ch.remove_subscription(messageHash.as_str());
         }
-        let error: crate::ExchangeError = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " orderbook ").into()), symbol.as_deref().unwrap_or("null")));
+        let error: crate::ExchangeError = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " orderbook ").into()), symbol));
         if (__ch.has_future(subMessageHash.as_str())) {
             client.reject(error, subMessageHash.as_str());
         }
@@ -3797,11 +3804,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let instId: Option<String> = self.safe_string2_opt(&arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
         let market: crate::types::Market = self.safe_market(instId.as_deref(), None, &[Value::Null, Value::from(type_var)]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
-        let subMessageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
-        if (matches!((&self.tickers, symbol.as_deref()), (__d, Some(__k)) if __d.contains_key(__k))) {
-            if let (__d, Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+        let subMessageHash: String = format!("{}{}", "ticker:", symbol);
+        if (self.tickers.contains_key(symbol.as_str())) {
+            if let (__d, Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
         }
         if (__ch.has_subscription(subMessageHash.as_str())) {
             __ch.remove_subscription(subMessageHash.as_str());
@@ -3809,7 +3816,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (__ch.has_subscription(messageHash.as_str())) {
             __ch.remove_subscription(messageHash.as_str());
         }
-        let error: crate::ExchangeError = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ticker ").into()), symbol.as_deref().unwrap_or("null")));
+        let error: crate::ExchangeError = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ticker ").into()), symbol));
         if (__ch.has_future(subMessageHash.as_str())) {
             client.reject(error, subMessageHash.as_str());
         }

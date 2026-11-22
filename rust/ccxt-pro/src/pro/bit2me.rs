@@ -808,7 +808,7 @@ impl Bit2me {
         let clientOrderId: Option<String> = self.safe_string_k_opt(&data, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             let pending: crate::value::Dict = self.safe_dict_k_t(&self.options, "pendingWsOrders");
-            { let __be_tmp = self.omit(&pending, clientOrderId.clone().map(Value::from).unwrap_or(Value::Null), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
+            { let __be_tmp = self.omit(&pending, Value::from(clientOrderId.as_deref()), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
             self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), &order, &[]);
         }
 }
@@ -1051,7 +1051,7 @@ impl Bit2me {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             // the token is valid for one minute, it is only used to open the session
             let response: crate::value::Dict = self.parent.private_post_v1_signin_apikey(&[&params]).await.unwrap_or_default();
@@ -1126,17 +1126,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (event.as_deref() == Some("added-order")) {
             // the error carries no client order id, reject every order of the symbol still waiting for a response
             let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
-            let pending: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "pendingWsOrders", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]).as_map().cloned().unwrap_or_default();
+            let pending: crate::value::Dict = self.safe_dict_k_t(&self.options, "pendingWsOrders");
             let clientOrderIds: Vec<Value> = Value::Array(pending.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (clientOrderIds.len() as i64) } {
                 let clientOrderId: Option<&str> = clientOrderIds.get(i as usize).and_then(Value::as_str);
-                if is_equal(&pending.get(clientOrderId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &marketId.clone().map(Value::from).unwrap_or(Value::Null)) {
+                let pendingMarketId: Option<String> = self.safe_string_opt(&pending, Value::from(clientOrderId.as_deref()), &[]);
+                if (pendingMarketId == marketId) {
                     self.settle_request(client, Value::Str(format!("{}{}", "added-order:", clientOrderId.as_deref().unwrap_or("null")).into()), Value::Null, &[&exception]);
                     { let __be_tmp = self.omit(self.options.get("pendingWsOrders").cloned().unwrap_or(Value::Null), Value::from(clientOrderId.as_deref()), &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("pendingWsOrders".into(), __be_tmp); } }
                 }
@@ -1165,7 +1163,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("my-balance".to_string(), Value::Str("balance".into()));
                 m
             });
-            let messageHash: Option<String> = self.safe_string_opt(&hashes, &name, &[]);
+            let messageHash: Option<String> = self.safe_string_opt(&hashes, Value::from(name.as_deref()), &[]);
             if (messageHash.is_some()) {
                 client.reject(exception.clone(), messageHash.as_deref());
                 if (name.as_deref() == Some("my-orders")) || (name.as_deref() == Some("my-trades")) {

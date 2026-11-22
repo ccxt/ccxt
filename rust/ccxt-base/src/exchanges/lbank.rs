@@ -713,7 +713,7 @@ impl crate::exchange::DerivedExchange for Lbank {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -774,12 +774,12 @@ impl crate::exchange::DerivedExchange for Lbank {
         //
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee.clone()).as_map().cloned().unwrap_or_default();
         let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
-        let networkList: crate::value::List = self.safe_list_k_t(fee, "networkList");
+        let networkList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(fee, "networkList"));
         {
                         let mut j: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { j += 1; } __for_first_10 = false; j < (networkList.len() as i64) } {
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
+            let networkEntry: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or_default();
             let networkCode: Option<String> = self.network_id_to_code(self.safe_string_k(&networkEntry, "name", &[]).as_str(), code.as_deref());
             let withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
             let isDefault: bool = self.safe_bool_k_opt(&networkEntry, "isDefault", &[Value::Bool(false)]).unwrap_or(false);
@@ -873,7 +873,7 @@ impl crate::exchange::DerivedExchange for Lbank {
             let finalSig: Option<String> = signatureMethod.clone(); // java req
             let __ws_arg_34 = self.keysort(self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("echostr".to_string(), Value::from(echostr.clone()));
+        m.insert("echostr".to_string(), Value::from(echostr.as_str()));
         m.insert("signature_method".to_string(), finalSig.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
     m
@@ -912,7 +912,7 @@ impl crate::exchange::DerivedExchange for Lbank {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(bodySigned));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -990,7 +990,7 @@ impl crate::exchange::DerivedExchange for Lbank {
                     m.insert("10701".to_string(), Value::Str("invalid asset code".into()));
                     m.insert("10702".to_string(), Value::Str("not allowed deposit".into()));
                 m
-            }), errorCode.clone().map(Value::from).unwrap_or(Value::Null), &[json_stringify(&response)]);
+            }), Value::from(errorCode.as_deref()), &[json_stringify(&response)]);
             let ErrorClass: Value = self.safe_value(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("10001".to_string(), Value::Str("BadRequest".into()));
@@ -2094,7 +2094,7 @@ impl Lbank {
                     m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), Value::from(symbol));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quote".to_string(), Value::from(quote.as_deref()));
                     m.insert("settle".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
@@ -3687,7 +3687,7 @@ impl Lbank {
         let fee: Option<String> = self.safe_string_k_opt(&paramsWithdrawTag, "fee", &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::Str("fee".into()), &[]);
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
-        self.check_required_argument(Value::Str("withdraw".into()), &Value::from(&fee), Value::Str("fee".into()), &[]);
+        self.check_required_argument(Value::Str("withdraw".into()), &Value::from(fee.as_deref()), Value::Str("fee".into()), &[]);
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3984,7 +3984,7 @@ impl Lbank {
         //        "code": 0
         //    }
         //
-        let result: crate::value::List = self.safe_list_k_t(&response, "data");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3993,9 +3993,9 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (result.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "coin", &[]).as_str(), None);
-            let networkList: crate::value::List = self.safe_list_k_t(&entry, "networkList");
+            let networkList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "networkList"));
             if (code.is_some()) {
                 withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4006,7 +4006,7 @@ impl Lbank {
                                 let mut j: i64 = 0;
                 let mut __for_first_6: bool = true;
                 while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < (networkList.len() as i64) } {
-                let networkEntry: crate::value::Dict = self.safe_dict_t(&networkList, Value::Int(j));
+                let networkEntry: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or_default();
                 let fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
                 if (fee.is_some()) {
                     let networkCode: Option<String> = self.network_id_to_code(self.safe_string_k(&networkEntry, "name", &[]).as_str(), code.as_deref());
@@ -4086,7 +4086,7 @@ impl Lbank {
         //        "ts": "1663364435973"
         //    }
         //
-        let result: crate::value::List = self.safe_list_k_t(&response, "data");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -4095,7 +4095,7 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (result.len() as i64) } {
-            let item: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let item: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let canWithdraw: Option<String> = self.safe_string_k_opt(&item, "canWithDraw", &[]);
             if (canWithdraw.as_deref() == Some("true")) {
                 let codeInner: Option<String> = self.safe_currency_code(self.safe_string_k(&item, "assetCode", &[]).as_str(), None);

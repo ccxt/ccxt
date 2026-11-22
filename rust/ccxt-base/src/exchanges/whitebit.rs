@@ -144,7 +144,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         // last price is provided as "last" or "last_price"
         let last: Option<String> = self.safe_string_n_opt(&ticker, Value::from(vec![Value::Str("last".into()), Value::Str("last_price".into()), Value::Str("lastPrice".into())]), &[]);
         // if "close" is provided, use it, otherwise use <last>
-        let close: Option<String> = self.safe_string_k_opt(&ticker, "close", &[&last]);
+        let close: Option<String> = self.safe_string_k_opt(&ticker, "close", &[&Value::from(last.as_deref())]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -726,13 +726,13 @@ impl crate::exchange::DerivedExchange for Whitebit {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (allNetworks.len() as i64) } {
             let networkId: String = self.safe_string(&allNetworks, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let networkCode: Option<String> = self.network_id_to_code(Some(networkId.as_str()), code.as_deref());
-            let networkDepositLimits: crate::value::Dict = self.safe_dict_t(&depositLimits, Value::from(networkId.clone()));
-            let networkWithdrawLimits: crate::value::Dict = self.safe_dict_t(&withdrawLimits, Value::from(networkId.clone()));
+            let networkCode: Option<String> = self.network_id_to_code(Value::from(Value::from(networkId.as_str())).as_text().as_deref(), code.as_deref());
+            let networkDepositLimits: crate::value::Dict = self.safe_dict_t(&depositLimits, Value::from(networkId.as_str()));
+            let networkWithdrawLimits: crate::value::Dict = self.safe_dict_t(&withdrawLimits, Value::from(networkId.as_str()));
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::from(networkId.clone()));
+        m.insert("id".to_string(), Value::from(networkId.as_str()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.in_array(&networkId, Value::from(&depositsNetworks))));
@@ -855,6 +855,13 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "ticker", &[]);
         let status: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
         let method: Option<String> = self.safe_string_k_opt(&transaction, "method", &[]);
+        let mut addressFrom: Option<String> = None;
+        let mut addressTo: Option<String> = None;
+        if (method.as_deref() == Some("1")) {
+            addressFrom = address.clone();
+        }  else if (method.as_deref() == Some("2")) {
+            addressTo = address.clone();
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&transaction, "uniqueId", &[]));
@@ -862,9 +869,9 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "network", &[]).as_str(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).as_deref())));
-        m.insert("addressFrom".to_string(), (if (method.as_deref() == Some("1")) { address.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), (if (method.as_deref() == Some("2")) { address.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("type".to_string(), (if (method.as_deref() == Some("1")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
@@ -1042,8 +1049,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
     m
 }), &[&requestParams]);
             privateBody = self.json(__ws_arg_43).as_str().map(str::to_owned);
-            let payload: String = self.string_to_base64(privateBody.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let signature: String = self.hmac(self.encode(Value::from(payload.clone())), &secret, "sha512", &[]);
+            let payload: String = self.string_to_base64(Value::from(privateBody.as_deref()), &[]);
+            let signature: String = self.hmac(self.encode(Value::from(payload.as_str())), &secret, "sha512", &[]);
             privateHeaders = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -3724,7 +3731,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let status: Option<String> = self.safe_string_opt(&response, Value::Int(0), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if (status.as_deref() == Some("pong")) { Value::Str("ok".into()) } else { status.map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("status".to_string(), (if (status.as_deref() == Some("pong")) { Value::Str("ok".into()) } else { Value::from(status.as_deref()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -3884,7 +3891,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 request.insert("clientOrderId".into(), Value::Str(format!("{}{}", brokerId.as_deref().unwrap_or("null"), self.uuid16(&[])).into()));
             }
         }  else {
-            request.insert("clientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clientOrderId".into(), Value::from(clientOrderId.as_deref()));
         }
         let paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit_t(&paramsCost, &["clientOrderId"], &[]) } else { paramsCost });
         let marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);

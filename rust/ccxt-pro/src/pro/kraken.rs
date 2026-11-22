@@ -75,7 +75,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "order_request_ws" => { let __t = self.order_request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &mut { let __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>());
-                    Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                    Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -138,7 +138,7 @@ impl Kraken {
             "order_request_ws" => { let __t = self.order_request_ws(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null),
                 &mut { let __m = args.get(4).copied().cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(5).copied().cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..]);
-                Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
@@ -311,7 +311,7 @@ impl Kraken {
     Value::Null
 }
 
-    pub fn order_request_ws(&self, mut method: Value, mut symbol: Value, mut type_var: Value, mut request: Value, orderParams: &mut indexmap::IndexMap<String, Value>, mut amount: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub fn order_request_ws(&self, mut method: Value, mut symbol: Value, mut type_var: Value, mut request: Value, orderParams: &mut indexmap::IndexMap<String, Value>, mut amount: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -414,14 +414,14 @@ impl Kraken {
                 }
             }  else if isStopLossPriceOrder || isTakeProfitPriceOrder {
                 if isStopLossPriceOrder {
-                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), &stopLossPrice))));
+                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), Value::from(stopLossPrice.as_deref())))));
                     if isLimitOrder {
                         orderParams.insert("order_type".into(), Value::Str("stop-loss-limit".into()));
                     }  else {
                         orderParams.insert("order_type".into(), Value::Str("stop-loss".into()));
                     }
                 }  else {
-                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), &takeProfitPrice))));
+                    triggers.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), Value::from(takeProfitPrice.as_deref())))));
                     if isLimitOrder {
                         orderParams.insert("order_type".into(), Value::Str("take-profit-limit".into()));
                     }  else {
@@ -429,7 +429,7 @@ impl Kraken {
                     }
                 }
             }  else if isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
-                triggers.insert("price_type".into(), Value::from(priceType.clone()));
+                triggers.insert("price_type".into(), Value::from(priceType.as_str()));
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     orderParams.insert("order_type".into(), Value::Str("trailing-stop".into()));
                     if isTrailingAmountOrder {
@@ -439,7 +439,7 @@ impl Kraken {
                     }
                 }  else {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    orderParams.insert("limit_price_type".into(), Value::from(priceType.clone()));
+                    orderParams.insert("limit_price_type".into(), Value::from(priceType.as_str()));
                     orderParams.insert("order_type".into(), Value::Str("trailing-stop-limit".into()));
                     if isTrailingLimitAmountOrder {
                         triggers.insert("price".into(), self.parse_to_numeric(&trailingLimitAmountString));
@@ -466,7 +466,7 @@ impl Kraken {
                     orderParams.insert("trigger_price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.as_str(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null)))));
                 }
             }  else if isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder {
-                orderParams.insert("trigger_price_type".into(), Value::from(priceType.clone()));
+                orderParams.insert("trigger_price_type".into(), Value::from(priceType.as_str()));
                 if !isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder) {
                     if isTrailingAmountOrder {
                         orderParams.insert("trigger_price".into(), self.parse_to_numeric(trailingAmountString.map(Value::from).unwrap_or(Value::Null)));
@@ -494,7 +494,7 @@ impl Kraken {
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsPreset, &["clientOrderId", "cost", "offset", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"], &[]);
         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("params".into(), Value::Map(orderParams.clone())); }
-        return (request, paramsOmitted);
+        return (request.into_dict(), paramsOmitted);
 }
 
 /*
@@ -547,7 +547,7 @@ impl Kraken {
             m
         });
         let requestValueparamsValueVariable = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &params]);
-        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0.into_dict();
+        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let __ws_arg_0 = self.extend(requestValue, &[&paramsValue]);
         return self.watch(url.as_deref(), (&messageHash).as_deref(), __ws_arg_0, (&messageHash).as_deref(), Value::Null).await;
@@ -638,7 +638,7 @@ impl Kraken {
             m
         });
         let requestValueparamsValueVariable = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &params]);
-        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0.into_dict();
+        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let __ws_arg_1 = self.extend(requestValue, &[&paramsValue]);
         return self.watch(url.as_deref(), (&messageHash).as_deref(), __ws_arg_1, (&messageHash).as_deref(), Value::Null).await;
@@ -853,7 +853,7 @@ impl Kraken {
         let data: crate::value::List = message.key_list("data");
         let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(&data, Value::Int(0));
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
-        let messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[&Value::Null, &symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[&Value::Null, &Value::from(symbol.as_deref())]);
         let vwap: Option<String> = self.safe_string_k_opt(&ticker, "vwap", &[]);
         let mut quoteVolume: Option<String> = None;
         let baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "volume", &[]);
@@ -863,7 +863,7 @@ impl Kraken {
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         let result: Value = Value::Dict(self.safe_ticker(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
                 m.insert("high".to_string(), self.safe_string_k(&ticker, "high", &[]));
@@ -874,7 +874,7 @@ impl Kraken {
                 m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "ask_qty", &[]));
                 m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
                 m.insert("open".to_string(), Value::Null);
-                m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("close".to_string(), Value::from(last.as_deref()));
                 m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
                 m.insert("previousClose".to_string(), Value::Null);
                 m.insert("change".to_string(), self.safe_string_k(&ticker, "change", &[]));
@@ -1584,7 +1584,7 @@ impl Kraken {
             }
             let datetime: Option<String> = self.safe_string_k_opt(&first, "timestamp", &[]);
             orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
-            orderbook.set_book_meta("timestamp", Value::from(self.parse8601(&datetime)));
+            orderbook.set_book_meta("timestamp", Value::from(self.parse8601(Value::from(datetime.as_deref()))));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
             // snapshot
@@ -1721,7 +1721,7 @@ impl Kraken {
         let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let authenticated: String = "authenticated".to_string();
-        let mut subscription: Value = self.safe_value(&__ch.subscriptions, Value::from(authenticated.clone()), &[]);
+        let mut subscription: Value = self.safe_value(&__ch.subscriptions, Value::from(authenticated.as_str()), &[]);
         let now: i64 = self.seconds();
         let start: Option<i64> = self.safe_integer_k(&subscription, "start", &[]).as_i64();
         let expires: i64 = self.safe_integer_k(&subscription, "expires", &[Value::Int(-1)]).as_i64().unwrap_or(-1);
@@ -1742,7 +1742,7 @@ impl Kraken {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
-                subscription = self.safe_dict(&__ch.subscriptions, Value::from(authenticated.clone()), &[]);
+                subscription = self.safe_dict(&__ch.subscriptions, Value::from(authenticated.as_str()), &[]);
                 return self.safe_string_k(&subscription, "token", &[]);
             }
             let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
@@ -1961,8 +1961,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         let mut fee: Option<crate::value::Dict> = None;
-        if (matches!(&trade, Value::Dict(__d) if __d.contains_key("fees"))) {
-            let fees: crate::value::List = self.safe_list_k_t(&trade, "fees");
+        let fees: Option<crate::value::List> = self.safe_list_k_o(&trade, "fees");
+        if (fees.is_some()) {
             let firstFee: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(0));
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
@@ -1982,7 +1982,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "exec_id", &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "order_id", &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(&trade, "order_type", &[]));
@@ -2172,7 +2172,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("id".to_string(), self.safe_string_k(&order, "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "order_userref", &[]));
         m.insert("info".to_string(), order.clone());
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), self.parent.parse_order_status(self.safe_string_k(&order, "order_status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -2182,7 +2182,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
         m.insert("price".to_string(), self.safe_string_k(&order, "limit_price", &[]));
-        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(stopPrice.as_deref()));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_string_k(&order, "cum_cost", &[]));
         m.insert("amount".to_string(), self.safe_string2(&order, Value::Str("order_qty".into()), Value::Str("cum_qty".into()), &[]));
@@ -2416,19 +2416,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let channel: Option<String> = self.safe_string_k_opt(&result, "channel", &[]);
         let symbol: Option<String> = self.safe_symbol(self.safe_string_k(&result, "symbol", &[]).as_str(), None, &[]).as_str().map(str::to_owned);
         if (channel.as_deref() == Some("trade")) {
-            let subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[&Value::Null, &symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null);
+            let subMessageHash: Value = self.get_message_hash(Value::Str("trade".into()), &[&Value::Null, &Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null);
             self.clean_cache(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("trades".into()));
-                    m.insert("symbols".to_string(), Value::from(vec![symbol.clone().map(Value::from).unwrap_or(Value::Null)]));
+                    m.insert("symbols".to_string(), Value::from(vec![Value::from(symbol.as_deref())]));
                 m
             }));
             self.clean_unsubscription(client, subMessageHash.clone(), Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         }  else if (channel.as_deref() == Some("ohlc")) {
             let interval: Option<i64> = self.safe_integer_k(&result, "interval", &[]).as_i64();
             let timeframe: Option<String> = self.find_timeframe(Value::from(interval), &[]);
-            let subMessageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[&Value::Null, &symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[&Value::from(self.number_to_string(Value::from(interval))), &symbol.clone().map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+            let subMessageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[&Value::Null, &Value::from(symbol.as_deref())]);
+            let unsubMessageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("ohlcv".into()), &[&Value::from(self.number_to_string(Value::from(interval))), &Value::from(symbol.as_deref())]).map(Value::from).unwrap_or(Value::Null));
             self.clean_cache(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("ohlcv".into()));
@@ -2466,10 +2466,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (errorMessage.is_some()) {
             let requestId: Option<String> = self.safe_string2_opt(message, Value::Str("reqid".into()), Value::Str("req_id".into()), &[]);
             let broad: Value = self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null);
-            let broadKey: Value = self.find_broadly_matched_key(broad.clone(), errorMessage.clone().map(Value::from).unwrap_or(Value::Null));
+            let broadKey: Value = self.find_broadly_matched_key(broad.clone(), Value::from(errorMessage.as_deref()));
             let mut exception: Value = Value::Null;
             if (broadKey == Value::Null) {
-                exception = Value::from(crate::exchange_errors::exchange_error(errorMessage.clone().map(Value::from).unwrap_or(Value::Null))); // c# requirement to convert the errorMessage to string
+                exception = Value::from(crate::exchange_errors::exchange_error(Value::from(errorMessage.as_deref()))); // c# requirement to convert the errorMessage to string
             }  else {
                 exception = Value::from(crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(errorMessage.map(Value::from).unwrap_or(Value::Null)))));
             }

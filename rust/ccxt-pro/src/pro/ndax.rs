@@ -614,14 +614,14 @@ impl Ndax {
             let mut m = indexmap::IndexMap::new();
                 m.insert("m".to_string(), Value::Int(0));
                 m.insert("i".to_string(), Value::from(requestId));
-                m.insert("n".to_string(), Value::from(name.clone()));
+                m.insert("n".to_string(), Value::from(name.as_str()));
                 m.insert("o".to_string(), json_stringify(&Value::Map(payload)));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(requestId));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));

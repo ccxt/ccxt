@@ -1097,7 +1097,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 continue;
             }
             let mut wordHasLetters: bool = false;
-            let chars: Vec<Value> = self.string_to_chars_array(word.clone().map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+            let chars: Vec<Value> = self.string_to_chars_array(Value::from(word.as_deref())).as_array().cloned().unwrap_or_default();
             {
                                 let mut ci: i64 = 0;
                 let mut __for_first_26: bool = true;
@@ -2271,7 +2271,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let fallback: Option<String> = self.safe_string2_opt(&orderbook, Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
         let identity: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("outcome".to_string(), (if (outcomeObj == Value::Null) { fallback.clone().map(Value::from).unwrap_or(Value::Null) } else { self.safe_string_k(&outcomeObj, "outcome", &[fallback.clone().map(Value::from).unwrap_or(Value::Null)]) }));
+                m.insert("outcome".to_string(), (if (outcomeObj == Value::Null) { Value::from(fallback.as_deref()) } else { self.safe_string_k(&outcomeObj, "outcome", &[Value::from(fallback.as_deref())]) }));
                 m.insert("outcomeId".to_string(), (if (outcomeObj == Value::Null) { self.safe_string_k(&orderbook, "outcomeId", &[]) } else { self.safe_string_k(&outcomeObj, "outcomeId", &[]) }));
                 m.insert("market".to_string(), (if (outcomeObj == Value::Null) { self.safe_string_k(&orderbook, "market", &[]) } else { self.safe_string_k(outcomeObj, "market", &[]) }));
             m

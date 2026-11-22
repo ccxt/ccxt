@@ -423,12 +423,12 @@ impl crate::exchange::DerivedExchange for Modetrade {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "holding");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "holding"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -594,7 +594,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -644,8 +644,8 @@ impl crate::exchange::DerivedExchange for Modetrade {
             }
             resultingNetworks.insert(networkId.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::from(networkId.clone()));
-        m.insert("network".to_string(), Value::from(networkId));
+        m.insert("id".to_string(), Value::from(networkId.as_str()));
+        m.insert("network".to_string(), Value::from(networkId.as_str()));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -674,7 +674,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), currencyId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(currencyId.as_deref()));
         m.insert("name".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), self.parse_number(minPrecision.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -764,7 +764,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -893,7 +893,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
 })]);
                             std::sync::Arc::make_mut(&mut taggedOrders).push(self.extend(__ws_arg_36, &[Value::Map({
                                 let mut m = indexmap::IndexMap::new();
-                                    m.insert("order_tag".to_string(), Value::from(brokerId.clone()));
+                                    m.insert("order_tag".to_string(), Value::from(brokerId.as_str()));
                                 m
                             })]));
                         }
@@ -944,7 +944,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
             signedHeaders.insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(Value::from(signature), &[]), &[]));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -974,8 +974,8 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         if !success {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3286,7 +3286,7 @@ impl Modetrade {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), orderSide.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -3359,7 +3359,7 @@ impl Modetrade {
                 let stopLossPrice: Value = self.safe_number2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("price".into()), &[stopLoss]);
                 let stopLossOrder: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), Value::from(closeSide.clone()));
+                        m.insert("side".to_string(), Value::from(closeSide.as_str()));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
                         m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol, stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
@@ -3581,7 +3581,7 @@ impl Modetrade {
         });
         let triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
         }
         let childOrders: Option<crate::value::List> = self.safe_list_k_o(&params, "childOrders");
         let isConditional: bool = (triggerPrice.is_some()) || (childOrders.is_some());
@@ -3905,7 +3905,7 @@ impl Modetrade {
         let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
-                request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
+                request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
                 let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
                 response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_21]).await;
             }  else {
@@ -4679,7 +4679,7 @@ impl Modetrade {
         let coinNetwork: crate::value::Dict = (if (chainId.is_none()) { Value::Map({
     let m = indexmap::IndexMap::new();
     m
-}) } else { self.safe_dict(&currencyNetworks, chainId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+}) } else { self.safe_dict(&currencyNetworks, Value::from(chainId.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]) }).into_dict();
@@ -4691,9 +4691,9 @@ impl Modetrade {
         let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
         let domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("chainId".to_string(), chainId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("chainId".to_string(), Value::from(chainId.as_deref()));
                 m.insert("name".to_string(), Value::Str("Orderly".into()));
-                m.insert("verifyingContract".to_string(), verifyingContractAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("verifyingContract".to_string(), Value::from(verifyingContractAddress.as_deref()));
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });

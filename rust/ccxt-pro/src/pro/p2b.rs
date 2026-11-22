@@ -518,7 +518,7 @@ impl P2b {
         let marketId: Option<String> = self.safe_string_opt(&data, Value::Int(7), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&self.options, "timeframes");
-        let timeframe: Option<String> = self.find_timeframe(channel.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
+        let timeframe: Option<String> = self.find_timeframe(Value::from(channel.as_deref()), &[Value::Dict(timeframes)]);
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         let parsed: crate::value::List = self.parse_ohlcv(data.map_or(Value::Null, Value::Arr), Some(&market)).into_list();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
@@ -636,7 +636,7 @@ impl P2b {
             let lastPrice: Option<String> = self.safe_string_opt(&data, Value::Int(1), &[]);
             ticker = Value::Dict(self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("last".to_string(), lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("last".to_string(), Value::from(lastPrice.as_deref()));
                     m.insert("close".to_string(), lastPrice.map(Value::from).unwrap_or(Value::Null));
                     m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&market, "symbol"));
                 m
@@ -686,7 +686,7 @@ impl P2b {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook::", symbol);
-        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         if (orderbook.is_none()) {

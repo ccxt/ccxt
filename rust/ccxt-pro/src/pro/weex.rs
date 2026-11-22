@@ -397,7 +397,7 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("User-Agent".to_string(), Value::from(userAgent.clone()));
+        m.insert("User-Agent".to_string(), Value::from(userAgent.as_str()));
         m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
         m.insert("ACCESS-SIGN".to_string(), Value::from(signature));
         m.insert("ACCESS-PASSPHRASE".to_string(), self.password.clone());
@@ -692,7 +692,7 @@ impl Weex {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "A", &[]));
         m.insert("vwap".to_string(), self.safe_string_k(&ticker, "w", &[]));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "o", &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(&ticker, "x", &[]));
         m.insert("change".to_string(), self.safe_string_k(&ticker, "p", &[]));
@@ -1077,7 +1077,7 @@ impl Weex {
             }
             symbolString = Value::from((market).symbol.as_str()).as_str().unwrap_or("").to_string();
             let unifiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, &unifiedTimeframe, &[&unifiedTimeframe]);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unifiedTimeframe.as_str()), &[&Value::from(unifiedTimeframe.as_str())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType.as_deref().unwrap_or("null"));
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unifiedTimeframe);
@@ -1178,7 +1178,7 @@ impl Weex {
             }
             symbolString = Value::from((market).symbol.as_str()).as_str().unwrap_or("").to_string();
             let unifiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1".into())]).as_str().unwrap_or("1").to_string();
-            let interval: Option<String> = self.safe_string_opt(&self.timeframes, &unifiedTimeframe, &[&unifiedTimeframe]);
+            let interval: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unifiedTimeframe.as_str()), &[&Value::from(unifiedTimeframe.as_str())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketId, "@kline_").into()), interval.as_deref().unwrap_or("null")).into()), "_").into()), priceType.as_deref().unwrap_or("null"));
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unifiedTimeframe);
@@ -1482,7 +1482,7 @@ impl Weex {
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook::", symbol);
         if !(self.orderbooks.has(&symbol)) {
-            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
             if (limit.is_some()) {
                 { let __cv = self.order_book(&[Value::Map({
@@ -1784,13 +1784,13 @@ impl Weex {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("myTrades".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), Value::Dict(paramsMarketType), Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.as_str()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), Value::Dict(paramsMarketType), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1910,7 +1910,7 @@ impl Weex {
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.clone())]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.as_str())]);
         let side: Option<String> = self.safe_string_lower_k_opt(&trade, "orderSide", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         let commission: Option<String> = self.safe_string_k_opt(&trade, "fillFee", &[]);
@@ -2046,13 +2046,13 @@ impl Weex {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("orders".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), Value::Dict(paramsMarketType), Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.as_str()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(isContract), Value::Dict(paramsMarketType), Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -2241,7 +2241,7 @@ impl Weex {
         if (positionSide.is_some()) {
             marketType = "swap".to_string();
         }
-        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.clone())]);
+        let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.as_str())]);
         let marketValue: &crate::types::Market = &marketResolved;
         let side: Option<String> = self.safe_string_lower_k_opt(&order, "orderSide", &[]);
         let mut fee: Option<crate::value::Dict> = None;
@@ -2615,13 +2615,13 @@ impl Weex {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unSubHash.as_str())]));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
                 m.insert("topic".to_string(), Value::Str("positions".into()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
         });
-        return self.subscribe_private(Value::from(unSubHash.clone()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(true), params, Value::Map(subscription)]).await;
+        return self.subscribe_private(Value::from(unSubHash.as_str()), unSubHash.clone().as_str(), Some(channel.as_str()), &[Value::Bool(true), params, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -2787,8 +2787,8 @@ impl Weex {
             let msg: String = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.clone()), &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(msg), &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_str()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(msg), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);

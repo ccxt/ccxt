@@ -255,7 +255,7 @@ impl Extended {
         let type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => self.safe_string_k(&data, "t", &[]) }).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
             let defaultLimit: i64 = self.safe_integer_k(&self.options, "watchOrderBookLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+            let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
             let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[Value::from(defaultLimit)]).as_i64();
             { let __cv = self.order_book(&[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -390,7 +390,7 @@ impl Extended {
         }
         let mut orders: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbolResolved.as_deref()));
         m.insert("limit".to_string(), Value::from(limit));
     m
 })]).await;
@@ -540,7 +540,7 @@ impl Extended {
         }
         let mut trades: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbolResolved.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbolResolved.as_deref()));
         m.insert("limit".to_string(), Value::from(limit));
     m
 })]).await;
@@ -867,7 +867,7 @@ impl Extended {
         return self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbolValue));
-        m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+        m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
     m
 })).await;
         Value::Null
@@ -966,7 +966,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("markPrice".into()));
         m.insert("symbol".to_string(), Value::from(symbolValue));
-        m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+        m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
     m
 })).await;
         Value::Null
@@ -1047,7 +1047,7 @@ impl Extended {
         }
         let mut trades: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("limit".to_string(), Value::from(limit));
             m
         })).await;
@@ -1090,7 +1090,7 @@ impl Extended {
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "trades:", symbol);
-        let mut subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+        let mut subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let defaultLimit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1169,15 +1169,15 @@ impl Extended {
 }), &[&paramsOmitted]);
         let query: String = self.urlencode(__ws_arg_2, &[]);
         let url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]), Value::Str("/candles/".into())).into()),
-            Value::from((market).id.as_deref().unwrap_or(""))).into()), "/").into()), candleType.as_deref().unwrap_or("null")).into()), "?").into()), query);
+            Value::from((market).id.as_deref().unwrap_or(""))).into()), "/").into()), Value::from(candleType.as_deref())).into()), "?").into()), query);
         let mut ohlcv: Value = self.watch(url.as_str(), &messageHash[..], Value::Null, &messageHash[..], Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("ohlcv".into()));
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("timeframe".to_string(), timeframe);
                 m.insert("candleType".to_string(), candleType.map(Value::from).unwrap_or(Value::Null));
                 m.insert("limit".to_string(), Value::from(limit));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
             m
         })).await;
         let mut limitResolved: Option<i64> = limit;
@@ -1276,9 +1276,9 @@ impl Extended {
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null

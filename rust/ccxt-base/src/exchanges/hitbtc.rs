@@ -87,7 +87,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -288,7 +288,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
         let average: Option<String> = self.safe_string_k_opt(&order, "price_average", &[]);
         let created: Option<String> = self.safe_string_k_opt(&order, "created_at", &[]);
-        let timestamp: Option<i64> = self.parse8601(&created);
+        let timestamp: Option<i64> = self.parse8601(Value::from(created.as_deref()));
         let updated: Option<String> = self.safe_string_k_opt(&order, "updated_at", &[]);
         let mut lastTradeTimestamp: Option<i64> = None;
         if (updated != created) {
@@ -305,7 +305,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(id.as_deref()));
         m.insert("clientOrderId".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -376,7 +376,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let marginMode: Option<String> = self.safe_string_k_opt(&position, "type", &[]);
         let leverage: Option<f64> = self.safe_number_k(&position, "leverage", &[]).as_f64();
         let datetime: Option<String> = self.safe_string_k_opt(&position, "updated_at", &[]);
-        let positions: crate::value::List = self.safe_list_k_t(&position, "positions");
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&position, "positions"));
         let mut liquidationPrice: Option<f64> = None;
         let mut entryPrice: Option<f64> = None;
         let mut contracts: Option<f64> = None;
@@ -384,19 +384,19 @@ impl crate::exchange::DerivedExchange for Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (positions.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(i));
+            let entry: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or_default();
             liquidationPrice = self.safe_number_k(&entry, "price_liquidation", &[]).as_f64();
             entryPrice = self.safe_number_k(&entry, "price_entry", &[]).as_f64();
             contracts = self.safe_number_k(&entry, "quantity", &[]).as_f64();
         }
         }
-        let currencies: crate::value::List = self.safe_list_k_t(&position, "currencies");
+        let currencies: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&position, "currencies"));
         let mut collateral: Option<f64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (currencies.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(i));
+            let entry: crate::value::Dict = currencies.get(i as usize).cloned().unwrap_or_default();
             collateral = self.safe_number_k(&entry, "margin_balance", &[]).as_f64();
         }
         }
@@ -420,7 +420,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("side".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
@@ -464,10 +464,10 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("indexPrice".to_string(), self.safe_number_k(&contract, "index_price", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(&contract, "interest_rate", &[]));
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("fundingRate".to_string(), self.safe_number_k(&contract, "funding_rate", &[]));
-        m.insert("fundingTimestamp".to_string(), Value::from(self.parse8601(&fundingDateTime)));
+        m.insert("fundingTimestamp".to_string(), Value::from(self.parse8601(Value::from(fundingDateTime.as_deref()))));
         m.insert("fundingDatetime".to_string(), fundingDateTime.map(Value::from).unwrap_or(Value::Null));
         m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "indicative_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
@@ -518,7 +518,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
             let networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Option<String> = None;
             if (networkCodeUpper.is_some()) {
-                networkCode = self.safe_string_opt(&self.networkAliases, &networkCodeUpper, &[&networkCodeUpper]);
+                networkCode = self.safe_string_opt(&self.networkAliases, Value::from(networkCodeUpper.as_deref()), &[&networkCodeUpper]);
             }  else {
                 networkCode = code.clone(); // as hitbtc is white label, ensure we safeguard from possible bugs
             }
@@ -527,7 +527,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&rawNetwork));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
+        m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "payout_fee", &[]));
         m.insert("deposit".to_string(), self.safe_bool_k(&rawNetwork, "payin_enabled", &[]));
@@ -600,7 +600,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
         m.insert("openInterestAmount".to_string(), Value::Null);
         m.insert("openInterestValue".to_string(), Value::from(value));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), interest);
     m
@@ -643,7 +643,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_string_k(&currencyInfo, "code", &[]));
         m.insert("status".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -712,7 +712,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         });
         let feeCost: Option<f64> = self.safe_number_k(&native, "fee", &[]).as_f64();
         if (feeCost.is_some()) {
-            fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
+            fee.insert("currency".into(), Value::from(code.as_deref()));
             fee.insert("cost".into(), Value::from(feeCost));
         }
         return Value::Map({
@@ -796,7 +796,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         //         ]
         //    }
         //
-        let networks: crate::value::List = self.safe_list_k_t(&fee, "networks");
+        let networks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fee, "networks"));
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         let mut networkFees: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -806,14 +806,14 @@ impl crate::exchange::DerivedExchange for Hitbtc {
                         let mut j: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { j += 1; } __for_first_15 = false; j < (networks.len() as i64) } {
-            let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
+            let networkEntry: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "network", &[]);
             let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
             let rawNetworkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let networkCodeUpper: Option<String> = (if (rawNetworkCode.is_some()) { rawNetworkCode.as_deref().map(str::to_uppercase) } else { None });
             let mut networkCode: Option<String> = None;
             if (networkCodeUpper.is_some()) {
-                networkCode = self.safe_string_opt(&self.networkAliases, &networkCodeUpper, &[&networkCodeUpper]);
+                networkCode = self.safe_string_opt(&self.networkAliases, Value::from(networkCodeUpper.as_deref()), &[&networkCodeUpper]);
             }
             let withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "payout_fee", &[]).as_f64();
             let isDefault: bool = self.safe_bool_k_opt(&networkEntry, "default", &[Value::Bool(false)]).unwrap_or(false);
@@ -921,8 +921,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         if (errorCode.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let message: Option<String> = self.safe_string2_opt(&error, Value::Str("message".into()), Value::Str("description".into()), &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2286,8 +2286,8 @@ impl Hitbtc {
             }
             let lotString: Option<String> = self.safe_string_k_opt(&market, "quantity_increment", &[]);
             let stepString: Option<String> = self.safe_string_k_opt(&market, "tick_size", &[]);
-            let lot: Option<f64> = self.parse_number(&lotString, &[]).as_f64();
-            let step: Option<f64> = self.parse_number(&stepString, &[]).as_f64();
+            let lot: Option<f64> = self.parse_number(Value::from(lotString.as_deref()), &[]).as_f64();
+            let step: Option<f64> = self.parse_number(Value::from(stepString.as_deref()), &[]).as_f64();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::from(id.as_deref()));
@@ -2459,7 +2459,7 @@ impl Hitbtc {
             m
         });
         let networkInput: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]);
-        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, &networkInput, &[&networkInput]) } else { None });
+        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, Value::from(networkInput.as_deref()), &[&networkInput]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
@@ -2520,7 +2520,7 @@ impl Hitbtc {
             m
         });
         let networkInput: Option<String> = self.safe_string_upper_k_opt(&params, "network", &[]);
-        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, &networkInput, &[&networkInput]) } else { None });
+        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, Value::from(networkInput.as_deref()), &[&networkInput]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
@@ -2605,7 +2605,7 @@ impl Hitbtc {
         let type_var: String = self.safe_string_lower_k(&params, "type", &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["type"], &[]);
         let accountsByType: crate::value::Dict = self.safe_dict_k_t(&self.options, "accountsByType");
-        let account: Option<String> = (if (false) { None } else { self.safe_string_opt(&accountsByType, &type_var, &[&type_var]) });
+        let account: Option<String> = (if (false) { None } else { self.safe_string_opt(&accountsByType, Value::from(type_var.as_str()), &[&type_var]) });
         let mut response: Option<crate::value::List> = None;
         if (account.as_deref() == Some("wallet")) {
             response = self.private_get_wallet_balance(&[&Value::from(&paramsOmitted)]).await;
@@ -4030,7 +4030,8 @@ impl Hitbtc {
         });
         if (reduceOnly.is_some()) {
             if (resolvedMarketType.as_deref() != Some("swap")) && (resolvedMarketType.as_deref() != Some("margin")) {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support reduce_only for ").into()), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), " orders, reduce_only orders are supported for swap and margin markets only")));
+                let marketTypeString: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support reduce_only for ").into()), marketTypeString).into()), " orders, reduce_only orders are supported for swap and margin markets only")));
             }
         }
         if (reduceOnly == Some(true)) {
@@ -4040,7 +4041,7 @@ impl Hitbtc {
             request.insert("post_only".into(), Value::Bool(true));
         }
         if (timeInForce.is_some()) {
-            request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
         }
         if isLimit || (type_var == "stopLimit") || (type_var == "takeProfitLimit") {
             if (price.is_none()) {
@@ -4286,7 +4287,7 @@ impl Hitbtc {
         }
         let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
         let networkInput: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
-        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, &networkInput, &[&networkInput]) } else { None });
+        let network: Option<String> = (if (networkInput.is_some()) { self.safe_string_opt(&self.networkAliases, Value::from(networkInput.as_deref()), &[&networkInput]) } else { None });
         if (network.is_some()) && (code.as_str() == Some("USDT")) {
             let parsedNetwork: Option<String> = self.safe_string_opt(&networks, Value::from(network.as_deref()), &[]);
             if (parsedNetwork.is_some()) {
@@ -4384,7 +4385,7 @@ impl Hitbtc {
             if (marketId.is_none()) {
                 continue;
             }
-            let rawFundingRate: Option<crate::value::Dict> = self.safe_dict_o(&response, &marketId);
+            let rawFundingRate: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(marketId.as_deref()));
             let marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketInner), &[]).as_str().map(str::to_owned);
             let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &rawFundingRate, Some(&marketInner)).as_map().cloned().unwrap_or_default();
@@ -4488,7 +4489,7 @@ impl Hitbtc {
                         m.insert("info".to_string(), Value::Dict(entry));
                         m.insert("symbol".to_string(), symbolInner.map(Value::from).unwrap_or(Value::Null));
                         m.insert("fundingRate".to_string(), Value::from(fundingRate));
-                        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+                        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
                         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                     m
                 }));
@@ -4835,7 +4836,7 @@ impl Hitbtc {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("margin_balance".to_string(), amountValue.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("margin_balance".to_string(), Value::from(amountValue.as_deref()));
             m
         });
         if (leverage.is_some()) {

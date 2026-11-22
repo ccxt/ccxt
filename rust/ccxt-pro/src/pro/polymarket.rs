@@ -318,7 +318,7 @@ impl Polymarket {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook:", symbolResolved);
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("book::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("book::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(messageHash.as_str())]), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params]);
@@ -361,7 +361,7 @@ impl Polymarket {
                 m.insert("symbol".to_string(), Value::from(symbolResolved));
             m
         });
-        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
+        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
@@ -428,7 +428,7 @@ impl Polymarket {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "ticker:", symbolResolved);
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("tickers::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("tickers::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(messageHash.as_str())]), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params]);
@@ -470,7 +470,7 @@ impl Polymarket {
                 m.insert("symbol".to_string(), Value::from(symbolResolved));
             m
         });
-        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
+        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
@@ -696,7 +696,7 @@ impl Polymarket {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolResolved: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "trade:", symbolResolved);
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("trades::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str(format!("{}{}", Value::Str("trades::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into())]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(messageHash.as_str())]), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params]);
@@ -743,7 +743,7 @@ impl Polymarket {
                 m.insert("symbol".to_string(), Value::from(symbolResolved));
             m
         });
-        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
+        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
@@ -886,7 +886,7 @@ impl Polymarket {
         }
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", timeframe).into()), ":").into()), symbolResolved);
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("klines::".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "::").into()), interval.as_deref().unwrap_or("null"));
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(messageHash.clone())]), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(messageHash.as_str())]), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params]);
@@ -938,7 +938,7 @@ impl Polymarket {
                 m.insert("timeframe".to_string(), timeframe);
             m
         });
-        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
+        let request: crate::value::Dict = self.send_subscription("unsub", Value::from(vec![Value::from(channel)]), Value::from(vec![Value::from(messageHash.as_str())]), Value::from(vec![Value::from(subMessageHash)]), &[&Value::Map(context), &params]);
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         return self.watch(url.as_deref(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
@@ -1015,14 +1015,14 @@ impl Polymarket {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let id: i64 = self.request_id();
             let pending: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("method".to_string(), Value::Str("auth".into()));
-                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
-                    m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
+                    m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
                 m
             });
             client.add_subscription(&Value::Str(format!("{}{}", Value::Str("req:".into()), Value::Str(format!("{}", id).into())).into()), Value::Map(pending));
@@ -1086,7 +1086,7 @@ impl Polymarket {
             messageHash = format!("{}{}", "orders:", resolvedSymbol);
         }
         let subscribeHashes: Value = Value::from(vec![Value::Str("orders".into())]);
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str("orders".into())]), Value::from(vec![Value::from(messageHash.clone())]), subscribeHashes.clone(), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str("orders".into())]), Value::from(vec![Value::from(messageHash.as_str())]), subscribeHashes.clone(), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params, &subscribeHashes]);
@@ -1205,7 +1205,7 @@ impl Polymarket {
             messageHash = format!("{}{}", "myTrades:", resolvedSymbol);
         }
         let subscribeHashes: Value = Value::from(vec![Value::Str("fills".into())]);
-        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str("fills".into())]), Value::from(vec![Value::from(messageHash.clone())]), subscribeHashes.clone(), &[&Value::Map({
+        let request: crate::value::Dict = self.send_subscription("sub", Value::from(vec![Value::Str("fills".into())]), Value::from(vec![Value::from(messageHash.as_str())]), subscribeHashes.clone(), &[&Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &params, &subscribeHashes]);
@@ -1554,7 +1554,7 @@ impl Polymarket {
             // through its pending entry, anything else counts like a pong
             if (id.is_some()) {
                 let postKey: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
-                let postPending: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(postKey.clone()));
+                let postPending: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(postKey.as_str()));
                 if (postPending.is_some()) {
                     __ch.remove_subscription(postKey.as_str());
                     let postAction: Option<String> = self.safe_string_k_opt(&postPending, "method", &[]);
@@ -1586,7 +1586,7 @@ impl Polymarket {
             return;
         }
         let key: String = format!("{}{}", "req:", id.as_deref().unwrap_or("null"));
-        let pending: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(key.clone()));
+        let pending: Option<crate::value::Dict> = self.safe_dict_o(&__ch.subscriptions, Value::from(key.as_str()));
         if (pending.is_none()) {
             return;
         }

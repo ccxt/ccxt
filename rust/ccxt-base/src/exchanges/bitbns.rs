@@ -102,7 +102,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askVolume", &[]));
         m.insert("vwap".to_string(), self.safe_string_k(&ticker, "vwap", &[]));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(&ticker, "previousClose", &[]));
         m.insert("change".to_string(), self.safe_string_k(&ticker, "change", &[]));
@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(orderId.as_deref()));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -259,7 +259,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
@@ -372,7 +372,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -446,11 +446,11 @@ impl crate::exchange::DerivedExchange for Bitbns {
             let auth: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timeStamp_nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("body".to_string(), requestBody.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("body".to_string(), Value::from(requestBody.as_deref()));
                 m
             });
             let payload: String = self.string_to_base64(json_stringify(&Value::Map(auth)), &[]);
-            let signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(&self.secret), "sha512", &[]);
+            let signature: String = self.hmac(self.encode(Value::from(payload.as_str())), self.encode(&self.secret), "sha512", &[]);
             requestHeaders.insert("X-BITBNS-PAYLOAD".into(), Value::from(payload));
             requestHeaders.insert("X-BITBNS-SIGNATURE".into(), Value::from(signature));
             requestHeaders.insert("Content-Type".into(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -479,9 +479,9 @@ impl crate::exchange::DerivedExchange for Bitbns {
         let error: bool = (codeError.is_some()) && (codeError.as_deref() != Some("200")) && (codeError.as_deref() != Some("204"));
         if error || (message.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1002,7 +1002,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
         m.insert("1".to_string(), Value::Str("ok".into()));
     m
-}), statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.map(Value::from).unwrap_or(Value::Null)]));
+}), Value::from(statusRaw.as_deref()), &[statusRaw.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1885,7 +1885,7 @@ impl Bitbns {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let address: Option<String> = self.safe_string_k_opt(&data, "token", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&data, "tag", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));

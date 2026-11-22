@@ -934,7 +934,7 @@ impl Bullish {
         let tradingAccountId: Option<String> = self.safe_string_k_opt(&params, "tradingAccountId", &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (tradingAccountId.is_some()) { Value::Str("tradingAccountId".into()) } else { Value::Null }, &[]);
         if (tradingAccountId.is_some()) {
-            request.insert("tradingAccountId".into(), tradingAccountId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("tradingAccountId".into(), Value::from(tradingAccountId.as_deref()));
             messageHash.push_str(&format!("{}{}", "::", tradingAccountId.as_deref().unwrap_or("null")));
         }
         return self.watch_private(messageHash.as_str(), messageHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
@@ -1152,8 +1152,8 @@ impl Bullish {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);
             let errorCodeName: Option<String> = self.safe_string_k_opt(&data, "errorCodeName", &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCodeName, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCodeName, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);

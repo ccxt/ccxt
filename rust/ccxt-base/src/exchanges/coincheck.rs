@@ -82,7 +82,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -308,7 +308,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -320,7 +320,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -411,8 +411,8 @@ impl crate::exchange::DerivedExchange for Coincheck {
         if !success {
             let error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -967,14 +967,14 @@ impl Coincheck {
         //         ]
         //     }
         //
-        let exchangeStatuses: crate::value::List = self.safe_list_k_t(&response, "exchange_status");
+        let exchangeStatuses: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "exchange_status"));
         let mut status: String = "ok".to_string();
         let mut updated: Option<i64> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (exchangeStatuses.len() as i64) } {
-            let exchangeStatus: crate::value::Dict = self.safe_dict_t(&exchangeStatuses, Value::Int(i));
+            let exchangeStatus: crate::value::Dict = exchangeStatuses.get(i as usize).cloned().unwrap_or_default();
             let rawStatus: Option<String> = self.safe_string_k_opt(&exchangeStatus, "status", &[]);
             if (updated.is_none()) {
                 updated = self.safe_timestamp_k(&exchangeStatus, "timestamp", &[]).as_i64();

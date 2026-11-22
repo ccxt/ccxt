@@ -269,7 +269,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         //     }
         //
         let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
-        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { marketId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null })).as_str(), market, &[]);
+        let marketResolved: crate::types::Market = self.safe_market(((if (market.is_none()) { Value::from(marketId.as_deref()) } else { Value::Null })).as_str(), market, &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         let id: Option<String> = self.safe_string_k_opt(&order, "orderId", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&order, "createdAtTimestamp", &[]).as_i64();
@@ -582,7 +582,7 @@ impl crate::exchange::DerivedExchange for Bullish {
             spot = true;
             contract = false;
             margin = self.safe_bool_k(&market, "marginTradingEnabled", &[]);
-        }  else {
+        }  else if (settle.is_some()) {
             contractSize = self.safe_number_k(&market, "contractMultiplier", &[]).as_f64();
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             linear = Some(settle == quote);
@@ -601,7 +601,8 @@ impl crate::exchange::DerivedExchange for Bullish {
                     option = true;
                     optionType = self.safe_string_lower_k_opt(&market, "optionType", &[]);
                     strike = self.parse_to_numeric(self.safe_string_k(&market, "optionStrikePrice", &[]));
-                    symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", settle.as_deref().unwrap_or("null"), "-", dateYmd.map(Value::from).unwrap_or(Value::Null), "-", Value::from(self.number_to_string(&strike)), "-", self.safe_string(&idParts, Value::Int(4), &[]));
+                    let optionSide: String = self.safe_string(&idParts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", Value::from(base.as_deref()), "/", Value::from(quote.as_deref()), ":", Value::from(settle.as_deref()), "-", dateYmd.map(Value::from).unwrap_or(Value::Null), "-", Value::from(self.number_to_string(&strike)), "-", optionSide);
                 }
             }
         }
@@ -754,7 +755,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(network.as_deref(), code.as_deref())));
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
@@ -896,7 +897,7 @@ impl crate::exchange::DerivedExchange for Bullish {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), interest.clone());
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
-        m.insert("openInterestAmount".to_string(), openInterest.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("openInterestAmount".to_string(), Value::from(openInterest.as_deref()));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.safe_string_k(&interest, "createdAtTimestamp", &[]));
         m.insert("datetime".to_string(), self.safe_string_k(interest, "createdAtDatetime", &[]));
@@ -972,7 +973,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let feeCost: Option<f64> = self.safe_number_k(&transaction, "fee", &[]).as_f64();
         if (feeCost.is_some()) {
             fee.insert("cost".into(), Value::from(feeCost));
-            fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
+            fee.insert("currency".into(), Value::from(code.as_deref()));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -982,7 +983,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(network.as_deref(), code.as_deref())));
         m.insert("addressFrom".to_string(), sourceAddress.map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("type".to_string(), self.parse_transaction_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -1137,9 +1138,9 @@ impl crate::exchange::DerivedExchange for Bullish {
                 message = type_var.map(Value::from).unwrap_or(Value::Null);
             }
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2604,7 +2605,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
-                    m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+                    m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
                     m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m
             }));
@@ -3057,7 +3058,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if matches!(&isMarketOrder, Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " createOrder() does not support market trigger orders")));
             }
-            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
             orderType = "STOP_LIMIT".to_string();
         }
         let paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit_t(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce });
@@ -3961,7 +3962,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut token: Option<String> = self.safe_string_k_opt(&response, "token", &[]);
         { let __be_tmp = self.safe_string_k(&response, "authorizer", &[]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("authorizer".into(), __be_tmp); } }
-        self.token = token.clone().map(Value::from).unwrap_or(Value::Null);
+        self.token = Value::from(token.as_deref());
         { let __be_tmp = self.sum(&[Value::Int(self.milliseconds()), (match (&((match (&((match (&(Value::Int(1000)), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
             Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
             _ => Value::Null })), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]); { let __d = &mut self.options;

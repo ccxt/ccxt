@@ -1244,7 +1244,7 @@ impl Lighter {
                 while { if !__for_first_4 { j += 1; } __for_first_4 = false; j < tradesLength } {
                 let jReversed: i64 = (((tradesLength - 1)) - j);
                 let mut tradeRaw: crate::value::Dict = self.safe_dict_t(&trades, jReversed);
-                std::sync::Arc::make_mut(&mut tradeRaw).insert("accountIndex".into(), accountIndex.clone().map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut tradeRaw).insert("accountIndex".into(), Value::from(accountIndex.as_deref()));
                 let trade: crate::value::Dict = self.parse_ws_order_trade(&tradeRaw, Some(&market));
                 self.myTrades.append(Value::from(&trade));
                 let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
@@ -1297,7 +1297,7 @@ impl Lighter {
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Some((market).symbol.clone());
-            messageHash = self.get_message_hash("myTrades", &[&symbolResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
+            messageHash = self.get_message_hash("myTrades", &[&Value::from(symbolResolved.as_deref())]);
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2085,8 +2085,8 @@ impl Lighter {
                 let code: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
                 let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
          #[allow(unreachable_code)] { Value::Null }}));
@@ -2203,11 +2203,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let name: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[&Value::Str("".into())]);
         let channelId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         if (name.as_deref() == Some("order_book")) {
-            self.handle_order_book_un_subscription(client, channelId.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_order_book_un_subscription(client, Value::from(channelId.as_deref()));
         }  else if (name.as_deref() == Some("market_stats")) {
-            self.handle_ticker_un_subscription(client, channelId.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_ticker_un_subscription(client, Value::from(channelId.as_deref()));
         }  else if (name.as_deref() == Some("trade")) {
-            self.handle_trades_un_subscription(client, channelId.clone().map(Value::from).unwrap_or(Value::Null));
+            self.handle_trades_un_subscription(client, Value::from(channelId.as_deref()));
         }  else if (name.as_deref() == Some("account_all_trades")) {
             self.handle_my_trades_un_subscription(client);
         }  else if (name.as_deref() == Some("account_orders")) {
@@ -2243,7 +2243,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (subscriptionHashes.len() as i64) } {
                 let subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if (subscriptionHash.as_deref().unwrap_or_default().starts_with("ticker")) {
-                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &subscriptionHash);
+                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscriptionHash.as_deref()));
                     let subscriptionParams: crate::value::Dict = self.safe_dict_k_t(&subscription, "params");
                     let subscribedChannel: Option<String> = self.safe_string_k_opt(&subscriptionParams, "channel", &[]);
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {

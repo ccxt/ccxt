@@ -835,7 +835,7 @@ impl Bitvavo {
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let interval: String = (match message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         // use a reverse lookup in a static map instead
-        let timeframe: Option<String> = self.find_timeframe(Value::from(interval.clone()), &[]);
+        let timeframe: Option<String> = self.find_timeframe(Value::from(interval.as_str()), &[]);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "@").into()), (match message.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()),
             Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) })).into()), "_").into()), interval);
         let candles: crate::value::List = message.key_list("candle");
@@ -902,7 +902,7 @@ impl Bitvavo {
             let symbolAndTimeframe: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.clone()), &[Value::from(timeframeString)]);
+            let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.as_str()), &[Value::from(timeframeString)]);
             if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
                 marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
@@ -921,7 +921,7 @@ impl Bitvavo {
             let interval: Value = intervals.get(i as usize).cloned().unwrap_or(Value::Null);
             channels.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("name".to_string(), Value::from(name.clone()));
+                    m.insert("name".to_string(), Value::from(name.as_str()));
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
                     m.insert("markets".to_string(), marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 m
@@ -1013,7 +1013,7 @@ impl Bitvavo {
             let symbolAndTimeframe: crate::value::List = symbolsAndTimeframes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbolAndTimeframe, Value::Int(0), &[Value::Str("".into())])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let timeframeString: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.clone()), &[Value::from(timeframeString)]);
+            let interval: Value = self.safe_string(&self.timeframes, Value::from(timeframeString.as_str()), &[Value::from(timeframeString)]);
             if !(matches!(&interval, Value::Str(__k) if marketIdsByInterval.contains_key(__k.as_ref()))) {
                 marketIdsByInterval.insert(crate::runtime::stringify_param(&interval), Value::from(vec![]));
             }
@@ -1034,7 +1034,7 @@ impl Bitvavo {
             let interval: Value = intervals.get(i as usize).cloned().unwrap_or(Value::Null);
             channels.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("name".to_string(), Value::from(name.clone()));
+                    m.insert("name".to_string(), Value::from(name.as_str()));
                     m.insert("interval".to_string(), Value::from(vec![interval.clone()]));
                     m.insert("markets".to_string(), marketIdsByInterval.get(interval.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 m
@@ -1085,7 +1085,7 @@ impl Bitvavo {
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), Value::from(name.clone()));
+        m.insert("name".to_string(), Value::from(name.as_str()));
         m.insert("markets".to_string(), Value::from(vec![Value::from((market).id.as_deref())]));
     m
 })]));
@@ -1093,7 +1093,7 @@ impl Bitvavo {
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
@@ -1153,7 +1153,7 @@ impl Bitvavo {
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channels".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("name".to_string(), Value::from(name.clone()));
+        m.insert("name".to_string(), Value::from(name.as_str()));
         m.insert("markets".to_string(), Value::from(marketIds));
     m
 })]));
@@ -1326,14 +1326,14 @@ impl Bitvavo {
             return;
         }
         if (self.safe_integer_k(Value::from(&orderbook), "nonce", &[]) == Value::Null) {
-            let mut subscription: Value = self.safe_value(&__ch.subscriptions, Value::from(messageHash.clone()), &[Value::Map({
+            let mut subscription: Value = self.safe_value(&__ch.subscriptions, Value::from(messageHash.as_str()), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]);
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             let flagKey: String = format!("{}{}", Value::Str("watchingOrderBookSnapshot@".into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }));
-            let watchingOrderBookSnapshot: Option<bool> = self.safe_bool_opt(&subscription, Value::from(flagKey.clone()), &[]);
+            let watchingOrderBookSnapshot: Option<bool> = self.safe_bool_opt(&subscription, Value::from(flagKey.as_str()), &[]);
             if (watchingOrderBookSnapshot.is_none()) {
                 add_element_to_object(&mut subscription, &Value::from(flagKey.as_str()), Value::Bool(true));
                 __ch.add_subscription(messageHash.as_str(), subscription.clone());
@@ -2687,7 +2687,7 @@ impl Bitvavo {
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]);
+        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]);
         if (future == Value::Null) {
             let timestamp: i64 = self.milliseconds();
             let stringTimestamp: String = format!("{}", timestamp);
@@ -2758,16 +2758,16 @@ impl Bitvavo {
         if (error.is_none()) {
             return Value::Null;
         }
-        let code: Option<i64> = self.safe_integer_k(error.clone().map(Value::from).unwrap_or(Value::Null), "errorCode", &[]).as_i64();
+        let code: Option<i64> = self.safe_integer(Value::from(error.as_deref()), Value::Str("errorCode".into()), &[]).as_i64();
         let action: Option<String> = (match __pro_message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let buildMessage: Option<String> = self.build_message_hash(action.as_deref(), &[message]);
         let messageHash: Option<String> = self.safe_string_k_opt(message, "requestId", &[&buildMessage]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::from(code), error.clone().map(Value::from).unwrap_or(Value::Null), client.url(), Value::Str("".into()), Value::Map({
+            self.handle_errors(Value::from(code), Value::from(error.as_deref()), client.url(), Value::Str("".into()), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), error.clone().map(Value::from).unwrap_or(Value::Null), message.clone(), Value::Map({
+            }), Value::from(error.as_deref()), message.clone(), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));

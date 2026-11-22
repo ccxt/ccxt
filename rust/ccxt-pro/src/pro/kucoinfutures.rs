@@ -196,7 +196,7 @@ impl Kucoinfutures {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(&currency, "id", &[]));
-                m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), Value::from(amountToPrecision.as_deref()));
             m
         });
         let toAccountString: Option<String> = self.parse_transfer_type(toAccount.clone());

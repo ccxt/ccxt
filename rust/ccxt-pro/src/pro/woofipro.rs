@@ -317,7 +317,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -396,7 +396,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -501,7 +501,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -585,7 +585,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -698,7 +698,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -788,7 +788,7 @@ impl Woofipro {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -967,7 +967,7 @@ impl Woofipro {
         let messageHash: String = "authenticated".to_string();
         let event: String = "auth".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let ts: String = format!("{}", self.nonce());
             let mut secret: Value = self.secret.clone();
@@ -1340,7 +1340,7 @@ impl Woofipro {
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
-                self.handle_order(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), topic.clone().map(Value::from).unwrap_or(Value::Null));
+                self.handle_order(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(topic.as_deref()));
             }
             }
         }  else {
@@ -1364,7 +1364,7 @@ impl Woofipro {
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), &symbol);
+            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
             let order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
             if (order.is_some()) {
                 let fee: Value = self.safe_value_k(&order, "fee", &[]);
@@ -1419,7 +1419,7 @@ impl Woofipro {
         let messageHash: String = "myTrades".to_string();
         let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let trade: crate::value::Dict = self.parse_ws_trade(message, Some(&market));
         if (self.myTrades.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1427,7 +1427,7 @@ impl Woofipro {
         }
         self.myTrades.append(Value::Dict(trade));
         client.resolve(Value::from(&self.myTrades), messageHash.as_str());
-        let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null"));
+        let symbolSpecificMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol);
         client.resolve(Value::from(&self.myTrades), symbolSpecificMessageHash.as_str());
 }
 
@@ -1775,8 +1775,8 @@ impl Woofipro {
             if (code.is_some()) {
                 { let __be_tmp = self.extend(account, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("total".to_string(), total.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("total".to_string(), Value::from(total.as_deref()));
+        m.insert("used".to_string(), Value::from(used.as_deref()));
         m.insert("free".to_string(), crate::precise::Precise::stringSub(&total, &used));
     m
 })]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); } }

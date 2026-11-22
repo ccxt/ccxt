@@ -311,8 +311,8 @@ impl crate::exchange::DerivedExchange for Binance {
         if (errorCode.is_some()) && crate::precise::Precise::stringLt(&errorCode, &Value::Str("0".into())).as_bool() == Some(true) {
             let message: String = self.safe_string_k(response, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1170,7 +1170,7 @@ impl Binance {
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), topicId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("slug".to_string(), slug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("slug".to_string(), Value::from(slug.as_deref()));
         m.insert("event".to_string(), (if (slug.is_some()) { Value::from(self.shorten_slug(slug.map(Value::from).unwrap_or(Value::Null))) } else { Value::Null }));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), self.safe_string_k(&rawTopic, "description", &[]));
@@ -1228,8 +1228,8 @@ impl Binance {
         let topicSlug: Option<String> = (match rawTopic.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let vendor: Option<String> = (match rawTopic.get("vendor") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let collateral: String = (match rawTopic.get("collateral") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "USDT".to_string() });
-        let title: Option<String> = self.safe_string_k_opt(&rawMarket, "title", &[&marketId]);
-        let marketSymbol: Option<String> = self.slug_to_market_symbol(topicSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::from(title.as_deref())).as_str().map(str::to_owned);
+        let title: Option<String> = self.safe_string_k_opt(&rawMarket, "title", &[&Value::from(marketId.as_deref())]);
+        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(topicSlug.as_deref()), Value::from(title.as_deref())).as_str().map(str::to_owned);
         let tradingStatus: Option<String> = self.safe_string_k_opt(&rawMarket, "tradingStatus", &[]);
         let status: Option<String> = self.safe_string_k_opt(&rawMarket, "status", &[]);
         let mut active: bool = tradingStatus.as_deref() == Some("OPEN");
@@ -1250,7 +1250,7 @@ impl Binance {
         });
         let volume: Option<f64> = self.safe_number_k(&rawMarket, "tradeVolume", &[]).as_f64();
         let liquidity: Option<f64> = self.safe_number_k(&rawMarket, "liquidity", &[]).as_f64();
-        let rawOutcomes: crate::value::List = self.safe_list_k_t(&rawMarket, "outcomes");
+        let rawOutcomes: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawMarket, "outcomes"));
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcomeRaw: Option<String> = None;
         let rawOutcomesLength: i64 = rawOutcomes.len() as i64;
@@ -1258,7 +1258,7 @@ impl Binance {
                         let mut oi: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { oi += 1; } __for_first_13 = false; oi < rawOutcomesLength } {
-            let rawOutcome: crate::value::Dict = self.safe_dict_t(&rawOutcomes, Value::Int(oi));
+            let rawOutcome: crate::value::Dict = rawOutcomes.get(oi as usize).cloned().unwrap_or_default();
             let label: Option<String> = self.safe_string_upper_k_opt(&rawOutcome, "name", &[]);
             let tokenId: Option<String> = self.safe_string_k_opt(&rawOutcome, "tokenId", &[]);
             let outcomeHandle: String = format!("{}{}", Value::Str(format!("{}{}", marketSymbol.as_deref().unwrap_or("null"), ":").into()), label.as_deref().unwrap_or("null"));
@@ -1276,31 +1276,31 @@ impl Binance {
             let settleFraction: Option<i64> = settleFractionRaw;
             outcomes.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("outcomeId".to_string(), tokenId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(tokenId.as_deref()));
+                    m.insert("outcomeId".to_string(), Value::from(tokenId.as_deref()));
                     m.insert("outcome".to_string(), Value::from(outcomeHandle));
-                    m.insert("market".to_string(), marketSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("label".to_string(), label.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("price".to_string(), self.parse_number(&price, &[]));
+                    m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
+                    m.insert("label".to_string(), Value::from(label.as_deref()));
+                    m.insert("price".to_string(), self.parse_number(Value::from(price.as_deref()), &[]));
                     m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), winner.map_or(Value::Null, Value::Bool));
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("tokenId".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("marketId".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("marketTopicId".to_string(), topicId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("vendor".to_string(), vendor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tokenId".to_string(), Value::from(tokenId.as_deref()));
+        m.insert("marketId".to_string(), Value::from(marketId.as_deref()));
+        m.insert("marketTopicId".to_string(), Value::from(topicId.as_deref()));
+        m.insert("vendor".to_string(), Value::from(vendor.as_deref()));
         m.insert("chainId".to_string(), (match rawTopic.get("chainId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
-        m.insert("slug".to_string(), topicSlug.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("slug".to_string(), Value::from(topicSlug.as_deref()));
         m.insert("marketTitle".to_string(), Value::from(title.as_deref()));
-        m.insert("outcomeLabel".to_string(), label.map(Value::from).unwrap_or(Value::Null));
+        m.insert("outcomeLabel".to_string(), Value::from(label.as_deref()));
         m.insert("index".to_string(), self.safe_string_k(&rawOutcome, "index", &[]));
-        m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), Value::from(price.as_deref()));
         m.insert("chance".to_string(), self.safe_string_k(&rawOutcome, "chance", &[]));
-        m.insert("collateral".to_string(), Value::from(collateral.clone()));
-        m.insert("feeRateBps".to_string(), Value::from(feeRateBps.clone()));
+        m.insert("collateral".to_string(), Value::from(collateral.as_str()));
+        m.insert("feeRateBps".to_string(), Value::from(feeRateBps.as_str()));
         m.insert("slippageBps".to_string(), (match rawTopic.get("slippageBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
         m.insert("conditionId".to_string(), self.safe_string_k(&rawMarket, "conditionId", &[]));
         m.insert("externalId".to_string(), self.safe_string_k(&rawMarket, "externalId", &[]));
@@ -1313,18 +1313,18 @@ impl Binance {
         let resolvedOutcome: Option<String> = resolvedOutcomeRaw;
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(marketId.as_deref()));
         m.insert("market".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("base".to_string(), Value::from(collateral.clone()));
-        m.insert("quote".to_string(), Value::from(collateral.clone()));
+        m.insert("base".to_string(), Value::from(collateral.as_str()));
+        m.insert("quote".to_string(), Value::from(collateral.as_str()));
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), Value::from(collateral.clone()));
+        m.insert("baseId".to_string(), Value::from(marketId.as_deref()));
+        m.insert("quoteId".to_string(), Value::from(collateral.as_str()));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("prediction".into()));
         m.insert("marketType".to_string(), Value::Str("binary".into()));
         m.insert("executionModel".to_string(), Value::Str("clob".into()));
-        m.insert("collateral".to_string(), Value::from(collateral));
+        m.insert("collateral".to_string(), Value::from(collateral.as_str()));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
@@ -1647,12 +1647,12 @@ impl Binance {
                 m.insert("info".to_string(), Value::from(&response));
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(&response, "items");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "items"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let accountType: Option<String> = self.safe_string_k_opt(&balance, "accountType", &[]);
             if (accountType == type_var) {
                 let free: Option<String> = self.safe_string_k_opt(&balance, "availableBalanceDisplay", &[]);
@@ -1731,7 +1731,7 @@ impl Binance {
         let paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.1;
         let pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.clone()), &Value::from(maxEntriesPerRequest)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOpenOrders".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.as_str()), &Value::from(maxEntriesPerRequest)]).await;
         }
         let page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1834,7 +1834,7 @@ impl Binance {
         let paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.1;
         let pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.clone()), &Value::from(maxEntriesPerRequest)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchOrders".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.as_str()), &Value::from(maxEntriesPerRequest)]).await;
         }
         let page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2053,8 +2053,8 @@ impl Binance {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.as_str(), &[]).await;
             outcomeObj = self.outcome(outcome.as_str());
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((self.safe_string_k(&outcomeObj, "market", &[])).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-            request.insert("marketTopicId".into(), crate::value::get_value_k(&market.get("info").cloned().unwrap_or(Value::Null), "marketTopicId"));
+            let mut market: crate::types::Market = (match self.market((self.safe_string_k(&outcomeObj, "market", &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("marketTopicId".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketTopicId", &[]));
         }
         let wallet: crate::value::Dict = self.fetch_wallet("fetchOrders", &[&params]).await.into_dict();
         request.insert("walletAddress".into(), self.safe_string_k(&wallet, "walletAddress", &[]));
@@ -2117,7 +2117,7 @@ impl Binance {
         let paramsMaxEntriesPerRequest: crate::value::Dict = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.1;
         let pageKey: String = "ccxtPageKey".to_string();
         if paginate {
-            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.clone()), &Value::from(maxEntriesPerRequest)]).await;
+            return self.fetch_paginated_call_incremental(Value::Str("fetchMyTrades".into()), &[&outcome, &Value::from(since), &Value::from(limit), &Value::from(&paramsMaxEntriesPerRequest), &Value::from(pageKey.as_str()), &Value::from(maxEntriesPerRequest)]).await;
         }
         let page: i64 = ((self.safe_integer(Value::from(&paramsMaxEntriesPerRequest), Value::from(pageKey), &[Value::Int(1)]).as_i64().unwrap_or(1)) - 1);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2358,7 +2358,7 @@ impl Binance {
         let mut commonRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("walletAddress".to_string(), self.safe_string_k(&wallet, "walletAddress", &[]));
-                m.insert("orderType".to_string(), Value::from(typeUpper.clone()));
+                m.insert("orderType".to_string(), Value::from(typeUpper.as_str()));
                 m.insert("slippageBps".to_string(), Value::from(slippageBps));
             m
         });
@@ -2573,7 +2573,7 @@ impl Binance {
         //
         let canceledOrders: crate::value::List = self.safe_list_k_t(&response, "canceled");
         let outcomeSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[&outcome]);
-        let failedOrders: crate::value::List = self.safe_list_k_t(&response, "failed");
+        let failedOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "failed"));
         let failedOrdersLength: i64 = failedOrders.len() as i64;
         if failedOrdersLength > 0 {
             let mut failedDetails: Vec<Value> = Vec::new();
@@ -2581,7 +2581,7 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_20: bool = true;
                 while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < failedOrdersLength } {
-                let failedOrder: crate::value::Dict = self.safe_dict_t(&failedOrders, Value::Int(i));
+                let failedOrder: crate::value::Dict = failedOrders.get(i as usize).cloned().unwrap_or_default();
                 let failedOrderId: String = self.safe_string_k(&failedOrder, "orderId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let failedReason: String = self.safe_string_k(&failedOrder, "reason", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 failedDetails.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedOrderId, ": ").into()), failedReason).into()));

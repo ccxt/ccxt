@@ -125,7 +125,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         m.insert("askVolume".to_string(), self.safe_string_k(&ask, "quantity", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(&ticker, "daily_change", &[]));
@@ -223,8 +223,8 @@ impl crate::exchange::DerivedExchange for Bigone {
                 m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
                 m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Str("limit".into()));
-                m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("side".to_string(), Value::from(side.as_deref()));
+                m.insert("takerOrMaker".to_string(), Value::from(takerOrMaker.as_deref()));
                 m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
                 m.insert("cost".to_string(), Value::Null);
@@ -267,12 +267,12 @@ impl crate::exchange::DerivedExchange for Bigone {
             if (takerFeeCost.is_some()) {
                 result.insert("fees".into(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), makerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), makerCode.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), Value::from(makerFeeCost.as_deref()));
+        m.insert("currency".to_string(), Value::from(makerCode.as_deref()));
     m
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), takerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), Value::from(takerFeeCost.as_deref()));
         m.insert("currency".to_string(), takerCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]));
@@ -391,12 +391,12 @@ impl crate::exchange::DerivedExchange for Bigone {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "data");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&balance, "asset_symbol", &[]);
             let code: Option<String> = self.safe_currency_code(symbol.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -498,7 +498,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         if matches!(self.safe_bool_k(&rawCurrency, "is_fiat", &[Value::Bool(false)]), Value::Bool(true)) {
             type_var = Some("fiat".to_string());
         }  else if (chainLength == 0) {
-            if self.is_leveraged_currency(id.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_bool() == Some(true) {
+            if self.is_leveraged_currency(Value::from(id.as_deref()), &[]).as_bool() == Some(true) {
                 type_var = Some("leveraged".to_string());
             }  else {
                 type_var = Some("other".to_string());
@@ -707,9 +707,9 @@ impl crate::exchange::DerivedExchange for Bigone {
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (codeError.as_deref() != Some("0")) && (codeError.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2918,7 +2918,7 @@ impl Bigone {
         let addressObject: crate::value::Dict = self.safe_dict_t(&chainsIndexedById, Value::from(selectedNetworkId.as_deref()));
         let address: Option<String> = self.safe_string_k_opt(&addressObject, "value", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&addressObject, "memo", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));

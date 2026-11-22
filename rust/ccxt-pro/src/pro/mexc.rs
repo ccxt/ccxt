@@ -292,7 +292,7 @@ impl Mexc {
         let messageHash: String = format!("{}{}", "ticker:", (market).symbol);
         if (market).spot {
             let channel: String = format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
-            return self.watch_spot_public(Value::from(channel), Value::from(messageHash.clone()), &[&params]).await;
+            return self.watch_spot_public(Value::from(channel), Value::from(messageHash.as_str()), &[&params]).await;
         }  else {
             let channel: String = "sub.ticker".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -607,7 +607,7 @@ impl Mexc {
         m.insert("open".to_string(), Value::Null);
         m.insert("high".to_string(), self.safe_number_k(&ticker, "h", &[]));
         m.insert("low".to_string(), self.safe_number_k(&ticker, "l", &[]));
-        m.insert("close".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(price.as_deref()));
         m.insert("last".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("bid".to_string(), self.safe_number2(&ticker, Value::Str("b".into()), Value::Str("bidPrice".into()), &[]));
         m.insert("bidVolume".to_string(), self.safe_number2(&ticker, Value::Str("B".into()), Value::Str("bidQuantity".into()), &[]));
@@ -849,7 +849,7 @@ impl Mexc {
         let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("method".to_string(), Value::from(channel.clone()));
+                m.insert("method".to_string(), Value::from(channel.as_str()));
                 m.insert("param".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
@@ -903,7 +903,7 @@ impl Mexc {
         let mut ohlcv: Value = Value::Null;
         if (market).spot {
             let spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), timeframeId.as_deref().unwrap_or("null"));
-            ohlcv = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[&params]).await;
+            ohlcv = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&params]).await;
         }  else {
             let channel: String = "sub.kline".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1114,7 +1114,7 @@ impl Mexc {
             let frequency: Option<String> = frequencyparamsFrequencyVariable.0.as_str().map(str::to_owned);
             let paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.1;
             let spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
-            orderbook = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[&Value::Dict(paramsFrequency)]).await;
+            orderbook = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&Value::Dict(paramsFrequency)]).await;
         }  else {
             let channel: String = "sub.depth".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1257,7 +1257,7 @@ impl Mexc {
         let marketId: Option<String> = self.safe_string2_opt(&message, Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
-        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -1269,7 +1269,7 @@ impl Mexc {
             let cacheLength: Option<i64> = self.parse_to_int(Value::Int(storedOrderBook.book_field("cache").len() as i64));
             let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(25)]));
             if (cacheLength == snapshotDelay) {
-                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::from(limit), Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), symbol.map(Value::from).unwrap_or(Value::Null), Value::from(limit), Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1364,7 +1364,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut trades: Value = Value::Null;
         if (market).spot {
             let spotChannel: String = format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
-            trades = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[&params]).await;
+            trades = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&params]).await;
         }  else {
             let channel: String = "sub.deal".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -2177,7 +2177,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "swap").as_str().map(str::to_owned);
-        self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
+        self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.as_str()), Value::Map(requestParams), params]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
         return Value::Null;
@@ -2240,7 +2240,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             channel = Some(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or(""))));
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "spot").as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
-            self.spawn(&[Value::Str("watch_spot_public".into()), channel.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), params.clone()]);
+            self.spawn(&[Value::Str("watch_spot_public".into()), channel.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.as_str()), params.clone()]);
         }  else {
             channel = Some("unsub.ticker".to_string());
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -2249,7 +2249,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "swap").as_str().map(str::to_owned);
-            self.spawn(&[Value::Str("watch_swap_public".into()), channel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
+            self.spawn(&[Value::Str("watch_swap_public".into()), channel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.as_str()), Value::Map(requestParams), params]);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
@@ -2416,7 +2416,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "spot").as_str().map(str::to_owned);
             let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), timeframeId.as_deref().unwrap_or("null"));
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
-            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.clone()), params.clone()]);
+            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.as_str()), params.clone()]);
         }  else {
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "swap").as_str().map(str::to_owned);
             let channel: String = "unsub.kline".to_string();
@@ -2426,7 +2426,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("interval".to_string(), timeframeId.map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
+            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.as_str()), Value::Map(requestParams), params]);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
@@ -2468,7 +2468,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.1;
             let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
             std::sync::Arc::make_mut(&mut paramsFrequency).insert("unsubscribed".into(), Value::Bool(true));
-            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.clone()), Value::Dict(paramsFrequency)]);
+            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.as_str()), Value::Dict(paramsFrequency)]);
         }  else {
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "swap").as_str().map(str::to_owned);
             let channel: String = "unsub.depth".to_string();
@@ -2477,7 +2477,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
+            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.as_str()), Value::Map(requestParams), params]);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
@@ -2516,7 +2516,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "spot").as_str().map(str::to_owned);
             let channel: String = format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("unsubscribed".into(), Value::Bool(true)); }
-            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.clone()), params.clone()]);
+            self.spawn(&[Value::Str("watch_spot_public".into()), Value::from(channel), Value::from(messageHash.as_str()), params.clone()]);
         }  else {
             url = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "swap").as_str().map(str::to_owned);
             let channel: String = "unsub.deal".to_string();
@@ -2525,7 +2525,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.clone()), Value::Map(requestParams), params]);
+            self.spawn(&[Value::Str("watch_swap_public".into()), Value::from(channel), Value::from(messageHash.as_str()), Value::Map(requestParams), params]);
         }
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.handle_unsubscriptions(client.as_value(), Value::from(vec![Value::from(messageHash)]));
@@ -2717,7 +2717,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (subscriptionHashes.len() as i64) } {
                 let subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let subscribedChannel: Option<String> = self.safe_string_k_opt(__ch.get_subscription(subscriptionHash.as_deref()), "channel", &[]);
-                if (subscribedChannel.is_some()) && (Value::Int(match (msg).as_str() { Some(__s) => __s.find(format!("{}{}", Value::Str(format!("{}{}", "[", subscribedChannel.map(Value::from).unwrap_or(Value::Null)).into()), "]").as_str()).map(|__i| __i as i64).unwrap_or(-1), None => -1 }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                if (subscribedChannel.is_some()) && (Value::Int(match (msg).as_str() { Some(__s) => __s.find(format!("{}{}", Value::Str(format!("{}{}", "[", Value::from(subscribedChannel.as_deref())).into()), "]").as_str()).map(|__i| __i as i64).unwrap_or(-1), None => -1 }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
                     __ch.remove_subscription(subscriptionHash.as_deref());
                     client.reject(error.clone(), subscriptionHash.as_deref());
                     rejected = true;

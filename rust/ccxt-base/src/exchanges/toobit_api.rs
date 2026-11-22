@@ -48,8 +48,8 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1IndexKlines` implicit endpoint.
-    pub async fn common_get_quote_v1_index_klines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_index_klines".into()), optional_args).await
+    pub async fn common_get_quote_v1_index_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("common_get_quote_v1_index_klines", optional_args).await
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1IndexPriceComponents` implicit endpoint.
@@ -58,8 +58,8 @@ impl Toobit {
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1MarkPriceKlines` implicit endpoint.
-    pub async fn common_get_quote_v1_mark_price_klines(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("common_get_quote_v1_mark_price_klines".into()), optional_args).await
+    pub async fn common_get_quote_v1_mark_price_klines(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("common_get_quote_v1_mark_price_klines", optional_args).await
     }
 
     /// Auto-generated wrapper for the `commonGetQuoteV1MarkPrice` implicit endpoint.

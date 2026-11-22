@@ -407,7 +407,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("unsubscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("kbar".into()));
-                m.insert("kbar".to_string(), timeframeId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("kbar".to_string(), Value::from(timeframeId.as_deref()));
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
@@ -663,7 +663,7 @@ if _try_result.is_err() {
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("high".to_string(), self.safe_string_k(&tickerData, "high", &[]));
         m.insert("low".to_string(), self.safe_string_k(&tickerData, "low", &[]));

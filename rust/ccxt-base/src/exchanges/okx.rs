@@ -98,7 +98,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into()), marketType.map(Value::from).unwrap_or(Value::Null)]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         let open: Option<String> = self.safe_string_k_opt(&ticker, "open24h", &[]);
         let spot: bool = self.safe_bool_k_opt(&marketResolved, "spot", &[Value::Bool(false)]).unwrap_or(false);
@@ -119,7 +119,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askSz", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for Okx {
         let id: Option<String> = self.safe_string_k_opt(&trade, "tradeId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&trade, "ts", &[]).as_i64();
         let price: Option<String> = self.safe_string2_opt(&trade, Value::Str("fillPx".into()), Value::Str("px".into()), &[]);
         let amount: Option<String> = self.safe_string2_opt(&trade, Value::Str("fillSz".into()), Value::Str("sz".into()), &[]);
@@ -839,19 +839,19 @@ impl crate::exchange::DerivedExchange for Okx {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let pos: Option<String> = self.safe_string_k_opt(&position, "pos", &[]); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         let contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&pos).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string2_opt(&position, Value::Str("posSide".into()), Value::Str("direction".into()), &[]);
         let hedged: bool = side.as_deref() != Some("net");
-        let contracts: Option<f64> = self.parse_number(&contractsAbs, &[]).as_f64();
+        let contracts: Option<f64> = self.parse_number(Value::from(contractsAbs.as_deref()), &[]).as_f64();
         if ((marketResolved).margin == Some(true)) {
             // margin position
             if (side.as_deref() == Some("net")) {
                 let posCcy: Option<String> = self.safe_string_k_opt(&position, "posCcy", &[]);
                 let parsedCurrency: Option<String> = self.safe_currency_code(posCcy.as_deref(), None);
                 if (parsedCurrency.is_some()) {
-                    side = (if ((crate::value::KeyRead::key_read(&&marketResolved, "base").as_str() == parsedCurrency.as_deref())) { Some("long".to_string()) } else { Some("short".to_string()) });
+                    side = (if ((parsedCurrency.as_deref() == self.safe_string_k(&marketResolved, "base", &[]).as_str())) { Some("long".to_string()) } else { Some("short".to_string()) });
                 }
             }
             if (side.is_none()) {
@@ -877,7 +877,7 @@ impl crate::exchange::DerivedExchange for Okx {
         if ((marketResolved).inverse == Some(true)) {
             notionalString = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString).as_str().map(str::to_owned);
         }
-        let notional: Option<f64> = self.parse_number(&notionalString, &[]).as_f64();
+        let notional: Option<f64> = self.parse_number(Value::from(notionalString.as_deref()), &[]).as_f64();
         let marginMode: Option<String> = self.safe_string_k_opt(&position, "mgnMode", &[]);
         let mut initialMarginString: Option<String> = None;
         let entryPriceString: Option<String> = self.safe_string2_opt(&position, Value::Str("avgPx".into()), Value::Str("openAvgPx".into()), &[]);
@@ -899,7 +899,7 @@ impl crate::exchange::DerivedExchange for Okx {
             }
         }
         let maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "mmr", &[]);
-        let maintenanceMargin: Option<f64> = self.parse_number(&maintenanceMarginString, &[]).as_f64();
+        let maintenanceMargin: Option<f64> = self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]).as_f64();
         let maintenanceMarginPercentageString: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString).as_str().map(str::to_owned);
         if (initialMarginPercentage == Value::Null) {
             initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString, &Value::Int(4)), &[]);
@@ -1057,11 +1057,11 @@ impl crate::exchange::DerivedExchange for Okx {
         }
         let currencyId: Option<String> = self.safe_string_k_opt(&depositAddress, "ccy", &[]);
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
-        let code: Option<String> = crate::value::KeyRead::key_read(&&currencyResolved, "code").as_str().map(str::to_owned);
+        let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         let chain: Option<String> = self.safe_string_k_opt(&depositAddress, "chain", &[]);
         let networks: crate::value::Dict = self.safe_dict_k_t(&currencyResolved, "networks");
         let networksById: crate::value::Dict = self.index_by(Value::Dict(networks), Value::Str("id".into()));
-        let mut networkData: Option<crate::value::Dict> = (if (chain.is_none()) { None } else { self.safe_dict_o(&networksById, &chain) });
+        let mut networkData: Option<crate::value::Dict> = (if (chain.is_none()) { None } else { self.safe_dict_o(&networksById, Value::from(chain.as_deref())) });
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -1108,7 +1108,7 @@ impl crate::exchange::DerivedExchange for Okx {
         }
         let network: Option<String> = self.safe_string_k_opt(&networkData, "network", &[]);
         let networkCode: Option<String> = self.network_id_to_code(network.as_deref(), code.as_deref());
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
@@ -1169,7 +1169,7 @@ impl crate::exchange::DerivedExchange for Okx {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringNeg(&feeCostString), &[]));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -1598,14 +1598,14 @@ impl crate::exchange::DerivedExchange for Okx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("network".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), Value::from(tagTo.as_deref()));
         m.insert("tag".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -1617,7 +1617,7 @@ impl crate::exchange::DerivedExchange for Okx {
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), feeCost);
     m
 }));
@@ -1891,16 +1891,16 @@ impl crate::exchange::DerivedExchange for Okx {
         let strike: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let optionType: String = self.safe_string(&optionParts, Value::Int(4), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let datetime: Option<String> = (if (expiry == "") { None } else { self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned) });
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "-").into()), quote).into()), "-").into()), expiry).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()), ":").into()),
             base).into()), "-").into()), expiry).into()), "-").into()), strike).into()), "-").into()), optionType).into()));
-        m.insert("base".to_string(), Value::from(base.clone()));
-        m.insert("quote".to_string(), Value::from(quote.clone()));
-        m.insert("settle".to_string(), Value::from(base.clone()));
-        m.insert("baseId".to_string(), Value::from(base.clone()));
+        m.insert("base".to_string(), Value::from(base.as_str()));
+        m.insert("quote".to_string(), Value::from(quote.as_str()));
+        m.insert("settle".to_string(), Value::from(base.as_str()));
+        m.insert("baseId".to_string(), Value::from(base.as_str()));
         m.insert("quoteId".to_string(), Value::from(quote));
         m.insert("settleId".to_string(), Value::from(base));
         m.insert("active".to_string(), Value::Bool(false));
@@ -1992,7 +1992,7 @@ impl crate::exchange::DerivedExchange for Okx {
                         let clientOrderId: Option<String> = self.safe_string_k_opt(&entry, "clOrdId", &[]);
                         if (clientOrderId.is_none()) {
                             add_element_to_object(&mut entry, &Value::Str("clOrdId".into()), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into()));
-                            add_element_to_object(&mut entry, &Value::Str("tag".into()), Value::from(brokerId.clone()));
+                            add_element_to_object(&mut entry, &Value::Str("tag".into()), Value::from(brokerId.as_str()));
                             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&i), entry); }
                         }
                     }
@@ -2012,7 +2012,7 @@ impl crate::exchange::DerivedExchange for Okx {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("OK-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("OK-ACCESS-PASSPHRASE".to_string(), self.password.clone());
-                    m.insert("OK-ACCESS-TIMESTAMP".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("OK-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp.as_deref()));
                 m
             });
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp.as_deref().unwrap_or("null"), method).into()), request);
@@ -2082,11 +2082,11 @@ impl crate::exchange::DerivedExchange for Okx {
                 let error: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
                 let errorCode: Option<String> = self.safe_string_k_opt(&error, "sCode", &[]);
                 let message: Option<String> = self.safe_string_k_opt(&error, "sMsg", &[]);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             }
             }
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2191,7 +2191,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "handle_market_type_and_params" => { let __t = self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_trading_statistics_window" => { let __t = self.handle_trading_statistics_window(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>());
-                    Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                    Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "nonce" => self.nonce(),
                 "parse_balance_by_type" => self.parse_balance_by_type(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -7209,7 +7209,7 @@ impl Okx {
         }
         let spot: bool = self.safe_bool_k_opt(&market, "spot", &[Value::Bool(false)]).unwrap_or(false);
         let contract: Option<bool> = self.safe_bool_k_opt(&market, "contract", &[]);
-        let triggerPrice: Value = self.safe_value_n(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerPx".into())]), &[]);
+        let triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerPx".into())]), &[]);
         let timeInForce: Option<String> = self.safe_string_k_opt(&params, "timeInForce", &[&Value::Str("GTC".into())]);
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         let tpOrdPx: Option<f64> = self.safe_number_k(&params, "tpOrdPx", &[price.clone()]).as_f64();
@@ -7226,7 +7226,7 @@ impl Okx {
         let isTrailingPercentOrder: bool = trailingPercent.is_some();
         let trailingPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("trailingAmount".into()), Value::Str("trailingPrice".into()), Value::Str("callbackSpread".into())]), &[]);
         let isTrailingPriceOrder: bool = trailingPrice.is_some();
-        let trigger: bool = (triggerPrice != Value::Null) || (type_var == Some("trigger"));
+        let trigger: bool = (triggerPrice.is_some()) || (type_var == Some("trigger"));
         let isReduceOnly: bool = self.safe_bool_k(&params, "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true) || (closeFraction.is_some());
         let defaultMarginMode: String = self.safe_string2(&self.options, Value::Str("defaultMarginMode".into()), Value::Str("marginMode".into()), &[Value::Str("cross".into())]).as_str().unwrap_or("cross").to_string();
         let mut marginMode: Option<String> = self.safe_string2_opt(&params, Value::Str("marginMode".into()), Value::Str("tdMode".into()), &[]); // cross or isolated, tdMode not omitted so as to be extended into the request
@@ -7284,7 +7284,7 @@ impl Okx {
                     }
                 }
             }
-            request.insert("tdMode".into(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("tdMode".into(), Value::from(marginMode.as_deref()));
         }
         let isMarketOrder: bool = type_var.map(str::to_owned).as_deref() == Some("market");
         let postOnlyparamsPostOnlyVariable = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(type_var == Some("post_only")), &[Value::Dict(paramsReduceOnly)]);
@@ -7361,17 +7361,17 @@ impl Okx {
                 m
             });
             if hasStopLoss {
-                let stopLossTriggerPrice: Value = self.safe_value_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("slTriggerPx".into())]), &[]);
-                if (stopLossTriggerPrice == Value::Null) {
+                let stopLossTriggerPrice: Option<String> = self.safe_string_n_opt(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("slTriggerPx".into())]), &[]);
+                if (stopLossTriggerPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")));
                 }
-                let slTriggerPx: Option<String> = self.price_to_precision(symbol, stopLossTriggerPrice);
+                let slTriggerPx: Option<String> = self.price_to_precision(symbol, stopLossTriggerPrice.map(Value::from).unwrap_or(Value::Null));
                 let mut slOrder: indexmap::IndexMap<String, Value> = ({
                     let m = indexmap::IndexMap::new();
                     m
                 });
                 slOrder.insert("slTriggerPx".into(), slTriggerPx.map(Value::from).unwrap_or(Value::Null));
-                let stopLossLimitPrice: Value = self.safe_value_n(&stopLoss, Value::from(vec![Value::Str("price".into()), Value::Str("stopLossPrice".into()), Value::Str("slOrdPx".into())]), &[]);
+                let stopLossLimitPrice: Option<String> = self.safe_string_n_opt(&stopLoss, Value::from(vec![Value::Str("price".into()), Value::Str("stopLossPrice".into()), Value::Str("slOrdPx".into())]), &[]);
                 let stopLossOrderType: Option<String> = self.safe_string_k_opt(&stopLoss, "type", &[]);
                 if (stopLossOrderType.is_some()) {
                     let stopLossLimitOrderType: bool = stopLossOrderType.as_deref() == Some("limit");
@@ -7379,16 +7379,16 @@ impl Okx {
                     if (!stopLossLimitOrderType) && (!stopLossMarketOrderType) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")));
                     }  else if stopLossLimitOrderType {
-                        if (stopLossLimitPrice == Value::Null) {
+                        if (stopLossLimitPrice.is_none()) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a limit price in params[\"stopLoss\"][\"price\"] or params[\"stopLoss\"][\"slOrdPx\"] for a stop loss limit order")));
                         }  else {
-                            slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol, &stopLossLimitPrice)));
+                            slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol, Value::from(stopLossLimitPrice.as_deref()))));
                         }
                     }  else if (stopLossOrderType.as_deref() == Some("market")) {
                         slOrder.insert("slOrdPx".into(), Value::Str("-1".into()));
                     }
-                }  else if (stopLossLimitPrice != Value::Null) {
-                    slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol, stopLossLimitPrice))); // limit sl order
+                }  else if (stopLossLimitPrice.is_some()) {
+                    slOrder.insert("slOrdPx".into(), Value::from(self.price_to_precision(symbol, stopLossLimitPrice.map(Value::from).unwrap_or(Value::Null)))); // limit sl order
                 }  else {
                     slOrder.insert("slOrdPx".into(), Value::Str("-1".into())); // market sl order
                 }
@@ -7402,16 +7402,16 @@ impl Okx {
                 attachAlgoOrd = self.extend(attachAlgoOrd, &[Value::Map(slOrder)]);
             }
             if hasTakeProfit {
-                let takeProfitTriggerPrice: Value = self.safe_value_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("tpTriggerPx".into())]), &[]);
-                if (takeProfitTriggerPrice == Value::Null) {
+                let takeProfitTriggerPrice: Option<String> = self.safe_string_n_opt(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("tpTriggerPx".into())]), &[]);
+                if (takeProfitTriggerPrice.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")));
                 }
                 let mut tpOrder: indexmap::IndexMap<String, Value> = ({
                     let m = indexmap::IndexMap::new();
                     m
                 });
-                tpOrder.insert("tpTriggerPx".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
-                let takeProfitLimitPrice: Value = self.safe_value_n(&takeProfit, Value::from(vec![Value::Str("price".into()), Value::Str("takeProfitPrice".into()), Value::Str("tpOrdPx".into())]), &[]);
+                tpOrder.insert("tpTriggerPx".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice.map(Value::from).unwrap_or(Value::Null))));
+                let takeProfitLimitPrice: Option<String> = self.safe_string_n_opt(&takeProfit, Value::from(vec![Value::Str("price".into()), Value::Str("takeProfitPrice".into()), Value::Str("tpOrdPx".into())]), &[]);
                 let takeProfitOrderType: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("type".into()), Value::Str("tpOrdKind".into()), &[]);
                 if (takeProfitOrderType.is_some()) {
                     let takeProfitLimitOrderType: bool = takeProfitOrderType.as_deref() == Some("limit");
@@ -7419,18 +7419,18 @@ impl Okx {
                     if (!takeProfitLimitOrderType) && (!takeProfitMarketOrderType) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")));
                     }  else if takeProfitLimitOrderType {
-                        if (takeProfitLimitPrice == Value::Null) {
+                        if (takeProfitLimitPrice.is_none()) {
                             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() requires a limit price in params[\"takeProfit\"][\"price\"] or params[\"takeProfit\"][\"tpOrdPx\"] for a take profit limit order")));
                         }  else {
-                            tpOrder.insert("tpOrdKind".into(), takeProfitOrderType.map(Value::from).unwrap_or(Value::Null));
-                            tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol, &takeProfitLimitPrice)));
+                            tpOrder.insert("tpOrdKind".into(), Value::from(takeProfitOrderType.as_deref()));
+                            tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitLimitPrice.as_deref()))));
                         }
                     }  else if (takeProfitOrderType.as_deref() == Some("market")) {
                         tpOrder.insert("tpOrdPx".into(), Value::Str("-1".into()));
                     }
-                }  else if (takeProfitLimitPrice != Value::Null) {
+                }  else if (takeProfitLimitPrice.is_some()) {
                     tpOrder.insert("tpOrdKind".into(), Value::Str("limit".into()));
-                    tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol, takeProfitLimitPrice))); // limit tp order
+                    tpOrder.insert("tpOrdPx".into(), Value::from(self.price_to_precision(symbol, takeProfitLimitPrice.map(Value::from).unwrap_or(Value::Null)))); // limit tp order
                 }  else {
                     tpOrder.insert("tpOrdPx".into(), Value::Str("-1".into())); // market tp order
                 }
@@ -7452,7 +7452,7 @@ impl Okx {
         // algo order details
         if trigger {
             request.insert("ordType".into(), Value::Str("trigger".into()));
-            request.insert("triggerPx".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+            request.insert("triggerPx".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
             request.insert("orderPx".into(), (if isMarketOrder { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, price)) }));
         }  else if conditional {
             request.insert("ordType".into(), Value::Str("conditional".into()));
@@ -7707,7 +7707,7 @@ impl Okx {
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId.is_some()) {
             if (isAlgoOrder == Some(true)) {
-                request.insert("algoClOrdId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("algoClOrdId".into(), Value::from(clientOrderId.as_deref()));
             }  else {
                 request.insert("clOrdId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             }
@@ -7744,7 +7744,7 @@ impl Okx {
                 }
                 request.insert("newSlTriggerPx".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice)));
                 request.insert("newSlOrdPx".into(), (if (type_var == "market") { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, stopLossPrice)) }));
-                request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.clone()));
+                request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.as_str()));
             }
             if (takeProfitTriggerPrice.is_some()) {
                 if (takeProfitPrice.is_none()) {
@@ -7752,18 +7752,18 @@ impl Okx {
                 }
                 request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
                 request.insert("newTpOrdPx".into(), (if (type_var == "market") { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, takeProfitPrice)) }));
-                request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.clone()));
+                request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.as_str()));
             }
         }  else {
             if (stopLossTriggerPrice.is_some()) {
                 request.insert("newSlTriggerPx".into(), Value::from(self.price_to_precision(symbol, stopLossTriggerPrice)));
                 request.insert("newSlOrdPx".into(), (if (type_var == "market") { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, stopLossPrice)) }));
-                request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.clone()));
+                request.insert("newSlTriggerPxType".into(), Value::from(stopLossTriggerPriceType.as_str()));
             }
             if (takeProfitTriggerPrice.is_some()) {
                 request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
                 request.insert("newTpOrdPx".into(), (if (type_var == "market") { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, takeProfitPrice)) }));
-                request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.clone()));
+                request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType.as_str()));
             }
             if hasStopLoss {
                 stopLossTriggerPrice = self.safe_number_k(&stopLoss, "triggerPrice", &[]).as_f64();
@@ -7777,7 +7777,7 @@ impl Okx {
                 takeProfitTriggerPrice = self.safe_number_k(&takeProfit, "triggerPrice", &[]).as_f64();
                 takeProfitPrice = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
                 let takeProfitType: Option<String> = self.safe_string_k_opt(&takeProfit, "type", &[]);
-                request.insert("newTpOrdKind".into(), (if (takeProfitType.as_deref() == Some("limit")) { takeProfitType.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Str("condition".into()) }));
+                request.insert("newTpOrdKind".into(), (if (takeProfitType.as_deref() == Some("limit")) { Value::from(takeProfitType.as_deref()) } else { Value::Str("condition".into()) }));
                 request.insert("newTpTriggerPx".into(), Value::from(self.price_to_precision(symbol, takeProfitTriggerPrice)));
                 request.insert("newTpOrdPx".into(), (if (takeProfitType.as_deref() == Some("market")) { Value::Str("-1".into()) } else { Value::from(self.price_to_precision(symbol, takeProfitPrice)) }));
                 request.insert("newTpTriggerPxType".into(), Value::from(takeProfitTriggerPriceType));
@@ -8246,7 +8246,7 @@ impl Okx {
                     m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            requestItem.insert(idKey, (if (clientOrderId.is_some()) { clientOrderId.map(Value::from).unwrap_or(Value::Null) } else { id.map(Value::from).unwrap_or(Value::Null) }));
+            requestItem.insert(idKey, (if (clientOrderId.is_some()) { Value::from(clientOrderId.as_deref()) } else { id.map(Value::from).unwrap_or(Value::Null) }));
             request.push(Value::Map(requestItem));
         }
         }
@@ -8389,7 +8389,7 @@ impl Okx {
         if trigger || trailing {
             method = Some("privateGetTradeOrderAlgo".to_string());
             if (clientOrderId.is_some()) {
-                request.insert("algoClOrdId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("algoClOrdId".into(), Value::from(clientOrderId.as_deref()));
             }  else {
                 request.insert("algoId".into(), id.clone());
             }
@@ -9285,7 +9285,8 @@ impl Okx {
             currency = Some(self.currency(code.as_str()));
             request.insert("ccy".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let requestUntil: Value = Value::Dict(self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsMarginMode, &[]).0);
+        let (__until0, __until1) = self.handle_until_option(Value::Str("end".into()), Value::Map(request), &paramsMarginMode, &[]);
+        let requestUntil: crate::value::Dict = __until0;
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetAccountBillsArchive")) {
             let __ws_arg_49 = self.extend(&requestUntil, &[&query]);
@@ -9463,7 +9464,7 @@ impl Okx {
         let responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_deref().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
         let response: Value = responseRaw;
         if (network.is_some()) {
-            let mut result: Option<crate::value::Dict> = self.safe_dict_o(&response, &network);
+            let mut result: Option<crate::value::Dict> = self.safe_dict_o(&response, Value::from(network.as_deref()));
             if (result.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress() cannot find ").into()), network.as_deref().unwrap_or("null")).into()), " deposit address for ").into()), codeValue.as_deref().unwrap_or("null"))));
             }
@@ -9509,7 +9510,7 @@ impl Okx {
         let tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
         let paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
-        self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&address, &code, &Value::from(tagWithdrawTag.as_deref())]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9531,9 +9532,9 @@ impl Okx {
         if (network.is_some()) {
             let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let networkUpper: Option<String> = network.as_deref().map(str::to_uppercase);
-            let networkKey: Option<String> = self.safe_string_opt(&self.networkAliases, &networkUpper, &[&networkUpper]);
+            let networkKey: Option<String> = self.safe_string_opt(&self.networkAliases, Value::from(networkUpper.as_deref()), &[&networkUpper]);
             network = self.safe_string_opt(&networks, &networkKey, &[&network]); // resolve aliases to the unified key
-            request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "id"), "-").into()), network.as_deref().unwrap_or("null")).into()));
+            request.insert("chain".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&currency, "id", &[Value::Str("".into())]), Value::Str("-".into())).into()), network.as_deref().unwrap_or("null")).into()));
         }
         let mut omitKeys: Vec<Value> = vec![Value::Str("fee".into())];
         if (network.is_some()) {
@@ -11388,7 +11389,7 @@ impl Okx {
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("instType".to_string(), Value::from(type_var.as_deref()));
                 m.insert("tdMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
                 m.insert("instFamily".to_string(), instFamily.map(Value::from).unwrap_or(Value::Null));
             m
@@ -11765,16 +11766,16 @@ impl Okx {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instType".to_string(), Value::from(instType.clone()));
+                m.insert("instType".to_string(), Value::from(instType.as_str()));
             m
         });
         let uly: Option<String> = self.safe_string_k_opt(&paramsSubType, "uly", &[]);
         if (uly.is_some()) {
-            request.insert("uly".into(), uly.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("uly".into(), Value::from(uly.as_deref()));
         }
         let instFamily: Option<String> = self.safe_string_k_opt(&paramsSubType, "instFamily", &[]);
         if (instFamily.is_some()) {
-            request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("instFamily".into(), Value::from(instFamily.as_deref()));
         }
         if (instType == "OPTION") && (uly.is_none()) && (instFamily.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")));
@@ -11868,7 +11869,7 @@ impl Okx {
                 m
             });
             let instrumentRequestWindowparamsWindowVariable = self.handle_trading_statistics_window(Value::Map(instrumentRequest), timeframeValue.as_deref().unwrap_or_default(), since, limit, &[&Value::from(&paramsMarketType)]);
-            let instrumentRequestWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.0.into_dict();
+            let instrumentRequestWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.0;
             let paramsWindow: crate::value::Dict = instrumentRequestWindowparamsWindowVariable.1;
             let __ws_arg_82 = self.extend(instrumentRequestWindow, &[&paramsWindow]);
             response = self.public_get_rubik_stat_contracts_open_interest_history(&[&__ws_arg_82]).await;
@@ -11938,7 +11939,7 @@ impl Okx {
  * @param {int} [params.until] the latest time in ms of the entries to fetch
  * @returns {object[]} the request and the remaining params
  */
-    pub fn handle_trading_statistics_window(&self, mut request: Value, period: &str, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub fn handle_trading_statistics_window(&self, mut request: Value, period: &str, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let period: Value = period.into();
         let since: Value = since.into();
         let limit: Value = limit.into();
@@ -11988,7 +11989,7 @@ impl Okx {
         if (end.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), Value::from(end)); }
         }
-        return (request, paramsOmitted);
+        return (request.into_dict(), paramsOmitted);
 }
 
 
@@ -12597,11 +12598,11 @@ impl Okx {
         if (symbolsNormalized.is_none()) || (symbolsLength != 1) {
             let uly: Option<String> = self.safe_string_k_opt(&params, "uly", &[]);
             if (uly.is_some()) {
-                request.insert("uly".into(), uly.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("uly".into(), Value::from(uly.as_deref()));
             }
             let instFamily: Option<String> = self.safe_string_k_opt(&params, "instFamily", &[]);
             if (instFamily.is_some()) {
-                request.insert("instFamily".into(), instFamily.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("instFamily".into(), Value::from(instFamily.as_deref()));
             }
             if (uly.is_none()) && (instFamily.is_none()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchAllGreeks() requires either a uly or instFamily parameter")));
@@ -12838,7 +12839,7 @@ impl Okx {
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("uly".to_string(), Value::Str(format!("{}{}", crate::value::KeyRead::key_read(&&currency, "code"), "-USD").into()));
+                m.insert("uly".to_string(), Value::Str(format!("{}{}", self.safe_string_k(&currency, "code", &[Value::Str("".into())]), Value::Str("-USD".into())).into()));
                 m.insert("instType".to_string(), Value::Str("OPTION".into()));
             m
         });
@@ -13552,7 +13553,7 @@ impl Okx {
             request.insert("period".into(), Value::from(period.as_deref()));
         }
         let requestWindowparamsWindowVariable = self.handle_trading_statistics_window(Value::Map(request), period.as_deref().unwrap_or_default(), since, limit, &[&params]);
-        let requestWindow: crate::value::Dict = requestWindowparamsWindowVariable.0.into_dict();
+        let requestWindow: crate::value::Dict = requestWindowparamsWindowVariable.0;
         let paramsWindow: crate::value::Dict = requestWindowparamsWindowVariable.1;
         let __ws_arg_103 = self.extend(requestWindow, &[&paramsWindow]);
         let response: crate::value::Dict = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[&__ws_arg_103]).await.unwrap_or_default();

@@ -227,7 +227,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         // value / entry price / pnl for outcome tokens, so they are computed here
         let outcomeObj: Option<crate::types::Market> = self.safe_outcome(None, market);
         let totalStr: Option<String> = self.safe_string_k_opt(&position, "total", &[]);
-        let total: Option<f64> = self.parse_number(&totalStr, &[]).as_f64();
+        let total: Option<f64> = self.parse_number(Value::from(totalStr.as_deref()), &[]).as_f64();
         let entryNtlStr: Option<String> = self.safe_string_k_opt(&position, "entryNtl", &[]);
         let mut entryPrice: Option<f64> = None;
         if (entryNtlStr.is_some()) && (totalStr.is_some()) && !(crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".into())).as_bool() == Some(true)) {
@@ -238,7 +238,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut unrealizedPnl: Option<f64> = None; // value - entry notional
         if (markPxStr.is_some()) && (totalStr.is_some()) {
             let notionalStr: Option<String> = crate::precise::Precise::stringMul(&totalStr, &markPxStr).as_str().map(str::to_owned);
-            notional = self.parse_number(&notionalStr, &[]).as_f64();
+            notional = self.parse_number(Value::from(notionalStr.as_deref()), &[]).as_f64();
             if (entryNtlStr.is_some()) {
                 unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr, &entryNtlStr), &[]).as_f64();
             }
@@ -1026,7 +1026,7 @@ impl Hyperliquid {
         let name: String = self.safe_string_k(&outcomeInfo, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sideSpecs: crate::value::List = self.safe_list_k_t(&outcomeInfo, "sideSpecs");
         let desc: crate::value::Dict = self.parse_outcome_description(description.as_str());
-        let parentSymbol: Value = self.build_outcome_parent_symbol(&desc, outcomeKey.as_str().unwrap_or_default(), &[&Value::from(name.clone()), &question]).map(Value::from).unwrap_or(Value::Null);
+        let parentSymbol: Value = self.build_outcome_parent_symbol(&desc, outcomeKey.as_str().unwrap_or_default(), &[&Value::from(name.as_str()), &question]).map(Value::from).unwrap_or(Value::Null);
         let yesEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(0));
         let noEncoding: Value = self.outcome_encoding(outcomeId.as_f64().unwrap_or_default(), Value::Int(1));
         let yesOutcomeSymbol: String = format!("{}{}", parentSymbol, ":YES");
@@ -1049,7 +1049,7 @@ impl Hyperliquid {
                     (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()),
                     "-").into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), "T").into()),
                     (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), ":00Z");
-                expiryMs = self.parse8601(Value::from(isoStr.clone()));
+                expiryMs = self.parse8601(Value::from(isoStr.as_str()));
                 expiryDatetime = Some(isoStr);
             }
         }
@@ -1088,8 +1088,8 @@ impl Hyperliquid {
         m.insert("tokenName".to_string(), self.outcome_token(yesEncoding.as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), Value::Int(0));
         m.insert("outcomeId".to_string(), outcomeId.clone());
-        m.insert("name".to_string(), Value::from(name.clone()));
-        m.insert("description".to_string(), Value::from(description.clone()));
+        m.insert("name".to_string(), Value::from(name.as_str()));
+        m.insert("description".to_string(), Value::from(description.as_str()));
         m.insert("parsedDescription".to_string(), Value::from(&desc));
     m
 }));
@@ -1111,8 +1111,8 @@ impl Hyperliquid {
         m.insert("tokenName".to_string(), self.outcome_token(noEncoding.as_f64().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), Value::Int(1));
         m.insert("outcomeId".to_string(), outcomeId.clone());
-        m.insert("name".to_string(), Value::from(name));
-        m.insert("description".to_string(), Value::from(description.clone()));
+        m.insert("name".to_string(), Value::from(name.as_str()));
+        m.insert("description".to_string(), Value::from(description.as_str()));
         m.insert("parsedDescription".to_string(), Value::from(&desc));
     m
 }));
@@ -1123,10 +1123,10 @@ impl Hyperliquid {
         m.insert("id".to_string(), outcomeKey.clone());
         m.insert("market".to_string(), parentSymbol.clone());
         m.insert("base".to_string(), Value::Array(if let Some(__s) = parentSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-        m.insert("quote".to_string(), Value::from(quoteCurrency.clone()));
+        m.insert("quote".to_string(), Value::from(quoteCurrency.as_str()));
         m.insert("settle".to_string(), Value::Null);
         m.insert("baseId".to_string(), outcomeKey);
-        m.insert("quoteId".to_string(), Value::from(quoteCurrency));
+        m.insert("quoteId".to_string(), Value::from(quoteCurrency.as_str()));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("prediction".into()));
         m.insert("marketType".to_string(), Value::Str("binary".into()));
@@ -1515,15 +1515,15 @@ impl Hyperliquid {
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
         let levels: crate::value::List = self.safe_list_k_t(&response, "levels");
-        let rawBids: crate::value::List = self.safe_list_t(&levels, Value::Int(0));
-        let rawAsks: crate::value::List = self.safe_list_t(&levels, Value::Int(1));
+        let rawBids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&levels, Value::Int(0)));
+        let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&levels, Value::Int(1)));
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (rawBids.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&rawBids, Value::Int(i));
+            let entry: crate::value::Dict = rawBids.get(i as usize).cloned().unwrap_or_default();
             bids.push(Value::from(vec![self.safe_number_k(&entry, "px", &[]), self.safe_number_k(&entry, "sz", &[])]));
         }
         }
@@ -1531,7 +1531,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rawAsks.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&rawAsks, Value::Int(i));
+            let entry: crate::value::Dict = rawAsks.get(i as usize).cloned().unwrap_or_default();
             asks.push(Value::from(vec![self.safe_number_k(&entry, "px", &[]), self.safe_number_k(&entry, "sz", &[])]));
         }
         }
@@ -1668,12 +1668,12 @@ impl Hyperliquid {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(&response, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let coin: Option<String> = self.safe_string_k_opt(&balance, "coin", &[]);
             let total: Option<String> = self.safe_string_k_opt(&balance, "total", &[]);
             let used: Option<String> = self.safe_string_k_opt(&balance, "hold", &[]);
@@ -1905,7 +1905,7 @@ impl Hyperliquid {
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (candidates.len() as i64) } {
             let key: Option<String> = candidates.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (matches!((&self.exchange.outcomes, key.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
-                return self.safe_dict(&self.exchange.outcomes, key.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+                return self.safe_dict(&self.exchange.outcomes, Value::from(key.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
@@ -2002,9 +2002,9 @@ impl Hyperliquid {
         if isMarket {
             let priceStr: Option<String> = self.number_to_string(&price);
             px = (if isBuy { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) } else { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".into()), &slippage)).as_str().map(str::to_owned) });
-            px = self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), px.map(Value::from).unwrap_or(Value::Null));
+            px = self.price_to_precision(Value::from(marketSymbol.as_deref()), px.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            px = self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(price));
+            px = self.price_to_precision(Value::from(marketSymbol.as_deref()), &Value::from(price));
         }
         if (px.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() could not determine price")));
@@ -2030,7 +2030,7 @@ impl Hyperliquid {
             m
         });
         if (clientOrderId.is_some()) {
-            std::sync::Arc::make_mut(&mut orderObj).insert("c".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            std::sync::Arc::make_mut(&mut orderObj).insert("c".into(), Value::from(clientOrderId.as_deref()));
         }
         let vaultAddressOption: Option<String> = (self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[])).0.as_str().map(str::to_owned);
         let vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
@@ -2250,7 +2250,7 @@ impl Hyperliquid {
             if (error.is_some()) {
                 panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrders() failed for ").into()), self.safe_string(&requestIds, Value::Int(i), &[self.safe_string(&requestIds, Value::Int(0), &[])])).into()), ": ").into()), error.as_deref().unwrap_or("null"))));
             }
-            let success: bool = (status.as_str() == Some("success")) || (self.safe_string_k(&status, "status", &[]).as_str() == Some("success"));
+            let success: bool = (self.safe_string(&statuses, Value::Int(i), &[]).as_str() == Some("success")) || (self.safe_string_k(&status, "status", &[]).as_str() == Some("success"));
             if !success {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " cancelOrders() received an unexpected status: ").into()), json_stringify(&status))));
             }
@@ -2519,7 +2519,7 @@ impl Hyperliquid {
             m
         });
         let statusLower: Option<String> = (if ((status.is_some()) && (status != Some(""))) { status.map(str::to_owned).as_deref().map(str::to_lowercase) } else { None });
-        return self.safe_string_opt(&statuses, &statusLower, &[&statusLower]);
+        return self.safe_string_opt(&statuses, Value::from(statusLower.as_deref()), &[&statusLower]);
 }
 
     pub fn parse_time_in_force(&self, timeInForce: Option<&str>) -> Option<String> {
@@ -2832,7 +2832,7 @@ impl Hyperliquid {
                     (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(0).take(4).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(4).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()),
                     "-").into()), (if let Some(__s) = ymd.as_deref() { Some(__s.chars().skip(6).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), "T").into()),
                     (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(0).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), ":").into()), (if let Some(__s) = hm.as_deref() { Some(__s.chars().skip(2).take(2).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null)).into()), ":00Z");
-                expiryMs = self.parse8601(Value::from(isoStr.clone()));
+                expiryMs = self.parse8601(Value::from(isoStr.as_str()));
                 expiryDatetime = Some(isoStr);
             }
         }
@@ -2851,9 +2851,9 @@ impl Hyperliquid {
         let endValue: Option<i64> = (if (expiryMs.is_some()) { expiryMs } else { firstExpiry });
         return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), parentSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("slug".to_string(), parentSymbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("event".to_string(), parentSymbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(parentSymbol.as_deref()));
+        m.insert("slug".to_string(), Value::from(parentSymbol.as_deref()));
+        m.insert("event".to_string(), Value::from(parentSymbol.as_deref()));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
         m.insert("markets".to_string(), Value::Arr(markets));
         m.insert("url".to_string(), Value::Null);

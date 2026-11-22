@@ -262,12 +262,12 @@ impl Blockchaincom {
         // in that window invisible to the consumer forever (same class as
         // issue #26773)
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), message); }
-        let balances: crate::value::List = __pro_message.key_list("balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("balances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (balances.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let entry: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -366,7 +366,7 @@ impl Blockchaincom {
             let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Str("-".into())]).as_str().map(str::to_owned);
             let messageHash: String = format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null"));
-            let request: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+            let request: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
             let timeframeId: Option<String> = self.safe_string_k_opt(&request, "granularity", &[]);
             let timeframe: Option<String> = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
             let ohlcv: crate::value::List = __pro_message.key_list("price");
@@ -631,7 +631,7 @@ impl Blockchaincom {
         return self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "trade_id", &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Str("-".into())]));
         m.insert("order".to_string(), Value::Null);
@@ -855,7 +855,7 @@ impl Blockchaincom {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&order, "orderID", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&order, "clOrdID", &[]));
-        m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("datetime".to_string(), Value::from(datetime.as_deref()));
         m.insert("timestamp".to_string(), Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))));
         m.insert("status".to_string(), self.parse_ws_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
@@ -992,7 +992,7 @@ impl Blockchaincom {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null")).into()), ":").into()), type_var);
         let datetime: Option<String> = self.safe_string_k_opt(&message, "timestamp", &[]);
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.counted_order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
@@ -1084,7 +1084,7 @@ impl Blockchaincom {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let isAuthenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let isAuthenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!isAuthenticated) {
             self.check_required_credentials(&[]);
             let request: indexmap::IndexMap<String, Value> = ({

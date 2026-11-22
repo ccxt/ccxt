@@ -371,7 +371,7 @@ impl Cex {
         let url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = "trades".to_string();
         let subscriptionHash: String = format!("{}{}", "old:", symbolValue);
-        let client: Value = self.safe_value(self.clients.clone(), Value::from(url.clone()), &[]);
+        let client: Value = self.safe_value(self.clients.clone(), Value::from(url.as_str()), &[]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         if (client != Value::Null) {
             let subscriptionKeys: Vec<Value> = __ch.subscription_keys();
@@ -1008,7 +1008,7 @@ impl Cex {
                 m.insert("id".to_string(), self.safe_string_k(&trade, "id", &[]));
                 m.insert("order".to_string(), self.safe_string_k(&trade, "order", &[]));
                 m.insert("info".to_string(), trade.clone());
-                m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+                m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
                 m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
                 m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::Null);
@@ -1129,7 +1129,7 @@ impl Cex {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let ordersBySymbol: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.clone()));
+        let ordersBySymbol: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_str()));
         let mut order: Option<crate::value::Dict> = self.safe_dict_o(&ordersBySymbol, orderId.map(Value::from).unwrap_or(Value::Null));
         if (order.is_none()) {
             // market comes from safeMarket, so the parser never takes its undefined returns here
@@ -2089,8 +2089,8 @@ impl Cex {
             let error: Option<String> = self.safe_string_k_opt(&data, "error", &[]);
             let event: String = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), event).into()), " ").into()), error.as_deref().unwrap_or("null"));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
@@ -2174,7 +2174,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             self.check_required_credentials(&[]);
             let nonce: String = format!("{}", self.seconds());

@@ -85,7 +85,7 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askQty", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "openPrice", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(&ticker, "prevClosePrice", &[]));
         m.insert("change".to_string(), self.safe_string_k(&ticker, "priceChange", &[]));
@@ -434,11 +434,11 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), (if isSpot { Value::Null } else { quote.map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("quote".to_string(), Value::from(quote.as_deref()));
+        m.insert("settle".to_string(), (if isSpot { Value::Null } else { Value::from(quote.as_deref()) }));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), (if isSpot { Value::Null } else { quoteId.map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("quoteId".to_string(), Value::from(quoteId.as_deref()));
+        m.insert("settleId".to_string(), (if isSpot { Value::Null } else { Value::from(quoteId.as_deref()) }));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), (if isSpot { Value::Bool(false) } else { Value::Null }));
@@ -680,14 +680,14 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("referenceId".to_string(), self.safe_string_k(&item, "txId", &[]));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), self.safe_number_k(&item, "amount", &[]));
         m.insert("before".to_string(), Value::Null);
         m.insert("after".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&item, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number2(item, Value::Str("fees".into()), Value::Str("fee".into()), &[]));
     m
 }));
@@ -781,14 +781,14 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_transaction_type(self.safe_string_k(&transaction, "type", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(&transaction, "status", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);
         m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number2(transaction, Value::Str("fees".into()), Value::Str("fee".into()), &[]));
     m
 }));
@@ -2343,12 +2343,12 @@ impl Btse {
             if (assets.is_some()) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                let inUse: crate::value::List = self.safe_list_k_t(&row, "assetsInUse");
+                let inUse: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&row, "assetsInUse"));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_1: bool = true;
                     while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (inUse.len() as i64) } {
-                    let usedRow: crate::value::Dict = self.safe_dict_t(&inUse, Value::Int(j));
+                    let usedRow: crate::value::Dict = inUse.get(j as usize).cloned().unwrap_or_default();
                     let usedCode: Option<String> = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]).as_str(), None);
                     if (usedCode.is_none()) {
                         continue;
@@ -3185,7 +3185,7 @@ impl Btse {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("orderSide".to_string(), Value::from(upperSide.clone()));
+                m.insert("orderSide".to_string(), Value::from(upperSide.as_str()));
             m
         });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
@@ -3246,7 +3246,7 @@ impl Btse {
         }
         let mut response: Option<crate::value::List> = None;
         if !isAlgoOrder {
-            request.insert("orderType".into(), Value::from(typeValue.clone()));
+            request.insert("orderType".into(), Value::from(typeValue.as_str()));
             if isLimitOrder {
                 request.insert("orderPrice".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(price))));
             }
@@ -3311,7 +3311,7 @@ impl Btse {
                 request.insert("triggerPriceType".into(), self.encode_trigger_price_type(Some(triggerPriceType.as_str())).map(Value::from).unwrap_or(Value::Null));
                 query = self.omit_t(Value::Dict(query), &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
-                request.insert("orderType".into(), Value::from(typeValue.clone()));
+                request.insert("orderType".into(), Value::from(typeValue.as_str()));
                 if (typeValue == "OCO") {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -3475,7 +3475,7 @@ impl Btse {
         }
         let mut response: Option<crate::value::Dict> = None;
         if !isAlgoOrder {
-            request.insert("orderType".into(), Value::from(typeValue.clone()));
+            request.insert("orderType".into(), Value::from(typeValue.as_str()));
             if isLimitOrder {
                 request.insert("orderPrice".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(price))));
             }
@@ -3525,7 +3525,7 @@ impl Btse {
                 }
                 query = self.omit_t(Value::Dict(query), &["triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"], &[]);
             }  else {
-                request.insert("orderType".into(), Value::from(typeValue.clone()));
+                request.insert("orderType".into(), Value::from(typeValue.as_str()));
                 if (typeValue == "OCO") {
                     // the price argument is the limit price of the take profit leg,
                     // the stopPrice param is the limit price of the stop loss leg
@@ -3617,7 +3617,7 @@ impl Btse {
         });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            request.insert("clOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clOrderId".into(), Value::from(clientOrderId.as_deref()));
         }  else if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrder() requires an id argument or a clientOrderId parameter")));
         }  else {
@@ -3695,7 +3695,7 @@ impl Btse {
         });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            request.insert("clOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clOrderId".into(), Value::from(clientOrderId.as_deref()));
         }  else if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument or a clientOrderId parameter")));
         }  else {
@@ -3704,7 +3704,7 @@ impl Btse {
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (clientOrderId.is_some()) { Value::Str("clientOrderId".into()) } else { Value::Null }, &[]);
         let triggerPrice: Option<String> = self.safe_string_k_opt(&paramsOmitted, "triggerPrice", &[]);
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
         }
         let query: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit_t(&paramsOmitted, Value::Str("triggerPrice".into()), &[]) } else { paramsOmitted });
         if (amount.is_some()) {
@@ -3782,7 +3782,7 @@ impl Btse {
         });
         let clientOrderId: Option<String> = self.safe_string_k_opt(&params, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
-            request.insert("clOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("clOrderId".into(), Value::from(clientOrderId.as_deref()));
         }  else if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrder() requires an id argument or a clientOrderId parameter")));
         }  else {
@@ -4133,7 +4133,7 @@ impl Btse {
         let walletType: String = self.safe_string_k(&params, "walletType", &[Value::Str("SPOT".into())]).as_str().unwrap_or("SPOT").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("walletType".to_string(), Value::from(walletType.clone()));
+                m.insert("walletType".to_string(), Value::from(walletType.as_str()));
             m
         });
         // the endpoint applies a server side history type filter sent as a
@@ -4375,7 +4375,7 @@ impl Btse {
             m
         });
         let walletType: String = self.safe_string_k(&params, "walletType", &[Value::Str("SPOT".into())]).as_str().unwrap_or("SPOT").to_string();
-        request.insert("walletType".into(), Value::from(walletType.clone()));
+        request.insert("walletType".into(), Value::from(walletType.as_str()));
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("walletType".into()), &[]);
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
@@ -4875,7 +4875,7 @@ impl Btse {
         let orderType: Option<String> = orderTypeparamsOrderTypeVariable.0.as_str().map(str::to_owned);
         let paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.1;
         let typeUpper: Option<String> = orderType.as_deref().map(str::to_uppercase);
-        request.insert("orderType".into(), typeUpper.clone().map(Value::from).unwrap_or(Value::Null));
+        request.insert("orderType".into(), Value::from(typeUpper.as_deref()));
         if (typeUpper.as_deref() == Some("LIMIT")) {
             let price: Option<String> = self.safe_string_k_opt(&paramsOrderType, "price", &[]);
             if (price.is_none()) {

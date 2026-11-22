@@ -91,7 +91,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -402,11 +402,11 @@ impl crate::exchange::DerivedExchange for Onetrading {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), (if isContract { quote.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("quote".to_string(), Value::from(quote.as_deref()));
+        m.insert("settle".to_string(), (if isContract { Value::from(quote.as_deref()) } else { Value::Null }));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), (if isContract { quoteId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("quoteId".to_string(), Value::from(quoteId.as_deref()));
+        m.insert("settleId".to_string(), (if isContract { Value::from(quoteId.as_deref()) } else { Value::Null }));
         m.insert("type".to_string(), Value::from(marketType));
         m.insert("spot".to_string(), Value::Bool(!isContract));
         m.insert("margin".to_string(), Value::Bool(false));
@@ -511,7 +511,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
-        let balances: crate::value::List = self.safe_list_k_t(&response, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -521,7 +521,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency_code", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -614,7 +614,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -644,8 +644,8 @@ impl crate::exchange::DerivedExchange for Onetrading {
         let message: Option<String> = self.safe_string_k_opt(response, "error", &[]);
         if (message.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1962,7 +1962,7 @@ impl Onetrading {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_code".to_string(), Value::from((market).id.as_deref()));
-                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
+                m.insert("type".to_string(), Value::from(uppercaseType.as_str()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("amount".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
             m
@@ -1986,7 +1986,7 @@ impl Onetrading {
         }
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
         if (clientOrderId.is_some()) {
-            request.insert("client_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("client_id".into(), Value::from(clientOrderId.as_deref()));
         }
         let triggerKeys: Value = (if (triggerPrice.is_some()) { Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("trigger_price".into()), Value::Str("stopPrice".into())]) } else { Value::from(vec![]) });
         let clientOrderIdKeys: Value = (if (clientOrderId.is_some()) { Value::from(vec![Value::Str("clientOrderId".into()), Value::Str("client_id".into())]) } else { Value::from(vec![]) });

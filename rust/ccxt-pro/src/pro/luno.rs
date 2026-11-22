@@ -558,7 +558,7 @@ impl Luno {
         let deleteUpdate: Option<crate::value::Dict> = self.safe_dict_k_o(message, "delete_update");
         if (deleteUpdate.is_some()) {
             let orderId: Option<String> = self.safe_string_k_opt(&deleteUpdate, "order_id", &[]);
-            asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
+            asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), Value::from(orderId.as_deref())]));
             bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.map(Value::from).unwrap_or(Value::Null)]));
         }
 }

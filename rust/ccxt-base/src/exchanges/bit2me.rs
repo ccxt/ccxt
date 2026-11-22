@@ -87,7 +87,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -595,10 +595,10 @@ impl crate::exchange::DerivedExchange for Bit2me {
         if (errorCode.is_some()) || (errorsList.is_some()) || (payloadCode.is_some()) {
             let message: Option<String> = self.safe_string_n_opt(response, Value::from(vec![Value::Str("message".into()), Value::Str("description".into()), Value::Str("error".into())]), &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &payloadCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &payloadCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1741,7 +1741,7 @@ impl Bit2me {
             request.insert("orderType".into(), Value::Str("oco".into()));
             request.insert("amount".into(), Value::from(self.amount_to_precision(Some(symbol), Value::from(amount))));
             request.insert("takeProfitPrice".into(), Value::from(self.price_to_precision(Some(symbol), takeProfitPrice.map(Value::from).unwrap_or(Value::Null))));
-            request.insert("stopPrice".into(), Value::from(self.price_to_precision(Some(symbol), &stopLossPrice)));
+            request.insert("stopPrice".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(stopLossPrice.as_deref()))));
             let mut stopLossLimit: Option<String> = stopLimitPrice;
             if (stopLossLimit.is_none()) {
                 if (price.is_some()) {
@@ -1931,7 +1931,7 @@ impl Bit2me {
             let query: crate::value::Dict = self.omit_t(&params, Value::Str("clientOrderId".into()), &[]);
             let requestByClientId: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("clientOrderId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("clientOrderId".to_string(), Value::from(clientOrderId.as_deref()));
                 m
             });
             let __ws_arg_7 = self.extend(Value::Map(requestByClientId), &[&query]);

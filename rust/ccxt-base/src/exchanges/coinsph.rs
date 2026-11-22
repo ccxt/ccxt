@@ -341,7 +341,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
-        let balances: crate::value::List = self.safe_list_k_t(&response, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -353,7 +353,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -530,7 +530,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -545,10 +545,10 @@ impl crate::exchange::DerivedExchange for Coinsph {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -605,7 +605,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -634,8 +634,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
         let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
         if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) && (responseCode.as_deref() != Some("0")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

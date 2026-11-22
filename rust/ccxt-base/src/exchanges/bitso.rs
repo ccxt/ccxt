@@ -88,7 +88,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -263,7 +263,7 @@ impl crate::exchange::DerivedExchange for Bitso {
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
         let payload: crate::value::Dict = self.safe_dict_k_t(&response, "payload");
-        let balances: crate::value::List = self.safe_list_k_t(&payload, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&payload, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -275,7 +275,7 @@ impl crate::exchange::DerivedExchange for Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Bitso {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -499,11 +499,11 @@ impl crate::exchange::DerivedExchange for Bitso {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&transaction, Value::Str("wid".into()), Value::Str("fid".into()), &[]));
         m.insert("txid".to_string(), self.safe_string_k(&details, "tx_hash", &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCodeUpper.map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressFrom".to_string(), receivingAddress.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), (if (withdrawalAddress.is_some()) { withdrawalAddress.clone().map(Value::from).unwrap_or(Value::Null) } else { receivingAddress.map(Value::from).unwrap_or(Value::Null) }));
+        m.insert("addressFrom".to_string(), Value::from(receivingAddress.as_deref()));
+        m.insert("address".to_string(), (if (withdrawalAddress.is_some()) { Value::from(withdrawalAddress.as_deref()) } else { Value::from(receivingAddress.as_deref()) }));
         m.insert("addressTo".to_string(), withdrawalAddress.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("type".to_string(), (if (withdrawId.is_none()) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) }));
@@ -581,7 +581,7 @@ impl crate::exchange::DerivedExchange for Bitso {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if (in_op(&response, &Value::Str("success".into()))) {
+        if (self.safe_bool_k(&response, "success", &[]) != Value::Null) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
@@ -593,7 +593,7 @@ impl crate::exchange::DerivedExchange for Bitso {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
                 }
                 let codeError: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
-                self.throw_exactly_matched_exception(&self.exceptions, &codeError, &feedback);
+                self.throw_exactly_matched_exception(&self.exceptions, &codeError, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -1312,7 +1312,7 @@ impl Bitso {
             let makerString: Option<String> = self.safe_string_k_opt(&flatRate, "maker", &[]);
             let taker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&takerString, &Value::Str("100".into())), &[]).as_f64();
             let maker: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&makerString, &Value::Str("100".into())), &[]).as_f64();
-            let feeTiers: crate::value::List = self.safe_list_k_t(&fees, "structure");
+            let feeTiers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&fees, "structure"));
             let mut fee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("taker".to_string(), Value::from(taker));
@@ -1327,7 +1327,7 @@ impl Bitso {
                                 let mut j: i64 = 0;
                 let mut __for_first_0: bool = true;
                 while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (feeTiers.len() as i64) } {
-                let tier: crate::value::Dict = self.safe_dict_t(&feeTiers, Value::Int(j));
+                let tier: crate::value::Dict = feeTiers.get(j as usize).cloned().unwrap_or_default();
                 let volume: Option<f64> = self.safe_number_k(&tier, "volume", &[]).as_f64();
                 let takerFee: Option<f64> = self.safe_number_k(&tier, "taker", &[]).as_f64();
                 let makerFee: Option<f64> = self.safe_number_k(&tier, "maker", &[]).as_f64();
@@ -1346,13 +1346,13 @@ impl Bitso {
                 m
             });
             fee.insert("tiers".into(), Value::Map(tiers));
-            let baseCurrency: crate::value::Dict = self.safe_dict_t(&currencies, &base);
+            let baseCurrency: crate::value::Dict = self.safe_dict_t(&currencies, Value::from(base.as_deref()));
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
-        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+        m.insert("base".to_string(), Value::from(base.as_deref()));
+        m.insert("quote".to_string(), Value::from(quote.as_deref()));
         m.insert("settle".to_string(), Value::Null);
         m.insert("baseId".to_string(), Value::from(baseId));
         m.insert("quoteId".to_string(), Value::from(quoteId));

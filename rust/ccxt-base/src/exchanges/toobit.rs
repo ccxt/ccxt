@@ -73,7 +73,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "o", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(&ticker, "pc", &[]));
@@ -469,7 +469,7 @@ impl crate::exchange::DerivedExchange for Toobit {
     fn parse_deposit_address(&self, depositAddress: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
         let depositAddress: Value = depositAddress.into();
         let address: Option<String> = self.safe_string_k_opt(&depositAddress, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
@@ -709,7 +709,9 @@ impl crate::exchange::DerivedExchange for Toobit {
         let tagFrom: Option<String> = self.safe_string_k_opt(&transaction, "fromAddressTag", &[]);
         let addressTo: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
         let addressFrom: Option<String> = self.safe_string_k_opt(&transaction, "fromAddress", &[]);
-        let isWithdraw: bool = (matches!(&transaction, Value::Dict(__d) if __d.contains_key("arriveQuantity"))) || (matches!(&transaction, Value::Dict(__d) if __d.contains_key("success")));
+        let arriveQuantity: Option<String> = self.safe_string_k_opt(&transaction, "arriveQuantity", &[]);
+        let success: Option<bool> = self.safe_bool_k_opt(&transaction, "success", &[]);
+        let isWithdraw: bool = (arriveQuantity.is_some()) || (success.is_some());
         let type_var: String = (if isWithdraw { "withdrawal".to_string() } else { "deposit".to_string() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -725,7 +727,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), tagFrom.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), Value::from(type_var.clone()));
+        m.insert("type".to_string(), Value::from(type_var.as_str()));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "quantity", &[]));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str(), Some(type_var.as_str())).map(Value::from).unwrap_or(Value::Null));
@@ -831,7 +833,7 @@ impl crate::exchange::DerivedExchange for Toobit {
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
@@ -857,8 +859,8 @@ impl crate::exchange::DerivedExchange for Toobit {
         let message: Option<String> = self.safe_string_k_opt(response, "msg", &[]);
         if ((errorCode.is_some()) && (errorCode.as_deref() != Some(""))) && (errorCode.as_deref() != Some("200")) && (errorCode.as_deref() != Some("0")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2532,23 +2534,19 @@ impl Toobit {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let mut response: Value = Value::from(vec![]);
+        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
         if (endpoint.as_deref() == Some("index")) {
             request.insert("symbol".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "indexToken", &[])); // index klines take the index id instead of the market id
             let __ws_arg_2 = self.extend(&request, &[&paramsPrice]);
-            response = self.common_get_quote_v1_index_klines(&[&__ws_arg_2]).await;
+            let indexResponse: crate::value::Dict = self.common_get_quote_v1_index_klines(&[&__ws_arg_2]).await.unwrap_or_default();
+            candles = self.safe_list_k_t(&indexResponse, "data");
         }  else if (endpoint.as_deref() == Some("mark")) {
             let __ws_arg_3 = self.extend(&request, &[&paramsPrice]);
-            response = self.common_get_quote_v1_mark_price_klines(&[&__ws_arg_3]).await;
+            let markResponse: crate::value::Dict = self.common_get_quote_v1_mark_price_klines(&[&__ws_arg_3]).await.unwrap_or_default();
+            candles = self.safe_list_k_t(&markResponse, "data");
         }  else {
             let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsPrice]);
-            response = self.call_method(Value::Str("common_get_quote_v1_klines".into()), &[&__ws_arg_4]).await;
-        }
-        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = response {
-            candles = __a;
-        }  else {
-            candles = self.safe_list_k_t(&response, "data");
+            candles = self.common_get_quote_v1_klines(&[&__ws_arg_4]).await.unwrap_or_default();
         }
         return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
         Value::Null

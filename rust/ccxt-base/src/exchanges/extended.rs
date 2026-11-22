@@ -876,8 +876,8 @@ impl crate::exchange::DerivedExchange for Extended {
             let error: crate::value::Dict = self.safe_dict_k_t(&response, "error");
             let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2014,7 +2014,7 @@ impl Extended {
         //       ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut tickers: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2023,7 +2023,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let marketData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let marketData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&marketData, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let stats: crate::value::Dict = self.safe_dict_k_t(&marketData, "marketStats");
@@ -2243,7 +2243,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -2341,7 +2341,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -2576,7 +2576,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -2889,7 +2889,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -2982,7 +2982,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -3111,8 +3111,8 @@ impl Extended {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("chainId".to_string(), Value::from(chainId.clone()));
+                m.insert("amount".to_string(), Value::from(amountString.as_deref()));
+                m.insert("chainId".to_string(), Value::from(chainId.as_str()));
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
@@ -3214,7 +3214,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -3272,9 +3272,9 @@ impl Extended {
         let settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[&params]).as_map().cloned().unwrap_or_default();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fromAccount".to_string(), Value::from(currentAccountId.clone()));
+                m.insert("fromAccount".to_string(), Value::from(currentAccountId.as_str()));
                 m.insert("toAccount".to_string(), toAccount.clone());
-                m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), Value::from(amountString.as_deref()));
                 m.insert("transferredAsset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("settlement".to_string(), Value::Map(settlement));
             m
@@ -3702,7 +3702,7 @@ impl Extended {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params = get_arg(optional_args, 3, Value::Map({
@@ -3710,10 +3710,7 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsList: Option<crate::value::List> = symbols.clone().into_opt_list();
-        if matches!(&symbols, Value::Str(_)) {
-            symbolsList = Some(std::sync::Arc::new(vec![symbols]));
-        }
+        let mut symbolsList: Option<crate::value::List> = symbols.into_opt_list();
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
@@ -3769,7 +3766,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }
@@ -3787,7 +3784,7 @@ impl Extended {
         let roundUp: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let resolutionString: Option<String> = self.number_to_string(Value::from(resolution));
         let precise: Option<String> = crate::precise::Precise::stringMul(&amount, &resolutionString).as_str().map(str::to_owned);
-        let result: Option<String> = self.decimal_to_precision(precise.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]).as_str().map(str::to_owned);
+        let result: Option<String> = self.decimal_to_precision(Value::from(precise.as_deref()), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES), Value::Int(crate::runtime::NO_PADDING)]).as_str().map(str::to_owned);
         if roundUp && crate::precise::Precise::stringGt(&precise, &result).as_bool() == Some(true) {
             return crate::precise::Precise::stringAdd(&result, &Value::Str("1".into()));
         }
@@ -3839,7 +3836,7 @@ impl Extended {
         let baseRoundUp: bool = Some(isBuy).unwrap_or_default();
         let quoteRoundUp: bool = Some(isBuy).unwrap_or_default();
         let mut baseAmount: Option<String> = self.get_extended_stark_amount(Value::from(amountString), syntheticResolution, &[&Value::Bool(baseRoundUp)]).as_str().map(str::to_owned);
-        let mut collateralAmount: Option<String> = self.get_extended_stark_amount(quoteAmount.clone().map(Value::from).unwrap_or(Value::Null), collateralResolution, &[&Value::Bool(quoteRoundUp)]).as_str().map(str::to_owned);
+        let mut collateralAmount: Option<String> = self.get_extended_stark_amount(Value::from(quoteAmount.as_deref()), collateralResolution, &[&Value::Bool(quoteRoundUp)]).as_str().map(str::to_owned);
         if Some(isBuy) == Some(true) {
             collateralAmount = crate::precise::Precise::stringNeg(&collateralAmount).as_str().map(str::to_owned);
         }  else {
@@ -3852,7 +3849,7 @@ impl Extended {
                 m.insert("collateralPosition".to_string(), collateralPosition.map(Value::from).unwrap_or(Value::Null));
                 m.insert("baseAssetId".to_string(), syntheticId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("baseAmount".to_string(), baseAmount.map(Value::from).unwrap_or(Value::Null));
-                m.insert("quoteAssetId".to_string(), collateralId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("quoteAssetId".to_string(), Value::from(collateralId.as_deref()));
                 m.insert("quoteAmount".to_string(), collateralAmount.map(Value::from).unwrap_or(Value::Null));
                 m.insert("feeAssetId".to_string(), collateralId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("feeAmount".to_string(), feeAmount.map(Value::from).unwrap_or(Value::Null));
@@ -4046,14 +4043,14 @@ impl Extended {
         let settlementParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("totalFee".to_string(), totalFee.map(Value::from).unwrap_or(Value::Null));
-                m.insert("starkKey".to_string(), starkKey.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("starkKey".to_string(), Value::from(starkKey.as_deref()));
                 m.insert("syntheticId".to_string(), syntheticId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("syntheticResolution".to_string(), Value::from(syntheticResolution));
                 m.insert("collateralId".to_string(), collateralId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("collateralResolution".to_string(), Value::from(collateralResolution));
                 m.insert("settlementExpiration".to_string(), Value::from(settlementExpiration));
-                m.insert("nonce".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("nonce".to_string(), Value::from(nonce.as_deref()));
+                m.insert("collateralPosition".to_string(), Value::from(collateralPosition.as_deref()));
             m
         });
         let isBuy: bool = uppercaseSide == "BUY";
@@ -4064,8 +4061,8 @@ impl Extended {
                 m.insert("market".to_string(), Value::from((market).id.as_deref()));
                 m.insert("type".to_string(), Value::from(uppercaseType));
                 m.insert("side".to_string(), Value::from(uppercaseSide));
-                m.insert("qty".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("price".to_string(), priceString.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("qty".to_string(), Value::from(amountString.as_deref()));
+                m.insert("price".to_string(), Value::from(priceString.as_deref()));
                 m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiryEpochMillis".to_string(), Value::from(expiryEpochMillis));
                 m.insert("fee".to_string(), Value::from(fee));
@@ -4094,8 +4091,8 @@ impl Extended {
         m.insert("s".to_string(), settlement.get("s").cloned().unwrap_or(Value::Null));
     m
 }));
-        m.insert("starkKey".to_string(), starkKey.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("starkKey".to_string(), Value::from(starkKey.as_deref()));
+        m.insert("collateralPosition".to_string(), Value::from(collateralPosition.as_deref()));
     m
 }));
         let mut triggerPriceStr: Option<String> = self.safe_string2_opt(&paramsBuilder, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -4127,8 +4124,8 @@ impl Extended {
         m.insert("s".to_string(), stopLossSettlement.get("s").cloned().unwrap_or(Value::Null));
     m
 }));
-        m.insert("starkKey".to_string(), starkKey.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("collateralPosition".to_string(), collateralPosition.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("starkKey".to_string(), Value::from(starkKey.as_deref()));
+        m.insert("collateralPosition".to_string(), Value::from(collateralPosition.as_deref()));
     m
 }));
                     m
@@ -4181,7 +4178,7 @@ impl Extended {
                 }
                 let mut trigger: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol, &triggerPriceStr)));
+                        m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol, Value::from(triggerPriceStr.as_deref()))));
                     m
                 });
                 trigger.insert("direction".into(), triggerDirection.map(Value::from).unwrap_or(Value::Null));
@@ -4439,7 +4436,7 @@ impl Extended {
         if (clientOrderId.is_some()) {
             let request: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("externalId".to_string(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("externalId".to_string(), Value::from(clientOrderId.as_deref()));
                 m
             });
             let __ws_arg_23 = self.extend(request, &[&paramsOmitted]);
@@ -4827,7 +4824,7 @@ impl Extended {
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cursor".to_string(), cursor.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cursor".to_string(), Value::from(cursor.as_deref()));
     m
 })]);
             }

@@ -330,7 +330,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("triggerPrice".to_string(), Value::from(triggerPx));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
-        m.insert("amount".to_string(), totalAmount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), Value::from(totalAmount.as_deref()));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_string_k(&entry, "avgPx", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&filled, "totalSz", &[crate::precise::Precise::stringSub(&totalAmount, &remaining)]));
@@ -399,7 +399,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
         let maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let amountPrecisionStr: Option<String> = self.safe_string_k_opt(&market, "szDecimals", &[]);
-        let amountPrecision: Option<i64> = self.parse_to_int(&amountPrecisionStr);
+        let amountPrecision: Option<i64> = self.parse_to_int(Value::from(amountPrecisionStr.as_deref()));
         let price: Option<f64> = self.safe_number_k(&market, "markPx", &[Value::Int(0)]).as_f64();
         let mut pricePrecision: Value = Value::Int(0);
         if (price.is_some()) {
@@ -413,7 +413,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(baseId.as_deref()));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
@@ -833,9 +833,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("contracts".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseValue".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("contracts".to_string(), Value::from(amount.as_deref()));
+        m.insert("price".to_string(), Value::from(price.as_deref()));
+        m.insert("baseValue".to_string(), Value::from(amount.as_deref()));
         m.insert("quoteValue".to_string(), crate::precise::Precise::stringMul(&amount, &price));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
@@ -1085,8 +1085,8 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
         if nonEmptyMessage {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
         }
         if nonEmptyMessage {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -1183,7 +1183,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "nonce" => self.nonce(),
                 "parse_create_edit_order_args" => { let __t = self.parse_create_edit_order_args(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>());
-                    Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                    Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -2007,15 +2007,15 @@ impl Hyperliquid {
 })]);
                 let mut data: crate::value::Dict = self.extend_t(__ws_arg_4, &[__ws_arg_5]);
                 std::sync::Arc::make_mut(&mut data).insert("baseId".into(), Value::from((if let Some(__m1) = offset { Some((j + __m1)) } else { None })));
-                std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), collateralToken.clone().map(Value::from).unwrap_or(Value::Null));
+                std::sync::Arc::make_mut(&mut data).insert("collateralToken".into(), Value::from(collateralToken.as_deref()));
                 std::sync::Arc::make_mut(&mut data).insert("hip3".into(), Value::Bool(true));
                 std::sync::Arc::make_mut(&mut data).insert("dex".into(), Value::from(dexName.as_deref()));
                 let cachedCurrencies: crate::value::Dict = self.safe_dict_k_t(&self.options, "cachedCurrenciesById");
                 // injecting collateral token name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
                 if (matches!(collateralToken.as_deref(), Some(__k) if cachedCurrencies.contains_key(__k))) {
                     let name: Option<String> = self.safe_string_k_opt(&data, "name", &[]);
-                    let collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, &collateralToken, &[]);
-                    std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), collateralTokenCode.clone().map(Value::from).unwrap_or(Value::Null));
+                    let collateralTokenCode: Option<String> = self.safe_string_opt(&cachedCurrencies, Value::from(collateralToken.as_deref()), &[]);
+                    std::sync::Arc::make_mut(&mut data).insert("collateralTokenName".into(), Value::from(collateralTokenCode.as_deref()));
                     // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
                     let safeCode: Option<String> = self.safe_currency_code(name.as_deref(), None);
                     let hip3Code: Option<String> = (if (safeCode.is_none()) { name.clone() } else { (if let Some(__s) = safeCode.as_deref() { Some(__s.replace(":", "-")) } else { None }) });
@@ -2285,15 +2285,15 @@ impl Hyperliquid {
             }
             // do spot currency mapping
             let spotCurrencyMapping: crate::value::Dict = self.safe_dict_k_t(&self.options, "spotCurrencyMapping");
-            let mappedBaseName: Option<String> = self.safe_string_opt(&spotCurrencyMapping, &baseName, &[&baseName]);
-            let mappedQuoteId: Option<String> = self.safe_string_opt(&spotCurrencyMapping, &quoteId, &[&quoteId]);
+            let mappedBaseName: Option<String> = self.safe_string_opt(&spotCurrencyMapping, Value::from(baseName.as_deref()), &[&Value::from(baseName.as_deref())]);
+            let mappedQuoteId: Option<String> = self.safe_string_opt(&spotCurrencyMapping, Value::from(quoteId.as_deref()), &[&Value::from(quoteId.as_deref())]);
             let mappedBase: Option<String> = self.safe_currency_code(mappedBaseName.as_deref(), None);
             let mappedQuote: Option<String> = self.safe_currency_code(mappedQuoteId.as_deref(), None);
             let mappedSymbol: String = format!("{}{}", Value::Str(format!("{}{}", mappedBase.as_deref().unwrap_or("null"), "/").into()), mappedQuote.as_deref().unwrap_or("null"));
             let innerBaseTokenInfo: crate::value::Dict = self.safe_dict_k_or(&baseTokenInfo, "spec", Value::from(&baseTokenInfo));
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let amountPrecisionStr: Option<String> = self.safe_string_k_opt(&innerBaseTokenInfo, "szDecimals", &[]);
-            let amountPrecision: Option<i64> = self.parse_to_int(&amountPrecisionStr);
+            let amountPrecision: Option<i64> = self.parse_to_int(Value::from(amountPrecisionStr.as_deref()));
             let price: Option<f64> = self.safe_number_k(&extraData, "midPx", &[]).as_f64();
             let mut pricePrecision: Value = Value::Int(0);
             if (price.is_some()) {
@@ -3692,7 +3692,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let orderglobalParamsVariable = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]);
-        let order: Value = orderglobalParamsVariable.0;
+        let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut created: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
@@ -3901,7 +3901,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let timeInForceLower: Option<String> = self.safe_string_lower_k_opt(&params, "timeInForce", &[Value::from(defaultTimeInForce)]);
         let timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null));
         let mut triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[&triggerPrice]);
+        let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[&Value::from(triggerPrice.as_deref())]);
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
         let isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let mut px: Option<String> = None;
@@ -4019,7 +4019,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let symbol: String = (market).symbol.clone();
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let type_var: Option<String> = self.safe_string_upper_k_opt(&rawOrder, "type", &[]);
             let side: Option<String> = self.safe_string_upper_k_opt(&rawOrder, "side", &[]);
             let mut amount: Option<String> = self.safe_string_k_opt(&rawOrder, "amount", &[]);
@@ -4032,15 +4032,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let hasStopLoss: bool = stopLoss.is_some();
             let hasTakeProfit: bool = takeProfit.is_some();
             orderParams = self.omit_t(&orderParams, &["stopLoss", "takeProfit"], &[]);
-            let mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), amount.clone().map(Value::from).unwrap_or(Value::Null), price.as_deref(), &[&Value::from(&orderParams)]);
+            let mainOrderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), type_var.as_deref(), side.as_deref(), Value::from(amount.as_deref()), price.as_deref(), &[&Value::from(&orderParams)]);
             if hasStopLoss || hasTakeProfit {
                 // grouping opposed orders for sl/tp
                 let stopLossOrderTriggerPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 let mut stopLossOrderType: String = self.safe_string_k(&stopLoss, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-                let stopLossOrderLimitPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[&stopLossOrderTriggerPrice]);
+                let stopLossOrderLimitPrice: Option<String> = self.safe_string2_opt(&stopLoss, Value::Str("price".into()), Value::Str("stopLossPrice".into()), &[&Value::from(stopLossOrderTriggerPrice.as_deref())]);
                 let takeProfitOrderTriggerPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
                 let mut takeProfitOrderType: String = self.safe_string_k(&takeProfit, "type", &[Value::Str("limit".into())]).as_str().unwrap_or("limit").to_string();
-                let takeProfitOrderLimitPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[&takeProfitOrderTriggerPrice]);
+                let takeProfitOrderLimitPrice: Option<String> = self.safe_string2_opt(&takeProfit, Value::Str("price".into()), Value::Str("takeProfitPrice".into()), &[&Value::from(takeProfitOrderTriggerPrice.as_deref())]);
                 grouping = self.safe_string_k(&orderParams, "grouping", &[Value::Str("normalTpsl".into())]).as_str().unwrap_or("normalTpsl").to_string();
                 if (grouping == "positionTpsl") {
                     amount = Some("0".to_string());
@@ -4065,7 +4065,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("reduceOnly".to_string(), Value::Bool(true));
     m
 })]);
-                    let orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), amount.clone().map(Value::from).unwrap_or(Value::Null), takeProfitOrderLimitPrice.as_deref(), &[&__ws_arg_19]);
+                    let orderObj: crate::value::Dict = self.create_order_request(Some(symbol.as_str()), Some(takeProfitOrderType.as_str()), Some(triggerOrderSide.as_str()), Value::from(amount.as_deref()), takeProfitOrderLimitPrice.as_deref(), &[&__ws_arg_19]);
                     orderReq.push(Value::Dict(orderObj));
                 }
                 if hasStopLoss {
@@ -4589,7 +4589,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let id: Option<String> = self.safe_string_k_opt(&rawOrder, "id", &[]);
             let marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let symbol: String = (market).symbol.clone();
+            let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let type_var: Option<String> = self.safe_string_upper_k_opt(&rawOrder, "type", &[]);
             let isMarket: bool = type_var.as_deref() == Some("MARKET");
             let side: Option<String> = self.safe_string_upper_k_opt(&rawOrder, "side", &[]);
@@ -4611,7 +4611,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let timeInForce: String = self.capitalize(timeInForceLower.map(Value::from).unwrap_or(Value::Null));
             let clientOrderId: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
             let mut triggerPrice: Option<String> = self.safe_string2_opt(&orderParams, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-            let stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[&triggerPrice]);
+            let stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[&Value::from(triggerPrice.as_deref())]);
             let takeProfitPrice: Option<String> = self.safe_string_k_opt(&orderParams, "takeProfitPrice", &[]);
             let isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
             let reduceOnly: bool = self.safe_bool_k_opt(&orderParams, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
@@ -4643,7 +4643,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 orderType.insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), Value::Bool(isMarket));
-        m.insert("triggerPx".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("triggerPx".to_string(), Value::from(triggerPrice.as_deref()));
         m.insert("tpsl".to_string(), Value::from(tpSlType));
     m
 }));
@@ -4747,7 +4747,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument")));
         }
         let orderglobalParamsVariable = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]);
-        let order: Value = orderglobalParamsVariable.0;
+        let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut edited: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
@@ -5984,7 +5984,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let transferPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                    m.insert("amount".to_string(), strAmountFinal.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("amount".to_string(), Value::from(strAmountFinal.as_deref()));
                     m.insert("toPerp".to_string(), toPerp.clone());
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
@@ -6026,7 +6026,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " transfer() only support main <> subaccount transfer")));
         }
-        self.check_address(&[&subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(subAccountAddress.as_deref())]);
         let transferType: Option<String> = self.safe_string_k_opt(&params, "type", &[]);
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
@@ -6051,7 +6051,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
             // keeps every balance in the spot clearinghouse so spot is the default on both sides
             let defaultDex: String = (if ((transferType.as_deref() == Some("swap")) || (transferType.as_deref() == Some("perp"))) { "".to_string() } else { "spot".to_string() });
-            let sourceDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "sourceDex", &[&defaultDex]);
+            let sourceDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "sourceDex", &[&Value::from(defaultDex.as_str())]);
             let destinationDex: Option<String> = self.safe_string_k_opt(&paramsSendAsset, "destinationDex", &[&defaultDex]);
             let mut sendAssetPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -6059,14 +6059,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("destination".to_string(), masterAddress.map(Value::from).unwrap_or(Value::Null));
                     m.insert("sourceDex".to_string(), Value::from(sourceDex.as_deref()));
                     m.insert("destinationDex".to_string(), Value::from(destinationDex.as_deref()));
-                    m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
+                    m.insert("token".to_string(), Value::from(sendAssetToken.as_str()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(&amount)));
-                    m.insert("fromSubAccount".to_string(), subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("fromSubAccount".to_string(), Value::from(subAccountAddress.as_deref()));
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
             if isDeposit {
-                sendAssetPayload.insert("destination".into(), subAccountAddress.map(Value::from).unwrap_or(Value::Null));
+                sendAssetPayload.insert("destination".into(), Value::from(subAccountAddress.as_deref()));
                 sendAssetPayload.insert("fromSubAccount".into(), Value::Str("".into()));
             }
             let sendAssetSig: crate::value::Dict = self.build_send_asset_sig(Value::Map(sendAssetPayload.clone())).into_dict();
@@ -6103,7 +6103,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let action: crate::value::Dict = std::sync::Arc::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
-                    m.insert("subAccountUser".to_string(), subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("subAccountUser".to_string(), Value::from(subAccountAddress.as_deref()));
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("usd".to_string(), Value::from(usd));
                 m
@@ -6922,7 +6922,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let price = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -6954,7 +6954,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (id.is_some()) {
             order.insert("id".into(), Value::from(id));
         }
-        return (Value::Map(order), std::sync::Arc::new(globalParams));
+        return (std::sync::Arc::new(order), std::sync::Arc::new(globalParams));
 }
 
 /*

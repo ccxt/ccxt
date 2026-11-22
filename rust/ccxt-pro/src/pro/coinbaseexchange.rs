@@ -95,7 +95,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "best_ask_size", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open_24h", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -719,7 +719,7 @@ impl Coinbaseexchange {
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".into()));
                 m.insert("product_ids".to_string(), marketIds.clone().map_or(Value::Null, Value::Arr));
-                m.insert("channels".to_string(), Value::from(vec![Value::from(name.clone())]));
+                m.insert("channels".to_string(), Value::from(vec![Value::from(name.as_str())]));
             m
         });
         let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[params]);
@@ -776,7 +776,7 @@ impl Coinbaseexchange {
         let request: crate::value::Dict = self.extend_t(Value::Map(subscribe), &[params]);
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
                 m.insert("limit".to_string(), Value::from(limit));
@@ -922,7 +922,7 @@ impl Coinbaseexchange {
         m.insert("buy".to_string(), Value::Str("sell".into()));
         m.insert("sell".to_string(), Value::Str("buy".into()));
     m
-}), currentSide.clone().map(Value::from).unwrap_or(Value::Null), &[currentSide.map(Value::from).unwrap_or(Value::Null)])); }
+}), Value::from(currentSide.as_deref()), &[currentSide.map(Value::from).unwrap_or(Value::Null)])); }
         }
         let mut idKey: String = "taker_order_id".to_string();
         if isMaker {
@@ -1293,7 +1293,7 @@ impl Coinbaseexchange {
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let name: String = "level2".to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", name, ":").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
-        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         if (type_var.as_deref() == Some("snapshot")) {
             if !(self.orderbooks.has(&symbol)) {
@@ -1395,7 +1395,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             m
         });
         let authenticated: bool = __ch.url.as_str().unwrap_or("").ends_with("?");
-        let method: Option<String> = self.safe_value(&methods, &type_var, &[]).as_str().map(str::to_owned);
+        let method: Option<String> = self.safe_value(&methods, Value::from(type_var.as_deref()), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             if (type_var.as_deref() == Some("match")) {
                 if authenticated {

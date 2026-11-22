@@ -299,7 +299,7 @@ impl Bingx {
         let id: String = self.uuid(&[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(id.clone()));
+                m.insert("id".to_string(), Value::from(id.as_str()));
                 m.insert("dataType".to_string(), dataType);
                 m.insert("reqType".to_string(), Value::Str("unsub".into()));
             m
@@ -371,7 +371,7 @@ impl Bingx {
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(uuid.clone()));
+                m.insert("id".to_string(), Value::from(uuid.as_str()));
                 m.insert("dataType".to_string(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@ticker".into())).into()));
             m
         });
@@ -553,7 +553,7 @@ impl Bingx {
         m.insert("askVolume".to_string(), self.safe_string_k(&message, "a", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&message, "o", &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_string_k(&message, "p", &[]));
@@ -645,7 +645,7 @@ impl Bingx {
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(uuid.clone()));
+                m.insert("id".to_string(), Value::from(uuid.as_str()));
                 m.insert("dataType".to_string(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@trade".into())).into()));
             m
         });
@@ -881,8 +881,8 @@ impl Bingx {
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(uuid.clone()));
-                m.insert("dataType".to_string(), Value::from(subscriptionHash.clone()));
+                m.insert("id".to_string(), Value::from(uuid.as_str()));
+                m.insert("dataType".to_string(), Value::from(subscriptionHash.as_str()));
             m
         });
         if (marketType.as_deref() == Some("swap")) {
@@ -895,7 +895,7 @@ impl Bingx {
         if ((market).inverse == Some(true)) {
             subscriptionArgs = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::from(uuid.clone()));
+                    m.insert("id".to_string(), Value::from(uuid.as_str()));
                     m.insert("unsubscribe".to_string(), Value::Bool(false));
                     m.insert("count".to_string(), Value::from(limit));
                     m.insert("params".to_string(), Value::from(&paramsSubType));
@@ -950,7 +950,7 @@ impl Bingx {
         let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
         let topic: String = "orderbook".to_string();
         let methodName: String = "unWatchOrderBook".to_string();
-        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash.as_str()), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1183,7 +1183,7 @@ impl Bingx {
         if isSwap {
             marketType = "swap".to_string();
         }
-        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.clone())]);
+        let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, Value::from(marketType.as_str())]);
         let mut candles: Option<crate::value::List> = None;
         if isSwap {
             if ((market).inverse == Some(true)) {
@@ -1292,8 +1292,8 @@ impl Bingx {
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), Value::from(uuid.clone()));
-                m.insert("dataType".to_string(), Value::from(subscriptionHash.clone()));
+                m.insert("id".to_string(), Value::from(uuid.as_str()));
+                m.insert("dataType".to_string(), Value::from(subscriptionHash.as_str()));
             m
         });
         if (marketType.as_deref() == Some("swap")) {
@@ -1356,7 +1356,7 @@ impl Bingx {
         let methodName: String = "unWatchOHLCV".to_string();
         let symbolsAndTimeframes: crate::value::List = std::sync::Arc::new(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("symbolsAndTimeframes".into(), Value::Arr(symbolsAndTimeframes)); }
-        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash.as_str()), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1433,7 +1433,7 @@ impl Bingx {
             baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]);
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::from(uuid.clone()));
+                    m.insert("id".to_string(), Value::from(uuid.as_str()));
                     m.insert("reqType".to_string(), Value::Str("sub".into()));
                     m.insert("dataType".to_string(), Value::Str("spot.executionReport".into()));
                 m
@@ -1532,7 +1532,7 @@ impl Bingx {
             baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.map(Value::from).unwrap_or(Value::Null), &[]);
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::from(uuid.clone()));
+                    m.insert("id".to_string(), Value::from(uuid.as_str()));
                     m.insert("reqType".to_string(), Value::Str("sub".into()));
                     m.insert("dataType".to_string(), Value::Str("spot.executionReport".into()));
                 m
@@ -1613,10 +1613,10 @@ impl Bingx {
             // so we must not send a subscription message (an empty one is rejected with 80014)
             baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &subType, &[]);
         }  else {
-            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &type_var, &[]);
+            baseUrl = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var.as_deref()), &[]);
             request = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::from(uuid.clone()));
+                    m.insert("id".to_string(), Value::from(uuid.as_str()));
                     m.insert("dataType".to_string(), Value::Str("ACCOUNT_UPDATE".into()));
                 m
             }));
@@ -1988,7 +1988,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             self.parent.user_auth_private_put_user_data_stream(&[&Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("listenKey".to_string(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("listenKey".to_string(), Value::from(listenKey.as_deref()));
                 m
             })]).await; // extend the expiry
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2061,7 +2061,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 if (listenKey.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
                 }
-                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), listenKey.clone().map(Value::from).unwrap_or(Value::Null)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::from(listenKey.as_deref())); }
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("lastAuthenticatedTime".into(), Value::from(time)); }
                 self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), params]).await;
                 // settle the flight: client.resolve () removes the future from

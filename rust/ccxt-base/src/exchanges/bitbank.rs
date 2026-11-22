@@ -71,7 +71,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -272,12 +272,12 @@ impl crate::exchange::DerivedExchange for Bitbank {
             m
         });
         let data: crate::value::Dict = self.safe_dict_k_t(response, "data");
-        let assets: crate::value::List = self.safe_list_k_t(&data, "assets");
+        let assets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "assets"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (assets.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let balance: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         let currencyResolved: crate::types::Currency = self.safe_currency(None, currency);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), Value::from(txid.as_deref()));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -502,7 +502,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
                 m
             });
             let codeError: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
-            let message: String = self.safe_string(&errorMessages, &codeError, &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
+            let message: String = self.safe_string(&errorMessages, Value::from(codeError.as_deref()), &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, Value::from(message));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response))));
         }
@@ -1225,7 +1225,7 @@ impl Bitbank {
             result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::from(&pair));
-        m.insert("symbol".to_string(), Value::from(symbol));
+        m.insert("symbol".to_string(), Value::from(symbol.as_str()));
         m.insert("maker".to_string(), self.safe_number_k(&pair, "maker_fee_rate_quote", &[]));
         m.insert("taker".to_string(), self.safe_number_k(&pair, "taker_fee_rate_quote", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));

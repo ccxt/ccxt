@@ -88,7 +88,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askSize", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -468,7 +468,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdrawal));
         m.insert("fee".to_string(), Value::from(withdrawFee));
-        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[Value::from(precision.clone())]), &[]));
+        m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[Value::from(precision.as_str())]), &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -586,7 +586,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -605,10 +605,10 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
@@ -762,8 +762,8 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         let error: Option<String> = self.safe_string_k_opt(response, "error", &[]);
         if (errorCode.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1862,7 +1862,7 @@ impl Bitvavo {
             result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
-        m.insert("symbol".to_string(), Value::from(symbol));
+        m.insert("symbol".to_string(), Value::from(symbol.as_str()));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("percentage".to_string(), Value::Bool(true));
@@ -2402,7 +2402,7 @@ impl Bitvavo {
         //
         let address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
         let tag: Option<String> = self.safe_string_k_opt(&response, "paymentId", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));

@@ -918,7 +918,7 @@ impl Hashkey {
         let messageHash: String = "positions".to_string();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         if (symbolsNormalized.is_none()) {
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(messageHash));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(messageHash.as_str()));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -1061,7 +1061,7 @@ impl Hashkey {
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchBalance");
         let snapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if snapshot {
-            let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(type_var), ":").into()), "fetchBalanceSnapshot");
+            let messageHash: String = format!("{}{}", Value::from(type_var), ":fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {
                 client.future(messageHash.as_str());
                 self.spawn(&[Value::Str("load_balance_snapshot".into()), client, Value::from(messageHash), Value::from(type_var)]);

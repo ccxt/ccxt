@@ -1010,7 +1010,7 @@ impl Whitebit {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("stopPrice".to_string(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(stopPrice.as_deref()));
         m.insert("triggerPrice".to_string(), stopPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
@@ -1082,7 +1082,7 @@ impl Whitebit {
         }
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
+        self.set_balance_cache(client.as_value(), Value::from(type_var.as_deref()), messageHash.as_str());
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]);
         let fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.0 == Some(true);
         let paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.1;
@@ -1256,7 +1256,7 @@ impl Whitebit {
         }
         let url: Option<String> = self.safe_string_k_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), "ws", &[]);
         let id: i64 = self.incrementing_nonce();
-        let client: Value = self.safe_value(self.clients.clone(), &url, &[]);
+        let client: Value = self.safe_value(self.clients.clone(), Value::from(url.as_deref()), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let mut request: Option<crate::value::Dict> = None;
         let mut marketIds: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1375,7 +1375,7 @@ impl Whitebit {
             crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return authorized;
         }
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(subscribeHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(subscribeHash.as_str()), &[]) != Value::Null;
         if (authenticated) {
             return authorized;
         }

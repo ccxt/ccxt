@@ -76,7 +76,7 @@ impl crate::exchange::DerivedExchange for Luno {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -274,7 +274,7 @@ impl crate::exchange::DerivedExchange for Luno {
 }
     fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
         let response: Value = response.into();
-        let wallets: crate::value::List = self.safe_list_k_t(&response, "balance");
+        let wallets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balance"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Luno {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (wallets.len() as i64) } {
-            let wallet: crate::value::Dict = self.safe_dict_t(&wallets, Value::Int(i));
+            let wallet: crate::value::Dict = wallets.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&wallet, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let reserved: Option<String> = self.safe_string_k_opt(&wallet, "reserved", &[]);
@@ -539,7 +539,7 @@ impl crate::exchange::DerivedExchange for Luno {
         if (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
             let errorCode: Option<String> = self.safe_string_k_opt(response, "error_code", &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

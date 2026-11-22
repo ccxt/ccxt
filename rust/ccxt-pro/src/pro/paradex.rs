@@ -403,7 +403,7 @@ impl Paradex {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(requestHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(requestHash.as_str())]));
             m
         });
         let hash: Option<String> = (if (subscribeHash.is_none()) { Some(requestHash.clone()) } else { subscribeHash.map(str::to_owned) });
@@ -622,7 +622,7 @@ if _try_result.is_err() {
         let mut hashes: Vec<Value> = vec![subMessageHashes.get(index.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)];
         let mut channelSymbols: Vec<Value> = Vec::new();
         if (symbol.is_some()) {
-            channelSymbols.push(symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            channelSymbols.push(Value::from(symbol.as_deref()));
             if (topic == "trades") {
                 // the liquidations of a market come from its trades channel
                 hashes.push(Value::Str(format!("{}{}", "liquidations:", symbol.as_deref().unwrap_or("null")).into()));
@@ -631,7 +631,7 @@ if _try_result.is_err() {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::from(topic));
-                m.insert("subscribeHashes".to_string(), Value::from(vec![channel.clone().map(Value::from).unwrap_or(Value::Null)]));
+                m.insert("subscribeHashes".to_string(), Value::from(vec![Value::from(channel.as_deref())]));
                 m.insert("subMessageHashes".to_string(), Value::from(hashes));
                 m.insert("symbols".to_string(), Value::from(channelSymbols));
             m
@@ -715,7 +715,7 @@ if _try_result.is_err() {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let token: Option<String> = self.parent.authenticate_rest(&[]).await.as_str().map(str::to_owned);
             let requestId: i64 = self.request_id();
@@ -843,9 +843,9 @@ if _try_result.is_err() {
                         let mut j: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { j += 1; } __for_first_7 = false; j < (subscribeHashes.len() as i64) } {
-            let subscribeHash: Value = subscribeHashes.get(j as usize).cloned().unwrap_or(Value::Null);
-            if (__ch.has_subscription(&subscribeHash)) {
-                __ch.remove_subscription(&subscribeHash);
+            let subscribeHash: String = self.safe_string(&subscribeHashes, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (__ch.has_subscription(subscribeHash.as_str())) {
+                __ch.remove_subscription(subscribeHash.as_str());
             }
             // a market moved to the deltas feed goes back to the snapshots on its next watch
             let requestedHash: String = format!("{}{}", subscribeHash, ":requested");
@@ -901,12 +901,12 @@ if _try_result.is_err() {
             messageHash = format!("{}{}", "trades.", marketId);
         }
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[Value::from(messageHash.clone())]).await;
+        self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[Value::from(messageHash.as_str())]).await;
         let request: indexmap::IndexMap<String, Value> = Value::Dict(self.subscribe_request(messageHash.as_str())).as_map().cloned().unwrap_or_default();
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
         let __ws_arg_4 = self.deep_extend(Value::Map(request), &[params]);
@@ -1000,7 +1000,7 @@ if _try_result.is_err() {
             return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], params).await);
         }
         let channel: String = "trades.ALL".to_string();
-        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", &[Value::from(channel.clone())], &[Value::from(channel)], Value::from(vec![]), &[&params]).await;
+        return self.unsubscribe_channels(self.get_ws_url().as_str().unwrap_or_default(), "trades", &[Value::from(channel.as_str())], &[Value::from(channel.as_str())], Value::from(vec![]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1108,11 +1108,11 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
-        m.insert("contracts".to_string(), self.parse_number(&contracts, &[]));
+        m.insert("contracts".to_string(), self.parse_number(Value::from(contracts.as_deref()), &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("price".to_string(), self.parse_number(&price, &[]));
+        m.insert("price".to_string(), self.parse_number(Value::from(price.as_deref()), &[]));
         m.insert("side".to_string(), self.safe_string_lower_k(liquidation, "side", &[]));
-        m.insert("baseValue".to_string(), self.parse_number(&contracts, &[]));
+        m.insert("baseValue".to_string(), self.parse_number(Value::from(contracts.as_deref()), &[]));
         m.insert("quoteValue".to_string(), self.parse_number(crate::precise::Precise::stringMul(&contracts, &price), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -1459,7 +1459,7 @@ if _try_result.is_err() {
                 let price: Option<String> = self.safe_string_k_opt(&level, "price", &[]);
                 let size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k_opt(&level, "size", &[]) });
                 if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {
-                    bids.push(Value::from(vec![price.clone().map(Value::from).unwrap_or(Value::Null), size.clone().map(Value::from).unwrap_or(Value::Null)]));
+                    bids.push(Value::from(vec![Value::from(price.as_deref()), Value::from(size.as_deref())]));
                 }  else {
                     asks.push(Value::from(vec![price.map(Value::from).unwrap_or(Value::Null), size.map(Value::from).unwrap_or(Value::Null)]));
                 }
@@ -1482,7 +1482,7 @@ if _try_result.is_err() {
             if (nonce != ((if let Some(__m0) = storedNonce { Some((__m0 + 1)) } else { None }))) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.set_book_meta("nonce", Value::Null);
-                self.spawn(&[Value::Str("resubscribe_order_book".into()), client, deltasChannel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash)]);
+                self.spawn(&[Value::Str("resubscribe_order_book".into()), client, deltasChannel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.as_str())]);
                 return;
             }
             let storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(stored.book_field("bids"));
@@ -1621,7 +1621,7 @@ if _try_result.is_err() {
         if (symbolsNormalized != Value::Null) {
             symbolsLength = symbolsNormalized.len() as i64;
         }
-        let channel: String = "markets_summary".to_string();
+        let channel: Value = Value::Str("markets_summary".into());
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut newTicker: Value = Value::Null;
         if symbolsLength > 0 {
@@ -1636,33 +1636,34 @@ if _try_result.is_err() {
         }  else {
             // every listed market, options included
             let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
-            let scopedHash: Value = Value::Str(format!("{}{}", channel, ":scoped").into());
-            self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[Value::from(channel.clone()), scopedHash.clone()]).await;
+            let scopedHash: String = format!("{}{}", channel, ":scoped");
+            self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &[channel.clone(), Value::from(scopedHash.as_str())]).await;
             let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-            if (client.has_subscription(&scopedHash)) {
+            if (client.has_subscription(scopedHash.as_str())) {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
-                let subscribeHashes: Value = object_keys(&(client).subscriptions);
+                let subscribeHashes: Vec<Value> = client.subscription_keys();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_18: bool = true;
                     while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (subscribeHashes.len() as i64) } {
-                    if (subscribeHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).as_str() == scopedHash.as_str()) || (Value::Int(match (get_value(&subscribeHashes, &Value::Int(i))).as_str() { Some(__s) => __s.find(format!("{}{}", channel, ".").as_str()).map(|__i| __i as i64).unwrap_or(-1), None => -1 }).as_f64() == Some(0.0)) {
-                        client.remove_subscription(&subscribeHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+                    let subscribeHash: String = self.safe_string(&subscribeHashes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    if (subscribeHash == scopedHash) || (((if let (Some(__h), Some(__n)) = (Some(subscribeHash.as_str()), (Value::Str(format!("{}{}", channel, ".").into())).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+                        client.remove_subscription(subscribeHash.as_str());
                     }
                 }
                 }
-                let unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str());
+                let unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str().unwrap_or_default());
                 self.send_request(url.as_deref().unwrap_or_default(), &unsubscribe, None).await;
             }
-            let request: indexmap::IndexMap<String, Value> = Value::Dict(self.subscribe_request(channel.as_str())).as_map().cloned().unwrap_or_default();
+            let request: indexmap::IndexMap<String, Value> = Value::Dict(self.subscribe_request(channel.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             let subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                    m.insert("messageHashes".to_string(), Value::from(vec![Value::from(channel.clone())]));
+                    m.insert("messageHashes".to_string(), Value::from(vec![channel.clone()]));
                 m
             });
             let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
-            newTicker = self.watch(url.as_deref(), &channel[..], __ws_arg_5, &channel[..], Value::Map(subscription)).await;
+            newTicker = self.watch(url.as_deref(), &channel, __ws_arg_5, &channel, Value::Map(subscription)).await;
         }
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1733,7 +1734,7 @@ if _try_result.is_err() {
         if (symbolsNormalized != Value::Null) {
             symbolsLength = symbolsNormalized.len() as i64;
         }
-        let channel: String = "markets_summary".to_string();
+        let channel: Value = Value::Str("markets_summary".into());
         let scopedHash: String = format!("{}{}", channel, ":scoped");
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
@@ -1753,7 +1754,7 @@ if _try_result.is_err() {
         }
         }
         let tickerSymbols: Value = (if (symbolsNormalized == Value::Null) { Value::from(vec![]) } else { symbolsNormalized });
-        if (symbolsLength > 0) && (client.has_subscription(channel.as_str())) {
+        if (symbolsLength > 0) && (client.has_subscription(&channel)) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_20: bool = true;
@@ -1771,12 +1772,13 @@ if _try_result.is_err() {
         }
         // the markets left in the scoped subscription once these are removed
         let mut othersRemain: bool = false;
-        let keys: Value = object_keys(&(client).subscriptions);
+        let keys: Vec<Value> = client.subscription_keys();
         {
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (keys.len() as i64) } {
-            if (Value::Int(match (get_value(&keys, &Value::Int(i))).as_str() { Some(__s) => __s.find(format!("{}{}", channel, ".").as_str()).map(|__i| __i as i64).unwrap_or(-1), None => -1 }).as_f64() == Some(0.0)) && !self.in_array(keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &subscribeHashes) {
+            let key: String = self.safe_string(&keys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if (((if let (Some(__h), Some(__n)) = (Some(key.as_str()), (Value::Str(format!("{}{}", channel, ".").into())).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) && !self.in_array(&key, &subscribeHashes) {
                 othersRemain = true;
             }
         }
@@ -1786,13 +1788,13 @@ if _try_result.is_err() {
             let channelSubscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("topic".to_string(), Value::Str("ticker".into()));
-                    m.insert("subscribeHashes".to_string(), Value::from(vec![Value::from(channel.clone()), Value::from(scopedHash)]));
-                    m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(channel.clone())]));
+                    m.insert("subscribeHashes".to_string(), Value::from(vec![channel.clone(), Value::from(scopedHash)]));
+                    m.insert("subMessageHashes".to_string(), Value::from(vec![channel.clone()]));
                     m.insert("prefix".to_string(), Value::Bool(true));
                     m.insert("symbols".to_string(), tickerSymbols.clone());
                 m
             });
-            let unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str());
+            let unsubscribe: crate::value::Dict = self.unsubscribe_request(channel.as_str().unwrap_or_default());
             return self.send_unsubscribe(url.as_deref().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &unsubscribe, Value::Map(channelSubscription), &[&params]).await;
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -1802,7 +1804,7 @@ if _try_result.is_err() {
                 m.insert("method".to_string(), Value::Str("modify_subscription".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), Value::from(channel.clone()));
+        m.insert("channel".to_string(), channel.clone());
         m.insert("remove".to_string(), Value::from(marketIds.clone()));
     m
 }));
@@ -1842,7 +1844,7 @@ if _try_result.is_err() {
         let symbols = symbols.as_array().unwrap_or(&__symbols_empty);
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         let channel: String = "markets_summary".to_string();
-        let mut pendingHashes: Vec<Value> = vec![Value::from(channel.clone()), Value::Str(format!("{}{}", channel, ":scoped").into())];
+        let mut pendingHashes: Vec<Value> = vec![Value::from(channel.as_str()), Value::Str(format!("{}{}", channel, ":scoped").into())];
         {
                         let mut i: i64 = 0;
             let mut __for_first_22: bool = true;
@@ -1855,7 +1857,7 @@ if _try_result.is_err() {
         self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), &pendingHashes).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         if (client.has_subscription(channel.as_str())) {
-            return self.watch_multiple(url.as_deref(), messageHashes, Value::Null, Value::from(vec![Value::from(channel.clone())]), Value::Null).await;
+            return self.watch_multiple(url.as_deref(), messageHashes, Value::Null, Value::from(vec![Value::from(channel.as_str())]), Value::Null).await;
         }
         // one subscription with a market filter: a subscription per market is a request per market, and
         // the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
@@ -1870,7 +1872,7 @@ if _try_result.is_err() {
             let mut market: crate::types::Market = (match self.market((symbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: Value = Value::from((market).id.as_deref());
             let subscribeHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId);
-            subscribeHashes.push(Value::from(subscribeHash.clone()));
+            subscribeHashes.push(Value::from(subscribeHash.as_str()));
             if !(client.has_subscription(subscribeHash.as_str())) {
                 if let Value::Arr(__a) = &mut missing { std::sync::Arc::make_mut(__a).push(marketId); };
                 missingHashes.push(messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -1890,7 +1892,7 @@ if _try_result.is_err() {
                     m.insert("method".to_string(), Value::Str("modify_subscription".into()));
                     m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), Value::from(channel.clone()));
+        m.insert("channel".to_string(), Value::from(channel.as_str()));
         m.insert("add".to_string(), missing.clone());
     m
 }));
@@ -1905,7 +1907,7 @@ if _try_result.is_err() {
         // it rejects the watchers of those markets only
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), request.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("id".to_string(), self.safe_integer_k(&request, "id", &[]));
                 m.insert("messageHashes".to_string(), Value::from(missingHashes));
             m
         });
@@ -2171,7 +2173,7 @@ if _try_result.is_err() {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
         let __ws_arg_7 = self.deep_extend(Value::Map(request), &[params]);
@@ -2274,7 +2276,7 @@ if _try_result.is_err() {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
         let __ws_arg_8 = self.deep_extend(Value::Map(request), &[params]);
@@ -2369,7 +2371,7 @@ if _try_result.is_err() {
             symbolsLength = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         }
         if (symbolsLength == 0) {
-            messageHashes.push(Value::from(channel.clone()));
+            messageHashes.push(Value::from(channel.as_str()));
         }  else {
             {
                                 let mut i: i64 = 0;
@@ -2492,7 +2494,7 @@ if _try_result.is_err() {
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), request.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
+                m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.as_str())]));
             m
         });
         let __ws_arg_12 = self.deep_extend(Value::Map(request), &[params]);
@@ -2735,10 +2737,10 @@ if _try_result.is_err() {
                 }
                 }
             }  else {
-                std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone())); // if an empty array is passed, subscribe to all funding rates
+                std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.as_str())); // if an empty array is passed, subscribe to all funding rates
             }
         }  else {
-            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.clone()));
+            std::sync::Arc::make_mut(&mut messageHashes).push(Value::from(channel.as_str()));
         }
         let request: indexmap::IndexMap<String, Value> = Value::Dict(self.subscribe_request(channel.as_str())).as_map().cloned().unwrap_or_default();
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -3631,11 +3633,11 @@ if _try_result.is_err() {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&error));
             let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             if (errorCode.is_some()) {
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             }
             let messageString: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
             if (messageString.is_some()) {
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &messageString, &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &messageString, feedback.as_str());
             }
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
@@ -3651,7 +3653,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     let mut __for_first_37: bool = true;
                     while { if !__for_first_37 { i += 1; } __for_first_37 = false; i < (subscribeHashes.len() as i64) } {
                     let subscribeHash: Option<String> = subscribeHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &subscribeHash);
+                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(subscribeHash.as_deref()));
                     if ((requestId.as_deref() == self.safe_string_k(&subscription, "id", &[]).as_str())) {
                         handled = true;
                         __ch.remove_subscription(subscribeHash.as_deref());

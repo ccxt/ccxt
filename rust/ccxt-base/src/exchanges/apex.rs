@@ -90,7 +90,7 @@ impl crate::exchange::DerivedExchange for Apex {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -405,7 +405,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let timestamp: Option<i64> = self.safe_integer_k(&position, "updatedTime", &[]).as_i64();
         let mut leverage: Option<i64> = Some(20);
         let customInitialMarginRate: String = self.safe_string2(&position, Value::Str("customInitialMarginRate".into()), Value::Str("customImr".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.clone()))).as_f64() != Some(0.0)) {
+        if (Value::Int(self.precision_from_string(Value::from(customInitialMarginRate.as_str()))).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &customInitialMarginRate, &Value::Int(4)));
         }
         return Some(self.safe_position(std::sync::Arc::new({
@@ -475,12 +475,12 @@ impl crate::exchange::DerivedExchange for Apex {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (chains.len() as i64) } {
             let chain: Option<crate::value::Dict> = self.safe_dict_o(&chains, Value::Int(j));
-            let tokens: crate::value::List = self.safe_list_k_t(&chain, "tokens");
+            let tokens: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&chain, "tokens"));
             {
                                 let mut f: i64 = 0;
                 let mut __for_first_0: bool = true;
                 while { if !__for_first_0 { f += 1; } __for_first_0 = false; f < (tokens.len() as i64) } {
-                let token: crate::value::Dict = self.safe_dict_t(&tokens, Value::Int(f));
+                let token: crate::value::Dict = tokens.get(f as usize).cloned().unwrap_or_default();
                 let tokenName: Option<String> = self.safe_string_k_opt(&token, "token", &[]);
                 if (tokenName == currencyId) {
                     let networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
@@ -718,9 +718,9 @@ impl crate::exchange::DerivedExchange for Apex {
         if (errorCode.is_some()) && (errorCode != Some(0)) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let message: Option<String> = self.safe_string2_opt(response, Value::Str("key".into()), Value::Str("msg".into()), &[]);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             let status: String = format!("{}", code);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2112,18 +2112,18 @@ impl Apex {
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("slotId".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
-                m.insert("nonce".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("slotId".to_string(), Value::from(finalClientOrderId.as_deref()));
+                m.insert("nonce".to_string(), Value::from(finalClientOrderId.as_deref()));
                 m.insert("pairId".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("size".to_string(), Value::from(orderSize.as_deref()));
-                m.insert("price".to_string(), finalOrderPrice.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("price".to_string(), Value::from(finalOrderPrice.as_deref()));
                 m.insert("direction".to_string(), Value::from(orderSide.clone()));
                 m.insert("makerFeeRate".to_string(), Value::from(maker));
                 m.insert("takerFeeRate".to_string(), Value::from(taker));
             m
         });
         if (triggerPrice.is_some()) {
-            orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
         }
         let signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds().map(Value::from).unwrap_or(Value::Null)), &[Value::Map(orderToSign)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2244,13 +2244,13 @@ impl Apex {
             let orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("zkAccountId".to_string(), zkSignAccountId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("receiverAddress".to_string(), Value::from(ethAddress.clone()));
-                    m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
-                    m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.clone()));
-                    m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
+                    m.insert("receiverAddress".to_string(), Value::from(ethAddress.as_str()));
+                    m.insert("subAccountId".to_string(), Value::from(subAccountId.as_str()));
+                    m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.as_str()));
+                    m.insert("tokenId".to_string(), Value::from(tokenId.as_str()));
                     m.insert("amount".to_string(), Value::from(format!("{}", Value::from(amountNumber))));
                     m.insert("fee".to_string(), Value::Str("0".into()));
-                    m.insert("nonce".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("nonce".to_string(), Value::from(finalClientOrderId.as_deref()));
                     m.insert("timestampSeconds".to_string(), Value::from(expireTime));
                     m.insert("isContract".to_string(), Value::Bool(true));
                 m
@@ -2260,7 +2260,7 @@ impl Apex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), Value::from(amount));
                     m.insert("expireTime".to_string(), Value::from(expireTime));
-                    m.insert("clientWithdrawId".to_string(), finalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("clientWithdrawId".to_string(), Value::from(finalClientOrderId.as_deref()));
                     m.insert("signature".to_string(), signature);
                     m.insert("token".to_string(), code.clone());
                     m.insert("ethAddress".to_string(), Value::from(ethAddress));
@@ -2285,14 +2285,14 @@ impl Apex {
         }  else {
             let orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("zkAccountId".to_string(), Value::from(zkAccountId.clone()));
-                    m.insert("receiverAddress".to_string(), Value::from(receiverAddress.clone()));
-                    m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
-                    m.insert("receiverSubAccountId".to_string(), Value::from(receiverSubAccountId.clone()));
-                    m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
+                    m.insert("zkAccountId".to_string(), Value::from(zkAccountId.as_str()));
+                    m.insert("receiverAddress".to_string(), Value::from(receiverAddress.as_str()));
+                    m.insert("subAccountId".to_string(), Value::from(subAccountId.as_str()));
+                    m.insert("receiverSubAccountId".to_string(), Value::from(receiverSubAccountId.as_str()));
+                    m.insert("tokenId".to_string(), Value::from(tokenId.as_str()));
                     m.insert("amount".to_string(), Value::from(format!("{}", Value::from(amountNumber))));
                     m.insert("fee".to_string(), Value::Str("0".into()));
-                    m.insert("nonce".to_string(), Value::from(finalNonce.clone()));
+                    m.insert("nonce".to_string(), Value::from(finalNonce.as_str()));
                     m.insert("timestampSeconds".to_string(), Value::from(timestampSeconds));
                 m
             });

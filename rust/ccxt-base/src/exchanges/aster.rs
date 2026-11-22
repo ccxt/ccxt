@@ -122,7 +122,7 @@ impl crate::exchange::DerivedExchange for Aster {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askQty", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -634,7 +634,7 @@ impl crate::exchange::DerivedExchange for Aster {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Null);
@@ -906,10 +906,10 @@ impl crate::exchange::DerivedExchange for Aster {
             let cachedPrivateKeyHash: Option<String> = self.safe_string_k_opt(&self.options, "privateKeyHashForCachedWalletAddress", &[]);
             if (walletAddress.is_none()) || (cachedPrivateKeyHash.as_deref() != Some(privateKeyHash.as_str())) {
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
-                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".into(), walletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".into(), Value::from(walletAddress.as_deref())); }
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("privateKeyHashForCachedWalletAddress".into(), Value::from(privateKeyHash)); }
             }
-            let signerAddress: Option<String> = self.safe_string_k_opt(&self.options, "signerAddress", &[&walletAddress]); // default to user's wallet
+            let signerAddress: Option<String> = self.safe_string_k_opt(&self.options, "signerAddress", &[&Value::from(walletAddress.as_deref())]); // default to user's wallet
             if (signerAddress.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires signerAddress in options when use v3 api")));
             }
@@ -987,7 +987,7 @@ impl crate::exchange::DerivedExchange for Aster {
                 paramString = self.encode_values_with_json(finalParams);
                 paramsToEncode = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("msg".to_string(), paramString.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("msg".to_string(), Value::from(paramString.as_deref()));
                     m
                 });
             }
@@ -1004,7 +1004,7 @@ impl crate::exchange::DerivedExchange for Aster {
                 });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(queryString));
         m.insert("headers".to_string(), Value::Map(formHeaders));
@@ -1037,9 +1037,9 @@ impl crate::exchange::DerivedExchange for Aster {
         let message: Option<String> = self.safe_string_k_opt(response, "msg", &[]);
         if (codeError.is_some()) && (codeError.as_deref() != Some("200")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -4232,9 +4232,9 @@ impl Aster {
         if isTrailingPercentOrder {
             if (market).swap {
                 uppercaseType = Some("TRAILING_STOP_MARKET".to_string());
-                request.insert("callbackRate".into(), trailingPercent.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("callbackRate".into(), Value::from(trailingPercent.as_deref()));
                 if (trailingTriggerPrice.is_some()) {
-                    request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol, &trailingTriggerPrice)));
+                    request.insert("activationPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(trailingTriggerPrice.as_deref()))));
                 }
             }
         }  else if isStopLoss {
@@ -4266,7 +4266,7 @@ impl Aster {
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
         let mut quantityIsRequired: bool = false;
-        request.insert("type".into(), uppercaseType.clone().map(Value::from).unwrap_or(Value::Null));
+        request.insert("type".into(), Value::from(uppercaseType.as_deref()));
         if (uppercaseType.as_deref() == Some("MARKET")) {
             if (market).spot {
                 let quoteOrderQty: Option<bool> = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]).as_bool();
@@ -4939,7 +4939,7 @@ impl Aster {
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let isolatedMarginString: Option<String> = self.safe_string_k_opt(&position, "isolatedMargin", &[]);
         let leverageBrackets: crate::value::Dict = self.safe_dict_k_t(&self.options, "leverageBrackets");
-        let leverageBracket: crate::value::List = self.safe_list_t(&leverageBrackets, &symbol);
+        let leverageBracket: crate::value::List = self.safe_list_t(&leverageBrackets, Value::from(symbol.as_deref()));
         let notionalString: Option<String> = self.safe_string2_opt(&position, Value::Str("notional".into()), Value::Str("notionalValue".into()), &[]);
         let notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString).as_str().map(str::to_owned);
         let mut maintenanceMarginPercentageString: Option<String> = None;
@@ -4954,13 +4954,13 @@ impl Aster {
             maintenanceMarginPercentageString = self.safe_string_opt(&bracket, Value::Int(1), &[]);
         }
         }
-        let notional: Option<f64> = self.parse_number(&notionalStringAbs, &[]).as_f64();
+        let notional: Option<f64> = self.parse_number(Value::from(notionalStringAbs.as_deref()), &[]).as_f64();
         let contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&self.safe_string_k(&position, "positionAmt", &[])).as_str().map(str::to_owned);
-        let contracts: Option<f64> = self.parse_number(&contractsAbs, &[]).as_f64();
+        let contracts: Option<f64> = self.parse_number(Value::from(contractsAbs.as_deref()), &[]).as_f64();
         let unrealizedPnlString: Option<String> = self.safe_string_k_opt(&position, "unRealizedProfit", &[]);
-        let unrealizedPnl: Option<f64> = self.parse_number(&unrealizedPnlString, &[]).as_f64();
+        let unrealizedPnl: Option<f64> = self.parse_number(Value::from(unrealizedPnlString.as_deref()), &[]).as_f64();
         let liquidationPriceString: Option<String> = self.omit_zero(self.safe_string_k(&position, "liquidationPrice", &[]));
-        let liquidationPrice: Option<f64> = self.parse_number(&liquidationPriceString, &[]).as_f64();
+        let liquidationPrice: Option<f64> = self.parse_number(Value::from(liquidationPriceString.as_deref()), &[]).as_f64();
         let mut collateralString: Option<String> = None;
         let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "marginType", &[]);
         if (marginMode.is_none()) && (isolatedMarginString.is_some()) {
@@ -4973,7 +4973,7 @@ impl Aster {
             side = Some("short".to_string());
         }
         let entryPriceString: Option<String> = self.safe_string_k_opt(&position, "entryPrice", &[]);
-        let entryPrice: Option<f64> = self.parse_number(&entryPriceString, &[]).as_f64();
+        let entryPrice: Option<f64> = self.parse_number(Value::from(entryPriceString.as_deref()), &[]).as_f64();
         let contractSize: Option<f64> = self.safe_number_k(&marketResolved, "contractSize", &[]).as_f64();
         let contractSizeString: Option<String> = self.number_to_string(Value::from(contractSize));
         // as oppose to notionalValue
@@ -5033,12 +5033,12 @@ impl Aster {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = self.safe_string_k_opt(&position, "maintMargin", &[]);
         }
-        let maintenanceMargin: Option<f64> = self.parse_number(&maintenanceMarginString, &[]).as_f64();
+        let maintenanceMargin: Option<f64> = self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]).as_f64();
         let mut initialMarginString: Option<String> = None;
         let mut initialMarginPercentageString: Option<String> = None;
         let leverageString: Option<String> = self.safe_string_k_opt(&position, "leverage", &[]);
         if (leverageString.is_some()) {
-            let leverage: Option<i64> = self.parse_to_int(&leverageString);
+            let leverage: Option<i64> = self.parse_to_int(Value::from(leverageString.as_deref()));
             let rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
             if !rational {
@@ -5215,7 +5215,7 @@ impl Aster {
     pub fn parse_account_positions(&self, account: &indexmap::IndexMap<String, Value>, optional_args: &[&Value]) -> crate::value::List {
         let filterClosed: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let positions: crate::value::List = account.key_list("positions");
-        let assets: crate::value::List = account.key_list("assets");
+        let assets: Vec<crate::value::Dict> = crate::value::dict_rows(account.key_list("assets"));
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -5224,7 +5224,7 @@ impl Aster {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (assets.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+            let entry: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let crossWalletBalance: Option<String> = self.safe_string_k_opt(&entry, "crossWalletBalance", &[]);
@@ -5276,11 +5276,11 @@ impl Aster {
         let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let leverageString: Option<String> = self.safe_string_k_opt(&position, "leverage", &[]);
         let initialMarginString: Option<String> = self.safe_string_k_opt(&position, "initialMargin", &[]);
-        let initialMargin: Option<f64> = self.parse_number(&initialMarginString, &[]).as_f64();
+        let initialMargin: Option<f64> = self.parse_number(Value::from(initialMarginString.as_deref()), &[]).as_f64();
         let mut initialMarginPercentageString: Option<String> = None;
         if (leverageString.is_some()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
-            let leverage: Option<i64> = self.parse_to_int(&leverageString);
+            let leverage: Option<i64> = self.parse_to_int(Value::from(leverageString.as_deref()));
             let rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             if !rational {
                 initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
@@ -5289,12 +5289,12 @@ impl Aster {
         // as oppose to notionalValue
         let usdm: bool = matches!(&position, Value::Dict(__d) if __d.contains_key("notional"));
         let maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintMargin", &[]);
-        let maintenanceMargin: Option<f64> = self.parse_number(&maintenanceMarginString, &[]).as_f64();
+        let maintenanceMargin: Option<f64> = self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]).as_f64();
         let entryPriceString: Option<String> = self.safe_string_k_opt(&position, "entryPrice", &[]);
-        let mut entryPrice: Option<f64> = self.parse_number(&entryPriceString, &[]).as_f64();
+        let mut entryPrice: Option<f64> = self.parse_number(Value::from(entryPriceString.as_deref()), &[]).as_f64();
         let notionalString: Option<String> = self.safe_string2_opt(&position, Value::Str("notional".into()), Value::Str("notionalValue".into()), &[]);
         let notionalStringAbs: Option<String> = crate::precise::Precise::stringAbs(&notionalString).as_str().map(str::to_owned);
-        let notional: Option<f64> = self.parse_number(&notionalStringAbs, &[]).as_f64();
+        let notional: Option<f64> = self.parse_number(Value::from(notionalStringAbs.as_deref()), &[]).as_f64();
         let mut contractsString: Option<String> = self.safe_string_k_opt(&position, "positionAmt", &[]);
         let mut contractsStringAbs: Option<String> = crate::precise::Precise::stringAbs(&contractsString).as_str().map(str::to_owned);
         if (contractsString.is_none()) {
@@ -5303,9 +5303,9 @@ impl Aster {
             contractsString = crate::precise::Precise::stringDiv(&entryNotional, &contractSizeNew).as_str().map(str::to_owned);
             contractsStringAbs = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&contractsString, &Value::Str("0.5".into())), &Value::Str("1".into()), &Value::Int(0)).as_str().map(str::to_owned);
         }
-        let contracts: Option<f64> = self.parse_number(&contractsStringAbs, &[]).as_f64();
+        let contracts: Option<f64> = self.parse_number(Value::from(contractsStringAbs.as_deref()), &[]).as_f64();
         let leverageBrackets: crate::value::Dict = self.safe_dict_k_t(&self.options, "leverageBrackets");
-        let leverageBracket: crate::value::List = self.safe_list_t(&leverageBrackets, &symbol);
+        let leverageBracket: crate::value::List = self.safe_list_t(&leverageBrackets, Value::from(symbol.as_deref()));
         let mut maintenanceMarginPercentageString: Option<String> = None;
         {
                         let mut i: i64 = 0;
@@ -5320,7 +5320,7 @@ impl Aster {
         }
         let maintenanceMarginPercentage: Option<f64> = self.parse_number(&maintenanceMarginPercentageString, &[]).as_f64();
         let unrealizedPnlString: Option<String> = self.safe_string_k_opt(&position, "unrealizedProfit", &[]);
-        let unrealizedPnl: Option<f64> = self.parse_number(&unrealizedPnlString, &[]).as_f64();
+        let unrealizedPnl: Option<f64> = self.parse_number(Value::from(unrealizedPnlString.as_deref()), &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(&position, "updateTime", &[]).as_i64();
         if (timestamp == Some(0)) {
             timestamp = None;
@@ -5527,13 +5527,13 @@ impl Aster {
                 let entry: crate::value::Dict = self.safe_dict_t(&entries, Value::Int(i));
                 let marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                 let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[Value::Null, Value::Str("contract".into())]).as_str().map(str::to_owned);
-                let brackets: crate::value::List = self.safe_list_k_t(&entry, "brackets");
+                let brackets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&entry, "brackets"));
                 let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_10: bool = true;
                     while { if !__for_first_10 { j += 1; } __for_first_10 = false; j < (brackets.len() as i64) } {
-                    let bracket: crate::value::Dict = self.safe_dict_t(&brackets, Value::Int(j));
+                    let bracket: crate::value::Dict = brackets.get(j as usize).cloned().unwrap_or_default();
                     let floorValue: Option<String> = self.safe_string_k_opt(&bracket, "notionalFloor", &[]);
                     let maintenanceMarginPercentage: Option<String> = self.safe_string_k_opt(&bracket, "maintMarginRatio", &[]);
                     std::sync::Arc::make_mut(&mut result).push(Value::from(vec![floorValue.map(Value::from).unwrap_or(Value::Null), maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null)]));

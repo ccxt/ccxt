@@ -79,7 +79,7 @@ impl crate::exchange::DerivedExchange for Zaif {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), vwap.map(Value::from).unwrap_or(Value::Null));
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -298,7 +298,7 @@ impl crate::exchange::DerivedExchange for Zaif {
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let balance: Option<String> = self.safe_string_opt(&funds, Value::from(currencyId.as_deref()), &[]);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
-            account.insert("free".into(), balance.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("free".into(), Value::from(balance.as_deref()));
             account.insert("total".into(), balance.map(Value::from).unwrap_or(Value::Null));
             if (deposit.is_some()) {
                 if (matches!(deposit.as_deref(), Some(__d) if matches!(currencyId.as_deref(), Some(__k) if __d.contains_key(__k)))) {
@@ -408,12 +408,12 @@ impl crate::exchange::DerivedExchange for Zaif {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
                     m.insert("Key".to_string(), self.apiKey.clone());
-                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(bodyEncoded.clone())), self.encode(&self.secret), "sha512", &[])));
+                    m.insert("Sign".to_string(), Value::from(self.hmac(self.encode(Value::from(bodyEncoded.as_str())), self.encode(&self.secret), "sha512", &[])));
                 m
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(bodyEncoded));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -441,8 +441,8 @@ impl crate::exchange::DerivedExchange for Zaif {
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         let error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
         if (error.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }
         let success: bool = self.safe_bool_k_opt(response, "success", &[Value::Bool(true)]).unwrap_or(true);

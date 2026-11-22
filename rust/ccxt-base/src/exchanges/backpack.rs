@@ -103,7 +103,7 @@ impl crate::exchange::DerivedExchange for Backpack {
                 m.insert("askVolume".to_string(), Value::Null);
                 m.insert("vwap".to_string(), Value::Null);
                 m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-                m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("close".to_string(), Value::from(last.as_deref()));
                 m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
                 m.insert("previousClose".to_string(), Value::Null);
                 m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -1043,7 +1043,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -1228,9 +1228,9 @@ impl crate::exchange::DerivedExchange for Backpack {
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (errorCode.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2397,7 +2397,7 @@ impl Backpack {
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (requestedTypes.len() as i64) } {
             let requestedType: String = self.safe_string(&requestedTypes, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let normalizedType: Option<String> = self.safe_string_opt(&aliases, &requestedType, &[&requestedType]);
+            let normalizedType: Option<String> = self.safe_string_opt(&aliases, Value::from(requestedType.as_str()), &[&Value::from(requestedType.as_str())]);
             if !self.in_array(&normalizedType, &supportedTypes) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() unsupported marketType ").into()), requestedType)));
             }
@@ -2468,7 +2468,7 @@ impl Backpack {
                 if !(marketIds.contains_key(marketId.as_str())) {
                     let market: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("symbol".to_string(), Value::from(marketId.clone()));
+                            m.insert("symbol".to_string(), Value::from(marketId.as_str()));
                             m.insert("baseSymbol".to_string(), assetId.map(Value::from).unwrap_or(Value::Null));
                             m.insert("quoteSymbol".to_string(), Value::Str("USDC".into()));
                             m.insert("marketType".to_string(), Value::Str("RFQ".into()));
@@ -2599,7 +2599,7 @@ impl Backpack {
             quoteCode = fromCode.to_string();
         }
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", stockCode, ".RFQ/").into()), quoteCode);
-        let market: Value = self.safe_dict(&self.markets, Value::from(symbol.clone()), &[]);
+        let market: Value = self.safe_dict(&self.markets, Value::from(symbol.as_str()), &[]);
         if (market == Value::Null) || (self.safe_string_k(&market, "executionModel", &[]).as_str() != Some("rfq")) || !matches!(self.safe_bool_k(&market, "stock", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " conversion requires a listed stock RFQ market: ").into()), symbol)));
         }
@@ -2678,7 +2678,7 @@ impl Backpack {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
             }
         }
-        let mut quote: Value = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(&amountString, &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+        let mut quote: Value = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
@@ -2696,7 +2696,7 @@ impl Backpack {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " fetchConvertQuote() amount is too small for one stock increment")));
                 }
                 amountString = reducedQuantity;
-                quote = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(&amountString, &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+                quote = self.fetch_stock_indicative_quote((crate::value::KeyRead::key_read(&&market, "symbol")).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(amountString.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
@@ -2807,7 +2807,7 @@ impl Backpack {
                 quantity = preciseQuantity;
             }
             if (price.is_none()) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(Value::from(price))), &Value::Str("0".into())).as_bool() == Some(true)) {
-                let indicative: crate::value::Dict = self.fetch_stock_indicative_quote(self.safe_symbol(None, Some(&market), &[]).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(&quantity, &[])).as_f64().unwrap_or_default(), &[&Value::Map({
+                let indicative: crate::value::Dict = self.fetch_stock_indicative_quote(self.safe_symbol(None, Some(&market), &[]).as_str().unwrap_or_default(), side.as_str(), (self.parse_number(Value::from(quantity.as_deref()), &[])).as_f64().unwrap_or_default(), &[&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("stock".to_string(), Value::Bool(true));
     m
@@ -3418,7 +3418,7 @@ impl Backpack {
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rawRates.len() as i64) } {
             let rate: crate::value::Dict = self.safe_dict_t(&rawRates, Value::Int(i));
             let datetime: Option<String> = self.safe_string_k_opt(&rate, "intervalEndTimestamp", &[]);
-            let timestamp: Option<i64> = self.parse8601(&datetime);
+            let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), Value::from(&rate));

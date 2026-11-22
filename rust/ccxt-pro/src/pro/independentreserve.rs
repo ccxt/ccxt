@@ -263,7 +263,7 @@ impl Independentreserve {
         m.insert("amount".to_string(), self.safe_string_k(trade, "Volume", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
     m
 }), market);
@@ -361,7 +361,7 @@ impl Independentreserve {
         let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let orderBook: crate::value::Dict = message.key_dict("Data");
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderbook:", symbol).into()), ":").into()), depth);
-        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.clone()));
+        let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
         let receivedSnapshot: bool = self.safe_bool_k_opt(&subscription, "receivedSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let timestamp: Option<i64> = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         // let orderbook = this.safeValue (this.orderbooks, symbol);

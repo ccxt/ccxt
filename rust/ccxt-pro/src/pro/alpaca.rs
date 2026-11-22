@@ -69,7 +69,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
@@ -146,11 +146,11 @@ impl crate::exchange::DerivedExchange for Alpaca {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "i", &[]));
         m.insert("info".to_string(), trade.clone());
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), None, &[Value::Str("/".into())]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "id", &[]));
-        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("side".to_string(), self.safe_string_k(&trade, "side", &[]));
         m.insert("takerOrMaker".to_string(), (if (type_var.as_deref() == Some("market")) { Value::Str("taker".into()) } else { Value::Str("maker".into()) }));
         m.insert("price".to_string(), self.safe_string_k(&trade, "filled_avg_price", &[]));
@@ -535,7 +535,7 @@ impl Alpaca {
         let marketId: Option<String> = (match __pro_message.get("S") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let datetime: Option<String> = (match __pro_message.get("t") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let isSnapshot: bool = (match __pro_message.get("r").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -905,7 +905,7 @@ impl Alpaca {
         let messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(&Value::from(url)));
         let future: Value = Value::from(client.reusable_future(messageHash.as_str()));
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

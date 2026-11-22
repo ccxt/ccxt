@@ -104,7 +104,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let response: Value = response.into();
         let responseResult: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::List = self.safe_list_k_t(&responseResult, "data");
-        let positionBalances: crate::value::List = self.safe_list_t(self.safe_dict(&data, Value::Int(0), &[]), Value::Str("position_balances".into()));
+        let positionBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(self.safe_dict(&data, Value::Int(0), &[]), Value::Str("position_balances".into())));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -314,7 +314,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (positionBalances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&positionBalances, Value::Int(i));
+            let balance: crate::value::Dict = positionBalances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "instrument_name", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -611,7 +611,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         let mut type_var: Option<String> = None;
         let rawStatus: Option<String> = self.safe_string_k_opt(&transaction, "status", &[]);
         let mut status: Option<String> = None;
-        if (self.safe_string_k(&transaction, "client_wid", &[]) != Value::Null) {
+        if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("client_wid"))) {
             type_var = Some("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.as_deref());
         }  else {
@@ -630,7 +630,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                     m.insert("cost".to_string(), Value::from(feeCost));
                 m
             }));
@@ -780,7 +780,7 @@ impl crate::exchange::DerivedExchange for Cryptocom {
             let paramsKeysLength: i64 = paramsKeys.len() as i64;
             requestBody = self.json(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(nonce.as_deref()));
                     m.insert("method".to_string(), Value::from(path));
                     m.insert("params".to_string(), params);
                     m.insert("api_key".to_string(), self.apiKey.clone());
@@ -2348,7 +2348,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else if (inst_type.as_deref() == Some("WARRANT")) {
                 type_var = Some("option".to_string());
                 let symbolOptionType: String = (if (optionType.as_deref() == Some("call")) { "C".to_string() } else { "P".to_string() });
-                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", quote.as_deref().unwrap_or("null"), "-", self.yymmdd(Value::from(expiry), &[]), "-", self.safe_string_k(&market, "strike", &[Value::Str("".into())]), "-", symbolOptionType);
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", Value::from(base.as_deref()), "/", Value::from(quote.as_deref()), ":", Value::from(quote.as_deref()), "-", self.yymmdd(Value::from(expiry), &[]), "-", self.safe_string_k(&market, "strike", &[Value::Str("".into())]), "-", symbolOptionType);
                 contract = Some(true);
             }
             let mut isLinear: Option<bool> = (if (contract == Some(true)) { Some(true) } else { None });
@@ -2454,15 +2454,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         if (symbols != Value::Null) {
             let mut symbol: Option<String> = None;
-            if (matches!(&symbols, Value::Arr(_))) {
-                let symbolsLength: i64 = symbols.len() as i64;
-                if symbolsLength > 1 {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")));
-                }
-                symbol = self.safe_string_opt(&symbols, Value::Int(0), &[]);
-            }  else {
-                symbol = None;
+            let symbolsLength: i64 = symbols.len() as i64;
+            if symbolsLength > 1 {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")));
             }
+            symbol = self.safe_string_opt(&symbols, Value::Int(0), &[]);
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
@@ -3015,7 +3011,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else if (timeInForce.as_deref() == Some("FOK")) {
                 request.insert("time_in_force".into(), Value::Str("FILL_OR_KILL".into()));
             }  else {
-                request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
         }
         let postOnly: bool = self.safe_bool_k_opt(&paramsValue, "postOnly", &[Value::Bool(false)]).unwrap_or(false);
@@ -3030,7 +3026,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let isStopLossTrigger: bool = stopLossPrice.is_some();
         let isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
-            request.insert("ref_price".into(), Value::from(self.price_to_precision(Some(symbol), &triggerPrice)));
+            request.insert("ref_price".into(), Value::from(self.price_to_precision(Some(symbol), Value::from(triggerPrice.as_deref()))));
             let priceString: Option<String> = self.number_to_string(Value::from(price));
             if (uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
                 if (side == "buy") {
@@ -3281,7 +3277,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else if (timeInForce.as_deref() == Some("FOK")) {
                 request.insert("time_in_force".into(), Value::Str("FILL_OR_KILL".into()));
             }  else {
-                request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
+                request.insert("time_in_force".into(), Value::from(timeInForce.as_deref()));
             }
         }
         let postOnly: bool = self.safe_bool_k_opt(&params, "postOnly", &[Value::Bool(false)]).unwrap_or(false);
@@ -3339,7 +3335,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("type".into(), Value::Str("TAKE_PROFIT".into()));
             }
         }  else {
-            request.insert("type".into(), uppercaseType.clone().map(Value::from).unwrap_or(Value::Null));
+            request.insert("type".into(), Value::from(uppercaseType.as_deref()));
         }
         let isMarketBuy: bool = (side == Some("buy")) && ((uppercaseType.as_deref() == Some("MARKET")) || (uppercaseType.as_deref() == Some("STOP_LOSS")) || (uppercaseType.as_deref() == Some("TAKE_PROFIT")));
         let mut paramsMarketBuy: crate::value::Dict = params.clone().into_dict();
@@ -4034,7 +4030,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let depositAddressesRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(code.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
         let depositAddresses: Value = depositAddressesRaw;
         if (networkParam.is_some()) {
-            let network: Option<String> = self.safe_string_opt(&self.networkAliases, &networkParam, &[&networkParam]);
+            let network: Option<String> = self.safe_string_opt(&self.networkAliases, Value::from(networkParam.as_deref()), &[&networkParam]);
             if (matches!((&depositAddresses, network.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 return self.safe_dict(&depositAddresses, network.map(Value::from).unwrap_or(Value::Null), &[]);
             }
@@ -4532,7 +4528,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut type_var: Option<String> = None;
         let mut paramsMarketType: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchSettlementHistory".into()), market.as_ref(), &[&params]); type_var = __destr_tmp.0.as_str().map(str::to_owned); paramsMarketType = __destr_tmp.1; }
-        self.check_required_argument(Value::Str("fetchSettlementHistory".into()), &Value::from(&type_var), Value::Str("type".into()), &[Value::from(vec![Value::Str("future".into()), Value::Str("option".into()), Value::Str("WARRANT".into()), Value::Str("FUTURE".into())])]);
+        self.check_required_argument(Value::Str("fetchSettlementHistory".into()), &Value::from(type_var.as_deref()), Value::Str("type".into()), &[Value::from(vec![Value::Str("future".into()), Value::Str("option".into()), Value::Str("WARRANT".into()), Value::Str("FUTURE".into())])]);
         if (type_var.as_deref() == Some("option")) {
             type_var = Some("WARRANT".to_string());
         }
@@ -4875,16 +4871,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut market: Option<crate::types::Market> = None;
         if (symbolsNormalized.is_some()) {
             let mut symbol: Option<String> = None;
-            if (symbolsNormalized.is_some()) {
-                let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
-                if symbolsLength > 1 {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")));
-                }
-                if (symbolsLength == 1) {
-                    symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
-                }
-            }  else {
-                symbol = None;
+            let symbolsLength: i64 = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+            if symbolsLength > 1 {
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")));
+            }
+            if (symbolsLength == 1) {
+                symbol = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).and_then(Value::as_str).map(str::to_owned);
             }
             market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
@@ -5172,7 +5164,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let tradingFee: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), response.clone());
-                    m.insert("symbol".to_string(), Value::from(symbol.clone()));
+                    m.insert("symbol".to_string(), Value::from(symbol.as_str()));
                     m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(&response, Value::from(makerFeeKey), &[]), &Value::Str("10000".into())), &[]));
                     m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string(&response, Value::from(takerFeeKey), &[]), &Value::Str("10000".into())), &[]));
                     m.insert("percentage".to_string(), Value::Null);

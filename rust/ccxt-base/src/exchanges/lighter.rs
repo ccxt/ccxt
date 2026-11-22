@@ -132,7 +132,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -507,7 +507,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("name".to_string(), Value::from(code.as_deref()));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("precision".to_string(), self.parse_number(Value::Str(format!("{}{}", "1e-", decimals).into()), &[]));
         m.insert("active".to_string(), Value::Bool(true));
@@ -699,7 +699,7 @@ impl crate::exchange::DerivedExchange for Lighter {
                 });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("url".to_string(), Value::from(url.as_deref()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), params.clone());
         m.insert("headers".to_string(), Value::Map(multipartHeaders));
@@ -711,7 +711,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         if (apiName.as_deref() == Some("private")) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), url.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("url".to_string(), Value::from(url.as_deref()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), authHeaders.map_or(Value::Null, Value::Dict));
@@ -743,8 +743,8 @@ impl crate::exchange::DerivedExchange for Lighter {
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (codeError.is_some()) && (codeError.as_deref() != Some("0")) && (codeError.as_deref() != Some("200")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1529,7 +1529,7 @@ impl Lighter {
         let lighterPrivateKeyIsSet: bool = (privateKey.is_some()) && (privateKey != Some(""));
         if lighterPrivateKeyIsSet && (libraryPath.is_some()) && (true) && (true) {
             // load lighter library, and create lighter client
-            signer = self.load_lighter_library(libraryPath.clone().map(Value::from).unwrap_or(Value::Null), chainId.clone(), Value::from(privateKey), Value::from(self.parse_to_int(Value::from(apiKeyIndex))), Value::from(self.parse_to_int(Value::from(accountIndex))), &[Value::Bool(true)]).await;
+            signer = self.load_lighter_library(Value::from(libraryPath.as_deref()), chainId.clone(), Value::from(privateKey), Value::from(self.parse_to_int(Value::from(apiKeyIndex))), Value::from(self.parse_to_int(Value::from(accountIndex))), &[Value::Bool(true)]).await;
             self.set_auth_entry(accountIndex, apiKeyIndex, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), signer.clone());
@@ -1647,7 +1647,7 @@ impl Lighter {
         let mut signer: Value = self.safe_dict(self.safe_dict(self.safe_dict(self.safe_dict_k(&self.options, "auths", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), strAccountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+})]), Value::from(strAccountIndex.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), Value::from(strApiKeyIndex.as_deref()), &[Value::Map({
@@ -1805,8 +1805,8 @@ impl Lighter {
             accountIndex = self.safe_string_opt(&res, Value::Int(0), &[]);
         }
         let auths: crate::value::Dict = self.safe_dict_k_t(&self.options, "auths");
-        let accountAuths: crate::value::Dict = self.safe_dict_t(&auths, &accountIndex);
-        let cachedAuth: crate::value::Dict = self.safe_dict_t(&accountAuths, &apiKeyIndex);
+        let accountAuths: crate::value::Dict = self.safe_dict_t(&auths, Value::from(accountIndex.as_deref()));
+        let cachedAuth: crate::value::Dict = self.safe_dict_t(&accountAuths, Value::from(apiKeyIndex.as_deref()));
         let cachedDeadline: Option<i64> = self.safe_integer_k(&cachedAuth, "deadline", &[]).as_i64();
         let minimumRemaining: i64 = self.safe_integer_k(&self.options, "authDeadlineMinimumRemaining", &[Value::Int(60)]).as_i64().unwrap_or(60);
         if (cachedDeadline.is_some()) && (true) && (((if let Some(__l) = cachedDeadline { Some(__l - minimumRemaining) } else { None })) >= Some((self.seconds()))) {
@@ -1816,8 +1816,8 @@ impl Lighter {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deadline".to_string(), Value::from(deadline));
-                m.insert("api_key_index".to_string(), Value::from(self.parse_to_int(&apiKeyIndex)));
-                m.insert("account_index".to_string(), Value::from(self.parse_to_int(&accountIndex)));
+                m.insert("api_key_index".to_string(), Value::from(self.parse_to_int(Value::from(apiKeyIndex.as_deref()))));
+                m.insert("account_index".to_string(), Value::from(self.parse_to_int(Value::from(accountIndex.as_deref()))));
             m
         });
         let signer: Value = self.safe_value_k(&cachedAuth, "signer", &[]);
@@ -2742,7 +2742,7 @@ if _try_result.is_err() {
                     m.insert("baseId".to_string(), marketSymbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("type".to_string(), Value::from(type_var.as_deref()));
                     m.insert("spot".to_string(), Value::Bool(type_var.as_deref() == Some("spot")));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), Value::Bool(type_var.as_deref() == Some("swap")));
@@ -3883,7 +3883,7 @@ if _try_result.is_err() {
         let strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default()).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[&Value::from(&paramsToAccountIndex)]).await;
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let currencyCode: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
+        let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[&Value::Str("".into())]);
         if (currencyCode.as_deref() != Some("USDC")) && (currencyCode.as_deref() != Some("ETH")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " transfer() only supports USDC and ETH transfers")));
         }
@@ -4242,7 +4242,7 @@ if _try_result.is_err() {
         let strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let signer: Value = self.load_account(self.safe_integer_k(&self.options, "chainId", &[]), self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default()).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[&Value::from(&paramsAccountIndex)]).await;
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let currencyCode: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
+        let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[&Value::Str("".into())]);
         if (currencyCode.as_deref() != Some("USDC")) && (currencyCode.as_deref() != Some("ETH")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " withdraw() only supports USDC and ETH transfers")));
         }

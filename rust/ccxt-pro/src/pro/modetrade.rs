@@ -316,7 +316,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -395,7 +395,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -513,7 +513,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -597,7 +597,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -710,7 +710,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -801,7 +801,7 @@ impl Modetrade {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -983,7 +983,7 @@ impl Modetrade {
         let messageHash: String = "authenticated".to_string();
         let event: String = "auth".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let ts: String = format!("{}", self.nonce());
             let mut secret: Value = self.secret.clone();
@@ -1358,7 +1358,7 @@ impl Modetrade {
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client, &order);
                 }
-                self.handle_order(client, &order, topic.clone().map(Value::from).unwrap_or(Value::Null));
+                self.handle_order(client, &order, Value::from(topic.as_deref()));
             }
             }
         }  else {
@@ -1382,7 +1382,7 @@ impl Modetrade {
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), &symbol);
+            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
             let order: Option<crate::value::Dict> = (if (orderId.is_none()) { None } else { self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null)) });
             if (order.is_some()) {
                 let fee: Value = self.safe_value_k(&order, "fee", &[]);
@@ -1595,7 +1595,7 @@ impl Modetrade {
         //    }
         //
         let data: crate::value::Dict = message.key_dict("data");
-        let rawPositions: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
@@ -1604,7 +1604,7 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
+            let rawPosition: crate::value::Dict = rawPositions.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let position: crate::value::Dict = self.parse_ws_position(&rawPosition, Some(&market));
@@ -1778,8 +1778,8 @@ impl Modetrade {
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             let total: Option<String> = self.safe_string_k_opt(&value, "holding", &[]);
             let used: Option<String> = self.safe_string_k_opt(&value, "frozen", &[]);
-            account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
-            account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("total".into(), Value::from(total.as_deref()));
+            account.insert("used".into(), Value::from(used.as_deref()));
             account.insert("free".into(), crate::precise::Precise::stringSub(&total, &used));
             if (code.is_some()) {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }

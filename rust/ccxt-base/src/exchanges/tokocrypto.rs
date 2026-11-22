@@ -128,7 +128,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askQty", &[]));
         m.insert("vwap".to_string(), self.safe_string_k(&ticker, "weightedAvgPrice", &[]));
         m.insert("open".to_string(), self.safe_string_k(&ticker, "openPrice", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), self.safe_string_k(&ticker, "prevClosePrice", &[]));
         m.insert("change".to_string(), self.safe_string_k(&ticker, "priceChange", &[]));
@@ -677,7 +677,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             m
         });
         if (feeCost.is_some()) {
-            fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
+            fee.insert("currency".into(), Value::from(code.as_deref()));
             fee.insert("cost".into(), Value::from(feeCost));
         }
         let internalRaw: Option<i64> = self.safe_integer_k(&transaction, "transferType", &[]).as_i64();
@@ -696,17 +696,17 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(type_var.as_deref()));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "network", &[]).as_str(), code.as_deref())));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status_by_type(self.safe_string_k(&transaction, "status", &[]).as_str(), type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer2(transaction, Value::Str("successTime".into()), Value::Str("updateTime".into()), &[]));
@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         if !(matches!(apiName.as_deref(), Some(__k) if restUrls.contains_key(__k))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
-        let baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &apiName, &[]);
+        let baseApiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -758,7 +758,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
                 let bodyStream: Option<String> = (if (method.as_str() != Some("GET")) { Some(self.urlencode(params.clone(), &[])) } else { None });
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyStream.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersStream));
@@ -791,7 +791,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             }  else {
                 query = self.urlencode(&extendedParams, &[]);
             }
-            let mut signature: String = self.hmac(self.encode(Value::from(query.clone())), self.encode(&self.secret), "sha256", &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(query.as_str())), self.encode(&self.secret), "sha256", &[]);
             query.push_str(&format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature));
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -808,7 +808,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             }
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -869,8 +869,8 @@ if _try_result.is_err() {
         }
         let message: Option<String> = self.safe_string_k_opt(&responseParsed, "msg", &[]);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), message.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
         }
         // checks against error codes
         let error: Option<String> = self.safe_string_k_opt(&responseParsed, "code", &[]);
@@ -890,7 +890,7 @@ if _try_result.is_err() {
             if (message.as_deref() == Some("No need to change margin type.")) {
                 panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
             }
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !success {
@@ -2487,12 +2487,12 @@ impl Tokocrypto {
             m
         });
         let data: crate::value::Dict = self.safe_dict_k_t(response, "data");
-        let balances: crate::value::List = self.safe_list_k_t(&data, "accountAssets");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "accountAssets"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2650,7 +2650,7 @@ impl Tokocrypto {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, "_").into()), quoteId).into()));
-                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, Value::from(uppercaseType.clone()), &[]));
+                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, Value::from(uppercaseType.as_str()), &[]));
             m
         });
         if (side.as_str() == Some("buy")) {
@@ -2764,7 +2764,7 @@ impl Tokocrypto {
                     m.insert("FOK".to_string(), Value::Str("3".into()));
                 m
             });
-            let timeInForceCode: Option<String> = self.safe_string_opt(&timeInForceCodes, &timeInForce, &[]);
+            let timeInForceCode: Option<String> = self.safe_string_opt(&timeInForceCodes, Value::from(timeInForce.as_deref()), &[]);
             if (timeInForceCode.is_none()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support the ").into()), timeInForce.as_deref().unwrap_or("null")).into()), " timeInForce, use GTC, IOC, FOK or the postOnly parameter")));
             }
@@ -3239,7 +3239,7 @@ impl Tokocrypto {
         if (((tag.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
             tag = None;
         }
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));

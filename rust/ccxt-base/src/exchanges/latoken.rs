@@ -119,7 +119,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -512,7 +512,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         let feeCost: Option<f64> = self.safe_number_k(&transaction, "transactionFee", &[]).as_f64();
         if (feeCost.is_some()) {
             fee.insert("cost".into(), Value::from(feeCost));
-            fee.insert("currency".into(), code.clone().map(Value::from).unwrap_or(Value::Null));
+            fee.insert("currency".into(), Value::from(code.as_deref()));
         }
         let type_var: Option<String> = self.parse_transaction_type(self.safe_string_k(&transaction, "type", &[]).as_str());
         return Value::Map({
@@ -524,10 +524,10 @@ impl crate::exchange::DerivedExchange for Latoken {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
-        m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), Value::from(addressTo.as_deref()));
         m.insert("address".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), Value::from(tagTo.as_deref()));
         m.insert("tag".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), Value::from(amount));
@@ -608,13 +608,13 @@ impl crate::exchange::DerivedExchange for Latoken {
         let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
         }
         let error: Option<String> = self.safe_string_k_opt(response, "error", &[]);
         if (error.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1426,8 +1426,8 @@ impl Latoken {
             // the exchange shows them inverted
             let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
             let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
-            let baseCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, &baseId);
-            let quoteCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, &quoteId);
+            let baseCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, Value::from(baseId.as_deref()));
+            let quoteCurrency: crate::value::Dict = self.safe_dict_t(&currenciesById, Value::from(quoteId.as_deref()));
             let baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&baseCurrency, "info");
             let quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k_o(&quoteCurrency, "info");
             if (baseCurrencyInfo.is_some()) && (quoteCurrencyInfo.is_some()) {
@@ -1669,14 +1669,14 @@ impl Latoken {
         let types: crate::value::Dict = self.safe_dict_k_t(&self.options, "types");
         let accountType: Option<String> = self.safe_string_opt(&types, Value::from(type_var.as_deref()), &[&type_var]);
         let balancesByType: crate::value::Dict = self.group_by(response, Value::Str("type".into()), &[]);
-        let balances: crate::value::List = self.safe_list_t(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null));
-        let firstBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(0));
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&balancesByType, accountType.map(Value::from).unwrap_or(Value::Null)));
+        let firstBalance: crate::value::Dict = balances.get(0).cloned().unwrap_or_default();
         let mut maxTimestamp: Option<i64> = self.safe_integer_k(&firstBalance, "timestamp", &[]).as_i64();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let timestamp: Option<i64> = self.safe_integer_k(&balance, "timestamp", &[]).as_i64();
             if (timestamp.is_some()) {
@@ -2307,7 +2307,7 @@ impl Latoken {
                 m.insert("quoteCurrency".to_string(), Value::from((market).quote_id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("condition".to_string(), Value::Str("GTC".into()));
-                m.insert("type".to_string(), Value::from(uppercaseType.clone()));
+                m.insert("type".to_string(), Value::from(uppercaseType.as_str()));
                 m.insert("clientOrderId".to_string(), Value::from(self.uuid(&[])));
                 m.insert("quantity".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
                 m.insert("timestamp".to_string(), Value::Int(self.seconds()));

@@ -101,7 +101,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         m.insert("askVolume".to_string(), self.safe_string_k(&asks, "qty", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "first", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -452,7 +452,7 @@ impl crate::exchange::DerivedExchange for Coinone {
             let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);
             let payload: String = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
             requestBody = Some(payload.clone());
-            let signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode((if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })), "sha512", &[]);
+            let signature: String = self.hmac(self.encode(Value::from(payload.as_str())), self.encode((if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })), "sha512", &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -485,7 +485,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         let errorCode: Option<String> = self.safe_string_k_opt(response, "error_code", &[]);
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("0")) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(&self.exceptions, &errorCode, &feedback);
+            self.throw_exactly_matched_exception(&self.exceptions, &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1991,7 +1991,7 @@ impl Coinone {
             let currencyId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
             let secondPart: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
-            let address: Option<String> = self.safe_string_k_opt(self.safe_value(&result, Value::from(code.as_deref()), &[]), "address", &[&value.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let address: Option<String> = self.safe_string_k_opt(self.safe_value(&result, Value::from(code.as_deref()), &[]), "address", &[&Value::from(value.as_deref())]);
             self.check_address(&[&Value::from(address.as_deref())]);
             let mut depositAddress: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2003,7 +2003,7 @@ impl Coinone {
                 m
             });
             if ((secondPart.as_deref() == Some("tag")) || (secondPart.as_deref() == Some("memo"))) {
-                depositAddress.insert("tag".into(), value.clone().map(Value::from).unwrap_or(Value::Null));
+                depositAddress.insert("tag".into(), Value::from(value.as_deref()));
                 depositAddress.insert("info".into(), Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null)]));
             }
             if (code.is_some()) {

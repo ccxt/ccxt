@@ -119,7 +119,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "best_ask_amount", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -411,9 +411,9 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.parse_number(&initialMarginString, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(Value::from(initialMarginString.as_deref()), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&initialMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
-        m.insert("maintenanceMargin".to_string(), self.parse_number(&maintenanceMarginString, &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalStringAbs), &Value::Str("100".into())), &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(&position, "average_price", &[]));
         m.insert("notional".to_string(), self.parse_number(notionalStringAbs.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -513,8 +513,8 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("status".to_string(), self.parse_transfer_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.as_deref(), currency).map(Value::from).unwrap_or(Value::Null));
-        m.insert("fromAccount".to_string(), (if (direction.as_deref() != Some("payment")) { account.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
-        m.insert("toAccount".to_string(), (if (direction.as_deref() == Some("payment")) { account.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("fromAccount".to_string(), (if (direction.as_deref() != Some("payment")) { Value::from(account.as_deref()) } else { Value::Null }));
+        m.insert("toAccount".to_string(), (if (direction.as_deref() == Some("payment")) { Value::from(account.as_deref()) } else { Value::Null }));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -703,7 +703,7 @@ impl crate::exchange::DerivedExchange for Deribit {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -714,7 +714,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transaction_id", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), Value::Null);
@@ -875,7 +875,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, "/").into()), quote).into()), ":").into()), settle).into()), "-").into()), expiry.as_deref().unwrap_or("null")).into()),
             (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
         m.insert("base".to_string(), baseResolved.clone());
-        m.insert("quote".to_string(), Value::from(quote.clone()));
+        m.insert("quote".to_string(), Value::from(quote.as_str()));
         m.insert("settle".to_string(), settle.clone());
         m.insert("baseId".to_string(), baseResolved);
         m.insert("quoteId".to_string(), Value::from(quote));
@@ -1014,7 +1014,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         if (error.is_some()) {
             let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(&self.exceptions, &errorCode, &feedback);
+            self.throw_exactly_matched_exception(&self.exceptions, &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -2789,7 +2789,7 @@ impl Deribit {
             m
         });
         if (code.is_some()) {
-            request.insert("currency".into(), self.currency_id(code.clone().map(Value::from).unwrap_or(Value::Null)));
+            request.insert("currency".into(), self.currency_id(Value::from(code.as_deref())));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (code.is_none()) {
@@ -2891,7 +2891,7 @@ impl Deribit {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let address: Option<String> = self.safe_string_k_opt(&result, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code);
@@ -2955,7 +2955,7 @@ impl Deribit {
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let address: Option<String> = self.safe_string_k_opt(&result, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -3763,7 +3763,7 @@ impl Deribit {
             request.insert("type".into(), Value::Str("market".into()));
         }
         if isTrailingAmountOrder {
-            request.insert("trigger".into(), Value::from(trigger.clone()));
+            request.insert("trigger".into(), Value::from(trigger.as_str()));
             request.insert("type".into(), Value::Str("trailing_stop".into()));
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }  else if isStopOrder {

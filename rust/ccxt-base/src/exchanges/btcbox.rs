@@ -70,7 +70,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -334,7 +334,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(signedBody));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -366,7 +366,7 @@ impl crate::exchange::DerivedExchange for Btcbox {
         }
         let codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-        self.throw_exactly_matched_exception(&self.exceptions, &codeError, &feedback);
+        self.throw_exactly_matched_exception(&self.exceptions, &codeError, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
@@ -776,11 +776,11 @@ impl Btcbox {
 })]).as_map().cloned().unwrap_or_default();
             let symbol: String = format!("{}{}", Value::Str(format!("{}{}", baseCurr, "/").into()), quote);
             let fee: Option<f64> = (if (id == "BTC") { Some(0.0005_f64) } else { Some(0.0010_f64) });
-            let details: crate::value::Dict = self.safe_dict_t(&result2Data, Value::from(id.clone()));
+            let details: crate::value::Dict = self.safe_dict_t(&result2Data, Value::from(id.as_str()));
             let tradeDetails: crate::value::Dict = self.safe_dict_k_t(&details, "trade");
             markets.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::from(id.clone()));
+        m.insert("id".to_string(), Value::from(id.as_str()));
         m.insert("uppercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), Value::from(baseCurr));

@@ -609,7 +609,7 @@ impl Coinbaseinternational {
             symbolResolved = Some((market).symbol.clone());
             channel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null"));
         }
-        let trades: Value = self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
+        let trades: Value = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
         return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since, limit, &[Value::Bool(true)]));
         Value::Null
         }).await?))
@@ -716,7 +716,7 @@ impl Coinbaseinternational {
             symbolResolved = Some((market).symbol.clone());
             channel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null"));
         }
-        let mut orders: Value = self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
+        let mut orders: Value = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -833,11 +833,8 @@ impl Coinbaseinternational {
         if (dataList.is_some()) {
             orders = self.parse_orders(&dataList, None, &[]);
         }  else {
-            let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]);
-            orders = std::sync::Arc::new(vec![Value::Dict(self.parse_order(data, None))]);
+            let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
+            orders = std::sync::Arc::new(vec![Value::Dict(self.parse_order(Value::Dict(data), None))]);
         }
         let ordersLength: i64 = orders.len() as i64;
         {
@@ -980,7 +977,7 @@ impl Coinbaseinternational {
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < positionsLength } {
             let mut position: Value = get_value(&positions, &Value::Int(i));
-            if (position.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null) == Value::Null) {
+            if (self.safe_string_k(&position, "side", &[]) == Value::Null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 if let Value::Dict(__rda) = &mut position { std::sync::Arc::make_mut(__rda).insert("side".to_string(), Value::Str("long".into())); }
                 let mut shortPosition: Value = self.clone_value(position.clone());
@@ -1161,7 +1158,7 @@ impl Coinbaseinternational {
         let paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.1;
         let isPrivate: bool = interval.as_deref() == Some("raw");
         let channel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null"));
-        return self.subscribe(Value::from(vec![Value::from(channel.clone())]), Value::from(vec![Value::from(channel)]), &[Value::Bool(isPrivate), Value::Dict(paramsInterval)]).await;
+        return self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(isPrivate), Value::Dict(paramsInterval)]).await;
         Value::Null
         }).await?))
     }
@@ -1632,7 +1629,7 @@ impl Coinbaseinternational {
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < symbolsAndTimeframesLength } {
             let current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let currentTimeframe: String = self.safe_string(&current, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let resolution: Option<String> = self.safe_string_opt(&self.timeframes, &currentTimeframe, &[&currentTimeframe]);
+            let resolution: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(currentTimeframe.as_str()), &[&currentTimeframe]);
             let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), resolution.as_deref().unwrap_or("null")).into()));
         }
@@ -1717,7 +1714,7 @@ impl Coinbaseinternational {
             while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < symbolsAndTimeframesLength } {
             let current: crate::value::List = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
             let timeframe: String = self.safe_string(&current, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let resolution: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
+            let resolution: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(timeframe.as_str()), &[&timeframe]);
             let mut market: crate::types::Market = (match self.market((self.safe_string(&current, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), resolution.as_deref().unwrap_or("null")).into()));
         }
@@ -2163,23 +2160,23 @@ impl Coinbaseinternational {
             return;
         }
         if isGrouped {
-            orderbook.reset(Value::Dict(self.parse_order_book(&data, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())])));
+            orderbook.reset(Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())])));
         }  else {
             let previousChangeId: Option<i64> = self.safe_integer_k(&data, "prev_change_id", &[]).as_i64();
             if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 CacheStore::forget(&mut self.orderbooks, &symbol);
-                if (__ch.has_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)))) {
+                if (__ch.has_subscription(&(Value::from(channel.as_deref())))) {
                     __ch.remove_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
                 client.reject(crate::exchange_errors::exchange_error(format!("{}{}", self.id, " order book update has a nonce mismatch")), channel.as_deref());
-                self.spawn(&[Value::Str("resubscribe_order_book".into()), channel.map(Value::from).unwrap_or(Value::Null)]);
+                self.spawn(&[Value::Str("resubscribe_order_book".into()), Value::from(channel.as_deref())]);
                 return;
             }
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), self.safe_list_k(&data, "asks", &[Value::from(vec![])]));
             self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), self.safe_list_k(&data, "bids", &[Value::from(vec![])]));
         }
-        orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
         orderbook.set_book_meta("nonce", self.safe_integer_k(&data, "change_id", &[]));
         orderbook.set_book_meta("timestamp", Value::from(timestamp));
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -2254,8 +2251,8 @@ impl Coinbaseinternational {
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&message));
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
@@ -2401,7 +2398,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let url: Option<String> = self.get_ws_url(&[Value::Bool(true)]).as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]);
+        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]);
         if (future != Value::Null) {
             let refreshAt: Option<i64> = self.safe_integer_k(&self.options, "wsAuthRefreshAt", &[]).as_i64();
             if (refreshAt.is_some()) && ((refreshAt.is_some() && Some((self.milliseconds())) >= refreshAt)) && !(client.has_future(messageHash.as_str())) {
@@ -2558,7 +2555,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("GTD".to_string(), Value::Str("good_til_day".into()));
                 m
             });
-            request.insert("time_in_force".into(), self.safe_string(&timeInForces, timeInForce.clone().map(Value::from).unwrap_or(Value::Null), &[timeInForce.map(Value::from).unwrap_or(Value::Null)]));
+            request.insert("time_in_force".into(), self.safe_string(&timeInForces, Value::from(timeInForce.as_deref()), &[timeInForce.map(Value::from).unwrap_or(Value::Null)]));
         }
         let clientOrderId: Option<String> = self.safe_string2_opt(&paramsResolved, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         if (clientOrderId.is_some()) {

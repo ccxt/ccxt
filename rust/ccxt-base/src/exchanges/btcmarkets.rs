@@ -93,7 +93,7 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -268,7 +268,7 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         let fees: crate::value::Dict = self.safe_dict_or(self.safe_dict_k(&self.options, "fees", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), quote.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(self.fees.clone()));
+})]), Value::from(quote.as_deref()), Value::Dict(self.fees.clone()));
         let pricePrecision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "priceDecimals", &[])]), &[]).as_f64();
         let minAmount: Option<f64> = self.safe_number_k(&market, "minOrderAmount", &[]).as_f64();
         let maxAmount: Option<f64> = self.safe_number_k(&market, "maxOrderAmount", &[]).as_f64();
@@ -441,14 +441,14 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::from(lastUpdate));
         m.insert("comment".to_string(), self.safe_string_k(&transaction, "description", &[]));
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.parse_number(fee.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -533,9 +533,9 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
         let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
         if (errorCode.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1594,7 +1594,7 @@ impl Btcmarkets {
         m.insert("take profit".to_string(), Value::Str("Take Profit".into()));
     m
 }));
-        request.insert("type".into(), self.safe_string(&orderTypes, Value::from(lowercaseType.clone()), &[type_var.clone()]));
+        request.insert("type".into(), self.safe_string(&orderTypes, Value::from(lowercaseType.as_str()), &[type_var.clone()]));
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
         if (lowercaseType == "limit") {
@@ -2044,7 +2044,7 @@ impl Btcmarkets {
             m
         });
         if (code.as_str() != Some("AUD")) {
-            self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
+            self.check_address(&[&address, &code, &Value::from(tagWithdrawTag.as_deref())]);
             request.insert("toAddress".into(), address.clone());
         }
         if (tagWithdrawTag.is_some()) {

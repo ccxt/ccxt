@@ -364,7 +364,7 @@ impl crate::exchange::DerivedExchange for Derive {
             strike = self.safe_number_k(&optionDetails, "strike", &[]).as_f64(); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
             optionLetter = self.safe_string_k_opt(&optionDetails, "option_type", &[]);
             if (settle.is_some()) {
-                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.as_deref().unwrap_or("null"), "/", quote.as_deref().unwrap_or("null"), ":", settle.as_deref().unwrap_or("null"), "-", self.yymmdd(Value::from(expiry), &[]), "-", Value::from(self.number_to_string(Value::from(strike))), "-", optionLetter.as_deref().unwrap_or("null"));
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", Value::from(base.as_deref()), "/", Value::from(quote.as_deref()), ":", settle.as_deref().unwrap_or("null"), "-", self.yymmdd(Value::from(expiry), &[]), "-", Value::from(self.number_to_string(Value::from(strike))), "-", optionLetter.as_deref().unwrap_or("null"));
             }
             if (optionLetter.as_deref() == Some("P")) {
                 optionType = Some("put".to_string());
@@ -505,9 +505,9 @@ impl crate::exchange::DerivedExchange for Derive {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.parse_number(&initialMarginString, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(Value::from(initialMarginString.as_deref()), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notional, &Value::Int(8)), &[]));
-        m.insert("maintenanceMargin".to_string(), self.parse_number(&maintenanceMarginString, &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &notional, &Value::Int(8)), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(&position, Value::Str("average_price".into()), Value::Str("average_price_excl_fees".into()), &[]));
         m.insert("notional".to_string(), self.parse_number(notional.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -678,7 +678,7 @@ impl crate::exchange::DerivedExchange for Derive {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeCost));
-                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
@@ -693,7 +693,7 @@ impl crate::exchange::DerivedExchange for Derive {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("address".to_string(), Value::Null);
         m.insert("addressFrom".to_string(), Value::Null);
-        m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), Value::from(addressTo.as_deref()));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
@@ -838,7 +838,7 @@ impl crate::exchange::DerivedExchange for Derive {
             let postBody: Option<String> = json_stringify(&params).as_str().map(str::to_owned);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), postBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(postHeaders));
@@ -864,8 +864,8 @@ impl crate::exchange::DerivedExchange for Derive {
         if (error.is_some()) {
             let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3446,7 +3446,7 @@ impl Derive {
         })]).as_map().cloned().unwrap_or_default();
         let tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.as_deref().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units((Value::from(self.amount_to_precision(symbol.as_str(), &amountString))).as_str().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.as_deref().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)),
+            self.convert_to_big_int(self.parse_units((Value::from(self.amount_to_precision(symbol.as_str(), Value::from(amountString.as_deref())))).as_str().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.as_deref().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)),
             Value::from(subaccountId), Value::Bool(orderSideIsBuy)])), "keccak");
         let deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_derive_wallet_address("createOrder", &paramsMaxFee);
         let deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.0.as_str().map(str::to_owned);
@@ -3491,7 +3491,7 @@ impl Derive {
         if (stopPrice.is_some()) {
             request.insert("trigger_price".into(), stopPrice.map(Value::from).unwrap_or(Value::Null));
             request.insert("trigger_type".into(), Value::Str("stoploss".into()));
-            request.insert("trigger_price_type".into(), Value::from(triggerPriceType.clone()));
+            request.insert("trigger_price_type".into(), Value::from(triggerPriceType.as_str()));
         }  else if (takeProfitPrice.is_some()) {
             request.insert("trigger_price".into(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
             request.insert("trigger_type".into(), Value::Str("takeprofit".into()));
@@ -3627,7 +3627,8 @@ impl Derive {
         })]).as_map().cloned().unwrap_or_default();
         let tradeModuleDataHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("address".into()), Value::Str("uint".into()), Value::Str("int".into()), Value::Str("int".into()), Value::Str("uint".into()), Value::Str("uint".into()), Value::Str("bool".into())]),
             Value::from(vec![marketInfo.get("base_asset_address").cloned().unwrap_or(Value::Null), self.convert_to_big_int(marketInfo.get("base_asset_sub_id").cloned().unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(priceString.as_deref().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)),
-            self.convert_to_big_int(self.parse_units((Value::from(self.amount_to_precision(symbol.as_str(), &amountString))).as_str().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.as_str(), &[]).map(Value::from).unwrap_or(Value::Null)), Value::from(subaccountId), Value::Bool(orderSideIsBuy)])), "keccak");
+            self.convert_to_big_int(self.parse_units((Value::from(self.amount_to_precision(symbol.as_str(), Value::from(amountString.as_deref())))).as_str().unwrap_or_default(), &[]).map(Value::from).unwrap_or(Value::Null)), self.convert_to_big_int(self.parse_units(maxFeeString.as_str(), &[]).map(Value::from).unwrap_or(Value::Null)),
+            Value::from(subaccountId), Value::Bool(orderSideIsBuy)])), "keccak");
         let deriveWalletAddressparamsDeriveWalletAddressVariable = self.handle_derive_wallet_address("editOrder", &paramsDeriveSubaccountId);
         let deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.0.as_str().map(str::to_owned);
         let paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.1;
@@ -5059,12 +5060,12 @@ impl Derive {
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (subaccounts.len() as i64) } {
             let subaccount: crate::value::Dict = self.safe_dict_t(&subaccounts, Value::Int(i));
             usedUsd = crate::precise::Precise::stringSub(&usedUsd, &crate::precise::Precise::stringAdd(&self.safe_string_k(&subaccount, "positions_initial_margin", &[Value::Str("0".into())]), &self.safe_string_k(&subaccount, "open_orders_margin", &[Value::Str("0".into())]))).as_str().map(str::to_owned);
-            let collaterals: crate::value::List = self.safe_list_k_t(&subaccount, "collaterals");
+            let collaterals: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&subaccount, "collaterals"));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (collaterals.len() as i64) } {
-                let balance: crate::value::Dict = self.safe_dict_t(&collaterals, Value::Int(j));
+                let balance: crate::value::Dict = collaterals.get(j as usize).cloned().unwrap_or_default();
                 let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]).as_str(), None);
                 let mut account: Value = self.safe_dict(&result, Value::from(code.as_deref()), &[]);
                 if (account == Value::Null) {
@@ -5087,7 +5088,7 @@ impl Derive {
             if crate::precise::Precise::stringGt(&used, &totalUsdc).as_bool() == Some(true) {
                 used = totalUsdc.clone();
             }
-            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null)); }
+            if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("used".into(), Value::from(used.as_deref())); }
             if let Some(__d) = &mut usdcAccount { std::sync::Arc::make_mut(__d).insert("free".into(), crate::precise::Precise::stringSub(&totalUsdc, &used)); }
             result.insert("USDC".into(), usdcAccount.map_or(Value::Null, Value::Dict));
         }
@@ -5167,7 +5168,7 @@ impl Derive {
                 m.insert("new_subaccount_manager".to_string(), Value::from(newSubaccountManager));
                 m.insert("asset_name".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("sub_id".to_string(), Value::Int(0));
-                m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), Value::from(amountString.as_deref()));
                 m.insert("max_fee_usd".to_string(), Value::from(maxFeeUsd));
                 m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), self.walletAddress.clone());
@@ -5528,7 +5529,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
                 m.insert("asset_name".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount_in_underlying".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount_in_underlying".to_string(), Value::from(amountString.as_deref()));
                 m.insert("max_fee_usd".to_string(), maxFeeUsd.map(Value::from).unwrap_or(Value::Null));
                 m.insert("force_batch".to_string(), Value::Bool(forceBatch));
                 m.insert("recipient".to_string(), address.clone());

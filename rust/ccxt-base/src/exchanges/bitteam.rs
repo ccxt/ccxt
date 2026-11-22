@@ -467,7 +467,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
     let m = indexmap::IndexMap::new();
     m
 })]);
-        let quoteInUsd: bool = self.safe_bool_opt(&currenciesValuedInUsd, quote.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
+        let quoteInUsd: bool = self.safe_bool_opt(&currenciesValuedInUsd, Value::from(quote.as_deref()), &[Value::Bool(false)]).unwrap_or(false);
         if quoteInUsd {
             let settings: crate::value::Dict = self.safe_dict_k_t(&market, "settings");
             minCost = self.safe_number_k(&settings, "limit_usd", &[]).as_f64();
@@ -688,13 +688,13 @@ impl crate::exchange::DerivedExchange for Bitteam {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(&minWithdraw, &[]));
-        m.insert("max".to_string(), self.parse_number(&maxWithdraw, &[]));
+        m.insert("min".to_string(), self.parse_number(Value::from(minWithdraw.as_deref()), &[]));
+        m.insert("max".to_string(), self.parse_number(Value::from(maxWithdraw.as_deref()), &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(&minDeposit, &[]));
+        m.insert("min".to_string(), self.parse_number(Value::from(minDeposit.as_deref()), &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -710,7 +710,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("numericId".to_string(), Value::from(numericId));
-        m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("code".to_string(), Value::from(code.as_deref()));
         m.insert("name".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), currency);
         m.insert("active".to_string(), Value::Bool(active));
@@ -912,8 +912,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
             let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

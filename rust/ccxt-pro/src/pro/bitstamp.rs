@@ -365,7 +365,7 @@ impl Bitstamp {
             // usually it takes at least 4-5 deltas to resolve
             let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(6)]));
             if (cacheLength == snapshotDelay) {
-                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
+                self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), symbol.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -715,9 +715,9 @@ impl Bitstamp {
         let channel: String = "private-my_orders".to_string();
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("limit".to_string(), Value::from(limit));
-                m.insert("type".to_string(), Value::from(channel.clone()));
+                m.insert("type".to_string(), Value::from(channel.as_str()));
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -806,7 +806,7 @@ impl Bitstamp {
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, "_").into()), Value::from((market).id.as_deref().unwrap_or("")));
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("limit".to_string(), Value::from(limit));
                 m.insert("type".to_string(), Value::from(channel));
                 m.insert("params".to_string(), params.clone());
@@ -884,7 +884,7 @@ impl Bitstamp {
         //
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let data: crate::value::Dict = message.key_dict("data");
-        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, &channel) });
+        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, Value::from(channel.as_deref())) });
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -987,7 +987,7 @@ impl Bitstamp {
     let m = indexmap::IndexMap::new();
     m
 }) }).as_map().cloned().unwrap_or_default();
-        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, &channel) });
+        let subscription: Option<crate::value::Dict> = (if (channel.is_none()) { None } else { self.safe_dict_o(&__ch.subscriptions, Value::from(channel.as_deref())) });
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -1087,7 +1087,7 @@ impl Bitstamp {
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(triggerPrice.as_deref()));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), Value::Null);
@@ -1161,7 +1161,7 @@ impl Bitstamp {
             return;
         }
         let unsubHash: String = format!("{}{}", "unsubscribe:", channel.as_deref().unwrap_or("null"));
-        let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::from(unsubHash.clone()), &[]);
+        let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::from(unsubHash.as_str()), &[]);
         if (subscription == Value::Null) {
             return;
         }
@@ -1395,7 +1395,7 @@ impl Bitstamp {
                 let validity: Option<i64> = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]).as_i64();
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("expiresIn".into(), Value::from((if let Some(__m1) = validity { Some((time + __m1)) } else { None }))); }
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
-                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("wsSessionToken".into(), Value::from(sessionToken.as_deref())); }
                 // settle the flight: client.resolve deletes the future from
                 // client.futures and wakes every waiter parked on it
                 client.resolve(sessionToken.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
@@ -1430,13 +1430,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("event".to_string(), Value::Str("bts:subscribe".into()));
                 m.insert("data".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channel".to_string(), Value::from(messageHashValue.clone()));
+        m.insert("channel".to_string(), Value::from(messageHashValue.as_str()));
         m.insert("auth".to_string(), self.safe_string_k(&self.options, "wsSessionToken", &[]));
     m
 }));
             m
         });
-        subscription.insert("messageHash".into(), Value::from(messageHashValue.clone()));
+        subscription.insert("messageHash".into(), Value::from(messageHashValue.as_str()));
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         return self.watch(url.as_deref(), &messageHashValue[..], __ws_arg_1, &messageHashValue[..], Value::Map(subscription.clone())).await;
 

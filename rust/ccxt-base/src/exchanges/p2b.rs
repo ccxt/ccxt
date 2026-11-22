@@ -97,7 +97,7 @@ impl crate::exchange::DerivedExchange for P2b {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&tickerInner, "open", &[]));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -423,14 +423,14 @@ impl crate::exchange::DerivedExchange for P2b {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
-                    m.insert("X-TXC-PAYLOAD".to_string(), Value::from(payload.clone()));
+                    m.insert("X-TXC-PAYLOAD".to_string(), Value::from(payload.as_str()));
                     m.insert("X-TXC-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha512", &[])));
                 m
             });
             let bodyJson: Option<String> = json_stringify(&paramsOmitted).as_str().map(str::to_owned);
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyJson.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
@@ -461,7 +461,7 @@ impl crate::exchange::DerivedExchange for P2b {
         if !success {
             let errorCode: Option<String> = self.safe_string_k_opt(response, "errorCode", &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             let codeAsString: String = format!("{}", code);
             let statusCode: Option<i64> = self.parse_to_int(code);
             if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {

@@ -784,7 +784,7 @@ impl Deribit {
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(channel.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(channel.as_str())]));
     m
 }));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
@@ -1014,7 +1014,7 @@ impl Deribit {
         storedOrderBook.set_book_meta("nonce", Value::from(timestamp));
         storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
         storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
-        storedOrderBook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        storedOrderBook.set_book_meta("symbol", Value::from(symbol.as_deref()));
         CacheStore::put(&mut self.orderbooks, &symbol, storedOrderBook.clone());
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "book|", symbol.as_deref().unwrap_or("null")).into()), "|").into()), descriptor);
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
@@ -1112,7 +1112,7 @@ impl Deribit {
                 m.insert("method".to_string(), Value::Str("private/subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![Value::from(channel.clone())]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(channel.as_str())]));
     m
 }));
                 m.insert("id".to_string(), Value::Int(self.request_id()));
@@ -1177,11 +1177,8 @@ impl Deribit {
         if (dataList.is_some()) {
             orders = self.parse_orders(&dataList, None, &[]);
         }  else {
-            let data: Value = self.safe_value_k(&params, "data", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]);
-            let order: crate::value::Dict = self.parse_order(data, None);
+            let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
+            let order: crate::value::Dict = self.parse_order(Value::Dict(data), None);
             orders = std::sync::Arc::new(vec![Value::Dict(order)]);
         }
         {
@@ -1355,7 +1352,7 @@ impl Deribit {
                 let currentPair: crate::value::List = self.safe_list_t(&symbolsArray, Value::Int(i));
                 market = Some(match self.market((self.safe_string(&currentPair, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let unifiedTf: Option<String> = self.safe_string_opt(&currentPair, Value::Int(1), &[]);
-                currentDescriptor = self.safe_string_opt(&self.timeframes, &unifiedTf, &[&unifiedTf]);
+                currentDescriptor = self.safe_string_opt(&self.timeframes, Value::from(unifiedTf.as_deref()), &[&unifiedTf]);
             }  else {
                 market = Some(match self.market((self.safe_string(&symbolsArray, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 currentDescriptor = channelDescriptor.map(str::to_owned);
@@ -1525,7 +1522,7 @@ impl Deribit {
         let time: i64 = self.milliseconds();
         let timeString: Option<String> = self.number_to_string(Value::from(time));
         let messageHash: String = "authenticated".to_string();
-        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]);
+        let mut future: Value = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]);
         if (future == Value::Null) {
             self.check_required_credentials(&[]);
             let requestId: i64 = self.request_id();

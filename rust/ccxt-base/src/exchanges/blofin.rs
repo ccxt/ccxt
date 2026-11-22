@@ -93,7 +93,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askSize", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -176,8 +176,8 @@ impl crate::exchange::DerivedExchange for Blofin {
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("currency".to_string(), feeCurrency.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("cost".to_string(), Value::from(feeCost.as_deref()));
+                    m.insert("currency".to_string(), Value::from(feeCurrency.as_deref()));
                 m
             }));
         }
@@ -192,13 +192,13 @@ impl crate::exchange::DerivedExchange for Blofin {
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("symbol".to_string(), Value::from(spotSymbol));
-                    m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("order".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(id.as_deref()));
+                    m.insert("order".to_string(), Value::from(orderId.as_deref()));
                     m.insert("type".to_string(), Value::Null);
                     m.insert("takerOrMaker".to_string(), Value::Null);
-                    m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
-                    m.insert("price".to_string(), self.parse_number(&price, &[]));
-                    m.insert("amount".to_string(), self.parse_number(&amount, &[]));
+                    m.insert("side".to_string(), Value::from(side.as_deref()));
+                    m.insert("price".to_string(), self.parse_number(Value::from(price.as_deref()), &[]));
+                    m.insert("amount".to_string(), self.parse_number(Value::from(amount.as_deref()), &[]));
                     m.insert("cost".to_string(), Value::from(cost));
                     m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let contract: bool = (swap || future);
         let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCurrency", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteCurrency", &[]);
-        let settleId: Option<String> = self.safe_string_k_opt(&market, "settleCurrency", &[&quoteId]);
+        let settleId: Option<String> = self.safe_string_k_opt(&market, "settleCurrency", &[&Value::from(quoteId.as_deref())]);
         let settle: Option<String> = self.safe_currency_code(settleId.as_deref(), None);
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
@@ -389,7 +389,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let strikePrice: Option<String> = None;
         let optionType: Option<String> = None;
         let tickSize: Option<String> = self.safe_string_k_opt(&market, "tickSize", &[]);
-        let fees: crate::value::Dict = self.safe_dict2_t(&self.fees, type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()));
+        let fees: crate::value::Dict = self.safe_dict2_t(&self.fees, Value::from(type_var.as_deref()), Value::Str("trading".into()));
         let taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
         let maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let mut maxLeverage: Option<String> = self.safe_string_k_opt(&market, "maxLeverage", &[&Value::Str("100".into())]);
@@ -398,6 +398,15 @@ impl crate::exchange::DerivedExchange for Blofin {
         let contractType: Option<String> = self.safe_string_k_opt(&market, "contractType", &[]);
         let maxLimitAmount: Option<f64> = self.safe_number_k(&market, "maxLimitSize", &[]).as_f64();
         let maxSpotCost: Option<f64> = self.safe_number_k(&market, "maxMarketSize", &[]).as_f64(); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        let mut costLimits: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("min".to_string(), Value::Null);
+                m.insert("max".to_string(), Value::from(maxSpotCost));
+            m
+        });
+        if contract {
+            costLimits.insert("max".into(), Value::Null);
+        }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -437,7 +446,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.parse_number(Value::Str("1".into()), &[]));
-        m.insert("max".to_string(), self.parse_number(&maxLeverage, &[]));
+        m.insert("max".to_string(), self.parse_number(Value::from(maxLeverage.as_deref()), &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -452,12 +461,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("max".to_string(), Value::Null);
     m
 }));
-        m.insert("cost".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), Value::Null);
-        m.insert("max".to_string(), (if contract { Value::Null } else { Value::from(maxSpotCost) }));
-    m
-}));
+        m.insert("cost".to_string(), Value::Map(costLimits));
     m
 }));
         m.insert("info".to_string(), market);
@@ -591,12 +595,12 @@ impl crate::exchange::DerivedExchange for Blofin {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let pos: Option<String> = self.safe_string_k_opt(&position, "positions", &[]);
         let contractsAbs: Option<String> = crate::precise::Precise::stringAbs(&pos).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k_opt(&position, "positionSide", &[]);
         let hedged: bool = side.as_deref() != Some("net");
-        let contracts: Option<f64> = self.parse_number(&contractsAbs, &[]).as_f64();
+        let contracts: Option<f64> = self.parse_number(Value::from(contractsAbs.as_deref()), &[]).as_f64();
         if (pos.is_some()) {
             if (side.as_deref() == Some("net")) {
                 if crate::precise::Precise::stringGt(&pos, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -617,7 +621,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         }  else if (notionalString.is_none()) {
             notionalString = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString), &markPriceString).as_str().map(str::to_owned);
         }
-        let notional: Option<f64> = self.parse_number(&notionalString, &[]).as_f64();
+        let notional: Option<f64> = self.parse_number(Value::from(notionalString.as_deref()), &[]).as_f64();
         let marginMode: Option<String> = self.safe_string_k_opt(&position, "marginMode", &[]);
         let mut initialMarginString: Option<String> = None;
         let entryPriceString: Option<String> = self.safe_string2_opt(&position, Value::Str("averagePrice".into()), Value::Str("openAveragePrice".into()), &[]);
@@ -639,7 +643,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             }
         }
         let maintenanceMarginString: Option<String> = self.safe_string_k_opt(&position, "maintenanceMargin", &[]);
-        let maintenanceMargin: Option<f64> = self.parse_number(&maintenanceMarginString, &[]).as_f64();
+        let maintenanceMargin: Option<f64> = self.parse_number(Value::from(maintenanceMarginString.as_deref()), &[]).as_f64();
         let maintenanceMarginPercentageString: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString).as_str().map(str::to_owned);
         if (initialMarginPercentageString.is_none()) {
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString, &Value::Int(4)).as_str().map(str::to_owned);
@@ -669,7 +673,7 @@ impl crate::exchange::DerivedExchange for Blofin {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("notional".to_string(), Value::from(notional));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), Value::from(liquidationPrice));
@@ -760,7 +764,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         if (tag.as_deref() == Some("")) {
             tag = None;
         }
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
@@ -981,7 +985,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("tagTo".to_string(), tagTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tagTo".to_string(), Value::from(tagTo.as_deref()));
         m.insert("tag".to_string(), tagTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
@@ -1183,7 +1187,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             let bodyResolved: Option<String> = signedBody;
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -1212,9 +1216,9 @@ impl crate::exchange::DerivedExchange for Blofin {
         let message: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         if (codeError.is_some()) && (codeError.as_deref() != Some("0")) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }
         //
@@ -1230,8 +1234,8 @@ impl crate::exchange::DerivedExchange for Blofin {
         let insideMsg: Option<String> = self.safe_string_k_opt(&first, "msg", &[]);
         let insideCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
         if (insideCode.is_some()) && (insideCode.as_deref() != Some("0")) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &insideCode, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &insideMsg, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &insideCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(insideMsg.as_deref()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &insideMsg, Value::from(feedback));
         }
         return Value::Null;
@@ -3225,7 +3229,7 @@ impl Blofin {
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&params, "takeProfitPrice", &[]);
         if (stopLossPrice.is_some()) {
-            request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol, &stopLossPrice)));
+            request.insert("slTriggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(stopLossPrice.as_deref()))));
             if (type_var == "market") {
                 request.insert("slOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -3237,7 +3241,7 @@ impl Blofin {
             }
         }
         if (takeProfitPrice.is_some()) {
-            request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol, &takeProfitPrice)));
+            request.insert("tpTriggerPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice.as_deref()))));
             if (type_var == "market") {
                 request.insert("tpOrderPrice".into(), Value::Str("-1".into()));
             }  else {
@@ -3784,7 +3788,7 @@ impl Blofin {
             let tail: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let tailParts: crate::value::List = crate::value::List::new(tail.split(")").map(Value::from).collect());
             let mut suffix: Option<String> = self.safe_string_opt(&tailParts, Value::Int(0), &[]);
-            let suffixCode: Option<String> = self.safe_string_opt(self.options.get("networkCodesBySuffix").cloned().unwrap_or(Value::Null), &suffix, &[]);
+            let suffixCode: Option<String> = self.safe_string_opt(self.options.get("networkCodesBySuffix").cloned().unwrap_or(Value::Null), Value::from(suffix.as_deref()), &[]);
             if (suffixCode.is_some()) {
                 return suffixCode;
             }
@@ -4133,10 +4137,10 @@ impl Blofin {
             m
         });
         let dest: String = self.safe_string_k(&query, "dest", &[Value::Str("onchain".into())]).as_str().unwrap_or("onchain").to_string();
-        request.insert("dest".into(), Value::from(dest.clone()));
+        request.insert("dest".into(), Value::from(dest.as_str()));
         query = self.omit_t(&query, Value::Str("dest".into()), &[]);
         if (dest == "onchain") {
-            self.check_address(&[&address, &code, &tagValue.clone().map(Value::from).unwrap_or(Value::Null)]);
+            self.check_address(&[&address, &code, &Value::from(tagValue.as_deref())]);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to

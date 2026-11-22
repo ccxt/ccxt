@@ -1205,7 +1205,7 @@ impl Bybit {
             let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbolString: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_deref()), &[&Value::from(unfiedTimeframe.as_deref())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
@@ -1264,7 +1264,7 @@ impl Bybit {
             let mut market: crate::types::Market = (match self.market((data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbolString: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let unfiedTimeframe: Option<String> = data.as_array().and_then(|__arr| __arr.get(1)).and_then(Value::as_str).map(str::to_owned);
-            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
+            let timeframeId: Option<String> = self.safe_string_opt(&self.timeframes, Value::from(unfiedTimeframe.as_deref()), &[&Value::from(unfiedTimeframe.as_deref())]);
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", timeframeId.as_deref().unwrap_or("null")).into()), ".").into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbolString).into()), "::").into()), unfiedTimeframe.as_deref().unwrap_or("null")).into()));
@@ -2579,12 +2579,12 @@ impl Bybit {
         //     }
         //
         if (matches!(&message.get("data").cloned().unwrap_or(Value::Null), Value::Arr(_))) {
-            let rawLiquidations: crate::value::List = message.key_list("data");
+            let rawLiquidations: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_19: bool = true;
                 while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (rawLiquidations.len() as i64) } {
-                let rawLiquidation: crate::value::Dict = self.safe_dict_t(&rawLiquidations, Value::Int(i));
+                let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or_default();
                 let marketId: Option<String> = self.safe_string_k_opt(&rawLiquidation, "s", &[]);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("".into()), Value::Str("contract".into())]);
                 let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3185,7 +3185,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_24: bool = true;
             while { if !__for_first_24 { i += 1; } __for_first_24 = false; i < (rawBalances.len() as i64) } {
-            self.parse_ws_balance(rawBalances.get(i as usize).cloned().unwrap_or(Value::Null), &[account.clone().map(Value::from).unwrap_or(Value::Null)]);
+            self.parse_ws_balance(rawBalances.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::from(account.as_deref())]);
         }
         }
         if (account.is_some()) {
@@ -3405,7 +3405,7 @@ impl Bybit {
         let messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url));
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let expiresInt: i64 = ((self.milliseconds()) + 10000);
             let expires: Option<String> = self.number_to_string(Value::from(expiresInt));
@@ -3477,9 +3477,9 @@ impl Bybit {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (code.is_some()) && (code.as_deref() != Some("0")) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &code, feedback.as_str());
                 let msg: Option<String> = self.safe_string2_opt(message, Value::Str("retMsg".into()), Value::Str("ret_msg".into()), &[]);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, &feedback);
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             let mut success: Option<bool> = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Null }).as_bool();
@@ -3508,7 +3508,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if !(__ch.has_subscription(messageHash.as_deref())) {
                         continue;
                     }
-                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &messageHash);
+                    let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_deref()));
                     let subId: Option<String> = self.safe_string_k_opt(&subscription, "id", &[]);
                     if (reqId == subId) {
                         foundSubscription = true;

@@ -95,7 +95,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(&ticker, "open", &[]));
-        m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(close.as_deref()));
         m.insert("last".to_string(), self.safe_string_k(&ticker, "last", &[close.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -136,7 +136,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let datetime: Option<String> = self.safe_string_k_opt(&trade, "timestamp", &[]);
-        let timestamp: Option<i64> = self.parse8601(&datetime);
+        let timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "order_id", &[]);
         let priceString: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
@@ -676,7 +676,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             //
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
             let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
             let status: String = format!("{}", code);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), Value::from(feedback));
         }
@@ -2689,7 +2689,7 @@ impl Hollaex {
         let tagWithdrawTagparamsWithdrawTagVariable = self.handle_param_string(params, Value::Str("tag".into()), &[]);
         let tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.0.as_str().map(str::to_owned);
         let paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.1;
-        self.check_address(&[&address, &code, &tagWithdrawTag.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&address, &code, &Value::from(tagWithdrawTag.as_deref())]);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }

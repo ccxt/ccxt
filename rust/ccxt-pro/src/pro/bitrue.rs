@@ -660,7 +660,7 @@ impl Bitrue {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-        let snapshot: crate::value::Dict = self.parse_order_book(parseable, symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())]);
+        let snapshot: crate::value::Dict = self.parse_order_book(parseable, Value::from(symbol.as_deref()), &[Value::from(timestamp), Value::Str("buys".into()), Value::Str("asks".into())]);
         orderbook.reset(Value::Dict(snapshot));
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&orderbook), messageHash.as_str());
@@ -678,7 +678,7 @@ impl Bitrue {
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (symbols.len() as i64) } {
             let symbolId: Option<String> = symbols.get(i as usize).copied().map(str::to_owned);
-            let candidate: crate::value::Dict = self.safe_value(&markets, &symbolId, &[]).into_dict();
+            let candidate: crate::value::Dict = self.safe_value(&markets, Value::from(symbolId.as_deref()), &[]).into_dict();
             if !matches!(self.safe_bool_k(&candidate, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                 continue;
             }
@@ -1413,7 +1413,7 @@ if _try_result.is_err() {
                 if (key.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " authenticate() received an empty listenKey")));
                 }
-                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), key.clone().map(Value::from).unwrap_or(Value::Null)); }
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::from(key.as_deref())); }
                 let wsUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()));
                 let wsUrl: Option<String> = self.safe_string_k_opt(&wsUrls, "private", &[]);
                 if (wsUrl.is_none()) {

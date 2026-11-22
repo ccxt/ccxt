@@ -928,7 +928,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let subMessageHash: String = format!("{}{}", Value::Str("ticker.".into()), Value::from((market).id.as_deref().unwrap_or("")));
         let messageHash: String = format!("{}{}", "unsubscribe:ticker:", (market).symbol);
-        return self.un_watch_public_multiple("ticker", Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&params]).await;
+        return self.un_watch_public_multiple("ticker", Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash.as_str())]), Value::from(vec![Value::from(subMessageHash.as_str())]), &[&params]).await;
         Value::Null
         }).await?))
     }
@@ -1075,7 +1075,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
             let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let parsed: crate::value::Dict = self.parse_ws_ticker(Value::Dict(ticker), Some(&market));
-            let symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
+            let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&parsed)); }
             }
@@ -1120,7 +1120,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("askVolume".to_string(), self.safe_number_k(&ticker, "ks", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -1312,7 +1312,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_watch_public_multiple("ohlcv", Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash.clone())]), Value::from(vec![Value::from(subMessageHash)]), &[&params, &Value::Map(subExtend)]).await;
+        return self.un_watch_public_multiple("ohlcv", Value::from(vec![Value::from((market).symbol.clone())]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subMessageHash.as_str())]), Value::from(vec![Value::from(subMessageHash.as_str())]), &[&params, &Value::Map(subExtend)]).await;
         Value::Null
         }).await?))
     }
@@ -1709,13 +1709,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let messageHash: Option<String> = (match message.get("subscription") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let data: crate::value::List = message.key_list("data");
-        let positionBalances: crate::value::List = self.safe_list_t(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into()));
+        let positionBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(crate::value::KeyRead::read(&&data, &Value::Int(0)), Value::Str("position_balances".into())));
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(data)); }
         {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (positionBalances.len() as i64) } {
-            let mut balance: crate::value::Dict = self.safe_dict_t(&positionBalances, Value::Int(i));
+            let mut balance: crate::value::Dict = positionBalances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "instrument_name", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2091,10 +2091,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if ((errorCode.is_some()) && (errorCode.as_deref() != Some(""))) && (errorCode.as_deref() != Some("0")) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
                 let messageString: Option<String> = (match __pro_message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 if (messageString.is_some()) {
-                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &messageString, &feedback);
+                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &messageString, feedback.as_str());
                 }
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
@@ -2219,7 +2219,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "authenticated".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let method: String = "public/auth".to_string();
             let nonceValue: i64 = self.incrementing_nonce();
@@ -2228,7 +2228,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(&self.secret), "sha256", &[]);
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), nonce.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("id".to_string(), Value::from(nonce.as_deref()));
                     m.insert("nonce".to_string(), nonce.map(Value::from).unwrap_or(Value::Null));
                     m.insert("method".to_string(), Value::from(method));
                     m.insert("api_key".to_string(), self.apiKey.clone());

@@ -331,8 +331,8 @@ impl crate::exchange::DerivedExchange for Bitopro {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("uppercaseId".to_string(), uppercaseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("base".to_string(), Value::from(base.as_deref()));
+        m.insert("quote".to_string(), Value::from(quote.as_deref()));
         m.insert("baseId".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
@@ -475,16 +475,16 @@ impl crate::exchange::DerivedExchange for Bitopro {
         m.insert("id".to_string(), self.safe_string_k(&transaction, "serial", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
         m.insert("type".to_string(), Value::Null);
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(networkId.as_deref(), code.as_deref())));
         m.insert("amount".to_string(), self.safe_number_k(&transaction, "total", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
@@ -492,7 +492,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -610,8 +610,8 @@ impl crate::exchange::DerivedExchange for Bitopro {
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
         let error: Option<String> = self.safe_string_k_opt(response, "error", &[]);
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, &feedback);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
@@ -2376,7 +2376,7 @@ impl Bitopro {
         if hasNetwork {
             let networks: crate::value::Dict = self.safe_dict_k_t(&self.options, "networks");
             let requestedNetwork: Option<String> = self.safe_string_upper_k_opt(&paramsWithdrawTag, "network", &[]);
-            let networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string_opt(&networks, self.safe_string(&self.networkAliases, &requestedNetwork, &[requestedNetwork.clone().map(Value::from).unwrap_or(Value::Null)]), &[]) });
+            let networkId: Option<String> = (if (requestedNetwork.is_none()) { None } else { self.safe_string_opt(&networks, self.safe_string(&self.networkAliases, Value::from(requestedNetwork.as_deref()), &[Value::from(requestedNetwork.as_deref())]), &[]) });
             if (networkId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " invalid network ").into()), requestedNetwork.as_deref().unwrap_or("null"))));
             }

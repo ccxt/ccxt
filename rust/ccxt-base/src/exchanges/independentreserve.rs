@@ -91,7 +91,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -112,8 +112,8 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "OrderGuid", &[]);
         let priceString: Option<String> = self.safe_string2_opt(&trade, Value::Str("Price".into()), Value::Str("SecondaryCurrencyTradePrice".into()), &[]);
         let amountString: Option<String> = self.safe_string2_opt(&trade, Value::Str("VolumeTraded".into()), Value::Str("PrimaryCurrencyAmount".into()), &[]);
-        let price: Option<f64> = self.parse_number(&priceString, &[]).as_f64();
-        let amount: Option<f64> = self.parse_number(&amountString, &[]).as_f64();
+        let price: Option<f64> = self.parse_number(Value::from(priceString.as_deref()), &[]).as_f64();
+        let amount: Option<f64> = self.parse_number(Value::from(amountString.as_deref()), &[]).as_f64();
         let cost: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&priceString, &amountString), &[]).as_f64();
         let baseId: Option<String> = self.safe_string_k_opt(&trade, "PrimaryCurrencyCode", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&trade, "SecondaryCurrencyCode", &[]);
@@ -283,7 +283,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         //    }
         //
         let address: Option<String> = self.safe_string_k_opt(&depositAddress, "DepositAddress", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
@@ -328,23 +328,23 @@ impl crate::exchange::DerivedExchange for Independentreserve {
         m.insert("id".to_string(), self.safe_string_k(&transaction, "TransactionGuid", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("withdraw".into()));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("network".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(&amount, "Total", &[]));
         m.insert("status".to_string(), self.safe_string_k(transaction, "Status", &[]));
-        m.insert("timestamp".to_string(), Value::from(self.parse8601(&datetime)));
+        m.insert("timestamp".to_string(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
-        m.insert("tag".to_string(), tag.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("tag".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.safe_number_k(&amount, "Fee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -379,7 +379,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
             // independentreserve requires an increasing nonce
             let rawNonce: i64 = self.incrementing_nonce();
             let mut nonce: Option<i64> = self.parse_to_int(Value::from(rawNonce));
-            let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::from(format!("{}", Value::from(nonce)))).into())];
+            let mut auth: Vec<Value> = vec![Value::from(url.as_str()), Value::Str(format!("{}{}", "apiKey=", self.apiKey).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::from(format!("{}", Value::from(nonce)))).into())];
             let paramsDict: crate::value::Dict = self.extend_t(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -419,7 +419,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
             });
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), signedBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
@@ -1072,7 +1072,7 @@ impl Independentreserve {
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (baseCurrencyIds.len() as i64) } {
             let baseId: String = self.safe_string(&baseCurrencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let base: Option<String> = self.safe_currency_code(Some(baseId.as_str()), None);
-            let minAmount: Option<f64> = self.safe_number(&limits, Value::from(baseId.clone()), &[]).as_f64();
+            let minAmount: Option<f64> = self.safe_number(&limits, Value::from(baseId.as_str()), &[]).as_f64();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_0: bool = true;
@@ -1087,11 +1087,11 @@ impl Independentreserve {
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), Value::from(id));
                         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
-                        m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("base".to_string(), Value::from(base.as_deref()));
                         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
-                        m.insert("baseId".to_string(), Value::from(baseId.clone()));
-                        m.insert("quoteId".to_string(), Value::from(quoteId.clone()));
+                        m.insert("baseId".to_string(), Value::from(baseId.as_str()));
+                        m.insert("quoteId".to_string(), Value::from(quoteId.as_str()));
                         m.insert("settleId".to_string(), Value::Null);
                         m.insert("type".to_string(), Value::Str("spot".into()));
                         m.insert("spot".to_string(), Value::Bool(true));
@@ -1145,8 +1145,8 @@ impl Independentreserve {
                         m.insert("created".to_string(), Value::Null);
                         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("primaryCurrencyCode".to_string(), Value::from(baseId.clone()));
-        m.insert("secondaryCurrencyCode".to_string(), Value::from(quoteId));
+        m.insert("primaryCurrencyCode".to_string(), Value::from(baseId.as_str()));
+        m.insert("secondaryCurrencyCode".to_string(), Value::from(quoteId.as_str()));
     m
 }));
                     m

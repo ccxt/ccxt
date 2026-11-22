@@ -343,7 +343,7 @@ impl Woo {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbol)]));
                 m.insert("topic".to_string(), Value::from(topic));
                 m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(subHash)]));
-                m.insert("unsubMessageHashes".to_string(), Value::from(vec![Value::from(unsubHash.clone())]));
+                m.insert("unsubMessageHashes".to_string(), Value::from(vec![Value::from(unsubHash.as_str())]));
             m
         });
         let mut symbolsAndTimeframes: Option<crate::value::List> = self.safe_list_k_o(&params, "symbolsAndTimeframes");
@@ -400,14 +400,14 @@ impl Woo {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("name".to_string(), method.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("name".to_string(), Value::from(method.as_deref()));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("limit".to_string(), Value::from(limit));
                 m.insert("params".to_string(), Value::from(&paramsMethod));
@@ -664,7 +664,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -803,7 +803,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -930,7 +930,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -1085,7 +1085,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -1213,7 +1213,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
@@ -1410,7 +1410,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let messageHash: String = "authenticated".to_string();
         let event: String = "auth".to_string();
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.clone()), &[]) != Value::Null;
+        let authenticated: bool = self.safe_value(&(client).subscriptions, Value::from(messageHash.as_str()), &[]) != Value::Null;
         if (!authenticated) {
             let ts: String = format!("{}", self.nonce());
             let auth: String = format!("{}{}", "|", ts);
@@ -1702,7 +1702,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), Value::from(price));
-        m.insert("stopPrice".to_string(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("stopPrice".to_string(), Value::from(triggerPrice.as_deref()));
         m.insert("triggerPrice".to_string(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -1762,7 +1762,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 if (tradeId.is_some()) {
                     self.handle_my_trade(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
-                self.handle_order(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), topic.clone().map(Value::from).unwrap_or(Value::Null));
+                self.handle_order(client, dataList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::from(topic.as_deref()));
             }
             }
         }  else {
@@ -1786,7 +1786,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
             }
-            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), &symbol);
+            let mut orders: crate::value::Dict = self.safe_dict_t(self.orders.hashmap(), Value::from(symbol.as_deref()));
             let order: Option<crate::value::Dict> = self.safe_dict_o(&orders, orderId.map(Value::from).unwrap_or(Value::Null));
             if (order.is_some()) {
                 let fee: Value = self.safe_value_k(&order, "fee", &[]);
@@ -2106,8 +2106,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             let total: Option<String> = self.safe_string_k_opt(&value, "holding", &[]);
             let used: Option<String> = self.safe_string_k_opt(&value, "frozen", &[]);
-            account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
-            account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("total".into(), Value::from(total.as_deref()));
+            account.insert("used".into(), Value::from(used.as_deref()));
             account.insert("free".into(), crate::precise::Precise::stringSub(&total, &used));
             if (code.is_some()) {
                 let __ws_arg_5 = self.balance.get(code.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
@@ -2151,7 +2151,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("subscribe".into()));
-                m.insert("topic".to_string(), Value::from(topic.clone()));
+                m.insert("topic".to_string(), Value::from(topic.as_str()));
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);

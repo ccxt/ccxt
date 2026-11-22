@@ -79,7 +79,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         m.insert("askVolume".to_string(), self.safe_number_k(&bestAsk, "volume", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_number_k(&rolling_24h, "open", &[]));
-        m.insert("close".to_string(), lastPrice.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(lastPrice.as_deref()));
         m.insert("last".to_string(), lastPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), change.map(Value::from).unwrap_or(Value::Null));
@@ -328,7 +328,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.safe_number_k(&item, "fee", &[]));
-                m.insert("currency".to_string(), currencySymbol.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from(currencySymbol.as_deref()));
             m
         });
         if (amount.is_none()) {
@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
         let depositInfo: crate::value::Dict = self.safe_dict_k_t(&rawCurrency, "deposit_info");
         let withdrawInfo: crate::value::Dict = self.safe_dict_k_t(&rawCurrency, "withdraw_info");
-        let networks: crate::value::List = self.safe_list_k_t(&rawCurrency, "networks");
+        let networks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawCurrency, "networks"));
         let type_var: Option<String> = self.safe_string_lower_k_opt(&rawCurrency, "type", &[]);
         let mut parsedNetworks: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -384,7 +384,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
                         let mut j: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { j += 1; } __for_first_0 = false; j < (networks.len() as i64) } {
-            let network: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
+            let network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or_default();
             let networkId: Option<String> = self.safe_string_k_opt(&network, "code", &[]);
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
             let networkWithdrawInfo: crate::value::Dict = self.safe_dict_k_t(&network, "withdraw_info");
@@ -494,7 +494,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let feeObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), self.parse_number(Value::from(fee), &[]));
-                m.insert("currency".to_string(), currencyCode.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("currency".to_string(), Value::from(currencyCode.as_deref()));
                 m.insert("rate".to_string(), self.parse_number(feeRate.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
@@ -506,7 +506,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(self.safe_string_k(&transaction, "network_code", &[]).as_str(), currencyCode.as_deref())));
-        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(address.as_deref()));
         m.insert("addressTo".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), Value::Null);
         m.insert("tag".to_string(), self.safe_string_k(&transaction, "destination_tag", &[]));
@@ -541,7 +541,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
             fullPath = "/status".to_string();
             urlPath = Some("status".to_string());
         }
-        let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), &urlPath, &[]);
+        let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(urlPath.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
@@ -626,9 +626,9 @@ impl crate::exchange::DerivedExchange for Foxbit {
         }
         if (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message).into()), " details: ").into()), detailsString);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(detailsString), &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(detailsString), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1751,7 +1751,7 @@ impl Foxbit {
         //         }
         //     ]
         // }
-        let accounts: crate::value::List = self.safe_list_k_t(&response, "data");
+        let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), Value::Dict(response));
@@ -1761,7 +1761,7 @@ impl Foxbit {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (accounts.len() as i64) } {
-            let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+            let account: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&account, "currency_symbol", &[]);
             let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let total: Option<String> = self.safe_string_k_opt(&account, "balance", &[]);
@@ -1941,7 +1941,7 @@ impl Foxbit {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_symbol".to_string(), Value::from((market).id.as_deref()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-                m.insert("type".to_string(), Value::from(typeValue.clone()));
+                m.insert("type".to_string(), Value::from(typeValue.as_str()));
             m
         });
         if (typeValue == "STOP_MARKET") || (typeValue == "STOP_LIMIT") {
@@ -2025,7 +2025,7 @@ impl Foxbit {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("market_symbol".to_string(), Value::from((market).id.as_deref()));
                     m.insert("side".to_string(), self.safe_string_upper_k(&order, "side", &[]));
-                    m.insert("type".to_string(), Value::from(type_var.clone()));
+                    m.insert("type".to_string(), Value::from(type_var.as_str()));
                 m
             });
             if (type_var == "STOP_MARKET") || (type_var == "STOP_LIMIT") {
@@ -2634,7 +2634,7 @@ impl Foxbit {
         });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), self.safe_string(&statusMap, statusRaw.clone().map(Value::from).unwrap_or(Value::Null), &[statusRaw.map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("status".to_string(), self.safe_string(&statusMap, Value::from(statusRaw.as_deref()), &[statusRaw.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(&attributes, "updatedAt", &[]))));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -2685,7 +2685,7 @@ impl Foxbit {
         self.check_required_argument(Value::Str("editOrder".into()), &side, Value::Str("side".into()), &[]);
         let mut createRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), Value::from(typeValue.clone()));
+                m.insert("type".to_string(), Value::from(typeValue.as_str()));
                 m.insert("side".to_string(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
                 m.insert("market_symbol".to_string(), Value::from((market).id.as_deref()));
             m

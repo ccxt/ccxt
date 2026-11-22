@@ -98,7 +98,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("askVolume".to_string(), self.safe_string_k(&ticker, "askSz", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), open.map(Value::from).unwrap_or(Value::Null));
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -379,7 +379,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             }
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         }
-        let fees: crate::value::Dict = self.safe_dict2_t(&self.fees, type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("trading".into()));
+        let fees: crate::value::Dict = self.safe_dict2_t(&self.fees, Value::from(type_var.as_deref()), Value::Str("trading".into()));
         let mut maxLeverage: Option<String> = self.safe_string_k_opt(&market, "lever", &[&Value::Str("1".into())]);
         maxLeverage = crate::precise::Precise::stringMax(&maxLeverage, &Value::Str("1".into())).as_str().map(str::to_owned);
         let maxMarketSize: Option<String> = self.safe_string_k_opt(&market, "maxMktSz", &[]);
@@ -483,12 +483,12 @@ impl crate::exchange::DerivedExchange for Deepcoin {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "data");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&balance, "ccy", &[]);
             let code: Option<String> = self.safe_currency_code(symbol.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -625,7 +625,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         //
         let chain: Option<String> = self.safe_string_k_opt(&response, "chain", &[]);
         let address: Option<String> = self.safe_string_k_opt(&response, "address", &[]);
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -834,7 +834,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             privateHeaders.insert("DC-ACCESS-SIGN".into(), Value::from(signature));
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("url".to_string(), Value::from(url.clone()));
+        m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
@@ -880,10 +880,10 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             sCode = retCode;
         }
         if (code.as_f64() != Some(200.0)) || (messageCode.as_deref() != Some("0")) || ((sCode.is_some()) && (sCode.as_deref() != Some("0"))) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageCode, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &sCode, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &msg, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &sCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }  else {
             let list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
@@ -3294,7 +3294,7 @@ impl Deepcoin {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instId".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::from(methodName.clone()), market.as_ref(), &[&Value::Dict(paramsMethodName), &Value::Str("spot".into())]);
+        let marketTypeparamsMarketTypeVariable = self.handle_market_type_and_params(Value::from(methodName.as_str()), market.as_ref(), &[&Value::Dict(paramsMethodName), &Value::Str("spot".into())]);
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         request.insert("instType".into(), self.convert_to_instrument_type(marketType.as_deref()).map(Value::from).unwrap_or(Value::Null));
@@ -4462,7 +4462,7 @@ impl Deepcoin {
             response = self.private_post_deepcoin_trade_batch_close_position(&[&__ws_arg_39]).await;
         }  else {
             if (positionId.is_some()) {
-                request.insert("positionIds".into(), Value::from(vec![positionId.clone().map(Value::from).unwrap_or(Value::Null)]));
+                request.insert("positionIds".into(), Value::from(vec![Value::from(positionId.as_deref())]));
             }
             let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (positionId.is_some()) { Value::Str("positionId".into()) } else { Value::Null }, &[]);
             let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);

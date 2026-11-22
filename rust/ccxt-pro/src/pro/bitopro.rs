@@ -209,7 +209,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "ORDER_BOOK", ":").into()), symbolValue);
         let marketIdValue: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut endPart: Option<String> = None;
@@ -296,7 +296,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "TRADE", ":").into()), symbolValue);
         let mut trades: Option<crate::pro::cache::Cache> = self.watch_public("trades", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await.into();
         let mut limitResolved: Option<i64> = limit;
@@ -387,7 +387,7 @@ impl Bitopro {
         let mut messageHash: String = "USER_TRADE".to_string();
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let symbolValue: String = (market).symbol.clone();
+            let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbolValue);
         }
         let wsUrl: Option<String> = self.safe_string_k_opt(self.urls.get("ws").cloned().unwrap_or(Value::Null), "private", &[]);
@@ -563,7 +563,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "TICKER", ":").into()), symbolValue);
         return self.watch_public("tickers", messageHash.as_str(), (Value::from((market).id.as_deref())).as_str()).await;
         Value::Null
@@ -624,7 +624,7 @@ impl Bitopro {
     m
 })).as_str().map(str::to_owned);
         let payload: String = self.string_to_base64(rawData.map(Value::from).unwrap_or(Value::Null), &[]);
-        let signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(&self.secret), "sha384", &[]);
+        let signature: String = self.hmac(self.encode(Value::from(payload.as_str())), self.encode(&self.secret), "sha384", &[]);
         let defaultOptions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ws".to_string(), Value::Map({

@@ -64,7 +64,7 @@ impl crate::exchange::DerivedExchange for Toobit {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
         m.insert("id".to_string(), self.safe_string_k(&trade, "T", &[]));
-        m.insert("timestamp".to_string(), ts.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("timestamp".to_string(), Value::from(ts.as_deref()));
         m.insert("datetime".to_string(), self.iso8601(ts.map(Value::from).unwrap_or(Value::Null)));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
         m.insert("order".to_string(), self.safe_string_k(&trade, "o", &[]));
@@ -615,7 +615,7 @@ impl Toobit {
             let mut market: crate::types::Market = (match self.market(symbolStr.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let unfiedTimeframe: String = self.safe_string(&data, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
-            let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, &unfiedTimeframe, &[&unfiedTimeframe]);
+            let rawTimeframe: Option<String> = self.safe_string_opt(&timeframes, Value::from(unfiedTimeframe.as_str()), &[&Value::from(unfiedTimeframe.as_str())]);
             if (selectedTimeframe.as_deref() != Some("")) && (selectedTimeframe != rawTimeframe) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " watchOHLCVForSymbols() only supports a single timeframe for all symbols")));
             }  else {
@@ -1007,12 +1007,12 @@ impl Toobit {
         let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let data: crate::value::List = __pro_message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "orderBook::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), "diffDepth");
             if !(self.orderbooks.has(&symbol)) {
                 let limit: i64 = self.safe_integer(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("orderBookLimit".into()), &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1143,7 +1143,7 @@ impl Toobit {
         }
         let url: Option<String> = self.get_user_stream_url();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
-        self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::from(subscriptionHash.clone()), Value::from(&paramsMarketType)]);
+        self.set_balance_cache(client.as_value(), marketType.map(Value::from).unwrap_or(Value::Null), &[Value::from(subscriptionHash.as_str()), Value::from(&paramsMarketType)]);
         client.future(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into()));
         return self.watch(url.as_deref(), messageHash.as_str(), &paramsMarketType, subscriptionHash.as_str(), Value::Null).await;
         Value::Null
@@ -1725,7 +1725,7 @@ impl Toobit {
                 }
                 self.set_ws_options(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("listenKey".to_string(), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("listenKey".to_string(), Value::from(listenKey.as_deref()));
                         m.insert("lastAuthenticatedTime".to_string(), Value::from(time));
                     m
                 }));

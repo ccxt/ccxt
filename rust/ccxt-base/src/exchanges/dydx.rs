@@ -198,7 +198,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         }
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let baseName: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
-        let baseId: Option<String> = self.safe_string_k_opt(&market, "baseId", &[&baseName]); // idk where 'baseId' comes from, but leaving as is
+        let baseId: Option<String> = self.safe_string_k_opt(&market, "baseId", &[&Value::from(baseName.as_deref())]); // idk where 'baseId' comes from, but leaving as is
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(Some(quoteId.as_str()), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -511,7 +511,7 @@ impl crate::exchange::DerivedExchange for Dydx {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("network".to_string(), Value::Null);
-        m.insert("address".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), Value::from(addressTo.as_deref()));
         m.insert("addressTo".to_string(), addressTo.map(Value::from).unwrap_or(Value::Null));
         m.insert("addressFrom".to_string(), addressFrom.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
@@ -591,11 +591,11 @@ impl crate::exchange::DerivedExchange for Dydx {
             errorCode = self.safe_string_k_opt(&response, "code", &[]);
         }
         if (errorCode.is_some()) && (errorCode.as_deref() != Some("")) {
-            let errorCodeNum: Option<i64> = self.parse_to_int(&errorCode);
+            let errorCodeNum: Option<i64> = self.parse_to_int(Value::from(errorCode.as_deref()));
             if errorCodeNum > Some(0) {
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -2272,7 +2272,7 @@ impl Dydx {
         let subaccountIdOption: Option<i64> = subaccountIdOptionparamsSubAccountIdVariable.0;
         let paramsSubAccountId: crate::value::Dict = subaccountIdOptionparamsSubAccountIdVariable.1;
         let triggerPrice: Option<String> = self.safe_string2_opt(Value::from(&paramsSubAccountId), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let stopLossPrice: Option<String> = self.safe_string_k_opt(&paramsSubAccountId, "stopLossPrice", &[&triggerPrice]);
+        let stopLossPrice: Option<String> = self.safe_string_k_opt(&paramsSubAccountId, "stopLossPrice", &[&Value::from(triggerPrice.as_deref())]);
         let takeProfitPrice: Option<String> = self.safe_string_k_opt(&paramsSubAccountId, "takeProfitPrice", &[]);
         let isConditional: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         let isMarket: bool = orderType == "MARKET";
@@ -2425,7 +2425,7 @@ impl Dydx {
         let clientOrderIdString: Option<String> = self.number_to_string(Value::from(clientOrderId));
         let clobPairIdString: Option<String> = self.number_to_string(Value::from(clobPairId));
         let orderFlagsString: Option<String> = self.number_to_string(Value::from(orderFlags));
-        return self.uuid5(Value::from(nameSp.clone()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.uuid5(Value::from(nameSp), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, "-").into()),
+        return self.uuid5(Value::from(nameSp.as_str()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.uuid5(Value::from(nameSp.as_str()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, "-").into()),
             Value::from(self.number_to_string(subAccountNumber))).into())), Value::Str("-".into())).into()), clientOrderIdString.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), clobPairIdString.map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), orderFlagsString.map(Value::from).unwrap_or(Value::Null)).into())).as_str().map(str::to_owned);
 }
 

@@ -157,8 +157,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("price".to_string(), Value::from(price.as_deref()));
+        m.insert("amount".to_string(), Value::from(amount.as_deref()));
         m.insert("cost".to_string(), crate::precise::Precise::stringMul(&price, &amount));
         m.insert("order".to_string(), order_id.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), takerOrMaker.map(Value::from).unwrap_or(Value::Null));
@@ -244,11 +244,11 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let childOrders: Option<crate::value::List> = self.safe_list_k_o(&order, "childOrders");
         if (childOrders.is_some()) {
             let first: crate::value::Dict = self.safe_dict_t(&childOrders, Value::Int(0));
-            let innerChildOrders: crate::value::List = self.safe_list_k_t(&first, "childOrders");
+            let innerChildOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&first, "childOrders"));
             let innerChildOrdersLength: i64 = innerChildOrders.len() as i64;
             if innerChildOrdersLength > 0 {
-                let takeProfitOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(0));
-                let stopLossOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(1));
+                let takeProfitOrder: crate::value::Dict = innerChildOrders.get(0).cloned().unwrap_or_default();
+                let stopLossOrder: crate::value::Dict = innerChildOrders.get(1).cloned().unwrap_or_default();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]).as_f64();
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]).as_f64();
             }
@@ -274,8 +274,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
         m.insert("takeProfitPrice".to_string(), Value::from(takeProfitPrice));
         m.insert("stopLossPrice".to_string(), Value::from(stopLossPrice));
         m.insert("average".to_string(), average.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("amount".to_string(), Value::from(amount.as_deref()));
+        m.insert("filled".to_string(), Value::from(filled.as_deref()));
         m.insert("remaining".to_string(), crate::precise::Precise::stringSub(&amount, &filled));
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), transactions.map_or(Value::Null, Value::Arr));
@@ -414,12 +414,12 @@ impl crate::exchange::DerivedExchange for Woofipro {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "holding");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "holding"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]).as_str(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
@@ -604,8 +604,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
             while { if !__for_first_1 { j += 1; } __for_first_1 = false; j < (networks.len() as i64) } {
             let networkEntry: crate::value::Dict = self.safe_dict_t(&networks, Value::Int(j));
             let networkId: Option<String> = self.safe_string_k_opt(&networkEntry, "chain_id", &[]);
-            let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, &networkId);
-            let networkName: Option<String> = self.safe_string_k_opt(&networkRow, "name", &[&networkId]);
+            let mut networkRow: Option<crate::value::Dict> = self.safe_dict_o(&indexedChains, Value::from(networkId.as_deref()));
+            let networkName: Option<String> = self.safe_string_k_opt(&networkRow, "name", &[&Value::from(networkId.as_deref())]);
             let networkCode: Option<String> = self.network_id_to_code(networkName.as_deref(), code.as_deref());
             if (networkCode.is_some()) {
                 resultingNetworks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
@@ -889,7 +889,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
                             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (ordersList.len() as i64) } {
                             let orderRow: crate::value::Dict = self.extend_t(ordersList.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                                 let mut m = indexmap::IndexMap::new();
-                                    m.insert("order_tag".to_string(), Value::from(brokerId.clone()));
+                                    m.insert("order_tag".to_string(), Value::from(brokerId.as_str()));
                                 m
                             })]);
                             std::sync::Arc::make_mut(&mut taggedOrders).push(Value::Dict(orderRow));
@@ -964,8 +964,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         if !success {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3409,7 +3409,7 @@ impl Woofipro {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("side".to_string(), orderSide.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("side".to_string(), Value::from(orderSide.as_deref()));
             m
         });
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -3462,7 +3462,7 @@ impl Woofipro {
                 let stopLossPrice: Value = self.safe_value2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("price".into()), &[stopLoss.clone().map_or(Value::Null, Value::Dict)]);
                 let stopLossOrder: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("side".to_string(), Value::from(closeSide.clone()));
+                        m.insert("side".to_string(), Value::from(closeSide.as_str()));
                         m.insert("algo_type".to_string(), Value::Str("TP_SL".into()));
                         m.insert("trigger_price".to_string(), Value::from(self.price_to_precision(symbol, stopLossPrice)));
                         m.insert("type".to_string(), Value::Str("LIMIT".into()));
@@ -3685,7 +3685,7 @@ impl Woofipro {
         });
         let triggerPrice: Option<String> = self.safe_string_n_opt(&params, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLossPrice".into())]), &[]);
         if (triggerPrice.is_some()) {
-            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), &triggerPrice)));
+            request.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), Value::from(triggerPrice.as_deref()))));
         }
         let paramsChildOrders: Option<crate::value::List> = self.safe_list_k_o(&params, "childOrders");
         let isConditional: bool = (triggerPrice.is_some()) || (paramsChildOrders.is_some());
@@ -4007,7 +4007,7 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
-                request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
+                request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
                 let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
                 response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_21]).await;
             }  else {
@@ -4772,7 +4772,7 @@ impl Woofipro {
         let verifyingContractAddress: Option<String> = self.safe_string_k_opt(&self.options, "verifyingContractAddress", &[]);
         let chainId: Option<String> = self.safe_string_k_opt(&params, "chainId", &[]);
         let currencyNetworks: crate::value::Dict = self.safe_dict_k_t(&currency, "networks");
-        let coinNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, &chainId);
+        let coinNetwork: crate::value::Dict = self.safe_dict_t(&currencyNetworks, Value::from(chainId.as_deref()));
         let coinNetworkId: Option<f64> = self.safe_number_k(&coinNetwork, "id", &[]).as_f64();
         if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw() require chainId parameter")));
@@ -4781,9 +4781,9 @@ impl Woofipro {
         let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
         let domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("chainId".to_string(), chainId.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("chainId".to_string(), Value::from(chainId.as_deref()));
                 m.insert("name".to_string(), Value::Str("Orderly".into()));
-                m.insert("verifyingContract".to_string(), verifyingContractAddress.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("verifyingContract".to_string(), Value::from(verifyingContractAddress.as_deref()));
                 m.insert("version".to_string(), Value::Str("1".into()));
             m
         });

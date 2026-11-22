@@ -634,8 +634,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(&transfer, "currency", &[]).as_str(), currency).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number_k(&transfer, "amount", &[]));
-        m.insert("fromAccount".to_string(), self.safe_string(&accountIds, fromAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[fromAccountId.map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("toAccount".to_string(), self.safe_string(&accountIds, toAccountId.clone().map(Value::from).unwrap_or(Value::Null), &[toAccountId.map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("fromAccount".to_string(), self.safe_string(&accountIds, Value::from(fromAccountId.as_deref()), &[fromAccountId.map(Value::from).unwrap_or(Value::Null)]));
+        m.insert("toAccount".to_string(), self.safe_string(&accountIds, Value::from(toAccountId.as_deref()), &[toAccountId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "state", &[]).as_str()).map(Value::from).unwrap_or(Value::Null));
     m
 }));
@@ -802,7 +802,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transactionValue);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -821,7 +821,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("internal".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
+        m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("cost".to_string(), self.parse_number(feeCostString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("rate".to_string(), Value::Null);
     m
@@ -837,12 +837,12 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let mut longLeverage: Option<i64> = None;
         let mut marketId: Option<String> = None;
         let mut marginMode: Option<String> = None;
-        let data: crate::value::List = self.safe_list_k_t(&leverage, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&leverage, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             marketId = self.safe_string_k_opt(&entry, "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
@@ -958,7 +958,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
             }  else {
                 let mut sortedQuery: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("signTimestamp".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("signTimestamp".to_string(), Value::from(timestamp.as_deref()));
                     m
                 }), &[&query]);
                 sortedQuery = self.keysort(sortedQuery, &[]);
@@ -1003,8 +1003,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) {
             let message: Option<String> = self.safe_string2_opt(response, Value::Str("message".into()), Value::Str("msg".into()), &[]);
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, &feedback);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1065,7 +1065,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "nonce" => self.nonce(),
                 "order_request" => { let __t = self.order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>());
-                    Value::from(vec![__t.0, Value::Dict(__t.1)]) },
+                    Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_address_special" => self.parse_deposit_address_special(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -2286,10 +2286,10 @@ impl Poloniex {
             // limit should in between 100 and 500
             request.insert("limit".into(), Value::from(limit));
         }
-        let (__until0, __until1) = self.handle_until_option(Value::from(keyEnd.clone()), Value::Map(request), &paramsPaginate, &[]);
+        let (__until0, __until1) = self.handle_until_option(Value::from(keyEnd.as_str()), Value::Map(request), &paramsPaginate, &[]);
         let mut requestUntil: Value = Value::Dict(__until0);
         let paramsUntil: crate::value::Dict = __until1;
-        if (since.is_some()) && (limit.is_some()) && (self.safe_integer(&requestUntil, Value::from(keyEnd.clone()), &[]) == Value::Null) {
+        if (since.is_some()) && (limit.is_some()) && (self.safe_integer(&requestUntil, Value::from(keyEnd.as_str()), &[]) == Value::Null) {
             // without an end time the exchange returns the latest candles, not the ones starting at since,
             // so end the window at the start of the limit-th candle from the first one at or after since
             let duration: i64 = ((self.parse_timeframe(&timeframe)) * 1000);
@@ -3335,7 +3335,7 @@ impl Poloniex {
         });
         let triggerPrice: Option<f64> = self.safe_number2(&params, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let requestValueparamsValueVariable = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), Value::Map(request), price, &[&params]);
-        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0.into_dict();
+        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let mut response: crate::value::Dict = std::sync::Arc::new({
             let m = indexmap::IndexMap::new();
@@ -3418,7 +3418,7 @@ impl Poloniex {
                     m.insert("side".to_string(), self.safe_string_upper_k(&rawOrder, "side", &[]));
                 m
             });
-            { let __destr_tmp = self.order_request(symbol.as_str(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, request.clone(), price, &[&Value::from(&extendedParams)]); request = __destr_tmp.0; extendedParams = __destr_tmp.1; }
+            { let __destr_tmp = self.order_request(symbol.as_str(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, request.clone(), price, &[&Value::from(&extendedParams)]); request = Value::Dict(__destr_tmp.0); extendedParams = __destr_tmp.1; }
             let mut merged: crate::value::Dict = self.extend_t(request, &[&extendedParams]);
             if isContract {
                 // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
@@ -3473,7 +3473,7 @@ impl Poloniex {
         }).await?))
     }
 
-    pub fn order_request(&self, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, request: impl Into<crate::Value>, price: Option<f64>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
+    pub fn order_request(&self, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, request: impl Into<crate::Value>, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
         let request: Value = request.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -3582,7 +3582,7 @@ impl Poloniex {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(clientOrderIdKey.to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
             queryOmitted = self.omit_t(Value::Dict(queryOmitted), &["clientOrderId", "clOrdId"], &[]);
         }
-        return (result, queryOmitted);
+        return (result.into_dict(), queryOmitted);
 }
 
 /*
@@ -3628,7 +3628,7 @@ impl Poloniex {
         });
         let triggerPrice: Option<f64> = self.safe_number2(&params, Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let requestValueparamsValueVariable = self.order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, Value::Map(request), price, &[&params]);
-        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0.into_dict();
+        let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let mut response: crate::value::Dict = std::sync::Arc::new({
             let m = indexmap::IndexMap::new();
@@ -3900,7 +3900,7 @@ impl Poloniex {
         let idValue: Option<String> = self.number_to_string(id);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), idValue.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("id".to_string(), Value::from(idValue.as_deref()));
             m
         });
         let mut market: Option<crate::types::Market> = None;
@@ -4036,12 +4036,12 @@ impl Poloniex {
             let ts: Option<i64> = self.safe_integer_k(&response, "uTime", &[]).as_i64();
             result.insert("timestamp".into(), Value::from(ts));
             result.insert("datetime".into(), self.iso8601(ts));
-            let details: crate::value::List = self.safe_list_k_t(&response, "details");
+            let details: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "details"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (details.len() as i64) } {
-                let balance: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
+                let balance: crate::value::Dict = details.get(i as usize).cloned().unwrap_or_default();
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "ccy", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut account: crate::value::Dict = self.account();
@@ -4415,7 +4415,7 @@ impl Poloniex {
         }
         let mut exchangeNetworkId: Option<String> = None;
         networkCode = self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref());
-        let networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(crate::value::KeyRead::key_read(&&currency, "networks"), networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[]) });
+        let networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(crate::value::KeyRead::key_read(&&currency, "networks"), Value::from(networkCode.as_deref()), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = self.safe_string_k_opt(&networkEntry, "id", &[]);
         }  else {
@@ -4440,7 +4440,7 @@ impl Poloniex {
             address = self.safe_string_opt(&response, self.safe_string_k(&networkEntry, "id", &[]), &[]);
         }
         let mut tag: Option<String> = None;
-        self.check_address(&[&address.clone().map(Value::from).unwrap_or(Value::Null)]);
+        self.check_address(&[&Value::from(address.as_deref())]);
         if (networkEntry != Value::Null) {
             let depositAddress: Option<String> = self.safe_string_k_opt(self.safe_dict_k(&networkEntry, "info", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4498,7 +4498,7 @@ impl Poloniex {
         let amountToPrecision: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("amount".to_string(), amountToPrecision.clone().map(Value::from).unwrap_or(Value::Null));
+                m.insert("amount".to_string(), Value::from(amountToPrecision.as_deref()));
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("fromAccount".to_string(), fromId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("toAccount".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
@@ -4905,7 +4905,7 @@ impl Poloniex {
                         while { if !__for_first_11 { j += 1; } __for_first_11 = false; j < (childChains.len() as i64) } {
                         let mut rawNetworkId: String = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         let networkId: String = (if let Some(__o) = code.as_deref() { rawNetworkId.replace(__o, "") } else { rawNetworkId });
-                        let networkCode: Option<String> = self.network_id_to_code(Some(networkId.as_str()), self.safe_string_k(&currency, "code", &[]).as_str());
+                        let networkCode: Option<String> = self.network_id_to_code(Value::from(Value::from(networkId.as_str())).as_text().as_deref(), self.safe_string_k(&currency, "code", &[]).as_str());
                         let networkInfo: crate::value::Dict = self.safe_dict_t(&response, Value::from(networkId));
                         let mut networkObject: indexmap::IndexMap<String, Value> = ({
                             let m = indexmap::IndexMap::new();

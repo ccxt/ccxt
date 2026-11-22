@@ -67,7 +67,7 @@ impl crate::exchange::DerivedExchange for Nado {
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("close".to_string(), Value::from(last.as_deref()));
         m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
@@ -148,7 +148,7 @@ impl crate::exchange::DerivedExchange for Nado {
         let feeString: Option<String> = self.safe_string_k_opt(&trade, "fee", &[]);
         let mut feeCost: Option<f64> = None;
         if isArchiveMatch {
-            feeCost = self.parse_x18(feeString.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
+            feeCost = self.parse_x18(Value::from(feeString.as_deref())).as_f64();
         }  else {
             feeCost = self.parse_number(feeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
@@ -165,7 +165,7 @@ impl crate::exchange::DerivedExchange for Nado {
         if (amountString.is_some()) {
             let absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
             if isArchiveMatch {
-                parsedAmount = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null));
+                parsedAmount = self.parse_x18(Value::from(absoluteAmount.as_deref()));
             }  else {
                 parsedAmount = absoluteAmount.map(Value::from).unwrap_or(Value::Null);
             }
@@ -174,7 +174,7 @@ impl crate::exchange::DerivedExchange for Nado {
         if (costString.is_some()) {
             let absoluteCost: Option<String> = crate::precise::Precise::stringAbs(&costString).as_str().map(str::to_owned);
             if isArchiveMatch {
-                parsedCost = self.parse_x18(absoluteCost.clone().map(Value::from).unwrap_or(Value::Null));
+                parsedCost = self.parse_x18(Value::from(absoluteCost.as_deref()));
             }  else {
                 parsedCost = absoluteCost.map(Value::from).unwrap_or(Value::Null);
             }
@@ -433,12 +433,12 @@ impl crate::exchange::DerivedExchange for Nado {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(response, "spot_balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "spot_balances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (balances.len() as i64) } {
-            let rawBalance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let rawBalance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&rawBalance, "product_id", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.as_deref() == Some("0")) {
@@ -452,7 +452,7 @@ impl crate::exchange::DerivedExchange for Nado {
             let balance: crate::value::Dict = self.safe_dict_k_t(&rawBalance, "balance");
             let amount: Option<String> = crate::precise::Precise::stringDiv(&self.safe_string_k(&balance, "amount", &[]), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
-            account.insert("total".into(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+            account.insert("total".into(), Value::from(amount.as_deref()));
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             account.insert("free".into(), amount.map(Value::from).unwrap_or(Value::Null));
             if (code.is_some()) {
@@ -503,12 +503,12 @@ impl crate::exchange::DerivedExchange for Nado {
                 side = Some("short".to_string());
             }
             let absoluteAmount: Option<String> = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
-            contracts = self.parse_x18(absoluteAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
+            contracts = self.parse_x18(Value::from(absoluteAmount.as_deref())).as_f64();
             if (vQuoteBalance.is_some()) && !(crate::precise::Precise::stringEquals(&absoluteAmount, &Value::Str("0".into())).as_bool() == Some(true)) {
                 entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAbs(&vQuoteBalance), &absoluteAmount), &[]).as_f64();
             }
             if (markPriceX18.is_some()) {
-                markPrice = self.parse_x18(markPriceX18.clone().map(Value::from).unwrap_or(Value::Null)).as_f64();
+                markPrice = self.parse_x18(Value::from(markPriceX18.as_deref())).as_f64();
                 let notionalX36: Option<String> = crate::precise::Precise::stringMul(&absoluteAmount, &markPriceX18).as_str().map(str::to_owned);
                 notional = self.parse_number(crate::precise::Precise::stringDiv(&notionalX36, &Value::Str("1000000000000000000000000000000000000".into())), &[]).as_f64();
             }
@@ -808,8 +808,8 @@ impl crate::exchange::DerivedExchange for Nado {
         let error: Option<String> = self.safe_string_k_opt(response, "error", &[]);
         if (status.as_deref() == Some("failure")) || (errorCode.is_some()) || (error.is_some()) {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -3225,8 +3225,8 @@ impl Nado {
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (symbols.len() as i64) } {
             let market: crate::value::Dict = self.safe_dict_t(&symbols, Value::Int(i));
             let id: Option<String> = self.safe_string_k_opt(&market, "product_id", &[]);
-            let pair: crate::value::Dict = self.safe_dict_t(&pairsById, &id);
-            let asset: crate::value::Dict = self.safe_dict_t(&assetsById, &id);
+            let pair: crate::value::Dict = self.safe_dict_t(&pairsById, Value::from(id.as_deref()));
+            let asset: crate::value::Dict = self.safe_dict_t(&assetsById, Value::from(id.as_deref()));
             let mut rawType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
             if (rawType.as_deref() == Some("perp")) {
                 rawType = Some("swap".to_string());
@@ -3243,8 +3243,8 @@ impl Nado {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let baseAsset: crate::value::Dict = self.safe_dict_or(&assetsByCode, &base, Value::from(&asset));
-            let quoteAsset: crate::value::Dict = self.safe_dict_t(&assetsByCode, &quote);
+            let baseAsset: crate::value::Dict = self.safe_dict_or(&assetsByCode, Value::from(base.as_deref()), Value::from(&asset));
+            let quoteAsset: crate::value::Dict = self.safe_dict_t(&assetsByCode, Value::from(quote.as_deref()));
             let baseId: Option<String> = self.safe_string_k_opt(&baseAsset, "product_id", &[&rawBaseId]);
             let quoteId: Option<String> = self.safe_string_k_opt(&quoteAsset, "product_id", &[&rawQuoteId]);
             let settleId: Option<String> = (if contract { quoteId.clone() } else { None });
@@ -3258,41 +3258,41 @@ impl Nado {
             let priceIncrement: Option<f64> = self.parse_x18(self.safe_string_k(&market, "price_increment_x18", &[])).as_f64();
             let amountIncrement: Option<f64> = self.parse_x18(self.safe_string_k(&market, "size_increment", &[])).as_f64();
             let minCost: Option<f64> = self.parse_x18(self.safe_string_k(&market, "min_size", &[])).as_f64();
-            markets.push(self.safe_market_structure(&[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("lowercaseId".to_string(), Value::Null);
-        m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), rawType.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), (Value::Bool(rawType.as_deref() == Some("spot"))));
-        m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), Value::Bool(contract));
-        m.insert("future".to_string(), Value::Bool(false));
-        m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(active));
-        m.insert("contract".to_string(), Value::Bool(contract));
-        m.insert("linear".to_string(), (if contract { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if contract { Value::Bool(false) } else { Value::Null }));
-        m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(&market, "taker_fee_rate_x18", &[])));
-        m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(&market, "maker_fee_rate_x18", &[])));
-        m.insert("contractSize".to_string(), (if contract { Value::Int(1) } else { Value::Null }));
-        m.insert("expiry".to_string(), Value::Null);
-        m.insert("expiryDatetime".to_string(), Value::Null);
-        m.insert("strike".to_string(), Value::Null);
-        m.insert("optionType".to_string(), Value::Null);
-        m.insert("precision".to_string(), Value::Map({
+            let mut marketEntry: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("lowercaseId".to_string(), Value::Null);
+                    m.insert("symbol".to_string(), Value::from(symbol));
+                    m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("type".to_string(), Value::from(rawType.as_deref()));
+                    m.insert("spot".to_string(), (Value::Bool(rawType.as_deref() == Some("spot"))));
+                    m.insert("margin".to_string(), Value::Null);
+                    m.insert("swap".to_string(), Value::Bool(contract));
+                    m.insert("future".to_string(), Value::Bool(false));
+                    m.insert("option".to_string(), Value::Bool(false));
+                    m.insert("active".to_string(), Value::Bool(active));
+                    m.insert("contract".to_string(), Value::Bool(contract));
+                    m.insert("linear".to_string(), Value::Null);
+                    m.insert("inverse".to_string(), Value::Null);
+                    m.insert("taker".to_string(), self.parse_x18(self.safe_string_k(&market, "taker_fee_rate_x18", &[])));
+                    m.insert("maker".to_string(), self.parse_x18(self.safe_string_k(&market, "maker_fee_rate_x18", &[])));
+                    m.insert("contractSize".to_string(), Value::Null);
+                    m.insert("expiry".to_string(), Value::Null);
+                    m.insert("expiryDatetime".to_string(), Value::Null);
+                    m.insert("strike".to_string(), Value::Null);
+                    m.insert("optionType".to_string(), Value::Null);
+                    m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amountIncrement));
         m.insert("price".to_string(), Value::from(priceIncrement));
     m
 }));
-        m.insert("limits".to_string(), Value::Map({
+                    m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3320,9 +3320,9 @@ impl Nado {
 }));
     m
 }));
-        m.insert("created".to_string(), Value::Null);
-        let __ws_arg_16 = self.safe_string_k(&asset, "name", &[]);
-        m.insert("info".to_string(), self.extend(&market, &[Value::Map({
+                    m.insert("created".to_string(), Value::Null);
+                    let __ws_arg_16 = self.safe_string_k(&asset, "name", &[]);
+                    m.insert("info".to_string(), self.extend(&market, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticker_id".to_string(), tickerId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), __ws_arg_16);
@@ -3330,8 +3330,14 @@ impl Nado {
         m.insert("v2Asset".to_string(), Value::from(&asset));
     m
 })]));
-    m
-})]));
+                m
+            });
+            if contract {
+                marketEntry.insert("linear".into(), Value::Bool(true));
+                marketEntry.insert("inverse".into(), Value::Bool(false));
+                marketEntry.insert("contractSize".into(), Value::Int(1));
+            }
+            markets.push(self.safe_market_structure(&[Value::Map(marketEntry)]));
         }
         }
         return Value::from(markets);
@@ -3458,8 +3464,8 @@ impl Nado {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbolValue.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue.clone()));
+        let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue.as_str()));
         if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTicker() ticker not found for ").into()), symbolValue)));
         }

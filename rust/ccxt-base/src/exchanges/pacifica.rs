@@ -66,7 +66,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -119,7 +119,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let amount: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let id: Option<String> = self.safe_string_k_opt(&trade, "history_id", &[]);
         let mut side: Option<String> = self.safe_string_k_opt(&trade, "side", &[]);
         if (side.as_deref() == Some("open_long")) {
@@ -257,7 +257,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         //
         let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer2(&order, Value::Str("created_at".into()), Value::Str("ct".into()), &[]).as_i64();
         let status: String = self.safe_string2(&order, Value::Str("order_status".into()), Value::Str("os".into()), &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string(); // open if method is fetchOpenOrders
         let mut side: String = self.safe_string_k(&order, "side", &[Value::Str("d".into())]).as_str().unwrap_or("d").to_string();
@@ -381,7 +381,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         if isSwap {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), quote.as_deref().unwrap_or("null"));
         }
-        let fees: crate::value::Dict = self.safe_dict_t(&self.fees, Value::from(type_var.clone()));
+        let fees: crate::value::Dict = self.safe_dict_t(&self.fees, Value::from(type_var.as_str()));
         let taker: Option<f64> = self.safe_number_k(&fees, "taker", &[]).as_f64();
         let maker: Option<f64> = self.safe_number_k(&fees, "maker", &[]).as_f64();
         let amountPrecision: Option<f64> = self.safe_number_k(&market, "lot_size", &[]).as_f64();
@@ -483,7 +483,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let margin: Option<String> = self.safe_string_k_opt(&position, "margin", &[]);
         let rawIsolated: Option<bool> = self.safe_bool_k_opt(&position, "isolated", &[]);
         let mut isIsolated: bool = ((margin.is_some()) && (margin.as_deref() != Some("0")));
@@ -544,7 +544,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let funding: Option<f64> = self.safe_number_k(&info, "funding", &[]).as_f64();
         let markPx: Option<f64> = self.safe_number_k(&info, "mark", &[]).as_f64();
         let oraclePx: Option<f64> = self.safe_number_k(&info, "oracle", &[]).as_f64();
@@ -764,7 +764,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let timestamp: Option<i64> = self.safe_integer_k(&income, "created_at", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&income, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&income, "payout", &[]);
         let code: Option<String> = self.safe_currency_code(Some("USDC"), None);
         let rate: Option<f64> = self.safe_number_k(&income, "rate", &[]).as_f64();
@@ -858,9 +858,9 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
         if (error == Some(true)) || nonEmptyMessage {
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorId, &feedback);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, &feedback); // documented message prefixes are more specific than the http-status echo
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorId, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str()); // documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             let statusCode: Option<i64> = self.parse_to_int(&code);
             let codeAsString: String = format!("{}", code);
             if ((statusCode.is_some() && statusCode < Some(400))) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
@@ -2145,12 +2145,12 @@ if _try_result.is_err() {
         usdcAccount.insert("total".into(), self.safe_string_k(&data, "balance", &[]));
         usdcAccount.insert("used".into(), self.safe_string_k(&data, "total_margin_used", &[]));
         result.insert("USDC".into(), Value::Map(usdcAccount));
-        let spotBalances: crate::value::List = self.safe_list_k_t(&data, "spot_balances");
+        let spotBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "spot_balances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (spotBalances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
+            let balance: crate::value::Dict = spotBalances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "symbol", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

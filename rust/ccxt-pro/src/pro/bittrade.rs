@@ -223,14 +223,14 @@ impl Bittrade {
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub".to_string(), Value::from(messageHash.clone()));
+                m.insert("sub".to_string(), Value::from(messageHash.as_str()));
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
                 m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("params".to_string(), params.clone());
             m
@@ -328,15 +328,15 @@ impl Bittrade {
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub".to_string(), Value::from(messageHash.clone()));
+                m.insert("sub".to_string(), Value::from(messageHash.as_str()));
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("params".to_string(), params.clone());
             m
         });
@@ -453,15 +453,15 @@ impl Bittrade {
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub".to_string(), Value::from(messageHash.clone()));
+                m.insert("sub".to_string(), Value::from(messageHash.as_str()));
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
-                m.insert("symbol".to_string(), Value::from(symbolValue.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
+                m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
                 m.insert("timeframe".to_string(), timeframe);
                 m.insert("params".to_string(), params.clone());
             m
@@ -568,14 +568,14 @@ impl Bittrade {
         let requestId: i64 = self.request_id();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("sub".to_string(), Value::from(messageHash.clone()));
+                m.insert("sub".to_string(), Value::from(messageHash.as_str()));
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                m.insert("messageHash".to_string(), Value::from(messageHash.clone()));
+                m.insert("messageHash".to_string(), Value::from(messageHash.as_str()));
                 m.insert("symbol".to_string(), Value::from(symbolValue));
                 m.insert("limit".to_string(), Value::from(limitValue));
                 m.insert("params".to_string(), params.clone());
@@ -663,7 +663,7 @@ impl Bittrade {
             let requestId: i64 = self.request_id();
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("req".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("req".to_string(), Value::from(messageHash.as_deref()));
                     m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
                 m
             });
@@ -672,7 +672,7 @@ impl Bittrade {
             let snapshotSubscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), Value::Str(format!("{}", requestId).into()));
-                    m.insert("messageHash".to_string(), messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("messageHash".to_string(), Value::from(messageHash.as_deref()));
                     m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("limit".to_string(), Value::from(limit));
                     m.insert("params".to_string(), Value::Map(params));
@@ -823,7 +823,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return message;
         }
         let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, &id);
+        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
         if (subscription.is_some()) {
             let method: Option<String> = self.safe_string_k_opt(&subscription, "method", &[]);
             if (method.as_deref() == Some("handleOrderBookSnapshot")) {
@@ -934,14 +934,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return Value::Bool(false);
             }
             let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, &id);
+            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
             if (subscription.is_some()) {
                 let errorCode: Option<String> = (match __pro_message.get("err-code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let errorMessage: Option<String> = (match __pro_message.get("err-msg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, &feedback);
-                    self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, &feedback);
+                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
+                    self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
