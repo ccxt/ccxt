@@ -979,8 +979,8 @@ export default class binance extends binanceRest {
             'method': this.handleFetchOrderBook,
         };
         const snapshot = await this.watch (url, messageHash, message, messageHash, subscription);
-        snapshot['symbol'] = market['symbol'];
-        const orderbook = this.orderBook (snapshot);
+        const symbolEntry: Dict = { 'symbol': market['symbol'] };
+        const orderbook = this.orderBook (this.extend (snapshot, symbolEntry));
         return orderbook;
     }
 

@@ -1801,10 +1801,16 @@ export default class bitso extends Exchange {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 const resultValue = this.safeDict (result, code);
                 if (resultValue === undefined) {
-                    result[code] = this.depositWithdrawFee ({});
+                    const newInfo: Dict = {};
+                    newInfo[code] = this.parseNumber (withdrawalResponse[currencyId]);
+                    result[code] = this.extend (this.depositWithdrawFee (newInfo), { 'withdraw': { 'fee': withdrawFee, 'percentage': undefined }});
+                } else {
+                    const infoUpdate: Dict = {};
+                    infoUpdate[code] = this.parseNumber (withdrawalResponse[currencyId]);
+                    const withdraw = this.extend (this.safeDict (resultValue, 'withdraw', {}), { 'fee': withdrawFee });
+                    const info = this.extend (this.safeDict (resultValue, 'info', {}), infoUpdate);
+                    result[code] = this.extend (resultValue, { 'withdraw': withdraw, 'info': info });
                 }
-                result[code]['withdraw']['fee'] = withdrawFee;
-                result[code]['info'][code] = withdrawFee;
             }
         }
         return result;
