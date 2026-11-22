@@ -154,6 +154,7 @@
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint && npm run lint-typed-operands",
     "lint-typed-operands": "node eslint-rules/checks/typed-operands.mjs",
+    "test-eslint-rules": "node -r ./build/use-typescript6.cjs --test eslint-rules/tests/*.test.mjs",
     "eslint": "node -r ./build/use-typescript6.cjs node_modules/eslint/bin/eslint.js",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-python-style": "ruff check ./python/ccxt",
