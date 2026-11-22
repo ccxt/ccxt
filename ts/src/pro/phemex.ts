@@ -621,6 +621,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -636,7 +637,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -667,6 +668,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -682,7 +684,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -710,6 +712,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -725,7 +728,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
                 this.safeInteger (this.timeframes, timeframe),
             ],
         };
@@ -770,8 +773,10 @@ export default class phemex extends phemexRest {
     override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name: Str = 'trade';
         if (isUsdtSwap) {
             name = 'trade_p';
@@ -780,7 +785,7 @@ export default class phemex extends phemexRest {
             'topic': 'trades',
             'symbols': [ symbolValue ],
         };
-        return await this.unSubscribePublic (name + '.unsubscribe', 'trade:' + symbolValue, [ market['id'] ], subscription, params);
+        return await this.unSubscribePublic (name + '.unsubscribe', 'trade:' + symbolValue, [ marketId ], subscription, params);
     }
 
     /**
@@ -798,8 +803,10 @@ export default class phemex extends phemexRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const marketId: string = this.safeString (market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name: Str = 'kline';
         if (isUsdtSwap) {
             name = 'kline_p';
@@ -809,7 +816,7 @@ export default class phemex extends phemexRest {
             'symbolsAndTimeframes': [ [ symbolValue, timeframe ] ],
         };
         // phemex drops only the given interval when it is sent along with the symbol
-        const marketParams: List = [ market['id'], this.safeInteger (this.timeframes, timeframe) ];
+        const marketParams: List = [ marketId, this.safeInteger (this.timeframes, timeframe) ];
         return await this.unSubscribePublic (name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params);
     }
 
