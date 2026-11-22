@@ -431,7 +431,7 @@ export default class backpack extends backpackRest {
         //
         const ticker = this.safeDict (message, 'data', {});
         const stream = this.safeString (message, 'stream', '');
-        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions: Dict = this.extend ({}, this.safeDict (client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys (subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -518,7 +518,7 @@ export default class backpack extends backpackRest {
     handleStockTicker (client: Client, message: Dict): boolean {
         const data = this.safeDict (message, 'data', {});
         const stream = this.safeString (message, 'stream', '');
-        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions: Dict = this.extend ({}, this.safeDict (client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys (subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -600,7 +600,7 @@ export default class backpack extends backpackRest {
         //     }
         const data = this.safeDict (message, 'data', {});
         const stream = this.safeString (message, 'stream', '');
-        const subscriptions = this.safeDict (client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions: Dict = this.extend ({}, this.safeDict (client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys (subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
