@@ -980,7 +980,7 @@ class toobit(Exchange, ImplicitAPI):
         inverse = self.safe_bool_2(market, 'isInverse', 'inverse')
         if isContract:
             symbol = base + '/' + quote + ':' + settle
-        return self.safe_market_structure({
+        result = {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -997,8 +997,8 @@ class toobit(Exchange, ImplicitAPI):
             'option': False,
             'active': active,
             'contract': isContract,
-            'linear': (inverse is not True) if isContract else None,
-            'inverse': inverse if isContract else None,
+            'linear': None,
+            'inverse': None,
             'contractSize': self.safe_number(market, 'contractMultiplier'),
             'expiry': None,
             'expiryDatetime': None,
@@ -1028,7 +1028,11 @@ class toobit(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        })
+        }
+        if isContract:
+            result['linear'] = (inverse is not True)
+            result['inverse'] = inverse
+        return self.safe_market_structure(result)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

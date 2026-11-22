@@ -258,7 +258,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #
         marketId = self.safe_string(message, 'instrument_name')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         data = self.safe_dict(self.safe_list(message, 'data'), 0)
         timestamp = self.safe_integer(data, 't')
         if not (symbol in self.orderbooks):
@@ -1376,6 +1376,6 @@ class cryptocom(ccxt.async_support.cryptocom):
                 if messageHashes is not None:
                     for j in range(0, len(messageHashes)):
                         unsubHash = messageHashes[j]
-                        subHash = subMessageHashes[j]
+                        subHash = self.safe_string(subMessageHashes, j, '')
                         self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)

@@ -1673,7 +1673,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         event = self.safe_string(message, 'event')
         messageHash = 'challenge'
         if event != 'error':
-            challenge = self.safe_value(message, 'message')
+            challenge = self.safe_string(message, 'message', '')
             hashedChallenge = self.hash(self.encode(challenge), 'sha256', 'binary')
             base64Secret = self.base64_to_binary(self.secret)
             signature = self.hmac(hashedChallenge, base64Secret, hashlib.sha512, 'base64')

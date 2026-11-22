@@ -168,7 +168,7 @@ class bit2me(ccxt.async_support.bit2me):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         data = self.safe_dict(message, 'data', {})
         trade = self.parse_ws_trade(data, market)
         if not (symbol in self.trades):

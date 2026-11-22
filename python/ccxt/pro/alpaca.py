@@ -103,7 +103,7 @@ class alpaca(ccxt.async_support.alpaca):
         #    ]
         #
         ticker = self.parse_ticker(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         tickerSymbol = self.safe_string(ticker, 'symbol', '')
         messageHash = 'ticker:' + tickerSymbol
         if symbol is not None:

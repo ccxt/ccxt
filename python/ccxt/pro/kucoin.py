@@ -1550,10 +1550,9 @@ class kucoin(ccxt.async_support.kucoin):
         if topic.find('Depth') >= 0:
             if not (symbol in self.orderbooks):
                 self.orderbooks[symbol] = self.order_book()
-            else:
-                orderbook = self.orderbooks[symbol]
-                orderbook.reset()
-            self.orderbooks[symbol]['symbol'] = symbol
+            storedBook = self.orderbooks[symbol]
+            storedBook.reset()
+            storedBook['symbol'] = self.safe_symbol(marketId, None, '-')
         else:
             if not (symbol in self.orderbooks):
                 self.orderbooks[symbol] = self.order_book()

@@ -1163,7 +1163,7 @@ class binance(ccxt.async_support.binance):
         if messageHashes is not None:
             for j in range(0, len(messageHashes)):
                 unsubHash = messageHashes[j]
-                subHash = subMessageHashes[j]
+                subHash = self.safe_string(subMessageHashes, j, '')
                 self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 

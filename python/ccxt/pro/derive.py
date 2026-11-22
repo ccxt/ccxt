@@ -483,7 +483,7 @@ class derive(ccxt.async_support.derive):
         #
         #
         params = self.safe_dict(message, 'params')
-        data = self.safe_dict(params, 'data', {})
+        data = self.safe_list(params, 'data', [])
         topic = self.safe_string(params, 'channel', '')
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)

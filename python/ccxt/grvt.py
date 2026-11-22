@@ -2129,8 +2129,8 @@ class grvt(Exchange, ImplicitAPI):
             sizeDec = self.safe_string(sizeParts, 1, '')
             sizeDecLength = len(sizeDec) + 0  # php tr
             sizeDigits = self.parse_to_int(size.replace('.', ''))
-            denominator = math.pow(10, sizeDecLength)
-            sizeInteger = sizeDigits * sizeMultiplier / denominator
+            sizeDenominator = math.pow(10, sizeDecLength)
+            sizeInteger = sizeDigits * sizeMultiplier / sizeDenominator
             legOrder = {
                 'assetID': self.safe_string(market['info'], 'instrument_hash'),
                 'contractSize': self.parse_to_int(sizeInteger),
@@ -2143,8 +2143,8 @@ class grvt(Exchange, ImplicitAPI):
                 limitDec = self.safe_string(limitParts, 1, '')
                 limitDecLength = len(limitDec) + 0  # php tr
                 priceDigits = self.parse_to_int(price.replace('.', ''))
-                denominator = math.pow(10, limitDecLength)
-                priceInteger = priceDigits * priceMultiplier / denominator
+                priceDenominator = math.pow(10, limitDecLength)
+                priceInteger = priceDigits * priceMultiplier / priceDenominator
                 legOrder['limitPrice'] = self.parse_to_int(priceInteger)
             else:
                 legOrder['limitPrice'] = 0  # should be zero to validate type-check

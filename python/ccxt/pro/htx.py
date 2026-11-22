@@ -695,7 +695,6 @@ class htx(ccxt.async_support.htx):
         symbol = self.safe_string(market, 'symbol', '')
         orderbook = self.orderbooks[symbol]
         tick = self.safe_dict(message, 'tick', {})
-        seqNum = self.safe_integer(tick, 'seqNum')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
         event = self.safe_string(tick, 'event')
         version = self.safe_integer(tick, 'version')
@@ -717,7 +716,10 @@ class htx(ccxt.async_support.htx):
             bids = self.safe_list(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
-            orderbook['nonce'] = seqNum if (spotConditon) else version
+            nonceKey = 'version'
+            if spotConditon:
+                nonceKey = 'seqNum'
+            orderbook['nonce'] = self.safe_integer(tick, nonceKey)
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
 

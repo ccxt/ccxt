@@ -1795,10 +1795,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
-    async def set_ref(self):
-        if self.safe_bool(self.options, 'refSet', False):
+    async def set_ref(self, alreadySet: bool = False):
+        if alreadySet:
             return True
-        self.options['refSet'] = True
         action = {
             'type': 'setReferrer',
             'code': self.safe_string(self.options, 'ref', 'CCXT1'),
@@ -1854,7 +1853,16 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     async def initialize_client(self) -> bool:
         try:
-            await asyncio.gather(*[self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})])  # for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            # each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            refSet = self.safe_bool(self.options, 'refSet', False)
+            self.options['refSet'] = True
+            feeApproved = await self.handle_builder_fee_approval()
+            if feeApproved:
+                self.options['approvedBuilderFee'] = True
+            else:
+                self.options['builderFee'] = False  # disable builder fee if an error occurs
+            await self.set_ref(refSet)
+            await asyncio.gather(*[self.is_unified_enabled('fetchBalance', None, False, {})])  # for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         except Exception as e:
             return False
         return True
@@ -1872,9 +1880,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             if not buildFee:
                 maxFeeRate = '0%'
             await self.approve_builder_fee(builder, maxFeeRate)
-            self.options['approvedBuilderFee'] = True
         except Exception as e:
-            self.options['builderFee'] = False  # disable builder fee if an error occurs
+            return False
         return True
 
     async def is_unified_enabled(self, method: str, address: Str = None, shouldRefresh: bool = False, params: dict = {}) -> list:

@@ -1726,10 +1726,12 @@ class paradex(Exchange, ImplicitAPI):
         }
         msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
-        params['signature'] = signature
-        params['account'] = self.safe_string(account, 'address')
-        params['public_key'] = self.safe_string(account, 'publicKey')
-        response = await self.privatePostOnboarding(params)
+        request = {
+            'signature': signature,
+            'account': self.safe_string(account, 'address'),
+            'public_key': self.safe_string(account, 'publicKey'),
+        }
+        response = await self.privatePostOnboarding(self.extend(params, request))
         return response
 
     async def authenticate_rest(self, params: dict = {}) -> Str:
@@ -1763,11 +1765,13 @@ class paradex(Exchange, ImplicitAPI):
         }
         msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
-        params['signature'] = signature
-        params['account'] = self.safe_string(account, 'address')
-        params['timestamp'] = req['timestamp']
-        params['expiration'] = req['expiration']
-        response = await self.privatePostAuth(params)
+        request = {
+            'signature': signature,
+            'account': self.safe_string(account, 'address'),
+            'timestamp': now,
+            'expiration': expires,
+        }
+        response = await self.privatePostAuth(self.extend(params, request))
         #
         # {
         #     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -3722,7 +3726,11 @@ class paradex(Exchange, ImplicitAPI):
             # end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             paginationCalls, paramsCalls = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10)
             until = self.safe_integer(paramsCalls, 'until')
-            endAt = min(self.milliseconds(), self.sum(since, paginationCalls * 5000 * rowSpacing))
+            pageSpan = self.parse_to_int(paginationCalls * 5000 * rowSpacing)
+            sinceEnd = self.sum(since, pageSpan)
+            endAt = self.milliseconds()
+            if sinceEnd < endAt:
+                endAt = sinceEnd
             if until is not None:
                 endAt = until
             paramsEndAt = self.extend(self.omit(paramsPaginate, 'until'), {'end_at': endAt})

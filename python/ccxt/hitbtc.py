@@ -3488,7 +3488,8 @@ class hitbtc(Exchange, ImplicitAPI):
         maxLeverage = self.safe_integer(limits['leverage'], 'max', 50)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        if (leverage < 1) or (leverage > maxLeverage):
+        leverageNum = self.parse_number(leverage)
+        if (leverageNum < 1) or (leverageNum > maxLeverage):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'symbol': market['id'],

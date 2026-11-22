@@ -278,12 +278,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(expandedRaw)):
             raw = expandedRaw[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = None
-            if groupId is not None and groupId != '':
-                eventKey = self.shorten_slug(groupId)
+            eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             markets.append(m)
-            if (eventKey is not None) and (eventKey != ''):
+            if eventKey != '':
                 eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)
@@ -2773,14 +2771,12 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, rawMarketsLength):
             raw = expandedMarkets[i]
             groupId = self.safe_string_n(raw, ['groupSlug', 'groupId'], self.safe_string(raw, 'slug'))
-            eventKey = None
-            if groupId is not None and groupId != '':
-                eventKey = self.shorten_slug(groupId)
+            eventKey = self.shorten_slug(groupId)
             m = self.parse_market(raw)
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
-            if (eventKey is not None) and (eventKey != ''):
+            if eventKey != '':
                 eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)

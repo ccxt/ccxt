@@ -486,9 +486,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             position = positions[i]
             if self.safe_string(position, 'side') is None:
                 # flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position['side'] = 'long'
                 shortPosition = self.extend(position, {'side': 'short'})
                 self.positions.append(shortPosition)
+                longPosition = self.extend(position, {'side': 'long'})
+                self.positions.append(longPosition)
+                continue
             self.positions.append(position)
         client.resolve(self.positions, channel)
 
@@ -1335,12 +1337,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client = self.client(url)
         messageHash = 'authenticated'
         future = self.safe_value(client.subscriptions, messageHash)
-        if future is not None:
+        subscribed = (future is not None)
+        if subscribed:
             refreshAt = self.safe_integer(self.options, 'wsAuthRefreshAt')
             if (refreshAt is not None) and (self.milliseconds() >= refreshAt) and not (messageHash in client.futures):
                 del client.subscriptions[messageHash]
-                future = None
-        if future is None:
+                subscribed = False
+        if not subscribed:
             self.check_required_credentials()
             requestId = self.request_id()
             self.options['wsAuthRequestId'] = requestId

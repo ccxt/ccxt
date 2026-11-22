@@ -1029,8 +1029,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
         tickers = {}
         for i in range(0, len(symbolsResolved)):
-            symbol = self.safe_string(symbolsResolved, i)
-            if symbol is None:
+            symbol = self.safe_string(symbolsResolved, i, '')
+            if symbol == '':
                 continue
             ticker = await self.fetch_ticker(symbol, paramsResolved)
             tickers[symbol] = ticker

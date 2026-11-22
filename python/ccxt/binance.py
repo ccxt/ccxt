@@ -12316,8 +12316,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        first = self.safe_dict(response, 0, response)
-        return self.parse_ledger_entry(first, currency)
+        return self.parse_ledger_entry(self.safe_dict(response, 0, {}), currency)
 
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -12696,16 +12695,15 @@ class binance(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
-        parsedMessage = None
+        responseParsed = response
         if not success:
             messageNew = self.safe_string(response, 'msg')
             if messageNew is not None:
                 try:
-                    parsedMessage = json.loads(messageNew)
+                    responseParsed = json.loads(messageNew)
                 except Exception as e:
                     # do nothing
-                    parsedMessage = None
-        responseParsed = parsedMessage if (parsedMessage is not None) else response
+                    responseParsed = response
         message = self.safe_string(responseParsed, 'msg')
         if message is not None:
             self.throw_exactly_matched_exception(self.get_exceptions_by_url(url, 'exact'), message, self.id + ' ' + message)

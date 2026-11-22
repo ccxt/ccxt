@@ -1550,7 +1550,7 @@ class bullish(Exchange, ImplicitAPI):
         if untilParam is not None:
             until = untilParam
         sinceFromUntil = (since is None) and (untilParam is not None)
-        paramsResult = self.omit(params, 'until') if sinceFromUntil else params
+        timeParams = {}
         if (since is not None) or (untilParam is not None):
             timeDelta = 7 * 24 * 60 * 60 * 1000  # 7 days
             sinceResolved = since
@@ -1563,8 +1563,10 @@ class bullish(Exchange, ImplicitAPI):
                     until = now
                 else:
                     until = self.sum(since, timeDelta)
-            paramsResult[sinceKey] = self.iso8601(sinceResolved)
-            paramsResult[untilKey] = self.iso8601(until)
+            timeParams[sinceKey] = self.iso8601(sinceResolved)
+            timeParams[untilKey] = self.iso8601(until)
+        merged = self.extend(params, timeParams)
+        paramsResult = self.omit(merged, 'until') if sinceFromUntil else merged
         return paramsResult
 
     def get_closest_limit(self, limit: Int) -> Int:

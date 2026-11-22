@@ -2480,8 +2480,10 @@ class sxbet(PredictionExchange, ImplicitAPI):
         accessLevel = api[1]
         if (accessLevel == 'private') and (self.apiKey is None):
             raise AuthenticationError(self.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)')
-        baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['sxbet'])
+        baseUrl = self.safe_string(self.urls['api'], 'sxbet', '')
+        groupUrl = self.safe_string(self.urls['api'], apiGroup)
+        if groupUrl is not None:
+            baseUrl = groupUrl
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         existingHeaders = {}

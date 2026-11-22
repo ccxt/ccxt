@@ -2545,7 +2545,7 @@ class bitstamp(Exchange, ImplicitAPI):
             request['iban'] = address
             request['account_currency'] = currency['id']
             response = await self.privatePostWithdrawalOpen(self.extend(request, paramsWithdrawTag))
-        return self.parse_transaction(response, currency)
+        return self.parse_transaction(self.extend({}, response), currency)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:
         """

@@ -3262,7 +3262,8 @@ class poloniex(Exchange, ImplicitAPI):
         #
         depositWithdrawFees = {}
         codesValue = self.market_codes(codes)
-        responseKeys = list(response.keys())
+        feesById = self.extend({}, response)
+        responseKeys = list(feesById.keys())
         for i in range(0, len(responseKeys)):
             currencyId = responseKeys[i]
             code = self.safe_currency_code(currencyId)
@@ -3281,12 +3282,12 @@ class poloniex(Exchange, ImplicitAPI):
                         networkInfo = self.safe_dict(response, networkId)
                         networkObject = {}
                         withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
+                        withdrawObject = {'fee': withdrawFee, 'percentage': None}
+                        if withdrawFee is not None:
+                            withdrawObject['percentage'] = False
                         if networkCode is not None:
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': False if (withdrawFee is not None) else None,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': None,
                                     'percentage': None,

@@ -1426,8 +1426,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             marketId = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
-            amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            amount = self.safe_number(rawOrder, 'amount')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             extendedParams = self.extend(orderParams, params)  # the request does not accept extra params since it's a list, so we're extending each order with the common params
             if not ('order_tag' in extendedParams):
@@ -2319,14 +2319,17 @@ class krakenfutures(Exchange, ImplicitAPI):
             amount = Precise.string_add(filled, remaining)
         cost = None
         if (filled is not None) and (marketResolved is not None):
-            whichPrice = price
+            isLinear = self.safe_bool(marketResolved, 'linear', False)
             if average is not None:
-                whichPrice = average
-            if whichPrice is not None:
-                if self.safe_bool(marketResolved, 'linear', False):
-                    cost = Precise.string_mul(filled, whichPrice)  # in quote
+                if isLinear:
+                    cost = Precise.string_mul(filled, average)  # in quote
                 else:
-                    cost = Precise.string_div(filled, whichPrice)  # in base
+                    cost = Precise.string_div(filled, average)  # in base
+            elif price is not None:
+                if isLinear:
+                    cost = Precise.string_mul(filled, price)  # in quote
+                else:
+                    cost = Precise.string_div(filled, price)  # in base
         id = self.safe_string_2(order, 'order_id', 'orderId')
         if id is None:
             id = self.safe_string_2(details, 'orderId', 'uid')

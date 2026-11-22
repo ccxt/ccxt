@@ -920,7 +920,7 @@ class kraken(Exchange, ImplicitAPI):
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None) -> Str:
         if currencyId is None:
-            return currencyId
+            return None
         if currencyId.find('.') > 0:
             # if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             parts = currencyId.split('.')

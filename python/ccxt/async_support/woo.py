@@ -3267,7 +3267,7 @@ class woo(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolResolved = self.market(symbol)['symbol'] if (symbol is not None) else None
+        symbolResolved = self.safe_string(self.market(symbol), 'symbol') if (symbol is not None) else None
         currency = self.currency(code)
         request = {
             'token': currency['id'],  # interest token that you want to repay

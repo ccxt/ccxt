@@ -386,7 +386,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             outcomeSymbol = outcomeSymbols[i]
             if outcomeSymbol.find(':') >= 0:
                 continue
-            baseTicker = outcomeSymbol
+            tickerText = self.safe_string(outcomeSymbols, i, '')
+            baseTicker = tickerText
             if outcomeSymbol.endswith('-NO'):
                 baseTicker = outcomeSymbol[0:-3]
             if not (baseTicker in seen):

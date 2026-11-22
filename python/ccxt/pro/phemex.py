@@ -1070,7 +1070,7 @@ class phemex(ccxt.async_support.phemex):
             limitResolved = orders.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: dict):
         # spot update
         # {
         #        "closed":[
@@ -1229,26 +1229,29 @@ class phemex(ccxt.async_support.phemex):
         #        ...
         #    ]
         #
+        # spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         trades = []
         parsedOrders = []
-        if ('closed' in message) or ('fills' in message) or ('open' in message):
-            closed = self.safe_list(message, 'closed', [])
-            open = self.safe_list(message, 'open', [])
+        ordersDict = self.safe_dict_2(message, 'orders', 'orders_p', {})
+        if ('closed' in ordersDict) or ('fills' in ordersDict) or ('open' in ordersDict):
+            closed = self.safe_list(ordersDict, 'closed', [])
+            open = self.safe_list(ordersDict, 'open', [])
             orders = self.array_concat(open, closed)
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            trades = self.safe_list(message, 'fills', [])
+            trades = self.safe_list(ordersDict, 'fills', [])
             for i in range(0, len(orders)):
                 rawOrder = orders[i]
                 parsedOrder = self.parse_order(rawOrder)
                 parsedOrders.append(parsedOrder)
         else:
-            messageLength = len(message)
-            if messageLength == 0:
+            updates = self.safe_list(message, 'orders_p', [])
+            updatesLength = len(updates)
+            if updatesLength == 0:
                 return
-            for i in range(0, messageLength):
-                update = message[i]
+            for i in range(0, updatesLength):
+                update = updates[i]
                 action = self.safe_string(update, 'action')
                 if (action is not None) and (action != 'Cancel'):
                     # order + trade info together
@@ -1570,8 +1573,7 @@ class phemex(ccxt.async_support.phemex):
             self.handle_order_book(client, message)
             return
         if ('orders' in message) or ('orders_p' in message):
-            orders = self.safe_dict_2(message, 'orders', 'orders_p', {})
-            self.handle_orders(client, orders)
+            self.handle_orders(client, message)
         if ('accounts' in message) or ('accounts_p' in message) or ('wallets' in message):
             type = 'spot'
             if 'accounts' in message:

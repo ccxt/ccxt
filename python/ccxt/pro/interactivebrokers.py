@@ -415,7 +415,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         # a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         # and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         hasBidAsk = ('84' in message) or ('85' in message) or ('86' in message) or ('88' in message)
-        hasQuote = (ticker['bid'] is not None) or (ticker['ask'] is not None)
+        hasQuote = (self.safe_string(ticker, 'bid') is not None) or (self.safe_string(ticker, 'ask') is not None)
         if hasBidAsk and hasQuote:
             bidAsk = self.safe_ticker({
                 'symbol': symbol,
@@ -528,7 +528,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         #
         topic = self.safe_string(message, 'topic', '')
         parts = topic.split('+')
-        marketId = self.safe_string(parts, 1)
+        marketId = self.safe_string(parts, 1, '')
         serverId = self.safe_string(message, 'serverId')
         if serverId is not None:
             # the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -686,7 +686,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         """
         await self.load_markets()
         market = self.market(symbol)
-        unifiedSymbol = market['symbol']
+        unifiedSymbol = self.safe_string(market, 'symbol', '')
         accountId, query = await self.loadAccountId(params)
         bookExchange = self.safe_string(query, 'exchange')
         url = await self.ibkr_connect()
@@ -714,7 +714,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         """
         await self.load_markets()
         market = self.market(symbol)
-        unifiedSymbol = market['symbol']
+        unifiedSymbol = self.safe_string(market, 'symbol', '')
         accountId, query = await self.loadAccountId(params)
         url = await self.ibkr_connect()
         client = self.client(url)
@@ -948,7 +948,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 rawOrders[orderId] = merged
             parsed = self.parse_order(merged)
             orders.append(parsed)
-            orderSymbol = parsed['symbol']
+            orderSymbol = self.safe_string(parsed, 'symbol')
             if orderSymbol is not None:
                 symbols[orderSymbol] = True
         if subscription is not None:
@@ -1064,7 +1064,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         for i in range(0, len(args)):
             rawTrade = args[i]
             trade = self.parse_trade(rawTrade)
-            tradeTimestamp = trade['timestamp']
+            tradeTimestamp = self.safe_integer(trade, 'timestamp')
             if (threshold is not None) and (tradeTimestamp is not None) and (tradeTimestamp < threshold):
                 continue
             if skipDuplicates:
@@ -1075,7 +1075,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                     if self.json(cachedInfo) == self.json(rawTrade):
                         continue
             trades.append(trade)
-            tradeSymbol = trade['symbol']
+            tradeSymbol = self.safe_string(trade, 'symbol', '')
             symbols[tradeSymbol] = True
         keys = list(symbols.keys())
         keysLength = len(keys)

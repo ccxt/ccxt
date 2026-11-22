@@ -1095,7 +1095,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         timestamp = self.safe_integer(bookData, 'timestamp')
         quoteVolume = None
         if market is not None:
-            quoteVolume = self.safe_number_2(market['info'], 'volume24hr', 'volume')
+            quoteVolume = self.safe_number_2(self.safe_dict(market, 'info'), 'volume24hr', 'volume')
         return self.safe_prediction_ticker({
             'outcome': outcome,
             'outcomeId': self.safe_string(market, 'outcomeId'),

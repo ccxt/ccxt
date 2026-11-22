@@ -559,6 +559,9 @@ class whitebit(Exchange, ImplicitAPI):
         makerFeeRate = self.safe_string(market, 'makerFee')
         maker = Precise.string_div(makerFeeRate, '100')
         isSpot = not swap
+        contractSize = self.parse_number('1')
+        if isSpot:
+            contractSize = None
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -580,7 +583,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': None if isSpot else self.parse_number('1'),  # perpetual amounts are denominated in base currency units
+            'contractSize': contractSize,  # perpetual amounts are denominated in base currency units
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,

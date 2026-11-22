@@ -5894,12 +5894,8 @@ class BaseExchange(object):
         result = []
         arrayData = self.to_array(data)
         for i in range(0, len(arrayData)):
-            itemOrItems = self.parse_ledger_entry(arrayData[i], currency)
-            if isinstance(itemOrItems, list):
-                for j in range(0, len(itemOrItems)):
-                    result.append(self.extend(itemOrItems[j], params))
-            else:
-                result.append(self.extend(itemOrItems, params))
+            entry = self.parse_ledger_entry(self.safe_dict(arrayData, i, {}), currency)
+            result.append(self.extend(entry, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if (currency is not None) else None
         return self.filter_by_currency_since_limit(result, code, since, limit)

@@ -6832,15 +6832,19 @@ class bingx(Exchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def custom_encode(self, params: dict) -> Str:
+    def custom_encode(self, params: dict) -> str:
         sortedParams = self.keysort(params)
         rawKeys = list(sortedParams.keys())
         rawKeysLength = len(rawKeys)
         adjustedValue = None
-        result = None
+        result = ''
         for i in range(0, rawKeysLength):
             key = rawKeys[i]
             value = sortedParams[key]
+            pair = self.safe_string(sortedParams, key, '')
+            flag = self.safe_bool(sortedParams, key)
+            if flag is not None:
+                pair = 'true' if flag else 'false'
             if isinstance(value, list):
                 arrStr = None
                 for j in range(0, len(value)):
@@ -6859,10 +6863,11 @@ class bingx(Exchange, ImplicitAPI):
                             arrStr = str(arrayElement)
                 adjustedValue = '[' + arrStr + ']'
                 value = adjustedValue
+                pair = '[' + arrStr + ']'
             if i == 0:
-                result = key + '=' + value
+                result = key + '=' + pair
             else:
-                result += '&' + key + '=' + value
+                result += '&' + key + '=' + pair
         return result
 
     def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:

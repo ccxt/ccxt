@@ -2984,9 +2984,10 @@ class lighter(Exchange, ImplicitAPI):
         signer = await self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         market = self.market(symbol)
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
+        leverageNum = self.parse_number(leverage)
         signRaw = {
             'market_index': self.parse_to_int(market['id']),
-            'initial_margin_fraction': self.parse_to_int(10000 / leverage),
+            'initial_margin_fraction': self.parse_to_int(10000 / leverageNum),
             'margin_mode': 0 if (marginMode == 'cross') else 1,  # 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,

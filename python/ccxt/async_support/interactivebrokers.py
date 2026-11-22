@@ -678,7 +678,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         dhResponse = self.safe_string(response, 'diffie_hellman_response', '')
         sharedSecret = self.mod_pow(self.convert_to_big_int('0x' + dhResponse), dhRandom, dhPrime)
         liveSessionToken = self.hmac(self.base16_to_binary(accessTokenSecretHex), self.big_to_bytes(sharedSecret), hashlib.sha1, 'base64')
-        check = self.hmac(self.encode(self.options['consumer_key']), self.base64_to_binary(liveSessionToken), hashlib.sha1, 'hex')
+        consumerKey = self.safe_string(self.options, 'consumer_key', '')
+        check = self.hmac(self.encode(consumerKey), self.base64_to_binary(liveSessionToken), hashlib.sha1, 'hex')
         if check != self.safe_string(response, 'live_session_token_signature'):
             raise AuthenticationError(self.id + ' signIn() live session token validation failed')
         self.options['liveSessionToken'] = liveSessionToken
@@ -778,14 +779,16 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ' + gatewayUrl + ' in a browser or set options.autoRegainSession to take it back automatically, ' + self.json(response))
             regainTimestamp = self.sum(lostTimestamp, regainDelay)
             if self.milliseconds() < regainTimestamp:
-                raise AuthenticationError(self.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + self.iso8601(regainTimestamp) + ' (options.autoRegainSession), ' + self.json(response))
+                regainDatetime = self.iso8601(regainTimestamp)
+                raise AuthenticationError(self.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + regainDatetime + ' (options.autoRegainSession), ' + self.json(response))
             response = await self.ibkr_gateway_regain_session(params)
             authenticated = self.safe_bool(response, 'authenticated', False)
             if not authenticated:
                 # try again options.autoRegainSession seconds later
                 self.options['gatewaySessionLostTimestamp'] = self.milliseconds()
                 self.ibkr_gateway_schedule_regain()
-                raise AuthenticationError(self.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + self.iso8601(self.sum(self.milliseconds(), regainDelay)) + ' (options.autoRegainSession), ' + self.json(response))
+                retryDatetime = self.iso8601(self.sum(self.milliseconds(), regainDelay))
+                raise AuthenticationError(self.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + retryDatetime + ' (options.autoRegainSession), ' + self.json(response))
         self.options['gatewaySessionLostTimestamp'] = None
         self.options['serviceAccountsLoaded'] = False
         await self.fetch_service_accounts()
@@ -1527,7 +1530,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         promises = []
         for i in range(0, len(cfdExchanges)):
             request = {
-                'exchange': cfdExchanges[i],
+                'exchange': self.safe_string(cfdExchanges, i, ''),
                 'assetClass': 'CFD',
             }
             promises.append(self.markets_endpoint_call(request, 'webapiGetV1ApiTrsrvAllConids', []))
@@ -1573,7 +1576,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         searchPromises = []
         for i in range(0, len(bondSymbols)):
             searchRequest = {
-                'symbol': bondSymbols[i],
+                'symbol': self.safe_string(bondSymbols, i, ''),
                 'secType': 'BOND',
             }
             searchPromises.append(self.markets_endpoint_call(self.extend(searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []))
@@ -1673,7 +1676,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         exchangesDict = self.safe_dict(options, 'exchanges', {})
         stockExchanges = self.safe_list(exchangesDict, 'STK', [])
         for j in range(0, len(stockExchanges)):
-            exchange = stockExchanges[j]
+            exchange = self.safe_string(stockExchanges, j, '')
             stockRequest = {
                 'exchange': exchange,
                 'assetClass': 'STK',
@@ -2212,10 +2215,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         elif result.endswith('B'):
             multiplier = '1000000000'
         if multiplier is not None:
-            scaled = Precise.string_mul(result[0:len(result) - 1], multiplier)
-            if scaled is None:
-                return None
-            result = scaled
+            return Precise.string_mul(result[0:len(result) - 1], multiplier)
         if result == '':
             return None
         return result
@@ -3189,8 +3189,10 @@ class interactivebrokers(Exchange, ImplicitAPI):
             market = self.market(symbol)
         options = self.safe_dict(self.options, 'fetchMyTrades', {})
         defaultMethod = 'privateGetIserverAccountTrades'
-        if market is not None:
-            assetClass = self.safe_string(market['info'], 'assetClass')
+        if symbol is not None:
+            symbolMarket = self.market(symbol)
+            symbolInfo = self.safe_dict(symbolMarket, 'info')
+            assetClass = self.safe_string(symbolInfo, 'assetClass')
             if assetClass == 'CRYPTO':
                 defaultMethod = 'privatePostPaTransactions'
         method = self.safe_string(params, 'method', defaultMethod)
@@ -3253,7 +3255,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             days = max(1, self.parse_to_int(int(math.ceil(daysPassed))))
         request = {
             'acctIds': [accountId],
-            'conids': [self.parse_to_int(market['id'])],  # only one conid at a time is supported
+            'conids': [self.parse_to_int(self.safe_string(market, 'id'))],  # only one conid at a time is supported
             'currency': currency,
             'days': days,
         }
@@ -3741,7 +3743,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             except Exception as e:
                 message = self.exception_message(e, False)
                 mustQueryAccounts = message.find('query /accounts first') >= 0
-                if isAccountsPath or not mustQueryAccounts or (i == retries):
+                if isAccountsPath or not mustQueryAccounts or (i >= retries):
                     raise e
                 self.options['serviceAccountsLoaded'] = False
                 await self.webapiGetV1ApiIserverAccounts()

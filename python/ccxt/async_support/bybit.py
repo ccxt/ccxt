@@ -1496,9 +1496,7 @@ class bybit(Exchange, ImplicitAPI):
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
         dataLength = len(data)
         if (paginationCursor is not None) and (dataLength > 0):
-            first = data[0]
-            first['nextPageCursor'] = paginationCursor
-            data[0] = first
+            data[0] = self.extend(data[0], {'nextPageCursor': paginationCursor})
         return data
 
     async def is_unified_enabled(self, params: dict = {}) -> list:
