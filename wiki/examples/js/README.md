@@ -213,6 +213,12 @@ node path/to/example.js # substitute for actual filename here
 
 - [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
 
+- [Ibkr Trade Bonds](./examples/js/ibkr-trade-bonds.md)
+
+- [Ibkr Trade Crypto](./examples/js/ibkr-trade-crypto.md)
+
+- [Ibkr Trade Stocks](./examples/js/ibkr-trade-stocks.md)
+
 - [Instantiate All At Once](./examples/js/instantiate-all-at-once.md)
 
 - [Instantiate All From Json](./examples/js/instantiate-all-from-json.md)

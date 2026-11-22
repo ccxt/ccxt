@@ -58,6 +58,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public $tokenBucket;
     public Throttler $throttler;
     public $default_connector = null;
+    private $default_connector_validates_server_ssl = null;
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -72,8 +73,31 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->default_connector = $this->create_connector();
+        $this->ensure_default_connector();
         $this->set_request_browser($this->default_connector);
+    }
+
+    public function ensure_default_connector() {
+        // rebuilt when validateServerSsl is flipped after construction
+        if ($this->default_connector === null || $this->default_connector_validates_server_ssl !== (bool) $this->validateServerSsl) {
+            $this->default_connector = $this->create_connector();
+            $this->default_connector_validates_server_ssl = (bool) $this->validateServerSsl;
+        }
+        return $this->default_connector;
+    }
+
+    public function get_tls_connector_options() {
+        // empty array keeps the react/socket defaults (peer and hostname verification)
+        if ($this->validateServerSsl) {
+            return array();
+        }
+        return array(
+            'tls' => array(
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+            ),
+        );
     }
 
     public function set_request_browser($connector) {
@@ -88,7 +112,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             // explicitly use happy eyeballs for dual-stack IPv4/IPv6 connections
             // (supported since react/socket 1.12, enabled by default, composer.json pins 1.17)
             'happy_eyeballs' => true,
-        ), $connector_options), Loop::get());
+        ), $this->get_tls_connector_options(), $connector_options), Loop::get());
         return $connector;
     }
 
@@ -98,6 +122,8 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function close($cleanInstanceData = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        $this->before_close();
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         $this->close_ws_clients();
@@ -179,7 +205,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($connector) {
             $this->set_request_browser($connector);
         } else {
-            $this->set_request_browser($this->default_connector);
+            $this->set_request_browser($this->ensure_default_connector());
         }
         // user-agent
         $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
@@ -352,6 +378,11 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $resolve(null);
             });
         });
+    }
+
+    public function init_file_system() {
+        // file io is synchronous in php, nothing to load before the first read_file call
+        return Promise\resolve(null);
     }
 
     public function init_throttler() {
@@ -812,6 +843,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->myTrades = null;
         $this->positions = null;
         $this->positionsByType = array();
+    }
+
+    public function before_close(): mixed {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
     }
 
     public function safe_bool_n(mixed $dictionaryOrList, array $keys, ?bool $defaultValue = null) {

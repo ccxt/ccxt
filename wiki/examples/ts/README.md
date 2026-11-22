@@ -186,6 +186,12 @@
 
 - [Hyperliquid Load Hip3 Dexes](./examples/ts/hyperliquid-load-hip3-dexes.md)
 
+- [Ibkr Trade Bonds](./examples/ts/ibkr-trade-bonds.md)
+
+- [Ibkr Trade Crypto](./examples/ts/ibkr-trade-crypto.md)
+
+- [Ibkr Trade Stocks](./examples/ts/ibkr-trade-stocks.md)
+
 - [Instantiate All At Once](./examples/ts/instantiate-all-at-once.md)
 
 - [Instantiate All From Json](./examples/ts/instantiate-all-from-json.md)

@@ -64,6 +64,7 @@ Exchange::$exchanges = array(
     'htx',
     'hyperliquid',
     'independentreserve',
+    'interactivebrokers',
     'kraken',
     'krakenfutures',
     'kucoin',

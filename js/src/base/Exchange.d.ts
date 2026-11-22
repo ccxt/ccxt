@@ -5,6 +5,7 @@ import { type FutureInterface } from './ws/Future.js';
 import { WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses, OrderBookL3 } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
+import { decryptPrivateKey } from './functions/crypto-decrypt.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 /**
  * @class Exchange
@@ -245,6 +246,7 @@ export declare class BaseExchange {
     binaryToBase16: (data: Uint8Array) => string;
     numberToBE: typeof functions.numberToBE;
     base16ToBinary: (str: string) => Uint8Array;
+    decryptPrivateKey: typeof decryptPrivateKey;
     iso8601: typeof functions.iso8601;
     omit: typeof functions.omit;
     isJsonEncodedObject: typeof functions.isJsonEncodedObject;
@@ -314,6 +316,13 @@ export declare class BaseExchange {
     existsFile: typeof functions.existsFile;
     getTempDir: typeof functions.getTempDir;
     constructor(userConfig?: ConstructorArgs);
+    /**
+     * @method
+     * @name Exchange#setValidateServerSsl
+     * @description enables or disables server ssl certificate validation for REST and WS connections, disable only for servers with self-signed certificates such as a local IBKR client portal gateway
+     * @param {boolean} validate false skips certificate and hostname verification
+     */
+    setValidateServerSsl(validate: boolean): void;
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
@@ -519,10 +528,14 @@ export declare class BaseExchange {
     encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
     encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
+    initFileSystem(): Promise<any>;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(isWs?: boolean): {};
     convertToSafeDictionary(dict: any): any;
+    readDhParam(path: string): string;
+    modPow(base: bigint, exponent: bigint, modulus: bigint): bigint;
+    bigToBytes(value: bigint): Uint8Array;
     checkOptionString(methodName: Str, optionName: string, value: any): Str;
     checkOptionBool(methodName: Str, optionName: string, value: any): Bool;
     checkOptionInteger(methodName: Str, optionName: string, value: any): Int;
@@ -556,6 +569,7 @@ export declare class BaseExchange {
     describe(): Dict;
     cleanRestData(): void;
     cleanWsData(): void;
+    beforeClose(): any;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;
     safeBoolN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Bool): boolean | undefined;
     safeBool2(dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: boolean): boolean;
