@@ -2455,7 +2455,9 @@ export default class sxbet extends Exchange {
         const client = this.client (url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym) === undefined) {
+        const cachedTickers = this.safeDict (this.options, 'wsTickers', {});
+        const cachedTicker = this.safeDict (cachedTickers, sym);
+        if (cachedTicker === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
