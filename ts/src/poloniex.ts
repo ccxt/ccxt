@@ -2914,8 +2914,11 @@ export default class poloniex extends Exchange {
      */
     override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        const paramsValue: Dict = extraParams;
+        const prepared: Dict = this.prepareRequestForDepositAddress (code, params);
+        const request = this.safeDict (prepared, 'request');
+        const paramsValue = this.safeDict (prepared, 'query');
+        const currency = this.currency (code);
+        const networkEntry = this.safeDict (prepared, 'networkEntry');
         const response = await this.privatePostWalletsAddress (this.extend (request, paramsValue));
         //
         //     {
@@ -2936,8 +2939,11 @@ export default class poloniex extends Exchange {
      */
     override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
-        const [ request, extraParams, currency, networkEntry ] = this.prepareRequestForDepositAddress (code, params);
-        const paramsValue: Dict = extraParams;
+        const prepared: Dict = this.prepareRequestForDepositAddress (code, params);
+        const request = this.safeDict (prepared, 'request');
+        const paramsValue = this.safeDict (prepared, 'query');
+        const currency = this.currency (code);
+        const networkEntry = this.safeDict (prepared, 'networkEntry');
         const response = await this.privateGetWalletsAddresses (this.extend (request, paramsValue));
         //
         //     {
@@ -2952,7 +2958,7 @@ export default class poloniex extends Exchange {
         return this.parseDepositAddressSpecial (response, currency, networkEntry);
     }
 
-    prepareRequestForDepositAddress (code: string, params: Dict = {}): any {
+    prepareRequestForDepositAddress (code: string, params: Dict = {}): Dict {
         if (!(code in this.currencies)) {
             throw new BadSymbol (this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
         }
@@ -2975,10 +2981,15 @@ export default class poloniex extends Exchange {
         const request: Dict = {
             'currency': exchangeNetworkId,
         };
-        return [ request, query, currency, networkEntry ];
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        };
     }
 
-    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: Dict): DepositAddress {
+    parseDepositAddressSpecial (response: Dict, currency: Currency, networkEntry: NullableDict): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, this.safeString (networkEntry, 'id'));

@@ -917,7 +917,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // krakenfutures' override returning its own `List<object> result`.
     'parsePositions': 'IList<object>',
     'parseWsOHLCVs': 'List<object>', 'parsedFeeAndFees': 'List<object>', 'prepareOrdersByStatusRequest': 'List<object>', 'prepareRequest': 'List<object>',
-    'prepareRequestForDepositAddress': 'List<object>', 'reduceFeesByCurrency': 'List<object>', 'resolveAuthType': 'List<object>', 'resolvePath': 'List<object>',
+    'reduceFeesByCurrency': 'List<object>', 'resolveAuthType': 'List<object>', 'resolvePath': 'List<object>',
     'separateBidsOrAsks': 'List<object>', 'spotOrderPrepareRequest': 'List<object>',
 };
 
