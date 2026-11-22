@@ -204,7 +204,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'channel': 'order_book/' + this.safeString (market, 'id', ''),
         };
@@ -227,7 +227,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'channel': 'order_book/' + this.safeString (market, 'id', ''),
         };
@@ -325,7 +325,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' watchTicker() is only supported for swap markets');
         }
@@ -350,7 +350,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' unWatchTicker() is only supported for swap markets');
         }
@@ -969,7 +969,7 @@ export default class lighter extends lighterRest {
         const parts = channel.split (':');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         let stored = this.safeValue (this.liquidations, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
@@ -1361,7 +1361,7 @@ export default class lighter extends lighterRest {
             for (let j = 0; j < orders.length; j++) {
                 const order = this.parseOrder (orders[j], market);
                 stored.append (order);
-                const symbol = order['symbol'];
+                const symbol = this.safeString (order, 'symbol');
                 if (symbol !== undefined) {
                     const symbolSpecificMessageHash = this.getMessageHash ('orders', symbol);
                     client.resolve (stored, symbolSpecificMessageHash);

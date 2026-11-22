@@ -1078,7 +1078,7 @@ export default class paradex extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < loadedFees.length; i++) {
             const fee = this.parseTradingFee (loadedFees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString (fee, 'symbol');
             result[(symbol as string)] = fee;
         }
         return result as TradingFees;
@@ -1344,7 +1344,7 @@ export default class paradex extends Exchange {
         const last = this.safeString (ticker, 'last_traded_price');
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'created_at');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1717,7 +1717,7 @@ export default class paradex extends Exchange {
         const timestamp = this.safeInteger (interest, 'created_at');
         const marketId = this.safeString (interest, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeOpenInterest ({
             'symbol': symbol,
             'openInterestAmount': this.safeString (interest, 'open_interest'),
@@ -1904,7 +1904,7 @@ export default class paradex extends Exchange {
         }
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'size');
         const orderType = this.safeString (order, 'type');
@@ -2941,7 +2941,7 @@ export default class paradex extends Exchange {
         //
         const marketId = this.safeString (position, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const side = this.safeStringLower (position, 'side');
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         const quantity = Precise.stringAbs (this.safeString (position, 'size'));
@@ -3686,7 +3686,7 @@ export default class paradex extends Exchange {
         //
         const marketId = this.safeString (greeks, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'option');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (greeks, 'created_at');
         const greeksData: Dict = this.safeDict (greeks, 'greeks', {});
         return {

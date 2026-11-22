@@ -380,7 +380,7 @@ export default class bingx extends bingxRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         let url: Str = undefined;
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchTrades', market, paramsMarketType, 'linear');

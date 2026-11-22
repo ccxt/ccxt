@@ -118,7 +118,7 @@ export default class bittrade extends bittradeRest {
         const timestamp = this.safeInteger (message, 'ts');
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         this.tickers[(symbol as string)] = ticker;
         client.resolve (ticker, ch);
         return message;

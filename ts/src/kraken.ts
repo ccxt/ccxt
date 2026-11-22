@@ -3456,7 +3456,7 @@ export default class kraken extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
         const currencyResolved: Currency = this.safeCurrency (undefined, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString (currencyResolved, 'code');
         this.checkAddress (address);
         return {
             'info': depositAddress,

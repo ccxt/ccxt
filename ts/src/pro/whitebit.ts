@@ -80,9 +80,9 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const interval = this.safeInteger (this.options['timeframes'], timeframe);
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -122,7 +122,7 @@ export default class whitebit extends whitebitRest {
             const data = params[i];
             const marketId = this.safeString (data, 7);
             const market = this.safeMarket (marketId);
-            const symbol: string = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
             if (!(symbol in this.ohlcvs)) {
@@ -262,7 +262,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -325,7 +325,7 @@ export default class whitebit extends whitebitRest {
         const tickers = this.safeList (message, 'params', []);
         const marketId = this.safeString (tickers, 0);
         const market = this.safeMarket (marketId);
-        const symbol: string = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const rawTicker = this.safeDict (tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker (rawTicker, market);
@@ -368,7 +368,7 @@ export default class whitebit extends whitebitRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trades' + ':' + symbolValue;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -408,7 +408,7 @@ export default class whitebit extends whitebitRest {
         const params = this.safeList (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const market = this.safeMarket (marketId);
-        const symbol: string = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -444,7 +444,7 @@ export default class whitebit extends whitebitRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         const messageHash = 'myTrades:' + symbolValue;
         const method = 'deals_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, true, params);
@@ -577,7 +577,7 @@ export default class whitebit extends whitebitRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: Str = this.safeString (market, 'symbol');
         const messageHash = 'orders:' + symbolValue;
         const method = 'ordersPending_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbolValue, false, params);
@@ -675,7 +675,7 @@ export default class whitebit extends whitebitRest {
         }
         const timestamp = this.safeTimestamp (order, 'ctime');
         const lastTradeTimestamp = this.safeTimestamp (order, 'mtime');
-        const symbol: string = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const rawSide = this.safeInteger (order, 'side');
         let side: Str = 'buy';
         if (rawSide === 1) {
@@ -909,7 +909,7 @@ export default class whitebit extends whitebitRest {
         if (client === undefined) {
             const subscription: Dict = {};
             const market = this.market (symbol);
-            const marketId: Str = market['id'];
+            const marketId: Str = this.safeString (market, 'id');
             if (marketId !== undefined) {
                 subscription[marketId] = true;
             }
@@ -928,7 +928,7 @@ export default class whitebit extends whitebitRest {
             const subscription = this.safeDict (client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market (symbol);
-            const marketId: Str = market['id'];
+            const marketId: Str = this.safeString (market, 'id');
             const isSubscribed = this.safeBool (subscription, marketId, false);
             if (!isSubscribed) {
                 if (marketId !== undefined) {
