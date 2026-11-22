@@ -6135,69 +6135,131 @@ function rustDeclaredPairFns(): Array<[string, string]> {
 // venue request/option helpers answering a `[slot 0, Dict]` pair: [name, slot-0 family key of RUST_OPTION_TUPLE_SLOT0]
 const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = rustDeclaredPairFns();
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
-// venue methods ts/src declares `[S, S, Dict]` (S a string type) at every declaration: `(Value, Value, Dict)`
-function rustDeclaredStrStrDictFns(): string[] {
-    const tri = new Set<string>(), other = new Set<string>();
+// venue methods ts/src declares a tuple of string (S) and Dict (D) slots: `[S, S, Dict]` by name at every declaration,
+// `[Dict, Str]` / `[Str, Str]` per venue (its REST and pro declarations agree, no other venue extends it)
+type RustDeclTuple = { name: string, slots: string, venue?: string };
+function rustDeclaredStrDictTupleFns(): RustDeclTuple[] {
+    const slotsOf = (t: string): string | undefined => {
+        const m = /^\[\s*((?:Str|string|Dict)(?:\s*,\s*(?:Str|string|Dict))+)\s*\]$/.exec(t);
+        return m === null ? undefined : m[1].split(/\s*,\s*/).map((x) => (x === 'Dict' ? 'D' : 'S')).join('');
+    };
+    const byName = new Map<string, Set<string>>(), byVenue = new Map<string, Set<string>>(), parents = new Set<string>();
     for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
         let files: string[] = [];
         try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
-        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) (/^\[\s*(?:Str|string),\s*(?:Str|string),\s*Dict\s*\]$/.test(m[2]) ? tri : other).add(toSnakeCase(m[1]));
+        for (const f of files) {
+            const src = readTsIndexSource(`${dir}/${f}`) ?? '', id = f.replace(/\.ts$/, '');
+            for (const m of src.matchAll(/from '\.\/(\w+)\.js'/g)) if (m[1] !== id || dir === './ts/src') parents.add(m[1]);
+            for (const m of src.matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) {
+                const k = toSnakeCase(m[1]), sl = slotsOf(m[2]) ?? `other:${m[2]}`;
+                (byName.get(k) ?? byName.set(k, new Set()).get(k)!).add(sl);
+                if (dir !== './ts/src/prediction') (byVenue.get(`${id} ${k}`) ?? byVenue.set(`${id} ${k}`, new Set()).get(`${id} ${k}`)!).add(sl);
+            }
+        }
     }
-    return [...tri].filter((n) => !other.has(n)).sort();
+    const out: RustDeclTuple[] = [];
+    for (const [name, set] of byName) if (set.size === 1 && [...set][0] === 'SSD') out.push({ name, slots: 'SSD' });
+    for (const [key, set] of byVenue) {
+        const [venue, name] = key.split(' '), sl = [...set][0];
+        if (set.size !== 1 || !/^(?:DS|SS|SD|DD)$/.test(sl) || parents.has(venue) || byName.get(name)!.size === 1 && sl === 'SSD') continue;
+        out.push({ name, slots: sl, venue });
+    }
+    return out.sort((x, y) => (x.name + (x.venue ?? '')).localeCompare(y.name + (y.venue ?? '')));
 }
-const RUST_STR_STR_DICT_FNS = rustDeclaredStrStrDictFns();
-// the body returns the triple, each `Vec<Value>` head reads its slots as fields, dispatch arms re-box the triple
+const RUST_STR_DICT_TUPLE_FNS = rustDeclaredStrDictTupleFns();
+// split `a, b(c, d), e` at its top-level commas
+function rustTopLevelArgs(s: string): string[] {
+    const parts: string[] = [];
+    let depth = 0, start = 0, quote = false;
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (quote) { if (c === '\\') i++; else if (c === '"') quote = false; continue; }
+        if (c === '"') quote = true;
+        else if ('([{'.includes(c)) depth++;
+        else if (')]}'.includes(c)) depth--;
+        else if (c === ',' && depth === 0) { parts.push(s.slice(start, i).trim()); start = i + 1; }
+    }
+    parts.push(s.slice(start).trim());
+    return parts;
+}
+// the body returns the tuple, each `Vec<Value>` head reads its slots as fields, dispatch arms and other heads re-box it
 function typeStrStrDictTriples(content: string): string {
-    if (!RUST_STR_STR_DICT_FNS.some((n) => content.includes(`fn ${n}(`) || content.includes(`.${n}(`))) return content;
+    const fns = RUST_STR_DICT_TUPLE_FNS.filter((t) => (content.includes(`fn ${t.name}(`) || content.includes(`.${t.name}(`))
+        && (t.venue === undefined || new RegExp(String.raw`\bpub struct ${t.venue}\b`, 'i').test(content)));
     let out = content;
-    for (const n of RUST_STR_STR_DICT_FNS) {
-        out = out.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn ${n}\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (whole, sig, open, body) => {
-            const ret = /return Value::from\(vec!\[(\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), (\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), Value::Dict\((\w+)\)\]\);/g;
-            if ((body.match(/\breturn\b/g) ?? []).length !== (body.match(ret) ?? []).length) return whole;
-            return `${sig}(Value, Value, crate::value::Dict)${open}${body.replace(ret, 'return ($1.map(Value::from).unwrap_or(Value::Null), $2.map(Value::from).unwrap_or(Value::Null), $3);')}\n}`;
+    for (const { name: n, slots } of fns) {
+        const ty = [...slots].map((k) => (k === 'D' ? 'crate::value::Dict' : 'Value')).join(', ');
+        const rebox = (t: string): string => `Value::from(vec![${[...slots].map((k, i) => (k === 'D' ? `Value::Dict(${t}.${i})` : `${t}.${i}`)).join(', ')}])`;
+        out = out.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn ${n}\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (whole, sig, open, body: string) => {
+            let ok = (body.match(/\breturn\b/g) ?? []).length > 0;
+            const typed = body.replace(/\breturn Value::from\(vec!\[([^\n]*)\]\);/g, (r, inner: string) => {
+                const el = rustTopLevelArgs(inner);
+                if (el.length !== slots.length) { ok = false; return r; }
+                const mapped = el.map((e, i) => (slots[i] === 'D' ? (/^Value::Dict\((\w+)\)$/.exec(e)?.[1] ?? /^Value::Map\((\w+)\)$/.exec(e)?.[1]?.replace(/^/, 'std::sync::Arc::new(').concat(')') ?? '') : e));
+                if (mapped.some((e) => e === '')) { ok = false; return r; }
+                return `return (${mapped.join(', ')});`;
+            });
+            if (!ok || (typed.match(/\breturn\b/g) ?? []).length !== (typed.match(/\breturn \(/g) ?? []).length) return whole;
+            return `${sig}(${ty})${open}${typed}\n}`;
         });
+        if (!new RegExp(String.raw`fn ${n}\([^\n]*\) -> \(`).test(out) && !content.includes(`.${n}(`)) continue;
+        // this file's own definition kept `Value`: its callers keep the list
+        if (new RegExp(String.raw`fn ${n}\([^\n]*\) -> Value \{`).test(out)) continue;
         const arm = new RegExp(String.raw`("${n}" => )(self\.${n}\()`, 'g');
         for (let m: RegExpExecArray | null; (m = arm.exec(out)) !== null;) {
             const close = rustCloseParen(out, m.index + m[0].length);
             if (close < 0 || out[close] !== ',') continue;
-            const box = `{ let __t = ${out.slice(m.index + m[1].length, close)}; Value::from(vec![__t.0, __t.1, Value::Dict(__t.2)]) }`;
+            const box = `{ let __t = ${out.slice(m.index + m[1].length, close)}; ${rebox('__t')} }`;
             out = out.slice(0, m.index + m[1].length) + box + out.slice(close);
             arm.lastIndex = m.index + m[1].length + box.length;
         }
-        const destr = new RegExp(String.raw`\{ let __destr_tmp: Vec<Value> = (self\.${n}\()`, 'g');
+        const tail = '.as_array().cloned().unwrap_or_default();';
+        const field = (v: string, i: string, how: string): string | undefined => {
+            const str = how.startsWith('.and_then');
+            if (str !== (slots[+i] === 'S')) return undefined;
+            return str ? `${v}.${i}.as_str().map(str::to_owned)` : how.endsWith('.into_dict()') ? `${v}.${i}` : `Value::Dict(${v}.${i})`;
+        };
+        const readRe = (v: string): RegExp => new RegExp(String.raw`\b${v}\.get\(([0-${slots.length - 1}])\)(\.and_then\(Value::as_str\)\.map\(str::to_owned\)|\.cloned\(\)\.unwrap_or\(Value::Null\)(?:\.into_dict\(\))?)`, 'g');
+        const destr = new RegExp(String.raw`\{ let __destr_tmp: Vec<Value> = (self\.(?:parent\.)?${n}\()`, 'g');
         for (let m: RegExpExecArray | null; (m = destr.exec(out)) !== null;) {
             const close = rustCloseParen(out, m.index + m[0].length);
-            const tail = '.as_array().cloned().unwrap_or_default();';
             const end = close < 0 ? -1 : out.indexOf(' }', close);
             if (close < 0 || !out.startsWith(tail, close) || end < 0) continue;
             const reads = out.slice(close + tail.length, end);
-            const typed = reads.replace(/__destr_tmp\.get\(([01])\)\.and_then\(Value::as_str\)\.map\(str::to_owned\)/g, '__destr_tmp.$1.as_str().map(str::to_owned)')
-                .replace(/__destr_tmp\.get\(2\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)/g, '__destr_tmp.2')
-                .replace(/__destr_tmp\.get\(2\)\.cloned\(\)\.unwrap_or\(Value::Null\)/g, 'Value::Dict(__destr_tmp.2)');
+            const typed = reads.replace(readRe('__destr_tmp'), (r, i, how) => field('__destr_tmp', i, how) ?? r);
             // every slot read became a field read: anything else keeps the list head
             if (/__destr_tmp\.get\(/.test(typed) || reads.includes('\n')) continue;
             const blk = `{ let __destr_tmp = ${out.slice(m.index + m[0].length - m[1].length, close)};${typed}`;
             out = out.slice(0, m.index) + blk + out.slice(end);
             destr.lastIndex = m.index + blk.length;
         }
-        const head = new RegExp(String.raw`let (mut )?(\w+): Vec<Value> = (self\.${n}\()`, 'g');
+        const head = new RegExp(String.raw`let (mut )?(\w+): Vec<Value> = (self\.(?:parent\.)?${n}\()`, 'g');
         for (let m: RegExpExecArray | null; (m = head.exec(out)) !== null;) {
             const close = rustCloseParen(out, m.index + m[0].length);
-            const tail = '.as_array().cloned().unwrap_or_default();';
             if (close < 0 || !out.startsWith(tail, close)) continue;
             const v = m[2], from = close + tail.length, rest = rustFnRest(out, from);
             const seen: string[] = [];
-            const body = rest.replace(new RegExp(String.raw`\b${v}\.get\(([012])\)(\.and_then\(Value::as_str\)\.map\(str::to_owned\)|\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\))`, 'g'), (r, i, how) => {
-                const str = how.startsWith('.and_then');
-                if (str === (i === '2')) return r;
-                seen.push(i);
-                return str ? `${v}.${i}.as_str().map(str::to_owned)` : `${v}.2`;
+            const body = rest.replace(readRe(v), (r, i, how) => {
+                const f = field(v, i, how);
+                if (f !== undefined) seen.push(i);
+                return f ?? r;
             });
             // every read became a field read, each slot once: anything else keeps the list head
-            if (seen.length === 0 || new Set(seen).size !== seen.length || new RegExp(String.raw`\b${v}\b`).test(body.replace(new RegExp(String.raw`\b${v}\.[012]\b`, 'g'), ''))) continue;
+            if (seen.length === 0 || new Set(seen).size !== seen.length || new RegExp(String.raw`\b${v}\b`).test(body.replace(new RegExp(String.raw`\b${v}\.[0-9]\b`, 'g'), ''))) continue;
             const decl = `let ${m[1] ?? ''}${v} = ${out.slice(m.index + m[0].length - m[3].length, close)};`;
             out = out.slice(0, m.index) + decl + body + out.slice(from + rest.length);
             head.lastIndex = m.index + decl.length;
+        }
+        // any head left reads the list it read before
+        const left = new RegExp(String.raw`(self\.(?:parent\.)?${n}\()`, 'g');
+        for (let m: RegExpExecArray | null; (m = left.exec(out)) !== null;) {
+            const close = rustCloseParen(out, m.index + m[0].length);
+            const toList = out.startsWith('.into_list()', close);
+            if (close < 0 || !toList && !out.startsWith('.as_array()', close)) continue;
+            // a `.into_list()` reader gets the list itself back
+            const box = toList ? `({ let __t = ${out.slice(m.index, close)}; std::sync::Arc::new(${rebox('__t').replace(/^Value::from\(vec!/, 'vec!').replace(/\)$/, '')}) })` : `({ let __t = ${out.slice(m.index, close)}; ${rebox('__t')} })`;
+            out = out.slice(0, m.index) + box + out.slice(toList ? close + '.into_list()'.length : close);
+            left.lastIndex = m.index + box.length;
         }
     }
     return out;
