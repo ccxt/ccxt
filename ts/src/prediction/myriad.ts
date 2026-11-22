@@ -2171,8 +2171,9 @@ export default class myriad extends Exchange {
         const outcomesLength = outcomes.length;
         // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
+        const compositeId: string = this.safeString (raw, 'networkId', '') + ':' + this.safeString (raw, 'id', '');
         return {
-            'id': networkId + ':' + marketId,
+            'id': compositeId,
             'market': marketSymbol,
             'marketType': (outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel': marketExecutionModel,

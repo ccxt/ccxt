@@ -611,7 +611,7 @@ export default class paradex extends Exchange {
         // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
         const assetKinds: Dict = {};
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType: string = this.safeString (types, i, '');
             if (marketType === 'swap') {
                 assetKinds['PERP'] = true;
             } else if (marketType === 'spot') {
@@ -854,7 +854,7 @@ export default class paradex extends Exchange {
         let quote = '';
         let settle: Str = undefined;
         let expiryDate: Str = undefined;
-        let strike: Str = undefined;
+        let strike = '';
         let optionType = '';
         if (symbol.indexOf ('/') > -1) {
             if (partsLength !== 4) {
@@ -868,7 +868,7 @@ export default class paradex extends Exchange {
             quote = this.safeString (quoteParts, 0, '');
             settle = this.safeString (quoteParts, 1, quote);
             expiryDate = this.safeString (parts, 1);
-            strike = this.safeString (parts, 2);
+            strike = this.safeString (parts, 2, '');
             optionType = this.safeString (parts, 3, '');
         } else {
             if (partsLength !== 5) {
@@ -894,13 +894,12 @@ export default class paradex extends Exchange {
         if ((timestamp !== undefined) && (this.sum (timestamp, 86400000) <= this.milliseconds ())) {
             active = false;
         }
-        let strikeInId = '';
-        if (strike !== undefined) {
-            strikeInId = strike.replace ('.', '_');
-        }
+        const strikeInId = strike.replace ('.', '_');
+        const idTail: string = '-' + strikeInId + '-' + optionType;
+        const symbolTail: string = '-' + strike + '-' + optionType;
         return {
-            'id': base + '-' + quote + '-' + idDate + '-' + strikeInId + '-' + optionType,
-            'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + '-' + strike + '-' + optionType,
+            'id': base + '-' + quote + '-' + idDate + idTail,
+            'symbol': base + '/' + quote + ':' + settle + '-' + expiryDate + symbolTail,
             'base': base,
             'quote': quote,
             'settle': settle,
