@@ -1,0 +1,19 @@
+{
+    "ts/src/apex.ts": 1,
+    "ts/src/base/Exchange.ts": 4,
+    "ts/src/base/PredictionExchange.ts": 2,
+    "ts/src/bitstamp.ts": 1,
+    "ts/src/gate.ts": 4,
+    "ts/src/kraken.ts": 1,
+    "ts/src/kucoin.ts": 1,
+    "ts/src/okx.ts": 1,
+    "ts/src/prediction/hyperliquid.ts": 2,
+    "ts/src/prediction/myriad.ts": 2,
+    "ts/src/prediction/predictfun.ts": 1,
+    "ts/src/prediction/sxbet.ts": 1,
+    "ts/src/pro/binance.ts": 1,
+    "ts/src/pro/bullish.ts": 1,
+    "ts/src/pro/hollaex.ts": 1,
+    "ts/src/pro/htx.ts": 1,
+    "ts/src/whitebit.ts": 1
+}

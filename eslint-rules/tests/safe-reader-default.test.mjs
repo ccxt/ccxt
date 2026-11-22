@@ -26,6 +26,8 @@ test ('safe-reader-default', () => {
             wrap ("const id = this.safeString (message, 'id');\nconst same = (id === 'abc');\nthis.orders[id] = message;\nconst order = this.parseOrder (message, market);"),
             // safeNumber with a default used in arithmetic
             wrap ("const amount = this.safeNumber (message, 'amount', 0);\nconst total = amount + 1;"),
+            // a declared string local with a default
+            wrap ("const symbol: string = this.safeString (market, 'symbol', '');\nconst n: number = this.safeInteger (message, 'n', 0);"),
             // reassigned local is not judged
             wrap ("let side = this.safeString (message, 'side');\nside = 'buy';\nconst upper = side.toUpperCase ();"),
         ],
@@ -42,6 +44,9 @@ test ('safe-reader-default', () => {
             { 'code': wrap ("const marketId = this.safeString (message, 'market');\nconst parts = marketId.split ('-');"), 'errors': [ err ('safeString', '.split ()') ] },
             // safeNumber arithmetic
             { 'code': wrap ("const amount = this.safeNumber (message, 'amount');\nlet total = 0;\ntotal += amount;"), 'errors': [ err ('safeNumber', '+=') ] },
+            // a declared string / number local without a default fails tsc on the farm (TS2322)
+            { 'code': wrap ("const symbol: string = this.safeString (market, 'symbol');"), 'errors': [ err ('safeString', 'a string local') ] },
+            { 'code': wrap ("const n: number = this.safeInteger (message, 'n');"), 'errors': [ err ('safeInteger', 'a number local') ] },
             // wrong polarity of the test
             { 'code': wrap ("const status = this.safeString (message, 'status');\nif (status === undefined) {\n    const s = status.toLowerCase ();\n}"), 'errors': [ err ('safeString', '.toLowerCase ()') ] },
         ],

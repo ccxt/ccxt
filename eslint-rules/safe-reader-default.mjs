@@ -1,5 +1,6 @@
 // safe-reader-default: reports a this.safeString / safeInteger / safeNumber read with no default whose result
-// is used in `+`, an ordering compare (< > <= >=) or a string method without a `!== undefined` test of that local.
+// is used in `+`, an ordering compare (< > <= >=) or a string method without a `!== undefined` test of that local,
+// or that seeds a local declared `string` / `number`.
 // The value may be undefined, so the Go / Java / C# / Rust generators print Add / IsLessThan / Split ... helper calls.
 import { makeRatchet } from './_ratchet.mjs';
 
@@ -132,6 +133,12 @@ export default {
             VariableDeclarator (node) {
                 const reader = readerName (node.init);
                 if (reader === undefined || node.id.type !== 'Identifier') {
+                    return;
+                }
+                // `const s: string = this.safeString (x, k)`: the reader returns Str / Int / Num, so tsc fails (TS2322)
+                const declared = node.id.typeAnnotation && node.id.typeAnnotation.typeAnnotation;
+                if (declared && (declared.type === 'TSStringKeyword' || declared.type === 'TSNumberKeyword')) {
+                    ratchet.add (node.init, 'noDefault', { reader, 'use': 'a ' + sourceCode.getText (declared) + ' local' });
                     return;
                 }
                 const variable = sourceCode.getDeclaredVariables (node).find ((v) => v.name === node.id.name);

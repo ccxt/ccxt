@@ -157,7 +157,11 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
@@ -207,7 +211,11 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchTickers');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
@@ -284,7 +292,11 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchMarkPrices');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
@@ -339,7 +351,11 @@ export default class aster extends asterRest {
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
         const [ methodName, paramsCallerMethodName ] = this.handleParamString (params, 'callerMethodName', 'unWatchMarkPrices');
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
@@ -468,7 +484,11 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
@@ -517,7 +537,11 @@ export default class aster extends asterRest {
             await this.loadMarkets ();
         }
         const symbolsNormalized = this.marketSymbols (symbols, undefined, true, true, true);
-        if ((symbolsNormalized === undefined) || (symbolsNormalized.length === 0)) {
+        let symbolsLength = 0;
+        if (symbolsNormalized !== undefined) {
+            symbolsLength = symbolsNormalized.length;
+        }
+        if ((symbolsNormalized === undefined) || (symbolsLength === 0)) {
             throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
