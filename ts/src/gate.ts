@@ -5476,7 +5476,7 @@ export default class gate extends Exchange {
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
             const [ contractRequest, contractParams ] = this.prepareRequest (market, type, query);
-            const contractOrder: Dict = this.extend (contractRequest, { 'order_id': orderId.toString () });
+            const contractOrder: Dict = this.extend (contractRequest, { 'order_id': orderId });
             return [ contractOrder, contractParams ];
         }
         const [ request, requestParams ] = this.spotOrderPrepareRequest (market, trigger, query);
