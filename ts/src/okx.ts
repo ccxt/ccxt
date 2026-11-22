@@ -5739,7 +5739,7 @@ export default class okx extends Exchange {
             const networkUpper = network.toUpperCase ();
             const networkKey = this.safeString (this.networkAliases, networkUpper, networkUpper);
             network = this.safeString (networks, networkKey, network); // resolve aliases to the unified key
-            request['chain'] = currency['id'] + '-' + network;
+            request['chain'] = this.safeString (currency, 'id', '') + '-' + network;
         }
         const omitKeys: string[] = [ 'fee' ];
         if (network !== undefined) {
@@ -9186,7 +9186,7 @@ export default class okx extends Exchange {
         }
         const currency = this.currency (code);
         const request: Dict = {
-            'uly': currency['code'] + '-USD',
+            'uly': this.safeString (currency, 'code', '') + '-USD',
             'instType': 'OPTION',
         };
         const response = await this.publicGetMarketTickers (this.extend (request, params));
