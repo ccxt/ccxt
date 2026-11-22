@@ -6359,11 +6359,12 @@ export default class okx extends Exchange {
             // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         };
         if (symbols !== undefined) {
-            const marketIds: Str[] = [];
+            const marketIds: string[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const entry = symbols[i];
                 const market = this.market (entry);
-                marketIds.push (market['id']);
+                const marketId: string = this.safeString (market, 'id', '');
+                marketIds.push (marketId);
             }
             const marketIdsLength = marketIds.length;
             if (marketIdsLength > 0) {
