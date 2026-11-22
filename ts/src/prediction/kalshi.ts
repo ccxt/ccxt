@@ -597,7 +597,6 @@ export default class kalshi extends Exchange {
         };
         // Build outcomes
         const outcomeLabels = [ 'YES', 'NO' ];
-        const outcomeIds = [ ticker, ticker + '-NO' ];
         const outcomes: any[] = [];
         let resolvedOutcome: Str = undefined;
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
@@ -616,9 +615,14 @@ export default class kalshi extends Exchange {
             // reassigned local into the anonymous inner class it emits for a map literal)
             const winner = winnerRaw;
             const settleFraction = settleFractionRaw;
+            let outcomeSuffix = '';
+            if (oi > 0) {
+                outcomeSuffix = '-NO';
+            }
+            const outcomeId = ticker + outcomeSuffix;
             outcomes.push ({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': outcomeId,
+                'outcomeId': outcomeId,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,

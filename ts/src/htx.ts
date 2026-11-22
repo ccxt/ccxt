@@ -3059,7 +3059,7 @@ export default class htx extends Exchange {
             untilSeconds = this.parseToInt (until / 1000);
         }
         const isContract = (market['contract'] === true);
-        const marketType: Str = market['type'];
+        const marketType: string = this.safeString (market, 'type', '');
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
         if (isContract) {
