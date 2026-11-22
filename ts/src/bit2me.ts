@@ -931,11 +931,11 @@ export default class bit2me extends Exchange {
         } else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             const duration: Int = this.parseTimeframe (timeframe) * 1000;
-            let end: Int = this.milliseconds ();
             if (until !== undefined) {
-                end = until;
+                request['startTime'] = until - requestLimit * duration;
+            } else {
+                request['startTime'] = this.milliseconds () - requestLimit * duration;
             }
-            request['startTime'] = end - requestLimit * duration;
         }
         if (until !== undefined) {
             request['endTime'] = until;
@@ -1349,9 +1349,12 @@ export default class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if ((since !== undefined) || (until !== undefined)) {
             const start = (since !== undefined) ? since : 0;
-            const end = (until !== undefined) ? until : this.milliseconds ();
             request['startTime'] = this.iso8601 (start);
-            request['endTime'] = this.iso8601 (end);
+            if (until !== undefined) {
+                request['endTime'] = this.iso8601 (until);
+            } else {
+                request['endTime'] = this.iso8601 (this.milliseconds ());
+            }
         }
         const response = await this.privateGetV1TradingOrder (this.extend (request, query));
         //
@@ -1573,9 +1576,12 @@ export default class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if ((since !== undefined) || (until !== undefined)) {
             const start = (since !== undefined) ? since : 0;
-            const end = (until !== undefined) ? until : this.milliseconds ();
             request['startTime'] = this.iso8601 (start);
-            request['endTime'] = this.iso8601 (end);
+            if (until !== undefined) {
+                request['endTime'] = this.iso8601 (until);
+            } else {
+                request['endTime'] = this.iso8601 (this.milliseconds ());
+            }
         }
         const response = await this.privateGetV1TradingTrade (this.extend (request, query));
         //

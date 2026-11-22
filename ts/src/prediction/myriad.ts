@@ -2192,7 +2192,7 @@ export default class myriad extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
+            'expiry': this.parse8601 (endDate),
             'expiryDatetime': endDate,
             'strike': undefined,
             'optionType': undefined,

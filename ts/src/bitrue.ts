@@ -849,7 +849,7 @@ export default class bitrue extends Exchange {
             types = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
         for (let i = 0; i < types.length; i++) {
-            const marketType = types[i];
+            const marketType: string = this.safeString (types, i, '');
             if (marketType === 'spot') {
                 promisesRaw.push (this.spotV1PublicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
