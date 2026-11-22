@@ -2160,12 +2160,11 @@ export default class digifinex extends Exchange {
         const symbolsById: Dict = {};
         let marketType: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const id = this.safeString (order, 'id');
+            const id = this.safeString (orders[i], 'id');
             if (id === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires an id for each order');
             }
-            const symbol = this.safeString (order, 'symbol');
+            const symbol = this.safeString (orders[i], 'symbol');
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrdersForSymbols() requires a symbol for each order');
             }
@@ -3468,9 +3467,9 @@ export default class digifinex extends Exchange {
         const data: Dict[] = this.safeList (response, 'list', []);
         let result: NullableDict = undefined;
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            if (this.safeString (entry, 'currency') === code) {
-                result = entry;
+            const entryCurrency: string = this.safeString (data[i], 'currency', '');
+            if (entryCurrency === code) {
+                result = data[i];
             }
         }
         const currency = this.currency (code);
