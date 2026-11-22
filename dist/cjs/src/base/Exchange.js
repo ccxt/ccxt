@@ -14,6 +14,7 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
+var cryptoDecrypt = require('./functions/crypto-decrypt.js');
 var ethabi = require('./functions/ethabi.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
 var starknet$1 = require('./functions/starknet.js');
@@ -265,6 +266,7 @@ class BaseExchange {
         this.binaryToBase16 = binaryToBase16;
         this.numberToBE = numberToBE;
         this.base16ToBinary = base16ToBinary;
+        this.decryptPrivateKey = cryptoDecrypt.decryptPrivateKey;
         this.iso8601 = iso8601;
         this.omit = omit;
         this.isJsonEncodedObject = isJsonEncodedObject;
@@ -416,6 +418,15 @@ class BaseExchange {
         this.afterConstruct(userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles();
+    }
+    /**
+     * @method
+     * @name Exchange#setValidateServerSsl
+     * @description enables or disables server ssl certificate validation for REST and WS connections, disable only for servers with self-signed certificates such as a local IBKR client portal gateway
+     * @param {boolean} validate false skips certificate and hostname verification
+     */
+    setValidateServerSsl(validate) {
+        this.validateServerSsl = validate;
     }
     async loadExchangeSpecificFiles() {
         if (this.id === 'mexc') {
@@ -1467,16 +1478,19 @@ class BaseExchange {
                 finalAgent = httpProxyAgent;
             }
             const wsThrottler = new Throttler(this.tokenBucket);
+            const connectionOptions = {
+                'agent': finalAgent, // add support for proxies
+            };
+            if (!this.shouldValidateServerSsl()) {
+                connectionOptions['rejectUnauthorized'] = false;
+            }
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
                 'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
                 'throttler': wsThrottler,
-                // add support for proxies
-                'options': {
-                    'agent': finalAgent,
-                },
+                'options': connectionOptions,
                 'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient["default"](url, onMessage, onError, onClose, onConnected, options);
@@ -1693,6 +1707,8 @@ class BaseExchange {
         }
     }
     async close(cleanInstanceCache = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose();
         // [WS]
         await this.sleep(0); // allow other futures to run
         const allClients = (this.clients !== undefined) ? this.clients : {};
@@ -2037,6 +2053,11 @@ class BaseExchange {
             'signatures': [this.base16ToBinary(signature)],
         })).finish());
     }
+    async initFileSystem() {
+        // node:fs / node:path are loaded asynchronously, await them before the first synchronous readFile call
+        await io.initFileSystem();
+        return undefined;
+    }
     intToBase16(elem) {
         return elem.toString(16);
     }
@@ -2048,6 +2069,63 @@ class BaseExchange {
     }
     convertToSafeDictionary(dict) {
         return dict;
+    }
+    readDhParam(path) {
+        const pem = readFile(path);
+        const der = Buffer.from(pem.replace(/-----[^-]+-----|\s/g, ''), 'base64');
+        let pos = 0;
+        const readLen = () => {
+            let len = der[pos++];
+            if (len & 0x80) {
+                const n = len & 0x7f;
+                len = 0;
+                for (let i = 0; i < n; i++) {
+                    len = (len << 8) | der[pos++];
+                }
+            }
+            return len;
+        };
+        const readInt = () => {
+            if (der[pos++] !== 0x02) {
+                throw new Error('expected INTEGER while reading DH_param file');
+            }
+            const len = readLen();
+            const hex = der.subarray(pos, pos + len).toString('hex');
+            pos += len;
+            return hex.replace(/^00/, ''); // strip sign byte
+        };
+        if (der[pos++] !== 0x30) {
+            throw new Error('expected SEQUENCE');
+        }
+        readLen();
+        const result = { 'prime': readInt(), 'generator': BigInt('0x' + readInt()) };
+        return result['prime'];
+    }
+    modPow(base, exponent, modulus) {
+        const zero = this.convertToBigInt('0');
+        const one = this.convertToBigInt('1');
+        let result = one;
+        let b = base % modulus;
+        let e = exponent;
+        while (e > zero) {
+            if ((e & one) === one) {
+                result = (result * b) % modulus;
+            }
+            b = (b * b) % modulus;
+            e = e >> one;
+        }
+        return result;
+    }
+    bigToBytes(value) {
+        // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        let hex = this.intToBase16(value);
+        if ((hex.length % 2) === 1) {
+            hex = '0' + hex;
+        }
+        if (parseInt(hex[0], 16) >= 8) {
+            hex = '00' + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary(hex);
     }
     checkOptionString(methodName, optionName, value) {
         // the statically typed ports throw on a present non-string value; here it passes through unchanged
@@ -2684,6 +2762,11 @@ class BaseExchange {
         this.myTrades = undefined;
         this.positions = undefined;
         this.positionsByType = {};
+    }
+    beforeClose() {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return undefined;
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
