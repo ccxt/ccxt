@@ -1488,14 +1488,15 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const client = this.client (url);
         const messageHash = 'authenticated';
         let future = this.safeValue (client.subscriptions, messageHash);
-        if (future !== undefined) {
+        let subscribed: boolean = (future !== undefined);
+        if (subscribed) {
             const refreshAt = this.safeInteger (this.options, 'wsAuthRefreshAt');
             if ((refreshAt !== undefined) && (this.milliseconds () >= refreshAt) && !(messageHash in client.futures)) {
                 delete client.subscriptions[messageHash];
-                future = undefined;
+                subscribed = false;
             }
         }
-        if (future === undefined) {
+        if (!subscribed) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             this.options['wsAuthRequestId'] = requestId;
