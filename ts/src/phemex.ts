@@ -4772,8 +4772,8 @@ export default class phemex extends Exchange {
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
-        const requestPath = '/' + this.implodeParams (path, params);
-        let url = requestPath;
+        const requestPath: string = '/' + this.implodeParams (path, params);
+        let url: string = requestPath;
         let queryString = '';
         if ((method === 'GET') || (method === 'DELETE') || (method === 'PUT') || (url === '/positions/assign')) {
             if (Object.keys (query).length > 0) {
