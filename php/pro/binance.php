@@ -1321,7 +1321,7 @@ class binance extends \ccxt\async\binance {
         if ($messageHashes !== null) {
             for ($j = 0; $j < count($messageHashes); $j++) {
                 $unsubHash = $messageHashes[$j];
-                $subHash = $subMessageHashes[$j];
+                $subHash = $this->safe_string($subMessageHashes, $j, '');
                 $this->clean_unsubscription($client, $subHash, $unsubHash);
             }
         }

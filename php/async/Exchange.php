@@ -4169,14 +4169,8 @@ class BaseExchange extends \ccxt\BaseExchange {
         $result = array();
         $arrayData = $this->to_array($data);
         for ($i = 0; $i < count($arrayData); $i++) {
-            $itemOrItems = $this->parse_ledger_entry($arrayData[$i], $currency);
-            if ((gettype($itemOrItems) === 'array' && array_keys($itemOrItems) === array_keys(array_keys($itemOrItems)))) {
-                for ($j = 0; $j < count($itemOrItems); $j++) {
-                    $result[] = $this->extend($itemOrItems[$j], $params);
-                }
-            } else {
-                $result[] = $this->extend($itemOrItems, $params);
-            }
+            $entry = $this->parse_ledger_entry($this->safe_dict($arrayData, $i, array()), $currency);
+            $result[] = $this->extend($entry, $params);
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = ($currency !== null) ? $currency['code'] : null;

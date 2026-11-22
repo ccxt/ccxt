@@ -1057,8 +1057,8 @@ class coinbaseinternational extends Exchange {
         }
         $tickers = array();
         for ($i = 0; $i < count($symbolsResolved); $i++) {
-            $symbol = $this->safe_string($symbolsResolved, $i);
-            if ($symbol === null) {
+            $symbol = $this->safe_string($symbolsResolved, $i, '');
+            if ($symbol === '') {
                 continue;
             }
             $ticker = $this->fetch_ticker($symbol, $paramsResolved);

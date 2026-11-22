@@ -583,9 +583,11 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $position = $positions[$i];
             if ($this->safe_string($position, 'side') === null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                $position['side'] = 'long';
                 $shortPosition = $this->extend($position, array( 'side' => 'short' ));
                 $this->positions->append($shortPosition);
+                $longPosition = $this->extend($position, array( 'side' => 'long' ));
+                $this->positions->append($longPosition);
+                continue;
             }
             $this->positions->append($position);
         }
@@ -1649,14 +1651,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future !== null) {
+        $subscribed = ($future !== null);
+        if ($subscribed) {
             $refreshAt = $this->safe_integer($this->options, 'wsAuthRefreshAt');
             if (($refreshAt !== null) && ($this->milliseconds() >= $refreshAt) && !(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 unset($client->subscriptions[$messageHash]);
-                $future = null;
+                $subscribed = false;
             }
         }
-        if ($future === null) {
+        if (!$subscribed) {
             $this->check_required_credentials();
             $requestId = $this->request_id();
             $this->options['wsAuthRequestId'] = $requestId;

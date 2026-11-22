@@ -3415,7 +3415,8 @@ class poloniex extends Exchange {
         //
         $depositWithdrawFees = array();
         $codesValue = $this->market_codes($codes);
-        $responseKeys = is_array($response) ? array_keys($response) : array();
+        $feesById = $this->extend(array(), $response);
+        $responseKeys = is_array($feesById) ? array_keys($feesById) : array();
         for ($i = 0; $i < count($responseKeys); $i++) {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
@@ -3434,12 +3435,13 @@ class poloniex extends Exchange {
                         $networkInfo = $this->safe_dict($response, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
+                        $withdrawObject = array( 'fee' => $withdrawFee, 'percentage' => null );
+                        if ($withdrawFee !== null) {
+                            $withdrawObject['percentage'] = false;
+                        }
                         if ($networkCode !== null) {
                             $networkObject[$networkCode] = array(
-                                'withdraw' => array(
-                                    'fee' => $withdrawFee,
-                                    'percentage' => ($withdrawFee !== null) ? false : null,
-                                ),
+                                'withdraw' => $withdrawObject,
                                 'deposit' => array(
                                     'fee' => null,
                                     'percentage' => null,

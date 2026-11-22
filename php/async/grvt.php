@@ -2320,8 +2320,8 @@ class grvt extends Exchange {
             $sizeDec = $this->safe_string($sizeParts, 1, '');
             $sizeDecLength = strlen($sizeDec) + 0; // php tr
             $sizeDigits = $this->parse_to_int(str_replace('.', '', $size));
-            $denominator = pow(10, $sizeDecLength);
-            $sizeInteger = $sizeDigits * $sizeMultiplier / $denominator;
+            $sizeDenominator = pow(10, $sizeDecLength);
+            $sizeInteger = $sizeDigits * $sizeMultiplier / $sizeDenominator;
             $legOrder = array(
                 'assetID' => $this->safe_string($market['info'], 'instrument_hash'),
                 'contractSize' => $this->parse_to_int($sizeInteger),
@@ -2334,8 +2334,8 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $priceDigits = $this->parse_to_int(str_replace('.', '', $price));
-                $denominator = pow(10, $limitDecLength);
-                $priceInteger = $priceDigits * $priceMultiplier / $denominator;
+                $priceDenominator = pow(10, $limitDecLength);
+                $priceInteger = $priceDigits * $priceMultiplier / $priceDenominator;
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {
                 $legOrder['limitPrice'] = 0; // should be zero to validate type-check

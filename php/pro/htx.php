@@ -790,7 +790,6 @@ class htx extends \ccxt\async\htx {
         $symbol = $this->safe_string($market, 'symbol', '');
         $orderbook = $this->orderbooks[$symbol];
         $tick = $this->safe_dict($message, 'tick', array());
-        $seqNum = $this->safe_integer($tick, 'seqNum');
         $prevSeqNum = $this->safe_integer($tick, 'prevSeqNum');
         $event = $this->safe_string($tick, 'event');
         $version = $this->safe_integer($tick, 'version');
@@ -815,7 +814,11 @@ class htx extends \ccxt\async\htx {
             $bids = $this->safe_list($tick, 'bids', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
-            $orderbook['nonce'] = ($spotConditon) ? $seqNum : $version;
+            $nonceKey = 'version';
+            if ($spotConditon) {
+                $nonceKey = 'seqNum';
+            }
+            $orderbook['nonce'] = $this->safe_integer($tick, $nonceKey);
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
         }

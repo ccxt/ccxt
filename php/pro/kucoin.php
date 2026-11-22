@@ -1793,11 +1793,10 @@ class kucoin extends \ccxt\async\kucoin {
         if (mb_strpos($topic, 'Depth') !== false) {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book();
-            } else {
-                $orderbook = $this->orderbooks[$symbol];
-                $orderbook->reset();
             }
-            $this->orderbooks[$symbol]['symbol'] = $symbol;
+            $storedBook = $this->orderbooks[$symbol];
+            $storedBook->reset();
+            $storedBook['symbol'] = $this->safe_symbol($marketId, null, '-');
         } else {
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book();

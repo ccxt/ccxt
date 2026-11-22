@@ -918,7 +918,7 @@ class kraken extends Exchange {
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null): ?string {
         if ($currencyId === null) {
-            return $currencyId;
+            return null;
         }
         if (mb_strpos($currencyId, '.') > 0) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME

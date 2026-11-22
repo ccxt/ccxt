@@ -2697,7 +2697,7 @@ class bitstamp extends Exchange {
             $request['account_currency'] = $currency['id'];
             $response = $this->privatePostWithdrawalOpen($this->extend($request, $paramsWithdrawTag));
         }
-        return $this->parse_transaction($response, $currency);
+        return $this->parse_transaction($this->extend(array(), $response), $currency);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {

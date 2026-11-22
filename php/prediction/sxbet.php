@@ -2858,8 +2858,11 @@ class sxbet extends Exchange {
         if (($accessLevel === 'private') && ($this->apiKey === null)) {
             throw new AuthenticationError($this->id . ' ' . $path . ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
-        $baseUrls = $this->urls['api'];
-        $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['sxbet']);
+        $baseUrl = $this->safe_string($this->urls['api'], 'sxbet', '');
+        $groupUrl = $this->safe_string($this->urls['api'], $apiGroup);
+        if ($groupUrl !== null) {
+            $baseUrl = $groupUrl;
+        }
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $existingHeaders = array();

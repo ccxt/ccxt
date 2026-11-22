@@ -979,7 +979,7 @@ class toobit extends Exchange {
         if ($isContract) {
             $symbol = $base . '/' . $quote . ':' . $settle;
         }
-        return $this->safe_market_structure(array(
+        $result = array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -996,8 +996,8 @@ class toobit extends Exchange {
             'option' => false,
             'active' => $active,
             'contract' => $isContract,
-            'linear' => $isContract ? ($inverse !== true) : null,
-            'inverse' => $isContract ? $inverse : null,
+            'linear' => null,
+            'inverse' => null,
             'contractSize' => $this->safe_number($market, 'contractMultiplier'),
             'expiry' => null,
             'expiryDatetime' => null,
@@ -1027,7 +1027,12 @@ class toobit extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        ));
+        );
+        if ($isContract) {
+            $result['linear'] = ($inverse !== true);
+            $result['inverse'] = $inverse;
+        }
+        return $this->safe_market_structure($result);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {

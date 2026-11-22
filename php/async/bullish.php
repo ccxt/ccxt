@@ -1652,7 +1652,7 @@ class bullish extends Exchange {
             $until = $untilParam;
         }
         $sinceFromUntil = ($since === null) && ($untilParam !== null);
-        $paramsResult = $sinceFromUntil ? $this->omit($params, 'until') : $params;
+        $timeParams = array();
         if (($since !== null) || ($untilParam !== null)) {
             $timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             $sinceResolved = $since;
@@ -1668,9 +1668,11 @@ class bullish extends Exchange {
                     $until = $this->sum($since, $timeDelta);
                 }
             }
-            $paramsResult[$sinceKey] = $this->iso8601($sinceResolved);
-            $paramsResult[$untilKey] = $this->iso8601($until);
+            $timeParams[$sinceKey] = $this->iso8601($sinceResolved);
+            $timeParams[$untilKey] = $this->iso8601($until);
         }
+        $merged = $this->extend($params, $timeParams);
+        $paramsResult = $sinceFromUntil ? $this->omit($merged, 'until') : $merged;
         return $paramsResult;
     }
 

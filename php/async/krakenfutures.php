@@ -1519,8 +1519,8 @@ class krakenfutures extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(is_array($extendedParams) && array_key_exists('order_tag' ?? '', $extendedParams))) {
@@ -2523,15 +2523,18 @@ class krakenfutures extends Exchange {
         }
         $cost = null;
         if (($filled !== null) && ($marketResolved !== null)) {
-            $whichPrice = $price;
+            $isLinear = $this->safe_bool($marketResolved, 'linear', false);
             if ($average !== null) {
-                $whichPrice = $average;
-            }
-            if ($whichPrice !== null) {
-                if ($this->safe_bool($marketResolved, 'linear', false)) {
-                    $cost = Precise::string_mul($filled, $whichPrice); // in quote
+                if ($isLinear) {
+                    $cost = Precise::string_mul($filled, $average); // in quote
                 } else {
-                    $cost = Precise::string_div($filled, $whichPrice); // in base
+                    $cost = Precise::string_div($filled, $average); // in base
+                }
+            } elseif ($price !== null) {
+                if ($isLinear) {
+                    $cost = Precise::string_mul($filled, $price); // in quote
+                } else {
+                    $cost = Precise::string_div($filled, $price); // in base
                 }
             }
         }

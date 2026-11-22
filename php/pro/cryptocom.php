@@ -299,7 +299,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($this->safe_list($message, 'data'), 0);
         $timestamp = $this->safe_integer($data, 't');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -1645,7 +1645,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 if ($messageHashes !== null) {
                     for ($j = 0; $j < count($messageHashes); $j++) {
                         $unsubHash = $messageHashes[$j];
-                        $subHash = $subMessageHashes[$j];
+                        $subHash = $this->safe_string($subMessageHashes, $j, '');
                         $this->clean_unsubscription($client, $subHash, $unsubHash);
                     }
                 }

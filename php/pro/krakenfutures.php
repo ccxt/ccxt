@@ -1870,7 +1870,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $event = $this->safe_string($message, 'event');
         $messageHash = 'challenge';
         if ($event !== 'error') {
-            $challenge = $this->safe_value($message, 'message');
+            $challenge = $this->safe_string($message, 'message', '');
             $hashedChallenge = $this->hash($this->encode($challenge), 'sha256', 'binary');
             $base64Secret = base64_decode($this->secret);
             $signature = $this->hmac($hashedChallenge, $base64Secret, 'sha512', 'base64');

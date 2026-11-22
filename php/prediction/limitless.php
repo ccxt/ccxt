@@ -295,13 +295,10 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($expandedRaw); $i++) {
             $raw = $expandedRaw[$i];
             $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-            $eventKey = null;
-            if ($groupId !== null && $groupId !== '') {
-                $eventKey = $this->shorten_slug($groupId);
-            }
+            $eventKey = $this->shorten_slug($groupId);
             $m = $this->parse_market($raw);
             $markets[] = $m;
-            if (($eventKey !== null) && ($eventKey !== '')) {
+            if ($eventKey !== '') {
                 $eventGroup = $this->safe_dict($eventGroups, $eventKey, array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() ));
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;
@@ -3060,16 +3057,13 @@ class limitless extends Exchange {
         for ($i = 0; $i < $rawMarketsLength; $i++) {
             $raw = $expandedMarkets[$i];
             $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $this->safe_string($raw, 'slug'));
-            $eventKey = null;
-            if ($groupId !== null && $groupId !== '') {
-                $eventKey = $this->shorten_slug($groupId);
-            }
+            $eventKey = $this->shorten_slug($groupId);
             $m = $this->parse_market($raw);
             if ($m === null) {
                 throw new ExchangeError($this->id . ' fetchEvents() missing m');
             }
             $this->markets[$m['market']] = $m;
-            if (($eventKey !== null) && ($eventKey !== '')) {
+            if ($eventKey !== '') {
                 $eventGroup = $this->safe_dict($eventGroups, $eventKey, array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() ));
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;

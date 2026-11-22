@@ -1206,7 +1206,7 @@ class phemex extends \ccxt\async\phemex {
         return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, array $message) {
         // spot update
         // {
         //        "closed":[
@@ -1365,29 +1365,32 @@ class phemex extends \ccxt\async\phemex {
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         $trades = array();
         $parsedOrders = array();
-        if ((is_array($message) && array_key_exists('closed' ?? '', $message)) || (is_array($message) && array_key_exists('fills' ?? '', $message)) || (is_array($message) && array_key_exists('open' ?? '', $message))) {
-            $closed = $this->safe_list($message, 'closed', array());
-            $open = $this->safe_list($message, 'open', array());
+        $ordersDict = $this->safe_dict_2($message, 'orders', 'orders_p', array());
+        if ((is_array($ordersDict) && array_key_exists('closed' ?? '', $ordersDict)) || (is_array($ordersDict) && array_key_exists('fills' ?? '', $ordersDict)) || (is_array($ordersDict) && array_key_exists('open' ?? '', $ordersDict))) {
+            $closed = $this->safe_list($ordersDict, 'closed', array());
+            $open = $this->safe_list($ordersDict, 'open', array());
             $orders = $this->array_concat($open, $closed);
             $ordersLength = count($orders);
             if ($ordersLength === 0) {
                 return;
             }
-            $trades = $this->safe_list($message, 'fills', array());
+            $trades = $this->safe_list($ordersDict, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
                 $parsedOrder = $this->parse_order($rawOrder);
                 $parsedOrders[] = $parsedOrder;
             }
         } else {
-            $messageLength = count($message);
-            if ($messageLength === 0) {
+            $updates = $this->safe_list($message, 'orders_p', array());
+            $updatesLength = count($updates);
+            if ($updatesLength === 0) {
                 return;
             }
-            for ($i = 0; $i < $messageLength; $i++) {
-                $update = $message[$i];
+            for ($i = 0; $i < $updatesLength; $i++) {
+                $update = $updates[$i];
                 $action = $this->safe_string($update, 'action');
                 if (($action !== null) && ($action !== 'Cancel')) {
                     // order + trade info together
@@ -1724,8 +1727,7 @@ class phemex extends \ccxt\async\phemex {
             return;
         }
         if ((is_array($message) && array_key_exists('orders' ?? '', $message)) || (is_array($message) && array_key_exists('orders_p' ?? '', $message))) {
-            $orders = $this->safe_dict_2($message, 'orders', 'orders_p', array());
-            $this->handle_orders($client, $orders);
+            $this->handle_orders($client, $message);
         }
         if ((is_array($message) && array_key_exists('accounts' ?? '', $message)) || (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) || (is_array($message) && array_key_exists('wallets' ?? '', $message))) {
             $type = 'spot';

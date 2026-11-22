@@ -193,7 +193,7 @@ class bit2me extends \ccxt\async\bit2me {
         //
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $data = $this->safe_dict($message, 'data', array());
         $trade = $this->parse_ws_trade($data, $market);
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {

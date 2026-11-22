@@ -1489,9 +1489,7 @@ class bybit extends Exchange {
         $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
         $dataLength = count($data);
         if (($paginationCursor !== null) && ($dataLength > 0)) {
-            $first = $data[0];
-            $first['nextPageCursor'] = $paginationCursor;
-            $data[0] = $first;
+            $data[0] = $this->extend($data[0], array( 'nextPageCursor' => $paginationCursor ));
         }
         return $data;
     }

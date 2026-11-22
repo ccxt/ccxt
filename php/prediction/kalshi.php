@@ -425,7 +425,8 @@ class kalshi extends Exchange {
             if (mb_strpos($outcomeSymbol, ':') !== false) {
                 continue;
             }
-            $baseTicker = $outcomeSymbol;
+            $tickerText = $this->safe_string($outcomeSymbols, $i, '');
+            $baseTicker = $tickerText;
             if (str_ends_with($outcomeSymbol, '-NO')) {
                 $baseTicker = mb_substr($outcomeSymbol, 0, -3 - 0);
             }

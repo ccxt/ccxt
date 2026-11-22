@@ -1207,7 +1207,7 @@ class polymarket extends Exchange {
         $timestamp = $this->safe_integer($bookData, 'timestamp');
         $quoteVolume = null;
         if ($market !== null) {
-            $quoteVolume = $this->safe_number_2($market['info'], 'volume24hr', 'volume');
+            $quoteVolume = $this->safe_number_2($this->safe_dict($market, 'info'), 'volume24hr', 'volume');
         }
         return $this->safe_prediction_ticker(array(
             'outcome' => $outcome,

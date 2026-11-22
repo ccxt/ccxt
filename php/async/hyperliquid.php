@@ -1962,15 +1962,14 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
-    public function set_ref() {
-        return Async\async(self::do_set_ref(...))();
+    public function set_ref(bool $alreadySet = false) {
+        return Async\async(self::do_set_ref(...))($alreadySet);
     }
 
-    private function do_set_ref() {
-        if ($this->safe_bool($this->options, 'refSet', false)) {
+    private function do_set_ref(bool $alreadySet = false) {
+        if ($alreadySet) {
             return true;
         }
-        $this->options['refSet'] = true;
         $action = array(
             'type' => 'setReferrer',
             'code' => $this->safe_string($this->options, 'ref', 'CCXT1'),
@@ -2037,7 +2036,17 @@ class hyperliquid extends Exchange {
 
     private function do_initialize_client() {
         try {
-            Async\await(Promise\all(array( $this->handle_builder_fee_approval(), $this->set_ref(), $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            $refSet = $this->safe_bool($this->options, 'refSet', false);
+            $this->options['refSet'] = true;
+            $feeApproved = Async\await($this->handle_builder_fee_approval());
+            if ($feeApproved) {
+                $this->options['approvedBuilderFee'] = true;
+            } else {
+                $this->options['builderFee'] = false; // disable builder fee if an error occurs
+            }
+            Async\await($this->set_ref($refSet));
+            Async\await(Promise\all(array( $this->is_unified_enabled('fetchBalance', null, false, array()) ))); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (Exception $e) {
             return false;
         }
@@ -2063,9 +2072,8 @@ class hyperliquid extends Exchange {
                 $maxFeeRate = '0%';
             }
             Async\await($this->approve_builder_fee($builder, $maxFeeRate));
-            $this->options['approvedBuilderFee'] = true;
         } catch (Exception $e) {
-            $this->options['builderFee'] = false; // disable builder fee if an error occurs
+            return false;
         }
         return true;
     }

@@ -13127,8 +13127,7 @@ class binance extends Exchange {
         //         }
         //     ]
         //
-        $first = $this->safe_dict($response, 0, $response);
-        return $this->parse_ledger_entry($first, $currency);
+        return $this->parse_ledger_entry($this->safe_dict($response, 0, array()), $currency);
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -13564,19 +13563,18 @@ class binance extends Exchange {
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         $success = $this->safe_bool($response, 'success', true);
-        $parsedMessage = null;
+        $responseParsed = $response;
         if (!$success) {
             $messageNew = $this->safe_string($response, 'msg');
             if ($messageNew !== null) {
                 try {
-                    $parsedMessage = json_decode($messageNew, $as_associative_array = true);
+                    $responseParsed = json_decode($messageNew, $as_associative_array = true);
                 } catch (Exception $e) {
                     // do nothing
-                    $parsedMessage = null;
+                    $responseParsed = $response;
                 }
             }
         }
-        $responseParsed = ($parsedMessage !== null) ? $parsedMessage : $response;
         $message = $this->safe_string($responseParsed, 'msg');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->get_exceptions_by_url($url, 'exact'), $message, $this->id . ' ' . $message);

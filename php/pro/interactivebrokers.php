@@ -502,7 +502,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         $hasBidAsk = (is_array($message) && array_key_exists('84' ?? '', $message)) || (is_array($message) && array_key_exists('85' ?? '', $message)) || (is_array($message) && array_key_exists('86' ?? '', $message)) || (is_array($message) && array_key_exists('88' ?? '', $message));
-        $hasQuote = ($ticker['bid'] !== null) || ($ticker['ask'] !== null);
+        $hasQuote = ($this->safe_string($ticker, 'bid') !== null) || ($this->safe_string($ticker, 'ask') !== null);
         if ($hasBidAsk && $hasQuote) {
             $bidAsk = $this->safe_ticker(array(
                 'symbol' => $symbol,
@@ -631,7 +631,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         //
         $topic = $this->safe_string($message, 'topic', '');
         $parts = explode('+', $topic);
-        $marketId = $this->safe_string($parts, 1);
+        $marketId = $this->safe_string($parts, 1, '');
         $serverId = $this->safe_string($message, 'serverId');
         if ($serverId !== null) {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -828,7 +828,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $unifiedSymbol = $market['symbol'];
+        $unifiedSymbol = $this->safe_string($market, 'symbol', '');
         list($accountId, $query) = Async\await($this->loadAccountId($params));
         $bookExchange = $this->safe_string($query, 'exchange');
         $url = Async\await($this->ibkr_connect());
@@ -862,7 +862,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $unifiedSymbol = $market['symbol'];
+        $unifiedSymbol = $this->safe_string($market, 'symbol', '');
         list($accountId, $query) = Async\await($this->loadAccountId($params));
         $url = Async\await($this->ibkr_connect());
         $client = $this->client($url);
@@ -1134,7 +1134,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             }
             $parsed = $this->parse_order($merged);
             $orders->append($parsed);
-            $orderSymbol = $parsed['symbol'];
+            $orderSymbol = $this->safe_string($parsed, 'symbol');
             if ($orderSymbol !== null) {
                 $symbols[$orderSymbol] = true;
             }
@@ -1271,7 +1271,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         for ($i = 0; $i < count($args); $i++) {
             $rawTrade = $args[$i];
             $trade = $this->parse_trade($rawTrade);
-            $tradeTimestamp = $trade['timestamp'];
+            $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
             if (($threshold !== null) && ($tradeTimestamp !== null) && ($tradeTimestamp < $threshold)) {
                 continue;
             }
@@ -1286,7 +1286,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
                 }
             }
             $trades->append($trade);
-            $tradeSymbol = $trade['symbol'];
+            $tradeSymbol = $this->safe_string($trade, 'symbol', '');
             $symbols[$tradeSymbol] = true;
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();

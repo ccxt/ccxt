@@ -1802,7 +1802,7 @@ class woofipro extends Exchange {
         $side = $this->safe_string_lower($order, 'side');
         $filled = $this->safe_string_n($order, array( 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
-        $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
+        $fee = $this->safe_number_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_list($order, 'Transactions');
         $triggerPrice = $this->safe_number($order, 'triggerPrice');
@@ -2098,8 +2098,8 @@ class woofipro extends Exchange {
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
-            $amount = $this->safe_value($rawOrder, 'amount');
-            $price = $this->safe_value($rawOrder, 'price');
+            $amount = $this->safe_number($rawOrder, 'amount');
+            $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLoss = $this->safe_dict($orderParams, 'stopLoss');

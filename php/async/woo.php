@@ -3614,7 +3614,7 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolResolved = ($symbol !== null) ? $this->market($symbol)['symbol'] : null;
+        $symbolResolved = ($symbol !== null) ? $this->safe_string($this->market($symbol), 'symbol') : null;
         $currency = $this->currency($code);
         $request = array(
             'token' => $currency['id'], // interest token that you want to repay

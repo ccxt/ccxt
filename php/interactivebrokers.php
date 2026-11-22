@@ -664,7 +664,8 @@ class interactivebrokers extends Exchange {
         $dhResponse = $this->safe_string($response, 'diffie_hellman_response', '');
         $sharedSecret = $this->mod_pow($this->convert_to_big_int('0x' . $dhResponse), $dhRandom, $dhPrime);
         $liveSessionToken = $this->hmac($this->base16_to_binary($accessTokenSecretHex), $this->big_to_bytes($sharedSecret), 'sha1', 'base64');
-        $check = $this->hmac($this->encode($this->options['consumer_key']), base64_decode($liveSessionToken), 'sha1', 'hex');
+        $consumerKey = $this->safe_string($this->options, 'consumer_key', '');
+        $check = $this->hmac($this->encode($consumerKey), base64_decode($liveSessionToken), 'sha1', 'hex');
         if ($check !== $this->safe_string($response, 'live_session_token_signature')) {
             throw new AuthenticationError($this->id . ' signIn() live session token validation failed');
         }
@@ -778,7 +779,8 @@ class interactivebrokers extends Exchange {
             }
             $regainTimestamp = $this->sum($lostTimestamp, $regainDelay);
             if ($this->milliseconds() < $regainTimestamp) {
-                throw new AuthenticationError($this->id . ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' . $this->iso8601($regainTimestamp) . ' (options.autoRegainSession), ' . $this->json($response));
+                $regainDatetime = $this->iso8601($regainTimestamp);
+                throw new AuthenticationError($this->id . ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' . $regainDatetime . ' (options.autoRegainSession), ' . $this->json($response));
             }
             $response = $this->ibkr_gateway_regain_session($params);
             $authenticated = $this->safe_bool($response, 'authenticated', false);
@@ -786,7 +788,8 @@ class interactivebrokers extends Exchange {
                 // try again options.autoRegainSession seconds later
                 $this->options['gatewaySessionLostTimestamp'] = $this->milliseconds();
                 $this->ibkr_gateway_schedule_regain();
-                throw new AuthenticationError($this->id . ' failed to take back the brokerage session of the client portal gateway, retrying at ' . $this->iso8601($this->sum($this->milliseconds(), $regainDelay)) . ' (options.autoRegainSession), ' . $this->json($response));
+                $retryDatetime = $this->iso8601($this->sum($this->milliseconds(), $regainDelay));
+                throw new AuthenticationError($this->id . ' failed to take back the brokerage session of the client portal gateway, retrying at ' . $retryDatetime . ' (options.autoRegainSession), ' . $this->json($response));
             }
         }
         $this->options['gatewaySessionLostTimestamp'] = null;
@@ -1639,7 +1642,7 @@ class interactivebrokers extends Exchange {
         $promises = array();
         for ($i = 0; $i < count($cfdExchanges); $i++) {
             $request = array(
-                'exchange' => $cfdExchanges[$i],
+                'exchange' => $this->safe_string($cfdExchanges, $i, ''),
                 'assetClass' => 'CFD',
             );
             $promises[] = $this->markets_endpoint_call($request, 'webapiGetV1ApiTrsrvAllConids', array());
@@ -1692,7 +1695,7 @@ class interactivebrokers extends Exchange {
         $searchPromises = array();
         for ($i = 0; $i < count($bondSymbols); $i++) {
             $searchRequest = array(
-                'symbol' => $bondSymbols[$i],
+                'symbol' => $this->safe_string($bondSymbols, $i, ''),
                 'secType' => 'BOND',
             );
             $searchPromises[] = $this->markets_endpoint_call($this->extend($searchRequest, $params), 'webapiPostV1ApiIserverSecdefSearch', array());
@@ -1804,7 +1807,7 @@ class interactivebrokers extends Exchange {
         $exchangesDict = $this->safe_dict($options, 'exchanges', array());
         $stockExchanges = $this->safe_list($exchangesDict, 'STK', array());
         for ($j = 0; $j < count($stockExchanges); $j++) {
-            $exchange = $stockExchanges[$j];
+            $exchange = $this->safe_string($stockExchanges, $j, '');
             $stockRequest = array(
                 'exchange' => $exchange,
                 'assetClass' => 'STK',
@@ -2407,11 +2410,7 @@ class interactivebrokers extends Exchange {
             $multiplier = '1000000000';
         }
         if ($multiplier !== null) {
-            $scaled = Precise::string_mul(mb_substr($result, 0, strlen($result) - 1 - 0), $multiplier);
-            if ($scaled === null) {
-                return null;
-            }
-            $result = $scaled;
+            return Precise::string_mul(mb_substr($result, 0, strlen($result) - 1 - 0), $multiplier);
         }
         if ($result === '') {
             return null;
@@ -3472,8 +3471,10 @@ class interactivebrokers extends Exchange {
         }
         $options = $this->safe_dict($this->options, 'fetchMyTrades', array());
         $defaultMethod = 'privateGetIserverAccountTrades';
-        if ($market !== null) {
-            $assetClass = $this->safe_string($market['info'], 'assetClass');
+        if ($symbol !== null) {
+            $symbolMarket = $this->market($symbol);
+            $symbolInfo = $this->safe_dict($symbolMarket, 'info');
+            $assetClass = $this->safe_string($symbolInfo, 'assetClass');
             if ($assetClass === 'CRYPTO') {
                 $defaultMethod = 'privatePostPaTransactions';
             }
@@ -3543,7 +3544,7 @@ class interactivebrokers extends Exchange {
         }
         $request = array(
             'acctIds' => array( $accountId ),
-            'conids' => array( $this->parse_to_int($market['id']) ), // only one conid at a time is supported
+            'conids' => array( $this->parse_to_int($this->safe_string($market, 'id')) ), // only one conid at a time is supported
             'currency' => $currency,
             'days' => $days,
         );
@@ -4076,7 +4077,7 @@ class interactivebrokers extends Exchange {
             } catch (Exception $e) {
                 $message = $this->exception_message($e, false);
                 $mustQueryAccounts = mb_strpos($message, 'query /accounts first') !== false;
-                if ($isAccountsPath || !$mustQueryAccounts || ($i === $retries)) {
+                if ($isAccountsPath || !$mustQueryAccounts || ($i >= $retries)) {
                     throw $e;
                 }
                 $this->options['serviceAccountsLoaded'] = false;

@@ -7465,15 +7465,20 @@ class bingx extends Exchange {
         );
     }
 
-    public function custom_encode(array $params): ?string {
+    public function custom_encode(array $params): string {
         $sortedParams = $this->keysort($params);
         $rawKeys = is_array($sortedParams) ? array_keys($sortedParams) : array();
         $rawKeysLength = count($rawKeys);
         $adjustedValue = null;
-        $result = null;
+        $result = '';
         for ($i = 0; $i < $rawKeysLength; $i++) {
             $key = $rawKeys[$i];
             $value = $sortedParams[$key];
+            $pair = $this->safe_string($sortedParams, $key, '');
+            $flag = $this->safe_bool($sortedParams, $key);
+            if ($flag !== null) {
+                $pair = $flag ? 'true' : 'false';
+            }
             if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
@@ -7496,11 +7501,12 @@ class bingx extends Exchange {
                 }
                 $adjustedValue = '[' . $arrStr . ']';
                 $value = $adjustedValue;
+                $pair = '[' . $arrStr . ']';
             }
             if ($i === 0) {
-                $result = $key . '=' . $value;
+                $result = $key . '=' . $pair;
             } else {
-                $result .= '&' . $key . '=' . $value;
+                $result .= '&' . $key . '=' . $pair;
             }
         }
         return $result;

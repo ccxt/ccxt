@@ -560,7 +560,7 @@ class derive extends \ccxt\async\derive {
         //
         //
         $params = $this->safe_dict($message, 'params');
-        $data = $this->safe_dict($params, 'data', array());
+        $data = $this->safe_list($params, 'data', array());
         $topic = $this->safe_string($params, 'channel', '');
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);

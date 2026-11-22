@@ -1877,10 +1877,12 @@ class paradex extends Exchange {
         );
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $req, $this->safe_string($account, 'address'));
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $params['signature'] = $signature;
-        $params['account'] = $this->safe_string($account, 'address');
-        $params['public_key'] = $this->safe_string($account, 'publicKey');
-        $response = Async\await($this->privatePostOnboarding($params));
+        $request = array(
+            'signature' => $signature,
+            'account' => $this->safe_string($account, 'address'),
+            'public_key' => $this->safe_string($account, 'publicKey'),
+        );
+        $response = Async\await($this->privatePostOnboarding($this->extend($params, $request)));
         return $response;
     }
 
@@ -1922,11 +1924,13 @@ class paradex extends Exchange {
         );
         $msg = $this->starknet_encode_structured_data($domain, $messageTypes, $req, $this->safe_string($account, 'address'));
         $signature = $this->starknet_sign($msg, $account['privateKey']);
-        $params['signature'] = $signature;
-        $params['account'] = $this->safe_string($account, 'address');
-        $params['timestamp'] = $req['timestamp'];
-        $params['expiration'] = $req['expiration'];
-        $response = Async\await($this->privatePostAuth($params));
+        $request = array(
+            'signature' => $signature,
+            'account' => $this->safe_string($account, 'address'),
+            'timestamp' => $now,
+            'expiration' => $expires,
+        );
+        $response = Async\await($this->privatePostAuth($this->extend($params, $request)));
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -4160,7 +4164,12 @@ class paradex extends Exchange {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             list($paginationCalls, $paramsCalls) = $this->handle_option_integer_and_params($paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             $until = $this->safe_integer($paramsCalls, 'until');
-            $endAt = min($this->milliseconds(), $this->sum($since, $paginationCalls * 5000 * $rowSpacing));
+            $pageSpan = $this->parse_to_int($paginationCalls * 5000 * $rowSpacing);
+            $sinceEnd = $this->sum($since, $pageSpan);
+            $endAt = $this->milliseconds();
+            if ($sinceEnd < $endAt) {
+                $endAt = $sinceEnd;
+            }
             if ($until !== null) {
                 $endAt = $until;
             }

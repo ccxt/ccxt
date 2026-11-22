@@ -565,6 +565,10 @@ class whitebit extends Exchange {
         $makerFeeRate = $this->safe_string($market, 'makerFee');
         $maker = Precise::string_div($makerFeeRate, '100');
         $isSpot = !$swap;
+        $contractSize = $this->parse_number('1');
+        if ($isSpot) {
+            $contractSize = null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -586,7 +590,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $isSpot ? null : $this->parse_number('1'), // perpetual amounts are denominated in base currency units
+            'contractSize' => $contractSize, // perpetual amounts are denominated in base currency units
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
