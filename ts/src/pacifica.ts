@@ -1743,8 +1743,7 @@ export default class pacifica extends Exchange {
             const side = this.safeString (order, 'side');
             const price = this.safeString (order, 'price');
             const type = this.safeString (order, 'type', 'limit');
-            const orderParams = this.safeDict (order, 'params', {});
-            orderParams['timestamp'] = timestamp;
+            const orderParams: Dict = this.extend (this.safeDict (order, 'params', {}), { 'timestamp': timestamp });
             const amount = this.safeString (order, 'amount');
             const amountNumber = this.parseNumber (amount);
             const priceNumber = this.parseNumber (price);
