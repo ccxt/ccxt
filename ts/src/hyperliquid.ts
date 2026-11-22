@@ -601,10 +601,9 @@ export default class hyperliquid extends Exchange {
         const dexesCount: int = fetchDexes.length;
         for (let i = 1; i < dexesCount; i++) {
             // builder-deployed perp dexs start at 110000
-            const dex = this.safeDict (fetchDexes, i, {});
             const secondPart = i * 10000 - 10000;
             const offset = this.sum (110000, secondPart);
-            const dexKey: string = this.safeString (dex, 'name', '');
+            const dexKey: string = this.safeString (this.safeDict (fetchDexes, i), 'name', '');
             perpDexesOffset[dexKey] = offset;
         }
         let fetchDexesList: Str[] = [];
@@ -629,11 +628,7 @@ export default class hyperliquid extends Exchange {
                 if (i >= fetchDexesLength) {
                     break;
                 }
-                const dex = this.safeDict (fetchDexes, i, {});
-                if (dex === undefined) {
-                    continue;
-                }
-                const dexName = this.safeString (dex, 'name');
+                const dexName = this.safeString (this.safeDict (fetchDexes, i), 'name');
                 fetchDexesList.push (dexName);
             }
         }
