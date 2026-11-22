@@ -1160,7 +1160,11 @@ export default class bitget extends bitgetRest {
             if (uta) {
                 symbolOrInstId = 'symbol';
             }
-            args[topicOrChannel] = uta ? 'publicTrade' : 'trade';
+            let tradeTopic: string = 'trade';
+            if (uta) {
+                tradeTopic = 'publicTrade';
+            }
+            args[topicOrChannel] = tradeTopic;
             args[symbolOrInstId] = market['id'];
             topics.push (args);
             messageHashes.push ('trade:' + symbol);

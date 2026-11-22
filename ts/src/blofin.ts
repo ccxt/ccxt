@@ -666,6 +666,13 @@ export default class blofin extends Exchange {
         const contractType = this.safeString (market, 'contractType');
         const maxLimitAmount = this.safeNumber (market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber (market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        const costLimits: Dict = {
+            'min': undefined,
+            'max': maxSpotCost,
+        };
+        if (contract) {
+            costLimits['max'] = undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -710,10 +717,7 @@ export default class blofin extends Exchange {
                     'min': undefined,
                     'max': undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
-                },
+                'cost': costLimits,
             },
             'info': market,
         });

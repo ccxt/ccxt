@@ -2258,6 +2258,13 @@ export default class bybit extends Exchange {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
             const contractSize = inverse ? this.safeNumber2 (lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber ('1');
+            const costLimits: Dict = {
+                'min': undefined,
+                'max': undefined,
+            };
+            if (linear) {
+                costLimits['min'] = this.safeNumber (lotSizeFilter, 'minNotionalValue'); // https://bybit-exchange.github.io/docs/v5/market/instrument
+            }
             const parsedMarket = this.safeMarketStructure ({
                 'id': id,
                 'symbol': symbol,
@@ -2301,10 +2308,7 @@ export default class bybit extends Exchange {
                         'min': this.safeNumber (priceFilter, 'minPrice'),
                         'max': this.safeNumber (priceFilter, 'maxPrice'),
                     },
-                    'cost': {
-                        'min': linear ? this.safeNumber (lotSizeFilter, 'minNotionalValue') : undefined, // https://bybit-exchange.github.io/docs/v5/market/instrument
-                        'max': undefined,
-                    },
+                    'cost': costLimits,
                 },
                 'created': this.safeInteger (market, 'launchTime'),
                 'info': market,
