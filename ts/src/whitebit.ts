@@ -554,6 +554,10 @@ export default class whitebit extends Exchange {
         const makerFeeRate = this.safeString (market, 'makerFee');
         const maker = Precise.stringDiv (makerFeeRate, '100');
         const isSpot = !swap;
+        let contractSize: Num = this.parseNumber ('1');
+        if (isSpot) {
+            contractSize = undefined;
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -575,7 +579,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber (taker),
             'maker': this.parseNumber (maker),
-            'contractSize': isSpot ? undefined : this.parseNumber ('1'), // perpetual amounts are denominated in base currency units
+            'contractSize': contractSize, // perpetual amounts are denominated in base currency units
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,

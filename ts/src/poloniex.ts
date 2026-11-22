@@ -3440,12 +3440,13 @@ export default class poloniex extends Exchange {
                         const networkInfo = this.safeDict (response, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
+                        const withdrawObject: Dict = { 'fee': withdrawFee, 'percentage': undefined };
+                        if (withdrawFee !== undefined) {
+                            withdrawObject['percentage'] = false;
+                        }
                         if (networkCode !== undefined) {
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': undefined,
                                     'percentage': undefined,
