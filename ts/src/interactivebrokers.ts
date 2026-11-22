@@ -2975,6 +2975,7 @@ export default class interactivebrokers extends Exchange {
         const options = this.safeDict (this.options, 'createOrder', {});
         const autoConfirm = this.safeBool (options, 'autoConfirmOrderReplies', true);
         const maxReplies = this.safeInteger (options, 'maxReplies', 10);
+        const errorPrefix: string = this.id + ' ' + methodName + '() ';
         let current = response;
         for (let i = 0; i <= maxReplies; i++) {
             if (!Array.isArray (current)) {
@@ -2984,7 +2985,7 @@ export default class interactivebrokers extends Exchange {
                 //     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 //
                 const text = this.safeString (current, 'text');
-                throw new InvalidOrder (this.id + ' ' + methodName + '() rejected: ' + text);
+                throw new InvalidOrder (errorPrefix + 'rejected: ' + text);
             }
             const first = this.safeDict (current, 0, {});
             const orderId = this.safeString2 (first, 'order_id', 'orderId');
@@ -3000,10 +3001,10 @@ export default class interactivebrokers extends Exchange {
             const messages = this.safeList (first, 'message', []);
             const message = messages.join (' ');
             if (replyId === undefined) {
-                throw new InvalidOrder (this.id + ' ' + methodName + '() unexpected response: ' + this.json (current));
+                throw new InvalidOrder (errorPrefix + 'unexpected response: ' + this.json (current));
             }
             if (!autoConfirm) {
-                throw new InvalidOrder (this.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message);
+                throw new InvalidOrder (errorPrefix + 'requires confirmation (reply id ' + replyId + '): ' + message);
             }
             const replyRequest: Dict = {
                 'replyId': replyId,
@@ -3011,7 +3012,7 @@ export default class interactivebrokers extends Exchange {
             };
             current = await this.webapiPostV1ApiIserverReplyReplyId (replyRequest);
         }
-        throw new InvalidOrder (this.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations');
+        throw new InvalidOrder (errorPrefix + 'exceeded options.createOrder.maxReplies order reply confirmations');
     }
 
     /**
