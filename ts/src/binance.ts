@@ -14521,7 +14521,7 @@ export default class binance extends Exchange {
         }
         if (this.safeBool (market, 'option', false)) {
             const optionResponse = await this.eapiPublicGetOpenInterest (this.extend (request, params));
-            const symbolValue: string = market['symbol'];
+            const symbolValue: string = this.safeString (market, 'symbol', '');
             const result = this.parseOpenInterestsHistory (optionResponse, market);
             for (let i = 0; i < result.length; i++) {
                 const item = this.safeDict (result, i);
