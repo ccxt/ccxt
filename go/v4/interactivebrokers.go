@@ -1049,9 +1049,17 @@ func (this *Interactivebrokers) signInBody(ch chan AsyncResult[any], optionalArg
 		panic(AuthenticationError(this.Id + " signIn() live session token validation failed"))
 	}
 	this.Options["liveSessionToken"] = liveSessionToken
-	this.Options["liveSessionTokenExpiration"] = DerefScalar(this.SafeInteger(response, "live_session_token_expiration"))
+	if accessed := this.SafeInteger(response, "live_session_token_expiration"); accessed != nil {
+		this.Options["liveSessionTokenExpiration"] = *accessed
+	} else {
+		this.Options["liveSessionTokenExpiration"] = nil
+	}
 	// open the brokerage session
-	var initRequest map[string]any = this.SafeDictMap(this.Options, "signInInitRequest", map[string]any{})
+	var initRequest map[string]any
+	initRequest, _ = this.Options["signInInitRequest"].(map[string]any)
+	if initRequest == nil {
+		initRequest = map[string]any{}
+	}
 
 	r3 := <-this.WebapiPostV1ApiIserverAuthSsodhInit(initRequest)
 	if r3.Err != nil {
@@ -1096,12 +1104,12 @@ func (this *Interactivebrokers) authenticateBody(ch chan AsyncResult[*string], o
 	// wait for it to finish, then reuse its token (or sign in themselves if the leader failed)
 	if *this.SafeBool(this.Options, "signInInProgress", false) {
 		var pollInterval *int64 = this.SafeInteger(this.Options, "signInPollInterval", 100)
-		var maxWait int64 = *this.SafeInteger(this.Options, "signInMaxWait", 60000)
-		var waited any = 0
-		for (*this.SafeBool(this.Options, "signInInProgress", false)) && (IsLessThan(waited, maxWait)) {
+		var maxWait *int64 = this.SafeInteger(this.Options, "signInMaxWait", 60000)
+		var waited int64 = 0
+		for (*this.SafeBool(this.Options, "signInInProgress", false)) && (maxWait != nil && waited < *maxWait) {
 
 			<-this.Sleep(pollInterval)
-			waited = this.Sum(waited, pollInterval)
+			waited = waited + *pollInterval
 		}
 		if this.IbkrIsAuthenticated() {
 
@@ -1277,7 +1285,11 @@ func (this *Interactivebrokers) ibkrGatewayRegainSessionBody(ch chan AsyncResult
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var initRequest map[string]any = this.SafeDictMap(this.Options, "signInInitRequest", map[string]any{})
+	var initRequest map[string]any
+	initRequest, _ = this.Options["signInInitRequest"].(map[string]any)
+	if initRequest == nil {
+		initRequest = map[string]any{}
+	}
 
 	r := <-this.WebapiPostV1ApiIserverAuthSsodhInit(initRequest)
 	if r.Err != nil {
@@ -1550,8 +1562,8 @@ func (this *Interactivebrokers) ibkrGatewayKeepAliveBody(ch chan AsyncResult[any
 			//         "iserver": { "authStatus": { "authenticated": true, "established": true, "competing": false, "connected": true, ... } }
 			//     }
 			//
-			var iserver map[string]any = SafeMapTyped(response, "iserver")
-			var authStatus map[string]any = SafeMapTyped(iserver, "authStatus")
+			var iserver, _ = response["iserver"].(map[string]any)
+			var authStatus, _ = iserver["authStatus"].(map[string]any)
 			if *this.SafeBool(authStatus, "authenticated", false) {
 				if this.SafeInteger(this.Options, "gatewaySessionLostTimestamp") == nil {
 					this.Options["gatewayAuthenticatedTimestamp"] = this.Milliseconds()
@@ -1609,19 +1621,21 @@ func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[any], opti
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var accountIdFromParamsqueryVariable []any = this.HandleOptionAndParams(params, "loadAccountId", "accountId")
-	accountIdFromParams := GetValue(accountIdFromParamsqueryVariable, 0)
-	var query map[string]any = MapTyped(accountIdFromParamsqueryVariable[1])
+	accountIdFromParams, query := this.HandleOptionAndParams(params, "loadAccountId", "accountId")
 	var accountId any = accountIdFromParams
-	if IsEqual(accountId, nil) {
+	if accountId == nil {
 
 		r := <-this.FetchAccountsAsync()
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		accountId = DerefScalar(this.SafeString(this.Options, "accountId"))
+		if derefPtr := this.SafeString(this.Options, "accountId"); derefPtr != nil {
+			accountId = *derefPtr
+		} else {
+			accountId = nil
+		}
 	}
-	if IsEqual(accountId, nil) {
+	if accountId == nil {
 		panic(ArgumentsRequired(this.Id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts"))
 	}
 
@@ -1664,12 +1678,8 @@ func (this *Interactivebrokers) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	accountIdaccountQueryVariable := r1.Value
 	accountId := GetValue(accountIdaccountQueryVariable, 0)
 	accountQuery := GetValue(accountIdaccountQueryVariable, 1)
-	var withPositionspositionsQueryVariable []any = this.HandleOptionAndParams(accountQuery, "fetchBalance", "positions", true)
-	withPositions := withPositionspositionsQueryVariable[0]
-	positionsQuery := withPositionspositionsQueryVariable[1]
-	var withOpenOrdersqueryVariable []any = this.HandleOptionAndParams(positionsQuery, "fetchBalance", "openOrders", true)
-	withOpenOrders := withOpenOrdersqueryVariable[0]
-	query := withOpenOrdersqueryVariable[1]
+	withPositions, positionsQuery := this.HandleOptionAndParams(accountQuery, "fetchBalance", "positions", true)
+	withOpenOrders, query := this.HandleOptionAndParams(positionsQuery, "fetchBalance", "openOrders", true)
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
 	}
@@ -1696,7 +1706,7 @@ func (this *Interactivebrokers) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
-	var results []any = ListTyped(r3.Value)
+	var results []any = r3.Value
 	var response map[string]any = this.SafeDictMap(results, 0, map[string]any{})
 	//
 	//     {
@@ -1726,10 +1736,10 @@ func (this *Interactivebrokers) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	var balanceResponse map[string]any = map[string]any{
 		"ledger": response,
 	}
-	var index any = 1
+	var index int = 1
 	if EvalTruthy(withPositions) {
 		balanceResponse["positions"] = this.SafeList(results, index)
-		index = Add(index, 1)
+		index = index + 1
 	}
 	if EvalTruthy(withOpenOrders) {
 		// the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
@@ -1747,20 +1757,26 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
 	//         "orders": [ { "conid": 479624278, "side": "BUY", "status": "Submitted", "price": "80000", "remainingQuantity": 0.001, "cashCcy": "USD", ... } ]
 	//     }
 	//
-	var ledger any = this.SafeDict(response, "ledger", response)
+	var ledger map[string]any = this.SafeDictMap(response, "ledger", response)
 	var positions []any = SafeListTyped(response, "positions")
 	var orders []map[string]any = this.SafeListMapsTyped(response, "orders")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	// cash, from the ledger
-	var currencyIds []string = ObjectKeys(ledger)
+	var currencyIds []string = nil
+	if ledger != nil {
+		currencyIds = make([]string, 0, len(ledger))
+		for objectKey := range ledger {
+			currencyIds = append(currencyIds, objectKey)
+		}
+	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		if currencyId == "BASE" {
 			continue
 		}
-		var balance map[string]any = SafeMapTyped(ledger, currencyId)
+		var balance, _ = ledger[currencyId].(map[string]any)
 		if balance == nil {
 			continue
 		}
@@ -1772,8 +1788,8 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
 		}
 	}
 	// holdings, from the positions
-	var balanceOptions map[string]any = SafeMapTyped(this.Options, "fetchBalance")
-	var positionAssetClasses []any = SafeListTypedDefault(balanceOptions, "positionAssetClasses", []any{"CRYPTO"})
+	var balanceOptions, _ = this.Options["fetchBalance"].(map[string]any)
+	var positionAssetClasses []any = this.SafeListSlice(balanceOptions, "positionAssetClasses", []any{"CRYPTO"})
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		// portfolio2 positions have "secType", the cached portfolio positions have "assetClass"
@@ -1874,8 +1890,11 @@ func (this *Interactivebrokers) ParseBalance(response map[string]any) map[string
  */
 func (this *Interactivebrokers) IbkrBalanceCode(position any) any {
 	var marketId *string = this.SafeString(position, "conid")
-	var market map[string]any = this.SafeMarket(marketId)
-	var base *string = this.SafeString(market, "base")
+	var market MarketInterface = MarketInterfaceFromMap(this.SafeMarket(marketId))
+	var base *string
+	if market.BaseCurrency != "" {
+		base = &market.BaseCurrency
+	}
 	if base != nil {
 		return base
 	}
@@ -1955,8 +1974,8 @@ func (this *Interactivebrokers) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var types []any = SafeListTypedDefault(options, "types", []any{})
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
+	var types []any = this.SafeListSlice(options, "types", []any{})
 	var promises []any = []any{}
 	// the order matters, on symbol collisions the earlier contract keeps the plain symbol
 	if this.InArray("stock", types) {
@@ -1983,7 +2002,7 @@ func (this *Interactivebrokers) fetchMarketsBody(ch chan AsyncResult[[]MarketInt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
+	var results []any = r.Value
 	var markets []any = this.ArraysConcat(results)
 
 	// toArray is the identity on a list, it types the result as a list for the statically typed ports
@@ -2006,14 +2025,12 @@ func (this *Interactivebrokers) IbkrDisambiguateContractSymbols(markets any) []a
 		var market map[string]any = this.Extend(map[string]any{}, GetValue(markets, i))
 		var symbol *string = this.SafeString(market, "symbol")
 		var isContract *bool = this.SafeBool(market, "contract", false)
-		if (func() bool {
-			if symbol == nil {
-				return false
-			}
-			_, ok := seen[*symbol]
-			return ok
-		}()) && (isContract != nil && *isContract) {
-			var info map[string]any = SafeMapTyped(market, "info")
+		var has1 bool
+		if symbol != nil {
+			_, has1 = seen[*symbol]
+		}
+		if has1 && (isContract != nil && *isContract) {
+			var info, _ = market["info"].(map[string]any)
 			var listingExchange *string = this.SafeString2(info, "listingExchange", "exchange", "default")
 			var marketBase *string = this.SafeString(market, "base")
 			var marketBaseId *string = this.SafeString(market, "baseId")
@@ -2026,14 +2043,21 @@ func (this *Interactivebrokers) IbkrDisambiguateContractSymbols(markets any) []a
 				}
 				return nil
 			}())
-			var base any = Add(Add(marketBase, "."), listingExchange)
+			var base any = nil
+			if marketBase != nil && listingExchange != nil {
+				base = *marketBase + "." + *listingExchange
+			}
 			if (isFuture != nil && *isFuture) && (marketBaseId != marketBase && (marketBaseId == nil || marketBase == nil || *marketBaseId != *marketBase)) {
 				// the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
 				base = Add(Add(marketBase, "."), marketBaseId)
 			}
 			var newSymbol any = Add(base, quoteAndSettle)
 			if InOp(seen, newSymbol) {
-				base = Add(Add(marketBase, "."), this.SafeString(market, "id"))
+				if basePiece := this.SafeString(market, "id"); basePiece != nil && marketBase != nil {
+					base = *marketBase + "." + *basePiece
+				} else {
+					base = nil
+				}
 				newSymbol = Add(base, quoteAndSettle)
 			}
 			market = this.Extend(market, map[string]any{
@@ -2076,9 +2100,13 @@ func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[any]
 	var offset any = 0
 	for IsLessThan(offset, numDetails) {
 		var end any = mathMin(this.Sum(offset, chunkSize), numDetails)
-		var chunk []any = this.ArraySlice(detailIds, offset, end)
+		var chunk []string = []string{}
+		for k := int(ParseInt(offset)); IsLessThan(k, end); k++ {
+			var detailId string = *this.SafeString(detailIds, k, "")
+			chunk = append(chunk, detailId)
+		}
 		var secdefRequest map[string]any = map[string]any{
-			"conids": Join(chunk, ","),
+			"conids": strings.Join(chunk, ","),
 		}
 		promises = append(promises, this.MarketsEndpointCallAsync(secdefRequest, "webapiGetV1ApiTrsrvSecdef", map[string]any{}))
 		offset = end
@@ -2088,7 +2116,7 @@ func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[any]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	//
 	//     {
 	//         "secdef": [
@@ -2128,7 +2156,7 @@ func (this *Interactivebrokers) fetchForexMarketsBody(ch chan AsyncResult[any], 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var entries map[string]any = map[string]any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var forexCurrencies []any = SafeListTyped(options, "forexCurrencies")
 	var promises []any = []any{}
 	for i := 0; i < len(forexCurrencies); i++ {
@@ -2143,15 +2171,13 @@ func (this *Interactivebrokers) fetchForexMarketsBody(ch chan AsyncResult[any], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var fxResults []any = ListTyped(r.Value)
+	var fxResults []any = r.Value
 	for i := 0; i < len(fxResults); i++ {
-		var pairsResponse any = GetValue(fxResults, i)
-		var fxCurrency any = func() any {
-			if i >= 0 && i < len(forexCurrencies) {
-				return forexCurrencies[i]
-			}
-			return nil
-		}()
+		var pairsResponse any = fxResults[i]
+		var fxCurrency any = nil
+		if i >= 0 && i < len(forexCurrencies) {
+			fxCurrency = forexCurrencies[i]
+		}
 		var pairs []any = SafeListTyped(pairsResponse, fxCurrency)
 		for j := 0; j < len(pairs); j++ {
 			var pair any = DerefScalar(pairs[j])
@@ -2182,7 +2208,7 @@ func (this *Interactivebrokers) fetchCryptoMarketsBody(ch chan AsyncResult[any],
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var entries map[string]any = map[string]any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var cryptoSpotSymbols []any = SafeListTyped(options, "cryptoSpotSymbols")
 	var promises []any = []any{}
 	for i := 0; i < len(cryptoSpotSymbols); i++ {
@@ -2198,15 +2224,15 @@ func (this *Interactivebrokers) fetchCryptoMarketsBody(ch chan AsyncResult[any],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = ListTyped(r.Value)
-	var neededSecTypes []any = []any{"CRYPTO"} // CFD, OPT - they should already be fetched in other calls
+	var results []any = r.Value
+	var neededSecTypes []string = []string{"CRYPTO"} // CFD, OPT - they should already be fetched in other calls
 	for i := 0; i < len(results); i++ {
 		var result any = results[i]
 		for j := 0; j < GetArrayLength(result); j++ {
 			var entry any = GetValue(result, j)
 			var sections []any = SafeListTyped(entry, "sections")
 			for k := 0; k < len(sections); k++ {
-				var secType *string = this.SafeString(DerefScalar(sections[k]), "secType")
+				var secType *string = this.SafeString(sections[k], "secType")
 				if this.InArray(secType, neededSecTypes) {
 					var conid *string = this.SafeString(entry, "conid")
 					if conid != nil {
@@ -2287,7 +2313,7 @@ func (this *Interactivebrokers) fetchCoinbaseDerivativesSymbolsBody(ch chan Asyn
 			var listingExchange *string = this.SafeString(contract, "listing_exchange")
 			var symbol *string = this.SafeString(contract, "symbol")
 			if (symbol != nil) && (listingExchange != nil && *listingExchange == "COINDERIV") && !this.InArray(symbol, result) {
-				result = append(result, symbol)
+				result = append(result, *symbol)
 			}
 		}
 	}
@@ -2316,8 +2342,8 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var types []any = SafeListTypedDefault(options, "types", []any{})
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
+	var types []any = this.SafeListSlice(options, "types", []any{})
 	var cryptoCmeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCmeFutureSymbols")
 	var cryptoCboeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCboeFutureSymbols")
 
@@ -2387,7 +2413,7 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 	details := r2.Value
 	// generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
 	// unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
-	var allowedVenues []any = []any{"CME", "CFE", "COINDERIV"}
+	var allowedVenues []string = []string{"CME", "CFE", "COINDERIV"}
 	var detailMarkets []any = []any{}
 	for i := 0; i < GetArrayLength(details); i++ {
 		var detail any = GetValue(details, i)
@@ -2434,7 +2460,7 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var entries map[string]any = map[string]any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var cfdExchanges []any = SafeListTyped(options, "cfdExchanges")
 	var promises []any = []any{}
 	for i := 0; i < len(cfdExchanges); i++ {
@@ -2449,7 +2475,7 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var responses []any = ListTyped(r.Value)
+	var responses []any = r.Value
 	for i := 0; i < len(responses); i++ {
 		var cfds any = responses[i]
 		for j := 0; j < GetArrayLength(cfds); j++ {
@@ -2503,7 +2529,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var entries map[string]any = map[string]any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var bondSymbols []any = SafeListTyped(options, "bondSymbols")
 	var bondFilters map[string]any = SafeMapTyped(options, "bondFilters")
 	var searchPromises []any = []any{}
@@ -2519,7 +2545,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var searchResults []any = ListTyped(r.Value)
+	var searchResults []any = r.Value
 	// the filters are sent as columnId:value pairs joined by a comma, e.g. 29:Notes,27:202701
 	var filterIds []string = nil
 	if bondFilters != nil {
@@ -2556,7 +2582,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var contractResults []any = ListTyped(r1.Value)
+	var contractResults []any = r1.Value
 	//
 	//     [
 	//         {
@@ -2601,7 +2627,10 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
 		var market map[string]any = this.Extend(map[string]any{}, markets[i])
-		var symbol any = DerefScalar(this.SafeString(market, "symbol"))
+		var symbol any
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbol = *derefPtr
+		}
 		if InOp(seen, symbol) {
 			var base any = Add(Add(this.SafeString(market, "base"), "-"), this.SafeString(market, "id"))
 			symbol = Add(Add(Add(Add(base, "."), this.SafeString(market["info"], "exchange", "SMART")), "/"), this.SafeString(market, "quote"))
@@ -2628,8 +2657,8 @@ func (this *Interactivebrokers) fetchStockMarketsBody(ch chan AsyncResult[any], 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var entries map[string]any = map[string]any{}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
-	var exchangesDict map[string]any = SafeMapTyped(options, "exchanges")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
+	var exchangesDict, _ = options["exchanges"].(map[string]any)
 	var stockExchanges []any = SafeListTyped(exchangesDict, "STK")
 	for j := 0; j < len(stockExchanges); j++ {
 		var exchange any = DerefScalar(stockExchanges[j])
@@ -2673,7 +2702,7 @@ func (this *Interactivebrokers) marketsEndpointCallBody(ch chan AsyncResult[any]
 	defer ReturnPanicError(ch)
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var opts map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var opts, _ = this.Options["fetchMarkets"].(map[string]any)
 	var retries int64 = *this.SafeInteger(opts, "endpointRetries", 3)
 	var retryDelay any = (*this.SafeInteger(opts, "retryDelay", 1000))
 	for i := 0; int64(i) < retries; i++ {
@@ -2692,7 +2721,7 @@ func (this *Interactivebrokers) marketsEndpointCallBody(ch chan AsyncResult[any]
 							if IsInstance(e, NullResponse) {
 								data = defaultValue
 							}
-							if IsEqual(data, nil) {
+							if data == nil {
 								if isLastRetry {
 									panic(e)
 								}
@@ -2759,7 +2788,7 @@ func (this *Interactivebrokers) marketsEndpointCallBody(ch chan AsyncResult[any]
 			}(this)
 
 		}
-		if !IsEqual(data, nil) {
+		if data != nil {
 
 			ch <- AsyncResult[any]{Value: data}
 			return nil
@@ -2836,7 +2865,7 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	var isForex bool = (assetClass != nil && *assetClass == "CASH")
 	var isStock bool = (assetClass != nil && *assetClass == "STK")
 	var isBond bool = (assetClass != nil && *assetClass == "BOND")
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
+	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var baseTickerId *string = this.SafeString2(market, "ticker", "symbol")
 	var listingExchange *string = this.SafeString2(market, "listingExchange", "exchange", "default")
 	if isBond {
@@ -2865,7 +2894,10 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	var quoteId *string = this.SafeString(market, "currency")
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var incrementRules []any = SafeListTyped(market, "incrementRules")
-	var firstRule map[string]any = SafeMapTyped(incrementRules, 0)
+	var firstRule map[string]any
+	if 0 < len(incrementRules) {
+		firstRule, _ = incrementRules[0].(map[string]any)
+	}
 	var incrementTickSize *string = this.SafeString(firstRule, "increment")
 	var amountPrecision *string = nil
 	if isCrypto {
@@ -2879,35 +2911,20 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else {
 		amountPrecision = this.SafeString(options, "stockAmountIncrement", "1")
 	}
-	var cryptoCoinbasePerpSymbols map[string]any = SafeMapTyped(options, "cryptoCoinbasePerpSymbols")
-	var cryptoCmeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCmeFutureSymbols")
-	var cryptoCboeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCboeFutureSymbols")
+	var cryptoCoinbasePerpSymbols, _ = options["cryptoCoinbasePerpSymbols"].(map[string]any)
+	var cryptoCmeFutureSymbols, _ = options["cryptoCmeFutureSymbols"].(map[string]any)
+	var cryptoCboeFutureSymbols, _ = options["cryptoCboeFutureSymbols"].(map[string]any)
 	var microNanoPrefix string = ""
-	var base any
-	if derefPtr := this.SafeCurrencyCode(baseTickerId); derefPtr != nil {
-		base = *derefPtr
-	}
+	var base *string = this.SafeCurrencyCode(baseTickerId)
 	var contractSize *string = nil
-	var expiry any = nil
+	var expiry *int64 = nil
 	if isFut {
 		if isCoinbaseDerivatives {
-			if derefPtr := this.SafeString(cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId); derefPtr != nil {
-				base = *derefPtr
-			} else {
-				base = nil
-			}
+			base = this.SafeString(cryptoCoinbasePerpSymbols, baseTickerId, baseTickerId)
 		} else if isCme {
-			if derefPtr := this.SafeString(cryptoCmeFutureSymbols, baseTickerId, baseTickerId); derefPtr != nil {
-				base = *derefPtr
-			} else {
-				base = nil
-			}
+			base = this.SafeString(cryptoCmeFutureSymbols, baseTickerId, baseTickerId)
 		} else if isCfe {
-			if derefPtr := this.SafeString(cryptoCboeFutureSymbols, baseTickerId, baseTickerId); derefPtr != nil {
-				base = *derefPtr
-			} else {
-				base = nil
-			}
+			base = this.SafeString(cryptoCboeFutureSymbols, baseTickerId, baseTickerId)
 		}
 	}
 	if isPerp && !isCfd {
@@ -2925,61 +2942,60 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		}
 		contractSize = this.SafeString(market, "multiplier") // 0.1 BTC for MBT, 5 BTC for BRR
 		if expirationDate != nil {
-			var expiryDatetime string = func() string {
-				if expirationDate == nil {
-					return ""
-				}
+			var expirationDatePart string
+			if expirationDate != nil {
 				str := *expirationDate
-				return str[0:min(4, len(str))]
-			}() + "-" + func() string {
-				if expirationDate == nil {
-					return ""
-				}
-				str := *expirationDate
-				return str[4:min(6, len(str))]
-			}() + "-" + func() string {
-				if expirationDate == nil {
-					return ""
-				}
-				str := *expirationDate
-				return str[6:min(8, len(str))]
-			}() + "T00:00:00Z"
-			if derefPtr := this.Parse8601(expiryDatetime); derefPtr != nil {
-				expiry = *derefPtr
-			} else {
-				expiry = nil
+				expirationDatePart = str[0:min(4, len(str))]
 			}
+			var expirationDatePart2 string
+			if expirationDate != nil {
+				str := *expirationDate
+				expirationDatePart2 = str[4:min(6, len(str))]
+			}
+			var expirationDatePart3 string
+			if expirationDate != nil {
+				str := *expirationDate
+				expirationDatePart3 = str[6:min(8, len(str))]
+			}
+			var expiryDatetime string = expirationDatePart + "-" + expirationDatePart2 + "-" + expirationDatePart3 + "T00:00:00Z"
+			expiry = this.Parse8601(expiryDatetime)
 		}
 	} else if isBond {
 		// every bond of an issuer has the same ticker, the coupon and the maturity tell them apart, US-T-4.125-270131 (US-T-270114 without a coupon)
 		base = baseTickerId
 		var coupon string = *this.SafeString(market, "coupon", "") // "No Coupon" for bills and strips
 		if (coupon != "") && (strings.Index(coupon, " ") == -1) {
-			base = Add(Add(base, "-"), coupon)
+			baseStr := *base + "-" + coupon
+			base = &baseStr
 		}
 		var maturityDate *string = this.SafeString(market, "maturityDate") // 20270131
 		if maturityDate != nil {
-			base = Add(Add(base, "-"), func() string {
-				if maturityDate == nil {
-					return ""
-				}
+			var maturityDatePart string
+			if maturityDate != nil {
 				str := *maturityDate
-				return str[2:min(8, len(str))]
-			}())
+				maturityDatePart = str[2:min(8, len(str))]
+			}
+			baseStr2 := *base + "-" + maturityDatePart
+			base = &baseStr2
 		}
 	} else if isStock || isCfd {
 		// stock and cfd tickers are not currencies, skip commonCurrencies remapping, 'BRK B' -> 'BRK.B'
 		var tickerParts []string = strings.Split(*baseTickerId, " ")
-		base = strings.Join(tickerParts, ".")
+		baseStr3 := strings.Join(tickerParts, ".")
+		base = &baseStr3
 		if isCfd {
-			contractSize = SafeStringPtr("1") // one cfd is one share or index point, the multiplier is reported as 0 or 1
+			contractSizeStr := "1"
+			contractSize = &contractSizeStr // one cfd is one share or index point, the multiplier is reported as 0 or 1
 		}
 	} else {
 		if !isSpot {
 			contractSize = this.SafeString(this.Options, "defaultContractSize", "1")
 		}
 	}
-	var symbol any = Add(Add(Add(Add(Add(base, "."), microNanoPrefix), listingExchange), "/"), quote) // specific to IBKR
+	var symbol any = nil
+	if base != nil && listingExchange != nil && quote != nil {
+		symbol = *base + "." + microNanoPrefix + *listingExchange + "/" + *quote
+	} // specific to IBKR
 	var settleId *string = nil
 	var settle *string = nil
 	if isContract {
@@ -2996,35 +3012,23 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"quote":    quote,
-		"quoteId":  quoteId,
-		"base":     base,
-		"baseId":   baseTickerId,
-		"settle":   settle,
-		"settleId": settleId,
-		"type":     marketType,
-		"spot":     isSpot,
-		"margin":   false,
-		"swap":     isPerp,
-		"future":   isFuture,
-		"option":   false,
-		"active":   true,
-		"contract": isContract,
-		"linear": func() any {
-			if isContract {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isContract {
-				return false
-			}
-			return nil
-		}(),
+	var literal206941 map[string]any = map[string]any{
+		"id":             id,
+		"symbol":         symbol,
+		"quote":          quote,
+		"quoteId":        quoteId,
+		"base":           base,
+		"baseId":         baseTickerId,
+		"settle":         settle,
+		"settleId":       settleId,
+		"type":           marketType,
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           isPerp,
+		"future":         isFuture,
+		"option":         false,
+		"active":         true,
+		"contract":       isContract,
 		"contractSize":   this.ParseNumber(contractSize),
 		"expiry":         expiry,
 		"expiryDatetime": this.Iso8601(expiry),
@@ -3054,7 +3058,18 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		},
 		"created": nil,
 		"info":    market,
-	})
+	}
+	if isContract {
+		literal206941["linear"] = true
+	} else {
+		literal206941["linear"] = nil
+	}
+	if isContract {
+		literal206941["inverse"] = false
+	} else {
+		literal206941["inverse"] = nil
+	}
+	return this.SafeMarketStructure(literal206941)
 }
 
 /**
@@ -3095,8 +3110,8 @@ func (this *Interactivebrokers) fetchTickersBody(ch chan AsyncResult[map[string]
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var fieldsqueryVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "fields")
-	fields := fieldsqueryVariable[0]
+	fieldsqueryVariable := TupleSlice(this.HandleOptionAndParams(params, "fetchTickers", "fields"))
+	fields := GetValue(fieldsqueryVariable, 0)
 	query := GetValue(fieldsqueryVariable, 1)
 	var fieldsString string = Join(fields, ",")
 
@@ -3157,7 +3172,7 @@ func (this *Interactivebrokers) ibkrFetchSnapshotBody(ch chan AsyncResult[any], 
 		var market map[string]any = this.Market(symbols[i])
 		conids = append(conids, this.SafeString(market, "id", ""))
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchTickers")
+	var options, _ = this.Options["fetchTickers"].(map[string]any)
 	var retries int64 = *this.SafeInteger(options, "retries", 5)
 	var retryDelay *int64 = this.SafeInteger(options, "retryDelay", 500)
 	var request map[string]any = map[string]any{
@@ -3190,12 +3205,12 @@ func (this *Interactivebrokers) IbkrSnapshotReady(response any, optionalArgs ...
 	if numItems == 0 {
 		return false
 	}
-	var fieldIds any = func() any {
-		if readyFields == nil {
-			return []any{"31", "84", "86"}
-		}
-		return readyFields
-	}()
+	var fieldIds any
+	if readyFields == nil {
+		fieldIds = []any{"31", "84", "86"}
+	} else {
+		fieldIds = readyFields
+	}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var item any = GetValue(response, i)
 		var found bool = false
@@ -3421,9 +3436,9 @@ func (this *Interactivebrokers) fetchOpenInterestsBody(ch chan AsyncResult[map[s
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(symbolsNormalized[i])
-		if !(market["contract"] == true) {
-			panic(BadRequest(this.Id + " fetchOpenInterests() supports contract markets only, " + market["symbol"].(string) + " is not a contract market"))
+		var market MarketInterface = MarketInterfaceFromMap(this.Market(symbolsNormalized[i]))
+		if !market.Contract {
+			panic(BadRequest(this.Id + " fetchOpenInterests() supports contract markets only, " + market.Symbol + " is not a contract market"))
 		}
 	}
 	// 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
@@ -3432,12 +3447,12 @@ func (this *Interactivebrokers) fetchOpenInterestsBody(ch chan AsyncResult[map[s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	response := r2.Value
+	response, _ := r2.Value.([]any)
 
 	//
 	//     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
 	//
-	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(response, symbolsNormalized))}
+	ch <- AsyncResult[map[string]OpenInterest]{Value: OpenInterestMapFromMap(this.ParseOpenInterests(this.ToArray(response), symbolsNormalized))}
 	return nil
 }
 func (this *Interactivebrokers) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {
@@ -3487,11 +3502,11 @@ func (this *Interactivebrokers) fetchStatusBody(ch chan AsyncResult[Status], opt
 		panic(r.Err)
 	}
 
-	r1 := <-this.WebapiPostV1ApiIserverAuthStatus(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseReply := <-this.WebapiPostV1ApiIserverAuthStatus(params)
+	if responseReply.Err != nil {
+		panic(responseReply.Err)
 	}
-	response := r1.Raw
+	var response map[string]any = responseReply.Value
 	//
 	//     {
 	//         "authenticated": true,
@@ -3517,7 +3532,7 @@ func (this *Interactivebrokers) fetchStatusBody(ch chan AsyncResult[Status], opt
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
-		"info":    response,
+		"info":    responseReply.Raw,
 	})}
 	return nil
 }
@@ -3536,11 +3551,14 @@ func (this *Interactivebrokers) IbkrParseValue(value *string) any {
 	}
 	var multiplier *string = nil
 	if EndsWith(result, "K") {
-		multiplier = SafeStringPtr("1000")
+		multiplierStr := "1000"
+		multiplier = &multiplierStr
 	} else if EndsWith(result, "M") {
-		multiplier = SafeStringPtr("1000000")
+		multiplierStr2 := "1000000"
+		multiplier = &multiplierStr2
 	} else if EndsWith(result, "B") {
-		multiplier = SafeStringPtr("1000000000")
+		multiplierStr3 := "1000000000"
+		multiplier = &multiplierStr3
 	}
 	if multiplier != nil {
 		var scaled *string = Precise.StringMul(Slice(result, 0, GetLength(result)-1), multiplier)
@@ -3635,12 +3653,12 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 	}
 	var market map[string]any = this.Market(symbol)
 	var maxLimit *int64 = this.SafeInteger(this.SafeDict(this.Options, "fetchOHLCV", map[string]any{}), "limit", 1000)
-	var requestLimit any = func() any {
-		if limit == nil {
-			return maxLimit
-		}
-		return mathMin(limit, maxLimit)
-	}()
+	var requestLimit any
+	if limit == nil {
+		requestLimit = maxLimit
+	} else {
+		requestLimit = mathMin(limit, maxLimit)
+	}
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var request map[string]any = map[string]any{
 		"conid": market["id"],
@@ -3670,7 +3688,11 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 	//         ...
 	//     }
 	//
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
@@ -3679,18 +3701,18 @@ func (this *Interactivebrokers) IbkrPeriod(duration any, limit any) any {
 	// duration of one bar in seconds, the period is expressed in the largest fitting unit
 	var total any = Multiply(duration, limit)
 	if IsLessThan(duration, 3600) {
-		return Add(this.NumberToString(this.ParseToInt(Divide(total, 60))), "min")
+		return *this.NumberToString(this.ParseToInt(Divide(total, 60))) + "min"
 	} else if IsLessThan(duration, 86400) {
-		return Add(this.NumberToString(this.ParseToInt(Divide(total, 3600))), "h")
+		return *this.NumberToString(this.ParseToInt(Divide(total, 3600))) + "h"
 	} else if IsLessThan(duration, 604800) {
-		return Add(this.NumberToString(this.ParseToInt(Divide(total, 86400))), "d")
+		return *this.NumberToString(this.ParseToInt(Divide(total, 86400))) + "d"
 	} else if IsLessThan(duration, 2592000) {
-		return Add(this.NumberToString(this.ParseToInt(Divide(total, 604800))), "w")
+		return *this.NumberToString(this.ParseToInt(Divide(total, 604800))) + "w"
 	}
 	// monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
 	var months int64 = this.ParseToInt(Divide(total, 2592000))
 	if months <= 12 {
-		return Add(this.NumberToString(months), "m")
+		return *this.NumberToString(months) + "m"
 	}
 	var years any = min(this.ParseToInt(float64(months+11)/12), 15) // 15y is the documented maximum period
 	return Add(this.NumberToString(years), "y")
@@ -3913,9 +3935,7 @@ func (this *Interactivebrokers) fetchPortfolioAccountsBody(ch chan AsyncResult[a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var methodqueryVariable []any = this.HandleOptionAndParams(params, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts")
-	method := GetValue(methodqueryVariable, 0)
-	var query map[string]any = MapTyped(methodqueryVariable[1])
+	method, query := this.HandleOptionAndParams(params, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts")
 	var response []any = nil
 	if method == "privateGetPortfolioSubaccounts" {
 
@@ -4162,12 +4182,11 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol any, typeVar any, side
 	}
 	var orderType string
 	if (trailingAmount != nil) || (trailingPercent != nil) {
-		orderType = func() string {
-			if isMarket {
-				return "TRAIL"
-			}
-			return "TRAILLMT"
-		}()
+		if isMarket {
+			orderType = "TRAIL"
+		} else {
+			orderType = "TRAILLMT"
+		}
 		if trailingPercent != nil {
 			request["trailingType"] = "%"
 			request["trailingAmt"] = this.ParseNumber(trailingPercent)
@@ -4204,17 +4223,17 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol any, typeVar any, side
 	request["orderType"] = orderType
 	var defaultTimeInForce string = "DAY"
 	if assetClass != nil && *assetClass == "CRYPTO" {
-		defaultTimeInForce = func() string {
-			if isMarket {
-				return "IOC"
-			}
-			return "GTC"
-		}()
+		if isMarket {
+			defaultTimeInForce = "IOC"
+		} else {
+			defaultTimeInForce = "GTC"
+		}
 	}
 	var timeInForce *string = this.SafeStringUpper2(params, "timeInForce", "tif", defaultTimeInForce)
 	request["tif"] = timeInForce
 	if clientOrderId == nil {
-		clientOrderId = SafeStringPtr("ccxt" + this.Uuid22())
+		clientOrderIdStr := "ccxt" + this.Uuid22()
+		clientOrderId = &clientOrderIdStr
 	}
 	request["cOID"] = clientOrderId
 	var query map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"})
@@ -4239,7 +4258,7 @@ func (this *Interactivebrokers) IbkrHandleOrderRepliesAsync(response any, method
 func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[any], response any, methodName string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var options map[string]any = SafeMapTyped(this.Options, "createOrder")
+	var options, _ = this.Options["createOrder"].(map[string]any)
 	var autoConfirm *bool = this.SafeBool(options, "autoConfirmOrderReplies", true)
 	var maxReplies int64 = *this.SafeInteger(options, "maxReplies", 10)
 	var current any = response
@@ -4251,7 +4270,11 @@ func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[a
 			//     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
 			//
 			var text *string = this.SafeString(current, "text")
-			panic(InvalidOrder(Add(this.Id+" "+methodName+"() rejected: ", text)))
+			if text != nil {
+				messageText := this.Id + " " + methodName + "() rejected: " + *text
+				panic(InvalidOrder(messageText))
+			}
+			panic(InvalidOrder(nil))
 		}
 		var first map[string]any = this.SafeDictMap(current, 0, map[string]any{})
 		var orderId *string = this.SafeString2(first, "order_id", "orderId")
@@ -4302,12 +4325,12 @@ func (this *Interactivebrokers) ibkrHandleOrderRepliesBody(ch chan AsyncResult[a
  * @param {object} [params] extra parameters specific to the exchange API endpoint, see createOrder
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Interactivebrokers) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Interactivebrokers) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4358,7 +4381,7 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	var order map[string]any = OrderToMap(this.ParseOrder(result, market))
 	order["type"] = typeVar
 	order["side"] = side
-	order["amount"] = amount
+	order["amount"] = *amount
 	order["price"] = price
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -4470,7 +4493,7 @@ func (this *Interactivebrokers) fetchOrderBody(ch chan AsyncResult[Order], id st
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
-	var response any = nil
+	var response map[string]any = nil
 
 	{
 		func(this *Interactivebrokers) (ret_ any) {
@@ -4505,7 +4528,7 @@ func (this *Interactivebrokers) fetchOrderBody(ch chan AsyncResult[Order], id st
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Raw
+			response = r2.Value
 			return nil
 		}(this)
 
@@ -4842,7 +4865,7 @@ func (this *Interactivebrokers) fetchLiveOrdersRawBody(ch chan AsyncResult[any],
 			panic(r1.Err)
 		}
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchOrders")
+	var options, _ = this.Options["fetchOrders"].(map[string]any)
 	var retryDelay *int64 = this.SafeInteger(options, "retryDelay", 500)
 	var force *bool = this.SafeBool(params, "force", this.SafeBool(options, "force", true))
 	var query map[string]any = this.OmitDict(params, "force")
@@ -5000,43 +5023,37 @@ func (this *Interactivebrokers) ParseOrder(order any, optionalArgs ...any) Order
 	var timestamp *int64 = this.SafeInteger(order, "lastExecutionTime_r")
 	if (timestamp == nil) && (orderTime != nil) {
 		// YYMMDDhhmmss in UTC
-		var datetime string = "20" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+		var orderTimePart string
+		if orderTime != nil {
 			str := *orderTime
-			return str[0:min(2, len(str))]
-		}() + "-" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+			orderTimePart = str[0:min(2, len(str))]
+		}
+		var orderTimePart2 string
+		if orderTime != nil {
 			str := *orderTime
-			return str[2:min(4, len(str))]
-		}() + "-" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+			orderTimePart2 = str[2:min(4, len(str))]
+		}
+		var orderTimePart3 string
+		if orderTime != nil {
 			str := *orderTime
-			return str[4:min(6, len(str))]
-		}() + "T" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+			orderTimePart3 = str[4:min(6, len(str))]
+		}
+		var orderTimePart4 string
+		if orderTime != nil {
 			str := *orderTime
-			return str[6:min(8, len(str))]
-		}() + ":" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+			orderTimePart4 = str[6:min(8, len(str))]
+		}
+		var orderTimePart5 string
+		if orderTime != nil {
 			str := *orderTime
-			return str[8:min(10, len(str))]
-		}() + ":" + func() string {
-			if orderTime == nil {
-				return ""
-			}
+			orderTimePart5 = str[8:min(10, len(str))]
+		}
+		var orderTimePart6 string
+		if orderTime != nil {
 			str := *orderTime
-			return str[10:min(12, len(str))]
-		}() + "Z"
+			orderTimePart6 = str[10:min(12, len(str))]
+		}
+		var datetime string = "20" + orderTimePart + "-" + orderTimePart2 + "-" + orderTimePart3 + "T" + orderTimePart4 + ":" + orderTimePart5 + ":" + orderTimePart6 + "Z"
 		timestamp = this.Parse8601(datetime)
 	}
 	var rawType *string = this.SafeString2(order, "origOrderType", "order_type")
@@ -5044,9 +5061,11 @@ func (this *Interactivebrokers) ParseOrder(order any, optionalArgs ...any) Order
 	var sideId *string = this.SafeStringUpper(order, "side")
 	var side *string = nil
 	if (sideId != nil && *sideId == "B") || (sideId != nil && *sideId == "BUY") {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if (sideId != nil && *sideId == "S") || (sideId != nil && *sideId == "SELL") {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                  this.SafeString2(order, "order_id", "orderId"),
@@ -5123,7 +5142,7 @@ func (this *Interactivebrokers) fetchMyTradesBody(ch chan AsyncResult[[]Trade], 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMyTrades")
+	var options, _ = this.Options["fetchMyTrades"].(map[string]any)
 	var defaultMethod string = "privateGetIserverAccountTrades"
 	if !IsEqual(market, nil) {
 		var assetClass *string = this.SafeString(GetValue(market, "info"), "assetClass")
@@ -5212,7 +5231,7 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	if IsEqual(market, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions"))
 	}
-	var options map[string]any = SafeMapTyped(this.Options, "fetchMyTrades")
+	var options, _ = this.Options["fetchMyTrades"].(map[string]any)
 	r := <-this.LoadAccountIdAsync(params)
 	if r.Err != nil {
 		panic(r.Err)
@@ -5220,9 +5239,7 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	accountIdaccountQueryVariable := r.Value
 	accountId := GetValue(accountIdaccountQueryVariable, 0)
 	accountQuery := GetValue(accountIdaccountQueryVariable, 1)
-	var currencyqueryVariable []any = this.HandleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.SafeString(options, "transactionsCurrency", "USD"))
-	currency := GetValue(currencyqueryVariable, 0)
-	query := currencyqueryVariable[1]
+	currency, query := this.HandleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.SafeString(options, "transactionsCurrency", "USD"))
 	var days any = (*this.SafeInteger(options, "transactionsDays", 90))
 	if since != nil {
 		var daysPassed float64 = float64(this.Milliseconds()-*since) / 86400000
@@ -5266,7 +5283,11 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	//         ]
 	//     }
 	//
-	var transactions []any = SafeListTypedDefault(response, "transactions", []any{})
+	var transactions []any
+	transactions, _ = response["transactions"].([]any)
+	if transactions == nil {
+		transactions = []any{}
+	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(transactions, market, since, limit))}
 	return nil
@@ -5301,39 +5322,17 @@ func (this *Interactivebrokers) ParseTransactionDate(date *string) *int64 {
 		"UTC": "+00:00",
 		"GMT": "+00:00",
 	}
-	var month *string = this.SafeString(months, func() any {
-		if 1 >= 0 && 1 < len(parts) {
-			return parts[1]
-		}
-		return nil
-	}())
+	var month *string = this.SafeString(months, parts[1])
 	if month == nil {
 		return nil
 	}
-	var dayPart *string = SafeStringPtr(func() any {
-		if 2 >= 0 && 2 < len(parts) {
-			return parts[2]
-		}
-		return nil
-	}())
+	var dayPart *string = nil
+	if 2 >= 0 && 2 < len(parts) {
+		dayPart = &parts[2]
+	}
 	var day string = PadStart(dayPart, 2, "0")
-	var offset string = *this.SafeString(offsets, func() any {
-		if 4 >= 0 && 4 < len(parts) {
-			return parts[4]
-		}
-		return nil
-	}(), "+00:00")
-	return this.Parse8601(Add(Add(Add(Add(Add(Add(Add(func() any {
-		if 5 >= 0 && 5 < len(parts) {
-			return parts[5]
-		}
-		return nil
-	}(), "-"), month), "-"), day), "T"), func() any {
-		if 3 >= 0 && 3 < len(parts) {
-			return parts[3]
-		}
-		return nil
-	}()), offset))
+	var offset string = *this.SafeString(offsets, parts[4], "+00:00")
+	return this.Parse8601(parts[5] + "-" + *month + "-" + day + "T" + parts[3] + offset)
 }
 func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -5364,16 +5363,19 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 		var typeId *string = this.SafeStringLower(trade, "type")
 		var transactionSide *string = nil
 		if typeId != nil && *typeId == "buy" {
-			transactionSide = SafeStringPtr("buy")
+			transactionSideStr := "buy"
+			transactionSide = &transactionSideStr
 		} else if typeId != nil && *typeId == "sell" {
-			transactionSide = SafeStringPtr("sell")
+			transactionSideStr2 := "sell"
+			transactionSide = &transactionSideStr2
 		} else if qty != nil {
-			transactionSide = SafeStringPtr(func() string {
-				if Precise.StringLt(qty, "0") {
-					return "sell"
-				}
-				return "buy"
-			}())
+			var transactionSideStr3 string
+			if Precise.StringLt(qty, "0") {
+				transactionSideStr3 = "sell"
+			} else {
+				transactionSideStr3 = "buy"
+			}
+			transactionSide = &transactionSideStr3
 		}
 		return this.SafeTrade(map[string]any{
 			"id":           nil,
@@ -5397,9 +5399,11 @@ func (this *Interactivebrokers) ParseTrade(trade any, optionalArgs ...any) Trade
 	var sideId *string = this.SafeString(trade, "side")
 	var side *string = nil
 	if (sideId != nil && *sideId == "B") || (sideId != nil && *sideId == "BUY") {
-		side = SafeStringPtr("buy")
+		sideStr := "buy"
+		side = &sideStr
 	} else if (sideId != nil && *sideId == "S") || (sideId != nil && *sideId == "SELL") {
-		side = SafeStringPtr("sell")
+		sideStr2 := "sell"
+		side = &sideStr2
 	}
 	var commission *string = this.SafeString(trade, "commission")
 	var fee map[string]any = nil
@@ -5548,11 +5552,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 		"conid":     market["id"],
 	}
 
-	r3 := <-this.WebapiGetV1ApiPortfolioAccountIdPositionConid(this.Extend(request, query))
-	if r3.Err != nil {
-		panic(r3.Err)
+	responseRecv := <-this.WebapiGetV1ApiPortfolioAccountIdPositionConid(this.Extend(request, query))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r3.Raw
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -5572,15 +5576,15 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	//         }
 	//     ]
 	//
-	var positions any = func() any {
-		if IsArray(response) {
-			return response
-		}
-		return []any{}
-	}()
+	var positions []any
+	if response != nil {
+		positions = ArrayTyped(response)
+	} else {
+		positions = []any{}
+	}
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(positions); i++ {
-		var position map[string]any = PositionToMap(this.ParsePosition(GetValue(positions, i), market))
+	for i := 0; i < len(positions); i++ {
+		var position map[string]any = PositionToMap(this.ParsePosition(DerefScalar(positions[i]), market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}
@@ -5598,9 +5602,11 @@ func (this *Interactivebrokers) ParsePosition(position any, optionalArgs ...any)
 	var contracts *string = this.SafeString(position, "position")
 	var side *string = nil
 	if Precise.StringGt(contracts, "0") {
-		side = SafeStringPtr("long")
+		sideStr := "long"
+		side = &sideStr
 	} else if Precise.StringLt(contracts, "0") {
-		side = SafeStringPtr("short")
+		sideStr2 := "short"
+		side = &sideStr2
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5704,14 +5710,15 @@ func (this *Interactivebrokers) IbkrImplodePath(path string, params any) []any {
  * @returns {string} the gateway base url
  */
 func (this *Interactivebrokers) IbkrGatewayBaseUrl(baseUrl any, gatewayUrl *string) any {
-	var gateway any = gatewayUrl
-	if !EndsWith(gateway, "/") {
-		gateway = Add(gateway, "/")
+	var gateway *string = gatewayUrl
+	if !strings.HasSuffix(*gateway, "/") {
+		gatewayStr := *gateway + "/"
+		gateway = &gatewayStr
 	}
 	var prefix string = "https://api.ibkr.com/"
 	if StartsWith(baseUrl, prefix) {
 		var path string = Replace(baseUrl, prefix, "")
-		return Add(gateway, path)
+		return *gateway + path
 	}
 	return baseUrl
 }
@@ -5785,12 +5792,11 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 			}
 		} else {
 			// the gateway rejects bodiless POST/PUT requests with http 411 (Length Required)
-			requestBody = func() any {
-				if hasQuery {
-					return this.Json(query)
-				}
-				return "{}"
-			}()
+			if hasQuery {
+				requestBody = this.Json(query)
+			} else {
+				requestBody = "{}"
+			}
 		}
 		requestHeaders = map[string]any{
 			"Content-Type": "application/json",
@@ -5862,7 +5868,7 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
  * @returns {boolean} true for the session/authentication endpoints
  */
 func (this *Interactivebrokers) IbkrIsAuthRequest(path any) bool {
-	var authPaths []any = []any{"v1/api/oauth/live_session_token", "v1/api/oauth/request_token", "v1/api/oauth/access_token", "v1/api/iserver/auth/status", "v1/api/iserver/auth/ssodh/init", "v1/api/iserver/accounts", "v1/api/tickle", "v1/api/logout"}
+	var authPaths []string = []string{"v1/api/oauth/live_session_token", "v1/api/oauth/request_token", "v1/api/oauth/access_token", "v1/api/iserver/auth/status", "v1/api/iserver/auth/ssodh/init", "v1/api/iserver/accounts", "v1/api/tickle", "v1/api/logout"}
 	return this.InArray(path, authPaths)
 }
 func (this *Interactivebrokers) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -5901,7 +5907,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, 
 		this.SetValidateServerSsl(false)
 	}
 	var isAccountsPath bool = (IsEqual(path, "iserver/accounts")) || (IsEqual(path, "v1/api/iserver/accounts"))
-	var options map[string]any = SafeMapTyped(this.Options, "queryAccountsFirst")
+	var options, _ = this.Options["queryAccountsFirst"].(map[string]any)
 	var retries int64 = *this.SafeInteger(options, "retries", 3)
 	var retryDelay *int64 = this.SafeInteger(options, "retryDelay", 1000)
 	for i := 0; int64(i) <= retries; i++ {
