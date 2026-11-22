@@ -123,7 +123,7 @@ export default class grvt extends grvtRest {
         if (publicOrPrivate) {
             apiPart = 'publicMarket';
         }
-        return await this.watchMultiple (this.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes);
+        return await this.watchMultiple (this.safeString (this.urls['api']['ws'], apiPart), messageHashes, payload, rawHashes);
     }
 
     override requestId (): int {
@@ -660,7 +660,7 @@ export default class grvt extends grvtRest {
                 },
             };
             this.extendExchangeOptions (defaultOptions);
-            this.client (this.urls['api']['ws']['privateTrading']);
+            this.client (this.safeString (this.urls['api']['ws'], 'privateTrading'));
         }
     }
 
