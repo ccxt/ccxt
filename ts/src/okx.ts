@@ -1907,7 +1907,10 @@ export default class okx extends Exchange {
         const fees = this.safeDict2 (this.fees, feesType, 'trading', {});
         let maxLeverage: Str = this.safeString (market, 'lever', '1');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
-        const maxSpotCost = this.safeNumber (market, 'maxMktSz');
+        let maxSpotCost = this.safeNumber (market, 'maxMktSz');
+        if (contract) {
+            maxSpotCost = undefined;
+        }
         const leverageAboveOne = Precise.stringGt (maxLeverage, '1');
         const quoteEqualSettle = (quoteId === settleId);
         const baseEqualSettle = (baseId === settleId);
@@ -1958,7 +1961,7 @@ export default class okx extends Exchange {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
+                    'max': maxSpotCost,
                 },
             },
             'info': market,

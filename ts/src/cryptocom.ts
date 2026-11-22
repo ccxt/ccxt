@@ -2014,7 +2014,8 @@ export default class cryptocom extends Exchange {
             const address = addressParts[0];
             const rawTag = addressParts[1];
             const splitted = rawTag.split ('=');
-            return [ address, splitted[1] ];
+            const tag = this.safeString (splitted, 1);
+            return [ address, tag ];
         }
         return [ addressString, undefined ];
     }
