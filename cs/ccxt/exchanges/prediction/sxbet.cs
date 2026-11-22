@@ -292,7 +292,7 @@ public partial class sxbet : PredictionExchange
             page = (page + 1);
             int rawMarketsCount = (rawMarkets?.Count ?? 0);
             Int64? collectedLength = this.parseToInt(rawMarketsCount);
-            if ((pageMarketsLength < pageSize) || ((maxPages == null || page >= maxPages)) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
+            if ((pageMarketsLength < pageSize) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
                 break;
             }
@@ -2449,7 +2449,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} messageHash the future hash the caller awaits
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
-    public virtual void registerSxbetWsRequest(object requestId, string? messageHash, string? subscription)
+    public virtual void registerSxbetWsRequest(Int64 requestId, string? messageHash, string? subscription)
     {
         string? requestIdString = this.numberToString(requestId);
         this.setWsOption("wsPendingRequests", requestIdString, new Dictionary<string, object>() {
@@ -3169,8 +3169,12 @@ public partial class sxbet : PredictionExchange
         {
             throw new AuthenticationError ((((this.id + " ") + path) + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)")) ;
         }
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sxbet")));
+        string baseUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "sxbet", "");
+        string? groupUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiGroup);
+        if ((groupUrl != null))
+        {
+            baseUrl = groupUrl;
+        }
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};

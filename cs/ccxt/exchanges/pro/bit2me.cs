@@ -184,10 +184,10 @@ public partial class bit2me : ccxt.bit2me
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         ccxt.Trade trade = this.parseWsTrade(data, market);
-        if (!(((symbol != null) && (this.trades != null && symbol != null && this.trades.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.trades != null && this.trades.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.trades[(string)symbol] = new ArrayCache(limit);

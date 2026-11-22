@@ -3424,7 +3424,7 @@ public partial class bitstamp : Exchange
             request["account_currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
             response = await this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag));
         }
-        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(this.extend(new Dictionary<string, object>() {}, response), currency));
     }
 
     /**

@@ -2152,10 +2152,12 @@ public partial class paradex : Exchange
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
-        parameters["signature"] = signature;
-        parameters["account"] = this.safeString(account, "address");
-        parameters["public_key"] = this.safeString(account, "publicKey");
-        Dictionary<string, object> response = await this.privatePostOnboarding(parameters);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "signature", signature },
+            { "account", this.safeString(account, "address") },
+            { "public_key", this.safeString(account, "publicKey") },
+        };
+        Dictionary<string, object> response = await this.privatePostOnboarding(this.extend(parameters, request));
         return response;
     }
 
@@ -2207,11 +2209,13 @@ public partial class paradex : Exchange
         };
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
         string? signature = ((string)this.starknetSign(msg, (account != null && account.ContainsKey("privateKey") ? account["privateKey"] : null)));
-        parameters["signature"] = signature;
-        parameters["account"] = this.safeString(account, "address");
-        parameters["timestamp"] = req["timestamp"];
-        parameters["expiration"] = req["expiration"];
-        Dictionary<string, object> response = await this.privatePostAuth(parameters);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "signature", signature },
+            { "account", this.safeString(account, "address") },
+            { "timestamp", now },
+            { "expiration", expires },
+        };
+        Dictionary<string, object> response = await this.privatePostAuth(this.extend(parameters, request));
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -4616,7 +4620,13 @@ public partial class paradex : Exchange
             Int64? paginationCalls = paginationCallsparamsCallsVariable.Item1;
             IDictionary<string, object> paramsCalls = ((IDictionary<string, object>)paginationCallsparamsCallsVariable.Item2);
             Int64? until = this.safeInteger(paramsCalls, "until");
-            object endAt = Math.Min(this.milliseconds(), this.sum(since, ((paginationCalls * 5000) * rowSpacing)));
+            Int64? pageSpan = this.parseToInt(((paginationCalls * 5000) * rowSpacing));
+            Int64 sinceEnd = this.sum(since, pageSpan);
+            Int64? endAt = this.milliseconds();
+            if (sinceEnd < endAt)
+            {
+                endAt = sinceEnd;
+            }
             if ((until != null))
             {
                 endAt = until;

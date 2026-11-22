@@ -864,7 +864,7 @@ public partial class lighter : Exchange
         return isStandard;
     }
 
-    public async virtual Task<Dictionary<string, object>> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> approveBuilderFee(Int64? builder, Int64? takerFeeRate, Int64? makerFeeRate, object accountIndex, object apiKeyIndex, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? strAccountIndex = this.numberToString(accountIndex);
@@ -2894,7 +2894,7 @@ public partial class lighter : Exchange
         return this.safeString(timeInForces, tif, tif);
     }
 
-    public virtual string? parseOrderTimeInForceInteger(object tifInteger)
+    public virtual string? parseOrderTimeInForceInteger(Int64? tifInteger)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "0", "immediate-or-cancel" },
@@ -3690,9 +3690,10 @@ public partial class lighter : Exchange
         object signer = await this.loadAccount(this.safeInteger(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         Dictionary<string, object> market = this.market(symbol);
         Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
+        double? leverageNum = this.parseNumber(leverage);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
-            { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
+            { "initial_margin_fraction", this.parseToInt((10000 / leverageNum)) },
             { "margin_mode", ((marginMode == "cross")) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },

@@ -243,7 +243,7 @@ public partial class binance : PredictionExchange
         }
         Int64? pageLimitOption = this.safeInteger(this.options, "marketsPageLimit", 100);
         Int64? pageLimit = 100;
-        if (((pageLimitOption == null || pageLimitOption < 100)))
+        if (pageLimitOption.GetValueOrDefault() < 100)
         {
             pageLimit = this.parseToInt(pageLimitOption);
         }

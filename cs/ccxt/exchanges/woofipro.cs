@@ -2106,7 +2106,7 @@ public partial class woofipro : Exchange
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
         string? average = ((string)this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice")));
-        object fee = this.safeValue2(order, "total_fee", "totalFee");
+        double? fee = this.safeNumber2(order, "total_fee", "totalFee");
         string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         List<object> transactions = this.safeList(order, "Transactions");
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
@@ -2402,8 +2402,8 @@ public partial class woofipro : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             IDictionary<string, object> stopLoss = this.safeDict(orderParams, "stopLoss");

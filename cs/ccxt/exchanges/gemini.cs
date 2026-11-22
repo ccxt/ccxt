@@ -789,7 +789,7 @@ public partial class gemini : Exchange
         object data = await this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>");
         string error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         List<object> tables = ((string)data).Split(new [] {"tbody>"}, StringSplitOptions.None).ToList<object>();
-        int numTables = (tables?.Count ?? 0);
+        int numTables = tables.Count;
         if (numTables < 2)
         {
             throw new NotSupported (error) ;

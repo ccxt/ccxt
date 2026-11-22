@@ -1654,8 +1654,8 @@ public partial class krakenfutures : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!(extendedParams.ContainsKey("order_tag")))
@@ -2722,19 +2722,24 @@ public partial class krakenfutures : Exchange
         string? cost = null;
         if (((filled != null)) && ((marketResolved != null)))
         {
-            string? whichPrice = price;
+            bool? isLinear = this.safeBool(marketResolved, "linear", false);
             if ((average != null))
             {
-                whichPrice = average;
-            }
-            if ((whichPrice != null))
-            {
-                if ((this.safeBool(marketResolved, "linear", false) == true))
+                if ((isLinear == true))
                 {
-                    cost = Precise.stringMul(filled, whichPrice); // in quote
+                    cost = Precise.stringMul(filled, average); // in quote
                 } else
                 {
-                    cost = Precise.stringDiv(filled, whichPrice); // in base
+                    cost = Precise.stringDiv(filled, average); // in base
+                }
+            } else if ((price != null))
+            {
+                if ((isLinear == true))
+                {
+                    cost = Precise.stringMul(filled, price); // in quote
+                } else
+                {
+                    cost = Precise.stringDiv(filled, price); // in base
                 }
             }
         }

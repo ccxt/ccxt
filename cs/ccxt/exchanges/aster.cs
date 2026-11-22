@@ -3842,7 +3842,7 @@ public partial class aster : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();

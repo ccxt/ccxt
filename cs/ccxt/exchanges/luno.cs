@@ -1565,13 +1565,13 @@ public partial class luno : Exchange
         Int64? maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
         Int64? minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
         bool limitApplies = ((limit != null)) && (((maxRowBase - minRowBase) > limit));
-        object min_row = (limitApplies && ((limit != null)) && (maxRowBase == null || maxRowBase <= 0)) ? (maxRowBase - limit) : minRowBase;
+        object min_row = (limitApplies && ((limit != null)) && maxRowBase.GetValueOrDefault() <= 0) ? (maxRowBase - limit) : minRowBase;
         object max_row = maxRowBase;
         if (limitApplies && maxRowBase > 0 && minRowBase > 0)
         {
             max_row = add(minRowBase, limit);
         }
-        bool limitAdjusts = limitApplies && ((maxRowBase == null || maxRowBase <= 0) || minRowBase > 0); // max_row - min_row becomes limit
+        bool limitAdjusts = limitApplies && (maxRowBase.GetValueOrDefault() <= 0 || minRowBase > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;

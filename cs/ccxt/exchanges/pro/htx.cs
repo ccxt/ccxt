@@ -823,7 +823,6 @@ public partial class htx : ccxt.htx
         string? symbol = this.safeString(market, "symbol", "");
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         IDictionary<string, object> tick = this.safeDict(message, "tick", new Dictionary<string, object>() {});
-        Int64? seqNum = this.safeInteger(tick, "seqNum");
         Int64? prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         string? eventVar = this.safeString(tick, "event");
         Int64? version = this.safeInteger(tick, "version");
@@ -835,7 +834,7 @@ public partial class htx : ccxt.htx
             orderbook["nonce"] = version;
         }
         Int64? orderbookNonce = this.safeInteger(orderbook, "nonce", 0);
-        if (((prevSeqNum != null)) && (prevSeqNum != null && (orderbookNonce == null || prevSeqNum > orderbookNonce)))
+        if (((prevSeqNum != null)) && prevSeqNum.Value > orderbookNonce.GetValueOrDefault())
         {
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if ((checksum == true))
@@ -852,7 +851,12 @@ public partial class htx : ccxt.htx
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
             this.handleDeltas(orderbook?.asks, asks);
             this.handleDeltas(orderbook?.bids, bids);
-            orderbook["nonce"] = spotConditon ? seqNum : version;
+            string nonceKey = "version";
+            if (spotConditon)
+            {
+                nonceKey = "seqNum";
+            }
+            orderbook["nonce"] = this.safeInteger(tick, nonceKey);
             orderbook["timestamp"] = timestamp;
             orderbook["datetime"] = this.iso8601(timestamp);
         }

@@ -3857,7 +3857,8 @@ public partial class poloniex : Exchange
         //
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         IList<object> codesValue = this.marketCodes(codes);
-        List<object> responseKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        Dictionary<string, object> feesById = this.extend(new Dictionary<string, object>() {}, response);
+        List<object> responseKeys = new List<object>(feesById.Keys);
         for (int i = 0; i < responseKeys.Count; i++)
         {
             string? currencyId = ((string)responseKeys[i]);
@@ -3880,13 +3881,18 @@ public partial class poloniex : Exchange
                         IDictionary<string, object> networkInfo = this.safeDict(response, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
                         double? withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
+                        Dictionary<string, object> withdrawObject = new Dictionary<string, object>() {
+                            { "fee", withdrawFee },
+                            { "percentage", null },
+                        };
+                        if ((withdrawFee != null))
+                        {
+                            withdrawObject["percentage"] = false;
+                        }
                         if ((networkCode != null))
                         {
                             networkObject[(string)networkCode] = new Dictionary<string, object>() {
-                                { "withdraw", new Dictionary<string, object>() {
-                                    { "fee", withdrawFee },
-                                    { "percentage", ((withdrawFee != null)) ? false : null },
-                                } },
+                                { "withdraw", withdrawObject },
                                 { "deposit", new Dictionary<string, object>() {
                                     { "fee", null },
                                     { "percentage", null },

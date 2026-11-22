@@ -1183,7 +1183,7 @@ public partial class lbank : ccxt.lbank
             } else
             {
                 Int64? expires = this.safeInteger(authenticated, "expires", 0);
-                if (((expires == null || expires < now)))
+                if (expires.GetValueOrDefault() < now)
                 {
                     Dictionary<string, object> request = new Dictionary<string, object>() {
                         { "subscribeKey", (authenticated != null && authenticated.ContainsKey("key") ? authenticated["key"] : null) },

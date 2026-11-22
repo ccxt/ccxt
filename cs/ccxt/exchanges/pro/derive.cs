@@ -557,7 +557,7 @@ public partial class derive : ccxt.derive
         //
         //
         IDictionary<string, object> parameters = this.safeDict(message, "params");
-        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        List<object> data = this.safeList(parameters, "data", new List<object>() {});
         string? topic = this.safeString(parameters, "channel", "");
         List<object> parsedTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
@@ -569,9 +569,9 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        for (int i = 0; i < (data?.Count ?? 0); i++)
+        for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Trade trade = this.parseTrade(getValue(data, i));
+            ccxt.Trade trade = this.parseTrade(data[i]);
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
         }
         this.trades[(string)symbol] = tradesArray;

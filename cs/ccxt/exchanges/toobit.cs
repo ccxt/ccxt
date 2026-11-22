@@ -1177,7 +1177,7 @@ public partial class toobit : Exchange
         {
             symbol = ((((bs + "/") + quote) + ":") + settle);
         }
-        return this.safeMarketStructure(new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -1194,8 +1194,8 @@ public partial class toobit : Exchange
             { "option", false },
             { "active", active },
             { "contract", isContract },
-            { "linear", isContract ? ((inverse != true)) : null },
-            { "inverse", isContract ? inverse : null },
+            { "linear", null },
+            { "inverse", null },
             { "contractSize", this.safeNumber(market, "contractMultiplier") },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1225,7 +1225,13 @@ public partial class toobit : Exchange
             } },
             { "created", null },
             { "info", market },
-        });
+        };
+        if (isContract)
+        {
+            result["linear"] = ((inverse != true));
+            result["inverse"] = inverse;
+        }
+        return this.safeMarketStructure(result);
     }
 
     /**

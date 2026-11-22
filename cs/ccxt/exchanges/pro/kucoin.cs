@@ -1865,12 +1865,10 @@ public partial class kucoin : ccxt.kucoin
             if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
-            } else
-            {
-                ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                (orderbook as IOrderBook).reset();
             }
-            ((IDictionary<string,object>)this.getOrderBook(this.orderbooks, symbol))["symbol"] = symbol;
+            ccxt.pro.IOrderBook storedBook = this.getOrderBook(this.orderbooks, symbol);
+            storedBook.reset();
+            storedBook["symbol"] = this.safeSymbol(marketId, null, "-");
         } else
         {
             if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))

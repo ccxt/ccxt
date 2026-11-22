@@ -4098,7 +4098,8 @@ public partial class hitbtc : Exchange
         {
             throw new BadSymbol ((this.id + " setLeverage() supports swap contracts only")) ;
         }
-        if (((leverage < 1)) || (((maxLeverage == null || leverage > maxLeverage))))
+        double? leverageNum = this.parseNumber(leverage);
+        if (((!(leverageNum >= 1))) || ((leverageNum != null && (maxLeverage == null || leverageNum > maxLeverage))))
         {
             throw new BadRequest (((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }

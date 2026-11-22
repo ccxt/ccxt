@@ -843,7 +843,7 @@ public partial class BaseExchange
             throw new InvalidAddress ((this.id + " address is undefined")) ;
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        List<string> uniqChars = (this.unique(this.stringToCharsArray(address)));
+        List<object> uniqChars = (this.unique(this.stringToCharsArray(address)));
         int length = (uniqChars?.Count ?? 0); // py transpiler trick
         if ((length == 1) || isLessThan(((string)address).Length, this.minFundingAddressLength) || ((string)address).IndexOf(" ", StringComparison.Ordinal) > -1)
         {
@@ -4524,17 +4524,8 @@ public partial class BaseExchange
         IList<object> arrayData = data;
         for (int i = 0; i < (arrayData?.Count ?? 0); i++)
         {
-            Dictionary<string, object> itemOrItems = this.parseLedgerEntry(arrayData[i], currency);
-            if (((itemOrItems is IList<object>) || (itemOrItems.GetType().IsGenericType && itemOrItems.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-            {
-                for (int j = 0; j < (itemOrItems?.Count ?? 0); j++)
-                {
-                    result.Add(this.extend(getValue(itemOrItems, j), parameters));
-                }
-            } else
-            {
-                result.Add(this.extend(itemOrItems, parameters));
-            }
+            Dictionary<string, object> entry = this.parseLedgerEntry(this.safeDict(arrayData, i, new Dictionary<string, object>() {}), currency);
+            result.Add(this.extend(entry, parameters));
         }
         result = this.sortBy(result, "timestamp");
         string? code = ((string)(((currency != null)) ? (currency != null && currency.ContainsKey("code") ? currency["code"] : null) : null));
@@ -4562,7 +4553,7 @@ public partial class BaseExchange
         Int64 currentNonce = this.nonce();
         this.lockLastNonce();
         Int64? lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Int64? result = (((lastNonce == null || currentNonce > lastNonce))) ? currentNonce : (lastNonce + 1);
+        Int64? result = (currentNonce > lastNonce.GetValueOrDefault()) ? currentNonce : (lastNonce + 1);
         this.options["lastNonce"] = result;
         this.unlockLastNonce();
         return result;

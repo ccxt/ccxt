@@ -826,6 +826,11 @@ public partial class whitebit : Exchange
         string? makerFeeRate = this.safeString(market, "makerFee");
         string? maker = Precise.stringDiv(makerFeeRate, "100");
         bool isSpot = !swap;
+        double? contractSize = this.parseNumber("1");
+        if (isSpot)
+        {
+            contractSize = null;
+        }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -847,7 +852,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", isSpot ? null : this.parseNumber("1") },
+            { "contractSize", contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },

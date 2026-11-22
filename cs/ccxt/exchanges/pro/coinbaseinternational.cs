@@ -623,11 +623,15 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             if ((this.safeString(position, "side") == null))
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position["side"] = "long";
                 Dictionary<string, object> shortPosition = this.extend(position, new Dictionary<string, object>() {
                     { "side", "short" },
                 });
                 ccxt.pro.BaseCache.appendTo(this.positions, shortPosition);
+                Dictionary<string, object> longPosition = this.extend(position, new Dictionary<string, object>() {
+                    { "side", "long" },
+                });
+                ccxt.pro.BaseCache.appendTo(this.positions, longPosition);
+                continue;
             }
             ccxt.pro.BaseCache.appendTo(this.positions, position);
         }
@@ -1077,7 +1081,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49780 && ((hxArr49780 is IList<object>) || (hxArr49780.GetType().IsGenericType && hxArr49780.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49898 && ((hxArr49898 is IList<object>) || (hxArr49898.GetType().IsGenericType && hxArr49898.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }
@@ -1728,16 +1732,17 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = this.safeValue(client.subscriptions, messageHash);
-        if ((future != null))
+        bool subscribed = ((future != null));
+        if (subscribed)
         {
             Int64? refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
             if (((refreshAt != null)) && (this.milliseconds() >= refreshAt.Value) && !((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-                future = null;
+                subscribed = false;
             }
         }
-        if ((future == null))
+        if (!subscribed)
         {
             this.checkRequiredCredentials();
             Int64 requestId = this.requestId();

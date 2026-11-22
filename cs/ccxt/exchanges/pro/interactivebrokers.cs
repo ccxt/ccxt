@@ -530,7 +530,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         bool hasBidAsk = ((message != null && ((IDictionary<string, object>)message).ContainsKey("84"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("85"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("86"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("88")));
-        bool hasQuote = (!((((object)ticker.bid)) == null)) || (!((((object)ticker.ask)) == null));
+        bool hasQuote = ((this.safeString(ccxt.BaseExchange.FromTicker(ticker), "bid") != null)) || ((this.safeString(ccxt.BaseExchange.FromTicker(ticker), "ask") != null));
         if (hasBidAsk && hasQuote)
         {
             ccxt.Ticker bidAsk = this.safeTicker(new Dictionary<string, object>() {
@@ -675,7 +675,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         //
         string? topic = this.safeString(message, "topic", "");
         List<object> parts = topic.Split(new [] {"+"}, StringSplitOptions.None).ToList<object>();
-        string? marketId = this.safeString(parts, 1);
+        string? marketId = this.safeString(parts, 1, "");
         string? serverId = this.safeString(message, "serverId");
         if ((serverId != null))
         {
@@ -765,9 +765,9 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {int} limit the number of bars
      * @returns {string} the period, e.g. '2h'
      */
-    public virtual string? ibkrWsPeriod(object duration, object limit)
+    public virtual string? ibkrWsPeriod(Int64 duration, Int64? limit)
     {
-        object total = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, limit);
+        object total = (duration * limit);
         Int64? minutes = this.parseToInt(divide((add(total, 59)), 60));
         if ((minutes == null || minutes <= 30))
         {
@@ -902,7 +902,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? unifiedSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? unifiedSymbol = this.safeString(market, "symbol", "");
         var accountIdqueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
@@ -941,7 +941,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        string? unifiedSymbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? unifiedSymbol = this.safeString(market, "symbol", "");
         var accountIdqueryVariable = await this.loadAccountId(parameters);
         var accountId = ((IList<object>) accountIdqueryVariable)[0];
         var query = ((IList<object>) accountIdqueryVariable)[1];
@@ -1391,8 +1391,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         {
             object rawTrade = args[i];
             ccxt.Trade trade = this.parseTrade(rawTrade);
-            object tradeTimestamp = (((object)trade.timestamp));
-            if (((threshold != null)) && (!(tradeTimestamp == null)) && (isLessThan(tradeTimestamp, threshold)))
+            Int64? tradeTimestamp = trade.timestamp;
+            if (((threshold != null)) && ((tradeTimestamp != null)) && (tradeTimestamp.Value < threshold.Value))
             {
                 continue;
             }
@@ -1410,7 +1410,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 }
             }
             trades.append(ccxt.BaseExchange.FromTrade(trade));
-            string tradeSymbol = trade.symbol;
+            string? tradeSymbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "");
             symbols[(string)tradeSymbol] = true;
         }
         List<object> keys = new List<object>(symbols.Keys);

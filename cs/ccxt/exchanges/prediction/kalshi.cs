@@ -585,7 +585,8 @@ public partial class kalshi : PredictionExchange
             {
                 continue;
             }
-            string? baseTicker = outcomeSymbol;
+            string? tickerText = this.safeString(outcomeSymbols, i, "");
+            string? baseTicker = tickerText;
             if (outcomeSymbol.EndsWith("-NO"))
             {
                 baseTicker = ((outcomeSymbol == null) ? null : outcomeSymbol.Substring(0, Math.Max(outcomeSymbol.Length - 3, 0)));

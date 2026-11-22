@@ -2342,9 +2342,9 @@ public partial class bybit : Exchange
         int dataLength = data.Count;
         if (((paginationCursor != null)) && (dataLength > 0))
         {
-            IDictionary<string, object> first = ((IDictionary<string, object>)(data != null && 0 < data.Count ? data[0] : null));
-            first["nextPageCursor"] = paginationCursor;
-            ((List<object>)data)[Convert.ToInt32(0)] = first;
+            ((List<object>)data)[Convert.ToInt32(0)] = this.extend((data != null && 0 < data.Count ? data[0] : null), new Dictionary<string, object>() {
+                { "nextPageCursor", paginationCursor },
+            });
         }
         return data;
     }
@@ -4853,7 +4853,7 @@ public partial class bybit : Exchange
         if (isUnifiedAccount)
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
-            if (((unifiedMarginStatus == null || unifiedMarginStatus < 5)))
+            if (unifiedMarginStatus.GetValueOrDefault() < 5)
             {
                 // it's not uta.20 where inverse are unified
                 if (isInverse)
@@ -5837,7 +5837,7 @@ public partial class bybit : Exchange
         (string?, IDictionary<string, object>) categoryparamsValueVariable = this.getBybitType("createOrders", market, parameters);
         string? category = categoryparamsValueVariable.Item1;
         IDictionary<string, object> paramsValue = (categoryparamsValueVariable.Item2);
-        if (((category == "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
+        if (((category == "inverse")) && (unifiedMarginStatus.GetValueOrDefault() < 5))
         {
             throw new NotSupported ((this.id + " createOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
@@ -6076,7 +6076,7 @@ public partial class bybit : Exchange
         (string?, IDictionary<string, object>) categoryparamsValueVariable = this.getBybitType("editOrders", market, parameters);
         string? category = categoryparamsValueVariable.Item1;
         IDictionary<string, object> paramsValue = (categoryparamsValueVariable.Item2);
-        if (((category == "inverse")) && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
+        if (((category == "inverse")) && (unifiedMarginStatus.GetValueOrDefault() < 5))
         {
             throw new NotSupported ((this.id + " editOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
@@ -7812,7 +7812,7 @@ public partial class bybit : Exchange
         if ((enableUnified == true))
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
-            if ((subType == "inverse") && (((unifiedMarginStatus == null || unifiedMarginStatus < 5))))
+            if ((subType == "inverse") && (unifiedMarginStatus.GetValueOrDefault() < 5))
             {
                 response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, paramsSubType));
             } else

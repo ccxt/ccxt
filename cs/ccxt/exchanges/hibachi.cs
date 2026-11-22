@@ -723,7 +723,7 @@ public partial class hibachi : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<Task<Dictionary<string, object>>> rawPromises = new List<Task<Dictionary<string, object>>> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
-        var pricesResponsestatsResponseVariable = new List<object>(await Task.WhenAll(rawPromises));
+        Dictionary<string, object>[] pricesResponsestatsResponseVariable = await Task.WhenAll(rawPromises);
         var pricesResponse = pricesResponsestatsResponseVariable[0];
         var statsResponse = pricesResponsestatsResponseVariable[1];
         // {
@@ -917,7 +917,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, string? type, string? side, object amount, object price = null)
+    public virtual object orderMessage(IDictionary<string, object> market, object nonce, double? feeRate, string? type, string? side, object amount, object price = null)
     {
         int sideInternal = 0;
         if ((side == "sell"))

@@ -7337,11 +7337,17 @@ public partial class bingx : Exchange
         List<object> rawKeys = new List<object>(sortedParams.Keys);
         int rawKeysLength = rawKeys.Count;
         string? adjustedValue = null;
-        string? result = null;
+        string result = "";
         for (int i = 0; i < rawKeysLength; i++)
         {
             string key = ((string)(rawKeys != null && i < rawKeys.Count ? rawKeys[i] : null));
             object value = (sortedParams != null && key != null && sortedParams.ContainsKey(key) ? sortedParams[key] : null);
+            string? pair = this.safeString(sortedParams, key, "");
+            bool? flag = this.safeBool(sortedParams, key);
+            if ((flag != null))
+            {
+                pair = flag == true ? "true" : "false";
+            }
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string? arrStr = null;
@@ -7372,13 +7378,14 @@ public partial class bingx : Exchange
                 }
                 adjustedValue = (("[" + arrStr) + "]");
                 value = adjustedValue;
+                pair = (("[" + arrStr) + "]");
             }
             if ((i == 0))
             {
-                result = ((key + "=") + (value));
+                result = ((key + "=") + pair);
             } else
             {
-                result = (result == null ? null : result + (string)(object)(((("&" + key) + "=") + (value))));
+                result = result + ((("&" + key) + "=") + pair);
             }
         }
         return result;

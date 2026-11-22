@@ -1058,7 +1058,7 @@ public partial class derive : Exchange
             IDictionary<string, object> pagination = this.safeDict(result, "pagination", new Dictionary<string, object>() {});
             Int64? totalCount = this.safeInteger(pagination, "count", 0); // not named count: that collides with the php builtin the length mapping expands to
             int collected = (allInstruments?.Count ?? 0);
-            if ((totalCount == null || collected >= totalCount))
+            if (collected >= totalCount.GetValueOrDefault())
             {
                 break;
             }
@@ -2909,7 +2909,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(data, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if ((page != null && (currentPage == null || page > currentPage)))
+            if (page.Value > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToOrderList(new List<object>() {});
             }
@@ -3443,7 +3443,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if ((page != null && (currentPage == null || page > currentPage)))
+            if (page.Value > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToTradeList(new List<object>() {});
             }
@@ -3697,7 +3697,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if ((page != null && (currentPage == null || page > currentPage)))
+            if (page.Value > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToFundingHistoryList(new List<object>() {});
             }

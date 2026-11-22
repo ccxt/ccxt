@@ -1433,19 +1433,21 @@ public partial class phemex : ccxt.phemex
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         List<object> trades = new List<object>() {};
         List<object> parsedOrders = new List<object>() {};
-        if ((inOp(message, "closed")) || (inOp(message, "fills")) || (inOp(message, "open")))
+        IDictionary<string, object> ordersDict = this.safeDict2(message, "orders", "orders_p", new Dictionary<string, object>() {});
+        if ((ordersDict.ContainsKey("closed")) || (ordersDict.ContainsKey("fills")) || (ordersDict.ContainsKey("open")))
         {
-            List<object> closed = this.safeList(message, "closed", new List<object>() {});
-            List<object> open = this.safeList(message, "open", new List<object>() {});
+            List<object> closed = this.safeList(ordersDict, "closed", new List<object>() {});
+            List<object> open = this.safeList(ordersDict, "open", new List<object>() {});
             List<object> orders = this.arrayConcat(open, closed);
             int ordersLength = (orders?.Count ?? 0);
             if ((ordersLength == 0))
             {
                 return;
             }
-            trades = this.safeList(message, "fills", new List<object>() {});
+            trades = this.safeList(ordersDict, "fills", new List<object>() {});
             for (int i = 0; i < (orders?.Count ?? 0); i++)
             {
                 IDictionary<string, object> rawOrder = ((IDictionary<string, object>)orders[i]);
@@ -1454,14 +1456,15 @@ public partial class phemex : ccxt.phemex
             }
         } else
         {
-            int messageLength = getArrayLength(message);
-            if ((messageLength == 0))
+            List<object> updates = this.safeList(message, "orders_p", new List<object>() {});
+            int updatesLength = updates.Count;
+            if ((updatesLength == 0))
             {
                 return;
             }
-            for (int i = 0; i < messageLength; i++)
+            for (int i = 0; i < updatesLength; i++)
             {
-                object update = getValue(message, i);
+                object update = (updates != null && i < updates.Count ? updates[i] : null);
                 string? action = this.safeString(update, "action");
                 if (((action != null)) && (action != "Cancel"))
                 {
@@ -1815,8 +1818,7 @@ public partial class phemex : ccxt.phemex
         }
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("orders"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("orders_p"))))
         {
-            IDictionary<string, object> orders = this.safeDict2(message, "orders", "orders_p", new Dictionary<string, object>() {});
-            this.handleOrders(client, orders);
+            this.handleOrders(client, message);
         }
         if (((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("accounts_p"))) || ((message != null && ((IDictionary<string, object>)message).ContainsKey("wallets"))))
         {

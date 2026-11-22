@@ -1031,7 +1031,7 @@ public partial class kraken : Exchange
     {
         if ((currencyId == null))
         {
-            return ((string?)((object)(currencyId)));
+            return ((string?)((object)(null)));
         }
         if (((string)currencyId).IndexOf(".", StringComparison.Ordinal) > 0)
         {
@@ -2826,7 +2826,7 @@ public partial class kraken : Exchange
             string? tradeId = this.safeString(tradeIds, i, "");
             batch.Add(tradeId);
             int batchLength = (batch?.Count ?? 0);
-            if ((batchSize == null || batchLength >= batchSize))
+            if (batchLength >= batchSize.GetValueOrDefault())
             {
                 batches.Add(String.Join(",", batch.ToArray()));
                 batch = new List<object>() {};

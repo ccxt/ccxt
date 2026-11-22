@@ -161,7 +161,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} side outcome side, 0 = YES, 1 = NO
      * @returns {int} the outcome side encoding
      */
-    public virtual object outcomeEncoding(object outcomeId, object side)
+    public virtual object outcomeEncoding(object outcomeId, Int64 side)
     {
         Int64? outcomeIdInt = this.parseToInt(outcomeId);
         return this.sum((10 * outcomeIdInt), side);
@@ -527,7 +527,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, string outcomeKey, object outcomeId, IDictionary<string, object>? question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, string outcomeKey, Int64? outcomeId, IDictionary<string, object>? question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
@@ -2388,7 +2388,7 @@ public partial class hyperliquid : PredictionExchange
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual Dictionary<string, object> signL1Action(object action, object nonce, object vaultAddress = null)
+    public virtual Dictionary<string, object> signL1Action(object action, Int64? nonce, object vaultAddress = null)
     {
         this.checkRequiredCredentials();
         object hash = this.actionHash(action, vaultAddress, nonce);

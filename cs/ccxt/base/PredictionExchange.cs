@@ -210,7 +210,7 @@ public partial class PredictionExchange : BaseExchange
             int resultLength = (result?.Count ?? 0);
             Int64? limitValue = this.safeInteger(parameters, "limit", 0);
             Int64? sliceEnd = resultLength;
-            if (((limitValue == null || limitValue < resultLength)))
+            if (limitValue.GetValueOrDefault() < resultLength)
             {
                 sliceEnd = limitValue;
             }

@@ -1252,7 +1252,7 @@ public partial class xt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<Task<Dictionary<string, object>>> promisesRaw = new List<Task<Dictionary<string, object>>> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
-        var chainsResponsecurrenciesResponseVariable = new List<object>(await Task.WhenAll(promisesRaw));
+        Dictionary<string, object>[] chainsResponsecurrenciesResponseVariable = await Task.WhenAll(promisesRaw);
         var chainsResponse = chainsResponsecurrenciesResponseVariable[0];
         var currenciesResponse = chainsResponsecurrenciesResponseVariable[1];
         //
@@ -6186,7 +6186,7 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, paramsSubType)));
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, paramsSubType)));
         }
-        var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
+        Dictionary<string, object>[] responsebreakResponseVariable = await Task.WhenAll(promisesUnresolved);
         var response = responsebreakResponseVariable[0];
         var breakResponse = responsebreakResponseVariable[1];
         //
@@ -6278,7 +6278,7 @@ public partial class xt : Exchange
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionList(paramsSubType));
             promisesUnresolved.Add(this.privateLinearGetFutureUserV1PositionBreakList(paramsSubType));
         }
-        var responsebreakResponseVariable = new List<object>(await Task.WhenAll(promisesUnresolved));
+        Dictionary<string, object>[] responsebreakResponseVariable = await Task.WhenAll(promisesUnresolved);
         var response = responsebreakResponseVariable[0];
         var breakResponse = responsebreakResponseVariable[1];
         //

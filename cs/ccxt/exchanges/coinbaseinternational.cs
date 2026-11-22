@@ -1333,8 +1333,8 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
         {
-            string? symbol = this.safeString(symbolsResolved, i);
-            if ((symbol == null))
+            string? symbol = this.safeString(symbolsResolved, i, "");
+            if (symbol == "")
             {
                 continue;
             }

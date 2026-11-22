@@ -1152,7 +1152,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
+        Dictionary<string, object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
         if ((limit != null))
         {
             request["_pageSize"] = this.getClosestLimit(limit);
@@ -1220,7 +1220,7 @@ public partial class bullish : Exchange
                 Dictionary<string, object> paramsPagination = this.handlePaginationParams("fetchMyTrades", since, paramsPaginate);
                 return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPagination, 100));
             }
-            object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
+            Dictionary<string, object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate);
             if ((limit != null))
             {
                 request["_pageSize"] = this.getClosestLimit(limit);
@@ -1687,7 +1687,7 @@ public partial class bullish : Exchange
         {
             request["_pageSize"] = this.getClosestLimit(limit);
         }
-        object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
+        Dictionary<string, object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]");
         List<object> response = await this.publicGetV1HistoryMarketsSymbolFundingRate(this.extend(request, paramsSinceAndUntil));
         //
         //     [
@@ -1756,7 +1756,7 @@ public partial class bullish : Exchange
             market = this.market(symbol);
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters);
+        Dictionary<string, object> paramsSinceAndUntil = this.handleSinceAndUntil(since, parameters);
         if ((limit != null))
         {
             request["_pageSize"] = this.getClosestLimit(limit);
@@ -1831,7 +1831,7 @@ public partial class bullish : Exchange
         return paramsExtended;
     }
 
-    public virtual object handleSinceAndUntil(object since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
+    public virtual Dictionary<string, object> handleSinceAndUntil(object since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
     {
         parameters ??= new Dictionary<string, object>();
         sinceKey ??= "createdAtDatetime[gte]";
@@ -1843,7 +1843,7 @@ public partial class bullish : Exchange
             until = untilParam;
         }
         bool sinceFromUntil = ((since == null)) && ((untilParam != null));
-        object paramsResult = sinceFromUntil ? this.omit(parameters, "until") : parameters;
+        Dictionary<string, object> timeParams = new Dictionary<string, object>() {};
         if (((since != null)) || ((untilParam != null)))
         {
             Int64 timeDelta = ((((7L * 24L) * 60) * 60) * 1000); // 7 days
@@ -1864,9 +1864,11 @@ public partial class bullish : Exchange
                     until = this.sum(since, timeDelta);
                 }
             }
-            ((IDictionary<string,object>)paramsResult)[(string)sinceKey] = this.iso8601(sinceResolved);
-            ((IDictionary<string,object>)paramsResult)[(string)untilKey] = this.iso8601(until);
+            timeParams[(string)sinceKey] = this.iso8601(sinceResolved);
+            timeParams[(string)untilKey] = this.iso8601(until);
         }
+        Dictionary<string, object> merged = this.extend(parameters, timeParams);
+        Dictionary<string, object> paramsResult = sinceFromUntil ? this.omit(merged, "until") : merged;
         return paramsResult;
     }
 
@@ -3046,7 +3048,7 @@ public partial class bullish : Exchange
                 { "until", this.milliseconds() },
             });
         }
-        object paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil);
+        Dictionary<string, object> paramsSinceAndUntil = this.handleSinceAndUntil(since, paramsUntil);
         if ((limit != null))
         {
             request["_pageSize"] = this.getClosestLimit(limit);

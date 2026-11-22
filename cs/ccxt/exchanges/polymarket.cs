@@ -3114,13 +3114,13 @@ public partial class polymarket : Exchange
         if ((path == "info/book"))
         {
             Int64? depth = this.safeInteger(parameters, "depth", 100);
-            if ((depth == null || depth <= 10))
+            if (depth.GetValueOrDefault() <= 10)
             {
                 return 2;
-            } else if ((depth == null || depth <= 100))
+            } else if (depth.GetValueOrDefault() <= 100)
             {
                 return 5;
-            } else if ((depth == null || depth <= 500))
+            } else if (depth.GetValueOrDefault() <= 500)
             {
                 return 10;
             }

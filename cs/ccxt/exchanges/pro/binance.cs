@@ -1302,7 +1302,7 @@ public partial class binance : ccxt.binance
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
                             Int64? newNonce = this.safeInteger(orderbook, "nonce", 0);
-                            if ((nonce < newNonce))
+                            if (nonce.Value < newNonce.GetValueOrDefault())
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1327,7 +1327,7 @@ public partial class binance : ccxt.binance
                         {
                             this.handleOrderBookMessage(client, message, orderbook);
                             Int64? newNonce = this.safeInteger(orderbook, "nonce", 0);
-                            if ((nonce == null || nonce <= newNonce))
+                            if (nonce.Value <= newNonce.GetValueOrDefault())
                             {
                                 client.resolve(orderbook, messageHash);
                             }
@@ -1415,7 +1415,7 @@ public partial class binance : ccxt.binance
             for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
             {
                 object unsubHash = messageHashes[j];
-                string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                string? subHash = this.safeString(subMessageHashes, j, "");
                 this.cleanUnsubscription(client, subHash, unsubHash);
             }
         }
@@ -3962,7 +3962,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190586 && ((hxArr190586 is IList<object>) || (hxArr190586.GetType().IsGenericType && hxArr190586.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190608 && ((hxArr190608 is IList<object>) || (hxArr190608.GetType().IsGenericType && hxArr190608.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});

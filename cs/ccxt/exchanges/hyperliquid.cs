@@ -810,7 +810,7 @@ public partial class hyperliquid : Exchange
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    public virtual object calculatePricePrecision(object price, object amountPrecision, object maxDecimals)
+    public virtual object calculatePricePrecision(double? price, Int64? amountPrecision, Int64 maxDecimals)
     {
         object pricePrecision = 0;
         string? priceStr = this.numberToString(price);
@@ -2069,13 +2069,13 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public async virtual Task<object> setRef()
+    public async virtual Task<object> setRef(bool? alreadySet = null)
     {
-        if ((this.safeBool(this.options, "refSet", false) == true))
+        alreadySet ??= false;
+        if (alreadySet == true)
         {
             return true;
         }
-        this.options["refSet"] = true;
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "type", "setReferrer" },
             { "code", this.safeString(this.options, "ref", "CCXT1") },
@@ -2139,7 +2139,19 @@ public partial class hyperliquid : Exchange
     {
         try
         {
-            await Task.WhenAll(new Task[] {this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled("fetchBalance", null, false, new Dictionary<string, object>() {})}); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            bool? refSet = this.safeBool(this.options, "refSet", false);
+            this.options["refSet"] = true;
+            bool feeApproved = await this.handleBuilderFeeApproval();
+            if (feeApproved)
+            {
+                this.options["approvedBuilderFee"] = true;
+            } else
+            {
+                this.options["builderFee"] = false; // disable builder fee if an error occurs
+            }
+            await this.setRef(refSet);
+            await Task.WhenAll(new Task[] {this.isUnifiedEnabled("fetchBalance", null, false, new Dictionary<string, object>() {})}); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch(Exception e)
         {
             return false;
@@ -2166,10 +2178,9 @@ public partial class hyperliquid : Exchange
                 maxFeeRate = "0%";
             }
             await this.approveBuilderFee(builder, maxFeeRate);
-            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            this.options["builderFee"] = false; // disable builder fee if an error occurs
+            return false;
         }
         return true;
     }

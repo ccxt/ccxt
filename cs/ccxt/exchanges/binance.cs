@@ -15666,8 +15666,7 @@ public partial class binance : Exchange
         //         }
         //     ]
         //
-        IDictionary<string, object> first = this.safeDict(response, 0, response);
-        return ccxt.BaseExchange.ToLedgerEntry(this.parseLedgerEntry(first, currency));
+        return ccxt.BaseExchange.ToLedgerEntry(this.parseLedgerEntry(this.safeDict(response, 0, new Dictionary<string, object>() {}), currency));
     }
 
     /**
@@ -16197,7 +16196,7 @@ public partial class binance : Exchange
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
-        object parsedMessage = null;
+        object responseParsed = response;
         if (success != true)
         {
             string? messageNew = this.safeString(response, "msg");
@@ -16205,15 +16204,14 @@ public partial class binance : Exchange
             {
                 try
                 {
-                    parsedMessage = JsonHelper.Deserialize(messageNew);
+                    responseParsed = JsonHelper.Deserialize(messageNew);
                 } catch(Exception e)
                 {
                     // do nothing
-                    parsedMessage = null;
+                    responseParsed = response;
                 }
             }
         }
-        object responseParsed = ((parsedMessage != null)) ? parsedMessage : response;
         string? message = this.safeString(responseParsed, "msg");
         if ((message != null))
         {
@@ -16291,7 +16289,7 @@ public partial class binance : Exchange
             {
                 object entry = byLimit[i];
                 Int64? entryLimit = this.safeInteger(entry, 0, 0);
-                if ((limit != null) && (limit == null || limit <= entryLimit))
+                if ((limit != null) && limit.Value <= entryLimit.GetValueOrDefault())
                 {
                     return this.safeInteger(entry, 1);
                 }
@@ -16322,7 +16320,7 @@ public partial class binance : Exchange
         return response;
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object addOrReduce, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 addOrReduce, IDictionary<string, object> parameters = null)
     {
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();

@@ -3365,7 +3365,7 @@ public partial class nado : Exchange
         return ("0x" + this.padHex(this.intToBase16(productId), 40));
     }
 
-    public virtual string? padHex(string value, object length, bool? left = null)
+    public virtual string? padHex(string value, Int64 length, bool? left = null)
     {
         left ??= true;
         string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";

@@ -1694,7 +1694,7 @@ public partial class dydx : Exchange
         return new List<object>() {orderId, this.extend(signingPayload, paramsOmitted)};
     }
 
-    public virtual string? createOrderIdFromParts(string address, object subAccountNumber, object clientOrderId, object orderFlags, object clobPairId)
+    public virtual string? createOrderIdFromParts(string address, Int64? subAccountNumber, Int64? clientOrderId, Int64? orderFlags, Int64? clobPairId)
     {
         string? nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
         string? clientOrderIdString = this.numberToString(clientOrderId);

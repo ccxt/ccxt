@@ -1972,8 +1972,8 @@ public partial class krakenfutures : ccxt.krakenfutures
         string messageHash = "challenge";
         if (eventVar != "error")
         {
-            object challenge = this.safeValue(message, "message");
-            byte[] hashedChallenge = ((byte[])this.hash(this.encode(challenge), sha256, "binary"));
+            string? challenge = this.safeString(message, "message", "");
+            byte[] hashedChallenge = ((byte[])this.hash(challenge, sha256, "binary"));
             byte[] base64Secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
             this.options["challenge"] = challenge;

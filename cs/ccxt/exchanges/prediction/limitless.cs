@@ -380,7 +380,7 @@ public partial class limitless : PredictionExchange
             List<object> lastPageData = this.safeList(lastPageResponse, "data", new List<object>() {});
             int lastPageLength = lastPageData.Count;
             int allRawLength = (allRaw?.Count ?? 0);
-            if ((pageSize == null || lastPageLength >= pageSize) && allRawLength < maxMarkets)
+            if (lastPageLength >= pageSize.GetValueOrDefault() && allRawLength < maxMarkets)
             {
                 while (true)
                 {
@@ -415,14 +415,10 @@ public partial class limitless : PredictionExchange
         {
             IDictionary<string, object> raw = ((IDictionary<string, object>)expandedRaw[i]);
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
-            string? eventKey = null;
-            if ((groupId != null) && groupId != "")
-            {
-                eventKey = this.shortenSlug(groupId);
-            }
+            string eventKey = this.shortenSlug(groupId);
             Dictionary<string, object> m = this.parseMarket(raw);
             markets.Add(m);
-            if (((eventKey != null)) && ((eventKey != "")))
+            if ((eventKey != ""))
             {
                 IDictionary<string, object> eventGroup = this.safeDict(eventGroups, eventKey, new Dictionary<string, object>() {
                     { "groupId", groupId },
@@ -3417,18 +3413,14 @@ public partial class limitless : PredictionExchange
         {
             IDictionary<string, object> raw = ((IDictionary<string, object>)(expandedMarkets != null && i < expandedMarkets.Count ? expandedMarkets[i] : null));
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
-            string? eventKey = null;
-            if ((groupId != null) && groupId != "")
-            {
-                eventKey = this.shortenSlug(groupId);
-            }
+            string eventKey = this.shortenSlug(groupId);
             Dictionary<string, object> m = this.parseMarket(raw);
             if ((m == null))
             {
                 throw new ExchangeError ((this.id + " fetchEvents() missing m")) ;
             }
             this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
-            if (((eventKey != null)) && (eventKey != ""))
+            if (eventKey != "")
             {
                 IDictionary<string, object> eventGroup = this.safeDict(eventGroups, eventKey, new Dictionary<string, object>() {
                     { "groupId", groupId },

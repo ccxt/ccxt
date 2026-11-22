@@ -873,7 +873,7 @@ public partial class polymarket : PredictionExchange
         {
             allRawEvents.Add((firstPage != null && fi < firstPage.Count ? firstPage[fi] : null));
         }
-        if ((pageSize == null || firstPageLength >= pageSize))
+        if (firstPageLength >= pageSize.GetValueOrDefault())
         {
             List<object> offsets = new List<object>() {};
             for (int p = 1; (maxPages > p); p++)
@@ -1339,7 +1339,7 @@ public partial class polymarket : PredictionExchange
 }), this.clobPublicGetLastTradePrice(new Dictionary<string, object>() {
     { "token_id", tokenId },
 })};
-        var midpointResponsebookResponselastTradeResponseVariable = new List<object>(await Task.WhenAll(promises));
+        Dictionary<string, object>[] midpointResponsebookResponselastTradeResponseVariable = await Task.WhenAll(promises);
         var midpointResponse = midpointResponsebookResponselastTradeResponseVariable[0];
         var bookResponse = midpointResponsebookResponselastTradeResponseVariable[1];
         var lastTradeResponse = midpointResponsebookResponselastTradeResponseVariable[2];
@@ -1555,7 +1555,7 @@ public partial class polymarket : PredictionExchange
         double? quoteVolume = null;
         if ((market != null))
         {
-            quoteVolume = this.safeNumber2(getValue(market, "info"), "volume24hr", "volume");
+            quoteVolume = this.safeNumber2(this.safeDict(market, "info"), "volume24hr", "volume");
         }
         return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
@@ -2785,7 +2785,7 @@ public partial class polymarket : PredictionExchange
         };
     }
 
-    public virtual string? signClobOrder(IDictionary<string, object> message, string exchangeAddress, string domainVersion, object sigType)
+    public virtual string? signClobOrder(IDictionary<string, object> message, string exchangeAddress, string domainVersion, Int64? sigType)
     {
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
@@ -3374,7 +3374,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152195 && ((hxArr152195 is IList<object>) || (hxArr152195.GetType().IsGenericType && hxArr152195.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152211 && ((hxArr152211 is IList<object>) || (hxArr152211.GetType().IsGenericType && hxArr152211.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3537,7 +3537,7 @@ public partial class polymarket : PredictionExchange
         return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
-    public virtual string? signClobAuth(string? address, string? timestamp, object nonce)
+    public virtual string? signClobAuth(string? address, string? timestamp, Int64? nonce)
     {
         // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
         Dictionary<string, object> domain = new Dictionary<string, object>() {

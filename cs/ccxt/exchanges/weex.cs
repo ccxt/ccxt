@@ -1103,7 +1103,7 @@ public partial class weex : Exchange
             await this.loadTimeDifference();
         }
         List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)};
-        var spotResponsecontractResponseVariable = new List<object>(await Task.WhenAll(promises));
+        Dictionary<string, object>[] spotResponsecontractResponseVariable = await Task.WhenAll(promises);
         var spotResponse = spotResponsecontractResponseVariable[0];
         var contractResponse = spotResponsecontractResponseVariable[1];
         List<object> spotArray = this.safeList(spotResponse, "symbols", new List<object>() {});
@@ -2033,7 +2033,12 @@ public partial class weex : Exchange
         {
             tradeMarketType = "swap";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? tradeMarketId : null, market, null, tradeMarketType);
+        string? tradeMarketIdArg = tradeMarketId;
+        if ((market != null))
+        {
+            tradeMarketIdArg = null;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(tradeMarketIdArg, market, null, tradeMarketType);
         bool? isSpot = false;
         if ((market == null))
         {
@@ -3682,7 +3687,12 @@ public partial class weex : Exchange
         {
             orderMarketType = "spot";
         }
-        Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? orderMarketId : null, market, null, orderMarketType);
+        string? orderMarketIdArg = orderMarketId;
+        if ((market != null))
+        {
+            orderMarketIdArg = null;
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(orderMarketIdArg, market, null, orderMarketType);
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice")));
@@ -4885,7 +4895,7 @@ public partial class weex : Exchange
         return await this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, paramsMarginMode));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, object type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, Int64 type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4905,7 +4915,7 @@ public partial class weex : Exchange
             { "type", type },
         };
         string parsedType = "reduce";
-        if (isEqual(type, 1))
+        if ((type == 1))
         {
             parsedType = "add";
         }

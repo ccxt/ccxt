@@ -3821,7 +3821,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object symbolResolved = ((symbol != null)) ? getValue(this.market(symbol), "symbol") : null;
+        string? symbolResolved = ((symbol != null)) ? this.safeString(this.market(symbol), "symbol") : null;
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token", (currency.ContainsKey("id") ? currency["id"] : null) },

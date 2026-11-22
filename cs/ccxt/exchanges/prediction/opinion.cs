@@ -251,7 +251,7 @@ public partial class opinion : PredictionExchange
             }
             int collectedLength = (flatMarkets?.Count ?? 0);
             int fetchedRawCount = (fetchedRawRows?.Count ?? 0);
-            if ((rawMarketsLength < pageLimit) || ((maxPages == null || page >= maxPages)) || (((total != null)) && (fetchedRawCount >= total.Value)) || (((userLimit != null)) && (collectedLength >= userLimit.Value)))
+            if ((rawMarketsLength < pageLimit) || (page >= maxPages.GetValueOrDefault()) || (((total != null)) && (fetchedRawCount >= total.Value)) || (((userLimit != null)) && (collectedLength >= userLimit.Value)))
             {
                 break;
             }
@@ -511,7 +511,7 @@ public partial class opinion : PredictionExchange
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
             int fetchedRawCount = (rawEvents?.Count ?? 0);
             Int64? total = this.safeInteger(result, "total");
-            if ((pageEventsLength < reqLimit) || ((maxPages == null || page >= maxPages)) || (((total != null)) && (fetchedRawCount >= total.Value)) || ((fetchCap == null || fetchedRawCount >= fetchCap)))
+            if ((pageEventsLength < reqLimit) || (page >= maxPages.GetValueOrDefault()) || (((total != null)) && (fetchedRawCount >= total.Value)) || ((fetchCap == null || fetchedRawCount >= fetchCap)))
             {
                 break;
             }
@@ -741,7 +741,7 @@ public partial class opinion : PredictionExchange
 }, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new Dictionary<string, object>() {
     { "token_id", tokenId },
 }, parameters))};
-        var priceResponsebookResponseVariable = new List<object>(await Task.WhenAll(promises));
+        Dictionary<string, object>[] priceResponsebookResponseVariable = await Task.WhenAll(promises);
         var priceResponse = priceResponsebookResponseVariable[0];
         var bookResponse = priceResponsebookResponseVariable[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {
@@ -1524,11 +1524,11 @@ public partial class opinion : PredictionExchange
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
-    public async virtual Task<object> loadTradeMarket(object marketId)
+    public async virtual Task<object> loadTradeMarket(Int64? marketId)
     {
         string cacheKey = "tradeMarketsById";
         IDictionary<string, object> cached = this.safeDict(this.options, cacheKey, new Dictionary<string, object>() {});
-        string idStr = marketId.ToString();
+        string idStr = ((object)marketId).ToString();
         IDictionary<string, object> existing = this.safeDict(cached, idStr);
         if ((existing != null))
         {

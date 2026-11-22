@@ -2129,7 +2129,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         Task<List<object>> marginPromise = this.publicMarginGetCurrencyPairs(parameters);
         Task<List<object>> spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
-        var marginResponsespotMarketsResponseVariable = new List<object>(await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise}));
+        List<object>[] marginResponsespotMarketsResponseVariable = await Task.WhenAll(new List<Task<List<object>>>() {marginPromise, spotMarketsPromise});
         var marginResponse = marginResponsespotMarketsResponseVariable[0];
         var spotMarketsResponse = marginResponsespotMarketsResponseVariable[1];
         Dictionary<string, object> marginMarkets = this.indexBy(marginResponse, "id");
@@ -2172,7 +2172,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(spotMarketsResponse); i++)
+        for (int i = 0; i < (spotMarketsResponse?.Count ?? 0); i++)
         {
             IDictionary<string, object> spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
@@ -6035,7 +6035,7 @@ public partial class gate : Exchange
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
                     Int64? priceType = this.safeInteger(query, "price_type", 0);
-                    if (((priceType == null || priceType < 0)) || priceType > 2)
+                    if (priceType.GetValueOrDefault() < 0 || priceType > 2)
                     {
                         throw new BadRequest ((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }

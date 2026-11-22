@@ -313,10 +313,10 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? marketId = this.safeString(message, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         IDictionary<string, object> data = this.safeDict(this.safeList(message, "data"), 0);
         Int64? timestamp = this.safeInteger(data, "t");
-        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
             Int64? limit = this.safeInteger(message, "depth");
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.countedOrderBook(new Dictionary<string, object>() {}, limit);
@@ -1482,7 +1482,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, this.extend(subscription, subExtend));
     }
 
-    public async virtual Task<object> watchPrivateRequest(object nonce, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivateRequest(Int64? nonce, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
@@ -1716,7 +1716,7 @@ public partial class cryptocom : ccxt.cryptocom
                     for (int j = 0; j < (messageHashes?.Count ?? 0); j++)
                     {
                         object unsubHash = messageHashes[j];
-                        string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                        string? subHash = this.safeString(subMessageHashes, j, "");
                         this.cleanUnsubscription(client, subHash, unsubHash);
                     }
                 }
