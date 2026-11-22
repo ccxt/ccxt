@@ -25,7 +25,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     
     'getTifFromRawOrderType', 
     'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
-    'marketOutcomeToSymbol', 'normalizeTagKey', 'oath', 'outcomeSearchQuery', 'padHex',
+    'marketOutcomeToSymbol', 'outcomeSearchQuery', 'padHex',
     'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
     'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
     'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
@@ -6020,6 +6020,9 @@ function dataflowThisCallType (printer, node) {
     const name = node.expression.name.text;
     if (JAVA_STRING_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    if (javaProvenBaseStringCall (printer, node)) {
+        return JAVA_DATAFLOW_STRING;
     }
     if (JAVA_LIST_RETURN_METHODS.has (name)) {
         if (J92J7_LIST_RETURN_METHODS.includes (name) && !j92j7ReadAsList (printer, node)) {
@@ -12231,6 +12234,9 @@ function stringProducerLocal (printer, node) {
         return true; // e.g. the base safeString accessors, declared String
     }
     const name = init.expression.name.text;
+    if (javaProvenBaseStringCall (printer, init)) {
+        return true;
+    }
     if (!(JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CAST.has (name))) {
         return false;
     }
@@ -14249,7 +14255,7 @@ export function patchJavaWsListStreamLocals (transpiler) {
 const JAVA_EQUALITY_BOX_TYPES = new Set ([ 'Long', 'Double', 'Integer' ]);
 
 function javaEqualityDeclaredBox (printer, node) {
-    if (node === undefined || !ts.isIdentifier (node) || printer.printNode (node, 0) !== node.text) {
+    if (node === undefined || !ts.isIdentifier (node)) {
         return undefined;
     }
     if (printer.javaLongParameterRead (node)) {
@@ -18845,6 +18851,26 @@ function javaBaseHeaderStringField (name) {
     return /^\w+$/.test (name) && new RegExp (`^    public String ${name};`, 'm').test (javaBaseHeaderText);
 }
 
+// exactly one hand-written `public String <name>(` method (no overload) in the BaseExchange.java header
+function javaBaseHeaderStringMethod (name) {
+    javaBaseHeaderStringField ('');
+    const all = javaBaseHeaderText.match (new RegExp (`^    public (static )?[\\w.<>, ]+ ${name}\\(`, 'gm')) ?? [];
+    return /^\w+$/.test (name) && all.length === 1 && new RegExp (`^    public (static )?String ${name}\\(`, 'm').test (all[0]);
+}
+
+// a `this.m (..)` call into a base-tier PredictionExchange.ts method whose own printed signature the
+// order-free base proof (installJavaBaseProducerLocals) types String
+function javaProvenBaseStringCall (printer, node) {
+    try {
+        const member = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
+        return member !== undefined && ts.isMethodDeclaration (member)
+            && /(^|[\\/])ts[\\/]src[\\/]base[\\/]PredictionExchange\.ts$/.test (member.getSourceFile ().fileName)
+            && printer.javaNativeReturnType (member) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 // a sync base-tier call whose hand-written Java declaration returns String (json, uuid5, ...)
 function javaBaseStringCoreCall (printer, node) {
     try {
@@ -18860,6 +18886,13 @@ function javaBaseStringCoreCall (printer, node) {
             const printed = String (printer.printNode (node, 0));
             return printed.startsWith (`(${name} == null ? null : ${name}.substring(`) || printed.startsWith (`(${name} == null ? null : ((String)${name}).substring(`);
         }
+        // `totp (..)`: an imported base function printed as the hand-written BaseExchange member declared `public String`
+        if (node !== undefined && ts.isCallExpression (node) && ts.isIdentifier (node.expression)
+            && !node.arguments.some ((a) => ts.isSpreadElement (a)) && javaBaseHeaderStringMethod (String (node.expression.text))) {
+            const declarations = printer.getChecker ().getSymbolAtLocation (node.expression)?.declarations ?? [];
+            return declarations.length === 1 && ts.isImportSpecifier (declarations[0])
+                && String (printer.printNode (node, 0)).startsWith (`${node.expression.text}(`);
+        }
         // `x.toString ()` on a TS string prints `String.valueOf(x)`
         if (node !== undefined && ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression)
             && node.expression.name.text === 'toString' && node.arguments.length === 0) {
@@ -18871,6 +18904,44 @@ function javaBaseStringCoreCall (printer, node) {
         }
         return isThisCall (node) && !node.arguments.some ((a) => ts.isSpreadElement (a)) && !isAsyncMethodCall (printer, node)
             && (javaResolvesToBase (printer, node) || javaBaseMemberCall (printer, node)) && syncCoreCallType (printer, node) === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
+// a returned `let s = '<literal>'` accumulator whose every write is `s = s + <TS string>` or a string literal:
+// the TS declaration alone proves String, so the proof does not read locals published while printing
+function javaStringLocalReturn (printer, node) {
+    try {
+        if (node === undefined || !ts.isIdentifier (node) || printer.printNode (node, 0) !== node.text) {
+            return false;
+        }
+        const checker = printer.getChecker ();
+        const declarations = checker.getSymbolAtLocation (node)?.declarations ?? [];
+        const declaration = declarations[0]?.resolve?.() ?? declarations[0];
+        if (declarations.length !== 1 || !ts.isVariableDeclaration (declaration) || declaration.type !== undefined
+            || declaration.initializer === undefined || !ts.isStringLiteral (declaration.initializer)) {
+            return false;
+        }
+        const isString = (e) => ts.isStringLiteral (e) || (ts.isIdentifier (e) && (checker.getTypeAtLocation (e).flags & ts.TypeFlags.String) !== 0
+            && (checker.getTypeAtLocation (e).flags & ts.TypeFlags.Union) === 0);
+        const scope = enclosingFunction (declaration);
+        for (const n of identifierIndex (scope).get (node.text) ?? []) {
+            const parent = n.parent;
+            if (n === declaration.name || !(ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
+                if (ts.isVariableDeclaration (parent) && parent !== declaration) {
+                    return false;
+                }
+                continue;
+            }
+            const right = unwrapParens (parent.right);
+            const ok = isString (right) || (ts.isBinaryExpression (right) && right.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && ts.isIdentifier (right.left) && right.left.text === node.text && isString (unwrapParens (right.right)));
+            if (!ok) {
+                return false;
+            }
+        }
+        return true;
     } catch (e) {
         return false;
     }
@@ -18920,8 +18991,10 @@ export function installJavaStringReturns (transpiler) {
     const upstreamPrints = printer.javaExpressionPrintsType.bind (printer);
     printer.javaExpressionPrintsType = function (expression, target) {
         if (target === 'String') {
-            return upstreamPrints (expression, target) || javaBaseStringPrecisionCall (printer, printer.javaUnwrapReturnExpression (expression))
-                || javaBaseStringCoreCall (printer, printer.javaUnwrapReturnExpression (expression));
+            const unwrapped = printer.javaUnwrapReturnExpression (expression);
+            // the order-free local proof runs first: the upstream identifier proof marks the read of published locals
+            return javaStringLocalReturn (printer, unwrapped) || upstreamPrints (expression, target)
+                || javaBaseStringPrecisionCall (printer, unwrapped) || javaBaseStringCoreCall (printer, unwrapped);
         }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
@@ -19127,7 +19200,8 @@ export function installJavaBaseProducerLocals (transpiler) {
                 && printer.javaReturnSitesPrintType (node, 'String') ? 'String' : undefined;
             // a proof that read locals published while printing depends on which file the worker printed first:
             // the base printer and the venue workers must agree, so only an order-free proof counts
-            if (printer.javaReturnTypeUsedDeclaredLocals) {
+            if (printer.javaReturnTypeUsedDeclaredLocals && !printer.javaEveryReturn (node.body, (r) => r.expression !== undefined
+                && javaStringLocalReturn (printer, printer.javaUnwrapReturnExpression (r.expression)))) {
                 type = undefined;
             }
         } catch (e) {
