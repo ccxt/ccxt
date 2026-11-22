@@ -1157,7 +1157,7 @@ export default class paradex extends paradexRest {
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = (symbolsNormalized as string[])[i];
             const market = this.market (symbol);
-            const marketId = market['id'] as string;
+            const marketId: string = this.safeString (market, 'id', '');
             marketIds.push (marketId);
             subscribeHashes.push (channel + '.' + marketId);
             subMessageHashes.push (channel + '.' + symbol);
@@ -1246,7 +1246,7 @@ export default class paradex extends paradexRest {
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
-            const marketId = market['id'] as string;
+            const marketId: string = this.safeString (market, 'id', '');
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push (subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {

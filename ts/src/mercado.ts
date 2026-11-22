@@ -729,7 +729,7 @@ export default class mercado extends Exchange {
         const filled = this.safeString (order, 'executed_quantity');
         const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         const rawTrades = this.safeList (order, 'operations', []);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safeOrder ({
             'info': order,
             'id': id,
