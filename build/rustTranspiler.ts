@@ -4457,8 +4457,10 @@ function rustTypedSafeContainerReads (content: string): string {
         const asDict = m[1] === 'value' && m[2] === '_k' && conv !== null && conv[1] === undefined && conv[2] === 'dict';
         if (close >= content.length || conv === null || (conv[2] !== m[1] && !asDict) || (m[1] === 'value' && !asDict)) continue;
         const args = content.slice (open, close);
-        const tail = args.lastIndexOf (', &[');
-        if (tail < 0 || balancedCloseIndex (args, tail + 4) !== args.length - 1) continue;
+        // the optional-args slice is the last top-level `, &[`: a default may hold nested calls with their own
+        let tail = args.lastIndexOf (', &[');
+        while (tail > 0 && balancedCloseIndex (args, tail + 4) !== args.length - 1) tail = args.lastIndexOf (', &[', tail - 1);
+        if (tail < 0) continue;
         const dflt = args.slice (tail + 4, -1).trim ();
         const plain = dflt === '' || (conv[1] === undefined && empty[m[1]].test (dflt));
         // One non-empty default: `_or` keeps it as the fallback container (a non-container default answers empty / None).
