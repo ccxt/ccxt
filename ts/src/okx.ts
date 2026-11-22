@@ -5722,7 +5722,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag.length > 0);
+        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag !== '');
         let addressWithTag = address;
         if (hasTag) {
             addressWithTag = address + ':' + tagWithdrawTag;

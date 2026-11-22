@@ -535,7 +535,7 @@ export default class PredictionExchange extends BaseExchange {
         const rawParts = s.split ('-');
         const parts: string[] = [];
         for (let i = 0; i < rawParts.length; i++) {
-            const w = rawParts[i];
+            const w: string = rawParts[i];
             if (w.length > 0 && !this.inArray (w, stopWords)) {
                 parts.push (w);
             }
@@ -827,9 +827,7 @@ export default class PredictionExchange extends BaseExchange {
         let hasLetters = false;
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < rawWords.length; i++) {
-            const word = rawWords[i];
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
+            const word: string = rawWords[i];
             if (word.length === 0) {
                 continue;
             }

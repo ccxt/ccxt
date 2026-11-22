@@ -7806,9 +7806,10 @@ export default class kucoin extends Exchange {
             const txidParts = txid.split ('@');
             const numTxidParts = txidParts.length;
             if (numTxidParts > 1) {
+                const txidAddress: string = txidParts[1];
                 if (address === undefined) {
-                    if (txidParts[1].length > 1) {
-                        address = txidParts[1];
+                    if (txidAddress.length > 1) {
+                        address = txidAddress;
                     }
                 }
             }

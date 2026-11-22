@@ -5338,7 +5338,7 @@ export default class gate extends Exchange {
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }
         const rawStatus = this.safeStringN (order, [ 'finish_as', 'status', 'open' ]);
-        let timestampStr = this.safeString (order, 'create_time_ms');
+        let timestampStr: Str = this.safeString (order, 'create_time_ms');
         if (timestampStr === undefined) {
             timestampStr = this.safeString2 (order, 'create_time', 'ctime');
             if (timestampStr !== undefined) {
@@ -5351,7 +5351,7 @@ export default class gate extends Exchange {
                 }
             }
         }
-        let lastTradeTimestampStr = this.safeString (order, 'update_time_ms');
+        let lastTradeTimestampStr: Str = this.safeString (order, 'update_time_ms');
         if (lastTradeTimestampStr === undefined) {
             lastTradeTimestampStr = this.safeString2 (order, 'update_time', 'finish_time');
             if (lastTradeTimestampStr !== undefined) {

@@ -500,8 +500,8 @@ export default class hyperliquid extends Exchange {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
             const expPartsLength = expParts.length;
-            if (expPartsLength >= 1 && expParts[0].length === 8) {
-                const ymd = expParts[0];
+            const ymd: string = expParts[0];
+            if (expPartsLength >= 1 && ymd.length === 8) {
                 let hm: Str = '0000';
                 if (expPartsLength >= 2) {
                     hm = expParts[1];
@@ -1995,8 +1995,8 @@ export default class hyperliquid extends Exchange {
         if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
             const parts = expiryRaw.split ('-');
             const partsLength = parts.length;
-            if (partsLength >= 1 && parts[0].length === 8) {
-                const ymd = parts[0];
+            const ymd: string = parts[0];
+            if (partsLength >= 1 && ymd.length === 8) {
                 let hm: Str = '0000';
                 if (partsLength >= 2) {
                     hm = parts[1];

@@ -785,7 +785,7 @@ export default class myriad extends Exchange {
         // allowance(owner, spender)
         const allowanceData = '0xdd62ed3e' + this.padHexAddress (owner) + this.padHexAddress (spender);
         const current = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': token, 'data': allowanceData }, 'latest' ]);
-        const trimmed = this.hexToRlpBytes (current);
+        const trimmed: string = this.hexToRlpBytes (current);
         // a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
         if (trimmed.length >= 50) {
             return undefined;
@@ -3234,7 +3234,7 @@ export default class myriad extends Exchange {
         const linesLength = lines.length;
         for (let i = 0; i < linesLength; i++) {
             const line = lines[i];
-            if (line.length > 0) {
+            if (line !== '') {
                 const parsed = JSON.parse (line);
                 this.handleCentrifugoFrame (client, parsed);
             }
