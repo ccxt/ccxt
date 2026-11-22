@@ -6423,7 +6423,6 @@ const RUST_FILTER_LIST_FNS = [
     'filter_by_symbols_since_limit',
     'array_slice',
     'filter_by',
-    'get_list_from_object_values',
 ].join('|');
 function typeFilterSliceLists(content: string): string {
     content = content.replace(new RegExp(String.raw`(\n {4}fn (${RUST_FILTER_LIST_FNS})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (_m, sig, _n, open, body) =>
@@ -6484,7 +6483,6 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_orders_by_status',
     'fetch_spot_markets',
     'fetch_swap_markets',
-    'find_message_hashes',
     'parse_prediction_trades',
     'convert_trading_view_to_ohlcv',
     'get_order_channel_and_message_hash',
@@ -6512,7 +6510,7 @@ const RUST_PARSE_LIST_FNS = [
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
 // declared once, in a base tier: typed in every file
-for (const n of [ 'find_message_hashes', 'parse_prediction_trades', 'convert_trading_view_to_ohlcv' ]) RUST_VENUE_LIST_FNS.delete(n);
+for (const n of [ 'parse_prediction_trades', 'convert_trading_view_to_ohlcv' ]) RUST_VENUE_LIST_FNS.delete(n);
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
@@ -8556,10 +8554,6 @@ function typeWsOhlcvReturns(content: string): string {
     }
     return out + content.slice(last);
 }
-// getListFromObjectValues returns the `results` vec it built: once typeFilterSliceLists retypes it, that vec moves out.
-function typedObjectValuesListBody(content: string): string {
-    return content.replace(/(\n {4}fn get_list_from_object_values\([^\n]*\) -> crate::value::List \{\n[\s\S]*?)return Value::from\(results\);/, '$1return std::sync::Arc::new(results);');
-}
 /** `promise_all` answers a `List`: drop the re-wrap of its result, copy it into a `Vec` local, box it for a `Value` slot. */
 function typedPromiseAllResults(content: string): string {
     if (!content.includes('promise_all(')) return content;
@@ -9472,7 +9466,6 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     typedWsParseProducers,
     rustTypedLiteralParsers,
     typeWsOhlcvReturns,
-    typedObjectValuesListBody,
     typedPromiseAllResults,
     rustTypedListReads,
     rustTypedDictProducers,
