@@ -355,7 +355,8 @@ export default class predictfun extends Exchange {
         } else {
             const request: Dict = {};
             const tags = this.safeList (paramsValue, 'tags', []);
-            if (tags.length > 0) {
+            const tagsLength = tags.length;
+            if (tagsLength > 0) {
                 request['tagIds'] = tags.join (',');
             }
             postOmitKeys.push ('limit');

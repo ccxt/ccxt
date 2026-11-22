@@ -2356,7 +2356,8 @@ export default class whitebit extends Exchange {
         // Sort by timestamp (most recent first)
         const sortedOrders = this.sortBy (allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (limit !== undefined && sortedOrders.length > limit) {
+        const sortedOrdersLength = sortedOrders.length;
+        if (limit !== undefined && sortedOrdersLength > limit) {
             return this.arraySlice (sortedOrders, 0, limit);
         }
         return sortedOrders;

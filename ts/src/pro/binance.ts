@@ -5114,7 +5114,8 @@ export default class binance extends binanceRest {
             }
             const absQty = Precise.stringAbs (rawQty);
             let executionType = 'NEW';
-            if (fills.length > 0) {
+            const fillsLength = fills.length;
+            if (fillsLength > 0) {
                 executionType = 'TRADE';
             }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect

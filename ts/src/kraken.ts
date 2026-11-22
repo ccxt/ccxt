@@ -2519,7 +2519,8 @@ export default class kraken extends Exchange {
         let batch: string[] = [];
         for (let i = 0; i < numTradeIds; i++) {
             batch.push (tradeIds[i]);
-            if (batch.length >= batchSize) {
+            const batchLength = batch.length;
+            if (batchLength >= batchSize) {
                 batches.push (batch);
                 batch = [];
             }

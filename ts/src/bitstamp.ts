@@ -2217,7 +2217,8 @@ export default class bitstamp extends Exchange {
             // dt (destination tag) is embedded into the address field
             const addressParts = addressRaw.split ('?dt=');
             address = this.safeString (addressParts, 0);
-            if (addressParts.length > 1) {
+            const addressPartsLength = addressParts.length;
+            if (addressPartsLength > 1) {
                 tag = this.safeString (addressParts, 1);
             }
         }

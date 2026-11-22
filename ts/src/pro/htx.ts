@@ -1678,8 +1678,11 @@ export default class htx extends htxRest {
         }
         if (isV5Linear) {
             let v5Market: Market = undefined;
-            if ((symbolsNormalized !== undefined) && (symbolsNormalized.length === 1)) {
-                v5Market = market;
+            if (symbolsNormalized !== undefined) {
+                const symbolsNormalizedLength = symbolsNormalized.length;
+                if (symbolsNormalizedLength === 1) {
+                    v5Market = market;
+                }
             }
             const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('positions', v5Market, paramsRequest);
             channel = this.safeString (channelAndMessageHashAndParams, 0);
