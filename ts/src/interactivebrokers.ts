@@ -2221,11 +2221,11 @@ export default class interactivebrokers extends Exchange {
             return false;
         }
         const fieldIds = (readyFields === undefined) ? [ '31', '84', '86' ] : readyFields;
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
+        const numFields = fieldIds.length;
+        for (let i = 0; i < numItems; i++) {
             let found = false;
-            for (let j = 0; j < fieldIds.length; j++) {
-                if (this.safeString (item, fieldIds[j]) !== undefined) {
+            for (let j = 0; j < numFields; j++) {
+                if (this.safeString (response[i], fieldIds[j]) !== undefined) {
                     found = true;
                     break;
                 }
@@ -2422,7 +2422,7 @@ export default class interactivebrokers extends Exchange {
             return undefined;
         }
         const valueParts = value.split (',');
-        let result = valueParts.join ('');
+        let result: string = valueParts.join ('');
         if (result.startsWith ('C') || result.startsWith ('H') || result.startsWith ('+') || result.startsWith ('$')) {
             result = result.slice (1);
         }
@@ -2506,8 +2506,11 @@ export default class interactivebrokers extends Exchange {
         }
         const market = this.market (symbol);
         const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
-        let requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
-        const duration = this.parseTimeframe (timeframe);
+        let requestLimit: int = maxLimit;
+        if (limit !== undefined) {
+            requestLimit = Math.min (limit, maxLimit);
+        }
+        const duration: int = this.parseTimeframe (timeframe);
         const request: Dict = {
             'conid': market['id'],
             'bar': this.safeString (this.timeframes, timeframe, timeframe),
