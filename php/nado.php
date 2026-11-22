@@ -1788,7 +1788,7 @@ class nado extends Exchange {
             $priceIncrement = $this->parse_x18($this->safe_string($market, 'price_increment_x18'));
             $amountIncrement = $this->parse_x18($this->safe_string($market, 'size_increment'));
             $minCost = $this->parse_x18($this->safe_string($market, 'min_size'));
-            $markets[] = $this->safe_market_structure(array(
+            $marketEntry = array(
                 'id' => $id,
                 'lowercaseId' => null,
                 'symbol' => $symbol,
@@ -1806,11 +1806,11 @@ class nado extends Exchange {
                 'option' => false,
                 'active' => $active,
                 'contract' => $contract,
-                'linear' => $contract ? true : null,
-                'inverse' => $contract ? false : null,
+                'linear' => null,
+                'inverse' => null,
                 'taker' => $this->parse_x18($this->safe_string($market, 'taker_fee_rate_x18')),
                 'maker' => $this->parse_x18($this->safe_string($market, 'maker_fee_rate_x18')),
-                'contractSize' => $contract ? 1 : null,
+                'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
                 'strike' => null,
@@ -1844,7 +1844,13 @@ class nado extends Exchange {
                     'v2Pair' => $pair,
                     'v2Asset' => $asset,
                 )),
-            ));
+            );
+            if ($contract) {
+                $marketEntry['linear'] = true;
+                $marketEntry['inverse'] = false;
+                $marketEntry['contractSize'] = 1;
+            }
+            $markets[] = $this->safe_market_structure($marketEntry);
         }
         return $markets;
     }

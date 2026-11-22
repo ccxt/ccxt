@@ -845,7 +845,7 @@ class deribit extends \ccxt\async\deribit {
         if ($dataList !== null) {
             $orders = $this->parse_orders($dataList);
         } else {
-            $data = $this->safe_value($params, 'data', array());
+            $data = $this->safe_dict($params, 'data', array());
             $order = $this->parse_order($data);
             $orders = array( $order );
         }

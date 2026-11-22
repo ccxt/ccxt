@@ -1240,7 +1240,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($info, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $funding = $this->safe_number($info, 'funding');
         $markPx = $this->safe_number($info, 'mark');
         $oraclePx = $this->safe_number($info, 'oracle');
@@ -1527,7 +1527,7 @@ class pacifica extends Exchange {
         $amount = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
@@ -2311,7 +2311,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -2762,7 +2762,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string_2($order, 'symbol', 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_2($order, 'created_at', 'ct');
         $status = $this->safe_string_2($order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         $side = $this->safe_string($order, 'side', 'd');
@@ -2891,7 +2891,7 @@ class pacifica extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $margin = $this->safe_string($position, 'margin');
         $rawIsolated = $this->safe_bool($position, 'isolated');
         $isIsolated = ($margin !== null) && ($margin !== '0');
@@ -3533,7 +3533,7 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($income, 'created_at');
         $marketId = $this->safe_string($income, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $amount = $this->safe_string($income, 'payout');
         $code = $this->safe_currency_code('USDC');
         $rate = $this->safe_number($income, 'rate');

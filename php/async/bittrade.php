@@ -2154,7 +2154,8 @@ class bittrade extends Exchange {
         if ($network !== null) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if ($network === 'erc20') {
-                $request['chain'] = $currency['id'] . $network;
+                $currencyId = $this->safe_string($currency, 'id', '');
+                $request['chain'] = $currencyId . $network;
             } else {
                 $request['chain'] = $network . $currency['id'];
             }

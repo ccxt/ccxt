@@ -962,7 +962,8 @@ class polymarket extends Exchange {
                 }
                 $chunk = array();
                 for ($i = $startIndex; $i < $endIndex; $i++) {
-                    $chunk[] = $tokenIds[$i];
+                    $chunkId = $this->safe_string($tokenIds, $i, '');
+                    $chunk[] = $chunkId;
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1289,16 +1290,16 @@ class polymarket extends Exchange {
 
     private function do_fetch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches $price $history ticks for a single $outcome token and $buckets them client-side into OHLCV $candles, snapping tick timestamps to the $candle boundary
+         * fetches $price $history ticks for a single $outcome token and $buckets them client-side into OHLCV $candles, snapping tick timestamps to the candle boundary
          *
          * @see https://docs.polymarket.com/api-reference/markets/get-prices-$history
          *
          * @param {string} $outcome unified $outcome or $outcome token id
-         * @param {string} $timeframe the length of time each $candle represents
-         * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum number of $candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, $open, high, low, close, volume
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
@@ -1371,15 +1372,18 @@ class polymarket extends Exchange {
             if (!(is_array($buckets) && array_key_exists($bucketKey ?? '', $buckets))) {
                 $buckets[$bucketKey] = array( $snappedMs, $price, $price, $price, $price, $vol );
             } else {
-                $candle = $this->safe_list($buckets, $bucketKey, array());
-                $candle[2] = max($candle[2], $price); // high
-                $candle[3] = min($candle[3], $price); // low
-                $candle[4] = $price;                                  // close (last tick wins)
+                $prevVol = $this->safe_number($buckets[$bucketKey], 5);
+                $candleVol = $prevVol;
                 if ($vol !== null) {
-                    $prevVol = $candle[5];
-                    $candle[5] = ($prevVol === null) ? $vol : $this->sum($prevVol, $vol); // volume
+                    if ($prevVol === null) {
+                        $candleVol = $vol;
+                    } else {
+                        $candleVol = $this->sum($prevVol, $vol);
+                    }
                 }
-                $buckets[$bucketKey] = $candle; // reassign after mutation, php arrays are value types
+                $open = $this->safe_number($buckets[$bucketKey], 1);
+                // close is the last tick
+                $buckets[$bucketKey] = array( $snappedMs, $open, max($this->safe_number($buckets[$bucketKey], 2), $price), min($this->safe_number($buckets[$bucketKey], 3), $price), $price, $candleVol );
             }
         }
         $bucketKeys = is_array($buckets) ? array_keys($buckets) : array();
@@ -2105,8 +2109,8 @@ class polymarket extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 $rawItem = $response[$i];
-                $enriched = $this->extend($requests[$i], $rawItem);
-                $parsedItem = $this->parse_prediction_order($enriched, $outcomes[$i]);
+                $enriched = $this->extend($this->safe_dict($requests, $i), $rawItem);
+                $parsedItem = $this->parse_prediction_order($enriched, $this->safe_dict($outcomes, $i));
                 $parsedItem['info'] = $rawItem;   // keep info the raw exchange response
                 $result[] = $parsedItem;
             }
@@ -3101,12 +3105,7 @@ class polymarket extends Exchange {
             return;
         }
         $apiKey = ($this->apiKey !== null) ? $this->apiKey : $this->safe_string($this->options, 'l2ApiKey');
-        $secret = null;
-        if ($this->secret !== null) {
-            $secret = $this->secret;
-        } else {
-            $secret = $this->safe_string($this->options, 'l2Secret');
-        }
+        $secret = ($this->secret !== null) ? $this->secret : $this->safe_string($this->options, 'l2Secret');
         $passphrase = ($this->password !== null) ? $this->password : $this->safe_string($this->options, 'l2Passphrase');
         $hasL2 = ($apiKey !== null) && ($secret !== null) && ($passphrase !== null);
         if ($hasL2) {

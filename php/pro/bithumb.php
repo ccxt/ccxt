@@ -341,8 +341,7 @@ class bithumb extends \ccxt\async\bithumb {
         //
         $code = $this->safe_string($ticker, 'code');
         if ($code !== null) {
-            $ticker['market'] = $this->safe_string($ticker, 'market', $code);
-            return $this->parse_ticker($ticker, $market);
+            return $this->parse_ticker($this->extend($ticker, array( 'market' => $this->safe_string($ticker, 'market', $code) )), $market);
         }
         $date = $this->safe_string($ticker, 'date', '');
         $time = $this->safe_string($ticker, 'time', '');

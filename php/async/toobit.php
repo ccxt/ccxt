@@ -1311,10 +1311,11 @@ class toobit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = array();
+        $candles = array();
         if ($endpoint === 'index') {
             $request['symbol'] = $this->safe_string($market['info'], 'indexToken'); // index klines take the index id instead of the market id
-            $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice)));
+            $indexResponse = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $paramsPrice)));
+            $candles = $this->safe_list($indexResponse, 'data', array());
             //
             //     {
             //         "code": 200,
@@ -1343,7 +1344,8 @@ class toobit extends Exchange {
             //     }
             //
         } elseif ($endpoint === 'mark') {
-            $response = Async\await($this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $paramsPrice)));
+            $markResponse = Async\await($this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $paramsPrice)));
+            $candles = $this->safe_list($markResponse, 'data', array());
             //
             //     {
             //         "code": 200,
@@ -1362,7 +1364,7 @@ class toobit extends Exchange {
             //     }
             //
         } else {
-            $response = Async\await($this->commonGetQuoteV1Klines($this->extend($request, $paramsPrice)));
+            $candles = Async\await($this->commonGetQuoteV1Klines($this->extend($request, $paramsPrice)));
             //
             //    [
             //        [
@@ -1380,12 +1382,6 @@ class toobit extends Exchange {
             //        ],
             //        ...
             //
-        }
-        $candles = array();
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $candles = $response;
-        } else {
-            $candles = $this->safe_list($response, 'data', array());
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
@@ -3054,7 +3050,9 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('success' ?? '', $transaction));
+        $arriveQuantity = $this->safe_string($transaction, 'arriveQuantity');
+        $success = $this->safe_bool($transaction, 'success');
+        $isWithdraw = ($arriveQuantity !== null) || ($success !== null);
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,

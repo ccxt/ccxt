@@ -1060,7 +1060,7 @@ class woofipro extends \ccxt\async\woofipro {
         $messageHash = 'myTrades';
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $trade = $this->parse_ws_trade($message, $market);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);

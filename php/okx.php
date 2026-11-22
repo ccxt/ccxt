@@ -2275,7 +2275,7 @@ class okx extends Exchange {
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, '-', $marketType);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'last');
         $open = $this->safe_string($ticker, 'open24h');
         $spot = $this->safe_bool($marketResolved, 'spot', false);
@@ -2539,7 +2539,7 @@ class okx extends Exchange {
         $id = $this->safe_string($trade, 'tradeId');
         $marketId = $this->safe_string($trade, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, '-');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer($trade, 'ts');
         $price = $this->safe_string_2($trade, 'fillPx', 'px');
         $amount = $this->safe_string_2($trade, 'fillSz', 'sz');
@@ -3243,7 +3243,7 @@ class okx extends Exchange {
         }
         $spot = $this->safe_bool($market, 'spot', false);
         $contract = $this->safe_bool($market, 'contract');
-        $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         $tpOrdPx = $this->safe_number($params, 'tpOrdPx', $price);
@@ -3382,14 +3382,14 @@ class okx extends Exchange {
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $attachAlgoOrd = array();
             if ($hasStopLoss) {
-                $stopLossTriggerPrice = $this->safe_value_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
+                $stopLossTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice', 'slTriggerPx' ));
                 if ($stopLossTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 $slTriggerPx = $this->price_to_precision($symbol, $stopLossTriggerPrice);
                 $slOrder = array();
                 $slOrder['slTriggerPx'] = $slTriggerPx;
-                $stopLossLimitPrice = $this->safe_value_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
+                $stopLossLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice', 'slOrdPx' ));
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type');
                 if ($stopLossOrderType !== null) {
                     $stopLossLimitOrderType = ($stopLossOrderType === 'limit');
@@ -3420,13 +3420,13 @@ class okx extends Exchange {
                 $attachAlgoOrd = $this->extend($attachAlgoOrd, $slOrder);
             }
             if ($hasTakeProfit) {
-                $takeProfitTriggerPrice = $this->safe_value_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
+                $takeProfitTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice', 'tpTriggerPx' ));
                 if ($takeProfitTriggerPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
                 $tpOrder = array();
                 $tpOrder['tpTriggerPx'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
-                $takeProfitLimitPrice = $this->safe_value_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
+                $takeProfitLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice', 'tpOrdPx' ));
                 $takeProfitOrderType = $this->safe_string_2($takeProfit, 'type', 'tpOrdKind');
                 if ($takeProfitOrderType !== null) {
                     $takeProfitLimitOrderType = ($takeProfitOrderType === 'limit');
@@ -5355,7 +5355,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        $requestUntil = $this->handle_until_option('end', $request, $paramsMarginMode)[0];
+        list($requestUntil) = $this->handle_until_option('end', $request, $paramsMarginMode);
         if ($method === 'privateGetAccountBillsArchive') {
             $response = $this->privateGetAccountBillsArchive($this->extend($requestUntil, $query));
         } elseif ($method === 'privateGetAssetBills') {
@@ -5539,7 +5539,7 @@ class okx extends Exchange {
         }
         $currencyId = $this->safe_string($depositAddress, 'ccy');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
-        $code = $currencyResolved['code'];
+        $code = $this->safe_string($currencyResolved, 'code');
         $chain = $this->safe_string($depositAddress, 'chain');
         $networks = $this->safe_dict($currencyResolved, 'networks', array());
         $networksById = $this->index_by($networks, 'id');
@@ -5718,7 +5718,7 @@ class okx extends Exchange {
             $networkUpper = strtoupper($network);
             $networkKey = $this->safe_string($this->networkAliases, $networkUpper, $networkUpper);
             $network = $this->safe_string($networks, $networkKey, $network); // resolve aliases to the unified key
-            $request['chain'] = $currency['id'] . '-' . $network;
+            $request['chain'] = $this->safe_string($currency, 'id', '') . '-' . $network;
         }
         $omitKeys = array( 'fee' );
         if ($network !== null) {
@@ -6490,7 +6490,7 @@ class okx extends Exchange {
         //
         $marketId = $this->safe_string($position, 'instId');
         $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $pos = $this->safe_string($position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         $contractsAbs = Precise::string_abs($pos);
         $side = $this->safe_string_2($position, 'posSide', 'direction');
@@ -6502,7 +6502,7 @@ class okx extends Exchange {
                 $posCcy = $this->safe_string($position, 'posCcy');
                 $parsedCurrency = $this->safe_currency_code($posCcy);
                 if ($parsedCurrency !== null) {
-                    $side = ($marketResolved['base'] === $parsedCurrency) ? 'long' : 'short';
+                    $side = ($this->safe_string($marketResolved, 'base') === $parsedCurrency) ? 'long' : 'short';
                 }
             }
             if ($side === null) {
@@ -9159,7 +9159,7 @@ class okx extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'uly' => $currency['code'] . '-USD',
+            'uly' => $this->safe_string($currency, 'code', '') . '-USD',
             'instType' => 'OPTION',
         );
         $response = $this->publicGetMarketTickers($this->extend($request, $params));

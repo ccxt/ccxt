@@ -513,7 +513,7 @@ class binance extends \ccxt\async\binance {
         $rawLiquidation = $this->safe_dict($message, 'o', array());
         $marketId = $this->safe_string($rawLiquidation, 's');
         $market = $this->safe_market($marketId, null, '', 'contract');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
         if ($this->liquidations === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
@@ -1858,7 +1858,7 @@ class binance extends \ccxt\async\binance {
         $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
         $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
         $firstMarket = $this->market($marketSymbols[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         $wsUrlType = $type;
         if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
@@ -1944,7 +1944,7 @@ class binance extends \ccxt\async\binance {
         $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
         $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
         $firstMarket = $this->market($marketSymbols[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         $wsUrlType = $type;
         if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
@@ -3602,8 +3602,11 @@ class binance extends \ccxt\async\binance {
             'params' => $this->sign_params($this->extend($payload, $paramsMethod)),
         );
         $subscription = array(
-            'method' => ($method === 'account.status') ? array($this, 'handle_account_status_ws'): array($this, 'handle_balance_ws'),
+            'method' => array($this, 'handle_balance_ws'),
         );
+        if ($method === 'account.status') {
+            $subscription['method'] = array($this, 'handle_account_status_ws');
+        }
         return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
     }
 
@@ -3942,10 +3945,7 @@ class binance extends \ccxt\async\binance {
             $account = $this->account();
             $delta = $this->safe_string($message, 'd');
             if (($code !== null) && (is_array($balance) && array_key_exists($code ?? '', $balance))) {
-                $previousValue = $this->safe_value($balance[$code], 'free');
-                if (gettype($previousValue) !== 'string') {
-                    $previousValue = $this->number_to_string($previousValue);
-                }
+                $previousValue = $this->safe_string($balance[$code], 'free');
                 $account['free'] = Precise::string_add($previousValue, $delta);
             } else {
                 $account['free'] = $delta;
@@ -5191,7 +5191,8 @@ class binance extends \ccxt\async\binance {
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $messageValue = $this->safe_dict($message, 'o', $message);
             if (($e === 'ALGO_UPDATE') && ($this->safe_integer($messageValue, 'T') === null)) {
-                $messageValue['T'] = $this->safe_integer($message, 'T'); // keep the outer event time, the algo payload carries no timestamps
+                // keep the outer event time, the algo payload carries no timestamps
+                $messageValue = $this->extend($messageValue, array( 'T' => $this->safe_integer($message, 'T') ));
             }
         }
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
@@ -5955,7 +5956,7 @@ class binance extends \ccxt\async\binance {
                                 }
                                 $fee['cost'] = floatval($feeCostString);
                                 $order['fee'] = $fee;
-                            } elseif ($fee['currency'] === null) {
+                            } elseif ($this->safe_string($fee, 'currency') === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
                                 $order['fees'] = array( $fee, $tradeFee );

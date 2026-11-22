@@ -462,7 +462,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $marketId = $this->safe_string($subscription, 'symbol', '');
         $market = $this->safe_market($marketId);
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $stored = new ArrayCache($tradesLimit);
@@ -651,7 +651,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //     ]
         //
         $marketResolved = $this->safe_market(null, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $last = $this->safe_string($ticker, 6);
         $change = $this->safe_string($ticker, 4);
         return $this->safe_ticker(array(

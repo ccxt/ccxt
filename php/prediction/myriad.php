@@ -1483,13 +1483,7 @@ class myriad extends Exchange {
         if (($requestedStatus === 'open') || ($requestedStatus === 'cancelled') || ($requestedStatus === 'canceled') || ($requestedStatus === 'expired')) {
             return array();
         }
-        $traderParam = $this->safe_string_2($params, 'trader', 'address');
-        $trader = null;
-        if ($traderParam !== null) {
-            $trader = $traderParam;
-        } else {
-            $trader = $this->wallet_address_or_undefined();
-        }
+        $trader = $this->safe_string_2($params, 'trader', 'address', $this->wallet_address_or_undefined());
         if ($trader === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
@@ -2130,9 +2124,9 @@ class myriad extends Exchange {
         $state = $this->safe_string($raw, 'state', 'open');
         $endDate = $this->safe_string($raw, 'expiresAt');
         return array(
-            'id' => $market['id'],
+            'id' => $this->safe_string($market, 'id', ''),
             'slug' => $slug,
-            'event' => $market['market'],
+            'event' => $this->safe_string($market, 'market', ''),
             'title' => $this->safe_string_2($raw, 'title', 'shortName'),
             'description' => $this->safe_string($raw, 'description'),
             'markets' => array( $market ),
@@ -2250,8 +2244,9 @@ class myriad extends Exchange {
         $outcomesLength = count($outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
+        $compositeId = $this->safe_string($raw, 'networkId', '') . ':' . $this->safe_string($raw, 'id', '');
         return array(
-            'id' => $networkId . ':' . $marketId,
+            'id' => $compositeId,
             'market' => $marketSymbol,
             'marketType' => ($outcomesLength > 2) ? 'categorical' : 'binary',
             'executionModel' => $marketExecutionModel,
@@ -3362,7 +3357,7 @@ class myriad extends Exchange {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
-            $this->spawn(array($this, 'pong'), $client, $msg);
+            $this->spawn(array($this, 'pong'), $client);
             return;
         }
         $connectReply = $this->safe_dict($msg, 'connect');

@@ -1098,7 +1098,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.001);
         $marketId = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $last = $this->safe_string($ticker, 'close');
         $quotes = $this->safe_dict($ticker, 'quotes', array());
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -1858,7 +1858,7 @@ class delta extends Exchange {
         //
         $marketId = $this->safe_string($position, 'product_symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
         $sizeString = $this->safe_string($position, 'size');
         $side = null;

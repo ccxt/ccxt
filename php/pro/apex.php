@@ -187,7 +187,7 @@ class apex extends \ccxt\async\apex {
         $id = $this->safe_string_n($trade, array( 'i', 'id', 'v' ));
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
         $side = $this->safe_string_lower_2($trade, 'S', 'side');
         $price = $this->safe_string_2($trade, 'p', 'price');

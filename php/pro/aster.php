@@ -175,7 +175,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -229,7 +233,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchTickers');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -318,7 +326,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchMarkPrices');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -377,7 +389,11 @@ class aster extends \ccxt\async\aster {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
         list($methodName, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', 'unWatchMarkPrices');
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -510,7 +526,11 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' watchBidsAsks() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
@@ -563,7 +583,11 @@ class aster extends \ccxt\async\aster {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, true, true, true);
-        if (($symbolsNormalized === null) || (strlen($symbolsNormalized) === 0)) {
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        if (($symbolsNormalized === null) || ($symbolsLength === 0)) {
             throw new ArgumentsRequired($this->id . ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);

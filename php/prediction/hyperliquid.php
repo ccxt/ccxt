@@ -1472,7 +1472,7 @@ class hyperliquid extends Exchange {
             if ($error !== null) {
                 throw new OrderNotFound($this->id . ' cancelOrders() failed for ' . $this->safe_string($requestIds, $i, $this->safe_string($requestIds, 0)) . ' => ' . $error);
             }
-            $success = ($status === 'success') || ($this->safe_string($status, 'status') === 'success');
+            $success = ($this->safe_string($statuses, $i) === 'success') || ($this->safe_string($status, 'status') === 'success');
             if (!$success) {
                 throw new ExchangeError($this->id . ' cancelOrders() received an unexpected status => ' . $this->json($status));
             }

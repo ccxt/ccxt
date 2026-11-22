@@ -2591,7 +2591,7 @@ class htx extends Exchange {
         //
         $marketId = $this->safe_string_2($trade, 'contract_code', 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $timestamp = $this->safe_integer_n($trade, array( 'ts', 'created-at', 'created_at', 'create_date', 'created_time' ));
         $order = $this->safe_string_2($trade, 'order-id', 'order_id');
         $side = $this->safe_string_2($trade, 'direction', 'side');
@@ -3920,22 +3920,18 @@ class htx extends Exchange {
     }
 
     public function parse_margin_balance_helper(array $balance, string $code, array $result): array {
-        $account = null;
+        $account = $this->account();
         if (is_array($result) && array_key_exists($code ?? '', $result)) {
-            $account = $this->safe_dict($result, $code);
-        } else {
-            $account = $this->account();
+            $account = $this->safe_dict($result, $code, array());
         }
-        if ($account === null) {
-            throw new ExchangeError($this->id . ' parseMarginBalanceHelper() could not resolve account');
-        }
+        $updates = array();
         if ($this->safe_string($balance, 'type') === 'trade') {
-            $account['free'] = $this->safe_string($balance, 'balance');
+            $updates['free'] = $this->safe_string($balance, 'balance');
         }
         if ($this->safe_string($balance, 'type') === 'frozen') {
-            $account['used'] = $this->safe_string($balance, 'balance');
+            $updates['used'] = $this->safe_string($balance, 'balance');
         }
-        return $account;
+        return $this->extend($account, $updates);
     }
 
     public function fetch_spot_orders_by_states(?string $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -6779,7 +6775,7 @@ class htx extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'address' => $address, // only supports existing addresses in your withdraw address list
-            'currency' => strtolower($currency['id']),
+            'currency' => $this->safe_string_lower($currency, 'id', ''),
         );
         if ($tagValue !== null) {
             $request['addr-tag'] = $tagValue; // only for XRP?
@@ -7258,11 +7254,10 @@ class htx extends Exchange {
                 );
             }
         } else {
-            $cursor = $this->safe_value($data, 'current_page');
+            $cursor = $this->safe_string($data, 'current_page');
             $result = $this->safe_list($data, 'data', array());
             for ($i = 0; $i < count($result); $i++) {
-                $entry = $result[$i];
-                $entry['current_page'] = $cursor;
+                $entry = $this->extend($result[$i], array( 'current_page' => $cursor ));
                 $marketId = $this->safe_string($entry, 'contract_code');
                 $symbolInner = $this->safe_symbol($marketId);
                 $timestamp = $this->safe_integer($entry, 'funding_time');
@@ -8077,7 +8072,7 @@ class htx extends Exchange {
         //     }
         //
         $marketResolved = $this->safe_market($this->safe_string($position, 'contract_code'));
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $contracts = $this->safe_string($position, 'volume');
         $contractSize = $this->safe_number($marketResolved, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);

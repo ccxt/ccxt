@@ -515,7 +515,7 @@ class paradex extends \ccxt\async\paradex {
     public function clean_unsubscribed(Client $client, string $unsubHash, array $subscription) {
         $subscribeHashes = $this->safe_list($subscription, 'subscribeHashes', array());
         for ($j = 0; $j < count($subscribeHashes); $j++) {
-            $subscribeHash = $subscribeHashes[$j];
+            $subscribeHash = $this->safe_string($subscribeHashes, $j, '');
             if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$subscribeHash]);
             }
@@ -1153,8 +1153,9 @@ class paradex extends \ccxt\async\paradex {
                 // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 $subscribeHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
                 for ($i = 0; $i < count($subscribeHashes); $i++) {
-                    if (($subscribeHashes[$i] === $scopedHash) || (mb_strpos($subscribeHashes[$i], $channel . '.') === 0)) {
-                        unset($client->subscriptions[$subscribeHashes[$i]]);
+                    $subscribeHash = $this->safe_string($subscribeHashes, $i, '');
+                    if (($subscribeHash === $scopedHash) || (mb_strpos($subscribeHash, $channel . '.') === 0)) {
+                        unset($client->subscriptions[$subscribeHash]);
                     }
                 }
                 $unsubscribe = $this->unsubscribe_request($channel);
@@ -1245,7 +1246,8 @@ class paradex extends \ccxt\async\paradex {
         $othersRemain = false;
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
-            if ((mb_strpos($keys[$i], $channel . '.') === 0) && !$this->in_array($keys[$i], $subscribeHashes)) {
+            $key = $this->safe_string($keys, $i, '');
+            if ((mb_strpos($key, $channel . '.') === 0) && !$this->in_array($key, $subscribeHashes)) {
                 $othersRemain = true;
             }
         }
@@ -1350,7 +1352,7 @@ class paradex extends \ccxt\async\paradex {
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
         // it rejects the watchers of those markets only
         $subscription = array(
-            'id' => $request['id'],
+            'id' => $this->safe_integer($request, 'id'),
             'messageHashes' => $missingHashes,
         );
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $subscribeHashes, $subscription));

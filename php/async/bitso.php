@@ -2096,7 +2096,7 @@ class bitso extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('success' ?? '', $response)) {
+        if ($this->safe_bool($response, 'success') !== null) {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //

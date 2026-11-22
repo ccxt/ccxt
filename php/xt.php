@@ -3955,7 +3955,9 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = (is_array($order) && array_key_exists('result' ?? '', $order)) || (is_array($order) && array_key_exists('positionSide' ?? '', $order)) ? 'contract' : 'spot';
+        $resultId = $this->safe_string($order, 'result');
+        $orderPositionSide = $this->safe_string($order, 'positionSide');
+        $marketType = ($resultId !== null) || ($orderPositionSide !== null) ? 'contract' : 'spot';
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $marketResolved, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');

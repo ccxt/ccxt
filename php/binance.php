@@ -3782,7 +3782,7 @@ class binance extends Exchange {
             return null;
         }
         $contractType = $this->safe_string($market, 'contractType');
-        $contract = (is_array($market) && array_key_exists('contractType' ?? '', $market));
+        $contract = ($contractType !== null);
         $expiry = $this->safe_integer_2($market, 'deliveryDate', 'expiryDate');
         $settleId = $this->safe_string($market, 'marginAsset');
         if (($contractType === 'PERPETUAL') || ($expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
@@ -4740,7 +4740,8 @@ class binance extends Exchange {
         );
         $response = null;
         if ($this->safe_bool($market, 'option', false)) {
-            $response = $this->eapiPublicGetTicker($this->extend($request, $params));
+            $optionResponse = $this->eapiPublicGetTicker($this->extend($request, $params));
+            $response = $this->safe_dict($optionResponse, 0, array());
         } elseif ($this->safe_bool($market, 'linear', false)) {
             $response = $this->fapiPublicGetTicker24hr($this->extend($request, $params));
         } elseif ($this->safe_bool($market, 'inverse', false)) {
@@ -4758,10 +4759,6 @@ class binance extends Exchange {
                     $response = $this->publicGetTicker24hr($this->extend($request, $paramsOmitted));
                 }
             }
-        }
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $firstTicker = $this->safe_dict($response, 0, array());
-            return $this->parse_ticker($firstTicker, $market);
         }
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchTicker() returned empty response');
@@ -5888,7 +5885,7 @@ class binance extends Exchange {
         if ($uppercaseType === 'MARKET') {
             $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
             if ($quoteOrderQty === true) {
-                $quoteOrderQtyNew = $this->safe_value_2($params, 'quoteOrderQty', 'cost');
+                $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                 $precision = $this->safe_value($market['precision'], 'price');
                 if ($quoteOrderQtyNew !== null) {
                     $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQtyNew, TRUNCATE, $precision, $this->precisionMode);
@@ -11372,8 +11369,8 @@ class binance extends Exchange {
                 // sometimes not all the codes are correctly returned...
                 if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
-                        'crossMargin' => $this->safe_value($balances[$code], 'crossMargin'),
-                        'crossWalletBalance' => $this->safe_value($balances[$code], 'crossWalletBalance'),
+                        'crossMargin' => $this->safe_string($balances[$code], 'crossMargin'),
+                        'crossWalletBalance' => $this->safe_string($balances[$code], 'crossWalletBalance'),
                     )), $market);
                     $result[] = $parsed;
                 }
@@ -13638,7 +13635,7 @@ class binance extends Exchange {
                 }
             }
         }
-        return $this->safe_value($config, 'cost', 1);
+        return $this->safe_number($config, 'cost', 1);
     }
 
     public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {

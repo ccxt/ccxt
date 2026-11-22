@@ -869,7 +869,8 @@ class bit2me extends \ccxt\async\bit2me {
             $clientOrderIds = is_array($pending) ? array_keys($pending) : array();
             for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $clientOrderId = $clientOrderIds[$i];
-                if ($pending[$clientOrderId] === $marketId) {
+                $pendingMarketId = $this->safe_string($pending, $clientOrderId);
+                if ($pendingMarketId === $marketId) {
                     $this->settle_request($client, 'added-order:' . $clientOrderId, null, $exception);
                     $this->options['pendingWsOrders'] = $this->omit($this->options['pendingWsOrders'], $clientOrderId);
                 }

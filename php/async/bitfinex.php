@@ -1808,7 +1808,9 @@ class bitfinex extends Exchange {
          */
         $market = $this->market($symbol);
         $amountString = $this->amount_to_precision($symbol, $amount);
-        $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
+        if ($side !== 'buy') {
+            $amountString = Precise::string_neg($amountString);
+        }
         $request = array(
             'symbol' => $market['id'],
             'amount' => $amountString,
@@ -4143,7 +4145,9 @@ class bitfinex extends Exchange {
         );
         if ($amount !== null) {
             $amountString = $this->amount_to_precision($symbol, $amount);
-            $amountString = ($side === 'buy') ? $amountString : (Precise::string_neg($amountString));
+            if ($side !== 'buy') {
+                $amountString = Precise::string_neg($amountString);
+            }
             $request['amount'] = $amountString;
         }
         $triggerPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');

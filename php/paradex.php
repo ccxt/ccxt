@@ -602,7 +602,7 @@ class paradex extends Exchange {
         // the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
         $assetKinds = array();
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i, '');
             if ($marketType === 'swap') {
                 $assetKinds['PERP'] = true;
             } elseif ($marketType === 'spot') {
@@ -841,11 +841,11 @@ class paradex extends Exchange {
         //
         $parts = explode('-', $symbol);
         $partsLength = count($parts);
-        $base = null;
+        $base = '';
         $quote = '';
         $settle = null;
         $expiryDate = null;
-        $strike = null;
+        $strike = '';
         $optionType = '';
         if (mb_strpos($symbol, '/') > -1) {
             if ($partsLength !== 4) {
@@ -853,19 +853,19 @@ class paradex extends Exchange {
             }
             $pair = $parts[0];
             $pairParts = explode('/', $pair);
-            $base = $this->safe_string($pairParts, 0);
+            $base = $this->safe_string($pairParts, 0, '');
             $quoteAndSettle = $this->safe_string($pairParts, 1, '');
             $quoteParts = explode(':', $quoteAndSettle);
             $quote = $this->safe_string($quoteParts, 0, '');
             $settle = $this->safe_string($quoteParts, 1, $quote);
             $expiryDate = $this->safe_string($parts, 1);
-            $strike = $this->safe_string($parts, 2);
+            $strike = $this->safe_string($parts, 2, '');
             $optionType = $this->safe_string($parts, 3, '');
         } else {
             if ($partsLength !== 5) {
                 throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
             }
-            $base = $this->safe_string($parts, 0);
+            $base = $this->safe_string($parts, 0, '');
             $quote = $this->safe_string($parts, 1, '');
             $settle = 'USDC'; // every option on the venue settles in USDC
             $expiryDate = $this->convert_market_id_expire_date($this->safe_string($parts, 2));
@@ -885,13 +885,12 @@ class paradex extends Exchange {
         if (($timestamp !== null) && ($this->sum($timestamp, 86400000) <= $this->milliseconds())) {
             $active = false;
         }
-        $strikeInId = '';
-        if ($strike !== null) {
-            $strikeInId = str_replace('.', '_', $strike);
-        }
+        $strikeInId = str_replace('.', '_', $strike);
+        $idTail = '-' . $strikeInId . '-' . $optionType;
+        $symbolTail = '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $base . '-' . $quote . '-' . $idDate . '-' . $strikeInId . '-' . $optionType,
-            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiryDate . '-' . $strike . '-' . $optionType,
+            'id' => $base . '-' . $quote . '-' . $idDate . $idTail,
+            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiryDate . $symbolTail,
             'base' => $base,
             'quote' => $quote,
             'settle' => $settle,
@@ -1112,7 +1111,7 @@ class paradex extends Exchange {
             $request['price_kind'] = ($price === 'index') ? 'underlying' : $price;
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('end_at', $request, $paramsPaginate);
-        $hasEnd = (is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil));
+        $hasEnd = ($this->safe_integer($requestUntil, 'end_at') !== null);
         $paramsOmitted = $this->omit($paramsUntil, array( 'price' ));
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         $limitResolved = (($limit === null) || ($limit > 1000)) ? 1000 : $limit;
@@ -1562,10 +1561,11 @@ class paradex extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'results', array());
+        $tagged = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trades[$i]['next'] = $this->safe_string($response, 'next');
+            $tagged[] = $this->extend($trades[$i], array( 'next' => $this->safe_string($response, 'next') ));
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($tagged, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -2115,13 +2115,17 @@ class paradex extends Exchange {
             throw new ExchangeError($this->id . ' signOrderRequest() missing orderType');
         }
         $isMarket = (mb_strpos($orderType, 'MARKET') !== false);
+        $orderPrice = '0';
+        if (!$isMarket) {
+            $orderPrice = $this->scale_number($this->safe_string($request, 'price'));
+        }
         $orderReq = array(
             'timestamp' => $now,
             'market' => $this->string_to_base16($this->safe_string($request, 'market')),
             'side' => ($this->safe_string($request, 'side') === 'BUY') ? '1' : '2',
             'orderType' => $this->string_to_base16($this->safe_string($request, 'type')),
             'size' => $this->scale_number($this->safe_string($request, 'size')),
-            'price' => ($isMarket) ? '0' : $this->scale_number($this->safe_string($request, 'price')),
+            'price' => $orderPrice,
         );
         $orderFields = array(
             array( 'name' => 'timestamp', 'type' => 'felt' ),
@@ -2804,10 +2808,11 @@ class paradex extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'results', array());
+        $tagged = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trades[$i]['next'] = $this->safe_string($response, 'next');
+            $tagged[] = $this->extend($trades[$i], array( 'next' => $this->safe_string($response, 'next') ));
         }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($tagged, $market, $since, $limit);
     }
 
     public function fetch_position(string $symbol, $params = array()): array {
@@ -3228,10 +3233,11 @@ class paradex extends Exchange {
         $rows = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
+        $tagged = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $rows[$i]['next'] = $next;
+            $tagged[] = $this->extend($rows[$i], array( 'next' => $next ));
         }
-        return $this->parse_transfers($rows, $currency, $since, $limit);
+        return $this->parse_transfers($tagged, $currency, $since, $limit);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3899,10 +3905,11 @@ class paradex extends Exchange {
         $results = $this->safe_list($response, 'results', array());
         // the cursor pagination reads the next page cursor from the parsed entries
         $next = $this->safe_string($response, 'next');
+        $tagged = array();
         for ($i = 0; $i < count($results); $i++) {
-            $results[$i]['next'] = $next;
+            $tagged[] = $this->extend($results[$i], array( 'next' => $next ));
         }
-        return $this->parse_incomes($results, $market, $since, $limit);
+        return $this->parse_incomes($tagged, $market, $since, $limit);
     }
 
     public function parse_income(array $income, ?array $market = null): array {
@@ -3987,7 +3994,7 @@ class paradex extends Exchange {
             // rows and skip since, the range is cut to one page of rows from since
             $windowEnd = $this->sum($since, $pageSize * $rowSpacing);
             $endAt = $this->safe_integer($requestUntil, 'end_at', $windowEnd);
-            if (!(is_array($requestUntil) && array_key_exists('end_at' ?? '', $requestUntil)) || ($endAt > $windowEnd)) {
+            if (($this->safe_integer($requestUntil, 'end_at') === null) || ($endAt > $windowEnd)) {
                 $requestUntil['end_at'] = $windowEnd;
             }
         }

@@ -747,7 +747,7 @@ class btcturk extends Exchange {
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitCount = ($limit === null) ? 100 : min($limit, 11000);
-            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
+            $limitSeconds = $seconds * ($limitCount - 1);
             if ($since !== null) {
                 $sinceSeconds = $this->parse_to_int($since / 1000);
                 $to = $sinceSeconds . $limitSeconds;

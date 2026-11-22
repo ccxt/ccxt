@@ -2267,7 +2267,7 @@ class digifinex extends Exchange {
             }
             $ordersRequests = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $market = $this->market($symbols[$i]);
+                $market = $this->market($this->safe_string($symbols, $i));
                 $marketId = $this->safe_string($market, 'id');
                 $orderId = $ids[$i];
                 $ordersRequests[] = array(
@@ -2295,7 +2295,7 @@ class digifinex extends Exchange {
                 $result[] = $this->safe_order(array(
                     'info' => $orderId,
                     'id' => $orderId,
-                    'symbol' => $symbols[$i],
+                    'symbol' => $this->safe_string($symbols, $i),
                     'status' => $status,
                 ));
             }
@@ -4665,8 +4665,10 @@ class digifinex extends Exchange {
                         );
                     }
                 } else {
-                    $depositWithdrawFee['withdraw'] = $withdrawResult;
-                    $depositWithdrawFee['deposit'] = $depositResult;
+                    $depositWithdrawFees[$code] = $this->extend($depositWithdrawFee, array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    ));
                 }
             }
         }

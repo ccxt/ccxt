@@ -889,15 +889,11 @@ class cryptocom extends Exchange {
         $request = array();
         if ($symbols !== null) {
             $symbol = null;
-            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
-                $symbolsLength = count($symbols);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchTickers() symbols argument cannot contain more than 1 symbol');
-                }
-                $symbol = $this->safe_string($symbols, 0);
-            } else {
-                $symbol = $symbols;
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchTickers() symbols argument cannot contain more than 1 symbol');
             }
+            $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];
         }
@@ -2619,7 +2615,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if ($this->safe_string($transaction, 'client_wid') !== null) {
+        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {
@@ -3306,16 +3302,12 @@ class cryptocom extends Exchange {
         $market = null;
         if ($symbolsNormalized !== null) {
             $symbol = null;
-            if ((gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-                $symbolsLength = count($symbolsNormalized);
-                if ($symbolsLength > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
-                }
-                if ($symbolsLength === 1) {
-                    $symbol = $symbolsNormalized[0];
-                }
-            } else {
-                $symbol = $symbolsNormalized;
+            $symbolsLength = count($symbolsNormalized);
+            if ($symbolsLength > 1) {
+                throw new BadRequest($this->id . ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+            }
+            if ($symbolsLength === 1) {
+                $symbol = $symbolsNormalized[0];
             }
             $market = $this->market($symbol);
             $request['instrument_name'] = $market['id'];

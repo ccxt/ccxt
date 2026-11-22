@@ -425,7 +425,7 @@ class mudrex extends Exchange {
                 continue;
             }
             $m = $this->safe_market($sym);
-            $symbol = $m['symbol'];
+            $symbol = $this->safe_string($m, 'symbol', '');
             if ($symbols !== null && !$this->in_array($symbol, $symbols)) {
                 continue;
             }
@@ -437,7 +437,7 @@ class mudrex extends Exchange {
     public function parse_ticker(array $ticker, ?array $market = null): array {
         $ms = $this->safe_string($ticker, 'symbol');
         $marketResolved = $this->safe_market($ms, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $pct = $this->safe_number($ticker, 'change_perc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -903,7 +903,7 @@ class mudrex extends Exchange {
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_at'));
         $status = $this->parse_order_status($this->safe_string_lower($order, 'status'));
-        $sym = $marketResolved['symbol'];
+        $sym = $this->safe_string($marketResolved, 'symbol', '');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $oid,
@@ -1471,7 +1471,7 @@ class mudrex extends Exchange {
         //
         $ms = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($ms, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $ts = $this->parse8601($this->safe_string($trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         $side = $this->safe_string_lower($trade, 'order_type');

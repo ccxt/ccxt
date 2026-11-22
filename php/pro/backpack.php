@@ -1447,7 +1447,7 @@ class backpack extends \ccxt\async\backpack {
         $data = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $event = $this->safe_string($data, 'e', '');
         if ((mb_strpos($event, 'rfq') === 0) || (mb_strpos($event, 'quote') === 0)) {
             $parsed = $this->parse_ws_rfq_order($data, $market);
@@ -1827,7 +1827,7 @@ class backpack extends \ccxt\async\backpack {
         $id = $this->safe_string($position, 'i');
         $marketId = $this->safe_string($position, 's');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $notional = $this->safe_string($position, 'n');
         $liquidationPrice = $this->safe_string($position, 'l');
         $entryPrice = $this->safe_string($position, 'b');

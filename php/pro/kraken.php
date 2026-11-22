@@ -1493,8 +1493,8 @@ class kraken extends \ccxt\async\kraken {
             $symbol = $this->safe_string($market, 'symbol');
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {
-            $fees = $this->safe_list($trade, 'fees', array());
+        $fees = $this->safe_list($trade, 'fees');
+        if ($fees !== null) {
             $firstFee = $this->safe_dict($fees, 0, array());
             $fee = array(
                 'cost' => $this->safe_number($firstFee, 'qty'),

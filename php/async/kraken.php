@@ -1541,12 +1541,14 @@ class kraken extends Exchange {
         $orderId = null;
         $fee = null;
         $symbol = null;
-        $isOrderTrade = ((gettype($trade) !== 'array' || array_keys($trade) !== array_keys(array_keys($trade)))) && (gettype($trade) !== 'string') && ($this->safe_string($trade, 'ordertxid') !== null);
+        $tradeIsList = (gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)));
+        $tradeIsString = gettype($trade) === 'string';
+        $isOrderTrade = (!$tradeIsList) && (!$tradeIsString) && ($this->safe_string($trade, 'ordertxid') !== null);
         $marketResolved = $market;
         if ($isOrderTrade) {
             $marketResolved = $this->resolve_market_by_altname_or_id($this->safe_string($trade, 'pair'), $market);
         }
-        if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
+        if ($tradeIsList) {
             $timestamp = $this->safe_timestamp($trade, 2);
             $side = ($this->safe_string($trade, 3) === 's') ? 'sell' : 'buy';
             $type = ($this->safe_string($trade, 4) === 'l') ? 'limit' : 'market';
@@ -1556,7 +1558,7 @@ class kraken extends Exchange {
             if ($tradeLength > 6) {
                 $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
-        } elseif (gettype($trade) === 'string') {
+        } elseif ($tradeIsString) {
             $id = $trade;
         } elseif ($isOrderTrade) {
             $orderId = $this->safe_string($trade, 'ordertxid');

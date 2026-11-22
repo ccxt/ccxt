@@ -807,8 +807,9 @@ class htx extends \ccxt\async\htx {
                 throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
             }
         }
-        $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $this->safe_integer($orderbook, 'nonce'));
-        $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $this->safe_integer($orderbook, 'nonce'));
+        $currentNonce = $this->safe_integer($orderbook, 'nonce');
+        $spotConditon = ($market['spot'] === true) && ($prevSeqNum === $currentNonce);
+        $nonSpotCondition = ($market['contract'] === true) && ($version !== null) && ($version - 1 === $currentNonce);
         if (($spotConditon) || ($nonSpotCondition)) {
             $asks = $this->safe_list($tick, 'asks', array());
             $bids = $this->safe_list($tick, 'bids', array());
@@ -2172,7 +2173,7 @@ class htx extends \ccxt\async\htx {
             }
             $first = $this->safe_dict($data, 0, array());
             $splitTopic = explode('.', $topic);
-            $messageHash = $this->safe_string($splitTopic, 0);
+            $messageHash = $this->safe_string($splitTopic, 0, '');
             $subscription = $this->safe_dict_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if subscription not found means that we subscribed to a specific currency/symbol

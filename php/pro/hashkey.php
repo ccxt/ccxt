@@ -814,7 +814,7 @@ class hashkey extends \ccxt\async\hashkey {
         $options = $this->safe_dict($this->options, 'watchBalance');
         $snapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', true);
         if ($snapshot) {
-            $messageHash = $type . ':' . 'fetchBalanceSnapshot';
+            $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);

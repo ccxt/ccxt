@@ -65,7 +65,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $market = $this->market($symbol);
         $messageHash = 'trades:' . $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchTrades() marketId is required');
         }
@@ -414,7 +414,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchOrderBook() marketId is required');
         }

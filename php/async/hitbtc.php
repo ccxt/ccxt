@@ -2597,7 +2597,8 @@ class hitbtc extends Exchange {
         );
         if ($reduceOnly !== null) {
             if (($resolvedMarketType !== 'swap') && ($resolvedMarketType !== 'margin')) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $market['type'] . ' orders, reduce_only orders are supported for swap and margin markets only');
+                $marketTypeString = $this->safe_string($market, 'type', '');
+                throw new InvalidOrder($this->id . ' createOrder() does not support reduce_only for ' . $marketTypeString . ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
         if ($reduceOnly === true) {

@@ -822,7 +822,7 @@ class bullish extends Exchange {
             $spot = true;
             $contract = false;
             $margin = $this->safe_bool($market, 'marginTradingEnabled');
-        } else {
+        } elseif ($settle !== null) {
             $contractSize = $this->safe_number($market, 'contractMultiplier');
             $symbol = $base . '/' . $quote . ':' . $settle;
             $linear = $settle === $quote;
@@ -841,7 +841,8 @@ class bullish extends Exchange {
                     $option = true;
                     $optionType = $this->safe_string_lower($market, 'optionType');
                     $strike = $this->parse_to_numeric($this->safe_string($market, 'optionStrikePrice'));
-                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $dateYmd . '-' . $this->number_to_string($strike) . '-' . $this->safe_string($idParts, 4);
+                    $optionSide = $this->safe_string($idParts, 4, '');
+                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $dateYmd . '-' . $this->number_to_string($strike) . '-' . $optionSide;
                 }
             }
         }

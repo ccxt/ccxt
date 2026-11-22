@@ -88,7 +88,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'ORDER_BOOK' . ':' . $symbolValue;
         $marketIdValue = $this->safe_string($market, 'id', '');
         $endPart = null;
@@ -160,7 +160,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'TRADE' . ':' . $symbolValue;
         $trades = Async\await($this->watch_public('trades', $messageHash, $market['id']));
         $limitResolved = $limit;
@@ -235,7 +235,7 @@ class bitopro extends \ccxt\async\bitopro {
         $messageHash = 'USER_TRADE';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolValue = $market['symbol'];
+            $symbolValue = $this->safe_string($market, 'symbol', '');
             $messageHash = $messageHash . ':' . $symbolValue;
         }
         $wsUrl = $this->safe_string($this->urls['ws'], 'private');
@@ -395,7 +395,7 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'TICKER' . ':' . $symbolValue;
         return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
     }

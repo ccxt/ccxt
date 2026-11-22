@@ -486,7 +486,7 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $rawfr = $this->safe_dict($data, $i);
             $fundingRate = $this->parse_funding_rate($rawfr);
-            $symbol = $fundingRate['symbol'];
+            $symbol = $this->safe_string($fundingRate, 'symbol');
             if ($symbol !== null) {
                 $this->fundingRates[$symbol] = $fundingRate;
             }
@@ -513,10 +513,9 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchTicker', 'channel', 'tickers');
-        $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $ticker = Async\await($this->watch_tickers(array( $symbolValue ), $paramsChannel));
+        $ticker = Async\await($this->watch_tickers(array( $symbolValue ), $this->extend($paramsChannel, array( 'channel' => $channel ))));
         return $this->safe_value($ticker, $symbolValue);
     }
 
@@ -584,10 +583,9 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
         }
         list($channel, $paramsChannel) = $this->handle_option_string_and_params($params, 'watchMarkPrice', 'channel', 'mark-price');
-        $paramsChannel['channel'] = $channel;
         $market = $this->market($symbol);
         $symbolValue = $market['symbol'];
-        $ticker = Async\await($this->watch_mark_prices(array( $symbolValue ), $paramsChannel));
+        $ticker = Async\await($this->watch_mark_prices(array( $symbolValue ), $this->extend($paramsChannel, array( 'channel' => $channel ))));
         return $this->safe_value($ticker, $symbolValue);
     }
 
@@ -2197,7 +2195,7 @@ class okx extends \ccxt\async\okx {
         $arg = $this->safe_dict($message, 'arg', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId, null, '-');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol');
         $channel = $this->safe_string($arg, 'channel', '');
         $data = $this->safe_list($message, 'data', array());
         if ($this->positions === null) {
@@ -2211,8 +2209,7 @@ class okx extends \ccxt\async\okx {
             $contracts = $this->safe_number($position, 'contracts');
             if ($contracts === 0 && $this->safe_string($rawPosition, 'posSide') === 'net') {
                 $position['side'] = 'long';
-                $shortPosition = $this->clone($position);
-                $shortPosition['side'] = 'short';
+                $shortPosition = $this->extend($this->clone($position), array( 'side' => 'short' ));
                 $cache->append($shortPosition);
                 $newPositions[] = $shortPosition;
             }

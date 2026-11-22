@@ -478,7 +478,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         if ($dataList !== null) {
             $orders = $this->parse_orders($dataList);
         } else {
-            $data = $this->safe_value($params, 'data', array());
+            $data = $this->safe_dict($params, 'data', array());
             $orders = array( $this->parse_order($data) );
         }
         $ordersLength = count($orders);
@@ -581,7 +581,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
             $position = $positions[$i];
-            if ($position['side'] === null) {
+            if ($this->safe_string($position, 'side') === null) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 $position['side'] = 'long';
                 $shortPosition = $this->clone($position);

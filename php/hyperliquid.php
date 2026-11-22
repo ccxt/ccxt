@@ -2413,7 +2413,7 @@ class hyperliquid extends Exchange {
             $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $type = $this->safe_string_upper($rawOrder, 'type');
             $side = $this->safe_string_upper($rawOrder, 'side');
             $amount = $this->safe_string($rawOrder, 'amount');
@@ -2862,7 +2862,7 @@ class hyperliquid extends Exchange {
             $id = $this->safe_string($rawOrder, 'id');
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $market = $this->market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $type = $this->safe_string_upper($rawOrder, 'type');
             $isMarket = ($type === 'MARKET');
             $side = $this->safe_string_upper($rawOrder, 'side');

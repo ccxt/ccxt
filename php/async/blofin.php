@@ -675,6 +675,13 @@ class blofin extends Exchange {
         $contractType = $this->safe_string($market, 'contractType');
         $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
         $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        $costLimits = array(
+            'min' => null,
+            'max' => $maxSpotCost,
+        );
+        if ($contract) {
+            $costLimits['max'] = null;
+        }
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -719,10 +726,7 @@ class blofin extends Exchange {
                     'min' => null,
                     'max' => null,
                 ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => $contract ? null : $maxSpotCost,
-                ),
+                'cost' => $costLimits,
             ),
             'info' => $market,
         ));
@@ -3135,7 +3139,7 @@ class blofin extends Exchange {
         //
         $marketId = $this->safe_string($position, 'instId');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol', '');
         $pos = $this->safe_string($position, 'positions');
         $contractsAbs = Precise::string_abs($pos);
         $side = $this->safe_string($position, 'positionSide');

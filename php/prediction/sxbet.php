@@ -354,14 +354,17 @@ class sxbet extends Exchange {
             $gameTime = $this->safe_timestamp($raw, 'gameTime');
         }
         $outcomeLabels = array( $outcomeOneName, $outcomeTwoName );
-        $outcomeIds = array( $marketHash, $marketHash . '-2' );
         $outcomes = array();
         for ($oi = 0; $oi < count($outcomeLabels); $oi++) {
             $label = $outcomeLabels[$oi];
             $outcomeHandle = $this->slug_to_outcome_symbol($eventSlug, $marketSlug, $label);
+            $outcomeSuffix = '';
+            if ($oi > 0) {
+                $outcomeSuffix = '-2';
+            }
             $outcomes[] = array(
-                'id' => $outcomeIds[$oi],
-                'outcomeId' => $outcomeIds[$oi],
+                'id' => $marketHash . $outcomeSuffix,
+                'outcomeId' => $marketHash . $outcomeSuffix,
                 'outcome' => $outcomeHandle,
                 'market' => $marketSymbol,
                 'label' => $label,
@@ -512,7 +515,8 @@ class sxbet extends Exchange {
             $evMarketsLength = count($evMarkets);
             for ($j = 0; $j < $evMarketsLength; $j++) {
                 $m = $evMarkets[$j];
-                $this->markets[$m['market']] = $m;
+                $marketKey = $this->safe_string($m, 'market', '');
+                $this->markets[$marketKey] = $m;
             }
             $result[] = $event;
         }
@@ -2319,7 +2323,7 @@ class sxbet extends Exchange {
         $keys = is_array($msg) ? array_keys($msg) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
-            $this->spawn(array($this, 'pong'), $client, $msg);
+            $this->spawn(array($this, 'pong'), $client);
             return;
         }
         $requestIdString = $this->safe_string($msg, 'id');

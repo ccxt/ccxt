@@ -2249,6 +2249,13 @@ class bybit extends Exchange {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
             $contractSize = $inverse ? $this->safe_number_2($lotSizeFilter, 'minTradingQty', 'minOrderQty') : $this->parse_number('1');
+            $costLimits = array(
+                'min' => null,
+                'max' => null,
+            );
+            if ($linear) {
+                $costLimits['min'] = $this->safe_number($lotSizeFilter, 'minNotionalValue'); // https://bybit-exchange.github.io/docs/v5/market/instrument
+            }
             $parsedMarket = $this->safe_market_structure(array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -2292,10 +2299,7 @@ class bybit extends Exchange {
                         'min' => $this->safe_number($priceFilter, 'minPrice'),
                         'max' => $this->safe_number($priceFilter, 'maxPrice'),
                     ),
-                    'cost' => array(
-                        'min' => $linear ? $this->safe_number($lotSizeFilter, 'minNotionalValue') : null, // https://bybit-exchange.github.io/docs/v5/market/instrument
-                        'max' => null,
-                    ),
+                    'cost' => $costLimits,
                 ),
                 'created' => $this->safe_integer($market, 'launchTime'),
                 'info' => $market,
@@ -3113,7 +3117,7 @@ class bybit extends Exchange {
         );
         $market = $this->market($symbol);
         $fundingTimeFrameMins = $this->safe_integer($market['info'], 'fundingInterval');
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request['symbol'] = $market['id'];
         list($type, $paramsValue) = $this->get_bybit_type('fetchFundingRateHistory', $market, $paramsPaginate);
         if ($type === 'spot' || $type === 'option') {
@@ -3330,8 +3334,7 @@ class bybit extends Exchange {
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
         $marketType = 'spot';
-        $createType = $this->safe_string($trade, 'createType');
-        if ($createType !== null) {
+        if (is_array($trade) && array_key_exists('createType' ?? '', $trade)) {
             $marketType = 'contract';
         }
         $category = $this->safe_string($trade, 'category');
@@ -4050,8 +4053,7 @@ class bybit extends Exchange {
             }
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $tpslMode = $this->safe_string($order, 'tpslMode');
-        $isContract = ($tpslMode !== null);
+        $isContract = (is_array($order) && array_key_exists('tpslMode' ?? '', $order));
         $marketType = null;
         if ($market !== null) {
             $marketType = $this->safe_string($market, 'type');
@@ -4295,7 +4297,7 @@ class bybit extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $lowerCaseType = strtolower($type);
         $request = array(
             'symbol' => $market['id'],
@@ -6321,8 +6323,7 @@ class bybit extends Exchange {
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
         $type = 'withdrawal';
-        $depositFee = $this->safe_string($transaction, 'depositFee');
-        if ($depositFee !== null) {
+        if (is_array($transaction) && array_key_exists('depositFee' ?? '', $transaction)) {
             $type = 'deposit';
         }
         $fee = null;

@@ -2507,9 +2507,6 @@ class extended extends Exchange {
          */
         Async\await($this->load_markets());
         $symbolsList = $symbols;
-        if (gettype($symbols) === 'string') {
-            $symbolsList = array( $symbols );
-        }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'paginate', false);
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbolsList, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000));

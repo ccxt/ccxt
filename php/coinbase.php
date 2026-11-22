@@ -3790,9 +3790,11 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
+        $ordersLength = count($orders);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $orders[0] = $this->extend($this->safe_dict($orders, 0, array()), array( 'cursor' => $cursor ));
+        if (($ordersLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $ordersLength - 1;
+            $orders[$lastIndex] = $this->extend($this->safe_dict($orders, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -3865,9 +3867,11 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_list($response, 'orders', array());
+        $ordersLength = count($orders);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $orders[0] = $this->extend($this->safe_dict($orders, 0, array()), array( 'cursor' => $cursor ));
+        if (($ordersLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $ordersLength - 1;
+            $orders[$lastIndex] = $this->extend($this->safe_dict($orders, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_orders($orders, $market, $since, $limitResolved);
     }
@@ -4165,9 +4169,11 @@ class coinbase extends Exchange {
         //     }
         //
         $trades = $this->safe_list($response, 'fills', array());
+        $tradesLength = count($trades);
         $cursor = $this->safe_string($response, 'cursor');
-        if (($cursor !== null) && ($cursor !== '')) {
-            $trades[0] = $this->extend($this->safe_dict($trades, 0, array()), array( 'cursor' => $cursor ));
+        if (($tradesLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+            $lastIndex = $tradesLength - 1;
+            $trades[$lastIndex] = $this->extend($this->safe_dict($trades, $lastIndex, array()), array( 'cursor' => $cursor ));
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }

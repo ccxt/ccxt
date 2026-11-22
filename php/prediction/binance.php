@@ -1376,7 +1376,7 @@ class binance extends Exchange {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);
             $market = $this->market($this->safe_string($outcomeObj, 'market'));
-            $request['marketTopicId'] = $market['info']['marketTopicId'];
+            $request['marketTopicId'] = $this->safe_string($market['info'], 'marketTopicId');
         }
         $wallet = Async\await($this->fetch_wallet('fetchOrders', $params));
         $request['walletAddress'] = $this->safe_string($wallet, 'walletAddress');

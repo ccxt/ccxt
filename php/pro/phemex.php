@@ -335,7 +335,7 @@ class phemex extends \ccxt\async\phemex {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $usePerpetualApi = $this->safe_string($paramsMarketType, 'settle') === 'USDT';
         $messageHash = 'perpetual:balance';
-        if (!$usePerpetualApi) {
+        if (!$usePerpetualApi && ($type !== null)) {
             $messageHash = $type . ':balance';
         }
         return Async\await($this->subscribe_private($type, $messageHash, $paramsMarketType));
@@ -543,7 +543,7 @@ class phemex extends \ccxt\async\phemex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $isSwap = $market['swap'];
         $settleIsUSDT = $market['settle'] === 'USDT';
         $name = 'spot_market24h';
@@ -639,7 +639,7 @@ class phemex extends \ccxt\async\phemex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -689,7 +689,7 @@ class phemex extends \ccxt\async\phemex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -736,7 +736,7 @@ class phemex extends \ccxt\async\phemex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
         $isSwap = $market['swap'];
@@ -1010,7 +1010,7 @@ class phemex extends \ccxt\async\phemex {
             $settle = $this->safe_string($paramsType, 'settle');
             if ($settle === 'USDT') {
                 $messageHash = 'trades:perpetual';
-            } else {
+            } elseif ($type !== null) {
                 $messageHash = 'trades:' . $type;
             }
         }
@@ -1187,7 +1187,7 @@ class phemex extends \ccxt\async\phemex {
         if ($symbol === null) {
             if ($isUSDTSettled) {
                 $messageHash = 'orders:perpetual';
-            } else {
+            } elseif ($type !== null) {
                 $messageHash = 'orders:' . $type;
             }
         }

@@ -833,7 +833,7 @@ class xt extends \ccxt\async\xt {
             $timestamp = $this->safe_integer($data, 't');
             $fundingRate['timestamp'] = $timestamp;
             $fundingRate['datetime'] = $this->iso8601($timestamp);
-            $symbol = $fundingRate['symbol'];
+            $symbol = $this->safe_string($fundingRate, 'symbol', '');
             $this->fundingRates[$symbol] = $fundingRate;
             $event = $this->safe_string($message, 'event');
             if ($event !== null) {
@@ -1167,7 +1167,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'spot';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $parsed = $this->parse_ohlcv($data, $market);
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -1227,7 +1227,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'spot';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $event = $this->safe_string($message, 'event');
             $tradesArray = $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
@@ -1315,7 +1315,7 @@ class xt extends \ccxt\async\xt {
                 $tradeType = 'contract';
             }
             $market = $this->safe_market($marketId, null, null, $tradeType);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $obAsks = $this->safe_list($data, 'a');
             $obBids = $this->safe_list($data, 'b');
             $messageHash = $event . '::' . $tradeType;

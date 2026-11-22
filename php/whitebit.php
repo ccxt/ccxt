@@ -3221,15 +3221,22 @@ class whitebit extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ticker');
         $status = $this->safe_string($transaction, 'status');
         $method = $this->safe_string($transaction, 'method');
+        $addressFrom = null;
+        $addressTo = null;
+        if ($method === '1') {
+            $addressFrom = $address;
+        } elseif ($method === '2') {
+            $addressTo = $address;
+        }
         return array(
             'id' => $this->safe_string($transaction, 'uniqueId'),
             'txid' => $this->safe_string($transaction, 'transactionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => $this->network_id_to_code($this->safe_string($transaction, 'network'), $this->safe_currency_code($currencyId, $currencyResolved)),
-            'addressFrom' => ($method === '1') ? $address : null,
+            'addressFrom' => $addressFrom,
             'address' => $address,
-            'addressTo' => ($method === '2') ? $address : null,
+            'addressTo' => $addressTo,
             'amount' => $this->safe_number($transaction, 'amount'),
             'type' => ($method === '1') ? 'deposit' : 'withdrawal',
             'currency' => $this->safe_currency_code($currencyId, $currencyResolved),

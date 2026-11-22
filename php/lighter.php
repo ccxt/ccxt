@@ -2544,7 +2544,7 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsToAccountIndex);
         $currency = $this->currency($code);
-        $currencyCode = $currency['code'];
+        $currencyCode = $this->safe_string($currency, 'code', '');
         if (($currencyCode !== 'USDC') && ($currencyCode !== 'ETH')) {
             throw new ExchangeError($this->id . ' transfer() only supports USDC and ETH transfers');
         }
@@ -2891,7 +2891,7 @@ class lighter extends Exchange {
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->safe_integer($this->options, 'chainId'), $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $paramsAccountIndex);
         $currency = $this->currency($code);
-        $currencyCode = $currency['code'];
+        $currencyCode = $this->safe_string($currency, 'code', '');
         if (($currencyCode !== 'USDC') && ($currencyCode !== 'ETH')) {
             throw new ExchangeError($this->id . ' withdraw() only supports USDC and ETH transfers');
         }

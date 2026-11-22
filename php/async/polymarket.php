@@ -980,9 +980,9 @@ class polymarket extends Exchange {
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_markets());
-        $paginate = false;
         $paramsOmitted = $params;
-        list($paginate, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'fetchOHLCV', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchOHLCV', 'paginate', false);
+        $paramsOmitted = $paramsPaginate;
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsOmitted, 1000));
         }
@@ -1149,9 +1149,9 @@ class polymarket extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         Async\await($this->load_markets());
-        $paginate = false;
         $paramsOmitted = $params;
-        list($paginate, $paramsOmitted) = $this->handle_option_and_params($paramsOmitted, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchFundingRateHistory', 'paginate', false);
+        $paramsOmitted = $paramsPaginate;
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '1h', $paramsOmitted, 100));
         }
@@ -2554,7 +2554,7 @@ class polymarket extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $row = $this->safe_dict($response, $i, array());
             $rowId = $this->safe_string($row, 'instrument_id');
-            if ($rowId === $market['id']) {
+            if ($rowId === $this->safe_string($market, 'id')) {
                 return $this->parse_leverage($row, $market);
             }
         }

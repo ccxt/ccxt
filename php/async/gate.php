@@ -1498,6 +1498,13 @@ class gate extends Exchange {
             $marginStatus = $this->safe_integer($market, 'status', 1); // 0 disabled, 1 enabled
             $leverage = $this->safe_number($market, 'leverage');
             $margin = $leverage !== null;
+            $costLimits = array(
+                'min' => $this->safe_number($market, 'min_quote_amount'),
+                'max' => null,
+            );
+            if ($margin) {
+                $costLimits['max'] = $this->safe_number($market, 'max_quote_amount');
+            }
             $buyStart = $this->safe_integer_product($spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             $createdTs = ($buyStart !== 0) ? $buyStart : null;
             $active = ($tradeStatus === 'tradable') || ($margin && ($marginStatus === 1));
@@ -1545,10 +1552,7 @@ class gate extends Exchange {
                         'min' => null,
                         'max' => null,
                     ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_quote_amount'),
-                        'max' => $margin ? $this->safe_number($market, 'max_quote_amount') : null,
-                    ),
+                    'cost' => $costLimits,
                 ),
                 'created' => $createdTs,
                 'info' => $market,
@@ -3103,7 +3107,7 @@ class gate extends Exchange {
         } elseif ($this->safe_bool($market, 'future', false)) {
             $response = Async\await($this->publicDeliveryGetSettleTickers($this->extend($request, $query)));
         } elseif ($this->safe_bool($market, 'option', false)) {
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $optionParts = explode('-', $marketId);
             $request['underlying'] = $this->safe_string($optionParts, 0);
             $response = Async\await($this->publicOptionsGetTickers($this->extend($request, $query)));
@@ -3670,7 +3674,8 @@ class gate extends Exchange {
             $isIndex = ($price === 'index');
             if ($isMark || $isIndex) {
                 $marketId = $this->safe_string($market, 'id', '');
-                $request['contract'] = $price . '_' . $marketId;
+                $contractId = $price . '_' . $marketId;
+                $request['contract'] = $contractId;
             }
             $paramsContract = $paramsOmitted;
             if ($isMark || $isIndex) {
@@ -7742,7 +7747,7 @@ class gate extends Exchange {
         if ($type !== 'option') {
             throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
         }
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id', '');
         $optionParts = explode('-', $marketId);
         $request = array(
             'underlying' => $this->safe_string($optionParts, 0),
@@ -7833,7 +7838,7 @@ class gate extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
                 }
             } else {
-                $marketId = $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
                 $optionParts = explode('-', $marketId);
                 $request['underlying'] = $this->safe_string($optionParts, 0);
             }
@@ -8131,9 +8136,10 @@ class gate extends Exchange {
         $currencyId = $this->safe_string($item, 'currency');
         $currencyResolved = $this->safe_currency($currencyId, $currency);
         $type = $this->safe_string($item, 'type');
-        $rawTimestamp = $this->safe_string($item, 'time');
+        $rawTimestamp = $this->safe_string($item, 'time', '');
+        $rawTimestampLength = count($rawTimestamp);
         $timestamp = null;
-        if (strlen($rawTimestamp) > 10) {
+        if ($rawTimestampLength > 10) {
             $timestamp = intval($rawTimestamp);
         } else {
             $timestamp = intval($rawTimestamp) * 1000;
@@ -8360,7 +8366,7 @@ class gate extends Exchange {
             }
             $request['settle'] = $market['settleId'];
         } elseif ($this->safe_bool($market, 'option', false)) {
-            $marketId = $market['id'];
+            $marketId = $this->safe_string($market, 'id', '');
             $optionParts = explode('-', $marketId);
             $request['underlying'] = $this->safe_string($optionParts, 0);
         }
@@ -8371,7 +8377,7 @@ class gate extends Exchange {
         } elseif ($this->safe_bool($market, 'option', false)) {
             $response = Async\await($this->privateOptionsGetPositionClose($this->extend($request, $params)));
         } else {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' orders');
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' orders');
         }
         //
         // swap and future
@@ -8539,7 +8545,7 @@ class gate extends Exchange {
         //         },
         //     ]
         //
-        $marketId = $market['id'];
+        $marketId = $this->safe_string($market, 'id');
         for ($i = 0; $i < count($response); $i++) {
             $entry = $this->safe_dict($response, $i, array());
             $entryMarketId = $this->safe_string($entry, 'name');
@@ -8890,7 +8896,7 @@ class gate extends Exchange {
         }
         $currency = $this->currency($code);
         $request = array(
-            'underlying' => $currency['code'] . '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
+            'underlying' => $this->safe_string($currency, 'code', '') . '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
         );
         $response = Async\await($this->publicOptionsGetContracts($this->extend($request, $params)));
         //

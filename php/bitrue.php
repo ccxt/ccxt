@@ -1797,8 +1797,7 @@ class bitrue extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell'; // this is a true side
         }
         $fee = null;
-        $commission = $this->safe_string($trade, 'commission');
-        if ($commission !== null) {
+        if (is_array($trade) && array_key_exists('commission' ?? '', $trade)) {
             $fee = array(
                 'cost' => $this->safe_string_2($trade, 'commission', 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
@@ -2859,10 +2858,10 @@ class bitrue extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
-        $payAmount = $this->safe_string($transaction, 'payAmount');
-        $ctime = $this->safe_string($transaction, 'ctime');
+        $payAmount = (is_array($transaction) && array_key_exists('payAmount' ?? '', $transaction));
+        $ctime = (is_array($transaction) && array_key_exists('ctime' ?? '', $transaction));
         $type = 'deposit';
-        if (($payAmount !== null) || ($ctime !== null)) {
+        if ($payAmount || $ctime) {
             $type = 'withdrawal';
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
