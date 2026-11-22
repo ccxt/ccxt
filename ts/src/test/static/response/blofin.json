@@ -3,6 +3,110 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV",
+                "method": "fetchIndexOHLCV",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1795341600000",
+                            "39.89",
+                            "39.98",
+                            "39.74",
+                            "39.96",
+                            "0"
+                        ],
+                        [
+                            "1795338000000",
+                            "39.39",
+                            "40.01",
+                            "39.32",
+                            "39.89",
+                            "1"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1795338000000,
+                        39.39,
+                        40.01,
+                        39.32,
+                        39.89,
+                        null
+                    ],
+                    [
+                        1795341600000,
+                        39.89,
+                        39.98,
+                        39.74,
+                        39.96,
+                        null
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV",
+                "method": "fetchMarkOHLCV",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        [
+                            "1795341600000",
+                            "39.86",
+                            "39.95",
+                            "39.7",
+                            "39.92",
+                            "0"
+                        ],
+                        [
+                            "1795338000000",
+                            "39.35",
+                            "39.98",
+                            "39.29",
+                            "39.86",
+                            "1"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1795338000000,
+                        39.35,
+                        39.98,
+                        39.29,
+                        39.86,
+                        null
+                    ],
+                    [
+                        1795341600000,
+                        39.86,
+                        39.95,
+                        39.7,
+                        39.92,
+                        null
+                    ]
+                ]
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetchOrder tpsl order",

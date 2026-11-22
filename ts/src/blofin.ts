@@ -77,7 +77,7 @@ export default class blofin extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
-                'fetchIndexOHLCV': false,
+                'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': false,
@@ -90,7 +90,7 @@ export default class blofin extends Exchange {
                 'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
-                'fetchMarkOHLCV': false,
+                'fetchMarkOHLCV': true,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -1064,12 +1064,15 @@ export default class blofin extends Exchange {
      * @name blofin#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://blofin.com/docs#get-candlesticks
+     * @see https://docs.blofin.com/index.html#get-mark-price-candlesticks
+     * @see https://docs.blofin.com/index.html#get-index-candlesticks
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "mark" or "index" for mark price and index price candles
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -1100,7 +1103,16 @@ export default class blofin extends Exchange {
             request['after'] = until;
             query = this.omit (query, 'until');
         }
-        const response = await this.publicGetMarketCandles (this.extend (request, query));
+        const price = this.safeString (query, 'price');
+        query = this.omit (query, 'price');
+        let response = undefined;
+        if (price === 'mark') {
+            response = await this.publicGetMarketMarkPriceCandles (this.extend (request, query));
+        } else if (price === 'index') {
+            response = await this.publicGetMarketIndexCandles (this.extend (request, query));
+        } else {
+            response = await this.publicGetMarketCandles (this.extend (request, query));
+        }
         const data = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limitResolved);
     }
