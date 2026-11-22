@@ -8225,13 +8225,13 @@ export class BaseExchange {
         return [ triggerDirection, paramsOmitted ];
     }
 
-    handleTriggerAndParams (params: any): [Bool, Dict] {
+    handleTriggerAndParams (params: Dict): [Bool, Dict] {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         const paramsOmitted = (isTrigger === true) ? this.omit (params, [ 'trigger', 'stop' ]) : params;
         return [ isTrigger, paramsOmitted ];
     }
 
-    isTriggerOrder (params: any): [Bool, Dict] {
+    isTriggerOrder (params: Dict): [Bool, Dict] {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }
