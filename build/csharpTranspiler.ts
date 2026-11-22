@@ -2126,7 +2126,9 @@ function csharpDeclaredUniqueMethods (): string[] {
             const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined
             for (const m of text !== undefined ? text.matchAll (declaration) : []) {
                 counts.set (m[2], (counts.get (m[2]) ?? 0) + 1)
-                if (m[3] && !/\b(async|override)\b/.test (m[1]) && !/^Promise\b/.test (m[3]) && !/[\\/](base|test)[\\/]/.test (full)) annotated.add (m[2])
+                // an async method counts with its Promise<T> annotation; the printer reads T
+                const asyncOk = /\basync\b/.test (m[1]) === /^Promise\b/.test (m[3] ?? '')
+                if (m[3] && asyncOk && !/\boverride\b/.test (m[1]) && !/[\\/](base|test)[\\/]/.test (full)) annotated.add (m[2])
             }
         }
     }
