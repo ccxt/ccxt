@@ -1791,11 +1791,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // with realtimeUpdatesOnly the past executions replayed by the server are dropped, trade_time_r has a second precision
         let subscription: crate::value::Dict = self.safe_dict_k_t(&__ch.subscriptions, "str");
         let realtimeUpdatesOnly: bool = self.safe_bool_k_opt(&subscription, "realtimeUpdatesOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut threshold: Option<i64> = None;
+        let mut threshold: Value = Value::Null;
         if realtimeUpdatesOnly {
             let subscribedAt: Option<i64> = self.safe_integer_k(&subscription, "subscribedAt", &[]).as_i64();
             if (subscribedAt.is_some()) {
-                threshold = (if let Some(__l) = (self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None })))) { Some(__l * 1000) } else { None });
+                threshold = (match (&(Value::from(self.parse_to_int(Value::from((if let Some(__l) = subscribedAt { Some((__l as f64) / 1000.0) } else { None }))))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
+                    Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
         // the same execution can be sent several times, first without the commission, then with it, then again unchanged,
@@ -1812,8 +1813,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (args.len() as i64) } {
             let rawTrade: Value = args.get(i as usize).cloned().unwrap_or(Value::Null);
             let trade: crate::value::Dict = self.parse_trade(rawTrade.clone(), None);
-            let tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
-            if (threshold.is_some()) && (tradeTimestamp.is_some()) && ((tradeTimestamp.is_some() && threshold.is_some() && tradeTimestamp < threshold)) {
+            let tradeTimestamp: Value = crate::value::KeyRead::key_read(&&trade, "timestamp");
+            if (threshold != Value::Null) && (tradeTimestamp != Value::Null) && (tradeTimestamp.as_f64().unwrap_or(f64::NAN) < threshold.as_f64().unwrap_or(f64::NAN)) {
                 continue;
             }
             if skipDuplicates {
