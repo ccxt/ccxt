@@ -1286,7 +1286,7 @@ export default class derive extends Exchange {
         const settlements = this.safeList (result, 'settlements', []);
         const parsed = this.parseSettlements (settlements, market);
         const sorted = this.sortBy (parsed, 'timestamp');
-        const symbolResolved = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved = this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit);
     }
 
