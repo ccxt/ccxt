@@ -2956,7 +2956,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const masterAccount = this.safeDict (result, 'master_account', {});
-        const accounts = this.safeList (result, 'sub_account_list', []);
+        const accounts: Dict[] = this.safeList (result, 'sub_account_list', []);
         accounts.push (masterAccount);
         return this.parseAccounts (accounts, params);
     }
@@ -3640,7 +3640,7 @@ export default class cryptocom extends Exchange {
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
-            requestBody = this.json ({
+            let jsonBody: string = this.json ({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3656,8 +3656,9 @@ export default class cryptocom extends Exchange {
             if (paramsKeysLength === 0) {
                 const paramsString = '{}';
                 const arrayString = '[]';
-                requestBody = requestBody.replace (arrayString, paramsString);
+                jsonBody = jsonBody.replace (arrayString, paramsString);
             }
+            requestBody = jsonBody;
             requestHeaders = {
                 'Content-Type': 'application/json',
             };

@@ -1105,7 +1105,7 @@ export default class cryptocom extends cryptocomRest {
         //
         const messageHash = this.safeString (message, 'subscription');
         const data = this.safeList (message, 'data', []);
-        const positionBalances: Dict[] = this.safeList (data[0], 'position_balances', []);
+        const positionBalances: Dict[] = this.safeList (this.safeDict (data, 0), 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = this.safeDict (positionBalances, i);
