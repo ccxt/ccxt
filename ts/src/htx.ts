@@ -7852,12 +7852,14 @@ export default class htx extends Exchange {
         if (marketType === 'swap') {
             if (this.safeBool (market, 'linear', false)) {
                 const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('fetchFundingHistory', paramsUntil, 'cross');
-                request['margin_mode'] = marginMode;
-                request['contract_code'] = market['id'];
+                const linearRequest: Dict = {
+                    'margin_mode': marginMode,
+                    'contract_code': market['id'],
+                };
                 if (limit !== undefined) {
-                    request['limit'] = limit;
+                    linearRequest['limit'] = limit;
                 }
-                response = await this.contractPrivateGetV5AccountBills (this.extend (request, paramsMarginMode));
+                response = await this.contractPrivateGetV5AccountBills (this.extend (this.extend (request, linearRequest), paramsMarginMode));
                 //
                 //     {
                 //         "code": 200,
