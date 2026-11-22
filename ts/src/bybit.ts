@@ -10192,11 +10192,9 @@ export default class bybit extends Exchange {
                 });
                 const sortedQuery = this.keysort (query);
                 const auth = this.rawencode (sortedQuery, true);
-                let signature: Str = undefined;
+                let signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 if (this.secret.indexOf ('PRIVATE KEY') > -1) {
                     signature = rsa (auth, this.secret, sha256);
-                } else {
-                    signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 }
                 if (method === 'POST') {
                     const isSpot = baseUrl.indexOf ('spot') >= 0;
