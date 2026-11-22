@@ -13148,8 +13148,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeDict (response, 0, response);
-        return this.parseLedgerEntry (first, currency);
+        return this.parseLedgerEntry (this.safeDict (response, 0, {}), currency);
     }
 
     /**

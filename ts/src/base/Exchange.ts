@@ -6629,7 +6629,7 @@ export class BaseExchange {
         let result: LedgerEntry[] = [];
         const arrayData: Dict[] = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
-            const itemOrItems = this.parseLedgerEntry (arrayData[i], currency);
+            const itemOrItems = this.parseLedgerEntry (this.safeDict (arrayData, i, {}), currency);
             if (Array.isArray (itemOrItems)) {
                 for (let j = 0; j < itemOrItems.length; j++) {
                     result.push (this.extend (itemOrItems[j], params));
