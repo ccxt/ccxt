@@ -467,8 +467,9 @@ export default class krakenfutures extends Exchange {
             const future = (type === 'future');
             let symbol = id;
             const split = (id as string).split ('_');
-            const splitMarket = this.safeString (split, 1, '');
-            const baseId = splitMarket.slice (0, splitMarket.length - 3);
+            const splitMarket: string = this.safeString (split, 1, '');
+            const baseIdLength = splitMarket.length - 3;
+            const baseId = splitMarket.slice (0, baseIdLength);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
