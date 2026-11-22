@@ -4203,11 +4203,11 @@ export default class binance extends Exchange {
             const paramSymbols = this.safeList (paramsSubType, 'symbols');
             query = this.omit (query, 'symbols');
             if (paramSymbols !== undefined) {
-                let symbols = '';
                 if (Array.isArray (paramSymbols)) {
+                    let symbols: string = '';
                     const mid = this.marketId (this.safeString (paramSymbols, 0));
                     if (mid !== undefined) {
-                        symbols = mid;
+                        symbols += mid;
                     }
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const id = this.marketId (this.safeString (paramSymbols, i));
@@ -4215,10 +4215,10 @@ export default class binance extends Exchange {
                             symbols += ',' + id;
                         }
                     }
+                    request['symbols'] = symbols;
                 } else {
-                    symbols = paramSymbols;
+                    request['symbols'] = paramSymbols;
                 }
-                request['symbols'] = symbols;
             }
             response = await this.sapiGetMarginIsolatedAccount (this.extend (request, query));
         } else if ((type === 'margin') || (marginMode === 'cross')) {
