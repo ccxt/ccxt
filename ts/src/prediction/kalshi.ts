@@ -571,7 +571,11 @@ export default class kalshi extends Exchange {
             const eventParts = eventTicker.split ('-');
             const eventPartsLength = eventParts.length;
             if (eventPartsLength > 1) {
-                const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
+                const seriesParts: string[] = [];
+                for (let si = 0; si < eventPartsLength - 1; si++) {
+                    const seriesPart: string = this.safeString (eventParts, si, '');
+                    seriesParts.push (seriesPart);
+                }
                 seriesTicker = seriesParts.join ('-');
             }
         }

@@ -1386,7 +1386,12 @@ export default class hyperliquid extends hyperliquidRest {
         let symbolsNormalized: Strings = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols (symbols);
-            messageHash += '::' + symbolsNormalized.join (',');
+            const joinParts: string[] = [];
+            for (let si = 0; si < symbolsNormalized.length; si++) {
+                const symbolEntry: string = this.safeString (symbolsNormalized, si, '');
+                joinParts.push (symbolEntry);
+            }
+            messageHash += '::' + joinParts.join (',');
         }
         const url = this.urls['api']['ws']['public'];
         const subscription: Dict = {

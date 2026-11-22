@@ -440,7 +440,9 @@ export default class cryptocom extends cryptocomRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (this.safeDict (parsedTrades, j));
         }
-        const channelReplaced = channel.replace ('.' + marketId, '');
+        const channelName: string = this.safeString (message, 'channel', '');
+        const marketIdName: string = this.safeString (message, 'instrument_name', '');
+        const channelReplaced = channelName.replace ('.' + marketIdName, '');
         client.resolve (stored, symbolSpecificMessageHash);
         client.resolve (stored, channelReplaced);
     }
