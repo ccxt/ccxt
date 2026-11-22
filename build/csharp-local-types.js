@@ -11787,31 +11787,6 @@ function literalRightAddChainLocal (csharp, declaration, context) {
 // exactly safeList*'s own return — List<object>, or the caller's default (null for the
 // two-argument form). Naming the box moves no value, and the identity box goes with the
 // retype (stripObjectBox below).
-//
-// safeList* `as any` receiver copies: accepted only when no later write can store another box
-// (btse fetchPositions: the response is the implicit API's List<object>); other `as any` keeps `object`.
-// toArray (hand-written `IList<object> toArray (object)`, list or null) joins the family
-const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN', 'toArray' ];
-
-function asAnySafeListReceiverCopy (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
-        return undefined;
-    }
-    const inner = initializer.expression;
-    if (inner?.kind !== ts.SyntaxKind.CallExpression) {
-        return undefined;
-    }
-    const callee = inner.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
-        return undefined;
-    }
-    const name = callee.name?.text;
-    if ((typeof name !== 'string') || !SAFE_LIST_PRODUCER_CALLS.includes (name)) {
-        return undefined;
-    }
-    // own-key lookup only: `map['toString']` would hand back Object.prototype.toString
-    return Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name) ? CSHARP_LOCAL_THIS_RETURN_TYPES[name] : undefined;
-}
 
 function csharpLocalTypeOf (csharp, declaration, context) {
     const sourceName = declaration.name.text;
@@ -12819,78 +12794,6 @@ function isUTAEnabledAwaitedInit (declaration) {
     return callee?.kind === ts.SyntaxKind.PropertyAccessExpression
         && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
         && callee.name?.text === 'isUTAEnabled';
-}
-
-// `if (x)` / `x ? :` / `!x` — the printer wraps each condition in isTrue (x), the read shape the
-// coercion keeps exact; any other read (an argument, `x === true`) fails the proof
-function isTruthinessRead (node) {
-    const parent = node?.parent;
-    if (parent === undefined) {
-        return false;
-    }
-    switch (parent.kind) {
-    case ts.SyntaxKind.IfStatement:
-    case ts.SyntaxKind.WhileStatement:
-    case ts.SyntaxKind.DoStatement:
-        return parent.expression === node;
-    case ts.SyntaxKind.ConditionalExpression:
-        return parent.condition === node;
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === node && isTruthinessRead (parent);
-    case ts.SyntaxKind.ParenthesizedExpression:
-        return parent.expression === node && isTruthinessRead (parent);
-    case ts.SyntaxKind.BinaryExpression:
-        // `x || y` / `x && y` inside a condition: the printer wraps the operand in isTrue (x)
-        // too, so the coercion's bool reads the same; every other operator (`x === true`,
-        // `x + 'a'`, a compound write) fails the proof
-        return (parent.operatorToken?.kind === ts.SyntaxKind.BarBarToken || parent.operatorToken?.kind === ts.SyntaxKind.AmpersandAmpersandToken)
-            && isTruthinessRead (parent);
-    }
-    return false;
-}
-
-// the destructured write is element 0 of the local's own isUTAEnabled options tuple and every
-// other use is a truthiness test or that tuple call's defaultValue argument: `bool x` plus
-// `x = isTrue (tmp[0])` reads exactly what the object local read, for every box
-function destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, idNode, assignment, csharpType) {
-    if (csharpType !== 'bool' || !isUTAEnabledAwaitedInit (declaration) || idNode.parent?.elements?.[0] !== idNode) {
-        return false;
-    }
-    const right = assignment?.right;
-    const callee = right?.expression;
-    if (right?.kind !== ts.SyntaxKind.CallExpression
-            || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
-            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
-            || callee.name?.text !== 'handleOptionAndParams') {
-        return false;
-    }
-    const name = declaration.name?.text;
-    const selfArgument = right.arguments?.[3];
-    if (selfArgument?.kind !== ts.SyntaxKind.Identifier || selfArgument.text !== name) {
-        return false; // the tuple's defaultValue is the local itself at every accepted site
-    }
-    const identifiers = indexScope (csharp, scope)?.identifiers?.get (name) ?? [];
-    for (const n of identifiers) {
-        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
-            continue;
-        }
-        const arrayParent = n.parent;
-        const isDestructuringWrite = (arrayParent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
-            && ((arrayParent.parent?.kind === ts.SyntaxKind.BinaryExpression && arrayParent.parent.left === arrayParent && arrayParent.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)
-                || arrayParent.parent?.kind === ts.SyntaxKind.VariableDeclaration);
-        if (isDestructuringWrite) {
-            continue; // the audited write; the element-0 position is checked by the caller
-        }
-        const isWrite = n.parent?.kind === ts.SyntaxKind.BinaryExpression && n.parent.left === n && n.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken;
-        if (isWrite) {
-            continue; // a plain write's own value is type-checked by the caller's scan
-        }
-        if (n === selfArgument || isTruthinessRead (n)) {
-            continue;
-        }
-        return false;
-    }
-    return true;
 }
 
 // one element read of a destructuring block: `<target> = <tmp>[<i>]` where <tmp> is the
