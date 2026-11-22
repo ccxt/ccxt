@@ -496,7 +496,7 @@ export default class paradex extends paradexRest {
     cleanUnsubscribed (client: Client, unsubHash: string, subscription: Dict) {
         const subscribeHashes = this.safeList (subscription, 'subscribeHashes', []);
         for (let j = 0; j < subscribeHashes.length; j++) {
-            const subscribeHash: string = subscribeHashes[j] as string;
+            const subscribeHash: string = this.safeString (subscribeHashes, j, '');
             if (subscribeHash in client.subscriptions) {
                 delete client.subscriptions[subscribeHash];
             }
