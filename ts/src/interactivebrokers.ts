@@ -641,9 +641,9 @@ export default class interactivebrokers extends Exchange {
         if (this.safeBool (this.options, 'useGateway', false)) {
             return await this.ibkrGatewaySignIn (params);
         }
-        const encryptionPemPath = this.safeString (this.options, 'encryptionPemPath');
-        const dhParamPemPath = this.safeString (this.options, 'dhParamPemPath');
-        if (!encryptionPemPath || !dhParamPemPath) {
+        const encryptionPemPath: string = this.safeString (this.options, 'encryptionPemPath', '');
+        const dhParamPemPath: string = this.safeString (this.options, 'dhParamPemPath', '');
+        if ((encryptionPemPath === '') || (dhParamPemPath === '')) {
             throw new ArgumentsRequired (this.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
         }
         this.ibkrCheckOauthCredentials ();
@@ -668,7 +668,7 @@ export default class interactivebrokers extends Exchange {
         //         "live_session_token_expiration": 1714661586311
         //     }
         //
-        const dhResponse = this.safeString (response, 'diffie_hellman_response');
+        const dhResponse: string = this.safeString (response, 'diffie_hellman_response', '');
         const sharedSecret = this.modPow (this.convertToBigInt ('0x' + dhResponse), dhRandom, dhPrime);
         const liveSessionToken = this.hmac (this.base16ToBinary (accessTokenSecretHex), this.bigToBytes (sharedSecret), sha1, 'base64');
         const check = this.hmac (this.encode (this.options['consumer_key']), this.base64ToBinary (liveSessionToken), sha1, 'hex');
@@ -1062,8 +1062,9 @@ export default class interactivebrokers extends Exchange {
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
         await this.authenticate ();
         const [ accountId, accountQuery ] = await this.loadAccountId (params);
-        const [ withPositions, positionsQuery ] = this.handleOptionAndParams (accountQuery, 'fetchBalance', 'positions', true);
-        const [ withOpenOrders, query ] = this.handleOptionAndParams (positionsQuery, 'fetchBalance', 'openOrders', true);
+        const accountParams: Dict = this.extend ({}, accountQuery);
+        const [ withPositions, positionsQuery ] = this.handleOptionBoolAndParams (accountParams, 'fetchBalance', 'positions', true);
+        const [ withOpenOrders, query ] = this.handleOptionBoolAndParams (positionsQuery, 'fetchBalance', 'openOrders', true);
         const request: Dict = {
             'accountId': accountId,
         };
