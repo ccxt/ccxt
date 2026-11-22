@@ -257,6 +257,7 @@ export default class poloniex extends poloniexRest {
         }
         await this.authenticate ();
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         let uppercaseType = type.toUpperCase ();
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrderWs() side is required');
@@ -294,7 +295,7 @@ export default class poloniex extends poloniexRest {
             }
             request['amount'] = quoteAmount;
         } else {
-            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision (symbol, price);
             }

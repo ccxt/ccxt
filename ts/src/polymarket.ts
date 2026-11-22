@@ -1606,12 +1606,13 @@ export default class polymarket extends Exchange {
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         if ((amount === undefined) || (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires both the amount and the price arguments');
         }
         const orderId = this.parseToInt (id);
-        const priceString = this.priceToPrecision (market['symbol'], price);
-        const quantity = this.amountToPrecision (market['symbol'], amount);
+        const priceString = this.priceToPrecision (precisionSymbol, price);
+        const quantity = this.amountToPrecision (precisionSymbol, amount);
         const signable = [ 'modifyOrders', [ [ orderId, priceString, quantity ] ] ];
         const bodyOp: Dict = {
             'type': 'modifyOrders',

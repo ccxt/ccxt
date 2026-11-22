@@ -3460,6 +3460,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3470,7 +3471,7 @@ export default class cryptocom extends Exchange {
             request['type'] = type;
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
         }
         const response = await this.v1PrivatePostPrivateClosePosition (this.extend (request, params));
         //

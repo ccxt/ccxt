@@ -590,13 +590,14 @@ export default class mercado extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'coin_pair': market['id'],
         };
         let response: NullableDict = undefined;
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision (market['symbol'], price);
-            request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+            request['limit_price'] = this.priceToPrecision (precisionSymbol, price);
+            request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
             if (side === 'buy') {
                 response = await this.privatePostPlaceBuyOrder (this.extend (request, params));
             } else {
@@ -609,10 +610,10 @@ export default class mercado extends Exchange {
                 }
                 const amountString = this.numberToString (amount);
                 const priceString = this.numberToString (price);
-                request['cost'] = this.priceToPrecision (market['symbol'], this.parseToNumeric (Precise.stringMul (amountString, priceString)));
+                request['cost'] = this.priceToPrecision (precisionSymbol, this.parseToNumeric (Precise.stringMul (amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder (this.extend (request, params));
             } else {
-                request['quantity'] = this.amountToPrecision (market['symbol'], amount);
+                request['quantity'] = this.amountToPrecision (precisionSymbol, amount);
                 response = await this.privatePostPlaceMarketSellOrder (this.extend (request, params));
             }
         }

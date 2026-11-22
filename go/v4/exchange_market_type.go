@@ -291,7 +291,7 @@ func (this *BaseExchange) HandleOptionStringAndParams2(params any, methodName an
 
 // HandleTriggerPricesAndParams is handleTriggerPricesAndParams with its [Str, Str, Str, Dict]
 // tuple spelled as four Go results (the transpiled copy is dropped).
-func (this *BaseExchange) HandleTriggerPricesAndParams(symbol any, params map[string]any, optionalArgs ...any) (*string, *string, *string, map[string]any) {
+func (this *BaseExchange) HandleTriggerPricesAndParams(symbol string, params map[string]any, optionalArgs ...any) (*string, *string, *string, map[string]any) {
 	omitParams := GetArgBool(optionalArgs, 0, true)
 	keysToOmit := []any{}
 	var prices [3]*string

@@ -1341,6 +1341,7 @@ export default class luno extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1350,14 +1351,14 @@ export default class luno extends Exchange {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (side === 'buy') {
-                request['counter_volume'] = this.amountToPrecision (market['symbol'], amount);
+                request['counter_volume'] = this.amountToPrecision (precisionSymbol, amount);
             } else {
-                request['base_volume'] = this.amountToPrecision (market['symbol'], amount);
+                request['base_volume'] = this.amountToPrecision (precisionSymbol, amount);
             }
             response = await this.privatePostMarketorder (this.extend (request, params));
         } else {
-            request['volume'] = this.amountToPrecision (market['symbol'], amount);
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['volume'] = this.amountToPrecision (precisionSymbol, amount);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
             response = await this.privatePostPostorder (this.extend (request, params));
         }

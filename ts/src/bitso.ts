@@ -1183,14 +1183,15 @@ export default class bitso extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const precisionSymbol: string = this.safeString (market, 'symbol', '');
         const request: Dict = {
             'book': market['id'],
             'side': side,
             'type': type,
-            'major': this.amountToPrecision (market['symbol'], amount),
+            'major': this.amountToPrecision (precisionSymbol, amount),
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            request['price'] = this.priceToPrecision (precisionSymbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         const payload = this.safeDict (response, 'payload', {});

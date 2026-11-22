@@ -7310,6 +7310,10 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     // boxed: paradex watchTrades hands over an optional symbol)
     'fetchLeverage': [ 0 ], 'fetchPosition': [ 0 ], 'fetchTrades': [ 0 ],
     'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
+    // `calculateFee (symbol: string, ..)`: base and both overrides; no generated Go caller
+    'calculateFee': [ 0 ],
+    // interactivebrokers `createTestOrder (symbol: string, ..)`: the typed CreateTestOrder wrapper takes a Go string
+    'createTestOrder': [ 0 ],
     // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
     'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
     // prediction `method: string` / `eventIdOrSlug: string`: callers pass literals only (none for getEvent)
