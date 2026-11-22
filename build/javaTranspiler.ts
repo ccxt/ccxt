@@ -1697,6 +1697,7 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
         return;
     }
     const emittedStringLocals = new WeakSet<any> ();
+    const emittedDeclaredStringLocals = new WeakSet<any> ();
     const emittedLongLocals = new WeakSet<any> ();
     // destructured element -> the numeric box its final printed line declares (`Long page = (Long) ...`)
     const emittedBindingBoxes = new WeakMap<any, string> ();
@@ -1733,12 +1734,12 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
                     // a pro/prediction declaration the ws post-process rewrites back to
                     // `Object` is not a String at the use sites either (same guard the
                     // SS-03 `+` acceptance uses: wsPostProcessReverts)
-                    if (!wsPostProcessReverts (declaration)) {
-                        const iden = printer.getIden (identation);
-                        const printedName = printer.printNode (declaration.name, 0);
-                        const marker = `${iden}String ${printedName} = `;
-                        const at = printed.lastIndexOf (marker);
-                        if (at !== -1 && (at === 0 || printed.charAt (at - 1) === '\n')) {
+                    const stringMarker = `${printer.getIden (identation)}String ${printer.printNode (declaration.name, 0)} = `;
+                    const stringAt = printed.lastIndexOf (stringMarker);
+                    if (stringAt !== -1 && (stringAt === 0 || printed.charAt (stringAt - 1) === '\n')) {
+                        // the final line is String in every tier; the concat proof still skips the ws-revert shape
+                        emittedDeclaredStringLocals.add (declaration);
+                        if (!wsPostProcessReverts (declaration)) {
                             emittedStringLocals.add (declaration);
                         }
                     }
@@ -1755,6 +1756,8 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
         return printed;
     };
     printer.javaExpressionTypeResolver = (node: any) => javaPrintedExpressionType (printer, emittedStringLocals, node);
+    // the same proof over every local whose final line is `String x = `, ws tiers included
+    printer.javaDeclaredStringResolver = (node: any) => javaPrintedExpressionType (printer, emittedDeclaredStringLocals, node);
     // a use of a local whose final declaration prints the nullable box `Long <name> = `
     printer.javaBoxedLongResolver = (node: any) => {
         const declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
