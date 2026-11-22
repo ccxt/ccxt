@@ -2743,6 +2743,7 @@ export default class myriad extends Exchange {
         //
         const outcomes: Dict[] = this.safeList (response, 'outcomes', []);
         let selectedOutcome: NullableDict = undefined;
+        let outcomeSelected = false;
         for (let i = 0; i < outcomes.length; i++) {
             const oc = outcomes[i];
             const currentId = this.safeString (oc, 'id', this.safeString (oc, 'outcomeId'));
@@ -2751,8 +2752,9 @@ export default class myriad extends Exchange {
                 selectedOutcome = oc;
                 break;
             }
-            if ((selectedOutcome === undefined) && (outcomeTitle !== undefined) && (currentTitle === outcomeTitle)) {
+            if ((!outcomeSelected) && (outcomeTitle !== undefined) && (currentTitle === outcomeTitle)) {
                 selectedOutcome = oc;
+                outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
