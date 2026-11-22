@@ -2504,7 +2504,11 @@ export default class interactivebrokers extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
+        let maxLimit: int = 1000;
+        const configuredLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit');
+        if (configuredLimit !== undefined) {
+            maxLimit = configuredLimit;
+        }
         let requestLimit: int = maxLimit;
         if (limit !== undefined) {
             requestLimit = Math.min (limit, maxLimit);
@@ -2519,7 +2523,11 @@ export default class interactivebrokers extends Exchange {
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request['startTime'] = this.ibkrFormatTime (since - duration * 1000);
             request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
-            requestLimit = Math.min (requestLimit + 1, maxLimit);
+            if (limit !== undefined) {
+                if (limit < maxLimit) {
+                    requestLimit = limit + 1;
+                }
+            }
         }
         request['period'] = this.ibkrPeriod (duration, requestLimit);
         const response = await this.webapiGetV1ApiIserverMarketdataHistory (this.extend (request, params));
