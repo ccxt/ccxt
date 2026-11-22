@@ -2766,7 +2766,7 @@ export default class sxbet extends Exchange {
             baseUrl = groupUrl;
         }
         let url = baseUrl + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.extend ({}, this.omit (params, this.extractParams (path)));
         const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
@@ -2779,7 +2779,11 @@ export default class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            sendAsQuery = !('orders' in query);
+            if ('orders' in query) {
+                sendAsQuery = false;
+            } else {
+                sendAsQuery = true;
+            }
         }
         let bodyValue: any = undefined;
         if (sendAsQuery) {
