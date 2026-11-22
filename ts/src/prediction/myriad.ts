@@ -2166,6 +2166,7 @@ export default class myriad extends Exchange {
         // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
         const compositeId: string = this.safeString (raw, 'networkId', '') + ':' + this.safeString (raw, 'id', '');
+        const compositeBaseId: string = this.safeString (raw, 'networkId', '') + ':' + this.safeString (raw, 'id', '');
         return {
             'id': compositeId,
             'market': marketSymbol,
@@ -2174,7 +2175,7 @@ export default class myriad extends Exchange {
             'base': slug,
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': networkId + ':' + marketId,
+            'baseId': compositeBaseId,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
