@@ -712,7 +712,7 @@ export default class paradex extends paradexRest {
         const params: Dict = this.safeDict (message, 'params', {});
         const data: Dict = this.safeDict (params, 'data', {});
         const parsedTrade = this.parseTrade (data);
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString (parsedTrade, 'symbol');
         const messageHash = this.safeString (params, 'channel');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -733,7 +733,9 @@ export default class paradex extends paradexRest {
                 this.options['liquidationsBySymbol'] = caches;
             }
             liquidations.append (liquidation);
-            client.resolve (liquidations, 'liquidations:' + symbol);
+            if (symbol !== undefined) {
+                client.resolve (liquidations, 'liquidations:' + symbol);
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1406,9 +1408,11 @@ export default class paradex extends paradexRest {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
         const bidAsk = this.parseWsBidAsk (data);
-        const symbol = bidAsk['symbol'];
+        const symbol = this.safeString (bidAsk, 'symbol');
         this.bidsasks[(symbol as string)] = bidAsk;
-        client.resolve (bidAsk, 'bidask:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve (bidAsk, 'bidask:' + symbol);
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve (bidAsk, 'bidask');
     }
@@ -1669,7 +1673,7 @@ export default class paradex extends paradexRest {
         }
         const cache = this.positions;
         const position = this.parsePosition (data);
-        const symbol = position['symbol'];
+        const symbol = this.safeString (position, 'symbol');
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -1692,7 +1696,9 @@ export default class paradex extends paradexRest {
         cache.append (position);
         newPositions.push (position);
         client.resolve (newPositions, 'positions');
-        client.resolve (newPositions, 'positions:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve (newPositions, 'positions:' + symbol);
+        }
     }
 
     /**

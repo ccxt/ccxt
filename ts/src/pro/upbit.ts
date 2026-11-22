@@ -227,12 +227,12 @@ export default class upbit extends upbitRest {
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         const ticker = this.parseTicker (message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (ticker, messageHash);
         }
-        const messageHash = 'ticker:' + symbol;
-        client.resolve (ticker, messageHash);
     }
 
     handleOrderBook (client: Client, message: Dict) {

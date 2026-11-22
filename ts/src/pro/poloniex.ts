@@ -1081,7 +1081,7 @@ export default class poloniex extends poloniexRest {
                         };
                     }
                     if ((this.safeString (previousOrder['fee'], 'cost') !== undefined) && (this.safeNumber (trade['fee'], 'cost') !== undefined)) {
-                        const stringOrderCost = this.numberToString (previousOrder['fee']['cost']);
+                        const stringOrderCost = this.safeString (previousOrder['fee'], 'cost');
                         const stringTradeCost = this.numberToString (this.safeNumber (trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd (stringOrderCost, stringTradeCost);
                     }

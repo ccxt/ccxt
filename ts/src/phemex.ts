@@ -4793,14 +4793,14 @@ export default class phemex extends Exchange {
             privateHeaders['x-phemex-request-expiry'] = expiryString;
             let payload = '';
             if (method === 'POST') {
+                payload = this.json (params);
                 const isOrderPlacement = (path === 'g-orders') || (path === 'spot/orders') || (path === 'orders');
                 if (isOrderPlacement) {
                     if (this.safeString (params, 'clOrdID') === undefined) {
                         const id = this.safeString (this.options, 'brokerId', 'CCXT123456');
-                        params['clOrdID'] = id + this.uuid16 ();
+                        payload = this.json (this.extend (params, { 'clOrdID': id + this.uuid16 () }));
                     }
                 }
-                payload = this.json (params);
                 requestBody = payload;
                 privateHeaders['Content-Type'] = 'application/json';
             }

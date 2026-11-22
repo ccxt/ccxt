@@ -2883,7 +2883,7 @@ export default class binance extends binanceRest {
                 tickerMarketType = this.safeString (tickerMarketById, 'type');
             }
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
-            const symbol = parsedTicker['symbol'];
+            const symbol = this.safeString (parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 newTickers[symbol] = parsedTicker;
             }
@@ -2896,9 +2896,11 @@ export default class binance extends binanceRest {
                     this.tickers[symbol] = parsedTicker;
                 }
             }
-            const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
-            resolvedMessageHashes.push (messageHash);
-            client.resolve (parsedTicker, messageHash);
+            if (symbol !== undefined) {
+                const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
+                resolvedMessageHashes.push (messageHash);
+                client.resolve (parsedTicker, messageHash);
+            }
         }
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
