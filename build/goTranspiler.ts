@@ -18847,24 +18847,8 @@ function goTypedGvMapReads (content: string): string {
     return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), goTypedGvMapFunc);
 }
 
-// end line of a market call opened at (k, col), when the call closes its statement; else -1
-function goTypedGvMapCallEnd (masked: string[], k: number, col: number, end: number): number {
-    let depth = 0;
-    for (let j = k; j < end; j++) {
-        for (let c = (j === k) ? col : 0; c < masked[j].length; c++) {
-            const ch = masked[j][c];
-            depth += '([{'.includes (ch) ? 1 : (')]}'.includes (ch) ? -1 : 0);
-            if (depth === 0 && ')]}'.includes (ch)) {
-                return (masked[j].substring (c + 1).trim () === '') ? j : -1;
-            }
-        }
-    }
-    return -1;
-}
-
 function goTypedGvMapFunc (lines: string[], masked: string[], start: number, end: number) {
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
-    const call = '(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:Market|SafeMarket|Currency|SafeCurrency)\\(';
     const verdicts = new Map<string, number | undefined> ();
     const rowLocal = (name: string, seen: string[]): number | undefined => {
         if (verdicts.has (name)) {
@@ -18889,15 +18873,8 @@ function goTypedGvMapFunc (lines: string[], masked: string[], start: number, end
                 return undefined;
             }
             const rhs = m[3].trim ();
-            const rhsAt = masked[k].length - masked[k].trimStart ().length + m[2].length + 3;
             let ok = (rhs === 'nil');
-            if (!ok && new RegExp ('^' + call).test (rhs)) {
-                const close = goTypedGvMapCallEnd (masked, k, masked[k].indexOf ('(', rhsAt), end);
-                ok = close >= k;
-                if (ok) {
-                    k = close;
-                }
-            } else if (!ok && /^\w+$/.test (rhs) && (seen.indexOf (rhs) < 0)) {
+            if (!ok && /^\w+$/.test (rhs) && (seen.indexOf (rhs) < 0)) {
                 const other = rowLocal (rhs, seen.concat ([ name ]));
                 ok = (other !== undefined) && (other < k);
             }
