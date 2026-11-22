@@ -3782,7 +3782,7 @@ export default class bingx extends Exchange {
             response = parsedResponse;
         }
         const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'orders', []) as List;
+        const result = this.safeList (data, 'orders', []);
         return this.parseOrders (result, market);
     }
 
@@ -6865,7 +6865,7 @@ export default class bingx extends Exchange {
             //
         }
         const data = this.safeDict (response, 'data', {});
-        const success = this.safeList (data, 'success', []) as List;
+        const success = this.safeList (data, 'success', []);
         const positions: Position[] = [];
         for (let i = 0; i < success.length; i++) {
             const position = this.parsePosition ({ 'positionId': success[i] });
