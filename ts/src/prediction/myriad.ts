@@ -2448,7 +2448,8 @@ export default class myriad extends Exchange {
         let percentage: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict (outcomes, i);
-            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString (o, 'outcomeId', this.safeString (o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const priceValue = this.safeNumber (o, 'price');
                 const changeValue = this.safeNumber (o, 'priceChange24h');
                 price = priceValue;
@@ -2608,7 +2609,8 @@ export default class myriad extends Exchange {
         let ask: Num = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict (outcomes, i);
-            if (this.safeString (o, 'outcomeId', this.safeString (o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString (o, 'outcomeId', this.safeString (o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const price = this.safeNumber (o, 'price');
                 if (price !== undefined) {
                     if (price > 0.001) {

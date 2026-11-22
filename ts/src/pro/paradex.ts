@@ -965,7 +965,7 @@ export default class paradex extends paradexRest {
             if ((storedNonce === undefined) || (nonce === undefined) || (nonce <= storedNonce)) {
                 return;
             }
-            if (nonce !== this.sum (storedNonce, 1)) {
+            if (nonce !== storedNonce + 1) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored['nonce'] = undefined;
                 this.spawn (this.resubscribeOrderBook, client, deltasChannel, messageHash);
