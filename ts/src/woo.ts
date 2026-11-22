@@ -3078,7 +3078,7 @@ export default class woo extends Exchange {
             const firstPart = this.safeString (parts, 0);
             let currencyId = this.safeString (parts, 1, firstPart);
             if (partsLength > 2) {
-                currencyId += '_' + this.safeString (parts, 2, '');
+                currencyId = this.safeString (parts, 1, '') + '_' + this.safeString (parts, 2, '');
             }
             return this.safeCurrency (currencyId);
         }
