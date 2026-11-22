@@ -2760,8 +2760,11 @@ export default class sxbet extends Exchange {
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
-        const baseUrls = this.urls['api'] as Dict;
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sxbet'] as string);
+        let baseUrl: string = this.safeString (this.urls['api'], 'sxbet', '');
+        const groupUrl = this.safeString (this.urls['api'], apiGroup);
+        if (groupUrl !== undefined) {
+            baseUrl = groupUrl;
+        }
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const existingHeaders = {};
