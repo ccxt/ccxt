@@ -838,7 +838,7 @@ export default class woo extends wooRest {
         const data = this.safeDict (message, 'data');
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
