@@ -4724,7 +4724,8 @@ export default class gate extends Exchange {
             }
         }
         let priceResolved: Num = price;
-        if (isMarketOrder && (contract === true)) {
+        const zeroPrice: boolean = isMarketOrder && (contract === true);
+        if (zeroPrice) {
             priceResolved = 0;
         }
         let contractAmount: Num = 0;
@@ -4766,7 +4767,7 @@ export default class gate extends Exchange {
                 if (isMarketOrder) {
                     request['price'] = '0'; // set to 0 for market orders
                 } else {
-                    request['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision (symbol, priceResolved);
+                    request['price'] = zeroPrice ? '0' : this.priceToPrecision (symbol, priceResolved);
                 }
                 if (reduceOnly !== undefined) {
                     request['reduce_only'] = reduceOnly;
@@ -4863,7 +4864,7 @@ export default class gate extends Exchange {
                 if (type === 'market') {
                     initial['price'] = '0';
                 } else {
-                    initial['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision (symbol, priceResolved);
+                    initial['price'] = zeroPrice ? '0' : this.priceToPrecision (symbol, priceResolved);
                 }
                 if (reduceOnly !== undefined) {
                     initial['reduce_only'] = reduceOnly;
