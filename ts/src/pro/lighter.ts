@@ -113,8 +113,8 @@ export default class lighter extends lighterRest {
 
     async subscribePrivate (messageHash: string, params: Dict = {}) {
         await this.preLoadLighterLibrary ();
-        params['auth'] = this.createAuth (params);
-        return await this.subscribePublic (messageHash, params);
+        const request: Dict = this.extend (params, { 'auth': this.createAuth (params) });
+        return await this.subscribePublic (messageHash, request);
     }
 
     override handleDelta (bookside: any, delta: any) {
