@@ -4322,7 +4322,8 @@ export default class kucoin extends Exchange {
             if (amount === undefined) {
                 throw new ArgumentsRequired (this.id + ' requires an amount argument');
             }
-            if (amount < 1) {
+            const amountInt = this.parseToInt (amount);
+            if (amountInt < 1) {
                 throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
             }
             const sizeString = this.amountToPrecision (symbol, amount);
