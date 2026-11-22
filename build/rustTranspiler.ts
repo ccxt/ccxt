@@ -6137,6 +6137,73 @@ const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ...rustDeclaredDictPairFns().map((n): [string, string] => [n, 'dict_']),
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
+// venue methods ts/src declares `[S, S, Dict]` (S a string type) at every declaration: `(Value, Value, Dict)`
+function rustDeclaredStrStrDictFns(): string[] {
+    const tri = new Set<string>(), other = new Set<string>();
+    for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
+        let files: string[] = [];
+        try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
+        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) (/^\[\s*(?:Str|string),\s*(?:Str|string),\s*Dict\s*\]$/.test(m[2]) ? tri : other).add(toSnakeCase(m[1]));
+    }
+    return [...tri].filter((n) => !other.has(n)).sort();
+}
+const RUST_STR_STR_DICT_FNS = rustDeclaredStrStrDictFns();
+// the body returns the triple, each `Vec<Value>` head reads its slots as fields, dispatch arms re-box the triple
+function typeStrStrDictTriples(content: string): string {
+    if (!RUST_STR_STR_DICT_FNS.some((n) => content.includes(`fn ${n}(`) || content.includes(`.${n}(`))) return content;
+    let out = content;
+    for (const n of RUST_STR_STR_DICT_FNS) {
+        out = out.replace(new RegExp(String.raw`(\n {4}(?:pub )?fn ${n}\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'), (whole, sig, open, body) => {
+            const ret = /return Value::from\(vec!\[(\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), (\w+)\.map\(Value::from\)\.unwrap_or\(Value::Null\), Value::Dict\((\w+)\)\]\);/g;
+            if ((body.match(/\breturn\b/g) ?? []).length !== (body.match(ret) ?? []).length) return whole;
+            return `${sig}(Value, Value, crate::value::Dict)${open}${body.replace(ret, 'return ($1.map(Value::from).unwrap_or(Value::Null), $2.map(Value::from).unwrap_or(Value::Null), $3);')}\n}`;
+        });
+        const arm = new RegExp(String.raw`("${n}" => )(self\.${n}\()`, 'g');
+        for (let m: RegExpExecArray | null; (m = arm.exec(out)) !== null;) {
+            const close = rustCloseParen(out, m.index + m[0].length);
+            if (close < 0 || out[close] !== ',') continue;
+            const box = `{ let __t = ${out.slice(m.index + m[1].length, close)}; Value::from(vec![__t.0, __t.1, Value::Dict(__t.2)]) }`;
+            out = out.slice(0, m.index + m[1].length) + box + out.slice(close);
+            arm.lastIndex = m.index + m[1].length + box.length;
+        }
+        const destr = new RegExp(String.raw`\{ let __destr_tmp: Vec<Value> = (self\.${n}\()`, 'g');
+        for (let m: RegExpExecArray | null; (m = destr.exec(out)) !== null;) {
+            const close = rustCloseParen(out, m.index + m[0].length);
+            const tail = '.as_array().cloned().unwrap_or_default();';
+            const end = close < 0 ? -1 : out.indexOf(' }', close);
+            if (close < 0 || !out.startsWith(tail, close) || end < 0) continue;
+            const reads = out.slice(close + tail.length, end);
+            const typed = reads.replace(/__destr_tmp\.get\(([01])\)\.and_then\(Value::as_str\)\.map\(str::to_owned\)/g, '__destr_tmp.$1.as_str().map(str::to_owned)')
+                .replace(/__destr_tmp\.get\(2\)\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\)/g, '__destr_tmp.2')
+                .replace(/__destr_tmp\.get\(2\)\.cloned\(\)\.unwrap_or\(Value::Null\)/g, 'Value::Dict(__destr_tmp.2)');
+            // every slot read became a field read: anything else keeps the list head
+            if (/__destr_tmp\.get\(/.test(typed) || reads.includes('\n')) continue;
+            const blk = `{ let __destr_tmp = ${out.slice(m.index + m[0].length - m[1].length, close)};${typed}`;
+            out = out.slice(0, m.index) + blk + out.slice(end);
+            destr.lastIndex = m.index + blk.length;
+        }
+        const head = new RegExp(String.raw`let (mut )?(\w+): Vec<Value> = (self\.${n}\()`, 'g');
+        for (let m: RegExpExecArray | null; (m = head.exec(out)) !== null;) {
+            const close = rustCloseParen(out, m.index + m[0].length);
+            const tail = '.as_array().cloned().unwrap_or_default();';
+            if (close < 0 || !out.startsWith(tail, close)) continue;
+            const v = m[2], from = close + tail.length, rest = rustFnRest(out, from);
+            const seen: string[] = [];
+            const body = rest.replace(new RegExp(String.raw`\b${v}\.get\(([012])\)(\.and_then\(Value::as_str\)\.map\(str::to_owned\)|\.cloned\(\)\.unwrap_or\(Value::Null\)\.into_dict\(\))`, 'g'), (r, i, how) => {
+                const str = how.startsWith('.and_then');
+                if (str === (i === '2')) return r;
+                seen.push(i);
+                return str ? `${v}.${i}.as_str().map(str::to_owned)` : `${v}.2`;
+            });
+            // every read became a field read, each slot once: anything else keeps the list head
+            if (seen.length === 0 || new Set(seen).size !== seen.length || new RegExp(String.raw`\b${v}\b`).test(body.replace(new RegExp(String.raw`\b${v}\.[012]\b`, 'g'), ''))) continue;
+            const decl = `let ${m[1] ?? ''}${v} = ${out.slice(m.index + m[0].length - m[3].length, close)};`;
+            out = out.slice(0, m.index) + decl + body + out.slice(from + rest.length);
+            head.lastIndex = m.index + decl.length;
+        }
+    }
+    return out;
+}
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
 // handleStockParams and hyperliquid isUnifiedEnabled answer [Bool, Dict]; bybit isUnifiedEnabled answers [boolean, boolean]
 const rustTupleFam = (name: string, src = ''): string => RUST_TUPLE_VENUE_FAM.get(name) ?? (name === 'is_unified_enabled' && /\bpub struct Bybit\b/.test(src) ? 'bool_pair_' : /bool|_stock_|unified/.test(name) ? 'bool_' : /integer/.test(name) ? 'integer_' : /string/.test(name) ? 'string_' : /margin_mode/.test(name) ? 'margin_mode_' : /sub_type/.test(name) ? 'sub_type_' : '');
@@ -9345,6 +9412,7 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     lendWsBaseClient,
     mutSelfFieldStoreBacks,
     typeHandleOptionTuples,
+    typeStrStrDictTriples,
     typePredictionPositionsList,
     typeFilterSliceLists,
     typeParseListReturns,
