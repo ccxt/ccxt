@@ -1391,8 +1391,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         {
             object rawTrade = args[i];
             ccxt.Trade trade = this.parseTrade(rawTrade);
-            Int64? tradeTimestamp = trade.timestamp;
-            if (((threshold != null)) && ((tradeTimestamp != null)) && (tradeTimestamp.Value < threshold.Value))
+            object tradeTimestamp = (((object)trade.timestamp));
+            if (((threshold != null)) && (!(tradeTimestamp == null)) && (isLessThan(tradeTimestamp, threshold)))
             {
                 continue;
             }
