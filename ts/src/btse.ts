@@ -1197,7 +1197,7 @@ export default class btse extends Exchange {
             const entry = this.safeDict (data, i);
             const marketId = this.safeString (entry, 'symbol');
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             if (symbolsNormalized === undefined || this.inArray (symbol, symbolsNormalized)) {
                 const levels: Dict[] = this.safeList (entry, 'riskLimits', []);
                 const tiers: Dict[] = [];

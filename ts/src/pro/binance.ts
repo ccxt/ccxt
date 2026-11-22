@@ -785,7 +785,7 @@ export default class binance extends binanceRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
         } else if (this.safeBool (firstMarket, 'contract', false)) {
@@ -867,7 +867,7 @@ export default class binance extends binanceRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
         } else if (this.safeBool (firstMarket, 'contract', false)) {
@@ -1314,7 +1314,7 @@ export default class binance extends binanceRest {
         const [ name, paramsName ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
         const paramsOmitted: Dict = this.omit (paramsName, 'callerMethodName');
         const firstMarket = this.market (symbolsNormalized[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
@@ -1404,7 +1404,7 @@ export default class binance extends binanceRest {
         const [ name, paramsName ] = this.handleOptionStringAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
         const paramsOmitted = this.omit (paramsName, 'callerMethodName');
         const firstMarket = this.market (symbolsNormalized[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
