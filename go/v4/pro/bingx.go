@@ -540,7 +540,8 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolValue, limit)
 	}
 	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
-	if this.HandleOption("watchTrades", "ignoreDuplicates", true) == true {
+	ignoreDuplicates, _ := this.HandleOptionBoolAndParams(map[string]any{}, "watchTrades", "ignoreDuplicates", true)
+	if ignoreDuplicates {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
 

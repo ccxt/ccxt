@@ -4908,14 +4908,8 @@ func (this *Pacifica) createSubAccountBody(ch chan AsyncResult[map[string]any], 
 	if subAccountPrivateKey == nil {
 		panic(ArgumentsRequired(this.Id + " createSubAccount() requires a \"subAccountPrivateKey\"!"))
 	}
-	var timestampPtr *int64 = nil
-	timestampPtr, paramsTimestamp := this.HandleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.Milliseconds())
-	timestamp := func() any {
-		if timestampPtr != nil {
-			return *timestampPtr
-		}
-		return nil
-	}()
+	var timestamp *int64 = this.SafeInteger(paramsSubAccountPrivateKey, "timestamp", this.Milliseconds())
+	var paramsTimestamp map[string]any = this.OmitDict(paramsSubAccountPrivateKey, "timestamp")
 	expiryWindow, paramsExpiryWindow := this.HandleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000)
 	var subaccountSignatureHeader map[string]any = map[string]any{
 		"timestamp":     timestamp,
@@ -5262,16 +5256,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	var literal372415 map[string]any = map[string]any{
+	var literal372515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if requestBody != nil {
-		literal372415["body"] = *requestBody
+		literal372515["body"] = *requestBody
 	}
-	return literal372415
+	return literal372515
 }
 func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5290,7 +5284,14 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path stri
 func (this *Pacifica) SortJsonKeys(value any) any {
 	if this.IsDictionary(value) {
 		var result map[string]any = map[string]any{}
-		var keys []string = ObjectKeys(value)
+		var valueCopy map[string]any = this.Extend(map[string]any{}, value)
+		var keys []string = nil
+		if valueCopy != nil {
+			keys = make([]string, 0, len(valueCopy))
+			for objectKey := range valueCopy {
+				keys = append(keys, objectKey)
+			}
+		}
 		var sortedKeys []any = this.Sort(keys)
 		for i := 0; i < len(sortedKeys); i++ {
 			var key string = *this.SafeString(sortedKeys, i, "")

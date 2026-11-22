@@ -503,12 +503,12 @@ func (this *Kucoin) authenticateUtaBody(ch chan ccxt.AsyncResult[*string]) any {
 	ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.Options, "utaToken")}
 	return nil
 }
-func (this *Kucoin) UnSubscribeAsync(url any, messageHash string, topic any, subscriptionHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) UnSubscribeAsync(url *string, messageHash string, topic any, subscriptionHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, url, messageHash, topic, subscriptionHash, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unSubscribeBody(ch chan ccxt.AsyncResult[bool], url any, messageHash string, topic any, subscriptionHash string, optionalArgs ...any) any {
+func (this *Kucoin) unSubscribeBody(ch chan ccxt.AsyncResult[bool], url *string, messageHash string, topic any, subscriptionHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -523,12 +523,12 @@ func (this *Kucoin) unSubscribeBody(ch chan ccxt.AsyncResult[bool], url any, mes
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Kucoin) SubscribeMultipleAsync(url any, messageHashes []string, topic string, subscriptionHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Kucoin) SubscribeMultipleAsync(url *string, messageHashes []string, topic string, subscriptionHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeMultipleBody(ch, url, messageHashes, topic, subscriptionHashes, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url any, messageHashes []string, topic string, subscriptionHashes []string, optionalArgs ...any) any {
+func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url *string, messageHashes []string, topic string, subscriptionHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -558,12 +558,12 @@ func (this *Kucoin) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], url any
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Kucoin) UnSubscribeMultipleAsync(url any, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) UnSubscribeMultipleAsync(url *string, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeMultipleBody(ch, url, messageHashes, topic, subscriptionHashes, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], url any, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) any {
+func (this *Kucoin) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], url *string, messageHashes any, topic any, subscriptionHashes []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2769,21 +2769,23 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any)
 	}
 	var isUnSub *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSub != nil && *isUnSub {
-		var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+		var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 		var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-		for i := 0; i < len(messageHashes); i++ {
-			var messageHash *string = this.SafeString(messageHashes, i)
-			var subHash *string = this.SafeString(subMessageHashes, i)
-			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
+		if messageHashes != nil {
+			for i := 0; i < len(messageHashes); i++ {
+				var messageHash *string = this.SafeString(messageHashes, i)
+				var subHash *string = this.SafeString(subMessageHashes, i)
+				this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
+			}
 		}
 		var topic *string = this.SafeString(subscription, "topic")
 		if topic != nil && *topic == "fundingRate" {
 			// todo: add fundingRate topic to cleanCache
 			var symbols []any = ccxt.SafeListTyped(subscription, "symbols")
 			for i := 0; i < len(symbols); i++ {
-				var symbol any = ccxt.DerefScalar(symbols[i])
-				if ccxt.InOp(this.FundingRates, symbol) {
-					ccxt.Remove(this.FundingRates, symbol)
+				var symbol string = *this.SafeString(symbols, i, "")
+				if _, ok := this.FundingRates[symbol]; ok {
+					delete(this.FundingRates, symbol)
 				}
 			}
 		} else {
@@ -4040,16 +4042,9 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		panic(r1.Err)
 	}
 	var uta bool = r1.Value
-	var utaOptionPtr *bool = nil
-	utaOptionPtr, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "watchPositions", "uta", uta)
-	utaOption := func() any {
-		if utaOptionPtr != nil {
-			return *utaOptionPtr
-		}
-		return nil
-	}()
+	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "watchPositions", "uta", uta)
 	var tradeType string = "TRADE"
-	if utaOptionPtr != nil && *utaOptionPtr {
+	if utaOption != nil && *utaOption {
 		tradeType = "UNIFIED"
 	}
 	var messageHash string = "positions"
@@ -4070,7 +4065,7 @@ func (this *Kucoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	}
 	var url *string = r2.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetPositionsCache(client, utaOption)
+	this.SetPositionsCache(client, (utaOption != nil && *utaOption == true))
 	var fetchPositionSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	var awaitPositionSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	var cache ccxt.WsArrayCache = this.Positions
@@ -4128,7 +4123,7 @@ func (this *Kucoin) GetCurrentPosition(symbol string) any {
 	}
 	return this.SafeDict(values, 0)
 }
-func (this *Kucoin) SetPositionsCache(client any, uta any) {
+func (this *Kucoin) SetPositionsCache(client any, uta bool) {
 	if !(this.IsEmpty(this.Positions)) {
 		return
 	}
@@ -4876,15 +4871,15 @@ func (this *Kucoin) HandleMessage(client any, message map[string]any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Kucoin) GetMessageHash(elementName any, optionalArgs ...any) any {
+func (this *Kucoin) GetMessageHash(elementName string, optionalArgs ...any) string {
 	// method from kucoinfutures
 	// elementName can be 'ticker', 'bidask', ...
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	if symbol != nil {
-		return ccxt.Add(ccxt.Add(elementName, ":"), symbol)
+		return elementName + ":" + *symbol
 	} else {
-		return ccxt.Add(elementName, "s@all")
+		return elementName + "s@all"
 	}
 }
 

@@ -660,7 +660,9 @@ func (this *Cryptocom) HandleTrades(client any, message map[string]any) {
 	for j := 0; j < len(parsedTrades); j++ {
 		stored.Append(this.SafeDict(parsedTrades, j))
 	}
-	var channelReplaced string = ccxt.Replace(channel, ccxt.Add(".", marketId), "")
+	var channelName string = *this.SafeString(message, "channel", "")
+	var marketIdName string = *this.SafeString(message, "instrument_name", "")
+	var channelReplaced string = strings.Replace(channelName, "."+marketIdName, "", 1)
 	client.(ccxt.ClientInterface).Resolve(stored, symbolSpecificMessageHash)
 	client.(ccxt.ClientInterface).Resolve(stored, channelReplaced)
 }
@@ -972,7 +974,7 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var quote *string = this.SafeString(marketResolved, "quote")
 	var last *string = this.SafeString(ticker, "a")
-	var literal64432 map[string]any = map[string]any{
+	var literal64632 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -994,11 +996,11 @@ func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string
 		"info":          ticker,
 	}
 	if quote != nil && *quote == "USD" {
-		literal64432["quoteVolume"] = this.SafeString(ticker, "vv")
+		literal64632["quoteVolume"] = this.SafeString(ticker, "vv")
 	} else {
-		literal64432["quoteVolume"] = nil
+		literal64632["quoteVolume"] = nil
 	}
-	return ccxt.TickerToMap(this.SafeTicker(literal64432, marketResolved))
+	return ccxt.TickerToMap(this.SafeTicker(literal64632, marketResolved))
 }
 
 /**
@@ -2248,15 +2250,17 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue
 			}
-			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-				var subHash *string = nil
-				if j >= 0 && j < len(subMessageHashes) {
-					subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+			if messageHashes != nil {
+				for j := 0; j < len(messageHashes); j++ {
+					var unsubHash string = messageHashes[j]
+					var subHash *string = nil
+					if j >= 0 && j < len(subMessageHashes) {
+						subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+					}
+					this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 				}
-				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)
 		}

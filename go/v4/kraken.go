@@ -2725,16 +2725,16 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawTrades []any = SafeListTyped(orderOmitted, "trades")
 	var trades []any = []any{}
 	for i := 0; i < len(rawTrades); i++ {
-		var rawTrade any = DerefScalar(rawTrades[i])
-		if IsString(rawTrade) {
+		var rawTradeId *string = this.SafeString(rawTrades, i)
+		if rawTradeId != nil {
 			trades = append(trades, TradeToMap(this.SafeTrade(map[string]any{
-				"id":     rawTrade,
+				"id":     rawTradeId,
 				"order":  id,
 				"symbol": symbol,
 				"info":   map[string]any{},
 			})))
 		} else {
-			trades = append(trades, rawTrade)
+			trades = append(trades, DerefScalar(rawTrades[i]))
 		}
 	}
 	// as mentioned in #24192 PR, this field is not something consistent/actual
@@ -3227,11 +3227,11 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 		panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)"))
 	} else {
 		for i := 0; i < len(orderTrades); i++ {
-			var orderTrade any = DerefScalar(orderTrades[i])
-			if IsString(orderTrade) {
-				tradeIds = append(tradeIds, orderTrade)
+			var orderTradeId *string = this.SafeString(orderTrades, i)
+			if orderTradeId != nil {
+				tradeIds = append(tradeIds, *orderTradeId)
 			} else {
-				tradeIds = append(tradeIds, this.SafeString(orderTrade, "id"))
+				tradeIds = append(tradeIds, this.SafeString(orderTrades[i], "id"))
 			}
 		}
 	}

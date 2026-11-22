@@ -1084,11 +1084,9 @@ func (this *Polymarket) HandleOrder(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(message, "data")
+	var data, _ = message["data"].(map[string]any)
 	var rows []any = []any{}
-	if ccxt.IsArray(data) {
-		rows = ccxt.ArrayTyped(data)
-	} else {
+	if data != nil {
 		rows = append(rows, data)
 	}
 	var rowsLength int = len(rows)
@@ -1671,12 +1669,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 			}
 		}
 		for i := 0; i < len(messageHashes); i++ {
-			this.CleanUnsubscription(ccxt.AsClient(client), func() any {
-				if i >= 0 && i < len(subMessageHashes) {
-					return subMessageHashes[i]
-				}
-				return nil
-			}(), ccxt.DerefScalar(messageHashes[i]))
+			this.CleanUnsubscription(ccxt.AsClient(client), this.SafeString(subMessageHashes, i), ccxt.DerefScalar(messageHashes[i]))
 		}
 	}
 }

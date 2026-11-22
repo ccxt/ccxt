@@ -3354,7 +3354,8 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	// [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
 	// rpi liquidity, so index 0 and 1 stay the price and the amount
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -5170,7 +5171,8 @@ func (this *Okx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		}
 		response = r3.Value
 	}
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -5504,7 +5506,8 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[Order], id string, symbol str
 	//        "msg": ""
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -6528,7 +6531,8 @@ func (this *Okx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var order map[string]any
 	if 0 < len(data) {
 		order, _ = data[0].(map[string]any)
@@ -7835,7 +7839,14 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress], co
 		return nil
 	}
 	// if the network is not specified, return the first address
-	var keys []string = ObjectKeys(response)
+	var responseDict map[string]any = this.Extend(map[string]any{}, response)
+	var keys []string = nil
+	if responseDict != nil {
+		keys = make([]string, 0, len(responseDict))
+		for objectKey := range responseDict {
+			keys = append(keys, objectKey)
+		}
+	}
 	var first string = *this.SafeString(keys, 0, "")
 
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.SafeDictMap(response, first))}
@@ -7986,11 +7997,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes579919 []any = r1.Value
-		if retRes579919 == nil {
+		var retRes580019 []any = r1.Value
+		if retRes580019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes579919)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes580019)}
 		}
 		return nil
 	}
@@ -8161,11 +8172,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes591019 []any = r1.Value
-		if retRes591019 == nil {
+		var retRes591119 []any = r1.Value
+		if retRes591119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes591019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes591119)}
 		}
 		return nil
 	}
@@ -8714,15 +8725,19 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		for i := 0; i < len(symbols); i++ {
 			var entry string = symbols[i]
-			var market map[string]any = this.Market(entry)
-			marketIds = append(marketIds, market["id"])
+			var market MarketInterface = MarketInterfaceFromMap(this.Market(entry))
+			var marketId string = ""
+			if market.Id != nil {
+				marketId = *market.Id
+			}
+			marketIds = append(marketIds, marketId)
 		}
 		var marketIdsLength int = len(marketIds)
 		if marketIdsLength > 0 {
-			request["instId"] = Join(marketIds, ",")
+			request["instId"] = strings.Join(marketIds, ",")
 		}
 	}
 	var fetchPositionsOptions, _ = this.Options["fetchPositions"].(map[string]any)
@@ -8824,11 +8839,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes644515 []any = PositionsToList(r.Value)
-	if retRes644515 == nil {
+	var retRes644715 []any = PositionsToList(r.Value)
+	if retRes644715 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644515)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644715)}
 	}
 	return nil
 }
@@ -9195,7 +9210,7 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 	if balanceChange != nil {
 		amount = this.ParseNumber(Precise.StringAbs(balanceChange))
 	}
-	var literal675915 map[string]any = map[string]any{
+	var literal676115 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        id,
 		"timestamp": timestamp,
@@ -9205,16 +9220,16 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry 
 		"status":    this.ParseTransferStatus(this.SafeString(transfer, "state")),
 	}
 	if fromAccountId == nil {
-		literal675915["fromAccount"] = nil
+		literal676115["fromAccount"] = nil
 	} else {
-		literal675915["fromAccount"] = this.SafeString(accountsById, fromAccountId)
+		literal676115["fromAccount"] = this.SafeString(accountsById, fromAccountId)
 	}
 	if toAccountId == nil {
-		literal675915["toAccount"] = nil
+		literal676115["toAccount"] = nil
 	} else {
-		literal675915["toAccount"] = this.SafeString(accountsById, toAccountId)
+		literal676115["toAccount"] = this.SafeString(accountsById, toAccountId)
 	}
-	return TransferEntryFromMap(literal675915)
+	return TransferEntryFromMap(literal676115)
 }
 func (this *Okx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -10534,12 +10549,12 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 		entry = map[string]any{}
 	}
 	var errorCode *string = this.SafeString(response, "code")
-	var ternaryStr776122 string = "failed"
+	var ternaryStr776322 string = "failed"
 	if errorCode != nil && *errorCode == "0" {
-		ternaryStr776122 = "ok"
+		ternaryStr776322 = "ok"
 	}
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": ternaryStr776122,
+		"status": ternaryStr776322,
 	}))}
 	return nil
 }

@@ -453,21 +453,16 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 		var m any = this.ParseMarket(raw)
 		markets = append(markets, m)
 		if (eventKey != nil) && (!ccxt.IsEqual(eventKey, "")) {
-			if !(ccxt.InOp(eventGroups, eventKey)) {
-				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
-					"groupId": groupId,
-					"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
-					"raw":     raw,
-					"markets": []any{},
-				})
-			}
-			var eventGroup any = ccxt.GetValue(eventGroups, eventKey)
-			// push through a local and write the slice back — the go transpiler's
-			// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
-			// direct push on eventGroup['markets'] loses the element in go
+			var eventGroup any = this.SafeDict(eventGroups, eventKey, map[string]any{
+				"groupId": groupId,
+				"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
+				"raw":     raw,
+				"markets": []any{},
+			})
 			var groupMarkets any = ccxt.GetValue(eventGroup, "markets")
 			ccxt.AppendToArray(&groupMarkets, m)
 			ccxt.AddElementToObject(eventGroup, "markets", groupMarkets)
+			ccxt.AddElementToObject(eventGroups, eventKey, eventGroup)
 		}
 	}
 	var eventsDict map[string]any = map[string]any{}
@@ -1639,7 +1634,7 @@ func (this *Limitless) fetchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Predicti
 	//
 	var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 	// sizes are scaled by 10^decimals, USDC uses 6 decimals
-	var scaleStr any = this.ParsePrecision(this.NumberToString(-*decimals))
+	var scaleStr *string = this.ParsePrecision(this.NumberToString(-*decimals))
 	var outcomeLabel string = *this.SafeStringLower(outcomeObj["info"], "outcomeLabel", "yes")
 	var isYes bool = (outcomeLabel != "no")
 	var rawBids any = this.SafeList(response, "bids", []any{})
@@ -1992,11 +1987,11 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes158115 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes158115 == nil {
+	var retRes157615 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes157615 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes158115)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes157615)}
 	}
 	return nil
 }
@@ -2044,11 +2039,11 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes160315 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes160315 == nil {
+	var retRes159815 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes159815 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes160315)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes159815)}
 	}
 	return nil
 }
@@ -3280,11 +3275,11 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes249919 []any = r1.Value
-		if retRes249919 == nil {
+		var retRes249419 []any = r1.Value
+		if retRes249419 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249919)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249419)}
 		}
 		return nil
 	}
@@ -3881,21 +3876,16 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		}
 		this.AddMarketsEntry(m["market"], m)
 		if (eventKey != nil) && (eventKey != "") {
-			if !(ccxt.InOp(eventGroups, eventKey)) {
-				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
-					"groupId": groupId,
-					"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
-					"raw":     raw,
-					"markets": []any{},
-				})
-			}
-			var eventGroup any = ccxt.GetValue(eventGroups, eventKey)
-			// push through a local and write the slice back — the go transpiler's
-			// ccxt.AppendToArray reassigns only a local copy of a map-stored array, so a
-			// direct push on eventGroup['markets'] loses the element in go
+			var eventGroup any = this.SafeDict(eventGroups, eventKey, map[string]any{
+				"groupId": groupId,
+				"title":   this.SafeString2(raw, "groupTitle", "title", groupId),
+				"raw":     raw,
+				"markets": []any{},
+			})
 			var groupMarkets any = ccxt.GetValue(eventGroup, "markets")
 			ccxt.AppendToArray(&groupMarkets, m)
 			ccxt.AddElementToObject(eventGroup, "markets", groupMarkets)
+			ccxt.AddElementToObject(eventGroups, eventKey, eventGroup)
 		}
 	}
 	var result []any = []any{}
@@ -3978,7 +3968,8 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
 			}
 			response = r1.Value
 		}
-		var data []any = ccxt.SafeListTyped(response, "data")
+		var data []any
+		data, _ = response["data"].([]any)
 		var dataLength int = len(data)
 		if dataLength == 0 {
 			break

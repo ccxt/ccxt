@@ -2338,7 +2338,8 @@ func (this *Xt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opti
 	//     }
 	//
 	if *this.SafeBool(market, "spot", false) {
-		var tickers []any = SafeListTyped(response, "result")
+		var tickers []any
+		tickers, _ = response["result"].([]any)
 
 		if len(tickers) > 0 {
 			ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickers[0], market)}
@@ -2468,7 +2469,8 @@ func (this *Xt) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optiona
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "result")
+	var tickers []any
+	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], market))
@@ -2585,7 +2587,8 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "result")
+	var tickers []any
+	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
 		var rawTicker, _ = tickers[i].(map[string]any)

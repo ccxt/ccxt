@@ -1628,7 +1628,7 @@ func (this *Dydx) SignOnboardingAction() any {
 	var signature map[string]any = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
-func (this *Dydx) SignDydxTx(privateKey *string, message any, memo any, chainId *string, account any, authenticators any, optionalArgs ...any) any {
+func (this *Dydx) SignDydxTx(privateKey *string, message any, memo *string, chainId *string, account any, authenticators any, optionalArgs ...any) any {
 	fee := GetArg(optionalArgs, 0, nil)
 	_ = fee
 	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
@@ -2032,7 +2032,8 @@ func (this *Dydx) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var orderId *string = SafeStringPtr(orderRequestResSlot0)
 	orderRequest := orderRequestResSlot1
 	var chainName *string = this.SafeString(this.Options, "chainName")
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), orderRequest, "", chainName, account, nil)
+	argStr := ""
+	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), orderRequest, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2136,14 +2137,7 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		defaultOrderFlags = 64
 	}
 	var orderFlags *int64 = this.SafeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags)
-	var subAccountId int = 0
-	var subAccountIdOptionVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId)
-	subAccountIdOption := func() any {
-		if p, _ := subAccountIdOptionVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
+	subAccountIdOption, _ := this.HandleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", 0)
 	if (orderFlags == nil || *orderFlags != 0) && (orderFlags == nil || *orderFlags != 64) && (orderFlags == nil || *orderFlags != 32) {
 		panic(InvalidOrder(this.Id + " invalid orderFlags, allowed values are (0, 64, 32)."))
 	}
@@ -2196,7 +2190,8 @@ func (this *Dydx) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		"value":   cancelPayload,
 	}
 	var chainName *string = this.SafeString(this.Options, "chainName")
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
+	argStr := ""
+	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2263,15 +2258,7 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 	if clientOrderIds == nil {
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
-	var subAccountId int = 0
-	var subAccountIdOptionparamsSubAccountIdVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "cancelOrders", "subAccountId", subAccountId)
-	subAccountIdOption := func() any {
-		if p, _ := subAccountIdOptionparamsSubAccountIdVariable[0].(*int64); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	paramsSubAccountId := subAccountIdOptionparamsSubAccountIdVariable[1]
+	subAccountIdOption, paramsSubAccountId := this.HandleOptionIntegerAndParams(params, "cancelOrders", "subAccountId", 0)
 	var goodTillBlock *int64 = this.SafeInteger(paramsSubAccountId, "goodTillBlock")
 	if goodTillBlock == nil {
 
@@ -2311,7 +2298,8 @@ func (this *Dydx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		"value":   cancelPayload,
 	}
 	var chainName *string = this.SafeString(this.Options, "chainName")
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
+	argStr := ""
+	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr, chainName, account, nil)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2528,12 +2516,12 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(rows, currency, since, limit))}
 	return nil
 }
-func (this *Dydx) EstimateTxFeeAsync(message map[string]any, memo any, account any) <-chan AsyncResult[map[string]any] {
+func (this *Dydx) EstimateTxFeeAsync(message map[string]any, memo *string, account any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.estimateTxFeeBody(ch, message, memo, account)
 	return ch
 }
-func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message map[string]any, memo any, account any) any {
+func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message map[string]any, memo *string, account any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var txBytes any = this.EncodeDydxTxForSimulation(message, memo, this.SafeString(account, "sequence"), this.SafeDict(account, "pub_key", map[string]any{}))
@@ -2692,13 +2680,15 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		}
 	}
 
-	r2 := <-this.EstimateTxFeeAsync(signingPayload, "", account)
+	argStr := ""
+	r2 := <-this.EstimateTxFeeAsync(signingPayload, &argStr, account)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
 	var txFee map[string]any = r2.Value
 	var chainName *string = this.SafeString(this.Options, "chainName")
-	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
+	argStr2 := ""
+	var signedTx any = this.SignDydxTx(this.SafeString(credentials, "privateKey"), signingPayload, &argStr2, chainName, account, nil, txFee)
 	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
@@ -2903,14 +2893,8 @@ func (this *Dydx) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagPtr *string = nil
-	tagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tag := func() any {
-		if tagPtr != nil {
-			return *tagPtr
-		}
-		return nil
-	}()
+	var tag *string = this.SafeString(params, "tag")
+	var paramsWithdrawTag map[string]any = this.OmitDict(params, "tag")
 	if code != "USDC" {
 		panic(NotSupported(this.Id + " withdraw() only support USDC"))
 	}

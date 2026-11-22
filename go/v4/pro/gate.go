@@ -402,9 +402,11 @@ func (this *Gate) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id str
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ccxt.AddElementToObject(request, "order_id", id)
+	var orderRequest map[string]any = this.Extend(request, map[string]any{
+		"order_id": id,
+	})
 
-	r2 := <-this.RequestPrivateAsync(url, this.Extend(request, requestParams), channel)
+	r2 := <-this.RequestPrivateAsync(url, this.Extend(orderRequest, requestParams), channel)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -3074,15 +3076,17 @@ func (this *Gate) HandleUnSubscribe(client any, message map[string]any) {
 			if id != subId && (id == nil || subId == nil || *id != *subId) {
 				continue
 			}
-			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-				var subHash *string = nil
-				if j >= 0 && j < len(subMessageHashes) {
-					subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+			if messageHashes != nil {
+				for j := 0; j < len(messageHashes); j++ {
+					var unsubHash string = messageHashes[j]
+					var subHash *string = nil
+					if j >= 0 && j < len(subMessageHashes) {
+						subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+					}
+					this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 				}
-				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)
 		}
@@ -3524,15 +3528,12 @@ func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url *strin
 		}
 	}
 	var idArray []any = []any{this.Uid}
+	var noPayload bool = (ccxt.IsEqual(payload, nil))
 	var payloadWithUid []any
-	if ccxt.IsEqual(payload, nil) {
+	if noPayload {
 		payloadWithUid = idArray
 	} else {
 		payloadWithUid = this.ArrayConcat(idArray, payload)
-	}
-	var payloadValue any = payload
-	if requiresUid == true {
-		payloadValue = payloadWithUid
 	}
 	var time int64 = this.Seconds()
 	var event string = "subscribe"
@@ -3551,8 +3552,10 @@ func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url *strin
 		"event":   event,
 		"auth":    auth,
 	}
-	if !ccxt.IsEqual(payloadValue, nil) {
-		request["payload"] = payloadValue
+	if requiresUid == true {
+		request["payload"] = payloadWithUid
+	} else if !noPayload {
+		request["payload"] = payload
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {

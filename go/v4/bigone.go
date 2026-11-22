@@ -600,7 +600,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
 	var chains []map[string]any = this.SafeListMapsTyped(rawCurrency, "binding_gateways")
-	var currencyMaxPrecision any = this.ParsePrecision(this.SafeString2(rawCurrency, "withdrawal_scale", "scale"))
+	var currencyMaxPrecision *string = this.ParsePrecision(this.SafeString2(rawCurrency, "withdrawal_scale", "scale"))
 	for j := 0; j < len(chains); j++ {
 		var chain map[string]any = chains[j]
 		var networkId *string = this.SafeString(chain, "gateway_name")
@@ -610,7 +610,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 		var minDepositAmount *string = this.SafeString(chain, "min_deposit_amount")
 		var minWithdrawalAmount *string = this.SafeString(chain, "min_withdrawal_amount")
 		var withdrawalFee *string = this.SafeString(chain, "withdrawal_fee")
-		var precision any = this.ParsePrecision(this.SafeString2(chain, "withdrawal_scale", "scale"))
+		var precision *string = this.ParsePrecision(this.SafeString2(chain, "withdrawal_scale", "scale"))
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
 				"id":        networkId,

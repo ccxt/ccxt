@@ -789,7 +789,14 @@ func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
 	var result any = this.Exchange.SetMarkets(markets, currencies)
-	var symbols []string = ObjectKeys(result)
+	var resultCopy map[string]any = this.Extend(map[string]any{}, result)
+	var symbols []string = nil
+	if resultCopy != nil {
+		symbols = make([]string, 0, len(resultCopy))
+		for objectKey := range resultCopy {
+			symbols = append(symbols, objectKey)
+		}
+	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		var market map[string]any = this.SafeDictMap(result, symbol, map[string]any{})
@@ -935,11 +942,11 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes68319 []any = r1.Value
-		if retRes68319 == nil {
+		var retRes68419 []any = r1.Value
+		if retRes68419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68419)}
 		}
 		return nil
 	}
@@ -1419,11 +1426,11 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes102919 []any = r1.Value
-		if retRes102919 == nil {
+		var retRes103019 []any = r1.Value
+		if retRes103019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes102919)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes103019)}
 		}
 		return nil
 	}
@@ -1507,11 +1514,11 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes107619 []any = r1.Value
-		if retRes107619 == nil {
+		var retRes107719 []any = r1.Value
+		if retRes107719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107619)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107719)}
 		}
 		return nil
 	}
@@ -2699,11 +2706,11 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Ord
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes197719 []any = r1.Value
-		if retRes197719 == nil {
+		var retRes197819 []any = r1.Value
+		if retRes197819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197819)}
 		}
 		return nil
 	}
@@ -2868,11 +2875,11 @@ func (this *Deepcoin) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes210015 []any = OrdersToList(r.Value)
-	if retRes210015 == nil {
+	var retRes210115 []any = OrdersToList(r.Value)
+	if retRes210115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes210015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes210115)}
 	}
 	return nil
 }
@@ -2917,11 +2924,11 @@ func (this *Deepcoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes211915 []any = OrdersToList(r.Value)
-	if retRes211915 == nil {
+	var retRes212015 []any = OrdersToList(r.Value)
+	if retRes212015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes212015)}
 	}
 	return nil
 }
@@ -3485,7 +3492,7 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
 		}
 	}
-	var literal250431 map[string]any = map[string]any{
+	var literal250531 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "ordId"),
 		"clientOrderId":       this.SafeString(order, "clOrdId"),
 		"datetime":            this.Iso8601(timestamp),
@@ -3512,11 +3519,11 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":                order,
 	}
 	if (orderType != nil) && (orderType == nil || *orderType != "") {
-		literal250431["postOnly"] = (orderType != nil && *orderType == "post_only")
+		literal250531["postOnly"] = (orderType != nil && *orderType == "post_only")
 	} else {
-		literal250431["postOnly"] = nil
+		literal250531["postOnly"] = nil
 	}
-	return this.SafeOrder(literal250431, marketResolved)
+	return this.SafeOrder(literal250531, marketResolved)
 }
 func (this *Deepcoin) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4155,11 +4162,11 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes298719 []any = r1.Value
-		if retRes298719 == nil {
+		var retRes298819 []any = r1.Value
+		if retRes298819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes298819)}
 		}
 		return nil
 	}
@@ -4279,11 +4286,11 @@ func (this *Deepcoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes306315 []any = TradesToList(r1.Value)
-	if retRes306315 == nil {
+	var retRes306415 []any = TradesToList(r1.Value)
+	if retRes306415 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306315)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes306415)}
 	}
 	return nil
 }
@@ -4403,16 +4410,16 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		privateHeaders["DC-ACCESS-SIGN"] = signature
-		var literal313919 map[string]any = map[string]any{
+		var literal314019 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
 			"body":    nil,
 			"headers": privateHeaders,
 		}
 		if requestBody != nil {
-			literal313919["body"] = *requestBody
+			literal314019["body"] = *requestBody
 		}
-		return literal313919
+		return literal314019
 	}
 	return map[string]any{
 		"url":     url,

@@ -3387,7 +3387,7 @@ func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code stri
 	var collateral, _ = this.Options["collateral"].(map[string]any)
 	var tokenAddress *string = this.SafeString(collateral, "address")
 	var decimals *string = this.SafeString(collateral, "decimals", "6")
-	var precision any = this.ParsePrecision(decimals)
+	var precision *string = this.ParsePrecision(decimals)
 	// the signed amount is denominated using raw base units of the token
 	var precised string = this.DecimalToPrecision(this.NumberToString(amount), TRUNCATE, this.ParseNumber(precision), TICK_SIZE)
 	var baseUnits *string = Precise.StringDiv(precised, precision)
@@ -3733,7 +3733,7 @@ func (this *Polymarket) modifyMarginHelperBody(ch chan AsyncResult[map[string]an
 	var instrumentId int64 = this.ParseToInt(market["id"])
 	var collateral, _ = this.Options["collateral"].(map[string]any)
 	var decimals *string = this.SafeString(collateral, "decimals", "6")
-	var precision any = this.ParsePrecision(decimals)
+	var precision *string = this.ParsePrecision(decimals)
 	var amountString string = this.DecimalToPrecision(this.NumberToString(amount), TRUNCATE, this.ParseNumber(precision), TICK_SIZE)
 	if typeVar == "reduce" {
 		amountString = "-" + amountString
@@ -4171,7 +4171,14 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 		headersResolved["Content-Type"] = "application/json"
 	} else {
 		if method == "GET" {
-			var keys []string = ObjectKeys(query)
+			var queryCopy map[string]any = this.Extend(map[string]any{}, query)
+			var keys []string = nil
+			if queryCopy != nil {
+				keys = make([]string, 0, len(queryCopy))
+				for objectKey := range queryCopy {
+					keys = append(keys, objectKey)
+				}
+			}
 			var keysLength int = len(keys)
 			if keysLength > 0 {
 				url = baseUrl + "/" + implodedPath + "?" + this.Urlencode(query)
@@ -4183,16 +4190,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
 		}
 	}
-	var literal287115 map[string]any = map[string]any{
+	var literal287215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersResolved,
 	}
 	if bodyResolved != nil {
-		literal287115["body"] = *bodyResolved
+		literal287215["body"] = *bodyResolved
 	}
-	return literal287115
+	return literal287215
 }
 func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

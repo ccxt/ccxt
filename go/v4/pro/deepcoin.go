@@ -226,9 +226,9 @@ func (this *Deepcoin) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageH
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var listenKey *string = r.Value
+	var listenKey string = *this.SafeString(this.Options, "listenKey", "")
 
-	r1 := <-this.WatchList(ccxt.Add(*this.SafeString(this.UrlsApi["ws"], "private", "")+"?listenKey=", listenKey), messageHash, nil, "private", params)
+	r1 := <-this.WatchList(*this.SafeString(this.UrlsApi["ws"], "private", "")+"?listenKey="+listenKey, messageHash, nil, "private", params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1554,7 +1554,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var listenKey *string = r1.Value
+	var listenKey string = *this.SafeString(this.Options, "listenKey", "")
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes []string = []string{}
@@ -1567,7 +1567,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	} else {
 		messageHashes = append(messageHashes, messageHash)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(*this.SafeString(this.UrlsApi["ws"], "private", "")+"?listenKey=", listenKey))
+	var url string = *this.SafeString(this.UrlsApi["ws"], "private", "") + "?listenKey=" + listenKey
 
 	r2 := <-this.WatchMultiple(url, messageHashes, params, []any{"private"})
 	if r2.Err != nil {

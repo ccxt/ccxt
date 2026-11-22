@@ -4660,7 +4660,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	var nonce *int64 = &r2.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
-		"initial_margin_fraction": this.ParseToInt(Divide(10000, this.ParseToInt(leverage))),
+		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
 		"margin_mode": func() int {
 			if marginMode == "cross" {
 				return 0
@@ -5179,7 +5179,8 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": this.CreateAuth(params),
 		}
 	}
-	if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
+	var query map[string]any = this.Extend(map[string]any{}, params)
+	if len(query) > 0 {
 		if method == "POST" {
 			var multipartHeaders map[string]any = map[string]any{
 				"Content-Type": "multipart/form-data",

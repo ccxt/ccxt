@@ -2062,7 +2062,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	for i := 0; i < len(transactions); i++ {
 		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
-			if rebateKeys[j] == GetValue(transactionKeys, i) {
+			if i >= 0 && i < len(transactionKeys) && rebateKeys[j] == transactionKeys[i] {
 				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				rebateKeys[j] = ""

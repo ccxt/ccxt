@@ -1572,8 +1572,9 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	} else {
 		var endAtRaw *int64 = this.SafeInteger(requestUntil, "end_at", this.Milliseconds())
 		var endAt int64 = this.ParseToInt(endAtRaw)
+		var startAt int64 = endAt - (windowLength - 1)
 		requestUntil["end_at"] = endAt
-		AddElementToObject(requestUntil, "start_at", endAt-(windowLength-1))
+		requestUntil["start_at"] = startAt
 	}
 
 	r2 := <-this.PublicGetMarketsKlines(this.Extend(requestUntil, paramsOmitted))
@@ -1955,14 +1956,14 @@ func (this *Paradex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symb
 			panic(r.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
-	r1 := <-this.FetchFundingRatesAsync([]any{market.Symbol}, params)
+	r1 := <-this.FetchFundingRatesAsync([]any{this.SafeString(market, "symbol", "")}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
 	var rates map[string]any = StructResultMap(r1.Value, FundingRateMapToMap)
-	var rate map[string]any = SafeMapTyped(rates, market.Symbol)
+	var rate map[string]any = SafeMapTyped(rates, market["symbol"])
 	if rate == nil {
 		panic(BadSymbol(this.Id + " fetchFundingRate() could not find a funding rate for " + symbol))
 	}
@@ -2008,7 +2009,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
 		intervalStr := *hours + "h"
 		interval = &intervalStr
 	}
-	var literal145715 map[string]any = map[string]any{
+	var literal145815 map[string]any = map[string]any{
 		"info":                     contract,
 		"markPrice":                this.SafeNumber(contract, "mark_price"),
 		"indexPrice":               this.SafeNumber(contract, "underlying_price"),
@@ -2028,11 +2029,11 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
 		"interval":                 interval,
 	}
 	if funds {
-		literal145715["symbol"] = marketResolved["symbol"]
+		literal145815["symbol"] = marketResolved["symbol"]
 	} else {
-		literal145715["symbol"] = nil
+		literal145815["symbol"] = nil
 	}
-	return FundingRateFromMap(literal145715)
+	return FundingRateFromMap(literal145815)
 }
 
 /**
@@ -2149,11 +2150,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154419 []any = r1.Value
-		if retRes154419 == nil {
+		var retRes154519 []any = r1.Value
+		if retRes154519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154519)}
 		}
 		return nil
 	}
@@ -2704,7 +2705,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	if flags != nil {
 		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
-	var literal194331 map[string]any = map[string]any{
+	var literal194431 map[string]any = map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
 		"timestamp":           timestamp,
@@ -2735,12 +2736,12 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 		"info": order,
 	}
 	if takeProfitPrice != nil {
-		literal194331["takeProfitPrice"] = *takeProfitPrice
+		literal194431["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal194331["stopLossPrice"] = *stopLossPrice
+		literal194431["stopLossPrice"] = *stopLossPrice
 	}
-	return this.SafeOrder(literal194331, marketResolved)
+	return this.SafeOrder(literal194431, marketResolved)
 }
 func (this *Paradex) ParseTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -2930,14 +2931,14 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	if !isMarket {
 		orderPrice = this.ScaleNumber(this.SafeString(request, "price"))
 	}
-	var ternaryStr213720 string = "2"
+	var ternaryStr213820 string = "2"
 	if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
-		ternaryStr213720 = "1"
+		ternaryStr213820 = "1"
 	}
 	var orderReq map[string]any = map[string]any{
 		"timestamp": now,
 		"market":    this.StringToBase16(this.SafeString(request, "market")),
-		"side":      ternaryStr213720,
+		"side":      ternaryStr213820,
 		"orderType": this.StringToBase16(this.SafeString(request, "type")),
 		"size":      this.ScaleNumber(this.SafeString(request, "size")),
 		"price":     orderPrice,
@@ -3145,10 +3146,12 @@ func (this *Paradex) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	var market map[string]any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	request = this.Omit(request, []any{"instruction", "client_id", "flags", "recv_window"})
-	AddElementToObject(request, "order_id", id)
-	AddElementToObject(request, "id", id)
+	var editRequest map[string]any = this.Extend(request, map[string]any{
+		"order_id": id,
+		"id":       id,
+	})
 
-	r2 := <-this.SignOrderRequestAsync(request, true)
+	r2 := <-this.SignOrderRequestAsync(editRequest, true)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -4068,7 +4071,7 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 			panic(r1.Err)
 		}
 	}
-	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	r2 := <-this.PrivateGetPositions(params)
 	if r2.Err != nil {
@@ -4079,17 +4082,14 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 	data, _ = response["results"].([]any)
 	// unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
 	var matching []any = []any{}
-	var marketId string = ""
-	if market.Id != nil {
-		marketId = *market.Id
-	}
+	var marketId string = *this.SafeString(market, "id", "")
 	for i := 0; i < len(data); i++ {
 		var rowMarketId string = *this.SafeString(data[i], "market", "")
 		if rowMarketId == marketId {
 			matching = append(matching, data[i])
 		}
 	}
-	var positions []any = this.ParsePositions(matching, []any{market.Symbol})
+	var positions []any = this.ParsePositions(matching, []any{this.SafeString(market, "symbol", "")})
 
 	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
 	return nil
@@ -5785,9 +5785,9 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var next *string = this.SafeString(response, "next")
 	var rates []any = []any{}
 	for i := 0; i < len(results); i++ {
-		var rate any = results[i]
+		var rate map[string]any = this.Extend(map[string]any{}, results[i])
 		if next != nil {
-			AddElementToObject(rate, "next", next) // the cursor helper reads it from info, the last page has none
+			rate["next"] = next // the cursor helper reads it from info, the last page has none
 		}
 		var timestamp *int64 = this.SafeInteger(rate, "created_at")
 		var datetime *string = this.Iso8601(timestamp)

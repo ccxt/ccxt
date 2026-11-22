@@ -1840,7 +1840,14 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	// resolved in the key scan below, falling back to the passed market
 	var marketResolved any = market
 	if market == nil {
-		var keys []string = ObjectKeys(trade)
+		var tradeCopy map[string]any = this.Extend(map[string]any{}, trade)
+		var keys []string = nil
+		if tradeCopy != nil {
+			keys = make([]string, 0, len(tradeCopy))
+			for objectKey := range tradeCopy {
+				keys = append(keys, objectKey)
+			}
+		}
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = keys[i]
 			if (currentKey != "order_id") && (strings.Index(currentKey, "_") >= 0) {
@@ -1851,7 +1858,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	// if the market is still not defined
 	// try to deduce it from used keys
-	if IsEqual(marketResolved, nil) {
+	if this.SafeString(marketResolved, "id") == nil {
 		marketResolved = this.GetMarketFromTrade(trade)
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1928,7 +1935,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrency,
 		}
 	}
-	var literal126631 map[string]any = map[string]any{
+	var literal126731 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -1944,9 +1951,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if symbol != nil {
-		literal126631["symbol"] = *symbol
+		literal126731["symbol"] = *symbol
 	}
-	return this.SafeTrade(literal126631, marketResolved)
+	return this.SafeTrade(literal126731, marketResolved)
 }
 
 /**
@@ -2299,7 +2306,7 @@ func (this *Bitstamp) ParseTradingFees(fees []any) map[string]any {
 	var feesList []any = this.ToArray(fees)
 	for i := 0; i < len(feesList); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(feesList[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -2818,7 +2825,8 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	//        "success": true
 	//    }
 	//
-	var canceled []any = SafeListTyped(response, "canceled")
+	var canceled []any
+	canceled, _ = response["canceled"].([]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(canceled))}
 	return nil
@@ -3054,11 +3062,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes198019 []any = r.Value
-		if retRes198019 == nil {
+		var retRes198119 []any = r.Value
+		if retRes198119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes198019)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes198119)}
 		}
 		return nil
 	}
@@ -3594,7 +3602,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		}
 		// if the market is still not defined
 		// try to deduce it from used keys
-		if IsEqual(market, nil) {
+		if this.SafeString(market, "id") == nil {
 			market = this.GetMarketFromTrade(item)
 		}
 		var direction string
@@ -4165,16 +4173,16 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = privateHeaders
 	}
-	var literal283915 map[string]any = map[string]any{
+	var literal284015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal283915["body"] = *requestBody
+		literal284015["body"] = *requestBody
 	}
-	return literal283915
+	return literal284015
 }
 func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -4192,7 +4200,14 @@ func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method
 		if IsString(error) {
 			errors = append(errors, error)
 		} else if error != nil {
-			var keys []string = ObjectKeys(error)
+			var errorDict map[string]any = this.Extend(map[string]any{}, error)
+			var keys []string = nil
+			if errorDict != nil {
+				keys = make([]string, 0, len(errorDict))
+				for objectKey := range errorDict {
+					keys = append(keys, objectKey)
+				}
+			}
 			for i := 0; i < len(keys); i++ {
 				var key string = keys[i]
 				var value any = this.SafeValue(error, key)

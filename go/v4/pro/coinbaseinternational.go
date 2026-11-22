@@ -330,7 +330,7 @@ func (this *Coinbaseinternational) HandleBalance(client any, message map[string]
 	if data == nil {
 		data = map[string]any{}
 	}
-	var parsed map[string]any = this.ParseBalanceList(data)
+	var parsed map[string]any = this.ParseBalanceList(data, []any{data})
 	this.Balance = this.DeepExtend(this.Balance, parsed)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
@@ -2944,7 +2944,7 @@ func (this *Coinbaseinternational) fetchBalanceWsBody(ch chan ccxt.AsyncResult[c
 	}
 	var summariesLength int = len(summaries)
 	for i := 0; i < summariesLength; i++ {
-		balance = this.DeepExtend(balance, this.ParseBalanceList(ccxt.DerefScalar(summaries[i])))
+		balance = this.DeepExtend(balance, this.ParseBalanceList(ccxt.DerefScalar(summaries[i]), []any{this.SafeDict(summaries, i, map[string]any{})}))
 	}
 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(this.SafeBalance(balance))}

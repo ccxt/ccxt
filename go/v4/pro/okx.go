@@ -1751,16 +1751,9 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var sym *string = nil
-		if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-			sym = ccxt.SafeStringPtr(symbolAndTimeframe[0])
-		}
-		var tf *string = nil
-		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
-		}
-		var marketId *string = this.MarketId(sym)
+		var sym string = *this.SafeString(symbolsAndTimeframes[i], 0, "")
+		var tf string = *this.SafeString(symbolsAndTimeframes[i], 1, "")
+		var marketId *string = this.MarketId(&sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
 		var topic map[string]any = map[string]any{
@@ -1768,7 +1761,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]ma
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, "multi:"+channel+":"+*sym)
+		messageHashes = append(messageHashes, "multi:"+channel+":"+sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -1826,16 +1819,9 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsAndTimeframes); i++ {
-		var symbolAndTimeframe []any = ccxt.ArrayTyped(symbolsAndTimeframes[i])
-		var sym *string = nil
-		if 0 >= 0 && 0 < len(symbolAndTimeframe) {
-			sym = ccxt.SafeStringPtr(symbolAndTimeframe[0])
-		}
-		var tf *string = nil
-		if 1 >= 0 && 1 < len(symbolAndTimeframe) {
-			tf = ccxt.SafeStringPtr(symbolAndTimeframe[1])
-		}
-		var marketId *string = this.MarketId(sym)
+		var sym string = *this.SafeString(symbolsAndTimeframes[i], 0, "")
+		var tf string = *this.SafeString(symbolsAndTimeframes[i], 1, "")
+		var marketId *string = this.MarketId(&sym)
 		var interval *string = this.SafeString(this.Timeframes, tf, tf)
 		var channel string = "candle" + *interval
 		var topic map[string]any = map[string]any{
@@ -1843,7 +1829,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 			"instId":  marketId,
 		}
 		topics = append(topics, topic)
-		messageHashes = append(messageHashes, "unsubscribe:multi:"+channel+":"+*sym)
+		messageHashes = append(messageHashes, "unsubscribe:multi:"+channel+":"+sym)
 	}
 	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
@@ -2652,9 +2638,9 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
-	var ternaryStr187728 string = "maker"
+	var ternaryStr187528 string = "maker"
 	if isTaker {
-		ternaryStr187728 = "taker"
+		ternaryStr187528 = "taker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         info,
@@ -2664,7 +2650,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 		"id":           this.SafeString(info, "tradeId"),
 		"order":        this.SafeString(order, "id"),
 		"type":         this.SafeString(order, "type"),
-		"takerOrMaker": ternaryStr187728,
+		"takerOrMaker": ternaryStr187528,
 		"side":         this.SafeString(order, "side"),
 		"price":        this.SafeNumber(info, "fillPx"),
 		"amount":       this.SafeNumber(info, "fillSz"),

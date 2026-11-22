@@ -388,17 +388,17 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		// price precision
 		var minPriceIncrementString *string = this.SafeString(market, "min_price_increment")
 		var minPriceIncrementScaleString *string = this.SafeString(market, "min_price_increment_scale")
-		var minPriceScalePrecisionString any = this.ParsePrecision(minPriceIncrementScaleString)
+		var minPriceScalePrecisionString *string = this.ParsePrecision(minPriceIncrementScaleString)
 		var pricePrecisionString *string = Precise.StringMul(minPriceIncrementString, minPriceScalePrecisionString)
 		// amount precision
 		var lotSizeString *string = this.SafeString(market, "lot_size")
 		var lotSizeScaleString *string = this.SafeString(market, "lot_size_scale")
-		var lotSizeScalePrecisionString any = this.ParsePrecision(lotSizeScaleString)
+		var lotSizeScalePrecisionString *string = this.ParsePrecision(lotSizeScaleString)
 		var amountPrecisionString *string = Precise.StringMul(lotSizeString, lotSizeScalePrecisionString)
 		// minimum order size
 		var minOrderSizeString *string = this.SafeString(market, "min_order_size")
 		var minOrderSizeScaleString *string = this.SafeString(market, "min_order_size_scale")
-		var minOrderSizeScalePrecisionString any = this.ParsePrecision(minOrderSizeScaleString)
+		var minOrderSizeScalePrecisionString *string = this.ParsePrecision(minOrderSizeScaleString)
 		var minOrderSizePreciseString *string = Precise.StringMul(minOrderSizeString, minOrderSizeScalePrecisionString)
 		var minOrderSize *float64 = this.ParseNumber(minOrderSizePreciseString)
 		// maximum order size
@@ -406,7 +406,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var maxOrderSizeRaw *string = this.SafeString(market, "max_order_size")
 		if maxOrderSizeRaw == nil || *maxOrderSizeRaw != "0" {
 			var maxOrderSizeScaleString *string = this.SafeString(market, "max_order_size_scale")
-			var maxOrderSizeScalePrecisionString any = this.ParsePrecision(maxOrderSizeScaleString)
+			var maxOrderSizeScalePrecisionString *string = this.ParsePrecision(maxOrderSizeScaleString)
 			var maxOrderSizeValueString *string = Precise.StringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString)
 			maxOrderSize = this.ParseNumber(maxOrderSizeValueString)
 		}

@@ -2812,12 +2812,14 @@ func (this *Weex) HandleSubscriptionStatus(client any, message map[string]any) m
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {
 		var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)
-		var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+		var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 		var subHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-		for i := 0; i < len(messageHashes); i++ {
-			var unSubHash *string = this.SafeString(messageHashes, i)
-			var subHash *string = this.SafeString(subHashes, i)
-			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, subHashIsPrefix)
+		if messageHashes != nil {
+			for i := 0; i < len(messageHashes); i++ {
+				var unSubHash *string = this.SafeString(messageHashes, i)
+				var subHash *string = this.SafeString(subHashes, i)
+				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, subHashIsPrefix)
+			}
 		}
 		this.CleanCache(subscription)
 	}

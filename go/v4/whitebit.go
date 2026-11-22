@@ -1310,7 +1310,14 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	_ = currencyIdKey
 	var depositWithdrawFees map[string]any = map[string]any{}
 	var codesValue []any = this.MarketCodes(codes)
-	var currencyIds []string = ObjectKeys(response)
+	var feesById map[string]any = this.Extend(map[string]any{}, response)
+	var currencyIds []string = nil
+	if feesById != nil {
+		currencyIds = make([]string, 0, len(feesById))
+		for objectKey := range feesById {
+			currencyIds = append(currencyIds, objectKey)
+		}
+	}
 	for i := 0; i < len(currencyIds); i++ {
 		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
@@ -2081,9 +2088,16 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 				if r1.Err != nil {
 					panic(r1.Err)
 				}
-				var response map[string]any = r1.Value
+				response := r1.Raw
 				// Search for order in executed orders response (object format)
-				var marketIds []string = ObjectKeys(response)
+				var executedById map[string]any = this.Extend(map[string]any{}, response)
+				var marketIds []string = nil
+				if executedById != nil {
+					marketIds = make([]string, 0, len(executedById))
+					for objectKey := range executedById {
+						marketIds = append(marketIds, objectKey)
+					}
+				}
 				for i := 0; i < len(marketIds); i++ {
 					var marketId string = marketIds[i]
 					var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
@@ -2486,7 +2500,14 @@ func (this *Whitebit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		return nil
 	} else {
 		var results []any = []any{}
-		var keys []string = ObjectKeys(response)
+		var tradesById map[string]any = this.Extend(map[string]any{}, response)
+		var keys []string = nil
+		if tradesById != nil {
+			keys = make([]string, 0, len(tradesById))
+			for objectKey := range tradesById {
+				keys = append(keys, objectKey)
+			}
+		}
 		for i := 0; i < len(keys); i++ {
 			var marketId string = keys[i]
 			var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
@@ -2743,18 +2764,18 @@ func (this *Whitebit) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs 
 	//
 	var status *string = this.SafeString(response, 0)
 
-	var literal199915 map[string]any = map[string]any{
+	var literal200215 map[string]any = map[string]any{
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
 	}
 	if status != nil && *status == "pong" {
-		literal199915["status"] = "ok"
+		literal200215["status"] = "ok"
 	} else {
-		literal199915["status"] = status
+		literal200215["status"] = status
 	}
-	ch <- AsyncResult[Status]{Value: StatusFromMap(literal199915)}
+	ch <- AsyncResult[Status]{Value: StatusFromMap(literal200215)}
 	return nil
 }
 
@@ -4570,9 +4591,9 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	} else if method != nil && *method == "2" {
 		addressTo = address
 	}
-	var ternaryStr325520 string = "withdrawal"
+	var ternaryStr325820 string = "withdrawal"
 	if method != nil && *method == "1" {
-		ternaryStr325520 = "deposit"
+		ternaryStr325820 = "deposit"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString(transaction, "uniqueId"),
@@ -4584,7 +4605,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		"address":     address,
 		"addressTo":   addressTo,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr325520,
+		"type":        ternaryStr325820,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -5960,11 +5981,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes425919 []any = r.Value
-		if retRes425919 == nil {
+		var retRes426219 []any = r.Value
+		if retRes426219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes426219)}
 		}
 		return nil
 	}
@@ -6075,17 +6096,17 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var literal434815 map[string]any = map[string]any{
+	var literal435115 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if isPrivate {
-		literal434815["headers"] = privateHeaders
+		literal435115["headers"] = privateHeaders
 	} else {
-		literal434815["headers"] = publicHeaders
+		literal435115["headers"] = publicHeaders
 	}
-	return literal434815
+	return literal435115
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {

@@ -141,7 +141,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan ccxt.AsyncResult[any], messageHa
 		apiPart = "publicMarket"
 	}
 
-	r := <-this.WatchMultiple(this.UrlsApiSections["ws"][apiPart], messageHashes, payload, rawHashes)
+	r := <-this.WatchMultiple(this.SafeString(this.UrlsApi["ws"], apiPart), messageHashes, payload, rawHashes)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -918,7 +918,7 @@ func (this *Grvt) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalAr
 			},
 		}
 		this.ExtendExchangeOptions(defaultOptions)
-		this.Client(this.UrlsApiSections["ws"]["privateTrading"])
+		this.Client(this.SafeString(this.UrlsApi["ws"], "privateTrading"))
 	}
 	return nil
 }

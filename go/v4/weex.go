@@ -1278,8 +1278,8 @@ func (this *Weex) ParseMarket(market any) map[string]any {
 	var amountPrecision *float64 = this.SafeNumber(market, "stepSize")
 	var pricePrecision *float64 = this.SafeNumber(market, "tickSize")
 	if amountPrecision == nil {
-		var amountPrecisionString any = this.ParsePrecision(this.SafeString(market, "quantityPrecision"))
-		var pricePrecisionString any = this.ParsePrecision(this.SafeString(market, "pricePrecision"))
+		var amountPrecisionString *string = this.ParsePrecision(this.SafeString(market, "quantityPrecision"))
+		var pricePrecisionString *string = this.ParsePrecision(this.SafeString(market, "pricePrecision"))
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}

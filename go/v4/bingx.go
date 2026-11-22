@@ -4021,7 +4021,8 @@ func (this *Bingx) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 		}
 		response = r2.Value
 	}
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
@@ -8677,10 +8678,11 @@ func (this *Bingx) CustomEncode(params map[string]any) any {
 				var arrayElement any = GetValue(value, j)
 				var isString bool = (IsString(arrayElement))
 				if isString {
+					var elementStr string = *this.SafeString(value, j, "")
 					if j > 0 {
-						arrStr += "," + "\"" + ToString(arrayElement) + "\""
+						arrStr += "," + "\"" + elementStr + "\""
 					} else {
-						arrStr = "\"" + ToString(arrayElement) + "\""
+						arrStr = "\"" + elementStr + "\""
 					}
 				} else {
 					if j > 0 {
@@ -8884,16 +8886,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal744015 map[string]any = map[string]any{
+	var literal744115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal744015["body"] = *requestBody
+		literal744115["body"] = *requestBody
 	}
-	return literal744015
+	return literal744115
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

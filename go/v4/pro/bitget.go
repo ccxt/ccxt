@@ -1501,7 +1501,8 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 	var result []any = this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true)
-	if this.HandleOption("watchTrades", "ignoreDuplicates", true) == true {
+	ignoreDuplicates, _ := this.HandleOptionBoolAndParams(map[string]any{}, "watchTrades", "ignoreDuplicates", true)
+	if ignoreDuplicates {
 		var filtered any = this.RemoveRepeatedTradesFromArray(result)
 		filtered = this.SortBy(filtered, "timestamp")
 
@@ -2140,7 +2141,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if isTrigger != nil && *isTrigger == true {
 		messageHash = "triggerOrder"
 	}
-	var subscriptionHash any = "order:trades"
+	var subscriptionHash string = "order:trades"
 	var symbolResolved *string = symbol
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2184,10 +2185,10 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	}
 	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
 		var resolvedSymbol string = *this.SafeString(market, "symbol", "")
-		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), resolvedSymbol)
+		subscriptionHash = subscriptionHash + ":" + resolvedSymbol
 	}
 	if isTrigger != nil && *isTrigger == true {
-		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
+		subscriptionHash = subscriptionHash + ":stop" // we don't want to re-use the same subscription hash for stop orders
 	}
 	// different from other streams here the 'rest' id is required for spot markets, contract markets require default here
 	var instId any = "default"
@@ -2212,7 +2213,10 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		instType = "UTA"
 		channel = "order"
 	}
-	subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), instType)
+	var subscriptionHashInst any = subscriptionHash + ":"
+	if instType != nil {
+		subscriptionHashInst = ccxt.Add(subscriptionHashInst, instType)
+	}
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
@@ -2231,7 +2235,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		args["instId"] = instId
 	}
 
-	r1 := <-this.WatchPrivateAsync(uta, messageHash, subscriptionHash, args, paramsRequest)
+	r1 := <-this.WatchPrivateAsync(uta, messageHash, subscriptionHashInst, args, paramsRequest)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2661,7 +2665,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	var literal220131 map[string]any = map[string]any{
+	var literal220531 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2685,18 +2689,18 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"trades":             nil,
 	}
 	if totalAmount != nil {
-		literal220131["amount"] = *totalAmount
+		literal220531["amount"] = *totalAmount
 	}
 	if cost != nil {
-		literal220131["cost"] = *cost
+		literal220531["cost"] = *cost
 	}
 	if filledAmount != nil {
-		literal220131["filled"] = *filledAmount
+		literal220531["filled"] = *filledAmount
 	}
 	if remaining != nil {
-		literal220131["remaining"] = *remaining
+		literal220531["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal220131, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal220531, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

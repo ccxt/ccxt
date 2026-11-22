@@ -485,8 +485,8 @@ func (this *Interactivebrokers) watchTickersBody(ch chan ccxt.AsyncResult[map[st
 	ticker := r.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		var tickerSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
-		ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		var tickerSymbol string = *this.SafeString(ticker, "symbol", "")
+		result[tickerSymbol] = ticker
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -525,8 +525,8 @@ func (this *Interactivebrokers) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[s
 	ticker := r.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		var tickerSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(ticker, "symbol"))
-		ccxt.AddElementToObject(result, tickerSymbol, ticker)
+		var tickerSymbol string = *this.SafeString(ticker, "symbol", "")
+		result[tickerSymbol] = ticker
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -854,7 +854,8 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var unifiedSymbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
+	var historyMarketId string = *this.SafeString(market, "id", "")
 
 	r1 := <-this.IbkrConnectAsync()
 	if r1.Err != nil {
@@ -862,7 +863,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 	}
 	url := r1.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	var messageHash string = "ohlcv::" + *unifiedSymbol + "::" + timeframe
+	var messageHash string = "ohlcv::" + unifiedSymbol + "::" + timeframe
 	// reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	// the last price stream, it builds the current candles
@@ -879,18 +880,14 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 		panic(r2.Err)
 	}
 	// the history, it seeds the candles
-	var historyHash any = ccxt.Add(ccxt.Add(ccxt.Add("smh::", market["id"]), "::"), timeframe)
+	var historyHash string = "smh::" + historyMarketId + "::" + timeframe
 	if !(client.(ccxt.ClientInterface).SubscriptionHas(historyHash)) {
-		if _, ok := this.Ohlcvs[*unifiedSymbol]; !ok {
-			if unifiedSymbol != nil {
-				this.Ohlcvs[*unifiedSymbol] = map[string]any{}
-			}
+		if _, ok := this.Ohlcvs[unifiedSymbol]; !ok {
+			this.Ohlcvs[unifiedSymbol] = map[string]any{}
 		}
 		var ohlcvLimit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if !(ccxt.InOp(this.Ohlcvs[*unifiedSymbol], timeframe)) {
-			if unifiedSymbol != nil {
-				ccxt.AddElementToObject(this.Ohlcvs[*unifiedSymbol], timeframe, ccxt.NewArrayCacheByTimestamp(ohlcvLimit))
-			}
+		if !(ccxt.InOp(this.Ohlcvs[unifiedSymbol], timeframe)) {
+			ccxt.AddElementToObject(this.Ohlcvs[unifiedSymbol], timeframe, ccxt.NewArrayCacheByTimestamp(ohlcvLimit))
 		}
 		var options, _ = this.Options["watchOHLCV"].(map[string]any)
 		var duration int64 = this.ParseTimeframe(timeframe)
@@ -908,7 +905,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 			"source":     this.SafeString(options, "source", "trades"),
 		}
 		// keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-		var request *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("smh+", market["id"]), "+"), this.Json(this.Keysort(this.Extend(historyRequest, query)))))
+		var request string = "smh+" + historyMarketId + "+" + this.Json(this.Keysort(this.Extend(historyRequest, query)))
 
 		r3 := <-this.IbkrSubscribeAsync(client, historyHash, request, map[string]any{
 			"conid":     market["id"],
@@ -963,7 +960,8 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
-	var unifiedSymbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var unifiedSymbol string = *this.SafeString(market, "symbol", "")
+	var historyMarketId string = *this.SafeString(market, "id", "")
 
 	r1 := <-this.IbkrConnectAsync()
 	if r1.Err != nil {
@@ -971,7 +969,7 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 	}
 	url := r1.Value
 	var client ccxt.ClientInterface = this.Client(url)
-	var subHashes []any = []any{"ohlcv::" + *unifiedSymbol + "::" + timeframe, ccxt.Add(ccxt.Add(ccxt.Add("smh::", market["id"]), "::"), timeframe)}
+	var subHashes []string = []string{"ohlcv::" + unifiedSymbol + "::" + timeframe, "smh::" + historyMarketId + "::" + timeframe}
 	var subscription map[string]any = map[string]any{
 		"topic":                "ohlcv",
 		"symbolsAndTimeframes": []any{[]any{unifiedSymbol, timeframe}},
@@ -1192,8 +1190,16 @@ func (this *Interactivebrokers) IbkrUpdateOHLCVs(client any, symbol string, delt
 		if candle == nil {
 			stored.(ccxt.Appender).Append([]any{candleTimestamp, price, price, price, price, size})
 		} else {
-			var high any = ccxt.MathMax(ccxt.GetValue(candle, 2), price)
-			var low any = ccxt.MathMin(ccxt.GetValue(candle, 3), price)
+			var high *float64 = price
+			var prevHigh *float64 = this.SafeNumber(candle, 2)
+			if (prevHigh != nil) && (price != nil) && (*prevHigh > *price) {
+				high = prevHigh
+			}
+			var low *float64 = price
+			var prevLow *float64 = this.SafeNumber(candle, 3)
+			if (prevLow != nil) && (price != nil) && (*price > *prevLow) {
+				low = prevLow
+			}
 			var volume any = this.Sum(ccxt.GetValue(candle, 5), size)
 			stored.(ccxt.Appender).Append([]any{candleTimestamp, ccxt.GetValue(candle, 1), high, low, price, volume})
 		}
@@ -1632,9 +1638,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes101815 := r1.Value
+	retRes102815 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes101815.(type) {
+	switch resolvedBox := retRes102815.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1840,9 +1846,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes114615 := r1.Value
+	retRes115615 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes114615.(type) {
+	switch resolvedBox := retRes115615.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1907,8 +1913,8 @@ func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]an
 	for i := 0; i < len(args); i++ {
 		var rawTrade any = args[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
-		var tradeTimestamp any = trade["timestamp"]
-		if (threshold != nil) && (!ccxt.IsEqual(tradeTimestamp, nil)) && (ccxt.IsLessThan(tradeTimestamp, threshold)) {
+		var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
+		if (threshold != nil) && (tradeTimestamp != nil) && (threshold != nil && *tradeTimestamp < *threshold) {
 			continue
 		}
 		if skipDuplicates != nil && *skipDuplicates {

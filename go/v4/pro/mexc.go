@@ -2572,7 +2572,8 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 	// spot ws client - the first caller fetches the listenKey, concurrent
 	// callers wait on the future and resume when the listenKey is ready,
 	// otherwise the user-data subscriptions would be split across two connections
-	var client ccxt.ClientInterface = this.Client(this.UrlsApiSections["ws"]["spot"])
+	var spotUrl *string = this.UrlsApiSectionStrings["ws"]["spot"]
+	var client ccxt.ClientInterface = this.Client(spotUrl)
 	var messageHash string = "authenticate:listenKey"
 	var isFetching *bool = this.SafeBool(this.Options, "listenKeyFetching", false)
 	if isFetching != nil && *isFetching {

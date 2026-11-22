@@ -1788,7 +1788,7 @@ func (this *Bitteam) ParseValueToPricision(valueObject any, valueKey string, pre
 	if (valueRawString == nil) || (precisionRawString == nil) {
 		return nil
 	}
-	var precisionString any = this.ParsePrecision(precisionRawString)
+	var precisionString *string = this.ParsePrecision(precisionRawString)
 	return Precise.StringMul(valueRawString, precisionString)
 }
 

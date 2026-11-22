@@ -2234,7 +2234,8 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict, market)}
 		return nil
 	}
-	var data []any = SafeListTyped(response, "data")
+	var data []any
+	data, _ = response["data"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)

@@ -2830,7 +2830,14 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) map[string]any {
 	var query string = ""
 	var signatureQuery string = ""
 	if method == "GET" {
-		var paramKeys []string = ObjectKeys(paramsOmitted)
+		var paramsCopy map[string]any = this.Extend(map[string]any{}, paramsOmitted)
+		var paramKeys []string = nil
+		if paramsCopy != nil {
+			paramKeys = make([]string, 0, len(paramsCopy))
+			for objectKey := range paramsCopy {
+				paramKeys = append(paramKeys, objectKey)
+			}
+		}
 		var paramKeysLength int = len(paramKeys)
 		var lastKeyIndex int64 = int64(paramKeysLength) - 1
 		if paramKeysLength > 0 {

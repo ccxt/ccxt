@@ -2052,26 +2052,21 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan AsyncResult[Balances
 		summaries, _ = result["summaries"].([]any)
 		if summaries != nil {
 
-			ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(summaries))}
+			ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(summaries, summaries))}
 			return nil
 		}
 
-		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(this.SafeDict(result, "summaries", []any{})))}
+		// a missing summary row has no currency, so the loop skips it
+		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(this.SafeDict(result, "summaries", []any{}), []any{this.SafeDict(result, "summaries", map[string]any{})}))}
 		return nil
 	}
 
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(result, this.SafeList(result, "summaries", []any{result})))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseBalanceList(response any) map[string]any {
+func (this *Coinbaseinternational) ParseBalanceList(response any, summaries any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
-	}
-	var summaries any = []any{response}
-	if IsArray(response) {
-		summaries = response
-	} else if this.IsNativeDeribitCredentials() {
-		summaries = this.SafeList(response, "summaries", []any{response})
 	}
 	for i := 0; i < GetArrayLength(summaries); i++ {
 		var data map[string]any = SafeMapTyped(summaries, i)
@@ -2713,11 +2708,11 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes203915 []any = TransactionsToList(r1.Value)
-	if retRes203915 == nil {
+	var retRes203415 []any = TransactionsToList(r1.Value)
+	if retRes203415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203415)}
 	}
 	return nil
 }
@@ -2768,11 +2763,11 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes206215 []any = TransactionsToList(r1.Value)
-	if retRes206215 == nil {
+	var retRes205715 []any = TransactionsToList(r1.Value)
+	if retRes205715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes206215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205715)}
 	}
 	return nil
 }
@@ -3986,7 +3981,7 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		}
 		takerOrMaker = this.SafeString(liquidities, this.SafeString(trade, "liquidity"))
 	}
-	var literal303631 map[string]any = map[string]any{
+	var literal303131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -4002,9 +3997,9 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		"fee":          fee,
 	}
 	if takerOrMaker != nil {
-		literal303631["takerOrMaker"] = *takerOrMaker
+		literal303131["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal303631, marketResolved)
+	return this.SafeTrade(literal303131, marketResolved)
 }
 
 /**

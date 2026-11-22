@@ -2716,7 +2716,8 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 	//     }
 	//
 	if isMargin || (marketType != nil && *marketType == "spot") {
-		var canceledOrders []any = SafeListTyped(response, "success")
+		var canceledOrders []any
+		canceledOrders, _ = response["success"].([]any)
 		var numCanceledOrders int = len(canceledOrders)
 		if numCanceledOrders != 1 {
 			panic(OrderNotFound(this.Id + " cancelOrder() " + *idValue + " not found"))

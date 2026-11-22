@@ -837,8 +837,12 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		var eventParts []string = strings.Split(*eventTicker, "-")
 		var eventPartsLength int = len(eventParts)
 		if eventPartsLength > 1 {
-			var seriesParts []any = this.ArraySlice(eventParts, 0, eventPartsLength-1)
-			seriesTickerStr := ccxt.Join(seriesParts, "-")
+			var seriesParts []string = []string{}
+			for si := 0; si < eventPartsLength-1; si++ {
+				var seriesPart string = *this.SafeString(eventParts, si, "")
+				seriesParts = append(seriesParts, seriesPart)
+			}
+			seriesTickerStr := strings.Join(seriesParts, "-")
 			seriesTicker = &seriesTickerStr
 		}
 	}
@@ -925,7 +929,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome *string = resolvedOutcome
-	var literal64715 map[string]any = map[string]any{
+	var literal65115 map[string]any = map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
 		"base":            "USD",
@@ -990,11 +994,11 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		"created": nil,
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal64715["expiry"] = this.Parse8601(endDate)
+		literal65115["expiry"] = this.Parse8601(endDate)
 	} else {
-		literal64715["expiry"] = nil
+		literal65115["expiry"] = nil
 	}
-	return literal64715
+	return literal65115
 }
 
 /**
@@ -1125,12 +1129,12 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//     { "exchange_active": true, "trading_active": true }
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
-	var ternaryStr79322 string = "maintenance"
+	var ternaryStr79722 string = "maintenance"
 	if tradingActive != nil && *tradingActive {
-		ternaryStr79322 = "ok"
+		ternaryStr79722 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr79322,
+		"status":  ternaryStr79722,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1276,7 +1280,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(market, "outcome"), market)
 	var outcomeLabel *string
 	if market != nil {
-		outcomeLabel = this.SafeStringUpper(market, "label", this.SafeStringUpper(market["info"], "outcomeLabel", "YES"))
+		outcomeLabel = this.SafeStringUpper(market, "label", this.SafeStringUpper(this.SafeDict(market, "info"), "outcomeLabel", "YES"))
 	} else {
 		outcomeLabelValue := "YES"
 		outcomeLabel = &outcomeLabelValue
@@ -3678,7 +3682,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal261728 map[string]any = map[string]any{
+	var literal262128 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3701,9 +3705,9 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal261728["event"] = *eventSlug
+		literal262128["event"] = *eventSlug
 	}
-	return this.Extend(literal261728)
+	return this.Extend(literal262128)
 }
 
 /**

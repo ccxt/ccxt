@@ -3849,12 +3849,11 @@ func (this *Poloniex) createDepositAddressBody(ch chan AsyncResult[DepositAddres
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
-	request := requestextraParamscurrencynetworkEntryVariable[0]
-	extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
-	currency := GetValue(requestextraParamscurrencynetworkEntryVariable, 2)
-	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
-	var paramsValue any = extraParams
+	var prepared map[string]any = this.PrepareRequestForDepositAddress(code, params)
+	var request, _ = prepared["request"].(map[string]any)
+	var paramsValue, _ = prepared["query"].(map[string]any)
+	var currency map[string]any = this.Currency(code)
+	var networkEntry, _ = prepared["networkEntry"].(map[string]any)
 
 	r1 := <-this.PrivatePostWalletsAddress(this.Extend(request, paramsValue))
 	if r1.Err != nil {
@@ -3895,12 +3894,11 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
-	request := requestextraParamscurrencynetworkEntryVariable[0]
-	extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
-	currency := GetValue(requestextraParamscurrencynetworkEntryVariable, 2)
-	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
-	var paramsValue any = extraParams
+	var prepared map[string]any = this.PrepareRequestForDepositAddress(code, params)
+	var request, _ = prepared["request"].(map[string]any)
+	var paramsValue, _ = prepared["query"].(map[string]any)
+	var currency map[string]any = this.Currency(code)
+	var networkEntry, _ = prepared["networkEntry"].(map[string]any)
 
 	r1 := <-this.PrivateGetWalletsAddresses(this.Extend(request, paramsValue))
 	if r1.Err != nil {
@@ -3927,7 +3925,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	ch <- AsyncResult[DepositAddress]{Value: DepositAddressFromMap(this.ParseDepositAddressSpecial(response, currency, networkEntry))}
 	return nil
 }
-func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs ...any) []any {
+func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if _, ok := this.Currencies[code]; !ok {
@@ -3967,16 +3965,21 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	if exchangeNetworkId != nil {
 		request["currency"] = *exchangeNetworkId
 	}
-	return []any{request, query, currency, networkEntry}
+	return map[string]any{
+		"request":      request,
+		"query":        query,
+		"currency":     currency,
+		"networkEntry": networkEntry,
+	}
 }
-func (this *Poloniex) ParseDepositAddressSpecial(response map[string]any, currency any, networkEntry any) map[string]any {
+func (this *Poloniex) ParseDepositAddressSpecial(response map[string]any, currency map[string]any, networkEntry map[string]any) map[string]any {
 	var address *string = this.SafeString(response, "address")
 	if address == nil {
 		address = this.SafeString(response, this.SafeString(networkEntry, "id"))
 	}
 	var tag *string = nil
 	this.CheckAddress(address)
-	if !IsEqual(networkEntry, nil) {
+	if networkEntry != nil {
 		var depositAddress *string = this.SafeString(this.SafeDict(networkEntry, "info", map[string]any{}), "depositAddress")
 		if depositAddress != nil {
 			tag = address

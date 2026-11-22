@@ -3472,7 +3472,8 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url string, me
 			var recordedTopics []any = ccxt.SafeListTyped(existing, "topics")
 			var recordedLength int = len(recordedTopics)
 			for j := 0; j < recordedLength; j++ {
-				ccxt.AddElementToObject(subscribedTopics, ccxt.DerefScalar(recordedTopics[j]), true)
+				var recordedTopic string = *this.SafeString(recordedTopics, j, "")
+				subscribedTopics[recordedTopic] = true
 			}
 		}
 		for i := 0; i < topicsLength; i++ {
@@ -3909,13 +3910,15 @@ func (this *Bybit) HandleUnSubscribe(client any, message map[string]any) map[str
 			if reqId != subId && (reqId == nil || subId == nil || *reqId != *subId) {
 				continue
 			}
-			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+			var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-			for j := 0; j < len(messageHashes); j++ {
-				var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-				var subHash *string = this.SafeString(subMessageHashes, j)
-				var usePrefix bool = (subHash != nil && *subHash == "orders") || (subHash != nil && *subHash == "myTrades") || (subHash != nil && *subHash == "positions")
-				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)
+			if messageHashes != nil {
+				for j := 0; j < len(messageHashes); j++ {
+					var unsubHash string = messageHashes[j]
+					var subHash *string = this.SafeString(subMessageHashes, j)
+					var usePrefix bool = (subHash != nil && *subHash == "orders") || (subHash != nil && *subHash == "myTrades") || (subHash != nil && *subHash == "positions")
+					this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash, usePrefix)
+				}
 			}
 			this.CleanCache(subscription)
 		}

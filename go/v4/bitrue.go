@@ -991,20 +991,15 @@ func (this *Bitrue) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		types = this.SafeListSlice(this.Options, "fetchMarkets", defaultTypes)
 	}
 	for i := 0; i < len(types); i++ {
-		var marketType *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(types) {
-				return types[i]
-			}
-			return nil
-		}())
-		if marketType != nil && *marketType == "spot" {
+		var marketType string = *this.SafeString(types, i, "")
+		if marketType == "spot" {
 			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
-		} else if marketType != nil && *marketType == "linear" {
+		} else if marketType == "linear" {
 			promisesRaw = append(promisesRaw, this.FapiV1PublicGetContracts(params))
-		} else if marketType != nil && *marketType == "inverse" {
+		} else if marketType == "inverse" {
 			promisesRaw = append(promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
-			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + *marketType + "\" is not a supported market type"))
+			panic(ExchangeError(this.Id + " fetchMarkets() this.options fetchMarkets \"" + marketType + "\" is not a supported market type"))
 		}
 	}
 
@@ -1899,7 +1894,8 @@ func (this *Bitrue) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], op
 	//     }
 	//
 	var data map[string]any = map[string]any{}
-	AddElementToObject(data, market["id"], response)
+	var tickerKey string = *this.SafeString(market, "id", "")
+	data[tickerKey] = response
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbolsNormalized))}
 	return nil
@@ -2022,7 +2018,8 @@ func (this *Bitrue) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 			continue
 		}
 		var market map[string]any = this.SafeMarket(marketId)
-		AddElementToObject(tickers, market["id"], ticker)
+		var tickerKey string = *this.SafeString(market, "id", "")
+		tickers[tickerKey] = ticker
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
@@ -3750,7 +3747,7 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
-	var literal305815 map[string]any = map[string]any{
+	var literal306015 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -3762,12 +3759,12 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      "ok",
 	}
 	if fromAccount != nil {
-		literal305815["fromAccount"] = *fromAccount
+		literal306015["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal305815["toAccount"] = *toAccount
+		literal306015["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal305815)
+	return TransferEntryFromMap(literal306015)
 }
 
 /**

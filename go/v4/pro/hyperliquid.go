@@ -2069,7 +2069,7 @@ func (this *Hyperliquid) WatchPositionsAsync(optionalArgs ...any) <-chan ccxt.As
 func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -2088,12 +2088,15 @@ func (this *Hyperliquid) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posi
 	var topic string = "clearinghouseState"
 	var messageHash string = topic + "::positions"
 	var hasSymbols bool = (symbols != nil) && !this.IsEmpty(symbols)
-	var symbolsNormalized any = symbols
+	var symbolsNormalized []string = symbols
 	if hasSymbols {
 		symbolsNormalized = this.MarketSymbols(symbols)
-	}
-	if hasSymbols && (!ccxt.IsEqual(symbolsNormalized, nil)) {
-		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
+		var joinParts []string = []string{}
+		for si := 0; si < len(symbolsNormalized); si++ {
+			var symbolEntry string = symbolsNormalized[si]
+			joinParts = append(joinParts, symbolEntry)
+		}
+		messageHash += "::" + strings.Join(joinParts, ",")
 	}
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var subscription map[string]any = map[string]any{

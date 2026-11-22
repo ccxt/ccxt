@@ -1902,7 +1902,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 		subscribeHashes = append(subscribeHashes, subscribeHash)
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
 			missing = append(missing, marketId)
-			missingHashes = append(missingHashes, ccxt.GetValue(messageHashes, i))
+			missingHashes = append(missingHashes, this.SafeString(messageHashes, i, ""))
 		}
 	}
 	var missingLength int = len(missing)
@@ -2064,10 +2064,11 @@ func (this *Paradex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var newBidAsk map[string]any = ccxt.MapTyped(r1.Value)
+	newBidAsk := r1.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
-		ccxt.AddElementToObject(result, newBidAsk["symbol"], newBidAsk)
+		var bidAskSymbol string = *this.SafeString(newBidAsk, "symbol", "")
+		result[bidAskSymbol] = newBidAsk
 
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
 		return nil
@@ -3322,15 +3323,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		return nil
 	}
 	var isSnapshot bool = (pkgType == 0)
-	var ternaryStr229527 string = "d"
+	var ternaryStr229627 string = "d"
 	if isSnapshot {
-		ternaryStr229527 = "s"
+		ternaryStr229627 = "s"
 	}
 	var result map[string]any = map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     ternaryStr229527,
+		"update_type":     ternaryStr229627,
 		"inserts":         []any{},
 		"updates":         []any{},
 		"deletes":         []any{},

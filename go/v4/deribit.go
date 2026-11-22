@@ -1393,7 +1393,7 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					symbol = nil
 				}
 				if option || future {
-					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
+					symbol = Add(symbol, ("-" + this.Yymmdd(expiry, "")))
 					if option {
 						strike = this.SafeNumber(market, "strike")
 						optionType = this.SafeString(market, "option_type")

@@ -1068,13 +1068,13 @@ func (this *Modetrade) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "token")
 	var networks []map[string]any = this.SafeListMapsTyped(rawCurrency, "chain_details")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var minPrecision any = nil
+	var minPrecision *string = nil
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(networks); j++ {
 		var network map[string]any = networks[j]
 		// TODO: transform chain id to human readable name
 		var networkId *string = this.SafeString(network, "chain_id", "")
-		var precision any = this.ParsePrecision(this.SafeString(network, "decimals"))
+		var precision *string = this.ParsePrecision(this.SafeString(network, "decimals"))
 		if precision != nil {
 			if minPrecision == nil {
 				minPrecision = precision

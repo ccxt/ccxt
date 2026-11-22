@@ -149,7 +149,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// each side - big enough to forgive rounding, far too small to
 			// hide a real bug like mismatched units or a wrong-field parse
 			var quoteVolumeDecimals int = exchange.PrecisionFromString(quoteVolume)
-			var quoteQuantum any = exchange.ParsePrecision(exchange.NumberToString(quoteVolumeDecimals))
+			var quoteQuantum *string = exchange.ParsePrecision(exchange.NumberToString(quoteVolumeDecimals))
 			baseLow = ccxt.Precise.StringSub(baseLow, quoteQuantum)
 			baseHigh = ccxt.Precise.StringAdd(baseHigh, quoteQuantum)
 			Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
@@ -175,7 +175,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// instead of letting it widen the window
 		var changeWindow *string = pricePart
 		if changeDecimals >= 0 {
-			var changeQuantum any = exchange.ParsePrecision(exchange.NumberToString(changeDecimals))
+			var changeQuantum *string = exchange.ParsePrecision(exchange.NumberToString(changeDecimals))
 			// a change of "0" prints no decimals, so its apparent step is a whole unit
 			// and accepts anything on a micro-priced asset. a per cent of the price
 			// caps it, and covers whole units on a price in the tens of thousands

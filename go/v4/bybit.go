@@ -12183,12 +12183,20 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 	var lastIndex int64 = int64(total) - 1
 	var last map[string]any = this.SafeDictMap(result, lastIndex, map[string]any{})
 	var cursorValue *string = this.SafeString(first, "nextPageCursor")
-	last["info"] = map[string]any{
-		"nextPageCursor": cursorValue,
+	var lastRow map[string]any = this.Extend(last, map[string]any{
+		"info": map[string]any{
+			"nextPageCursor": cursorValue,
+		},
+	})
+	var rows []any = []any{}
+	for i := 0; int64(i) < lastIndex; i++ {
+		rows = append(rows, this.SafeDict(result, i, map[string]any{}))
 	}
-	AddElementToObject(result, lastIndex, last)
+	if total > 0 {
+		rows = append(rows, lastRow)
+	}
 
-	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ToArray(result))}
+	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ToArray(rows))}
 	return nil
 }
 
@@ -12224,11 +12232,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem901240 *string = nil
+		var symbolsElem902040 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem901240 = &symbols[0]
+			symbolsElem902040 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem901240)
+		var market map[string]any = this.Market(symbolsElem902040)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12380,11 +12388,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes911219 []any = r1.Value
-		if retRes911219 == nil {
+		var retRes912019 []any = r1.Value
+		if retRes912019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes911219)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912019)}
 		}
 		return nil
 	}
@@ -13730,7 +13738,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl string = this.ImplodeHostname(apiUrl) + "/" + path
-	var url any = baseUrl
+	var url string = baseUrl
 	if apiName == "public" {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url = this.ImplodeHostname(apiUrl) + "/" + path + "?" + this.Rawencode(params)
@@ -13799,11 +13807,9 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 			var sortedQuery map[string]any = this.Keysort(query)
 			var auth string = this.Rawencode(sortedQuery, true)
-			var signature any = nil
+			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			if strings.Index(this.Secret, "PRIVATE KEY") > -1 {
 				signature = Rsa(auth, this.Secret, sha256)
-			} else {
-				signature = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			}
 			if method == "POST" {
 				var isSpot bool = (strings.Index(baseUrl, "spot") >= 0)
@@ -13824,7 +13830,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 					}
 				}
 			} else {
-				url = Add(baseUrl+"?"+this.Rawencode(sortedQuery, true)+"&sign=", signature)
+				url = baseUrl + "?" + this.Rawencode(sortedQuery, true) + "&sign=" + signature
 			}
 		}
 	}

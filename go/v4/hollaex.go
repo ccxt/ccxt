@@ -910,7 +910,14 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var keys []string = ObjectKeys(tickers)
+	var tickersDict map[string]any = this.Extend(map[string]any{}, tickers)
+	var keys []string = nil
+	if tickersDict != nil {
+		keys = make([]string, 0, len(tickersDict))
+		for objectKey := range tickersDict {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		var ticker map[string]any = this.SafeDictMap(tickers, key, map[string]any{})
@@ -1237,11 +1244,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes95319 []any = r1.Value
-		if retRes95319 == nil {
+		var retRes95419 []any = r1.Value
+		if retRes95419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes95319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes95419)}
 		}
 		return nil
 	}
@@ -1476,11 +1483,11 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes111815 []any = OrdersToList(r.Value)
-	if retRes111815 == nil {
+	var retRes111915 []any = OrdersToList(r.Value)
+	if retRes111915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes111815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes111915)}
 	}
 	return nil
 }
@@ -1520,11 +1527,11 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes113615 []any = OrdersToList(r.Value)
-	if retRes113615 == nil {
+	var retRes113715 []any = OrdersToList(r.Value)
+	if retRes113715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes113615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes113715)}
 	}
 	return nil
 }

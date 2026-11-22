@@ -2476,7 +2476,8 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], o
 		}
 		response = r2.Value
 	}
-	var allOrders []any = SafeListTyped(response, "elements")
+	var allOrders []any
+	allOrders, _ = response["elements"].([]any)
 	var closedOrders []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
 		var order, _ = allOrders[i].(map[string]any)
@@ -2568,7 +2569,8 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 		}
 		response = r2.Value
 	}
-	var allOrders []any = SafeListTyped(response, "elements")
+	var allOrders []any
+	allOrders, _ = response["elements"].([]any)
 	var canceledAndRejected []any = []any{}
 	for i := 0; i < len(allOrders); i++ {
 		var order, _ = allOrders[i].(map[string]any)

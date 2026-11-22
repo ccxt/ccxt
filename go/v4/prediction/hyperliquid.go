@@ -2739,8 +2739,9 @@ func (this *Hyperliquid) ActionHash(action map[string]any, vaultAddress *string,
 	if vaultAddress == nil {
 		data += "00"
 	} else {
+		var vaultHex string = strings.ToLower(*vaultAddress)
 		data += "01"
-		data += *vaultAddress
+		data += vaultHex
 	}
 	return this.Hash(this.Base16ToBinary(data), ccxt.Keccak, "binary")
 }
@@ -2821,12 +2822,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var ternaryStr217732 string = "Mainnet"
+	var ternaryStr217832 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr217732 = "Testnet"
+		ternaryStr217832 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr217732,
+		"hyperliquidChain": ternaryStr217832,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,
@@ -2963,16 +2964,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var literal226615 map[string]any = map[string]any{
+	var literal226715 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal226615["body"] = *bodyValue
+		literal226715["body"] = *bodyValue
 	}
-	return literal226615
+	return literal226715
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

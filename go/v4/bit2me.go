@@ -1174,11 +1174,11 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
-		var end any = this.Milliseconds()
 		if until != nil {
-			end = until
+			request["startTime"] = Subtract(until, requestLimit*duration)
+		} else {
+			request["startTime"] = this.Milliseconds() - (requestLimit * duration)
 		}
-		request["startTime"] = Subtract(end, requestLimit*duration)
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -1749,14 +1749,7 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if limit != nil {
 		request["limit"] = min(*limit, 100)
 	}
-	var untilPtr *int64 = nil
-	untilPtr, query := this.HandleParamInteger(params, "until")
-	until := func() any {
-		if untilPtr != nil {
-			return *untilPtr
-		}
-		return nil
-	}()
+	until, query := this.HandleParamInteger(params, "until")
 	// startTime and endTime must always be sent together
 	if (since != nil) || (until != nil) {
 		var start int64
@@ -1765,14 +1758,12 @@ func (this *Bit2me) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 		} else {
 			start = 0
 		}
-		var end any
-		if until != nil {
-			end = until
-		} else {
-			end = this.Milliseconds()
-		}
 		request["startTime"] = this.Iso8601(start)
-		request["endTime"] = this.Iso8601(end)
+		if until != nil {
+			request["endTime"] = this.Iso8601(until)
+		} else {
+			request["endTime"] = this.Iso8601(this.Milliseconds())
+		}
 	}
 
 	responseRecv := <-this.PrivateGetV1TradingOrder(this.Extend(request, query))
@@ -1847,11 +1838,11 @@ func (this *Bit2me) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140115 []any = OrdersToList(r.Value)
-	if retRes140115 == nil {
+	var retRes140415 []any = OrdersToList(r.Value)
+	if retRes140415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140415)}
 	}
 	return nil
 }
@@ -1892,11 +1883,11 @@ func (this *Bit2me) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142015 []any = OrdersToList(r.Value)
-	if retRes142015 == nil {
+	var retRes142315 []any = OrdersToList(r.Value)
+	if retRes142315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142315)}
 	}
 	return nil
 }
@@ -1937,11 +1928,11 @@ func (this *Bit2me) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes143915 []any = OrdersToList(r.Value)
-	if retRes143915 == nil {
+	var retRes144215 []any = OrdersToList(r.Value)
+	if retRes144215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes143915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes144215)}
 	}
 	return nil
 }
@@ -1982,11 +1973,11 @@ func (this *Bit2me) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes145815 []any = OrdersToList(r.Value)
-	if retRes145815 == nil {
+	var retRes146115 []any = OrdersToList(r.Value)
+	if retRes146115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes145815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes146115)}
 	}
 	return nil
 }
@@ -2118,14 +2109,7 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	if limit != nil {
 		request["limit"] = min(*limit, 50)
 	}
-	var untilPtr *int64 = nil
-	untilPtr, query := this.HandleParamInteger(params, "until")
-	until := func() any {
-		if untilPtr != nil {
-			return *untilPtr
-		}
-		return nil
-	}()
+	until, query := this.HandleParamInteger(params, "until")
 	// startTime and endTime must always be sent together
 	if (since != nil) || (until != nil) {
 		var start int64
@@ -2134,14 +2118,12 @@ func (this *Bit2me) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		} else {
 			start = 0
 		}
-		var end any
-		if until != nil {
-			end = until
-		} else {
-			end = this.Milliseconds()
-		}
 		request["startTime"] = this.Iso8601(start)
-		request["endTime"] = this.Iso8601(end)
+		if until != nil {
+			request["endTime"] = this.Iso8601(until)
+		} else {
+			request["endTime"] = this.Iso8601(this.Milliseconds())
+		}
 	}
 
 	r1 := <-this.PrivateGetV1TradingTrade(this.Extend(request, query))
@@ -2470,7 +2452,7 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		statusStr := "ok"
 		status = &statusStr
 	}
-	var literal180815 map[string]any = map[string]any{
+	var literal181415 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -2482,12 +2464,12 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      nil,
 	}
 	if id != nil {
-		literal180815["id"] = *id
+		literal181415["id"] = *id
 	}
 	if status != nil {
-		literal180815["status"] = *status
+		literal181415["status"] = *status
 	}
-	return TransferEntryFromMap(literal180815)
+	return TransferEntryFromMap(literal181415)
 }
 func (this *Bit2me) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

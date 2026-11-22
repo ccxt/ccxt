@@ -6788,7 +6788,7 @@ func (this *BaseExchange) IsTickPrecision() bool {
 func (this *BaseExchange) IsSignificantPrecision() any {
 	return (this.PrecisionMode == SIGNIFICANT_DIGITS)
 }
-func (this *BaseExchange) ParsePrecision(precision any) any {
+func (this *BaseExchange) ParsePrecision(precision any) *string {
 	/**
 	 * @ignore
 	 * @method
@@ -6801,23 +6801,26 @@ func (this *BaseExchange) ParsePrecision(precision any) any {
 	var precisionNumber int64 = ParseInt(precision)
 
 	if precisionNumber == 0 {
-		return "1"
+		retStr := "1"
+		return &retStr
 	}
 	if precisionNumber > 0 {
 		var parsedPrecision string = "0."
 		for i := 0; int64(i) < precisionNumber-1; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		return parsedPrecision + "1"
+		retStr2 := parsedPrecision + "1"
+		return &retStr2
 	} else {
 		var parsedPrecision string = "1"
 		for i := 0; int64(i) < int64(-1)-precisionNumber; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		return parsedPrecision + "0"
+		retStr3 := parsedPrecision + "0"
+		return &retStr3
 	}
 }
-func (this *BaseExchange) IntegerPrecisionToAmount(precision *string) any {
+func (this *BaseExchange) IntegerPrecisionToAmount(precision *string) *string {
 	/**
 	 * @ignore
 	 * @method
@@ -6841,7 +6844,8 @@ func (this *BaseExchange) IntegerPrecisionToAmount(precision *string) any {
 		for i := 0; int64(i) < positivePrecision-1; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		return parsedPrecision + "0"
+		retStr := parsedPrecision + "0"
+		return &retStr
 	}
 }
 func (this *BaseExchange) LoadTimeDifferenceAsync(optionalArgs ...any) <-chan AsyncResult[int64] {

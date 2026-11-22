@@ -1450,7 +1450,7 @@ func (this *Phemex) ParseCurrency(rawCurrency any) map[string]any {
 	var maxAmount *float64 = nil
 	var precision *float64 = nil
 	if valueScaleString != nil {
-		var precisionString any = this.ParsePrecision(valueScaleString)
+		var precisionString *string = this.ParsePrecision(valueScaleString)
 		precision = this.ParseNumber(precisionString)
 		minAmount = this.ParseNumber(Precise.StringMul(minValueEv, precisionString))
 		maxAmount = this.ParseNumber(Precise.StringMul(maxValueEv, precisionString))
@@ -2464,15 +2464,16 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			} else {
 				costString = nil
 			}
-			feeCostString = this.OmitZero(this.SafeString(trade, "execFeeRv"))
+			var execFeeRv *string = this.OmitZero(this.SafeString(trade, "execFeeRv"))
 			if derefPtr := this.SafeString(trade, "feeRateRr"); derefPtr != nil {
 				feeRateString = *derefPtr
 			} else {
 				feeRateString = nil
 			}
-			if !IsEqual(feeCostString, nil) {
+			if execFeeRv != nil {
 				var currencyId *string = this.SafeString(trade, "currency")
 				feeCurrencyCode = this.SafeCurrencyCode(currencyId)
+				feeCostString = execFeeRv
 			} else {
 				var ptFeeRv *string = this.OmitZero(this.SafeString(trade, "ptFeeRv"))
 				if ptFeeRv != nil {
@@ -2510,14 +2511,11 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 					}
 				}
 			} else {
-				if derefPtr := this.SafeString(trade, "ptFeeRv"); derefPtr != nil {
-					feeCostString = *derefPtr
-				} else {
-					feeCostString = nil
-				}
-				if !IsEqual(feeCostString, nil) {
+				var ptFeeRvString *string = this.SafeString(trade, "ptFeeRv")
+				if ptFeeRvString != nil {
 					feeCurrencyCodeStr2 := "PT"
 					feeCurrencyCode = &feeCurrencyCodeStr2
+					feeCostString = ptFeeRvString
 				}
 			}
 		}
@@ -2527,7 +2525,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal202631 map[string]any = map[string]any{
+	var literal202831 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"symbol":       symbol,
@@ -2543,15 +2541,15 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal202631["id"] = *id
+		literal202831["id"] = *id
 	}
 	if orderId != nil {
-		literal202631["order"] = *orderId
+		literal202831["order"] = *orderId
 	}
 	if typeVar != nil {
-		literal202631["type"] = *typeVar
+		literal202831["type"] = *typeVar
 	}
-	return this.SafeTrade(literal202631, marketResolved)
+	return this.SafeTrade(literal202831, marketResolved)
 }
 func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//
@@ -5318,9 +5316,9 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
-	var ternaryStr426126 string = "isolated"
+	var ternaryStr426326 string = "isolated"
 	if isCross != nil && *isCross {
-		ternaryStr426126 = "cross"
+		ternaryStr426326 = "cross"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5346,7 +5344,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode":                  ternaryStr426126,
+		"marginMode":                  ternaryStr426326,
 		"side":                        side,
 		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":                  nil,
@@ -5480,7 +5478,7 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
 	}
 	var currency map[string]any = this.SafeCurrency(currencyCode)
 	var scale *string = this.SafeString(currency["info"], "valueScale")
-	var tickPrecision any = this.ParsePrecision(scale)
+	var tickPrecision *string = this.ParsePrecision(scale)
 	return Precise.StringMul(value, tickPrecision)
 }
 
@@ -6081,16 +6079,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	var literal482015 map[string]any = map[string]any{
+	var literal482215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if bodyResolved != nil {
-		literal482015["body"] = *bodyResolved
+		literal482215["body"] = *bodyResolved
 	}
-	return literal482015
+	return literal482215
 }
 
 /**
@@ -6517,11 +6515,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511219 []any = r1.Value
-		if retRes511219 == nil {
+		var retRes511419 []any = r1.Value
+		if retRes511419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511419)}
 		}
 		return nil
 	}

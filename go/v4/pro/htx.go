@@ -2754,15 +2754,17 @@ func (this *Htx) HandleSubscriptionStatus(client any, message map[string]any) {
 	}
 }
 func (this *Htx) HandleUnSubscription(client any, subscription any) {
-	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-	for i := 0; i < len(messageHashes); i++ {
-		var unsubHash *string = ccxt.SafeStringPtr(messageHashes[i])
-		var subHash *string = nil
-		if i >= 0 && i < len(subMessageHashes) {
-			subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+	if messageHashes != nil {
+		for i := 0; i < len(messageHashes); i++ {
+			var unsubHash string = messageHashes[i]
+			var subHash *string = nil
+			if i >= 0 && i < len(subMessageHashes) {
+				subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+			}
+			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 		}
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }
@@ -3456,7 +3458,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal286631 map[string]any = map[string]any{
+	var literal286831 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3472,9 +3474,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal286631["type"] = *typeVar
+		literal286831["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal286631, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal286831, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

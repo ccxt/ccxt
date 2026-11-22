@@ -5039,8 +5039,7 @@ func (this *Hitbtc) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
-	var leverageValue int64 = this.ParseToInt(leverage)
-	if (leverageValue < 1) || (leverageValue > maxLeverage) {
+	if (leverage < 1) || (leverage > maxLeverage) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and " + strconv.FormatInt(maxLeverage, 10) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -5343,17 +5342,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394415 map[string]any = map[string]any{
+	var literal394315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394415["body"] = nil
+		literal394315["body"] = nil
 	} else {
-		literal394415["body"] = bodyString
+		literal394315["body"] = bodyString
 	}
-	return literal394415
+	return literal394315
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

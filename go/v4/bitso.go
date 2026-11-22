@@ -2589,7 +2589,8 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	//         ]
 	//     }
 	//
-	var payload []any = SafeListTyped(response, "payload")
+	var payload []any
+	payload, _ = response["payload"].([]any)
 	var first map[string]any
 	if 0 < len(payload) {
 		first, _ = payload[0].(map[string]any)

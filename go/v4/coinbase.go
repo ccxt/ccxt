@@ -3010,7 +3010,8 @@ func (this *Coinbase) fetchTickersV3Body(ch chan AsyncResult[map[string]Ticker],
 	//         "num_products": 549
 	//     }
 	//
-	var data []any = SafeListTyped(response, "products")
+	var data []any
+	data, _ = response["products"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var entry, _ = data[i].(map[string]any)
@@ -3181,7 +3182,8 @@ func (this *Coinbase) fetchTickerV3Body(ch chan AsyncResult[Ticker], symbol stri
 	//         "best_ask": "28208.62"
 	//     }
 	//
-	var data []any = SafeListTyped(response, "trades")
+	var data []any
+	data, _ = response["trades"].([]any)
 	var first map[string]any
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)

@@ -795,7 +795,8 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	//     "customMessage": ["OK"]
 	// }
 	//
-	var fees []any = SafeListTyped(response, "data")
+	var fees []any
+	fees, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))

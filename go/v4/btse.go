@@ -1505,7 +1505,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 		var entry, _ = data[i].(map[string]any)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		if (symbolsNormalized == nil) || this.InArray(symbol, symbolsNormalized) {
 			var levels []map[string]any = this.SafeListMapsTyped(entry, "riskLimits")
 			var tiers []any = []any{}
@@ -1533,9 +1533,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], opt
 				tiers = append(tiers, literal121032)
 				minNotional = maxNotional
 			}
-			if symbol != nil {
-				result[*symbol] = tiers
-			} // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+			result[symbol] = tiers // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
 		}
 	}
 

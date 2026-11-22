@@ -2246,15 +2246,17 @@ func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) map
 	return message
 }
 func (this *Xt) HandleUnSubscription(client any, subscription map[string]any) {
-	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
+	var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
-	for j := 0; j < len(messageHashes); j++ {
-		var unsubHash *string = ccxt.SafeStringPtr(messageHashes[j])
-		var subHash *string = nil
-		if j >= 0 && j < len(subMessageHashes) {
-			subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+	if messageHashes != nil {
+		for j := 0; j < len(messageHashes); j++ {
+			var unsubHash string = messageHashes[j]
+			var subHash *string = nil
+			if j >= 0 && j < len(subMessageHashes) {
+				subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+			}
+			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 		}
-		this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	}
 	this.CleanCache(subscription)
 }

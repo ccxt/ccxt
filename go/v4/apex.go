@@ -1689,10 +1689,10 @@ func (this *Apex) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return this.Exchange.SafeMarket(marketId, marketResolved, delimiter, marketType)
 }
-func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
+func (this *Apex) GenerateRandomClientIdOmni(_accountId *string) string {
 	var suffix string = "-" + strconv.FormatInt(this.Milliseconds(), 10) + "-" + strconv.FormatInt(this.RandNumber(6), 10)
-	if (!IsEqual(_accountId, nil)) && (!IsEqual(_accountId, "")) {
-		return Add(Add("apexomni-", _accountId), suffix)
+	if (_accountId != nil) && (_accountId == nil || *_accountId != "") {
+		return "apexomni-" + *_accountId + suffix
 	}
 	return "apexomni-" + strconv.FormatInt(this.RandNumber(12), 10) + suffix
 }
@@ -1843,9 +1843,9 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		panic(r1.Err)
 	}
 	var accountId *string = r1.Value
-	var finalClientOrderId any
+	var finalClientOrderId string
 	if clientOrderId != nil {
-		finalClientOrderId = clientOrderId
+		finalClientOrderId = *clientOrderId
 	} else {
 		finalClientOrderId = this.GenerateRandomClientIdOmni(accountId)
 	}
@@ -1998,9 +1998,9 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var amountNumber int64 = this.ParseToInt(amountValue * mathPowResult)
 	var timestampSeconds int64 = this.ParseToInt(float64(this.Milliseconds()) / 1000)
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
-	var finalClientOrderId any
+	var finalClientOrderId string
 	if clientOrderId != nil {
-		finalClientOrderId = clientOrderId
+		finalClientOrderId = *clientOrderId
 	} else {
 		finalClientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 	}

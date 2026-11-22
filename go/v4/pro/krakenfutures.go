@@ -1884,7 +1884,6 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
-	var updatedBalance any = nil
 	if holding != nil {
 		var holdingKeys []string = nil
 		if holding != nil {
@@ -1919,7 +1918,6 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		}
 		this.Balance["cash"] = this.PruneStaleBalanceKeys(cashBalance, holdingCodes)
 		this.Balance["cash"] = this.SafeBalance(this.Balance["cash"])
-		updatedBalance = this.Balance["cash"]
 	}
 	if futures != nil {
 		var futuresKeys []string = nil
@@ -1965,9 +1963,6 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		this.Balance["margin"] = this.PruneStaleBalanceKeys(marginBalance, futuresSymbols)
 		this.Balance["margin"] = this.SafeBalance(this.Balance["margin"])
 		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash+":futures")
-		if ccxt.IsEqual(updatedBalance, nil) {
-			updatedBalance = this.Balance["margin"]
-		}
 	}
 	if flexFutures != nil {
 		var flexFutureCurrencies, _ = flexFutures["currencies"].(map[string]any)
@@ -2008,16 +2003,17 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 		this.Balance["flex"] = this.PruneStaleBalanceKeys(flexBalance, flexCodes)
 		this.Balance["flex"] = this.SafeBalance(this.Balance["flex"])
 		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash+":flex_futures")
-		if ccxt.IsEqual(updatedBalance, nil) {
-			updatedBalance = this.Balance["flex"]
-		}
 	}
 	// resolve the plain hash exactly once per message, with the unified
 	// balance of the account the message updated (cash first, matching the
 	// legacy behaviour): a second resolve on the same hash is not portable
 	// (the rust client hands the consumer the LAST resolved value)
-	if !ccxt.IsEqual(updatedBalance, nil) {
-		client.(ccxt.ClientInterface).Resolve(updatedBalance, messageHash)
+	if holding != nil {
+		client.(ccxt.ClientInterface).Resolve(this.Balance["cash"], messageHash)
+	} else if futures != nil {
+		client.(ccxt.ClientInterface).Resolve(this.Balance["margin"], messageHash)
+	} else if flexFutures != nil {
+		client.(ccxt.ClientInterface).Resolve(this.Balance["flex"], messageHash)
 	}
 }
 
@@ -2129,9 +2125,9 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isBuy *bool = this.SafeBool(trade, "buy", false)
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-	var ternaryStr167320 string = "sell"
+	var ternaryStr166920 string = "sell"
 	if isBuy != nil && *isBuy {
-		ternaryStr167320 = "buy"
+		ternaryStr166920 = "buy"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2141,7 +2137,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 		"symbol":       this.SafeString(marketResolved, "symbol"),
 		"order":        this.SafeString(trade, "order_id"),
 		"type":         this.SafeString(trade, "type"),
-		"side":         ternaryStr167320,
+		"side":         ternaryStr166920,
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),

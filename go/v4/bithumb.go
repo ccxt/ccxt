@@ -1284,7 +1284,14 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				if (this.SafeString(response, "market") != nil) || (this.SafeString(response, "trade_date") != nil) || (this.SafeString(response, "trade_timestamp") != nil) {
 					tickers = []any{response}
 				} else {
-					var ids []string = ObjectKeys(response)
+					var responseDict map[string]any = this.Extend(map[string]any{}, response)
+					var ids []string = nil
+					if responseDict != nil {
+						ids = make([]string, 0, len(responseDict))
+						for objectKey := range responseDict {
+							ids = append(ids, objectKey)
+						}
+					}
 					for j := 0; j < len(ids); j++ {
 						var id string = ids[j]
 						var ticker map[string]any = this.SafeDictMap(response, id)
@@ -1590,11 +1597,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes133323 []any = r1.Value
-			if retRes133323 == nil {
+			var retRes133423 []any = r1.Value
+			if retRes133423 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133423)}
 			}
 			return nil
 		}
@@ -2794,7 +2801,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		timeInForce = &timeInForceStr
 		postOnly = true
 	}
-	var literal229331 map[string]any = map[string]any{
+	var literal229431 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2818,9 +2825,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             rawTrades,
 	}
 	if symbol != nil {
-		literal229331["symbol"] = *symbol
+		literal229431["symbol"] = *symbol
 	}
-	return this.SafeOrder(literal229331, marketResolved)
+	return this.SafeOrder(literal229431, marketResolved)
 }
 
 /**
@@ -2874,12 +2881,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var response map[string]any = nil
 	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-		var ternaryStr2345115 string = "wait"
+		var ternaryStr2346115 string = "wait"
 		if twap != nil && *twap {
-			ternaryStr2345115 = "progress"
+			ternaryStr2346115 = "progress"
 		}
 		r1 := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(paramsGeneration, map[string]any{
-			"state": ternaryStr2345115,
+			"state": ternaryStr2346115,
 		}))
 		if r1.Err != nil {
 			panic(r1.Err)
@@ -4187,7 +4194,14 @@ func (this *Bithumb) Nonce() int64 {
 	return this.Milliseconds()
 }
 func (this *Bithumb) UrlencodeWithArrayBrackets(query any) string {
-	var keys []string = ObjectKeys(query)
+	var queryCopy map[string]any = this.Extend(map[string]any{}, query)
+	var keys []string = nil
+	if queryCopy != nil {
+		keys = make([]string, 0, len(queryCopy))
+		for objectKey := range queryCopy {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result string = ""
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -4298,16 +4312,16 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal341215 map[string]any = map[string]any{
+	var literal341415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal341215["body"] = *requestBody
+		literal341415["body"] = *requestBody
 	}
-	return literal341215
+	return literal341415
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

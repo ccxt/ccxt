@@ -2742,7 +2742,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 	var hasApiKey bool = !this.IsEmptyString(this.ApiKey)
 	if !hasApiKey {
 		for i := 0; i < hashesLength; i++ {
-			var marketHash *string = ccxt.SafeStringPtr(hashesOrder[i])
+			var marketHash *string = this.SafeString(hashesOrder, i, "")
 
 			r1 := <-this.FetchSxbetBookSnapshotAsync(marketHash)
 			if r1.Err != nil {
@@ -3480,8 +3480,8 @@ func (this *Sxbet) HandleOrderBook(client any, rows []any) {
 		var refreshed []any = this.ApplySxbetWsSnapshot(ccxt.DerefScalar(rows[i]))
 		var refreshedLength int = len(refreshed)
 		for j := 0; j < refreshedLength; j++ {
-			var sym *string = ccxt.SafeStringPtr(refreshed[j])
-			client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*sym], "orderbook::"+*sym)
+			var sym string = *this.SafeString(refreshed, j, "")
+			client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], "orderbook::"+sym)
 		}
 	}
 }
@@ -3524,7 +3524,9 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	var client ccxt.ClientInterface = this.Client(url)
 	var channel string = "best_odds_v3:global"
 	var hydrated bool = false
-	if ccxt.IsEqual(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), nil) {
+	var cachedTickers, _ = this.Options["wsTickers"].(map[string]any)
+	var cachedTicker, _ = cachedTickers[sym].(map[string]any)
+	if cachedTicker == nil {
 		// hydrate from the REST snapshot so the first call does not hang until the
 		// market's next top-of-book change - the channel is global, so the seed must fire
 		// for every newly watched market, not only on a fresh subscription
