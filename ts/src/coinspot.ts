@@ -312,7 +312,8 @@ export default class coinspot extends Exchange {
                 }
             }
         } else {
-            const currencyIdsMap = Object.keys (balances);
+            const balancesDict = this.safeDict2 (response, 'balance', 'balances', {});
+            const currencyIdsMap = Object.keys (balancesDict);
             for (let i = 0; i < currencyIdsMap.length; i++) {
                 const currencyId = currencyIdsMap[i];
                 const code = this.safeCurrencyCode (currencyId);

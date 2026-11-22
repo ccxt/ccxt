@@ -2555,7 +2555,7 @@ export default class kraken extends Exchange {
             //         }
             //     }
             //
-            const rawTrades = this.safeValue (response, 'result');
+            const rawTrades = this.safeDict (response, 'result', {});
             const ids = Object.keys (rawTrades);
             const rawTradesWithIds: Dict = {};
             for (let i = 0; i < ids.length; i++) {

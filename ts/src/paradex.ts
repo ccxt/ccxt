@@ -1128,10 +1128,10 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            const windowEnd = this.sum (this.parseToInt (since), windowLength - 1);
-            const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
-            if (!hasEnd || (endAt > windowEnd)) {
-                requestUntil['end_at'] = windowEnd;
+            const barWindowEnd = this.sum (this.parseToInt (since), windowLength - 1);
+            const clampedEndAt = this.safeInteger (requestUntil, 'end_at', barWindowEnd) as number;
+            if (!hasEnd || (clampedEndAt > barWindowEnd)) {
+                requestUntil['end_at'] = barWindowEnd;
             }
         } else {
             const endAtRaw = this.safeInteger (requestUntil, 'end_at', this.milliseconds ());
@@ -4006,10 +4006,10 @@ export default class paradex extends Exchange {
             requestUntil['start_at'] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            const windowEnd = this.sum (this.parseToInt (since), pageSize * rowSpacing);
-            const endAt = this.safeInteger (requestUntil, 'end_at', windowEnd) as number;
-            if ((this.safeInteger (requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
-                requestUntil['end_at'] = windowEnd;
+            const pageWindowEnd = this.sum (this.parseToInt (since), pageSize * rowSpacing);
+            const pageEndAt = this.safeInteger (requestUntil, 'end_at', pageWindowEnd) as number;
+            if ((this.safeInteger (requestUntil, 'end_at') === undefined) || (pageEndAt > pageWindowEnd)) {
+                requestUntil['end_at'] = pageWindowEnd;
             }
         }
         const response = await this.publicGetFundingData (this.extend (requestUntil, paramsUntil));
