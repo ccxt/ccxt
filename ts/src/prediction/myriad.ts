@@ -2043,9 +2043,9 @@ export default class myriad extends Exchange {
         const state = this.safeString (raw, 'state', 'open');
         const endDate = this.safeString (raw, 'expiresAt');
         return {
-            'id': market['id'],
+            'id': this.safeString (market, 'id', ''),
             'slug': slug,
-            'event': market['market'],
+            'event': this.safeString (market, 'market', ''),
             'title': this.safeString2 (raw, 'title', 'shortName'),
             'description': this.safeString (raw, 'description'),
             'markets': [ market ],
