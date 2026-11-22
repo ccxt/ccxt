@@ -971,7 +971,7 @@ export default class hyperliquid extends hyperliquidRest {
         const coin = this.safeString (trade, 'coin');
         const marketId = this.coinToMarketId (coin);
         const marketResolved: Market = this.safeMarket (marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString (trade, 'tid');
         let side = this.safeString (trade, 'side');
         if (side !== undefined) {

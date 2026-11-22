@@ -1193,7 +1193,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString (info, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'mark');
         const oraclePx = this.safeNumber (info, 'oracle');
@@ -1468,7 +1468,7 @@ export default class pacifica extends Exchange {
         const amount = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString (trade, 'history_id');
         let side = this.safeString (trade, 'side');
         if (side === 'open_long') {
@@ -2222,7 +2222,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': symbol,
@@ -2649,7 +2649,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString2 (order, 'symbol', 's');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
         const status = this.safeString2 (order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString (order, 'side', 'd');
@@ -2770,7 +2770,7 @@ export default class pacifica extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const margin = this.safeString (position, 'margin');
         const rawIsolated = this.safeBool (position, 'isolated');
         let isIsolated: boolean = (margin !== undefined) && (margin !== '0');
@@ -3368,7 +3368,7 @@ export default class pacifica extends Exchange {
         const timestamp = this.safeInteger (income, 'created_at');
         const marketId = this.safeString (income, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const amount = this.safeString (income, 'payout');
         const code = this.safeCurrencyCode ('USDC');
         const rate = this.safeNumber (income, 'rate');

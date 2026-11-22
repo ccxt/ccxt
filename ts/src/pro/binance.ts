@@ -498,7 +498,7 @@ export default class binance extends binanceRest {
         const rawLiquidation = this.safeDict (message, 'o', {});
         const marketId = this.safeString (rawLiquidation, 's');
         const market = this.safeMarket (marketId, undefined, '', 'contract');
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
         if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
@@ -1787,7 +1787,7 @@ export default class binance extends binanceRest {
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         let wsUrlType: Str = type;
         if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
@@ -1869,7 +1869,7 @@ export default class binance extends binanceRest {
         const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
-        let type: string = firstMarket['type'];
+        let type: string = this.safeString (firstMarket, 'type', '');
         let wsUrlType: Str = type;
         if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';

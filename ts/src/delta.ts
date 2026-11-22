@@ -1108,7 +1108,7 @@ export default class delta extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.001);
         const marketId = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const last = this.safeString (ticker, 'close');
         const quotes = this.safeDict (ticker, 'quotes', {});
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -1868,7 +1868,7 @@ export default class delta extends Exchange {
         //
         const marketId = this.safeString (position, 'product_symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
         let side: Str = undefined;

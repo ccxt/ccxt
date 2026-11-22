@@ -3020,8 +3020,8 @@ export default class gate extends Exchange {
         } else if (this.safeBool (market, 'future', false)) {
             response = await this.publicDeliveryGetSettleTickers (this.extend (request, query));
         } else if (this.safeBool (market, 'option', false)) {
-            const marketId = market['id'];
-            const optionParts = (marketId as string).split ('-');
+            const marketId: string = this.safeString (market, 'id', '');
+            const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
             response = await this.publicOptionsGetTickers (this.extend (request, query));
         } else {
@@ -7523,8 +7523,8 @@ export default class gate extends Exchange {
         if (type !== 'option') {
             throw new NotSupported (this.id + ' fetchSettlementHistory() supports option markets only');
         }
-        const marketId = market['id'];
-        const optionParts = (marketId as string).split ('-');
+        const marketId: string = this.safeString (market, 'id', '');
+        const optionParts = marketId.split ('-');
         const request: Dict = {
             'underlying': this.safeString (optionParts, 0),
         };
@@ -7611,8 +7611,8 @@ export default class gate extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params');
                 }
             } else {
-                const marketId = market['id'];
-                const optionParts = (marketId as string).split ('-');
+                const marketId: string = this.safeString (market, 'id', '');
+                const optionParts = marketId.split ('-');
                 request['underlying'] = this.safeString (optionParts, 0);
             }
             //
@@ -8119,8 +8119,8 @@ export default class gate extends Exchange {
             }
             request['settle'] = market['settleId'];
         } else if (this.safeBool (market, 'option', false)) {
-            const marketId = market['id'];
-            const optionParts = (marketId as string).split ('-');
+            const marketId: string = this.safeString (market, 'id', '');
+            const optionParts = marketId.split ('-');
             request['underlying'] = this.safeString (optionParts, 0);
         }
         if (this.safeBool (market, 'swap', false)) {
@@ -8294,7 +8294,7 @@ export default class gate extends Exchange {
         //         },
         //     ]
         //
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict (response, i, {});
             const entryMarketId = this.safeString (entry, 'name');
