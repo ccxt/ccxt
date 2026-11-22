@@ -3426,7 +3426,7 @@ export default class poloniex extends Exchange {
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            const feeInfo = this.safeDict (response, currencyId);
+            const feeInfo = this.safeDict (feesById, currencyId);
             if ((code !== undefined) && ((codesValue === undefined) || (this.inArray (code, codesValue)))) {
                 const currency = this.currency (code);
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, currency);
@@ -3438,7 +3438,7 @@ export default class poloniex extends Exchange {
                         const rawNetworkId = this.safeString (childChains, j, '');
                         const networkId = rawNetworkId.replace (code, '');
                         const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
-                        const networkInfo = this.safeDict (response, networkId);
+                        const networkInfo = this.safeDict (feesById, networkId);
                         const networkObject: Dict = {};
                         const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
                         const withdrawObject: Dict = { 'fee': withdrawFee, 'percentage': undefined };
