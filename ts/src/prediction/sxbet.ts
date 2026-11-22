@@ -2379,7 +2379,7 @@ export default class sxbet extends Exchange {
         }
         const held = this.safeString (this.safeDict (this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held !== '') && (version <= held)) {
+        if ((held !== '') && ((version === '') || Precise.stringLe (version, held))) {
             return refreshed;
         }
         this.setWsOption ('wsBookVersions', marketHash, version);
