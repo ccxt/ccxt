@@ -1675,7 +1675,10 @@ export default class deribit extends Exchange {
             request['count'] = Math.min (limit, 1000); // default 10
         }
         const until = this.safeInteger2 (params, 'until', 'end_timestamp');
-        const paramsOmitted: Dict = (until !== undefined) ? this.omit (params, [ 'until' ]) : params;
+        let paramsOmitted: Dict = this.omit (params, []);
+        if (until !== undefined) {
+            paramsOmitted = this.omit (params, [ 'until' ]);
+        }
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
@@ -2295,7 +2298,7 @@ export default class deribit extends Exchange {
         }
         const trailingAmount = this.safeString2 (params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        let paramsOmitted: Dict = params;
+        let paramsOmitted: Dict = this.omit (params, []);
         if (isTrailingAmountOrder) {
             paramsOmitted = this.omit (paramsOmitted, 'trigger_offset');
         }
