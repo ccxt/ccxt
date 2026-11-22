@@ -1066,7 +1066,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (((String)topic).indexOf("contractMarket") < 0)
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote(":"))));
-            String marketId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+            String marketId = this.safeString(parts, 1);
             Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
             String symbol = this.safeString(marketResolved, "symbol");
             Map<String, Object> data = this.safeDict(ticker, "data", new HashMap<String, Object>() {{}});
@@ -2740,7 +2740,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (!java.util.Objects.equals(order.get("average"), null))
+            if (!java.util.Objects.equals(this.safeNumber(order, "average", (Object) null), null))
             {
                 parsed.put("average", this.safeNumber(order, "average", (Object) null));
                 parsed.put("cost", this.safeNumber(order, "cost", (Object) null));
@@ -3085,7 +3085,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
         String order = this.safeString(trade, "orderId");
         Long timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
-        String feeCurrency = (String) marketResolved.get("quote");
+        String feeCurrency = this.safeString(marketResolved, "quote");
         String feeRate = this.safeString(trade, "feeRate");
         String feeCost = this.safeString(trade, "fee");
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();

@@ -1189,7 +1189,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> paramsOmitted = parameters;
         if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
         {
-            paramsOmitted = this.omit(parameters, "network");
+            paramsOmitted = this.omit(paramsOmitted, "network");
         }
         Map<String, Object> response = (this.privatePostWalletCryptoAddress(this.extend(request, paramsOmitted))).join();
         //
@@ -1245,7 +1245,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> paramsOmitted = parameters;
         if ((!java.util.Objects.equals(network, null)) && (java.util.Objects.equals(code, "USDT")))
         {
-            paramsOmitted = this.omit(parameters, "network");
+            paramsOmitted = this.omit(paramsOmitted, "network");
         }
         List<Object> response = (this.privateGetWalletCryptoAddress(this.extend(request, paramsOmitted))).join();
         //

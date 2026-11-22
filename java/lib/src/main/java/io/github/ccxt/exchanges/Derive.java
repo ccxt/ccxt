@@ -4286,9 +4286,10 @@ public class Derive extends DeriveApi
             {
                 used = totalUsdc;
             }
-            usdcAccount.put("used", used);
-            usdcAccount.put("free", Precise.stringSub(totalUsdc, used));
-            result.put("USDC", usdcAccount);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("used", used);
+            mapLiteral7.put("free", Precise.stringSub(totalUsdc, used));
+            result.put("USDC", this.extend(usdcAccount, mapLiteral7));
         }
         return this.safeBalance(result);
     }

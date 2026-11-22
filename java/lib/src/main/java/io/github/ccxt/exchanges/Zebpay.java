@@ -786,7 +786,7 @@ public class Zebpay extends ZebpayApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
+            String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, fee);
@@ -1259,7 +1259,7 @@ public class Zebpay extends ZebpayApi
         Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "tradeTime");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString2(trade, "amount", "quantity");
@@ -1725,7 +1725,7 @@ public class Zebpay extends ZebpayApi
         //
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String type = this.safeString(order, "type");
         Double timestamp = this.safeNumber(order, "timestamp", (Object) null);
         String datetime = this.iso8601(timestamp);

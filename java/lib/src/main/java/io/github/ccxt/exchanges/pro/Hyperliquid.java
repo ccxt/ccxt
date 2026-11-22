@@ -421,7 +421,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String coin = this.safeString(entry, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         List<Object> rawData = this.safeList(entry, "levels", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> data = new HashMap<String, Object>() {{
             put( "bids", Hyperliquid.this.safeList(rawData, 0, new ArrayList<Object>(Arrays.asList())) );
@@ -837,7 +837,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 String name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String marketId = this.coinToMarketId(name);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
-                String symbol = (String) market.get("symbol");
+                String symbol = this.safeString(market, "symbol", "");
                 HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
                 mapLiteral7.put("price", this.safeNumber(mids, name, (Object) null));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(mapLiteral7, market);
@@ -882,7 +882,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String coin = this.safeString(data, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> ctx = this.safeDict(data, "ctx", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(ctx, market);
         this.tickers.put(symbol, ticker);
@@ -946,8 +946,8 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
-            String symbol = (String) parsed.get("symbol");
-            symbols.put(symbol, true);
+            String symbol = this.safeString(parsed, "symbol", "");
+            symbols.put((String)symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -1135,7 +1135,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String coin = this.safeString(first, "coin");
         String marketId = this.coinToMarketId((String) (coin));
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

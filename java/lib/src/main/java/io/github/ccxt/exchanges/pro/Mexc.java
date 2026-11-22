@@ -717,7 +717,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Object ohlcv = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            String spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+            String spotTimeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), "");
+            String spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             ohlcv = (this.watchSpotPublic(spotChannel, messageHash, parameters)).join();
         } else
         {
@@ -2201,9 +2202,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
-            String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+            String spotTimeframeId = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), "");
+            String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + spotTimeframeId);
             parameters.put("unsubscribed", true);
-            this.watchSpotPublic((String) (channel), messageHash, parameters);
+            this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("swap");

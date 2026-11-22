@@ -3972,15 +3972,23 @@ public class Grvt extends GrvtApi
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Map<String,Object> signature = ecdsa(this.hash(ethEncodedMessage, keccak(), "hex"), privateKeyWithoutZero, secp256k1(), null);
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
-        mapLiteral7.put("r", this.formatSignatureRS((String) (signature.get("r"))));
-        mapLiteral7.put("s", this.formatSignatureRS((String) (signature.get("s"))));
-        mapLiteral7.put("v", this.sum(27, signature.get("v")));
-        mapLiteral7.put("expiration", requestSignature.get("expiration"));
-        mapLiteral7.put("nonce", requestSignature.get("nonce"));
-        mapLiteral7.put("chain_id", requestSignature.get("chain_id"));
-        request.put("signature", mapLiteral7);
+        Map<String, Object> signatureEntry = new HashMap<String, Object>() {{
+            put( "signer", null );
+            put( "r", Grvt.this.formatSignatureRS((String) (signature.get("r"))) );
+            put( "s", Grvt.this.formatSignatureRS((String) (signature.get("s"))) );
+            put( "v", Grvt.this.sum(27, signature.get("v")) );
+            put( "expiration", requestSignature.get("expiration") );
+            put( "nonce", requestSignature.get("nonce") );
+            put( "chain_id", requestSignature.get("chain_id") );
+        }};
+        if (java.util.Objects.equals(signerAddress, null))
+        {
+            signatureEntry.put("signer", this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)));
+        } else
+        {
+            signatureEntry.put("signer", signerAddress);
+        }
+        request.put("signature", signatureEntry);
         return request;
     }
 

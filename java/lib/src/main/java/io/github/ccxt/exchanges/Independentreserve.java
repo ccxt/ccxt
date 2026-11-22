@@ -639,7 +639,7 @@ public class Independentreserve extends IndependentreserveApi
             defaultMarketId = ((baseId + "/") + quoteId);
         }
         Map<String, Object> marketResolved = this.safeMarket(defaultMarketId, market, "/", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );

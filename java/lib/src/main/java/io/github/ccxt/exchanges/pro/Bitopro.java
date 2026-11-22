@@ -157,7 +157,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //
         String marketId = this.safeString(message, "pair");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
@@ -233,7 +233,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         //
         String marketId = this.safeString(message, "pair");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         List<Object> rawData = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> trades = this.parseTrades(rawData, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -499,7 +499,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(message, "event");
         Map<String, Object> result = (Map<String, Object>) this.parseTicker(message, market);
         result.put("symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object

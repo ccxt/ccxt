@@ -978,7 +978,7 @@ public class Toobit extends ToobitApi
             Map<String, Object> parsed = (Map<String, Object>) this.parseCurrency(coin);
             if (!java.util.Objects.equals(parsed, null))
             {
-                String code = (String) parsed.get("code");
+                String code = this.safeString(parsed, "code", "");
                 result.put(code, parsed);
             }
         }
@@ -1494,7 +1494,7 @@ public class Toobit extends ToobitApi
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", trade);
         mapLiteral3.put("timestamp", timestamp);
@@ -3123,7 +3123,8 @@ public class Toobit extends ToobitApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> marketResolved = this.safeMarket(this.safeString(response, "symbol"), market, (String) null, (String) null);
         Map<String, Object> fee = this.parseTradingFee(response, marketResolved);
-        result.put((String)marketResolved.get("symbol"), fee);
+        String feeSymbol = this.safeString(marketResolved, "symbol", "");
+        result.put(feeSymbol, fee);
         return result;
 
     }

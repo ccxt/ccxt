@@ -2097,8 +2097,8 @@ public class Whitebit extends WhitebitApi
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeValue(response, marketId), market);
-            String symbol = (String) ticker.get("symbol");
-            result.put(symbol, ticker);
+            String symbol = this.safeString(ticker, "symbol");
+            result.put((String)symbol, ticker);
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 
@@ -2345,7 +2345,7 @@ public class Whitebit extends WhitebitApi
         String amount = this.safeString2(trade, "amount", "quote_volume");
         String id = this.safeString2(trade, "id", "tradeID");
         String side = this.safeString2(trade, "type", "side");
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long role = this.safeInteger(trade, "role");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(role, null))
@@ -2988,7 +2988,8 @@ public class Whitebit extends WhitebitApi
         // Sort by timestamp (most recent first)
         List<Object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (!java.util.Objects.equals(limit, null) && (sortedOrders.size() > limit))
+        Integer sortedOrdersLength = sortedOrders.size();
+        if (!java.util.Objects.equals(limit, null) && (sortedOrdersLength != null && sortedOrdersLength > limit))
         {
             return this.arraySlice(sortedOrders, 0, limit);
         }
@@ -3344,7 +3345,7 @@ public class Whitebit extends WhitebitApi
         //
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeString(order, "side");
         String filled = this.safeString(order, "dealStock");
         String remaining = this.safeString(order, "left");

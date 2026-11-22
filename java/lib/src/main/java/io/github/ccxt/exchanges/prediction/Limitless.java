@@ -3735,7 +3735,8 @@ public class Limitless extends LimitlessApi
         List<String> wanted = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < tags.size(); i++)
         {
-            wanted.add(((String)(tags == null || i < 0 || i >= tags.size() ? null : tags.get(i))).toLowerCase());
+            String tag = this.safeString(tags, i, "");
+            wanted.add(tag.toLowerCase());
         }
         List<String> categoryIds = new ArrayList<String>(Arrays.asList());
         Integer categoriesLength = categories.size();

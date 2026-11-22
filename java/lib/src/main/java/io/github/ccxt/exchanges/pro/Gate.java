@@ -1452,7 +1452,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String marketId = this.safeString(market, "id", "");
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageType = this.getTypeByMarket(market);
@@ -1678,7 +1678,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             Map<String, Object> trade = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             cachedTrades.append(trade);
-            String symbol = (String) trade.get("symbol");
+            String symbol = this.safeString(trade, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 marketIds.put(symbol, true);
@@ -2097,12 +2097,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = null;
-        Object symbolResolved = null;
+        String symbolResolved = null;
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> marketResolved = this.market(symbol);
             market = marketResolved;
-            symbolResolved = market.get("symbol");
+            symbolResolved = this.safeString(market, "symbol");
         }
         String type = null;
         Map<String, Object> query = null;
@@ -2571,11 +2571,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String channel = this.safeString(message, "channel");
                 if ((!java.util.Objects.equals(channel, null)) && (((String)channel).indexOf(".") > 0))
                 {
-                    List<Object> parsedChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+                    List<String> parsedChannel = new ArrayList<String>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
                     List<Object> payload = this.safeList(message, "payload", new ArrayList<Object>(Arrays.asList()));
                     for (var i = 0; i < payload.size(); i++)
                     {
-                        Object marketType = null;
+                        String marketType = null;
                         if (java.util.Objects.equals((parsedChannel == null || 0 >= parsedChannel.size() ? null : parsedChannel.get(0)), "futures"))
                         {
                             marketType = "swap";
@@ -2583,8 +2583,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                         {
                             marketType = (parsedChannel == null || 0 >= parsedChannel.size() ? null : parsedChannel.get(0));
                         }
-                        String symbol = this.safeSymbol((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null, "_", java.util.Objects.toString(marketType, null));
-                        String messageHashSymbol = (((parsedChannel == null || 1 >= parsedChannel.size() ? null : parsedChannel.get(1)) + ":") + symbol);
+                        String symbol = this.safeSymbol((payload == null || i < 0 || i >= payload.size() ? null : payload.get(i)), (Map<String, Object>) null, "_", marketType);
+                        String channelName = this.safeString(parsedChannel, 1, "");
+                        String messageHashSymbol = ((channelName + ":") + symbol);
                         if ((!java.util.Objects.equals(messageHashSymbol, null)) && (client.subscriptions.containsKey(messageHashSymbol)))
                         {
                             client.subscriptions.remove(messageHashSymbol);

@@ -1109,7 +1109,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             throw new NotSupported((((((this.id + " ") + callerMethodNameOption) + "() does not support ") + marketType) + " markets yet")) ;
         }
         List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
-        List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         Integer symbolsLength = (((java.util.Objects.equals(symbols, null)))) ? 0 : symbols.size();
         if ((symbolsLength != null && symbolsLength > 0))
         {
@@ -1117,29 +1117,29 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 String current = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = null;
-                Object channel = channelName;
+                String interval = "";
                 if (Boolean.TRUE.equals(isOHLCV))
                 {
                     market = this.market(current);
                     String tf = this.safeString(this.safeList(symbolsArray, i, null), 1, "");
-                    String interval = this.safeString(this.timeframes, tf, tf);
-                    channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(channel, interval);
+                    interval = this.safeString(this.timeframes, tf, tf);
                 } else
                 {
                     market = this.market(current);
                 }
+                String channel = (("" + channelName) + interval);
                 Map<String, Object> topic = new HashMap<String, Object>();
                 topic.put("channel", channel);
                 topic.put("instId", market.get("id"));
                 ((List<Object>)rawSubscriptions).add(topic);
-                ((List<Object>)messageHashes).add(((channel + ":") + this.safeString(market, "symbol", "")));
+                messageHashes.add(((channel + ":") + this.safeString(market, "symbol", "")));
             }
         } else
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("channel", channelName);
             ((List<Object>)rawSubscriptions).add(mapLiteral1);
-            ((List<Object>)messageHashes).add(channelName);
+            messageHashes.add(channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
         if (this.inArray(channelName, new ArrayList<Object>(Arrays.asList("orders", "orders-algo", "positions"))))
@@ -1198,16 +1198,17 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         for (var i = 0; i < symbols.size(); i++)
         {
             Map<String, Object> market = this.market(this.safeString(symbols, i));
-            Object channel = channelName;
+            String interval = "";
             if (Boolean.TRUE.equals(isOHLCV))
             {
                 String tf = this.safeString(this.safeList(symbolsArray, i, null), 1, "");
-                String interval = this.safeString(this.timeframes, tf, tf);
-                channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(channel, interval);
+                interval = this.safeString(this.timeframes, tf, tf);
             }
-            Map<String, Object> topic = new HashMap<String, Object>();
-            topic.put("channel", channel);
-            topic.put("instId", market.get("id"));
+            String channel = (channelName + interval);
+            Map<String, Object> topic = new HashMap<String, Object>() {{
+                put( "channel", channel );
+                put( "instId", market.get("id") );
+            }};
             ((List<Object>)topics).add(topic);
             messageHashes.add(((("unsubscribe:" + channel) + ":") + market.get("symbol")));
         }

@@ -44,7 +44,7 @@ public class TestFetchMarkets extends BaseTest {
             Object symbol = Helpers.GetValue(market, "symbol");
             if (!((symbol != null && ids.containsKey(symbol))))
             {
-                Helpers.addElementToObject(ids, symbol, Helpers.GetValue(market, "id"));
+                ((Map<Object, Object>) (Map<?, ?>) ids).put(symbol, Helpers.GetValue(market, "id"));
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual((ids == null || !(symbol instanceof String) ? null : ids.get(symbol)), Helpers.GetValue(market, "id"));

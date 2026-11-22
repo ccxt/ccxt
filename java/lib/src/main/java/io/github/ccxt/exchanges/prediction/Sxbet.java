@@ -332,7 +332,8 @@ public class Sxbet extends SxbetApi
             }
             paginationKey = this.safeString(result, "nextKey");
             page = (page + 1L);
-            Long collectedLength = this.parseToInt(rawMarkets.size());
+            Integer rawMarketsCount = rawMarkets.size();
+            Long collectedLength = this.parseToInt(rawMarketsCount);
             if (((pageSize != null && (pageMarketsLength == null || pageMarketsLength < pageSize))) || ((maxPages == null || page >= maxPages)) || (java.util.Objects.equals(paginationKey, null)) || ((!java.util.Objects.equals(collectCap, null)) && ((collectCap == null || (collectedLength != null && collectedLength >= collectCap)))))
             {
                 break;

@@ -3212,16 +3212,16 @@ public class Bingx extends BingxApi
         String lastQty = this.safeString(ticker, "lastQty");
         // in spot markets, lastQty is not present
         // it's (bad, but) the only way we can check the tickers origin
-        Object type = "swap";
+        String type = "swap";
         if (java.util.Objects.equals(lastQty, null))
         {
             type = "spot";
         }
         if (!java.util.Objects.equals(market, null))
         {
-            type = market.get("type");
+            type = this.safeString(market, "type");
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, java.util.Objects.toString(type, null));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, type);
         String symbol = this.safeString(marketResolved, "symbol");
         String open = this.safeString(ticker, "openPrice");
         String high = this.safeString(ticker, "highPrice");
@@ -7139,9 +7139,9 @@ public class Bingx extends BingxApi
 
     }
 
-    public Object parseParams(Map<String, Object> parameters)
+    public Map<String, Object> parseParams(Map<String, Object> parameters)
     {
-        Object copied = this.clone(parameters);
+        Map<String, Object> copied = this.extend(new HashMap<String, Object>() {{}}, parameters);
         Map<String,Object> sortedParams = this.keysort(parameters);
         List<String> rawKeys = new ArrayList<String>(sortedParams.keySet());
         Integer rawKeysLength = rawKeys.size();
@@ -7162,7 +7162,7 @@ public class Bingx extends BingxApi
                     arrStr = (arrStr + String.valueOf(arrayElement));
                 }
                 arrStr = (arrStr + "]");
-                ((Map<String, Object>)copied).put(key, arrStr);
+                copied.put(key, arrStr);
             }
         }
         return copied;
@@ -7957,7 +7957,7 @@ public class Bingx extends BingxApi
         {
             this.checkRequiredCredentials(true);
             Boolean isJsonContentType = (((java.util.Objects.equals(type, "subAccount")) || (java.util.Objects.equals(type, "account/transfer"))) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")));
-            Object parsedParams = null;
+            Map<String, Object> parsedParams = null;
             String encodeRequest = null;
             if (Boolean.TRUE.equals(isJsonContentType))
             {

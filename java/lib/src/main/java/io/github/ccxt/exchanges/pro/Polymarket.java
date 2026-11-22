@@ -346,7 +346,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(result, newTicker.get("symbol"), newTicker);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(newTicker.get("symbol"), newTicker);
             return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
@@ -426,7 +426,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(result, ticker.get("symbol"), ticker);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(ticker.get("symbol"), ticker);
             return result;
         }
         return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);

@@ -917,8 +917,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Map<String, Object> rawTrade = this.safeDict(lists, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
-            String symbol = (String) parsed.get("symbol");
-            symbols.put(symbol, true);
+            String symbol = this.safeString(parsed, "symbol");
+            symbols.put((String)symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
@@ -974,8 +974,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.safeDict(lists, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
-            String symbol = (String) parsed.get("symbol");
-            symbols.put(symbol, true);
+            String symbol = this.safeString(parsed, "symbol");
+            symbols.put((String)symbol, true);
             orders.append(parsed);
         }
         List<String> symbolsArray = new ArrayList<String>(symbols.keySet());

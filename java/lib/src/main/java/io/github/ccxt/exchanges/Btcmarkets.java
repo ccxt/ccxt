@@ -1244,7 +1244,7 @@ public class Btcmarkets extends BtcmarketsApi
         Map<String, Object> paramsTriggerPrice = parameters;
         if (Boolean.TRUE.equals(triggerPriceIsRequired))
         {
-            paramsTriggerPrice = this.omit(parameters, "triggerPrice");
+            paramsTriggerPrice = this.omit(paramsTriggerPrice, "triggerPrice");
         }
         Map<String, Object> paramsOmitted = this.omit(paramsTriggerPrice, "clientOrderId");
         Map<String, Object> response = (this.privatePostOrders(this.extend(request, paramsOmitted))).join();

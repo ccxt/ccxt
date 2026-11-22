@@ -1310,7 +1310,8 @@ public class Lighter extends LighterApi
             Long groupOrderExpiry = (this.milliseconds() + 2419200000L); // 28 days
             for (var i = 0; (totalOrderRequests != null && i < totalOrderRequests); i++)
             {
-                if (java.util.Objects.equals(this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry"), -1L))
+                Long legExpiry = this.safeInteger((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", 0);
+                if ((legExpiry != null && legExpiry == -1))
                 {
                     Helpers.addElementToObject((orderRequests == null || i < 0 || i >= orderRequests.size() ? null : orderRequests.get(i)), "order_expiry", groupOrderExpiry);
                 }

@@ -1330,14 +1330,15 @@ public class Kraken extends KrakenApi
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
-            Object marketIds = new ArrayList<Object>(Arrays.asList());
+            List<String> marketIds = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 if (Boolean.TRUE.equals(this.safeBool(market, "active", false)))
                 {
-                    ((List<Object>)marketIds).add(market.get("id"));
+                    String marketId = this.safeString(market, "id", "");
+                    marketIds.add(marketId);
                 }
             }
             request.put("pair", String.join(",", (List<String>)marketIds));
@@ -1350,7 +1351,7 @@ public class Kraken extends KrakenApi
         {
             String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
             Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             Object ticker = (tickers == null || id == null ? null : tickers.get(id));
             result.put(symbol, this.parseTicker(ticker, market));
         }
@@ -1862,7 +1863,7 @@ public class Kraken extends KrakenApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String id = (String) market.get("id");
+        String id = this.safeString(market, "id");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "pair", id );
         }};
@@ -2881,7 +2882,7 @@ public class Kraken extends KrakenApi
         if (!java.util.Objects.equals(clientOrderId, null))
         {
             request.put("userref", clientOrderId);
-            query = this.omit(parameters, new ArrayList<Object>(Arrays.asList("userref", "clientOrderId")));
+            query = this.omit(query, new ArrayList<Object>(Arrays.asList("userref", "clientOrderId")));
         }
         Map<String, Object> response = (this.privatePostQueryOrders(this.extend(request, query))).join();
         //
@@ -2985,7 +2986,8 @@ public class Kraken extends KrakenApi
         for (var i = 0; (numTradeIds != null && i < numTradeIds); i++)
         {
             ((List<Object>)batch).add((tradeIds == null || i < 0 || i >= tradeIds.size() ? null : tradeIds.get(i)));
-            if ((batchSize == null || batch.size() >= batchSize))
+            Integer batchLength = batch.size();
+            if ((batchSize == null || (batchLength != null && batchLength >= batchSize)))
             {
                 ((List<Object>)batches).add(batch);
                 batch = new ArrayList<Object>(Arrays.asList());
@@ -4092,7 +4094,7 @@ public class Kraken extends KrakenApi
         String address = this.safeString(depositAddress, "address");
         String tag = this.safeString(depositAddress, "tag");
         Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
-        String code = (String) currencyResolved.get("code");
+        String code = this.safeString(currencyResolved, "code");
         this.checkAddress(address, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );

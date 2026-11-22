@@ -2084,14 +2084,7 @@ public class Hyperliquid extends HyperliquidApi
         }};
         // recentTrades returns the coin's most recent public trades (newest first)
         Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-        List<Object> trades = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            trades = (List<Object>) response;
-        } else if (!(response instanceof String))
-        {
-            trades = this.toArray(response);
-        }
+        List<Object> trades = this.infoList(response);
         return this.parsePredictionTrades(trades, outcomeObj, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -2149,14 +2142,7 @@ public class Hyperliquid extends HyperliquidApi
             request.put("endTime", until);
         }
         Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
-        List<Object> fills = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            fills = (List<Object>) response;
-        } else if (!(response instanceof String))
-        {
-            fills = this.toArray(response);
-        }
+        List<Object> fills = this.infoList(response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         List<Object> parsedTrades = this.parsePredictionTrades(fills, (Object) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -2787,7 +2773,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((config.containsKey("byType")) && (((Map<?, ?>)parameters).containsKey("type")))
+        if (config.containsKey("byType"))
         {
             String type = this.safeString(parameters, "type");
             Object byType = config.get("byType");

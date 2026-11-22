@@ -636,7 +636,7 @@ public class Bithumb extends BithumbApi
                 {
                     List<String> parts = new ArrayList<String>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
+                    baseId = this.safeString(parts, 1);
                     quoteId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
                     base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                     quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);

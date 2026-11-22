@@ -2619,7 +2619,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument for swap markets")) ;
             }
-            String marketSymbol = (String) market.get("symbol");
+            String marketSymbol = this.safeString(market, "symbol", "");
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {

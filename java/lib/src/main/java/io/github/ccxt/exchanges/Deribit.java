@@ -2856,7 +2856,7 @@ public class Deribit extends DeribitApi
         Map<String, Object> paramsOmitted = parameters;
         if (Boolean.TRUE.equals(isTrailingAmountOrder))
         {
-            paramsOmitted = this.omit(parameters, "trigger_offset");
+            paramsOmitted = this.omit(paramsOmitted, "trigger_offset");
         }
         if (Boolean.TRUE.equals(isTrailingAmountOrder))
         {

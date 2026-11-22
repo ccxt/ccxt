@@ -717,6 +717,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -732,7 +733,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> subscribe = new HashMap<String, Object>() {{
             put( "method", method );
             put( "id", requestId );
-            put( "params", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
+            put( "params", new ArrayList<Object>(Arrays.asList(marketId)) );
         }};
         Map<String,Object> request = this.deepExtend(subscribe, parameters);
         List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
@@ -772,6 +773,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -787,7 +789,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> subscribe = new HashMap<String, Object>() {{
             put( "method", method );
             put( "id", requestId );
-            put( "params", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
+            put( "params", new ArrayList<Object>(Arrays.asList(marketId)) );
         }};
         Map<String,Object> request = this.deepExtend(subscribe, parameters);
         io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, messageHash, null)).join();
@@ -823,6 +825,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -838,7 +841,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> subscribe = new HashMap<String, Object>() {{
             put( "method", method );
             put( "id", requestId );
-            put( "params", new ArrayList<Object>(Arrays.asList(market.get("id"), Phemex.this.safeInteger(Phemex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")))) );
+            put( "params", new ArrayList<Object>(Arrays.asList(marketId, Phemex.this.safeInteger(Phemex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")))) );
         }};
         Map<String,Object> request = this.deepExtend(subscribe, parameters);
         List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
@@ -898,8 +901,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
-        Boolean isUsdtSwap = (java.util.Objects.equals(market.get("swap"), true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
+        String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        Boolean isSwap = (Boolean) market.get("swap");
+        Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
         String name = "trade";
         if (Boolean.TRUE.equals(isUsdtSwap))
         {
@@ -909,7 +914,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "topic", "trades" );
             put( "symbols", new ArrayList<Object>(Arrays.asList(symbolValue)) );
         }};
-        return (this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new ArrayList<Object>(Arrays.asList(market.get("id"))), subscription, parameters)).join();
+        return (this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new ArrayList<Object>(Arrays.asList(marketId)), subscription, parameters)).join();
 
     }
 
@@ -935,8 +940,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
-        Boolean isUsdtSwap = (java.util.Objects.equals(market.get("swap"), true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
+        String symbolValue = this.safeString(market, "symbol", "");
+        String marketId = this.safeString(market, "id", "");
+        Boolean isSwap = (Boolean) market.get("swap");
+        Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
         String name = "kline";
         if (Boolean.TRUE.equals(isUsdtSwap))
         {
@@ -947,7 +954,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
         }};
         // phemex drops only the given interval when it is sent along with the symbol
-        List<Object> marketParams = new ArrayList<Object>(Arrays.asList(market.get("id"), this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"))));
+        List<Object> marketParams = new ArrayList<Object>(Arrays.asList(marketId, this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"))));
         return (this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue), marketParams, subscription, parameters)).join();
 
     }

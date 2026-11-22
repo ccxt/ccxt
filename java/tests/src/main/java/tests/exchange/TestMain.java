@@ -749,10 +749,10 @@ public class TestMain extends BaseTest
             Object market = Helpers.GetValue(markets, key);
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
-                Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
+                ((Map<Object, Object>) (Map<?, ?>) res).put(Helpers.GetValue(market, "symbol"), market);
             } else if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(spot, true)) && (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true)))
             {
-                Helpers.addElementToObject(res, Helpers.GetValue(market, "symbol"), market);
+                ((Map<Object, Object>) (Map<?, ?>) res).put(Helpers.GetValue(market, "symbol"), market);
             }
         }
         return res;

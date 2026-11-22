@@ -6634,10 +6634,10 @@ public Map<String, Object> describe()
             {
                 List<Object> marketsByIdArray = (List<Object>) ((marketsById == null || !(value.get("id") instanceof String) ? null : marketsById.get(value.get("id"))));
                 marketsByIdArray.add(value);
-                Helpers.addElementToObject(marketsById, value.get("id"), marketsByIdArray);
+                ((Map<Object, Object>) (Map<?, ?>) marketsById).put(value.get("id"), marketsByIdArray);
             } else
             {
-                Helpers.addElementToObject(marketsById, value.get("id"), new ArrayList<Object>(Arrays.asList(value)));
+                ((Map<Object, Object>) (Map<?, ?>) marketsById).put(value.get("id"), new ArrayList<Object>(Arrays.asList(value)));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)

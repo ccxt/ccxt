@@ -455,7 +455,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             rawOrders = new ArrayList<Object>(Arrays.asList(dataDict));
         }
         // usually the first message is an empty array
-        if ((rawOrders.size() == 0))
+        Integer rawOrdersLength = rawOrders.size();
+        if (java.util.Objects.equals(rawOrdersLength, 0))
         {
             return;
         }

@@ -330,7 +330,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(keyParts, 2, "");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String timeframe = this.findTimeframe(interval, (Object) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ((((channel + ":") + interval) + ":") + marketId);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -504,7 +504,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> trade = this.parseWsTrade(new HashMap<String, Object>() {{
             put( "result", data );
         }}, (Map<String, Object>) null);
-        String symbol = (String) trade.get("symbol");
+        String symbol = this.safeString(trade, "symbol");
         Map<String, Object> market = this.market(symbol);
         String marketId = this.safeString(market, "id", "");
         String messageHash = ((name + ":") + marketId);

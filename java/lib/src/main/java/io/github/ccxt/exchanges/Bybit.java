@@ -4536,7 +4536,7 @@ public class Bybit extends BybitApi
             marketType = this.safeString(market, "type");
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String amountString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execQty", "orderQty", "size")));
         String priceString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execPrice", "orderPrice", "price")));
         String costString = this.safeString(trade, "execValue");
@@ -5343,7 +5343,7 @@ public class Bybit extends BybitApi
             marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = (Long) this.safeInteger2(order, "createdTime", "createdAt");
         String marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -10293,7 +10293,7 @@ public class Bybit extends BybitApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
+            String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, fee);
@@ -11216,7 +11216,7 @@ public class Bybit extends BybitApi
                 Helpers.addElementToObject((entry == null || j < 0 || j >= entry.size() ? null : entry.get(j)), "id", id);
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             tiers.put(symbol, this.parseMarketLeverageTiers(this.sortBy(entry, "id"), market));
         }
         return tiers;

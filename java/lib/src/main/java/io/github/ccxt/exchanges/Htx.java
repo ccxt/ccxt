@@ -4169,7 +4169,7 @@ public class Htx extends HtxApi
             untilSeconds = this.parseToInt((((double) until) / ((double) 1000)));
         }
         Boolean isContract = (java.util.Objects.equals(market.get("contract"), true));
-        String marketType = (String) market.get("type");
+        String marketType = this.safeString(market, "type", "");
         Long contractLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 2000; // only used for from/to calculation
         Long rangeLimit = limit;
         if (Boolean.TRUE.equals(isContract))
@@ -4603,7 +4603,8 @@ public class Htx extends HtxApi
         {
             return null;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> namesByChainIds = this.safeDict(this.options, "networkNamesByChainIds", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(namesByChainIds.keySet());
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -4623,7 +4624,8 @@ public class Htx extends HtxApi
         {
             return super.networkCodeToId(networkCode, (String) null);
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        Map<String, Object> chainIdsByNames = this.safeDict(this.options, "networkChainIdsByNames", new HashMap<String, Object>() {{}});
+        List<String> keys = new ArrayList<String>(chainIdsByNames.keySet());
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
@@ -4895,7 +4897,7 @@ public class Htx extends HtxApi
         {
             if (Boolean.TRUE.equals(isolated))
             {
-                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v11 -> j39v11.size(); case String j39v12 -> j39v12.length(); case Object j39v13 -> j39v13.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v13) : 0; }); i++)
+                for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v9 -> j39v9.size(); case String j39v10 -> j39v10.length(); case Object j39v11 -> j39v11.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v11) : 0; }); i++)
                 {
                     Map<String, Object> entry = this.safeDict(data, i, null);
                     List<Object> balances = this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
@@ -4935,7 +4937,7 @@ public class Htx extends HtxApi
             }
         } else if (Boolean.TRUE.equals(inverse))
         {
-            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
             {
                 Map<String, Object> balance = this.safeDict(data, i, null);
                 String currencyId = this.safeString(balance, "symbol");
@@ -9015,7 +9017,7 @@ public class Htx extends HtxApi
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
-            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v14 -> j39v14.size(); case String j39v15 -> j39v15.length(); case Object j39v16 -> j39v16.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v16) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(data)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
                 String marketId = this.safeString(entry, "contract_code");

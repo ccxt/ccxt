@@ -691,7 +691,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         if (!java.util.Objects.equals(market.get("swap"), true))
         {
             throw new NotSupported((this.id + " unWatchTrades is only supported for swap markets")) ;
@@ -876,7 +876,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         if (!java.util.Objects.equals(market.get("swap"), true))
         {
             throw new NotSupported((this.id + " unWatchOHLCV is only supported for swap markets")) ;

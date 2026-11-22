@@ -1415,7 +1415,7 @@ public class Apex extends ApexApi
         String clientOrderId = this.safeString(order, "clientId");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
@@ -1744,7 +1744,8 @@ public class Apex extends ApexApi
         String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
         List<Object> subAccounts = this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
         String nonce = "0";
-        if (subAccounts.size() > 0)
+        Integer subAccountsLength = subAccounts.size();
+        if ((subAccountsLength != null && subAccountsLength > 0))
         {
             nonce = this.safeString((subAccounts == null || 0 >= ((List<?>)subAccounts).size() ? null : ((List<?>)subAccounts).get(0)), "nonce", "0");
         }
@@ -2342,7 +2343,7 @@ public class Apex extends ApexApi
         // }
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "size");
         Long timestamp = this.safeInteger(position, "updatedTime");

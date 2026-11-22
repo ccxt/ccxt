@@ -6655,7 +6655,7 @@ public class Mexc extends MexcApi
         Map<String, Object> paramsOmitted = parameters;
         if (Boolean.TRUE.equals(isIsolatedMargin))
         {
-            paramsOmitted = this.omit(parameters, "symbol");
+            paramsOmitted = this.omit(paramsOmitted, "symbol");
         }
         Map<String, Object> response = (this.spotPrivatePostCapitalTransfer(this.extend(request, paramsOmitted))).join();
         //

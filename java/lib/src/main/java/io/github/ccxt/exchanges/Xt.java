@@ -2378,7 +2378,7 @@ public class Xt extends XtApi
         for (var i = 0; i < tickers.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, ticker);
@@ -2493,7 +2493,7 @@ public class Xt extends XtApi
             }
             Map<String, Object> marketInner = this.safeMarket(marketId, market, "_", marketType);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, marketInner);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, ticker);
@@ -2558,7 +2558,7 @@ public class Xt extends XtApi
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "t");
         String open = this.safeString(ticker, "o");
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -6429,7 +6429,8 @@ public class Xt extends XtApi
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide.put((String)((this.safeString(breakEntry, "symbol", "") + "_") + this.safeString(breakEntry, "positionSide", "")), breakEntry);
+            String breakKey = ((this.safeString(breakEntry, "symbol", "") + "_") + this.safeString(breakEntry, "positionSide", ""));
+            breakBySymbolSide.put(breakKey, breakEntry);
         }
         return breakBySymbolSide;
     }

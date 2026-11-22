@@ -4103,7 +4103,7 @@ public class Aster extends AsterApi
             put( "symbol", market.get("id") );
             put( "amount", amountValue );
         }};
-        String code = (String) market.get("quote");
+        String code = this.safeString(market, "quote");
         Map<String, Object> response = (this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters))).join();
         //
         //     {

@@ -1179,7 +1179,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String cv = this.safeString(data, "cv");
             Boolean isSpot = !java.util.Objects.equals(cv, null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.tickers.put(symbol, ticker);
@@ -1281,7 +1281,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
-            String symbol = (String) ticker.get("symbol");
+            String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.tickers.put(symbol, ticker);
@@ -1882,7 +1882,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
-        String tradeSymbol = (String) parsedTrade.get("symbol");
+        String tradeSymbol = this.safeString(parsedTrade, "symbol");
         if (java.util.Objects.equals(tradeSymbol, null))
         {
             return;

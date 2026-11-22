@@ -1135,7 +1135,7 @@ public class Bit2c extends Bit2cApi
         String id = null;
         String price = null;
         String amount = null;
-        Object orderId = null;
+        String orderId = null;
         Map<String, Object> fee = null;
         Object side = null;
         String makerOrTaker = null;
@@ -1157,7 +1157,11 @@ public class Bit2c extends Bit2cApi
             tradeMarket = this.safeMarket(java.util.Objects.toString((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0)), null), marketByPair, (String) null, (String) null);
             Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", false);
             makerOrTaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
-            orderId = ((Boolean.TRUE.equals(isMaker))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
+            orderId = this.safeString(reference_parts, 1);
+            if (Boolean.TRUE.equals(isMaker))
+            {
+                orderId = this.safeString(reference_parts, 2);
+            }
             Long action = this.safeInteger(trade, "action");
             if ((action != null && action == 0))
             {

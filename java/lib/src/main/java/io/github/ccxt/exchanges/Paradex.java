@@ -1430,8 +1430,8 @@ public class Paradex extends ParadexApi
         for (var i = 0; i < loadedFees.size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((loadedFees == null || i < 0 || i >= loadedFees.size() ? null : loadedFees.get(i))), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
-            result.put(symbol, fee);
+            String symbol = this.safeString(fee, "symbol");
+            result.put((String)symbol, fee);
         }
         return result;
 
@@ -1608,14 +1608,14 @@ public class Paradex extends ParadexApi
      * @param {string[]|undefined} symbols unified market symbols
      * @returns {string} the market id, or ALL
      */
-    public Object summaryMarketId(List<String> symbols)
+    public String summaryMarketId(List<String> symbols)
     {
         if (!java.util.Objects.equals(symbols, null))
         {
             Integer symbolsLength = symbols.size();
             if (java.util.Objects.equals(symbolsLength, 1))
             {
-                return ((Map<String, Object>)this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))).get("id");
+                return this.safeString(this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))), "id", "");
             }
         }
         return "ALL";
@@ -1740,7 +1740,7 @@ public class Paradex extends ParadexApi
         String last = this.safeString(ticker, "last_traded_price");
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("symbol", symbol);
@@ -2181,7 +2181,7 @@ public class Paradex extends ParadexApi
         Long timestamp = this.safeInteger(interest, "created_at");
         String marketId = this.safeString(interest, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "openInterestAmount", Paradex.this.safeString(interest, "open_interest") );
@@ -2425,7 +2425,7 @@ public class Paradex extends ParadexApi
         }
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String orderType = this.safeString(order, "type");
@@ -3332,8 +3332,9 @@ public class Paradex extends ParadexApi
         Integer ordersLength = orders.size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
         {
-            Map<String, Object> first = (Map<String, Object>) (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
-            first.put("next", paginationCursor);
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("next", paginationCursor);
+            Map<String, Object> first = this.extend((orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0)), j39v2);
             orders.set(0, first);
         }
         return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
@@ -3688,7 +3689,7 @@ public class Paradex extends ParadexApi
         //
         String marketId = this.safeString(position, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String side = this.safeStringLower(position, "side");
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         String quantity = Precise.stringAbs(this.safeString(position, "size"));
@@ -4586,7 +4587,7 @@ public class Paradex extends ParadexApi
         //
         String marketId = this.safeString(greeks, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "option");
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
         Map<String, Object> greeksData = this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
@@ -4952,9 +4953,9 @@ public class Paradex extends ParadexApi
             {
                 endAt = until;
             }
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("end_at", endAt);
-            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v2);
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("end_at", endAt);
+            Map<String, Object> paramsEndAt = this.extend(this.omit(paramsPaginate, "until"), j39v3);
             // the cursor helper returns the newest rows first, the limit is applied once they are oldest first
             Object pages = (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, (Long) null, paramsEndAt, "next", "cursor", (Long) null, 5000L)).join();
             List<Object> sortedPages = this.sortBy(pages, "timestamp");
@@ -4978,7 +4979,7 @@ public class Paradex extends ParadexApi
             ((Map<String, Object>)requestUntil).put("start_at", since);
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            Object windowEnd = this.sum(since, (pageSize * rowSpacing));
+            Object windowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
             Object endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
             if ((java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endAt, windowEnd)))
             {

@@ -6097,7 +6097,8 @@ public class Gate extends GateApi
             }
         }
         Object priceResolved = price;
-        if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(contract, true)))
+        Boolean zeroPrice = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(contract, true));
+        if (Boolean.TRUE.equals(zeroPrice))
         {
             priceResolved = 0;
         }
@@ -6145,7 +6146,7 @@ public class Gate extends GateApi
                     request.put("price", "0"); // set to 0 for market orders
                 } else
                 {
-                    request.put("price", (((Helpers.isEqual(priceResolved, 0)))) ? "0" : this.priceToPrecision(symbol, priceResolved));
+                    request.put("price", ((Boolean.TRUE.equals(zeroPrice))) ? "0" : this.priceToPrecision(symbol, priceResolved));
                 }
                 if (!java.util.Objects.equals(reduceOnly, null))
                 {
@@ -6261,7 +6262,7 @@ public class Gate extends GateApi
                     initial.put("price", "0");
                 } else
                 {
-                    initial.put("price", (((Helpers.isEqual(priceResolved, 0)))) ? "0" : this.priceToPrecision(symbol, priceResolved));
+                    initial.put("price", ((Boolean.TRUE.equals(zeroPrice))) ? "0" : this.priceToPrecision(symbol, priceResolved));
                 }
                 if (!java.util.Objects.equals(reduceOnly, null))
                 {
@@ -7919,7 +7920,7 @@ public class Gate extends GateApi
         Map<String, Object> query = parameters;
         if (Boolean.TRUE.equals(isMarginTransfer))
         {
-            query = this.omit(parameters, "symbol");
+            query = this.omit(query, "symbol");
         }
         Map<String, Object> response = (this.privateWalletPostTransfers(this.extend(request, query))).join();
         //

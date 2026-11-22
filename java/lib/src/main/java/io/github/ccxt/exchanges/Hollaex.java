@@ -847,7 +847,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> ticker = this.safeDict(tickers, key, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             result.put(symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
@@ -883,7 +883,7 @@ public class Hollaex extends HollaexApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         String close = this.safeString(ticker, "close");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -982,7 +982,7 @@ public class Hollaex extends HollaexApi
         //
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String datetime = this.safeString(trade, "timestamp");
         Long timestamp = this.parse8601(datetime);
         String side = this.safeString(trade, "side");

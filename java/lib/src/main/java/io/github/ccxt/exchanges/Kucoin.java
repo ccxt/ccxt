@@ -2828,7 +2828,7 @@ public class Kucoin extends KucoinApi
     private Boolean loadMigrationStatusCore(Boolean force)
     {
 
-        if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.options.get("hf"), null)) || java.util.Objects.requireNonNullElse(force, false))
+        if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.safeBool(this.options, "hf", (Object) null), null)) || java.util.Objects.requireNonNullElse(force, false))
         {
             Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
             this.options.put("hf", this.safeBool(result, "data", (Object) null));
@@ -5046,7 +5046,7 @@ public class Kucoin extends KucoinApi
             } else if (java.util.Objects.equals(marginMode, "cross"))
             {
                 Map<String, Object> marginModes = this.safeDict(this.options, "marginModes", new HashMap<String, Object>() {{}});
-                request.put("tradeType", (marginModes == null || !(marginMode instanceof String) ? null : marginModes.get(marginMode)));
+                request.put("tradeType", this.safeString(marginModes, marginMode));
             }
         } else if (Boolean.TRUE.equals(isMarginOrder))
         {
@@ -6443,7 +6443,7 @@ public class Kucoin extends KucoinApi
         if (!java.util.Objects.equals(marginMode, null))
         {
             Map<String, Object> marginModes = this.safeDict(this.options, "marginModes", new HashMap<String, Object>() {{}});
-            request.put("tradeType", (marginModes == null || marginMode == null ? null : marginModes.get(marginMode)));
+            request.put("tradeType", this.safeString(marginModes, marginMode));
             if (java.util.Objects.equals(marginMode, "isolated") && Boolean.TRUE.equals(trigger))
             {
                 throw new BadRequest((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;

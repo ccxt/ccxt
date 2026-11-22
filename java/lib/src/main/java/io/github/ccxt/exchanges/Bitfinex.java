@@ -3828,9 +3828,6 @@ public class Bitfinex extends BitfinexApi
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
                 throw new ExchangeError(((this.id + " ") + body)) ;
             }
-        } else if (java.util.Objects.equals(response, ""))
-        {
-            throw new ExchangeError((this.id + " returned empty response")) ;
         }
         if ((code != null && ((Number) code).doubleValue() == 429))
         {

@@ -1822,7 +1822,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         Map<String, Object> marketValue = marketResolved;
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String tradeId = this.safeString(trade, "tradeId");
         String price = this.safeString(trade, "tradePrice");
         String amount = this.safeString(trade, "tradeVolume");
@@ -1834,7 +1834,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             List<String> typeParts = new ArrayList<String>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
             side = (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
-            type = (String) (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
+            type = this.safeString(typeParts, 1);
         }
         Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
         String takerOrMaker = null;
@@ -1937,9 +1937,13 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (Boolean.TRUE.equals(isV5Linear))
         {
             Map<String, Object> v5Market = null;
-            if ((!java.util.Objects.equals(symbolsNormalized, null)) && ((symbolsNormalized.size() == 1)))
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                v5Market = market;
+                Integer symbolsNormalizedLength = symbolsNormalized.size();
+                if (java.util.Objects.equals(symbolsNormalizedLength, 1))
+                {
+                    v5Market = market;
+                }
             }
             List<Object> channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);

@@ -1654,9 +1654,10 @@ public class Upbit extends UpbitApi
         {
             throw new InvalidOrder((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
-        Map<String, Object> paramsOrdType = (((java.util.Objects.equals(customType, "best")))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "ord_type"))) : parameters;
+        Map<String, Object> paramsOrdType = parameters;
         if (java.util.Objects.equals(customType, "best"))
         {
+            paramsOrdType = this.omit(paramsOrdType, new ArrayList<Object>(Arrays.asList("ordType", "ord_type")));
             request.put("ord_type", "best");
             if (java.util.Objects.equals(side, "buy"))
             {

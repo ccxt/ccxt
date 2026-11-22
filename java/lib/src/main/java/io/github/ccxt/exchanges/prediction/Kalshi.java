@@ -846,7 +846,6 @@ public class Kalshi extends KalshiApi
         precision.put("price", pricePrecision);
         // Build outcomes
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
-        List<String> outcomeIds = new ArrayList<String>(Arrays.asList(ticker, (ticker + "-NO")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcome = null;
         for (var oi = 0; oi < outcomeLabels.size(); oi++)
@@ -868,66 +867,72 @@ public class Kalshi extends KalshiApi
             // reassigned local into the anonymous inner class it emits for a map literal)
             Boolean winner = winnerRaw;
             Integer settleFraction = settleFractionRaw;
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v1.put("outcome", outcomeHandle);
-            j39v1.put("market", marketSymbol);
-            j39v1.put("label", label);
-            j39v1.put("active", active);
-            j39v1.put("winner", winner);
-            j39v1.put("settleFraction", settleFraction);
-            j39v1.put("precision", precision);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("ticker", ticker);
-            j39v2.put("eventTicker", eventTicker);
-            j39v2.put("seriesTicker", seriesTicker);
-            j39v2.put("subtitle", subtitle);
-            j39v2.put("outcomeLabel", label);
-            j39v2.put("volume", volume);
-            j39v2.put("liquidity", liquidity);
-            j39v2.put("openInterest", openInt);
-            j39v1.put("info", j39v2);
-            ((List<Object>)outcomes).add(j39v1);
+            String outcomeSuffix = "";
+            if (oi > 0)
+            {
+                outcomeSuffix = "-NO";
+            }
+            String outcomeId = (ticker + outcomeSuffix);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("id", outcomeId);
+            mapLiteral4.put("outcomeId", outcomeId);
+            mapLiteral4.put("outcome", outcomeHandle);
+            mapLiteral4.put("market", marketSymbol);
+            mapLiteral4.put("label", label);
+            mapLiteral4.put("active", active);
+            mapLiteral4.put("winner", winner);
+            mapLiteral4.put("settleFraction", settleFraction);
+            mapLiteral4.put("precision", precision);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("ticker", ticker);
+            mapLiteral5.put("eventTicker", eventTicker);
+            mapLiteral5.put("seriesTicker", seriesTicker);
+            mapLiteral5.put("subtitle", subtitle);
+            mapLiteral5.put("outcomeLabel", label);
+            mapLiteral5.put("volume", volume);
+            mapLiteral5.put("liquidity", liquidity);
+            mapLiteral5.put("openInterest", openInt);
+            mapLiteral4.put("info", mapLiteral5);
+            ((List<Object>)outcomes).add(mapLiteral4);
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         String marketResolvedOutcome = resolvedOutcome;
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", ticker);
-        mapLiteral4.put("market", marketSymbol);
-        mapLiteral4.put("base", "USD");
-        mapLiteral4.put("quote", "USD");
-        mapLiteral4.put("settle", null);
-        mapLiteral4.put("baseId", ticker);
-        mapLiteral4.put("quoteId", "USD");
-        mapLiteral4.put("settleId", null);
-        mapLiteral4.put("type", "prediction");
-        mapLiteral4.put("marketType", "binary");
-        mapLiteral4.put("executionModel", "clob");
-        mapLiteral4.put("spot", false);
-        mapLiteral4.put("margin", false);
-        mapLiteral4.put("swap", false);
-        mapLiteral4.put("future", false);
-        mapLiteral4.put("option", false);
-        mapLiteral4.put("prediction", true);
-        mapLiteral4.put("active", active);
-        mapLiteral4.put("resolved", resolved);
-        mapLiteral4.put("resolvedOutcome", marketResolvedOutcome);
-        mapLiteral4.put("contract", false);
-        mapLiteral4.put("linear", null);
-        mapLiteral4.put("inverse", null);
-        mapLiteral4.put("contractSize", null);
-        mapLiteral4.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
-        mapLiteral4.put("expiryDatetime", endDate);
-        mapLiteral4.put("strike", null);
-        mapLiteral4.put("optionType", null);
-        mapLiteral4.put("taker", 0.07);
-        mapLiteral4.put("maker", 0);
-        mapLiteral4.put("percentage", true);
-        mapLiteral4.put("tierBased", false);
-        mapLiteral4.put("feeSide", "get");
-        mapLiteral4.put("precision", precision);
-        mapLiteral4.put("limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", ticker);
+        mapLiteral6.put("market", marketSymbol);
+        mapLiteral6.put("base", "USD");
+        mapLiteral6.put("quote", "USD");
+        mapLiteral6.put("settle", null);
+        mapLiteral6.put("baseId", ticker);
+        mapLiteral6.put("quoteId", "USD");
+        mapLiteral6.put("settleId", null);
+        mapLiteral6.put("type", "prediction");
+        mapLiteral6.put("marketType", "binary");
+        mapLiteral6.put("executionModel", "clob");
+        mapLiteral6.put("spot", false);
+        mapLiteral6.put("margin", false);
+        mapLiteral6.put("swap", false);
+        mapLiteral6.put("future", false);
+        mapLiteral6.put("option", false);
+        mapLiteral6.put("prediction", true);
+        mapLiteral6.put("active", active);
+        mapLiteral6.put("resolved", resolved);
+        mapLiteral6.put("resolvedOutcome", marketResolvedOutcome);
+        mapLiteral6.put("contract", false);
+        mapLiteral6.put("linear", null);
+        mapLiteral6.put("inverse", null);
+        mapLiteral6.put("contractSize", null);
+        mapLiteral6.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+        mapLiteral6.put("expiryDatetime", endDate);
+        mapLiteral6.put("strike", null);
+        mapLiteral6.put("optionType", null);
+        mapLiteral6.put("taker", 0.07);
+        mapLiteral6.put("maker", 0);
+        mapLiteral6.put("percentage", true);
+        mapLiteral6.put("tierBased", false);
+        mapLiteral6.put("feeSide", "get");
+        mapLiteral6.put("precision", precision);
+        mapLiteral6.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -945,18 +950,18 @@ public class Kalshi extends KalshiApi
                     put( "max", null );
                 }} );
             }});
-        mapLiteral4.put("outcomes", outcomes);
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("ticker", ticker);
-        mapLiteral5.put("eventTicker", eventTicker);
-        mapLiteral5.put("seriesTicker", seriesTicker);
-        mapLiteral5.put("subtitle", subtitle);
-        mapLiteral5.put("volume", volume);
-        mapLiteral5.put("liquidity", liquidity);
-        mapLiteral5.put("openInterest", openInt);
-        mapLiteral4.put("info", this.extend(raw, mapLiteral5));
-        mapLiteral4.put("created", null);
-        return new MarketInterface(mapLiteral4);
+        mapLiteral6.put("outcomes", outcomes);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("ticker", ticker);
+        mapLiteral7.put("eventTicker", eventTicker);
+        mapLiteral7.put("seriesTicker", seriesTicker);
+        mapLiteral7.put("subtitle", subtitle);
+        mapLiteral7.put("volume", volume);
+        mapLiteral7.put("liquidity", liquidity);
+        mapLiteral7.put("openInterest", openInt);
+        mapLiteral6.put("info", this.extend(raw, mapLiteral7));
+        mapLiteral6.put("created", null);
+        return new MarketInterface(mapLiteral6);
     }
 
     /**
@@ -1249,31 +1254,31 @@ public class Kalshi extends KalshiApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-        j39v3.put("outcome", outcome);
-        j39v3.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-        j39v3.put("label", this.safeString(outcomeObj, "label"));
-        j39v3.put("market", this.safeString2(outcomeObj, "market", "outcome"));
-        j39v3.put("timestamp", timestamp);
-        j39v3.put("datetime", this.iso8601(timestamp));
-        j39v3.put("high", null);
-        j39v3.put("low", null);
-        j39v3.put("bid", bid);
-        j39v3.put("bidVolume", bidVolume);
-        j39v3.put("ask", ask);
-        j39v3.put("askVolume", askVolume);
-        j39v3.put("vwap", null);
-        j39v3.put("open", null);
-        j39v3.put("close", close);
-        j39v3.put("last", close);
-        j39v3.put("previousClose", null);
-        j39v3.put("change", null);
-        j39v3.put("percentage", null);
-        j39v3.put("average", average);
-        j39v3.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
-        j39v3.put("quoteVolume", null);
-        j39v3.put("info", raw);
-        return (Map<String, Object>) (this.safePredictionTicker(j39v3, market));
+        HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+        j39v1.put("outcome", outcome);
+        j39v1.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        j39v1.put("label", this.safeString(outcomeObj, "label"));
+        j39v1.put("market", this.safeString2(outcomeObj, "market", "outcome"));
+        j39v1.put("timestamp", timestamp);
+        j39v1.put("datetime", this.iso8601(timestamp));
+        j39v1.put("high", null);
+        j39v1.put("low", null);
+        j39v1.put("bid", bid);
+        j39v1.put("bidVolume", bidVolume);
+        j39v1.put("ask", ask);
+        j39v1.put("askVolume", askVolume);
+        j39v1.put("vwap", null);
+        j39v1.put("open", null);
+        j39v1.put("close", close);
+        j39v1.put("last", close);
+        j39v1.put("previousClose", null);
+        j39v1.put("change", null);
+        j39v1.put("percentage", null);
+        j39v1.put("average", average);
+        j39v1.put("baseVolume", this.safeNumberN(raw, new ArrayList<Object>(Arrays.asList("volume_24h_fp", "volume_24h", "volume")), (Object) null));
+        j39v1.put("quoteVolume", null);
+        j39v1.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v1, market));
     }
 
     /**
@@ -1349,7 +1354,7 @@ public class Kalshi extends KalshiApi
                     continue;
                 }
                 Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
-                for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
+                for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); j++)
                 {
                     Map<String, Object> ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                     String symbolKey = this.safeString(ticker, "outcome");
@@ -1730,24 +1735,24 @@ public class Kalshi extends KalshiApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", id);
-        mapLiteral6.put("info", trade);
-        mapLiteral6.put("timestamp", ts);
-        mapLiteral6.put("datetime", this.iso8601(ts));
-        mapLiteral6.put("outcome", outcomeSymbol);
-        mapLiteral6.put("outcomeId", outcomeId);
-        mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral6.put("market", this.safeString2(outcomeObj, "market", "outcome"));
-        mapLiteral6.put("order", null);
-        mapLiteral6.put("type", null);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("takerOrMaker", "taker");
-        mapLiteral6.put("price", price);
-        mapLiteral6.put("amount", amount);
-        mapLiteral6.put("cost", cost);
-        mapLiteral6.put("fee", null);
-        return this.safePredictionTrade(mapLiteral6, market);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", id);
+        mapLiteral8.put("info", trade);
+        mapLiteral8.put("timestamp", ts);
+        mapLiteral8.put("datetime", this.iso8601(ts));
+        mapLiteral8.put("outcome", outcomeSymbol);
+        mapLiteral8.put("outcomeId", outcomeId);
+        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral8.put("market", this.safeString2(outcomeObj, "market", "outcome"));
+        mapLiteral8.put("order", null);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("takerOrMaker", "taker");
+        mapLiteral8.put("price", price);
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("cost", cost);
+        mapLiteral8.put("fee", null);
+        return this.safePredictionTrade(mapLiteral8, market);
     }
 
     /**
@@ -1881,24 +1886,24 @@ public class Kalshi extends KalshiApi
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("id", id);
-        mapLiteral7.put("info", fill);
-        mapLiteral7.put("timestamp", ts);
-        mapLiteral7.put("datetime", this.iso8601(ts));
-        mapLiteral7.put("outcome", this.safeString(mkt, "outcome", outcomeKey));
-        mapLiteral7.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
-        mapLiteral7.put("label", this.safeString(mkt, "label"));
-        mapLiteral7.put("market", this.safeString2(mkt, "market", "outcome"));
-        mapLiteral7.put("order", orderId);
-        mapLiteral7.put("type", null);
-        mapLiteral7.put("side", side);
-        mapLiteral7.put("takerOrMaker", takerOrMaker);
-        mapLiteral7.put("price", price);
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("cost", cost);
-        mapLiteral7.put("fee", fee);
-        return this.safePredictionTrade(mapLiteral7, market);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", id);
+        mapLiteral9.put("info", fill);
+        mapLiteral9.put("timestamp", ts);
+        mapLiteral9.put("datetime", this.iso8601(ts));
+        mapLiteral9.put("outcome", this.safeString(mkt, "outcome", outcomeKey));
+        mapLiteral9.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
+        mapLiteral9.put("label", this.safeString(mkt, "label"));
+        mapLiteral9.put("market", this.safeString2(mkt, "market", "outcome"));
+        mapLiteral9.put("order", orderId);
+        mapLiteral9.put("type", null);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("takerOrMaker", takerOrMaker);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("cost", cost);
+        mapLiteral9.put("fee", fee);
+        return this.safePredictionTrade(mapLiteral9, market);
     }
 
     /**
@@ -1942,11 +1947,11 @@ public class Kalshi extends KalshiApi
         {
             total = (((double) balanceCents) / ((double) 100));
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("free", total);
-        mapLiteral8.put("used", 0);
-        mapLiteral8.put("total", total);
-        result.put("USD", mapLiteral8);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("free", total);
+        mapLiteral10.put("used", 0);
+        mapLiteral10.put("total", total);
+        result.put("USD", mapLiteral10);
         return this.safeBalance(result);
     }
 
@@ -2176,36 +2181,36 @@ public class Kalshi extends KalshiApi
             positionSide = (((((yesContracts != null && yesContracts >= 0))))) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("id", null);
-        mapLiteral9.put("outcome", this.safeString(outcomeObj, "outcome", ticker));
-        mapLiteral9.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
-        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral9.put("market", this.safeString2(outcomeObj, "market", "outcome"));
-        mapLiteral9.put("timestamp", null);
-        mapLiteral9.put("datetime", null);
-        mapLiteral9.put("contracts", contractsValue);
-        mapLiteral9.put("contractSize", 1);
-        mapLiteral9.put("side", positionSide);
-        mapLiteral9.put("notional", null);
-        mapLiteral9.put("leverage", 1);
-        mapLiteral9.put("unrealizedPnl", null);
-        mapLiteral9.put("realizedPnl", null);
-        mapLiteral9.put("collateral", null);
-        mapLiteral9.put("entryPrice", null);
-        mapLiteral9.put("markPrice", null);
-        mapLiteral9.put("liquidationPrice", null);
-        mapLiteral9.put("hedged", false);
-        mapLiteral9.put("maintenanceMargin", null);
-        mapLiteral9.put("maintenanceMarginPercentage", null);
-        mapLiteral9.put("initialMargin", null);
-        mapLiteral9.put("initialMarginPercentage", null);
-        mapLiteral9.put("marginRatio", null);
-        mapLiteral9.put("marginMode", "cross");
-        mapLiteral9.put("marginType", "cross");
-        mapLiteral9.put("percentage", null);
-        mapLiteral9.put("info", position);
-        return this.safePredictionPosition(mapLiteral9);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("id", null);
+        mapLiteral11.put("outcome", this.safeString(outcomeObj, "outcome", ticker));
+        mapLiteral11.put("outcomeId", this.safeString2(outcomeObj, "outcomeId", "id"));
+        mapLiteral11.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral11.put("market", this.safeString2(outcomeObj, "market", "outcome"));
+        mapLiteral11.put("timestamp", null);
+        mapLiteral11.put("datetime", null);
+        mapLiteral11.put("contracts", contractsValue);
+        mapLiteral11.put("contractSize", 1);
+        mapLiteral11.put("side", positionSide);
+        mapLiteral11.put("notional", null);
+        mapLiteral11.put("leverage", 1);
+        mapLiteral11.put("unrealizedPnl", null);
+        mapLiteral11.put("realizedPnl", null);
+        mapLiteral11.put("collateral", null);
+        mapLiteral11.put("entryPrice", null);
+        mapLiteral11.put("markPrice", null);
+        mapLiteral11.put("liquidationPrice", null);
+        mapLiteral11.put("hedged", false);
+        mapLiteral11.put("maintenanceMargin", null);
+        mapLiteral11.put("maintenanceMarginPercentage", null);
+        mapLiteral11.put("initialMargin", null);
+        mapLiteral11.put("initialMarginPercentage", null);
+        mapLiteral11.put("marginRatio", null);
+        mapLiteral11.put("marginMode", "cross");
+        mapLiteral11.put("marginType", "cross");
+        mapLiteral11.put("percentage", null);
+        mapLiteral11.put("info", position);
+        return this.safePredictionPosition(mapLiteral11);
     }
 
     /**
@@ -2423,33 +2428,33 @@ public class Kalshi extends KalshiApi
             remaining = (amount - filled);
         }
         Long ts = this.parse8601(this.safeString(order, "created_time"));
-        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-        mapLiteral10.put("id", id);
-        mapLiteral10.put("clientOrderId", this.safeString(order, "client_order_id"));
-        mapLiteral10.put("info", order);
-        mapLiteral10.put("timestamp", ts);
-        mapLiteral10.put("datetime", this.iso8601(ts));
-        mapLiteral10.put("lastTradeTimestamp", null);
-        mapLiteral10.put("status", status);
-        mapLiteral10.put("outcome", this.safeString(mkt, "outcome"));
-        mapLiteral10.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
-        mapLiteral10.put("label", this.safeString(mkt, "label"));
-        mapLiteral10.put("market", this.safeString2(mkt, "market", "outcome"));
-        mapLiteral10.put("type", this.safeStringLower(order, "type", "limit"));
-        mapLiteral10.put("timeInForce", "GTC");
-        mapLiteral10.put("postOnly", null);
-        mapLiteral10.put("side", side);
-        mapLiteral10.put("price", price);
-        mapLiteral10.put("stopPrice", null);
-        mapLiteral10.put("triggerPrice", null);
-        mapLiteral10.put("average", null);
-        mapLiteral10.put("amount", amount);
-        mapLiteral10.put("cost", null);
-        mapLiteral10.put("filled", filled);
-        mapLiteral10.put("remaining", remaining);
-        mapLiteral10.put("fee", null);
-        mapLiteral10.put("trades", new ArrayList<Object>(Arrays.asList()));
-        return this.safePredictionOrder(mapLiteral10, mkt);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("id", id);
+        mapLiteral12.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral12.put("info", order);
+        mapLiteral12.put("timestamp", ts);
+        mapLiteral12.put("datetime", this.iso8601(ts));
+        mapLiteral12.put("lastTradeTimestamp", null);
+        mapLiteral12.put("status", status);
+        mapLiteral12.put("outcome", this.safeString(mkt, "outcome"));
+        mapLiteral12.put("outcomeId", this.safeString2(mkt, "outcomeId", "id"));
+        mapLiteral12.put("label", this.safeString(mkt, "label"));
+        mapLiteral12.put("market", this.safeString2(mkt, "market", "outcome"));
+        mapLiteral12.put("type", this.safeStringLower(order, "type", "limit"));
+        mapLiteral12.put("timeInForce", "GTC");
+        mapLiteral12.put("postOnly", null);
+        mapLiteral12.put("side", side);
+        mapLiteral12.put("price", price);
+        mapLiteral12.put("stopPrice", null);
+        mapLiteral12.put("triggerPrice", null);
+        mapLiteral12.put("average", null);
+        mapLiteral12.put("amount", amount);
+        mapLiteral12.put("cost", null);
+        mapLiteral12.put("filled", filled);
+        mapLiteral12.put("remaining", remaining);
+        mapLiteral12.put("fee", null);
+        mapLiteral12.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral12, mkt);
     }
 
     /**
@@ -2714,9 +2719,9 @@ public class Kalshi extends KalshiApi
             String orderId = this.safeString(restingOrder, "order_id");
             if (!java.util.Objects.equals(orderId, null))
             {
-                HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-                mapLiteral11.put("order_id", orderId);
-                (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral11, parameters))).join();
+                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                mapLiteral13.put("order_id", orderId);
+                (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral13, parameters))).join();
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
                 Map<String, Object> parsed = this.parsePredictionOrder(restingOrder, (Map<String, Object>) null);
@@ -2861,11 +2866,11 @@ public class Kalshi extends KalshiApi
         Integer queriesLength = ((List<?>)queries).size();
         for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
         {
-            HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-            mapLiteral12.put("query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi)));
-            mapLiteral12.put("order_by", "querymatch");
-            mapLiteral12.put("page_size", pageSize);
-            Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(mapLiteral12)).join();
+            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+            mapLiteral14.put("query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi)));
+            mapLiteral14.put("order_by", "querymatch");
+            mapLiteral14.put("page_size", pageSize);
+            Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(mapLiteral14)).join();
             List<Object> page = this.safeList(searchResponse, "current_page", new ArrayList<Object>(Arrays.asList()));
             Integer pageLength = page.size();
             for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
@@ -2965,9 +2970,9 @@ public class Kalshi extends KalshiApi
         Integer tagsLength = tags.size();
         for (var ti = 0; (tagsLength != null && ti < tagsLength); ti++)
         {
-            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-            mapLiteral13.put("tags", (tags == null || ti < 0 || ti >= tags.size() ? null : tags.get(ti)));
-            Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral13)).join();
+            HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+            mapLiteral15.put("tags", (tags == null || ti < 0 || ti >= tags.size() ? null : tags.get(ti)));
+            Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral15)).join();
             List<Object> seriesList = this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
             Integer seriesListLength = seriesList.size();
             for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
@@ -2982,9 +2987,9 @@ public class Kalshi extends KalshiApi
         String category = this.safeString(parameters, "category");
         if (!java.util.Objects.equals(category, null))
         {
-            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
-            mapLiteral14.put("category", category);
-            Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral14)).join();
+            HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+            mapLiteral16.put("category", category);
+            Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral16)).join();
             List<Object> seriesList = this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
             Integer seriesListLength = seriesList.size();
             for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
@@ -3277,28 +3282,28 @@ public class Kalshi extends KalshiApi
         {
             created = earliestCreated;
         }
-        HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
-        mapLiteral15.put("id", ticker);
-        mapLiteral15.put("slug", ticker);
-        mapLiteral15.put("event", eventSlug);
-        mapLiteral15.put("title", title);
-        mapLiteral15.put("markets", marketsList);
-        mapLiteral15.put("volume", totalVolume);
-        mapLiteral15.put("liquidity", totalLiquidity);
-        mapLiteral15.put("url", this.safeString(rawEvent, "url"));
-        mapLiteral15.put("image", this.safeString(rawEvent, "image_url"));
-        mapLiteral15.put("created", created);
-        mapLiteral15.put("createdDatetime", this.safeString(rawEvent, "created_date_iso"));
-        mapLiteral15.put("end", end);
-        mapLiteral15.put("endDatetime", this.iso8601(end));
-        mapLiteral15.put("category", this.safeString(rawEvent, "category"));
-        mapLiteral15.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "last_updated_date_iso")));
-        mapLiteral15.put("lastUpdatedAtDatetime", this.safeString(rawEvent, "last_updated_date_iso"));
-        mapLiteral15.put("resolutionSource", this.safeString(rawEvent, "resolution_source"));
-        mapLiteral15.put("active", active);
-        mapLiteral15.put("resolved", resolved);
-        mapLiteral15.put("info", rawEvent);
-        return ((Map<String, Object>) this.extend(mapLiteral15));
+        HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
+        mapLiteral17.put("id", ticker);
+        mapLiteral17.put("slug", ticker);
+        mapLiteral17.put("event", eventSlug);
+        mapLiteral17.put("title", title);
+        mapLiteral17.put("markets", marketsList);
+        mapLiteral17.put("volume", totalVolume);
+        mapLiteral17.put("liquidity", totalLiquidity);
+        mapLiteral17.put("url", this.safeString(rawEvent, "url"));
+        mapLiteral17.put("image", this.safeString(rawEvent, "image_url"));
+        mapLiteral17.put("created", created);
+        mapLiteral17.put("createdDatetime", this.safeString(rawEvent, "created_date_iso"));
+        mapLiteral17.put("end", end);
+        mapLiteral17.put("endDatetime", this.iso8601(end));
+        mapLiteral17.put("category", this.safeString(rawEvent, "category"));
+        mapLiteral17.put("lastUpdatedAt", this.parse8601(this.safeString(rawEvent, "last_updated_date_iso")));
+        mapLiteral17.put("lastUpdatedAtDatetime", this.safeString(rawEvent, "last_updated_date_iso"));
+        mapLiteral17.put("resolutionSource", this.safeString(rawEvent, "resolution_source"));
+        mapLiteral17.put("active", active);
+        mapLiteral17.put("resolved", resolved);
+        mapLiteral17.put("info", rawEvent);
+        return ((Map<String, Object>) this.extend(mapLiteral17));
     }
 
     /**
@@ -3347,11 +3352,11 @@ public class Kalshi extends KalshiApi
             List<String> keyParts = new ArrayList<String>(Arrays.asList(((String)this.privateKey).split(java.util.regex.Pattern.quote("\\n"))));
             String cleanPrivateKey = String.join("\n", keyParts);
             String signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
-            HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
-            mapLiteral16.put("KALSHI-ACCESS-KEY", this.apiKey);
-            mapLiteral16.put("KALSHI-ACCESS-SIGNATURE", signature);
-            mapLiteral16.put("KALSHI-ACCESS-TIMESTAMP", timestamp);
-            headersValue = this.extend(headersValue, mapLiteral16);
+            HashMap<String, Object> mapLiteral18 = new HashMap<String, Object>();
+            mapLiteral18.put("KALSHI-ACCESS-KEY", this.apiKey);
+            mapLiteral18.put("KALSHI-ACCESS-SIGNATURE", signature);
+            mapLiteral18.put("KALSHI-ACCESS-TIMESTAMP", timestamp);
+            headersValue = this.extend(headersValue, mapLiteral18);
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") && (!java.util.Objects.equals(querystring, "")))
             {
                 // kalshi expects a JSON body; the signature covers only timestamp+method+path

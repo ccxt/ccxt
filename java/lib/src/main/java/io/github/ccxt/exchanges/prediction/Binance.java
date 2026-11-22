@@ -593,7 +593,7 @@ public class Binance extends BinanceApi
         for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
         {
             Map<String, Object> request = new HashMap<String, Object>();
-            request.put("query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi)));
+            request.put("query", this.safeString(queries, qi));
             request.put("topK", limitResolved);
             List<Object> response = (this.sapiPrivateGetMarketSearch(this.extend(request, rest))).join();
             //
@@ -1216,7 +1216,8 @@ public class Binance extends BinanceApi
             String outcome = this.safeStringUpper(order, "outcome");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String marketName = this.safeString(market, "market", marketId);
-            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
+            String outcomeKey = ((marketName + ":") + outcome);
+            outcomeObjResolved = this.safeOutcome(outcomeKey, (Map<String, Object>) null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
@@ -1826,7 +1827,8 @@ public class Binance extends BinanceApi
             String outcome = this.safeStringUpper(trade, "outcome");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String marketName = this.safeString(market, "market", marketId);
-            outcomeObjResolved = this.safeOutcome((String) (((marketName + ":") + outcome)), (Map<String, Object>) null);
+            String outcomeKey = ((marketName + ":") + outcome);
+            outcomeObjResolved = this.safeOutcome(outcomeKey, (Map<String, Object>) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
         String filled = this.safeString(trade, "filledShareQty");

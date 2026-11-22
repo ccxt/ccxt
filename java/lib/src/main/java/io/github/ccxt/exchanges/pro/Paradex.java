@@ -1210,7 +1210,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return;
             }
-            if (!Helpers.isEqual(nonce, this.sum(storedNonce, 1)))
+            if (!java.util.Objects.equals(nonce, (storedNonce + 1L)))
             {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.put("nonce", null);
@@ -1592,8 +1592,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
         } else
         {
-            request = this.subscribeRequest(channel);
-            Helpers.addElementToObject(request.get("params"), "markets", missing);
+            Map<String, Object> subscribeParams = new HashMap<String, Object>();
+            subscribeParams.put("channel", channel);
+            subscribeParams.put("markets", missing);
+            request = this.extend(this.subscribeRequest(channel), new HashMap<String, Object>() {{
+                put( "params", subscribeParams );
+            }});
             subscribeHashes.add(scopedHash);
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
@@ -1695,7 +1699,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(result, Helpers.GetValue(newBidAsk, "symbol"), newBidAsk);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(Helpers.GetValue(newBidAsk, "symbol"), newBidAsk);
             return result;
         }
         return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
@@ -2248,7 +2252,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String channel = this.safeString(parameters, "channel");
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
         this.tickers.put(symbol, ticker);

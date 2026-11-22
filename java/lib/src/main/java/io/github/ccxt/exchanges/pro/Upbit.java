@@ -401,7 +401,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Map<String, Object> trade = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
-        String symbol = (String) trade.get("symbol");
+        String symbol = this.safeString(trade, "symbol");
         if (java.util.Objects.equals(symbol, null))
         {
             return;

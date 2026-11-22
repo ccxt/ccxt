@@ -291,7 +291,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         if (!java.util.Objects.equals(asks, null))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.customParseOrderBook(message, (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
+            Map<String, Object> snapshot = this.customParseOrderBook(message, (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             orderbook.reset(snapshot);
         } else
         {
@@ -304,7 +304,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         client.resolve(orderbook, messageHash);
     }
 
-    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    public Map<String, Object> customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
         List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
@@ -329,7 +329,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         return result;
     }
 
-    public Object customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
+    public List<Object> customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
     {
         Double price = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(priceKey, "price"), (Object) null);
         Double amount = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(amountKey, "volume"), (Object) null);
@@ -411,7 +411,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Map<String, Object> createUpdate = this.safeDict(message, "create_update", null);
         if (!java.util.Objects.equals(createUpdate, null))
         {
-            List<Object> bidAskArray = (List<Object>) this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
+            List<Object> bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             String type = this.safeString(createUpdate, "type");
             if (java.util.Objects.equals(type, "ASK"))
             {

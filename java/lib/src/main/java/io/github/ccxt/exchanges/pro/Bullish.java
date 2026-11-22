@@ -429,9 +429,10 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         }};
         Map<String, Object> parsed = (Map<String, Object>) this.parseOrderBook(snapshot, symbol, timestamp, "bids", "asks", 0, 1, 2);
         List<Object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new ArrayList<Object>(Arrays.asList()));
-        if (sequenceNumberRange.size() > 0)
+        Integer sequenceNumberRangeLength = sequenceNumberRange.size();
+        if ((sequenceNumberRangeLength != null && sequenceNumberRangeLength > 0))
         {
-            Long lastIndex = (((long) sequenceNumberRange.size()) - 1L);
+            Long lastIndex = (((long) sequenceNumberRangeLength) - 1L);
             parsed.put("nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         orderbook.reset(parsed);

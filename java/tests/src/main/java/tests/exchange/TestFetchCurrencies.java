@@ -86,7 +86,7 @@ public class TestFetchCurrencies extends BaseTest {
             Object code = Helpers.GetValue(currency, "code");
             if (!((code != null && ids.containsKey(code))))
             {
-                Helpers.addElementToObject(ids, code, Helpers.GetValue(currency, "id"));
+                ((Map<Object, Object>) (Map<?, ?>) ids).put(code, Helpers.GetValue(currency, "id"));
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual((ids == null || !(code instanceof String) ? null : ids.get(code)), Helpers.GetValue(currency, "id"));

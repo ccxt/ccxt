@@ -2699,6 +2699,7 @@ public class Myriad extends MyriadApi
         // effectively-final copy for the market object literal below (reassigned in the loop)
         String marketResolvedOutcome = resolvedOutcome;
         String compositeId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
+        String compositeBaseId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("id", compositeId);
@@ -2708,7 +2709,7 @@ public class Myriad extends MyriadApi
             h2kMap3.put("base", slug);
             h2kMap3.put("quote", quoteCurrency);
             h2kMap3.put("settle", null);
-            h2kMap3.put("baseId", ((networkId + ":") + marketId));
+            h2kMap3.put("baseId", compositeBaseId);
             h2kMap3.put("quoteId", quoteCurrency);
             h2kMap3.put("settleId", null);
             h2kMap3.put("type", "prediction");
@@ -3012,7 +3013,8 @@ public class Myriad extends MyriadApi
         for (var i = 0; i < outcomes.size(); i++)
         {
             Map<String, Object> o = this.safeDict(outcomes, i, null);
-            if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
+            String entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if (java.util.Objects.equals(entryOutcomeId, outcomeId))
             {
                 Double priceValue = this.safeNumber(o, "price", (Object) null);
                 Double changeValue = this.safeNumber(o, "priceChange24h", (Object) null);
@@ -3181,7 +3183,8 @@ public class Myriad extends MyriadApi
         for (var i = 0; i < outcomes.size(); i++)
         {
             Map<String, Object> o = this.safeDict(outcomes, i, null);
-            if (java.util.Objects.equals(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
+            String entryOutcomeId = this.safeString(o, "outcomeId", this.safeString(o, "id"));
+            if (java.util.Objects.equals(entryOutcomeId, outcomeId))
             {
                 Double price = this.safeNumber(o, "price", (Object) null);
                 if (!java.util.Objects.equals(price, null))
@@ -4353,12 +4356,12 @@ public class Myriad extends MyriadApi
         List<Object> resolvedSymbols = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome(this.safeString(outcomes, i, ""));
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
             String channel = ((("prices:" + networkId) + ":") + marketId);
-            ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))), outcomeObj));
+            ((List<Object>)resolvedSymbols).add(this.safeOutcomeSymbol(this.safeString(outcomes, i, ""), outcomeObj));
             if (!(seenChannels.containsKey(channel)))
             {
                 seenChannels.put(channel, true);

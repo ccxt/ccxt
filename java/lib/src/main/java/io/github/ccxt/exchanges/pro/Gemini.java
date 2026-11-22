@@ -218,7 +218,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //     }
         //
         Map<String, Object> trade = this.parseWsTrade(message, (Map<String, Object>) null);
-        String symbol = (String) trade.get("symbol");
+        String symbol = this.safeString(trade, "symbol");
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -230,7 +230,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
         }
         stored.append(trade);
-        String messageHash = ("trades:" + symbol);
+        String messageHash = ("trades:" + this.safeString(trade, "symbol", ""));
         client.resolve(stored, messageHash);
     }
 

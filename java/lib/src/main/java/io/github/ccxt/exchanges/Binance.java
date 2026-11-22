@@ -4808,7 +4808,7 @@ public class Binance extends BinanceApi
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            String code = (String) parsed.get("code");
+            String code = this.safeString(parsed, "code", "");
             if (java.util.Objects.equals(parsed, null))
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -5914,13 +5914,13 @@ public class Binance extends BinanceApi
             query = this.omit(query, "symbols");
             if (!java.util.Objects.equals(paramSymbols, null))
             {
-                Object symbols = "";
                 if ((paramSymbols instanceof List))
                 {
+                    String symbols = "";
                     String mid = this.marketId(this.safeString(paramSymbols, 0));
                     if (!java.util.Objects.equals(mid, null))
                     {
-                        symbols = mid;
+                        symbols = (symbols + mid);
                     }
                     for (var i = 1; i < paramSymbols.size(); i++)
                     {
@@ -5930,11 +5930,11 @@ public class Binance extends BinanceApi
                             symbols = (symbols + ("," + id));
                         }
                     }
+                    request.put("symbols", symbols);
                 } else
                 {
-                    symbols = paramSymbols;
+                    request.put("symbols", paramSymbols);
                 }
-                request.put("symbols", symbols);
             }
             response = (this.sapiGetMarginIsolatedAccount(this.extend(request, query))).join();
         } else if ((java.util.Objects.equals(type, "margin")) || (java.util.Objects.equals(marginMode, "cross")))
@@ -9335,6 +9335,7 @@ public class Binance extends BinanceApi
         {
             return parameters;
         }
+        Map<String, Object> generated = new HashMap<String, Object>() {{}};
         if ((java.util.Objects.equals(path, "order")) || (java.util.Objects.equals(path, "sor/order")) || (java.util.Objects.equals(path, "order/cancelReplace")) || (java.util.Objects.equals(path, "um/order")) || (java.util.Objects.equals(path, "cm/order")) || (java.util.Objects.equals(path, "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
@@ -9342,7 +9343,7 @@ public class Binance extends BinanceApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                parameters.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put(clientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "algoOrder")) || (java.util.Objects.equals(path, "um/algo/order")))
         {
@@ -9350,7 +9351,7 @@ public class Binance extends BinanceApi
             String clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if (java.util.Objects.equals(clientAlgoId, null))
             {
-                parameters.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("clientAlgoId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "cm/conditional/order")) || (java.util.Objects.equals(path, "um/conditional/order")))
         {
@@ -9358,7 +9359,7 @@ public class Binance extends BinanceApi
             String newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if (java.util.Objects.equals(newClientStrategyId, null))
             {
-                parameters.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("newClientStrategyId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if (java.util.Objects.equals(path, "equity/order/place"))
         {
@@ -9366,7 +9367,7 @@ public class Binance extends BinanceApi
             String equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if (java.util.Objects.equals(equityClientOrderId, null))
             {
-                parameters.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
+                generated.put("clientOrderId", this.generateClientOrderId((Map<String, Object>) null, api, path));
             }
         } else if ((java.util.Objects.equals(path, "order/oco")) || (java.util.Objects.equals(path, "margin/order/oco")) || (java.util.Objects.equals(path, "orderList/oco")) || (java.util.Objects.equals(path, "orderList/oto")) || (java.util.Objects.equals(path, "orderList/otoco")) || (java.util.Objects.equals(path, "orderList/opo")) || (java.util.Objects.equals(path, "orderList/opoco")))
         {
@@ -9388,7 +9389,7 @@ public class Binance extends BinanceApi
                 String currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if (java.util.Objects.equals(currentClientOrderId, null))
                 {
-                    parameters.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
+                    generated.put(currentClientOrderIdKey, this.generateClientOrderId((Map<String, Object>) null, api, path));
                 }
             }
         } else if (java.util.Objects.equals(path, "batchOrders"))
@@ -9412,7 +9413,8 @@ public class Binance extends BinanceApi
                 parameters.put("batchOrders", checkedBatchOrders);
             }
         }
-        return parameters;
+        Map<String, Object> withIds = this.extend(parameters, generated);
+        return withIds;
     }
 
     /**
@@ -12112,7 +12114,7 @@ public class Binance extends BinanceApi
         List<Object> data = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rows != null && i < rows); i++)
         {
-            List<Object> logs = this.safeList((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "userAssetDribbletDetails", new ArrayList<Object>(Arrays.asList()));
+            List<Object> logs = this.safeList(this.safeDict(results, i, null), "userAssetDribbletDetails", new ArrayList<Object>(Arrays.asList()));
             for (var j = 0; j < logs.size(); j++)
             {
                 ((List<Object>)data).add(this.extend((logs == null || j < 0 || j >= logs.size() ? null : logs.get(j)), new HashMap<String, Object>() {{
@@ -13449,7 +13451,7 @@ public class Binance extends BinanceApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String type = (String) market.get("type");
+        String type = this.safeString(market, "type", "");
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -16471,7 +16473,7 @@ public class Binance extends BinanceApi
             {
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) && (java.util.Objects.equals(path, "batchOrders")))
                 {
-                    List<String> orderidlist = (List<String>) this.safeList(extendedParams, "orderidlist", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> orderidlist = this.safeList(extendedParams, "orderidlist", new ArrayList<Object>(Arrays.asList()));
                     List<Object> origclientorderidlist = (List<Object>) this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new ArrayList<Object>(Arrays.asList()));
                     extendedParams = this.omit(extendedParams, new ArrayList<Object>(Arrays.asList("orderidlist", "origclientorderidlist", "origClientOrderIdList")));
                     if (extendedParams.containsKey("symbol"))
@@ -16483,7 +16485,13 @@ public class Binance extends BinanceApi
                     Integer origclientorderidlistLength = origclientorderidlist.size();
                     if ((orderidlistLength != null && orderidlistLength > 0))
                     {
-                        query = ((((query + "&") + "orderidlist=%5B") + String.join("%2C", orderidlist)) + "%5D");
+                        List<String> orderIdStrings = new ArrayList<String>(Arrays.asList());
+                        for (var i = 0; (orderidlistLength != null && i < orderidlistLength); i++)
+                        {
+                            String orderIdString = this.safeString(orderidlist, i, "");
+                            orderIdStrings.add(orderIdString);
+                        }
+                        query = ((((query + "&") + "orderidlist=%5B") + String.join("%2C", (List<String>)orderIdStrings)) + "%5D");
                     }
                     if ((origclientorderidlistLength != null && origclientorderidlistLength > 0))
                     {
@@ -16732,7 +16740,8 @@ public class Binance extends BinanceApi
             for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
-                if (!java.util.Objects.equals(limit, null) && ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(limit, this.safeInteger(entry, 0, 0)))
+                Long entryLimit = this.safeInteger(entry, 0, 0);
+                if (!java.util.Objects.equals(limit, null) && (limit == null || (entryLimit != null && limit <= entryLimit)))
                 {
                     return this.safeInteger(entry, 1);
                 }

@@ -1570,7 +1570,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             subscription.put(marketId, true);
         }
         request.put("type", type);
-        Helpers.addElementToObject(Helpers.GetValue(request.get("channels"), 0), "instrument_codes", new ArrayList<Object>(subscription.keySet()));
+        List<String> instrumentCodes = new ArrayList<String>(subscription.keySet());
+        Map<String, Object> channel = this.extend(this.safeDict(this.safeList(request, "channels", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+            put( "instrument_codes", instrumentCodes );
+        }});
+        request.put("channels", new ArrayList<Object>(Arrays.asList(channel)));
         return (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
 
     }

@@ -1026,7 +1026,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 {
                     String stringOrderCost = this.numberToString(previousFee.get("cost"));
                     String stringTradeCost = this.numberToString(this.safeNumber(trade.get("fee"), "cost", (Object) null));
-                    Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
+                    previousFee.put("cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
+                    previousOrder.put("fee", previousFee);
                 }
                 // update the newUpdates count
                 orders.append(this.safeOrder(previousOrder, (Map<String, Object>) null));

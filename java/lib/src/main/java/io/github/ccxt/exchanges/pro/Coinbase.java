@@ -1089,7 +1089,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
+        List<String> marketIds = new ArrayList<String>(Arrays.asList());
+        Map<String, Object> seenMarketIds = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1111,9 +1112,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    if (!((marketIds != null && marketId != null && marketIds.contains(marketId))))
+                    if (!(seenMarketIds.containsKey(marketId)))
                     {
-                        ((List<Object>)marketIds).add(marketId);
+                        seenMarketIds.put(marketId, true);
+                        marketIds.add(marketId);
                     }
                 }
                 cachedOrders.append(parsed);
@@ -1121,7 +1123,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         for (var i = 0; i < marketIds.size(); i++)
         {
-            Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+            String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String messageHash = ("user::" + symbol);
             client.resolve(this.orders, messageHash);

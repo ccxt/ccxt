@@ -706,13 +706,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Integer positionsLength = positions.size();
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             if (java.util.Objects.equals(this.safeString(position, "side"), null))
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position.put("side", "long");
-                Object shortPosition = this.clone(position);
-                ((Map<String, Object>)shortPosition).put("side", "short");
+                ((Map<String, Object>)position).put("side", "long");
+                Map<String, Object> shortPosition = this.extend(position, new HashMap<String, Object>() {{
+                    put( "side", "short" );
+                }});
                 ((io.github.ccxt.ws.ArrayCache) this.positions).append(shortPosition);
             }
             ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
@@ -1118,7 +1119,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(Helpers.GetValue(ticker, "symbol"), ticker);
             return result;
         }
         return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
@@ -1722,7 +1723,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         if (!(this.orderbooks.containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            this.orderbooks.put(symbol, ((Boolean.TRUE.equals(isGrouped))) ? this.orderBook(new HashMap<String, Object>() {{}}, limit) : this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
+            if (Boolean.TRUE.equals(isGrouped))
+            {
+                this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            } else
+            {
+                this.orderbooks.put(symbol, this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
+            }
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(orderbook, "nonce");

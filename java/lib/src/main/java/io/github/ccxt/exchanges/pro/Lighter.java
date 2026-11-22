@@ -235,7 +235,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!(this.orderbooks.containsKey(symbol)))
         {
@@ -279,7 +279,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
         }};
@@ -311,7 +311,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "channel", ("order_book/" + Lighter.this.safeString(market, "id", "")) );
         }};
@@ -422,7 +422,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             throw new NotSupported((this.id + " watchTicker() is only supported for swap markets")) ;
@@ -457,7 +457,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             throw new NotSupported((this.id + " unWatchTicker() is only supported for swap markets")) ;
@@ -759,7 +759,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1202,7 +1202,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         Object stored = this.safeValue(this.liquidations, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1691,7 +1691,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 Map<String, Object> order = (Map<String, Object>) this.parseOrder((orders == null || j < 0 || j >= orders.size() ? null : orders.get(j)), market);
                 stored.append(order);
-                String symbol = (String) order.get("symbol");
+                String symbol = this.safeString(order, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
                     String symbolSpecificMessageHash = this.getMessageHash("orders", symbol, (String) null);

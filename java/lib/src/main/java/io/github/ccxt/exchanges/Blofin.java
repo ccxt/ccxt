@@ -1028,7 +1028,7 @@ public class Blofin extends BlofinApi
         Long timestamp = this.safeInteger(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
         Boolean spot = (Boolean) this.safeBool(marketResolved, "spot", false);
@@ -1202,7 +1202,7 @@ public class Blofin extends BlofinApi
         String id = this.safeString(trade, "tradeId");
         String marketId = this.safeString(trade, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(trade, "ts");
         String price = this.safeString2(trade, "price", "fillPrice");
         String amount = this.safeString2(trade, "size", "fillSize");
@@ -1640,7 +1640,7 @@ public class Blofin extends BlofinApi
                 account.put("total", eq);
                 account.put("free", availEq);
             }
-            result.put(code, account);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(code, account);
         }
         result.put("timestamp", timestamp);
         result.put("datetime", this.iso8601(timestamp));
@@ -1678,7 +1678,7 @@ public class Blofin extends BlofinApi
             account.put("total", this.safeString(balance, "balance"));
             account.put("free", this.safeString(balance, "available"));
             account.put("used", this.safeString(balance, "frozen"));
-            result.put(code, account);
+            ((Map<Object, Object>) (Map<?, ?>) result).put(code, account);
         }
         return this.safeBalance(result);
     }

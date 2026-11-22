@@ -1141,7 +1141,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "depth" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); }))) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleFetchOrderBook");
@@ -2029,7 +2029,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "stock", false);
         Boolean stock = stockparamsStockVariable.first();
         Map<String, Object> paramsStock = stockparamsStockVariable.second();
@@ -2321,7 +2321,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         parameters.put("callerMethodName", "watchOHLCV");
         return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), parameters)).join();
 
@@ -2457,7 +2457,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", method );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); }))) );
         }};
         Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
         return ticker;
@@ -4369,7 +4369,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", method );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); }))) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handlePositionsWs");
@@ -4764,7 +4764,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "order.place" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted2))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted2))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); }))) );
         }};
         if (Boolean.TRUE.equals(test))
         {
@@ -4943,11 +4943,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Pair<Boolean, Map<String, Object>> returnRateLimitsparamsReturnRateLimitsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "editOrderWs", "returnRateLimits", false);
         Boolean returnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.first();
         Map<String, Object> paramsReturnRateLimits = returnRateLimitsparamsReturnRateLimitsVariable.second();
-        payload.put("returnRateLimits", returnRateLimits);
-        Map<String, Object> message = new HashMap<String, Object>();
-        message.put("id", messageHash);
-        message.put("method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace");
-        message.put("params", this.signParams(this.extend(payload, paramsReturnRateLimits)));
+        Map<String, Object> payloadWithLimits = this.extend(payload, new HashMap<String, Object>() {{
+            put( "returnRateLimits", returnRateLimits );
+        }});
+        Map<String, Object> message = new HashMap<String, Object>() {{
+            put( "id", messageHash );
+            put( "method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace" );
+            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payloadWithLimits, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); }))) );
+        }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleEditOrderWs");
         }};
@@ -6063,7 +6066,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Ticker parsed = this.safeTicker(mapLiteral12, (Map<String, Object>) null);
             this.tickers.put(symbol, parsed);
             tickers.put(symbol, parsed);
-            client.resolve(parsed, ("stock:price:" + symbol));
+            String priceSymbol = this.safeString(parsed, "symbol", "");
+            client.resolve(parsed, ("stock:price:" + priceSymbol));
         }
         client.resolve(tickers, "stock:price");
     }
@@ -6088,7 +6092,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral13.put("info", message);
         Ticker parsed = this.safeTicker(mapLiteral13, (Map<String, Object>) null);
         this.bidsasks.put(symbol, parsed);
-        client.resolve(parsed, ("stock:quote:" + symbol));
+        String quoteSymbol = this.safeString(parsed, "symbol", "");
+        client.resolve(parsed, ("stock:quote:" + quoteSymbol));
     }
 
     public void handleOptionsOrderUpdate(Client client, Map<String, Object> message)
@@ -6141,7 +6146,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             String absQty = Precise.stringAbs(rawQty);
             String executionType = "NEW";
-            if (fills.size() > 0)
+            Integer fillsLength = fills.size();
+            if ((fillsLength != null && fillsLength > 0))
             {
                 executionType = "TRADE";
             }

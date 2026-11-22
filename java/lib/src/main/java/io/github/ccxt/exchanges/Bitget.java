@@ -3986,7 +3986,7 @@ public class Bitget extends BitgetApi
             MarketInterface parsedMarket = this.parseMarket(market);
             if ((!java.util.Objects.equals(parsedMarket, null)) && Boolean.TRUE.equals(this.safeBool(parsedMarket, "spot", false)))
             {
-                Object marketId = ((Map<String, Object>)parsedMarket).get("id");
+                String marketId = this.safeString(parsedMarket, "id", "");
                 Map<String, Object> instrument = this.safeDict(spotInstruments, marketId, null);
                 if (!java.util.Objects.equals(instrument, null))
                 {

@@ -1572,7 +1572,7 @@ public class Coinsph extends CoinsphApi
         //
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String id = this.safeString2(trade, "id", "tradeId");
         String orderId = this.safeString(trade, "orderId");
         Long timestamp = this.safeInteger(trade, "time");
@@ -2301,7 +2301,7 @@ public class Coinsph extends CoinsphApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-            String symbol = (String) fee.get("symbol");
+            String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 result.put(symbol, fee);
@@ -2322,7 +2322,7 @@ public class Coinsph extends CoinsphApi
         //
         String marketId = this.safeString(fee, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

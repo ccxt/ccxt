@@ -1598,7 +1598,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Object m = this.safeValue(trade, "m");
         if (java.util.Objects.equals(side, null))
         {
-            side = (((java.util.Objects.equals(m, true)))) ? "buy" : "sell";
+            side = "sell";
+            if (java.util.Objects.equals(m, true))
+            {
+                side = "buy";
+            }
         } else
         {
             // spot private
@@ -2932,7 +2936,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
                 if (!(client.subscriptions.containsKey(messageHash)))
                 {
-                    ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
+                    ((List<Object>)newTopics).add(this.safeString(topics, i, ""));
                 }
             }
         } else
@@ -2949,7 +2953,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 Integer recordedLength = recordedTopics.size();
                 for (var j = 0; (recordedLength != null && j < recordedLength); j++)
                 {
-                    Helpers.addElementToObject(subscribedTopics, (recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)), true);
+                    ((Map<Object, Object>) (Map<?, ?>) subscribedTopics).put((recordedTopics == null || j < 0 || j >= recordedTopics.size() ? null : recordedTopics.get(j)), true);
                 }
             }
             for (var i = 0; (topicsLength != null && i < topicsLength); i++)

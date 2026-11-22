@@ -469,7 +469,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
         String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = (("orderbook" + ":") + symbolValue);
         Object request = new HashMap<String, Object>() {{
             put( "type", "orderbookdepth" );
@@ -672,7 +672,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
         String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("trade:" + symbolValue);
         Object request = new HashMap<String, Object>() {{
             put( "type", "transaction" );

@@ -1293,7 +1293,7 @@ public class Pacifica extends PacificaApi
             Object setting = (settings == null || i < 0 || i >= settings.size() ? null : settings.get(i));
             String marketId = this.safeString(setting, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             settingsBySymbol.put(symbol, setting);
         }
         return settingsBySymbol;

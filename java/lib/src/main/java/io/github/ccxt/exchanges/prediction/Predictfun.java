@@ -436,7 +436,8 @@ public class Predictfun extends PredictfunApi
         {
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<String> tags = (List<String>) this.safeList(paramsValue, "tags", new ArrayList<Object>(Arrays.asList()));
-            if (tags.size() > 0)
+            Integer tagsLength = tags.size();
+            if ((tagsLength != null && tagsLength > 0))
             {
                 request.put("tagIds", String.join(",", tags));
             }

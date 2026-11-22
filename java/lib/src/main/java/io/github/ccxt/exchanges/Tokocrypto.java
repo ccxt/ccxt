@@ -1690,14 +1690,6 @@ public class Tokocrypto extends TokocryptoApi
         {
             request.put("endTime", until);
         }
-        Object response = null;
-        if (this.isNativeMarket(market))
-        {
-            response = (this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted))).join();
-        } else
-        {
-            response = (this.binanceGetKlines(this.extend(request, paramsOmitted))).join();
-        }
         //
         // binanceGetKlines
         //
@@ -1732,11 +1724,9 @@ public class Tokocrypto extends TokocryptoApi
         //     }
         //
         Object data = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
+        if (this.isNativeMarket(market))
         {
-            data = response;
-        } else
-        {
+            Map<String, Object> response = (this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted))).join();
             List<Object> dataList = this.safeList(response, "data", null);
             if (!java.util.Objects.equals(dataList, null))
             {
@@ -1746,6 +1736,9 @@ public class Tokocrypto extends TokocryptoApi
                 Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
             }
+        } else
+        {
+            data = (this.binanceGetKlines(this.extend(request, paramsOmitted))).join();
         }
         return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitValue, false);
 

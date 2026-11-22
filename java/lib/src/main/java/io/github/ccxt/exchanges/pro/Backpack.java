@@ -241,7 +241,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 throw new NotSupported((((this.id + " ") + methodName) + "() RFQ venue tickers are only mapped for stock data")) ;
             }
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             String messageHash = ((((kind + ":") + symbol) + "@") + topic);
             String subscriptionKey = ("marketData:" + topic);
             Map<String, Object> subscriptions = this.safeDict(client.subscriptions, subscriptionKey, new HashMap<String, Object>() {{}});
@@ -251,10 +251,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 this.cleanUnsubscription(client, messageHash, ("unsubscribe:" + messageHash), false);
                 if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))
                 {
-                    this.bidsasks.remove(symbol);
+                    this.bidsasks.remove((String)symbol);
                 } else
                 {
-                    this.tickers.remove(symbol);
+                    this.tickers.remove((String)symbol);
                 }
             } else
             {
@@ -585,7 +585,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Map<String, Object> ticker = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -679,7 +679,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -782,7 +782,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String stream = this.safeString(message, "stream", "");
-        Map<String, Object> subscriptions = this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}}));
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
         Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
@@ -1028,7 +1028,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String stream = this.safeString(message, "stream", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("."))));
         String timeframe = this.safeString(parts, 1, "");
@@ -1241,7 +1241,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.market(marketId);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1929,7 +1929,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         String marketId = this.safeString(order, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String type = this.safeStringLower(order, "o");
         String timeInForce = this.safeString(order, "f");
         String side = this.parseWsOrderSide(this.safeString(order, "S"));

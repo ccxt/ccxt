@@ -3652,7 +3652,7 @@ public class Woo extends WooApi
             String currencyId = this.safeString(parts, 1, firstPart);
             if ((partsLength != null && partsLength > 2))
             {
-                currencyId = (currencyId + ("_" + this.safeString(parts, 2, "")));
+                currencyId = ((this.safeString(parts, 1, "") + "_") + this.safeString(parts, 2, ""));
             }
             return this.safeCurrency(currencyId, (Map<String, Object>) null);
         }

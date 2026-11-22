@@ -3078,7 +3078,8 @@ public class Bitstamp extends BitstampApi
             // dt (destination tag) is embedded into the address field
             List<Object> addressParts = new ArrayList<Object>(Arrays.asList(((String)addressRaw).split(java.util.regex.Pattern.quote("?dt="))));
             address = this.safeString(addressParts, 0);
-            if (addressParts.size() > 1)
+            Integer addressPartsLength = addressParts.size();
+            if ((addressPartsLength != null && addressPartsLength > 1))
             {
                 tag = this.safeString(addressParts, 1);
             }
