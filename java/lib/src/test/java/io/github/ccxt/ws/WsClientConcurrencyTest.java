@@ -24,6 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 class WsClientConcurrencyTest {
 
     private static WsClient newClient() {
+        return newClient("wss://10.255.255.1/ws");
+    }
+
+    private static WsClient newClient(String url) {
         // a non-routable RFC1918 blackhole, NOT a resolvable-and-failing name:
         // wss://example.invalid fails DNS almost instantly, so onError could fire
         // in the middle of the connect storm, legitimately reset startedConnecting
@@ -32,7 +36,7 @@ class WsClientConcurrencyTest {
         // blackhole address just hangs far beyond the test window, so nothing
         // can interleave and the assertions are deterministic
         return new WsClient(
-                "wss://10.255.255.1/ws",
+                url,
                 null,
                 /* handleMessage */ (c, m) -> {},
                 /* ping */ c -> null,
@@ -52,7 +56,10 @@ class WsClientConcurrencyTest {
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void testConnectIsAtomic() throws Exception {
-        WsClient client = newClient();
+        // a local listener that is never accepted: TCP connects, the handshake hangs, so no
+        // onError can rotate the future mid-storm (a blackhole IP fails at once with no route)
+        java.net.ServerSocket silent = new java.net.ServerSocket(0, 64, java.net.InetAddress.getLoopbackAddress());
+        WsClient client = newClient("ws://127.0.0.1:" + silent.getLocalPort() + "/ws");
 
         // We can't observe createConnection runs directly, but we can check the
         // post-condition: after concurrent calls return, startedConnecting is true
@@ -81,6 +88,7 @@ class WsClientConcurrencyTest {
             assertSame(returned[0], returned[i], "Caller " + i + " got a different future");
         }
         client.close();
+        silent.close();
     }
 
     /**

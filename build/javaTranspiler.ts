@@ -5938,6 +5938,8 @@ export function nativeJavaReassignedNewMap (content: string): string {
     return out.join ('\n');
 }
 
+// base readers the h30-J05 hoist treats as write-free (declared before the main entry runs)
+const H30J05_READERS = /^(?:(?:this|\w+\.this)\.(?:safeString|safeString2|safeBool|safeNumber|safeInteger|arrayConcat)|Precise\.stringAdd|(?:io\.github\.ccxt\.)?Helpers\.(?:GetValue|newMap)|java\.util\.Objects\.equals|Arrays\.asList)$/;
 // after the pass constants above: they are consts, so the entry must not run before their initialization
 if (isMainEntry(metaUrl)) {
     // Deliberately not `await runMain()`: build/java-worker.ts imports this module
@@ -9791,7 +9793,6 @@ function h29J05HoistSelfTest (): string[] {
 // ===== h30-J05: (1) values and the already-evaluated part of the prefix are both write-free (base readers,
 // GetValue, Objects.equals, fresh HashMap / ArrayList), so they commute; (2) after any call, values built only from
 // member-declared locals and literals; (3) `T x = c ? null : newMap(..);` becomes `T x = null; if (!(c)) {..}`.
-const H30J05_READERS = /^(?:(?:this|\w+\.this)\.(?:safeString|safeString2|safeBool|safeNumber|safeInteger|arrayConcat)|Precise\.stringAdd|(?:io\.github\.ccxt\.)?Helpers\.(?:GetValue|newMap)|java\.util\.Objects\.equals|Arrays\.asList)$/;
 function h30J05Mask (e: string): string {
     return e.replace (/"(?:[^"\\\n]|\\.)*"/g, (m) => 'S'.repeat (m.length));
 }

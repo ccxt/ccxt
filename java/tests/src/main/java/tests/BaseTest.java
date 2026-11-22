@@ -469,7 +469,7 @@ public class BaseTest {
         var exchange = (BaseExchange) exchange2;
         var client = exchange.client(url);
         try {
-            client.handleMessageCallback.accept(client, message);
+            client.dispatchMessage(message);
         } catch (Exception e) {
             // mirror the real transport (WsClient.onMessage): a handler that throws must
             // fail the pending watch futures, otherwise the watch side of the static test
