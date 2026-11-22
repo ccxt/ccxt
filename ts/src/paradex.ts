@@ -1137,7 +1137,7 @@ export default class paradex extends Exchange {
             const endAtRaw = this.safeInteger (requestUntil, 'end_at', this.milliseconds ());
             const endAt = this.parseToInt (endAtRaw);
             requestUntil['end_at'] = endAt;
-            requestUntil['start_at'] = endAt - windowLength + 1;
+            requestUntil['start_at'] = endAt - (windowLength - 1);
         }
         const response = await this.publicGetMarketsKlines (this.extend (requestUntil, paramsOmitted));
         //
