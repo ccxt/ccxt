@@ -991,7 +991,8 @@ export default class binance extends Exchange {
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
             const marketName = this.safeString (market, 'market', marketId);
-            outcomeObjResolved = this.safeOutcome (marketName + ':' + outcome);
+            const outcomeKey: string = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome (outcomeKey);
         }
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'createTime');
@@ -1522,7 +1523,8 @@ export default class binance extends Exchange {
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
             const marketName = this.safeString (market, 'market', marketId);
-            outcomeObjResolved = this.safeOutcome (marketName + ':' + outcome);
+            const outcomeKey: string = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome (outcomeKey);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
         const filled = this.safeString (trade, 'filledShareQty');
