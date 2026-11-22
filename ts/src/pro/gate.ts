@@ -290,8 +290,8 @@ export default class gate extends gateRest {
         const channel = messageType + '.order_cancel';
         const url = this.getUrlByMarket (market);
         await this.authenticate (url, messageType);
-        request['order_id'] = id.toString ();
-        const res = await this.requestPrivate (url, this.extend (request, requestParams), channel);
+        const orderRequest = this.extend (request, { 'order_id': id.toString () });
+        const res = await this.requestPrivate (url, this.extend (orderRequest, requestParams), channel);
         return this.parseOrder (res, market);
     }
 

@@ -1344,7 +1344,8 @@ export default class paradex extends paradexRest {
         const newBidAsk = await this.subscribeChannels (url, messageHashes, channels, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[newBidAsk['symbol']] = newBidAsk;
+            const bidAskSymbol: string = this.safeString (newBidAsk, 'symbol', '');
+            result[bidAskSymbol] = newBidAsk;
             return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
