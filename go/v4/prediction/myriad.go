@@ -4651,7 +4651,7 @@ func (this *Myriad) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym.(string)], messageHash)
 	}
 
-	r3 := <-future.(<-chan ccxt.AsyncResult[any])
+	r3 := <-future.(*ccxt.Future).Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}

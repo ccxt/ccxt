@@ -213,6 +213,9 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "indodax":
 		indodaxItf := NewIndodax(exchangeArgs)
 		return indodaxItf, true
+	case "interactivebrokers":
+		interactivebrokersItf := NewInteractivebrokers(exchangeArgs)
+		return interactivebrokersItf, true
 	case "kraken":
 		krakenItf := NewKraken(exchangeArgs)
 		return krakenItf, true
