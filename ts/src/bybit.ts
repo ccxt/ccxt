@@ -9077,24 +9077,23 @@ export default class bybit extends Exchange {
         //  ]
         //
         const tiers: List = [];
+        let minNotional: Num = this.parseNumber ('0');
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict (info, i);
             const marketId = this.safeString (tier, 'symbol');
             const marketResolved = this.safeMarket (marketId, market, undefined, 'contract');
-            let minNotional: Num = this.parseNumber ('0');
-            if (i !== 0) {
-                minNotional = this.safeNumber (info[i - 1], 'riskLimitValue');
-            }
+            const tierMaxNotional = this.safeNumber (tier, 'riskLimitValue');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'id'),
                 'symbol': this.safeSymbol (marketId, marketResolved),
                 'currency': marketResolved['settle'],
                 'minNotional': minNotional,
-                'maxNotional': this.safeNumber (tier, 'riskLimitValue'),
+                'maxNotional': tierMaxNotional,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMargin'),
                 'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
                 'info': tier,
             });
+            minNotional = tierMaxNotional;
         }
         return tiers as LeverageTier[];
     }
