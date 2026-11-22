@@ -2837,7 +2837,7 @@ export default class hyperliquid extends Exchange {
         };
         const cancelAction: Dict = {
             'type': 'scheduleCancel',
-            'time': nonce + (timeout as number),
+            'time': nonce + this.parseToInt (timeout),
         };
         let vaultAddress: Str = undefined;
         [ vaultAddress, params2 ] = this.handleOptionStringAndParams2 (params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
