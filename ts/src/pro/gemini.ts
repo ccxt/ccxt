@@ -176,7 +176,7 @@ export default class gemini extends geminiRest {
         //     }
         //
         const trade = this.parseWsTrade (message);
-        const symbol = this.safeString (trade, 'symbol');
+        const symbol = trade['symbol'];
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
