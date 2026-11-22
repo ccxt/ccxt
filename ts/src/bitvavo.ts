@@ -2117,7 +2117,7 @@ export default class bitvavo extends Exchange {
         const timestamp = this.safeInteger (order, 'created');
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'orderType');

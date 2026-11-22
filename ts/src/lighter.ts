@@ -1535,7 +1535,7 @@ export default class lighter extends Exchange {
         //
         const marketId = this.safeString (ticker, 'market_id');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const last = this.safeString (ticker, 'last_trade_price');
         const high = this.safeString (ticker, 'daily_price_high');
         const low = this.safeString (ticker, 'daily_price_low');

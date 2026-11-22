@@ -1440,7 +1440,7 @@ export default class delta extends Exchange {
                 continue;
             }
             const ticker = this.parseTicker (rawTicker);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }

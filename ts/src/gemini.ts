@@ -2039,7 +2039,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const codeValue: string = currency['code'];
+        const codeValue: string = this.safeString (currency, 'code', '');
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
