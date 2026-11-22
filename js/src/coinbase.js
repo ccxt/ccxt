@@ -2168,7 +2168,7 @@ export default class coinbase extends Exchange {
             const marketId = baseId + delimiter + quoteId;
             const market = this.safeMarket(marketId, undefined, delimiter);
             const symbol = this.safeString(market, 'symbol', '');
-            result[symbol] = this.parseTicker(rates[baseId], market);
+            result[symbol] = this.parseTicker(this.safeDict(rates, baseId, {}), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }

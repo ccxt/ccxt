@@ -2635,7 +2635,8 @@ class kalshi extends kalshi$1["default"] {
         const apiGroup = api[0];
         const access = api[1];
         const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, 'kalshi', ''));
+        const baseUrlDefault = this.safeString(baseUrls, 'kalshi', '');
+        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrlDefault);
         const implodedPath = this.implodeParams(path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit(params, this.extractParams(path));

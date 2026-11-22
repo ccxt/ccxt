@@ -1081,12 +1081,12 @@ class polymarket extends polymarket$1["default"] {
         if (errorMessage !== undefined) {
             const error = new errors.ExchangeError(this.id + ' ' + errorMessage);
             for (let i = 0; i < messageHashes.length; i++) {
-                client.reject(error, messageHashes[i]);
+                const messageHash = messageHashes[i];
+                client.reject(error, messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                const messageHash = messageHashes[i];
                 if (messageHash in client.subscriptions) {
                     delete client.subscriptions[messageHash];
                 }

@@ -462,7 +462,7 @@ class bullish extends bullish$1["default"] {
             const orders = this.orders;
             const symbols = {};
             for (let i = 0; i < rawOrders.length; i++) {
-                const parsedOrder = this.parseOrder(rawOrders[i]);
+                const parsedOrder = this.parseOrder(this.safeDict(rawOrders, i, {}));
                 orders.append(parsedOrder);
                 const symbol = this.safeString(parsedOrder, 'symbol');
                 if (symbol !== undefined) {
@@ -746,7 +746,7 @@ class bullish extends bullish$1["default"] {
         const positions = this.positions;
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const position = this.parsePosition(rawPositions[i]);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             positions.append(position);
             newPositions.push(position);
         }

@@ -407,7 +407,7 @@ class bithumb extends bithumb$1["default"] {
     }
     amountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeValue(market['precision'], 'amount'), number.DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, number.TRUNCATE, this.safeInteger(market['precision'], 'amount'), number.DECIMAL_PLACES);
     }
     getGen2MarketId(market) {
         const marketId = this.safeString(market, 'id');

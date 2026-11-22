@@ -108,8 +108,8 @@ class lighter extends lighter$1["default"] {
     }
     async subscribePrivate(messageHash, params = {}) {
         await this.preLoadLighterLibrary();
-        params['auth'] = this.createAuth(params);
-        return await this.subscribePublic(messageHash, params);
+        const request = this.extend(params, { 'auth': this.createAuth(params) });
+        return await this.subscribePublic(messageHash, request);
     }
     handleDelta(bookside, delta) {
         const price = this.safeFloat(delta, 'price');
@@ -1327,7 +1327,7 @@ class lighter extends lighter$1["default"] {
             const market = this.safeMarket(marketId);
             const orders = this.safeList(data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], market);
+                const order = this.parseOrder(this.safeDict(orders, j, {}), market);
                 stored.append(order);
                 const symbol = this.safeString(order, 'symbol');
                 if (symbol !== undefined) {

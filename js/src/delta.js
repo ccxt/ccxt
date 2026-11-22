@@ -2048,10 +2048,11 @@ export default class delta extends Exchange {
         await this.loadMarkets();
         const orderType = type + '_order';
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'product_id': market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size': this.amountToPrecision(market['symbol'], amount),
+            'size': this.amountToPrecision(precisionSymbol, amount),
             'side': side,
             'order_type': orderType,
             // 'client_order_id': 'string',
@@ -2060,7 +2061,7 @@ export default class delta extends Exchange {
             // 'reduce_only': 'false', // 'true',
         };
         if (type === 'limit') {
-            request['limit_price'] = this.priceToPrecision(market['symbol'], price);
+            request['limit_price'] = this.priceToPrecision(precisionSymbol, price);
         }
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         const paramsOmitted = this.omit(params, ['clientOrderId', 'client_order_id']);

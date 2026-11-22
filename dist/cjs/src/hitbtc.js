@@ -1615,8 +1615,7 @@ class hitbtc extends hitbtc$1["default"] {
         const addressTo = address;
         const tag = this.safeString(native, 'payment_id');
         const tagTo = tag;
-        const sender = this.safeList(native, 'senders');
-        const addressFrom = this.safeString(sender, 0);
+        const addressFrom = this.safeString(this.safeList(native, 'senders', []), 0);
         const amount = this.safeNumber(native, 'amount');
         const subType = this.safeString(transaction, 'subtype');
         const internal = subType === 'OFFCHAIN';
@@ -2100,8 +2099,7 @@ class hitbtc extends hitbtc$1["default"] {
         //       }
         //     ]
         //
-        const order = this.safeDict(response, 0, {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(response, 0, {}), market);
     }
     /**
      * @method

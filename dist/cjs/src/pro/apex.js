@@ -723,8 +723,7 @@ class apex extends apex$1["default"] {
         const trades = this.myTrades;
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
-            const rawTrade = this.safeDict(lists, i, {});
-            const parsed = this.parseWsTrade(rawTrade);
+            const parsed = this.parseWsTrade(this.safeDict(lists, i, {}));
             const symbol = this.safeString(parsed, 'symbol');
             symbols[symbol] = true;
             trades.append(parsed);
@@ -850,8 +849,7 @@ class apex extends apex$1["default"] {
         const cache = this.positions;
         const newPositions = [];
         for (let i = 0; i < lists.length; i++) {
-            const rawPosition = this.safeDict(lists, i, {});
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(lists, i, {}));
             const side = this.safeString(position, 'side');
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

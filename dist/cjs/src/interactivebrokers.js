@@ -2493,7 +2493,11 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const maxLimit = this.safeInteger(this.safeDict(this.options, 'fetchOHLCV', {}), 'limit', 1000);
+        let maxLimit = 1000;
+        const configuredLimit = this.safeInteger(this.safeDict(this.options, 'fetchOHLCV', {}), 'limit');
+        if (configuredLimit !== undefined) {
+            maxLimit = configuredLimit;
+        }
         let requestLimit = maxLimit;
         if (limit !== undefined) {
             requestLimit = Math.min(limit, maxLimit);
@@ -2508,7 +2512,11 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request['startTime'] = this.ibkrFormatTime(since - duration * 1000);
             request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
-            requestLimit = Math.min(requestLimit + 1, maxLimit);
+            if (limit !== undefined) {
+                if (limit < maxLimit) {
+                    requestLimit = limit + 1;
+                }
+            }
         }
         request['period'] = this.ibkrPeriod(duration, requestLimit);
         const response = await this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, params));
@@ -2946,8 +2954,12 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         request['cOID'] = clientOrderId;
         const query = this.omit(params, ['triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty']);
-        const orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        const queryKeys = Object.keys(query);
+        for (let i = 0; i < queryKeys.length; i++) {
+            const key = queryKeys[i];
+            request[key] = query[key];
+        }
+        return request;
     }
     /**
      * @method
@@ -3805,7 +3817,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const positions = Array.isArray(response) ? response : [];
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition(positions[i], market);
+            const position = this.parsePosition(this.safeDict(positions, i, {}), market);
             if (Precise["default"].stringGt(this.safeString(position, 'contracts', '0'), '0')) {
                 result.push(position);
             }
@@ -3891,17 +3903,15 @@ class interactivebrokers extends interactivebrokers$1["default"] {
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
     ibkrImplodePath(path, params) {
         const segments = path.split('/');
-        const pathParams = [];
         const imploded = [];
         for (let i = 0; i < segments.length; i++) {
             const segment = segments[i];
             if (segment.startsWith(':')) {
                 const name = segment.slice(1);
-                pathParams.push(name);
                 const value = this.safeString(params, name, segment);
                 imploded.push(value);
             }
@@ -3909,7 +3919,26 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 imploded.push(segment);
             }
         }
-        return [imploded.join('/'), pathParams];
+        return imploded.join('/');
+    }
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    ibkrPathParams(path) {
+        const segments = path.split('/');
+        const pathParams = [];
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            if (segment.startsWith(':')) {
+                pathParams.push(segment.slice(1));
+            }
+        }
+        return pathParams;
     }
     /**
      * @method
@@ -3971,11 +4000,12 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         return useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest);
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
-        const [implodedPath, pathParams] = this.ibkrImplodePath(path, params);
+        const implodedPath = this.ibkrImplodePath(path, params);
         const apiBase = api[0];
-        const baseUrl = this.urls['api'][apiBase] + implodedPath;
+        const apiUrl = this.safeString(this.urls['api'], apiBase, '');
+        const baseUrl = apiUrl + implodedPath;
         let url = baseUrl;
-        const query = this.omit(params, pathParams);
+        const query = this.omit(params, this.ibkrPathParams(path));
         const hasQuery = Object.keys(query).length > 0;
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody = undefined;
@@ -3984,7 +4014,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         if (this.ibkrIsGatewayRequest(path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             const gatewayUrl = this.safeString(this.options, 'gatewayUrl');
-            url = this.ibkrGatewayBaseUrl(this.urls['api'][apiBase], gatewayUrl) + implodedPath;
+            url = this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath;
             if (isGetOrDelete) {
                 if (hasQuery) {
                     url += '?' + this.urlencode(query);

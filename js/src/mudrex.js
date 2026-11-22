@@ -963,7 +963,7 @@ export default class mudrex extends Exchange {
         }
         const orders = [];
         for (let i = 0; i < rows.length; i++) {
-            orders.push(this.parseOrder(rows[i], market));
+            orders.push(this.parseOrder(this.safeDict(rows, i, {}), market));
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
@@ -1032,10 +1032,9 @@ export default class mudrex extends Exchange {
         const rows = this.toArray(data);
         const outPos = [];
         for (let i = 0; i < rows.length; i++) {
-            const p = rows[i];
-            const symRaw = this.safeString(p, 'symbol');
+            const symRaw = this.safeString(rows[i], 'symbol');
             const m = this.safeMarket(symRaw);
-            const pos = this.parsePosition(p, m);
+            const pos = this.parsePosition(this.safeDict(rows, i, {}), m);
             outPos.push(pos);
         }
         return this.filterByArrayPositions(outPos, 'symbol', symbols);

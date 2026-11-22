@@ -3282,7 +3282,7 @@ export default class cryptocom extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const data = this.safeList(result, 'data', []);
-        return this.parsePosition(this.safeDict(data, 0), market);
+        return this.parsePosition(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -3452,6 +3452,7 @@ export default class cryptocom extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'instrument_name': market['id'],
             'type': 'MARKET',
@@ -3462,7 +3463,7 @@ export default class cryptocom extends Exchange {
             request['type'] = type;
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['price'] = this.priceToPrecision(precisionSymbol, price);
         }
         const response = await this.v1PrivatePostPrivateClosePosition(this.extend(request, params));
         //
@@ -3627,7 +3628,7 @@ export default class cryptocom extends Exchange {
             const payload = path + nonce + this.apiKey + strSortKey + nonce;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
             const paramsKeysLength = paramsKeys.length;
-            requestBody = this.json({
+            let jsonBody = this.json({
                 'id': nonce,
                 'method': path,
                 'params': params,
@@ -3643,8 +3644,9 @@ export default class cryptocom extends Exchange {
             if (paramsKeysLength === 0) {
                 const paramsString = '{}';
                 const arrayString = '[]';
-                requestBody = requestBody.replace(arrayString, paramsString);
+                jsonBody = jsonBody.replace(arrayString, paramsString);
             }
+            requestBody = jsonBody;
             requestHeaders = {
                 'Content-Type': 'application/json',
             };

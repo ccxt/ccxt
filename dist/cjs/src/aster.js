@@ -3586,11 +3586,10 @@ class aster extends aster$1["default"] {
         const notionalStringAbs = Precise["default"].stringAbs(notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const notional = this.parseNumber(notionalStringAbs);
         const contractsAbs = Precise["default"].stringAbs(this.safeString(position, 'positionAmt'));
@@ -3896,11 +3895,10 @@ class aster extends aster$1["default"] {
         const leverageBracket = this.safeList(leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString(position, 'unrealizedProfit');

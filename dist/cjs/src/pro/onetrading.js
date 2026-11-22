@@ -746,7 +746,7 @@ class onetrading extends onetrading$1["default"] {
         }
         const orders = this.orders;
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder(rawOrders[i]);
+            const order = this.parseOrder(this.safeDict(rawOrders, i, {}));
             let symbol = this.safeString(order, 'symbol', '');
             orders.append(order);
             client.resolve(this.orders, 'orders:' + symbol);

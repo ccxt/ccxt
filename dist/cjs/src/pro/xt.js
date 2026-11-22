@@ -171,15 +171,13 @@ class xt extends xt$1["default"] {
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
         for (let i = 0; i < obBids.length; i++) {
-            const bid = this.safeList(obBids, i);
-            const price = this.safeNumber(bid, 0);
-            const quantity = this.safeNumber(bid, 1);
+            const price = this.safeNumber(obBids[i], 0);
+            const quantity = this.safeNumber(obBids[i], 1);
             bids.store(price, quantity);
         }
         for (let i = 0; i < obAsks.length; i++) {
-            const ask = this.safeList(obAsks, i);
-            const price = this.safeNumber(ask, 0);
-            const quantity = this.safeNumber(ask, 1);
+            const price = this.safeNumber(obAsks[i], 0);
+            const quantity = this.safeNumber(obAsks[i], 1);
             asks.store(price, quantity);
         }
         // this.handleBidAsks (storedBids, bids);
@@ -1223,18 +1221,16 @@ class xt extends xt$1["default"] {
             if (obAsks !== undefined) {
                 const asks = orderbook['asks'];
                 for (let i = 0; i < obAsks.length; i++) {
-                    const ask = this.safeList(obAsks, i);
-                    const price = this.safeNumber(ask, 0);
-                    const quantity = this.safeNumber(ask, 1);
+                    const price = this.safeNumber(obAsks[i], 0);
+                    const quantity = this.safeNumber(obAsks[i], 1);
                     asks.store(price, quantity);
                 }
             }
             if (obBids !== undefined) {
                 const bids = orderbook['bids'];
                 for (let i = 0; i < obBids.length; i++) {
-                    const bid = this.safeList(obBids, i);
-                    const price = this.safeNumber(bid, 0);
-                    const quantity = this.safeNumber(bid, 1);
+                    const price = this.safeNumber(obBids[i], 0);
+                    const quantity = this.safeNumber(obBids[i], 1);
                     bids.store(price, quantity);
                 }
             }

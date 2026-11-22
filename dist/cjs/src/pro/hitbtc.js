@@ -1448,20 +1448,19 @@ class hitbtc extends hitbtc$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'id');
-        const result = this.safeValue(message, 'result', {});
-        if (Array.isArray(result)) {
+        const rows = this.safeList(message, 'result');
+        if (rows === undefined) {
+            const parsedOrder = this.parseWsOrder(this.safeDict(message, 'result', {}));
+            client.resolve(parsedOrder, messageHash);
+        }
+        else {
             const parsedOrders = [];
-            const rows = this.safeList(message, 'result', []);
             const rowsLength = rows.length;
             for (let i = 0; i < rowsLength; i++) {
                 const parsedOrder = this.parseWsOrder(rows[i]);
                 parsedOrders.push(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
-        }
-        else {
-            const parsedOrder = this.parseWsOrder(result);
-            client.resolve(parsedOrder, messageHash);
         }
         return message;
     }

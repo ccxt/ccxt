@@ -4020,7 +4020,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseTicker(data[0], market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -4049,7 +4049,7 @@ class bitget extends bitget$1["default"] {
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType));
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseTicker(data[0], market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -9378,7 +9378,7 @@ class bitget extends bitget$1["default"] {
         }
         const result = [];
         for (let i = 0; i < position.length; i++) {
-            const parsedPosition = this.parsePosition(position[i], market);
+            const parsedPosition = this.parsePosition(this.safeDict(position, i, {}), market);
             result.push(parsedPosition);
         }
         const symbolsNormalized = this.marketSymbols(symbols);

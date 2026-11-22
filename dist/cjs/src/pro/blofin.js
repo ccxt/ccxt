@@ -735,15 +735,12 @@ class blofin extends blofin$1["default"] {
         const channelName = this.safeString(arg, 'channel');
         const data = this.safeList(message, 'data');
         for (let i = 0; i < data.length; i++) {
-            const position = this.parseWsPosition(this.safeDict(data, i, {}));
+            const position = this.parsePosition(this.safeDict(data, i, {}));
             cache.append(position);
             if (channelName !== undefined) {
                 client.resolve(position, channelName + ':' + this.safeString(position, 'symbol', ''));
             }
         }
-    }
-    parseWsPosition(position, market = undefined) {
-        return this.parsePosition(position, market);
     }
     /**
      * @method

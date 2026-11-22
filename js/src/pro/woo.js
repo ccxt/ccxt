@@ -815,7 +815,7 @@ export default class woo extends wooRest {
         const data = this.safeDict(message, 'data');
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const trade = this.parseWsTrade(this.extend(data, { 'timestamp': timestamp }), market);
         let tradesArray = this.safeValue(this.trades, symbol);
         if (tradesArray === undefined) {
@@ -1410,8 +1410,7 @@ export default class woo extends wooRest {
         for (let i = 0; i < postitionsIds.length; i++) {
             const marketId = postitionsIds[i];
             const market = this.safeMarket(marketId);
-            const rawPosition = rawPositions[marketId];
-            const position = this.parsePosition(rawPosition, market);
+            const position = this.parsePosition(this.safeDict(rawPositions, marketId, {}), market);
             newPositions.push(position);
             cache.append(position);
             const marketSymbol = this.safeString(market, 'symbol', '');

@@ -577,7 +577,7 @@ class aster extends aster$1["default"] {
         const timestamp = this.safeInteger(message, 'T');
         let bidAskSymbol = undefined;
         if (market !== undefined) {
-            bidAskSymbol = market['symbol'];
+            bidAskSymbol = this.safeString(market, 'symbol');
         }
         return this.safeTicker({
             'symbol': bidAskSymbol,

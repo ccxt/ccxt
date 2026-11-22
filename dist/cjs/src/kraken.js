@@ -1138,7 +1138,7 @@ class kraken extends kraken$1["default"] {
             const id = ids[i];
             const market = this.safeMarket(id);
             const symbol = this.safeString(market, 'symbol', '');
-            const ticker = tickers[id];
+            const ticker = this.safeDict(tickers, id, {});
             result[symbol] = this.parseTicker(ticker, market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -2464,7 +2464,7 @@ class kraken extends kraken$1["default"] {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result', []);
+        const result = this.safeDict(response, 'result', {});
         if (!(id in result)) {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }

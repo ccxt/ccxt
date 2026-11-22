@@ -1462,7 +1462,7 @@ class deribit extends deribit$1["default"] {
         const result = this.safeList(response, 'result', []);
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker(result[i]);
+            const ticker = this.parseTicker(this.safeDict(result, i, {}));
             const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
@@ -1667,7 +1667,10 @@ class deribit extends deribit$1["default"] {
             request['count'] = Math.min(limit, 1000); // default 10
         }
         const until = this.safeInteger2(params, 'until', 'end_timestamp');
-        const paramsOmitted = (until !== undefined) ? this.omit(params, ['until']) : params;
+        let paramsOmitted = this.omit(params, []);
+        if (until !== undefined) {
+            paramsOmitted = this.omit(params, ['until']);
+        }
         if (until !== undefined) {
             request['end_timestamp'] = until;
         }
@@ -2289,7 +2292,7 @@ class deribit extends deribit$1["default"] {
         }
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trigger_offset');
         const isTrailingAmountOrder = trailingAmount !== undefined;
-        let paramsOmitted = params;
+        let paramsOmitted = this.omit(params, []);
         if (isTrailingAmountOrder) {
             paramsOmitted = this.omit(paramsOmitted, 'trigger_offset');
         }

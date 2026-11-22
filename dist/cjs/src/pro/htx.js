@@ -1797,8 +1797,7 @@ class htx extends htx$1["default"] {
         const positionsByMarginMode = {};
         const timestamp = this.safeInteger(message, 'ts');
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
-            const position = this.parsePosition(rawPosition);
+            const position = this.parsePosition(this.safeDict(rawPositions, i, {}));
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601(timestamp);
             let marginMode = this.safeStringLower(position, 'marginMode', defaultMarginMode);

@@ -3587,11 +3587,10 @@ export default class aster extends Exchange {
         const notionalStringAbs = Precise.stringAbs(notionalString);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const notional = this.parseNumber(notionalStringAbs);
         const contractsAbs = Precise.stringAbs(this.safeString(position, 'positionAmt'));
@@ -3897,11 +3896,10 @@ export default class aster extends Exchange {
         const leverageBracket = this.safeList(leverageBrackets, symbol, []);
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
-            const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0))) {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         const maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString(position, 'unrealizedProfit');

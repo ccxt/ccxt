@@ -1291,18 +1291,28 @@ export default class opinion extends Exchange {
         const result = this.safeDict(response, 'result', {});
         const trades = this.safeList(result, 'list', []);
         const tradesLength = trades.length;
+        const filled = [];
         for (let i = 0; i < tradesLength; i++) {
-            const trade = trades[i];
-            const tokenId = this.safeString(trade, 'tokenId');
-            const marketId = this.safeInteger(trade, 'marketId');
+            const tokenId = this.safeString(trades[i], 'tokenId');
+            const marketId = this.safeInteger(trades[i], 'marketId');
             if ((tokenId === undefined) && (marketId !== undefined)) {
                 const tradeMarket = await this.loadTradeMarket(marketId);
                 const info = this.safeDict(tradeMarket, 'info', {});
-                const isYes = (this.safeStringLower(trade, 'outcomeSideEnum') === 'yes');
-                trade['tokenId'] = isYes ? this.safeString(info, 'yesTokenId') : this.safeString(info, 'noTokenId');
+                const isYes = (this.safeStringLower(trades[i], 'outcomeSideEnum') === 'yes');
+                const extra = {};
+                if (isYes) {
+                    extra['tokenId'] = this.safeString(info, 'yesTokenId');
+                }
+                else {
+                    extra['tokenId'] = this.safeString(info, 'noTokenId');
+                }
+                filled.push(this.extend(trades[i], extra));
+            }
+            else {
+                filled.push(trades[i]);
             }
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+        return this.parsePredictionTrades(filled, outcomeObj, since, limit);
     }
     /**
      * @ignore

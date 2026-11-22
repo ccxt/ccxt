@@ -1758,7 +1758,7 @@ export default class kucoin extends Exchange {
         const responses = await Promise.all(promises);
         let symbolsData = [];
         if (fetchSpotMarkets) {
-            symbolsData = this.safeList(responses[0], 'data', []);
+            symbolsData = this.safeList(this.safeDict(responses, 0, {}), 'data', []);
         }
         let crossIndex = 0;
         let isolatedIndex = 0;
@@ -1781,10 +1781,10 @@ export default class kucoin extends Exchange {
         if (fetchContractMarkets) {
             contractIndex = nextIndex;
         }
-        const crossData = (requestMarginables) ? this.safeDict(responses[crossIndex], 'data', {}) : {};
+        const crossData = (requestMarginables) ? this.safeDict(this.safeDict(responses, crossIndex, {}), 'data', {}) : {};
         const crossItems = this.safeList(crossData, 'items', []);
         const crossById = this.indexBy(crossItems, 'symbol');
-        const isolatedData = (requestMarginables) ? responses[isolatedIndex] : {};
+        const isolatedData = (requestMarginables) ? this.safeDict(responses, isolatedIndex, {}) : {};
         const isolatedItems = this.safeList(isolatedData, 'data', []);
         const isolatedById = this.indexBy(isolatedItems, 'symbol');
         const tickersResponse = fetchTickersFees ? this.safeDict(responses, tickersIndex, {}) : {};
@@ -10640,7 +10640,7 @@ export default class kucoin extends Exchange {
         const uta = await this.isUTAEnabled();
         const [utaOption, paramsUta] = this.handleOptionBoolAndParams(params, 'fetchPosition', 'uta', uta);
         let response;
-        let position = undefined;
+        let position = {};
         if (utaOption) {
             request['accountMode'] = 'unified';
             response = await this.utaPrivateGetAccountModePositionOpenList(this.extend(request, paramsUta));

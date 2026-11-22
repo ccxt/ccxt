@@ -808,17 +808,13 @@ export default class grvt extends grvtRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        const data = this.safeDict(message, 'feed');
-        const position = this.parseWsPosition(data);
+        const data = this.safeDict(message, 'feed', {});
+        const position = this.parsePosition(data);
         this.positions.append(position);
         const newPositions = [];
         newPositions.push(position);
         client.resolve(newPositions, 'positions::' + this.safeString(position, 'symbol', ''));
         client.resolve(newPositions, 'positions');
-    }
-    parseWsPosition(position, market = undefined) {
-        // same as REST api
-        return this.parsePosition(position, market);
     }
     /**
      * @method

@@ -640,10 +640,9 @@ export default class indodax extends Exchange {
         const parsedTickers = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const rawTicker = tickers[key];
             const marketId = key.replace('_', '');
             const market = this.safeMarket(marketId);
-            const parsed = this.parseTicker(rawTicker, market);
+            const parsed = this.parseTicker(this.safeDict(tickers, key, {}), market);
             parsedTickers[marketId] = parsed;
         }
         return this.filterByArrayTickers(parsedTickers, 'symbol', symbols);

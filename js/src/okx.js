@@ -2451,7 +2451,7 @@ export default class okx extends Exchange {
         // }
         //
         const data = this.safeList(response, 'data');
-        return this.parseTicker(this.safeDict(data, 0), market);
+        return this.parseTicker(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
@@ -6444,7 +6444,7 @@ export default class okx extends Exchange {
         const positions = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push(this.parsePosition(positions[i]));
+            result.push(this.parsePosition(this.safeDict(positions, i, {})));
         }
         return this.filterByArrayPositions(result, 'symbol', this.marketSymbols(symbols));
     }

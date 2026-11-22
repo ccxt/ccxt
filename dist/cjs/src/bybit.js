@@ -6909,12 +6909,14 @@ class bybit extends bybit$1["default"] {
         const positions = this.addPaginationCursorToResult(response);
         const results = [];
         for (let i = 0; i < positions.length; i++) {
-            let rawPosition = positions[i];
+            const rawPosition = positions[i];
             if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
                 // futures only
-                rawPosition = this.safeDict(rawPosition, 'data');
+                results.push(this.parsePosition(this.safeDict(rawPosition, 'data', {})));
             }
-            results.push(this.parsePosition(rawPosition));
+            else {
+                results.push(this.parsePosition(this.safeDict(positions, i, {})));
+            }
         }
         return this.filterByArrayPositions(results, 'symbol', symbolsNormalized);
     }
@@ -9060,24 +9062,23 @@ class bybit extends bybit$1["default"] {
         //  ]
         //
         const tiers = [];
+        let minNotional = this.parseNumber('0');
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict(info, i);
             const marketId = this.safeString(tier, 'symbol');
             const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
-            let minNotional = this.parseNumber('0');
-            if (i !== 0) {
-                minNotional = this.safeNumber(info[i - 1], 'riskLimitValue');
-            }
+            const tierMaxNotional = this.safeNumber(tier, 'riskLimitValue');
             tiers.push({
                 'tier': this.safeInteger(tier, 'id'),
                 'symbol': this.safeSymbol(marketId, marketResolved),
                 'currency': marketResolved['settle'],
                 'minNotional': minNotional,
-                'maxNotional': this.safeNumber(tier, 'riskLimitValue'),
+                'maxNotional': tierMaxNotional,
                 'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMargin'),
                 'maxLeverage': this.safeNumber(tier, 'maxLeverage'),
                 'info': tier,
             });
+            minNotional = tierMaxNotional;
         }
         return tiers;
     }

@@ -1140,7 +1140,7 @@ export default class kraken extends Exchange {
             const id = ids[i];
             const market = this.safeMarket(id);
             const symbol = this.safeString(market, 'symbol', '');
-            const ticker = tickers[id];
+            const ticker = this.safeDict(tickers, id, {});
             result[symbol] = this.parseTicker(ticker, market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -2466,7 +2466,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result', []);
+        const result = this.safeDict(response, 'result', {});
         if (!(id in result)) {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }

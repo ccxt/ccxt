@@ -6066,6 +6066,7 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const positionSide = this.safeString(params, 'positionSide');
         if ((market['inverse'] === true) && (positionSide === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' setMargin() requires a positionSide parameter for Coin-M markets');
@@ -6075,7 +6076,7 @@ class bingx extends bingx$1["default"] {
             amountString = this.currencyToPrecision(market['settle'], amount);
         }
         else {
-            amountString = this.amountToPrecision(market['symbol'], amount);
+            amountString = this.amountToPrecision(precisionSymbol, amount);
         }
         const request = {
             'symbol': market['id'],

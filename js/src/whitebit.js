@@ -1217,7 +1217,7 @@ export default class whitebit extends Exchange {
         const currencyKeys = Object.keys(currenciesData);
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
-            const currency = currenciesData[code];
+            const currency = this.safeDict(currenciesData, code);
             if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
@@ -2587,7 +2587,7 @@ export default class whitebit extends Exchange {
             const marketNew = this.safeMarket(marketId, undefined, '_');
             const orders = this.safeList(response, marketId, []);
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder(orders[j], marketNew);
+                const order = this.parseOrder(this.safeDict(orders, j, {}), marketNew);
                 results.push(this.extend(order, { 'status': 'closed' }));
             }
         }

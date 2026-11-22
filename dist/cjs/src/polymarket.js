@@ -1581,12 +1581,13 @@ class polymarket extends polymarket$1["default"] {
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         if ((amount === undefined) || (price === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires both the amount and the price arguments');
         }
         const orderId = this.parseToInt(id);
-        const priceString = this.priceToPrecision(market['symbol'], price);
-        const quantity = this.amountToPrecision(market['symbol'], amount);
+        const priceString = this.priceToPrecision(precisionSymbol, price);
+        const quantity = this.amountToPrecision(precisionSymbol, amount);
         const signable = ['modifyOrders', [[orderId, priceString, quantity]]];
         const bodyOp = {
             'type': 'modifyOrders',

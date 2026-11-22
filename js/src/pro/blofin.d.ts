@@ -208,7 +208,6 @@ export default class blofin extends blofinRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    parseWsPosition(position: Dict, market?: Market): Position;
     /**
      * @method
      * @name blofin#watchFundingRate

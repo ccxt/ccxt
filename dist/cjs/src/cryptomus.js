@@ -878,7 +878,7 @@ class cryptomus extends cryptomus$1["default"] {
         const result = this.safeList(response, 'result', []);
         const orders = [];
         for (let i = 0; i < result.length; i++) {
-            orders.push(this.parseOrder(result[i], market));
+            orders.push(this.parseOrder(this.safeDict(result, i, {}), market));
         }
         return orders;
     }

@@ -2177,12 +2177,11 @@ class digifinex extends digifinex$1["default"] {
         const symbolsById = {};
         let marketType = undefined;
         for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const id = this.safeString(order, 'id');
+            const id = this.safeString(orders[i], 'id');
             if (id === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires an id for each order');
             }
-            const symbol = this.safeString(order, 'symbol');
+            const symbol = this.safeString(orders[i], 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrdersForSymbols() requires a symbol for each order');
             }
@@ -3495,9 +3494,9 @@ class digifinex extends digifinex$1["default"] {
         const data = this.safeList(response, 'list', []);
         let result = undefined;
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            if (this.safeString(entry, 'currency') === code) {
-                result = entry;
+            const entryCurrency = this.safeString(data[i], 'currency', '');
+            if (entryCurrency === code) {
+                result = data[i];
             }
         }
         const currency = this.currency(code);
@@ -3907,7 +3906,7 @@ class digifinex extends digifinex$1["default"] {
         const positions = this.safeList(response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push(this.parsePosition(positions[i], market));
+            result.push(this.parsePosition(this.safeDict(positions, i, {}), market));
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }
@@ -4005,7 +4004,7 @@ class digifinex extends digifinex$1["default"] {
             dataRequest = 'data';
         }
         const data = this.safeList(response, dataRequest, []);
-        const position = this.parsePosition(data[0], market);
+        const position = this.parsePosition(this.safeDict(data, 0, {}), market);
         if (marketType === 'swap') {
             return position;
         }

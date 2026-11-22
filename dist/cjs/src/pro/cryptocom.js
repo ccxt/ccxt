@@ -1071,7 +1071,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const messageHash = this.safeString(message, 'subscription');
         const data = this.safeList(message, 'data', []);
-        const positionBalances = this.safeList(data[0], 'position_balances', []);
+        const positionBalances = this.safeList(this.safeDict(data, 0), 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = this.safeDict(positionBalances, i);

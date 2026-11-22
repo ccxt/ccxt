@@ -1,5 +1,5 @@
 import Exchange from './abstract/backpack.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, FundingHistory, OpenInterest, Conversion } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingRate, FundingRateHistory, int, Int, List, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderRequest, OrderType, OrderSide, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, NullableDict, Status, FundingHistory, OpenInterest, Conversion } from './base/types.js';
 /**
  * @class backpack
  * @augments Exchange
@@ -40,7 +40,7 @@ export default class backpack extends Exchange {
      * @param {object} [market] resolved market
      * @returns {Array} stock flag and remaining parameters
      */
-    handleStockParams(methodName: string, params: Dict, market?: Market): List;
+    handleStockParams(methodName: string, params: Dict, market?: Market): [Bool, Dict];
     /**
      * @ignore
      * @method

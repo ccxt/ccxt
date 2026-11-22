@@ -1784,7 +1784,7 @@ export default class xt extends Exchange {
         //
         if (this.safeBool(market, 'spot', false)) {
             const tickers = this.safeList(response, 'result', []);
-            return this.parseTicker(tickers[0], market);
+            return this.parseTicker(this.safeDict(tickers, 0, {}), market);
         }
         const ticker = this.safeDict(response, 'result', {});
         return this.parseTicker(ticker, market);
@@ -1875,7 +1875,7 @@ export default class xt extends Exchange {
         const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker(tickers[i], market);
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}), market);
             const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;

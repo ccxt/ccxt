@@ -1734,8 +1734,7 @@ class pacifica extends pacifica$1["default"] {
             const side = this.safeString(order, 'side');
             const price = this.safeString(order, 'price');
             const type = this.safeString(order, 'type', 'limit');
-            const orderParams = this.safeDict(order, 'params', {});
-            orderParams['timestamp'] = timestamp;
+            const orderParams = this.extend(this.safeDict(order, 'params', {}), { 'timestamp': timestamp });
             const amount = this.safeString(order, 'amount');
             const amountNumber = this.parseNumber(amount);
             const priceNumber = this.parseNumber(price);
@@ -2485,7 +2484,7 @@ class pacifica extends pacifica$1["default"] {
         const sorted = this.sortBy(data, 'history_id', true);
         const lastIdx = sorted.length;
         if (lastIdx > 0) {
-            return this.parseOrder(sorted[0], market);
+            return this.parseOrder(this.safeDict(sorted, 0, {}), market);
         }
         return this.parseOrder({}, market);
     }
@@ -2720,7 +2719,7 @@ class pacifica extends pacifica$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parsePosition(data[i], undefined));
+            result.push(this.parsePosition(this.safeDict(data, i, {}), undefined));
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }

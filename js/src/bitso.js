@@ -1173,14 +1173,15 @@ export default class bitso extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'book': market['id'],
             'side': side,
             'type': type,
-            'major': this.amountToPrecision(market['symbol'], amount),
+            'major': this.amountToPrecision(precisionSymbol, amount),
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision(market['symbol'], price);
+            request['price'] = this.priceToPrecision(precisionSymbol, price);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
         const payload = this.safeDict(response, 'payload', {});
@@ -1391,7 +1392,7 @@ export default class bitso extends Exchange {
         const payload = this.safeList(response, 'payload', []);
         const numOrders = payload.length;
         if (numOrders === 1) {
-            return this.parseOrder(payload[0]);
+            return this.parseOrder(this.safeDict(payload, 0, {}));
         }
         throw new OrderNotFound(this.id + ': The order ' + id + ' not found.');
     }

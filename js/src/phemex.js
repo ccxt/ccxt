@@ -2754,7 +2754,7 @@ export default class phemex extends Exchange {
         else {
             request['clOrdID'] = clientOrderId;
         }
-        const paramsOmitted = (clientOrderId !== undefined) ? this.omit(params, ['clOrdID', 'clientOrderId']) : params;
+        const paramsOmitted = this.omit(params, ['clOrdID', 'clientOrderId']);
         const triggerPrice = this.safeStringN(paramsOmitted, ['stopPx', 'stopPrice', 'triggerPrice']);
         if (triggerPrice !== undefined) {
             if (isStableSettled) {
@@ -3046,6 +3046,7 @@ export default class phemex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         const request = {
             'symbol': market['id'],
         };
@@ -3061,7 +3062,7 @@ export default class phemex extends Exchange {
         }
         if (price !== undefined) {
             if (isStableSettled) {
-                request['priceRp'] = this.priceToPrecision(market['symbol'], price);
+                request['priceRp'] = this.priceToPrecision(precisionSymbol, price);
             }
             else {
                 request['priceEp'] = this.toEp(price, market);
@@ -3075,7 +3076,7 @@ export default class phemex extends Exchange {
         }
         else if (amount !== undefined) {
             if (isStableSettled) {
-                request['orderQtyRq'] = this.amountToPrecision(market['symbol'], amount);
+                request['orderQtyRq'] = this.amountToPrecision(precisionSymbol, amount);
             }
             else {
                 request['baseQtyEV'] = this.toEv(amount, market);

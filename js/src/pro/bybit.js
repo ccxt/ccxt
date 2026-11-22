@@ -2085,7 +2085,7 @@ export default class bybit extends bybitRest {
         const rawOrders = this.safeList(message, 'data', []);
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const parsed = this.parseOrder(rawOrders[i]);
+            const parsed = this.parseOrder(this.safeDict(rawOrders, i, {}));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

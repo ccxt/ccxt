@@ -593,10 +593,9 @@ class hyperliquid extends hyperliquid$1["default"] {
         const dexesCount = fetchDexes.length;
         for (let i = 1; i < dexesCount; i++) {
             // builder-deployed perp dexs start at 110000
-            const dex = this.safeDict(fetchDexes, i, {});
             const secondPart = i * 10000 - 10000;
             const offset = this.sum(110000, secondPart);
-            const dexKey = this.safeString(dex, 'name', '');
+            const dexKey = this.safeString(this.safeDict(fetchDexes, i), 'name', '');
             perpDexesOffset[dexKey] = offset;
         }
         let fetchDexesList = [];
@@ -622,11 +621,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 if (i >= fetchDexesLength) {
                     break;
                 }
-                const dex = this.safeDict(fetchDexes, i, {});
-                if (dex === undefined) {
-                    continue;
-                }
-                const dexName = this.safeString(dex, 'name');
+                const dexName = this.safeString(this.safeDict(fetchDexes, i), 'name');
                 fetchDexesList.push(dexName);
             }
         }
@@ -3968,7 +3963,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const data = this.safeList(response, 'assetPositions', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parsePosition(data[i]));
+            result.push(this.parsePosition(this.safeDict(data, i, {})));
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
     }

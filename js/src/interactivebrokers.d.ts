@@ -616,9 +616,18 @@ export default class interactivebrokers extends Exchange {
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    ibkrImplodePath(path: string, params: Dict): List;
+    ibkrImplodePath(path: string, params: Dict): string;
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    ibkrPathParams(path: string): string[];
     /**
      * @method
      * @name interactivebrokers#ibkrGatewayBaseUrl

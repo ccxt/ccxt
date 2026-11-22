@@ -469,7 +469,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             let symbol = id;
             const split = id.split('_');
             const splitMarket = this.safeString(split, 1, '');
-            const baseId = splitMarket.slice(0, splitMarket.length - 3);
+            const baseIdLength = splitMarket.length - 3;
+            const baseId = splitMarket.slice(0, baseIdLength);
             const quoteId = 'usd'; // always USD
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);

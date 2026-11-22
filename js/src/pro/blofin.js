@@ -737,16 +737,13 @@ export default class blofin extends blofinRest {
         const data = this.safeList(message, 'data');
         const newPositions = [];
         for (let i = 0; i < data.length; i++) {
-            const position = this.parseWsPosition(this.safeDict(data, i, {}));
+            const position = this.parsePosition(this.safeDict(data, i, {}));
             newPositions.push(position);
             cache.append(position);
             if (channelName !== undefined) {
                 client.resolve(position, channelName + ':' + this.safeString(position, 'symbol', ''));
             }
         }
-    }
-    parseWsPosition(position, market = undefined) {
-        return this.parsePosition(position, market);
     }
     /**
      * @method

@@ -2726,7 +2726,7 @@ class sxbet extends sxbet$1["default"] {
             baseUrl = groupUrl;
         }
         let url = baseUrl + '/' + this.implodeParams(path, params);
-        const query = this.omit(params, this.extractParams(path));
+        const query = this.extend({}, this.omit(params, this.extractParams(path)));
         const existingHeaders = {};
         const headersExtended = this.extend({
             'Accept': 'application/json',
@@ -2739,7 +2739,12 @@ class sxbet extends sxbet$1["default"] {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            sendAsQuery = !('orders' in query);
+            if ('orders' in query) {
+                sendAsQuery = false;
+            }
+            else {
+                sendAsQuery = true;
+            }
         }
         let bodyValue = undefined;
         if (sendAsQuery) {

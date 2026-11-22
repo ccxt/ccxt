@@ -252,6 +252,7 @@ class poloniex extends poloniex$1["default"] {
         }
         await this.authenticate();
         const market = this.market(symbol);
+        const precisionSymbol = this.safeString(market, 'symbol', '');
         let uppercaseType = type.toUpperCase();
         if (side === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createOrderWs() side is required');
@@ -293,7 +294,7 @@ class poloniex extends poloniex$1["default"] {
             request['amount'] = quoteAmount;
         }
         else {
-            request['quantity'] = this.amountToPrecision(market['symbol'], amount);
+            request['quantity'] = this.amountToPrecision(precisionSymbol, amount);
             if (price !== undefined) {
                 request['price'] = this.priceToPrecision(symbol, price);
             }

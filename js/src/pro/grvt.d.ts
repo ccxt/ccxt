@@ -136,7 +136,6 @@ export default class grvt extends grvtRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePosition(client: Client, message: Dict): void;
-    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name grvt#watchOrders

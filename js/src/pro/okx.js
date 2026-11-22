@@ -666,7 +666,7 @@ export default class okx extends okxRest {
         const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseTicker(data[i]);
+            const ticker = this.parseTicker(this.safeDict(data, i, {}));
             this.tickers[symbol] = ticker;
             newTickers[symbol] = ticker;
         }

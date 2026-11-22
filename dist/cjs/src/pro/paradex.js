@@ -2048,7 +2048,7 @@ class paradex extends paradex$1["default"] {
             const next = position + 2;
             const high = digits.indexOf(frameHex.slice(position, middle));
             const low = digits.indexOf(frameHex.slice(middle, next));
-            result = this.parseToInt(this.sum(result, high * 16 * factor, low * factor));
+            result = this.parseToInt(this.sum(result, high * factor * 16, low * factor));
             factor = this.parseToInt(factor * 256);
             position = this.parseToInt(next);
         }

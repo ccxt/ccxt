@@ -1022,6 +1022,7 @@ class gemini extends gemini$1["default"] {
         return this.parseTicker(response, market);
     }
     async fetchTickerV1AndV2(symbol, params = {}) {
+        await this.loadMarkets();
         const tickerPromiseA = this.fetchTickerV1(symbol, params);
         const tickerPromiseB = this.fetchTickerV2(symbol, params);
         const [tickerA, tickerB] = await Promise.all([tickerPromiseA, tickerPromiseB]);
