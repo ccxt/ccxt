@@ -3162,8 +3162,7 @@ export default class limitless extends Exchange {
      */
     override sign (path: string, api: string[] = [ 'limitless' ], method: string = 'GET', params: Dict = {}) {
         const apiGroup: string = api[0];
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
+        const baseUrl = this.safeString (this.urls['api'], apiGroup, this.safeString (this.urls['api'], 'limitless', ''));
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const querystring = this.urlencodeWithArrayRepeat (query);
