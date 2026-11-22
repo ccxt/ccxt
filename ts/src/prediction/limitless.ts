@@ -308,13 +308,10 @@ export default class limitless extends Exchange {
         for (let i = 0; i < expandedRaw.length; i++) {
             const raw = expandedRaw[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            let eventKey: Str = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug (groupId);
-            }
+            const eventKey = this.shortenSlug (groupId);
             const m = this.parseMarket (raw);
             markets.push (m);
-            if ((eventKey !== undefined) && (eventKey !== '')) {
+            if (eventKey !== '') {
                 const eventGroup: Dict = this.safeDict (eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push (m);
@@ -3007,16 +3004,13 @@ export default class limitless extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = expandedMarkets[i];
             const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], this.safeString (raw, 'slug'));
-            let eventKey: Str = undefined;
-            if (groupId !== undefined && groupId !== '') {
-                eventKey = this.shortenSlug (groupId);
-            }
+            const eventKey = this.shortenSlug (groupId);
             const m = this.parseMarket (raw);
             if (m === undefined) {
                 throw new ExchangeError (this.id + ' fetchEvents() missing m');
             }
             this.markets[(m as Dict)['market']] = m;
-            if ((eventKey !== undefined) && (eventKey !== '')) {
+            if (eventKey !== '') {
                 const eventGroup: Dict = this.safeDict (eventGroups, eventKey, { 'groupId': groupId, 'title': this.safeString2 (raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': [] });
                 const groupMarkets = eventGroup['markets'];
                 groupMarkets.push (m);
