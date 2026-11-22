@@ -3421,7 +3421,8 @@ export default class poloniex extends Exchange {
         //
         const depositWithdrawFees: Dict = {};
         const codesValue: Strings = this.marketCodes (codes);
-        const responseKeys = Object.keys (response);
+        const feesById: Dict = this.extend ({}, response);
+        const responseKeys = Object.keys (feesById);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
