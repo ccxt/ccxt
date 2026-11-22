@@ -153,7 +153,7 @@ const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 // a method signature line inside a class body: indented, a member name, an argument list;
 // the return type accepts a trailing `?` (`bool?` / `double?`), or the region boundary
 // drifts and a later method's body reads the previous method's parameter types
-const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*\(/;
+const CSHARP_HELPER_SIGNATURE_RE = /^[ ]{4,}(?:(?:public|private|protected|internal)[ ]+)?(?:static[ ]+|async[ ]+|virtual[ ]+|override[ ]+|sealed[ ]+|new[ ]+|partial[ ]+|extern[ ]+|unsafe[ ]+)*(?:[A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)(?:<T>)?[ ]*\(/;
 // a declaration of one variable: `Type name = value;` / `Type name;` (`Int64? x` included)
 const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>,.\[\]?]*)*)[ ]+([A-Za-z_]\w*)[ ]*(=[ ]*([^;]*))?;[ ]*$/;
 // the same declaration with a collection/object initializer that spans lines (`= new X () {`)
@@ -1885,7 +1885,7 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
 
 // the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and
 // without the null default -- some venues declare the parameter required)
-const PARSE_MARKET_SIG_RE = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+const PARSE_MARKET_SIG_RE = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(?:<T>)?\((.*)\)\s*$/;
 const PARSE_MARKET_PARAM_RE = /([(,]\s*)object(\s+market\s*=\s*null)(?=[,)])/g;
 const PARSE_MARKET_PARAM_REQUIRED_RE = /([(,]\s*)object(\s+market)(?=[,)])/g;
 
@@ -2308,7 +2308,7 @@ const CSHARP_RET_TARGETS = [ 'Dictionary<string, object>', 'List<Dictionary<stri
 const CSHARP_RET_ROOT = resolve (__dirname, '..', 'cs', 'ccxt')
 
 const CSHARP_RET_API_METHOD = /^\s*public async Task<(.+)> (\w+) \(object parameters = null\)/
-const CSHARP_RET_SIGNATURE = /^\s*(?:public|private|protected|internal)\s+(?:static\s+|async\s+|virtual\s+|override\s+|new\s+|sealed\s+)*([\w<>,.?\[\]\s]+?)\s+([A-Za-z_]\w*)\s*\(/
+const CSHARP_RET_SIGNATURE = /^\s*(?:public|private|protected|internal)\s+(?:static\s+|async\s+|virtual\s+|override\s+|new\s+|sealed\s+)*([\w<>,.?\[\]\s]+?)\s+([A-Za-z_]\w*)(?:<T>)?\s*\(/
 // one local declaration; `var` counts as an occurrence but can never prove a type
 const CSHARP_RET_DECLARATION = /^\s*(var|object|string\??|bool\??|double\??|Int64\??|int\??|I?List<[\w<>,.? ]*>|I?Dictionary<[\w<>,.? ]*>|ccxt\.[\w.<>?]+)\s+([A-Za-z_]\w*)\s*(?:=[^=]|;)/
 const CSHARP_RET_FOREACH = /^\s*foreach\s*\(\s*([\w<>,.?\s]+?)\s+([A-Za-z_]\w*)\s+in\b/
@@ -3848,14 +3848,14 @@ class NewTranspiler {
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(<T>)?\((.*)\)\s*$/;
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (!sig) {
                 continue;
             }
-            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const [ , indent, asyncKw, modifier, returnType, methodName, generic, plist ] = sig;
             const positions = table[methodName];
             if (positions === undefined) {
                 continue;
@@ -3899,7 +3899,7 @@ class NewTranspiler {
                     }
                 }
             }
-            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}${generic ?? ''}(${params.join (',')})`;
             if (shadows.length) {
                 lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
             }
@@ -4300,7 +4300,7 @@ class NewTranspiler {
 
     csharpPublicMethodBodies (content: string, visit: (bodyLines: string[], returnType: string, types: Record<string, string>) => boolean): string {
         const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(?:<T>)?\((.*)\)\s*$/;
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (sig === null) {
@@ -4366,7 +4366,7 @@ class NewTranspiler {
             return content;
         }
         const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(?:<T>)?\((.*)\)\s*$/;
         const redeclRe = /^\s*(var|object|WebSocketClient)\s+client\s*=/;
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
@@ -4433,7 +4433,7 @@ class NewTranspiler {
             targets.set (name, 'Dictionary<string, object>');
         }
         const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) object (\w+)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public (async )?(virtual|override) object (\w+)(?:<T>)?\((.*)\)\s*$/;
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (!sig || !targets.has (sig[4])) {
@@ -4529,7 +4529,7 @@ class NewTranspiler {
     // declarations must not be read.
     coreArgCastDeclaredType (content: string, at: number, name: string): string {
         const declRe = new RegExp ('(?<![\\w.])(string\\?|string|object|Int64\\?|Int64|double\\?|double|bool\\?|bool)\\s+' + name + '\\b(?!\\s*\\()', 'g');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(?:<T>)?\((.*)\)\s*$/;
         let offset = at;
         let delta = 0;
         for (;;) {

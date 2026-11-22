@@ -24068,9 +24068,10 @@ function h28c01IsWrapper (method) {
     const declared = [ ...(corpus.declarations.get (name) ?? []) ];
     const called = [ ...(corpus.occurrences.get (name)?.keys () ?? []) ];
     const handWritten = h28c01HandWrittenText ();
-    if (declared.length !== 1 || declared[0] !== rel || called.some ((f) => f !== rel) || handWritten === undefined
-            || new RegExp ('\\b' + name + '\\b').test (handWritten) || source.text.includes ("'" + name + "'")) {
-        return false;
+    if ((declared.length !== 1 || declared[0] !== rel || called.some ((f) => f !== rel) || handWritten === undefined
+            || new RegExp ('\\b' + name + '\\b').test (handWritten) || source.text.includes ("'" + name + "'"))
+            && !h28c01LineageOwnsName (source, name, handWritten)) {
+            return false;
     }
     let ok = true;
     let returns = 0;
@@ -24121,7 +24122,12 @@ function h28c01CallerCacheType (csharp, declaration) {
     }
     const call = (declaration?.initializer?.kind === ts.SyntaxKind.AwaitExpression) ? declaration.initializer.expression : undefined;
     let result;
-    if (declaration.type === undefined && declaration.name?.kind === ts.SyntaxKind.Identifier && (declaration.parent?.flags & ts.NodeFlags.Const)
+    const annotated = h28c01AnnotatedCache (declaration);
+    if (annotated !== undefined && declaration.name?.kind === ts.SyntaxKind.Identifier && h28c01WrapperOf (call) !== undefined) {
+        // the wrapper hands back its watched future's value unchanged: the annotation is read like
+        // the one on a direct `await this.watch (..)` (wsCacheAnnotatedWatchType), watch<T> casts it
+        result = 'ccxt.pro.' + annotated;
+    } else if (declaration.type === undefined && declaration.name?.kind === ts.SyntaxKind.Identifier && (declaration.parent?.flags & ts.NodeFlags.Const)
             && h28c01WrapperOf (call) !== undefined) {
         const scope = enclosingFunction (declaration);
         const watched = h27c01OnlyFilterUse (scope, declaration) ? wsWrapperWatchedPrefixes (call, scope, undefined, 0) : undefined;
@@ -24131,6 +24137,45 @@ function h28c01CallerCacheType (csharp, declaration) {
         h28c01DeclarationCache.set (declaration, result);
     }
     return result;
+}
+
+// `const xs: <cache class> = await this.<wrapper> (...)`: the annotated ws cache class, else undefined
+function h28c01AnnotatedCache (declaration) {
+    const type = declaration?.type;
+    if (type?.kind !== ts.SyntaxKind.TypeReference || type.typeName?.kind !== ts.SyntaxKind.Identifier || type.typeArguments !== undefined) {
+        return undefined;
+    }
+    const name = String (type.typeName.text);
+    return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (name) ? name : undefined;
+}
+
+// a venue method name other venue classes also declare: C# binds every `this.<name>` call to the
+// receiver's own class, so the wrapper may turn generic when no base / hand-written member, no
+// subclass declaration, no non-`this` call and no string-named call of it exists in its lineage
+function h28c01LineageOwnsName (source, name, handWritten) {
+    const rel = path.relative (process.cwd (), source.fileName);
+    const corpus = csharpCorpus ();
+    const declared = [ ...(corpus.declarations.get (name) ?? []) ].map ((f) => f.replace (/\\/g, '/'));
+    if (handWritten === undefined || new RegExp ('\\b' + name + '\\s*[(<]').test (handWritten)
+            || declared.some ((f) => f.startsWith ('ts/src/base/')) || [ ...(corpus.occurrences.get (name)?.keys () ?? []) ].some ((f) => f.replace (/\\/g, '/').startsWith ('ts/src/base/') && !f.replace (/\\/g, '/').startsWith ('ts/src/base/ws/'))) {
+        return false;
+    }
+    const lineage = wsHandlerFiles (source);
+    for (const file of lineage) {
+        if (file !== rel && (corpus.declarations.get (name) ?? new Set ()).has (file)) {
+            return false;
+        }
+        let text;
+        try {
+            text = (file === rel) ? source.text : fs.readFileSync (path.join (process.cwd (), file), 'utf8');
+        } catch (e) {
+            return false;
+        }
+        if (new RegExp ('(?<!this)\\.' + name + '\\s*\\(').test (text) || new RegExp ("[(,]\\s*'" + name + "'").test (text)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function h28c01SettledCache (csharp, source, watched) {
@@ -24152,7 +24197,7 @@ function h28c01SettledCache (csharp, source, watched) {
             }
             meets++;
             const box = (settle.value === undefined) ? undefined : wsResolvedCacheBox (csharp, settle.value, 0);
-            if (box === undefined) {
+                    if (box === undefined) {
                 return undefined;
             }
             boxes.add (box);
