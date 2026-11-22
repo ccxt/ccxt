@@ -1323,7 +1323,7 @@ export default class binance extends Exchange {
             await this.loadOutcome (outcome);
             outcomeObj = this.outcome (outcome);
             const market = this.market (this.safeString (outcomeObj, 'market'));
-            request['marketTopicId'] = market['info']['marketTopicId'];
+            request['marketTopicId'] = this.safeString (market['info'], 'marketTopicId');
         }
         const wallet = await this.fetchWallet ('fetchOrders', params);
         request['walletAddress'] = this.safeString (wallet, 'walletAddress');
