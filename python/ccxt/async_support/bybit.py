@@ -2214,6 +2214,12 @@ class bybit(Exchange, ImplicitAPI):
             if expiry is not None:
                 symbol = symbol + '-' + self.yymmdd(expiry)
             contractSize = self.safe_number_2(lotSizeFilter, 'minTradingQty', 'minOrderQty') if inverse else self.parse_number('1')
+            costLimits = {
+                'min': None,
+                'max': None,
+            }
+            if linear:
+                costLimits['min'] = self.safe_number(lotSizeFilter, 'minNotionalValue')  # https://bybit-exchange.github.io/docs/v5/market/instrument
             parsedMarket = self.safe_market_structure({
                 'id': id,
                 'symbol': symbol,
@@ -2257,10 +2263,7 @@ class bybit(Exchange, ImplicitAPI):
                         'min': self.safe_number(priceFilter, 'minPrice'),
                         'max': self.safe_number(priceFilter, 'maxPrice'),
                     },
-                    'cost': {
-                        'min': self.safe_number(lotSizeFilter, 'minNotionalValue') if linear else None,  # https://bybit-exchange.github.io/docs/v5/market/instrument
-                        'max': None,
-                    },
+                    'cost': costLimits,
                 },
                 'created': self.safe_integer(market, 'launchTime'),
                 'info': market,
@@ -3025,7 +3028,7 @@ class bybit(Exchange, ImplicitAPI):
         }
         market = self.market(symbol)
         fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request['symbol'] = market['id']
         type, paramsValue = self.get_bybit_type('fetchFundingRateHistory', market, paramsPaginate)
         if type == 'spot' or type == 'option':
@@ -3234,8 +3237,7 @@ class bybit(Exchange, ImplicitAPI):
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
         marketType = 'spot'
-        createType = self.safe_string(trade, 'createType')
-        if createType is not None:
+        if 'createType' in trade:
             marketType = 'contract'
         category = self.safe_string(trade, 'category')
         if category is not None:
@@ -3907,8 +3909,7 @@ class bybit(Exchange, ImplicitAPI):
                     'symbol': self.safe_symbol(self.safe_string(order, 'symbol'), None, None, inferredMarketType),
                 })
         marketId = self.safe_string(order, 'symbol')
-        tpslMode = self.safe_string(order, 'tpslMode')
-        isContract = (tpslMode is not None)
+        isContract = ('tpslMode' in order)
         marketType = None
         if market is not None:
             marketType = self.safe_string(market, 'type')
@@ -4129,7 +4130,7 @@ class bybit(Exchange, ImplicitAPI):
         if side is None:
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         lowerCaseType = type.lower()
         request = {
             'symbol': market['id'],
@@ -5974,8 +5975,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_number_2(transaction, 'depositFee', 'withdrawFee')
         type = 'withdrawal'
-        depositFee = self.safe_string(transaction, 'depositFee')
-        if depositFee is not None:
+        if 'depositFee' in transaction:
             type = 'deposit'
         fee = None
         if feeCost is not None:

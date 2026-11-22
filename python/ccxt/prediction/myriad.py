@@ -1293,12 +1293,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         requestedStatus = self.safe_string_lower(params, 'status')
         if (requestedStatus == 'open') or (requestedStatus == 'cancelled') or (requestedStatus == 'canceled') or (requestedStatus == 'expired'):
             return []
-        traderParam = self.safe_string_2(params, 'trader', 'address')
-        trader = None
-        if traderParam is not None:
-            trader = traderParam
-        else:
-            trader = self.wallet_address_or_undefined()
+        trader = self.safe_string_2(params, 'trader', 'address', self.wallet_address_or_undefined())
         if trader is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey')
         request = {
@@ -1846,9 +1841,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         state = self.safe_string(raw, 'state', 'open')
         endDate = self.safe_string(raw, 'expiresAt')
         return {
-            'id': market['id'],
+            'id': self.safe_string(market, 'id', ''),
             'slug': slug,
-            'event': market['market'],
+            'event': self.safe_string(market, 'market', ''),
             'title': self.safe_string_2(raw, 'title', 'shortName'),
             'description': self.safe_string(raw, 'description'),
             'markets': [market],
@@ -1961,8 +1956,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         outcomesLength = len(outcomes)
         # effectively-final copy for the market object literal below (reassigned in the loop)
         marketResolvedOutcome = resolvedOutcome
+        compositeId = self.safe_string(raw, 'networkId', '') + ':' + self.safe_string(raw, 'id', '')
         return {
-            'id': networkId + ':' + marketId,
+            'id': compositeId,
             'market': marketSymbol,
             'marketType': 'categorical' if (outcomesLength > 2) else 'binary',
             'executionModel': marketExecutionModel,
@@ -2953,7 +2949,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
-            self.spawn(self.pong, client, msg)
+            self.spawn(self.pong, client)
             return
         connectReply = self.safe_dict(msg, 'connect')
         if connectReply is not None:

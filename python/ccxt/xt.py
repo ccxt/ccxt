@@ -3759,7 +3759,9 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        marketType = ('result' in order) or 'contract' if ('positionSide' in order) else 'spot'
+        resultId = self.safe_string(order, 'result')
+        orderPositionSide = self.safe_string(order, 'positionSide')
+        marketType = (resultId is not None) or 'contract' if (orderPositionSide is not None) else 'spot'
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = self.safe_symbol(marketId, marketResolved, None, marketType)
         timestamp = self.safe_integer_2(order, 'time', 'createdTime')

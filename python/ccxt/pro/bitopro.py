@@ -74,7 +74,7 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'ORDER_BOOK' + ':' + symbolValue
         marketIdValue = self.safe_string(market, 'id', '')
         endPart = None
@@ -136,7 +136,7 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'TRADE' + ':' + symbolValue
         trades = await self.watch_public('trades', messageHash, market['id'])
         limitResolved = limit
@@ -200,7 +200,7 @@ class bitopro(ccxt.async_support.bitopro):
         messageHash = 'USER_TRADE'
         if symbol is not None:
             market = self.market(symbol)
-            symbolValue = market['symbol']
+            symbolValue = self.safe_string(market, 'symbol', '')
             messageHash = messageHash + ':' + symbolValue
         wsUrl = self.safe_string(self.urls['ws'], 'private')
         if wsUrl is None:
@@ -340,7 +340,7 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'TICKER' + ':' + symbolValue
         return await self.watch_public('tickers', messageHash, market['id'])
 

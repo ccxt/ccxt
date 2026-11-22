@@ -2071,7 +2071,7 @@ class digifinex(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' cancelOrdersForSymbols() accepts up to 20 orders for swap markets')
             ordersRequests = []
             for i in range(0, len(ids)):
-                market = self.market(symbols[i])
+                market = self.market(self.safe_string(symbols, i))
                 marketId = self.safe_string(market, 'id')
                 orderId = ids[i]
                 ordersRequests.append({
@@ -2098,7 +2098,7 @@ class digifinex(Exchange, ImplicitAPI):
                 result.append(self.safe_order({
                     'info': orderId,
                     'id': orderId,
-                    'symbol': symbols[i],
+                    'symbol': self.safe_string(symbols, i),
                     'status': status,
                 }))
             return result
@@ -4195,8 +4195,10 @@ class digifinex(Exchange, ImplicitAPI):
                             'deposit': depositResult,
                         }
                 else:
-                    depositWithdrawFee['withdraw'] = withdrawResult
-                    depositWithdrawFee['deposit'] = depositResult
+                    depositWithdrawFees[code] = self.extend(depositWithdrawFee, {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    })
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]

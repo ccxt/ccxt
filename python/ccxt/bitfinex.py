@@ -1693,7 +1693,8 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         market = self.market(symbol)
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else (Precise.string_neg(amountString))
+        if side != 'buy':
+            amountString = Precise.string_neg(amountString)
         request = {
             'symbol': market['id'],
             'amount': amountString,
@@ -3774,7 +3775,8 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         if amount is not None:
             amountString = self.amount_to_precision(symbol, amount)
-            amountString = amountString if (side == 'buy') else (Precise.string_neg(amountString))
+            if side != 'buy':
+                amountString = Precise.string_neg(amountString)
             request['amount'] = amountString
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         trailingAmount = self.safe_string(params, 'trailingAmount')

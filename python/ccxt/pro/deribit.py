@@ -748,7 +748,7 @@ class deribit(ccxt.async_support.deribit):
         if dataList is not None:
             orders = self.parse_orders(dataList)
         else:
-            data = self.safe_value(params, 'data', {})
+            data = self.safe_dict(params, 'data', {})
             order = self.parse_order(data)
             orders = [order]
         cachedOrders = self.orders

@@ -896,13 +896,10 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {}
         if symbols is not None:
             symbol = None
-            if isinstance(symbols, list):
-                symbolsLength = len(symbols)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
-                symbol = self.safe_string(symbols, 0)
-            else:
-                symbol = symbols
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol')
+            symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         response = await self.v1PublicGetPublicGetTickers(self.extend(request, params))
@@ -2480,7 +2477,7 @@ class cryptocom(Exchange, ImplicitAPI):
         type = None
         rawStatus = self.safe_string(transaction, 'status')
         status = None
-        if self.safe_string(transaction, 'client_wid') is not None:
+        if 'client_wid' in transaction:
             type = 'withdrawal'
             status = self.parse_withdrawal_status(rawStatus)
         else:
@@ -3117,14 +3114,11 @@ class cryptocom(Exchange, ImplicitAPI):
         market = None
         if symbolsNormalized is not None:
             symbol = None
-            if isinstance(symbolsNormalized, list):
-                symbolsLength = len(symbolsNormalized)
-                if symbolsLength > 1:
-                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
-                if symbolsLength == 1:
-                    symbol = symbolsNormalized[0]
-            else:
-                symbol = symbolsNormalized
+            symbolsLength = len(symbolsNormalized)
+            if symbolsLength > 1:
+                raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+            if symbolsLength == 1:
+                symbol = symbolsNormalized[0]
             market = self.market(symbol)
             request['instrument_name'] = market['id']
         response = await self.v1PrivatePostPrivateGetPositions(self.extend(request, params))

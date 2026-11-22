@@ -674,6 +674,12 @@ class blofin(Exchange, ImplicitAPI):
         contractType = self.safe_string(market, 'contractType')
         maxLimitAmount = self.safe_number(market, 'maxLimitSize')
         maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
+        costLimits = {
+            'min': None,
+            'max': maxSpotCost,
+        }
+        if contract:
+            costLimits['max'] = None
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -718,10 +724,7 @@ class blofin(Exchange, ImplicitAPI):
                     'min': None,
                     'max': None,
                 },
-                'cost': {
-                    'min': None,
-                    'max': None if contract else maxSpotCost,
-                },
+                'cost': costLimits,
             },
             'info': market,
         })
@@ -2816,7 +2819,7 @@ class blofin(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'instId')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         pos = self.safe_string(position, 'positions')
         contractsAbs = Precise.string_abs(pos)
         side = self.safe_string(position, 'positionSide')

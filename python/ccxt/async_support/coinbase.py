@@ -3595,9 +3595,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
+        ordersLength = len(orders)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            orders[0] = self.extend(self.safe_dict(orders, 0, {}), {'cursor': cursor})
+        if (ordersLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = ordersLength - 1
+            orders[lastIndex] = self.extend(self.safe_dict(orders, lastIndex, {}), {'cursor': cursor})
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3663,9 +3665,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         orders = self.safe_list(response, 'orders', [])
+        ordersLength = len(orders)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            orders[0] = self.extend(self.safe_dict(orders, 0, {}), {'cursor': cursor})
+        if (ordersLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = ordersLength - 1
+            orders[lastIndex] = self.extend(self.safe_dict(orders, lastIndex, {}), {'cursor': cursor})
         return self.parse_orders(orders, market, since, limitResolved)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3932,9 +3936,11 @@ class coinbase(Exchange, ImplicitAPI):
         #     }
         #
         trades = self.safe_list(response, 'fills', [])
+        tradesLength = len(trades)
         cursor = self.safe_string(response, 'cursor')
-        if (cursor is not None) and (cursor != ''):
-            trades[0] = self.extend(self.safe_dict(trades, 0, {}), {'cursor': cursor})
+        if (tradesLength > 0) and (cursor is not None) and (cursor != ''):
+            lastIndex = tradesLength - 1
+            trades[lastIndex] = self.extend(self.safe_dict(trades, lastIndex, {}), {'cursor': cursor})
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:

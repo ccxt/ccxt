@@ -414,7 +414,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawfr = self.safe_dict(data, i)
             fundingRate = self.parse_funding_rate(rawfr)
-            symbol = fundingRate['symbol']
+            symbol = self.safe_string(fundingRate, 'symbol')
             if symbol is not None:
                 self.fundingRates[symbol] = fundingRate
             client.resolve(fundingRate, 'funding-rate' + ':' + self.safe_string(fundingRate, 'symbol', ''))
@@ -433,10 +433,9 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchTicker', 'channel', 'tickers')
-        paramsChannel['channel'] = channel
         market = self.market(symbol)
         symbolValue = market['symbol']
-        ticker = await self.watch_tickers([symbolValue], paramsChannel)
+        ticker = await self.watch_tickers([symbolValue], self.extend(paramsChannel, {'channel': channel}))
         return self.safe_value(ticker, symbolValue)
 
     async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
@@ -486,10 +485,9 @@ class okx(ccxt.async_support.okx):
         if self.markets is None:
             await self.load_markets()
         channel, paramsChannel = self.handle_option_string_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
-        paramsChannel['channel'] = channel
         market = self.market(symbol)
         symbolValue = market['symbol']
-        ticker = await self.watch_mark_prices([symbolValue], paramsChannel)
+        ticker = await self.watch_mark_prices([symbolValue], self.extend(paramsChannel, {'channel': channel}))
         return self.safe_value(ticker, symbolValue)
 
     async def watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -1897,7 +1895,7 @@ class okx(ccxt.async_support.okx):
         arg = self.safe_dict(message, 'arg', {})
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId, None, '-')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         channel = self.safe_string(arg, 'channel', '')
         data = self.safe_list(message, 'data', [])
         if self.positions is None:
@@ -1910,8 +1908,7 @@ class okx(ccxt.async_support.okx):
             contracts = self.safe_number(position, 'contracts')
             if contracts == 0 and self.safe_string(rawPosition, 'posSide') == 'net':
                 position['side'] = 'long'
-                shortPosition = self.clone(position)
-                shortPosition['side'] = 'short'
+                shortPosition = self.extend(self.clone(position), {'side': 'short'})
                 cache.append(shortPosition)
                 newPositions.append(shortPosition)
             newPositions.append(position)

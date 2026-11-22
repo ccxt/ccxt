@@ -835,7 +835,7 @@ class bullish(Exchange, ImplicitAPI):
             spot = True
             contract = False
             margin = self.safe_bool(market, 'marginTradingEnabled')
-        else:
+        elif settle is not None:
             contractSize = self.safe_number(market, 'contractMultiplier')
             symbol = base + '/' + quote + ':' + settle
             linear = settle == quote
@@ -854,7 +854,8 @@ class bullish(Exchange, ImplicitAPI):
                     option = True
                     optionType = self.safe_string_lower(market, 'optionType')
                     strike = self.parse_to_numeric(self.safe_string(market, 'optionStrikePrice'))
-                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + self.number_to_string(strike) + '-' + self.safe_string(idParts, 4)
+                    optionSide = self.safe_string(idParts, 4, '')
+                    symbol = base + '/' + quote + ':' + settle + '-' + dateYmd + '-' + self.number_to_string(strike) + '-' + optionSide
         tradingFees = self.safe_dict(self.fees, 'trading', {})
         return self.safe_market_structure({
             'id': id,

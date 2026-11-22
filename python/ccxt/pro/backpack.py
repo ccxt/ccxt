@@ -1214,7 +1214,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         event = self.safe_string(data, 'e', '')
         parsed: Order
         if (event.find('rfq') == 0) or (event.find('quote') == 0):
@@ -1549,7 +1549,7 @@ class backpack(ccxt.async_support.backpack):
         id = self.safe_string(position, 'i')
         marketId = self.safe_string(position, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         notional = self.safe_string(position, 'n')
         liquidationPrice = self.safe_string(position, 'l')
         entryPrice = self.safe_string(position, 'b')

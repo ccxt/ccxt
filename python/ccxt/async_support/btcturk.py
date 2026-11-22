@@ -725,7 +725,7 @@ class btcturk(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
             limitCount = 100 if (limit is None) else min(limit, 11000)
-            limitSeconds = self.parse_to_int(seconds * (limitCount - 1))
+            limitSeconds = seconds * (limitCount - 1)
             if since is not None:
                 sinceSeconds = self.parse_to_int(since / 1000)
                 to = sinceSeconds + limitSeconds

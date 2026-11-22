@@ -404,7 +404,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if dataList is not None:
             orders = self.parse_orders(dataList)
         else:
-            data = self.safe_value(params, 'data', {})
+            data = self.safe_dict(params, 'data', {})
             orders = [self.parse_order(data)]
         ordersLength = len(orders)
         for i in range(0, ordersLength):
@@ -484,7 +484,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         positionsLength = len(positions)
         for i in range(0, positionsLength):
             position = positions[i]
-            if position['side'] is None:
+            if self.safe_string(position, 'side') is None:
                 # flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position['side'] = 'long'
                 shortPosition = self.clone(position)

@@ -1230,7 +1230,7 @@ class binance(PredictionExchange, ImplicitAPI):
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
             market = self.market(self.safe_string(outcomeObj, 'market'))
-            request['marketTopicId'] = market['info']['marketTopicId']
+            request['marketTopicId'] = self.safe_string(market['info'], 'marketTopicId')
         wallet = await self.fetch_wallet('fetchOrders', params)
         request['walletAddress'] = self.safe_string(wallet, 'walletAddress')
         response = await self.sapiPrivateGetPositionFilter(self.extend(request, params))

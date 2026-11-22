@@ -1300,7 +1300,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             error = self.safe_string(status, 'error')
             if error is not None:
                 raise OrderNotFound(self.id + ' cancelOrders() failed for ' + self.safe_string(requestIds, i, self.safe_string(requestIds, 0)) + ': ' + error)
-            success = (status == 'success') or (self.safe_string(status, 'status') == 'success')
+            success = (self.safe_string(statuses, i) == 'success') or (self.safe_string(status, 'status') == 'success')
             if not success:
                 raise ExchangeError(self.id + ' cancelOrders() received an unexpected status: ' + self.json(status))
             requestId = self.safe_string(requestIds, i, self.safe_string(requestIds, 0))

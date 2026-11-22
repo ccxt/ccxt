@@ -1067,7 +1067,10 @@ class bitget(ccxt.async_support.bitget):
             symbolOrInstId = 'instId'
             if uta:
                 symbolOrInstId = 'symbol'
-            args[topicOrChannel] = 'publicTrade' if uta else 'trade'
+            tradeTopic = 'trade'
+            if uta:
+                tradeTopic = 'publicTrade'
+            args[topicOrChannel] = tradeTopic
             args[symbolOrInstId] = market['id']
             topics.append(args)
             messageHashes.append('trade:' + symbol)
@@ -1599,7 +1602,8 @@ class bitget(ccxt.async_support.bitget):
         if (type == 'spot' or type == 'margin') and (symbolResolved is None):
             marketId = 'default'
         if (productType is None) and (type != 'spot') and (symbolResolved is None):
-            messageHash = messageHash + ':' + subType
+            if subType is not None:
+                messageHash = messageHash + ':' + subType
         elif productType == 'USDT-FUTURES':
             messageHash = messageHash + ':linear'
         elif productType == 'COIN-FUTURES':
@@ -1612,7 +1616,7 @@ class bitget(ccxt.async_support.bitget):
         if not useSpotInstType:
             instType, paramsInstType = self.get_inst_type('watchOrders', market, uta, paramsSubType)
         if type == 'spot' and (symbolResolved is not None):
-            resolvedSymbol = symbolResolved
+            resolvedSymbol = self.safe_string(market, 'symbol', '')
             subscriptionHash = subscriptionHash + ':' + resolvedSymbol
         if isTrigger is True:
             subscriptionHash = subscriptionHash + ':stop'  # we don't want to re-use the same subscription hash for stop orders
@@ -1626,8 +1630,7 @@ class bitget(ccxt.async_support.bitget):
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('watchOrders', paramsInstType)
         if marginMode is not None:
             instType = 'MARGIN'
-            marginModeValue = marginMode
-            messageHash = messageHash + ':' + marginModeValue
+            messageHash = messageHash + ':' + marginMode
             if marginMode == 'isolated':
                 channel = 'orders-isolated'
             else:
@@ -1963,7 +1966,7 @@ class bitget(ccxt.async_support.bitget):
         marketId = self.safe_string_2(order, 'instId', 'symbol')
         marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'cTime', 'createdTime')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         rawStatus = self.safe_string_2(order, 'status', 'orderStatus')
         orderFee = self.safe_list(order, 'feeDetail', [])
         fee = self.safe_dict(orderFee, 0)
@@ -2752,7 +2755,7 @@ class bitget(ccxt.async_support.bitget):
             type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'unsubscribe:orderbook:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'orderbook:' + symbol
         if symbol in self.orderbooks:
@@ -2802,7 +2805,7 @@ class bitget(ccxt.async_support.bitget):
             type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'unsubscribe:ticker:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'ticker:' + symbol
         if symbol in self.tickers:

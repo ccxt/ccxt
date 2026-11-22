@@ -396,7 +396,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         marketId = self.safe_string(subscription, 'symbol', '')
         market = self.safe_market(marketId)
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             stored = ArrayCache(tradesLimit)
@@ -570,7 +570,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #     ]
         #
         marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         last = self.safe_string(ticker, 6)
         change = self.safe_string(ticker, 4)
         return self.safe_ticker({

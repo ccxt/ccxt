@@ -311,7 +311,7 @@ class phemex(ccxt.async_support.phemex):
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(paramsMarketType, 'settle') == 'USDT'
         messageHash = 'perpetual:balance'
-        if not usePerpetualApi:
+        if not usePerpetualApi and (type is not None):
             messageHash = type + ':balance'
         return await self.subscribe_private(type, messageHash, paramsMarketType)
 
@@ -499,7 +499,7 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         isSwap = market['swap']
         settleIsUSDT = market['settle'] == 'USDT'
         name = 'spot_market24h'
@@ -578,7 +578,7 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -620,7 +620,7 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -660,7 +660,7 @@ class phemex(ccxt.async_support.phemex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -896,7 +896,7 @@ class phemex(ccxt.async_support.phemex):
             settle = self.safe_string(paramsType, 'settle')
             if settle == 'USDT':
                 messageHash = 'trades:perpetual'
-            else:
+            elif type is not None:
                 messageHash = 'trades:' + type
         trades = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
@@ -1055,7 +1055,7 @@ class phemex(ccxt.async_support.phemex):
         if symbol is None:
             if isUSDTSettled:
                 messageHash = 'orders:perpetual'
-            else:
+            elif type is not None:
                 messageHash = 'orders:' + type
         orders = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit

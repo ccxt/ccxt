@@ -709,8 +709,9 @@ class htx(ccxt.async_support.htx):
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum is True:
                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-        spotConditon = (market['spot'] is True) and (prevSeqNum == self.safe_integer(orderbook, 'nonce'))
-        nonSpotCondition = (market['contract'] is True) and (version is not None) and (version - 1 == self.safe_integer(orderbook, 'nonce'))
+        currentNonce = self.safe_integer(orderbook, 'nonce')
+        spotConditon = (market['spot'] is True) and (prevSeqNum == currentNonce)
+        nonSpotCondition = (market['contract'] is True) and (version is not None) and (version - 1 == currentNonce)
         if (spotConditon) or (nonSpotCondition):
             asks = self.safe_list(tick, 'asks', [])
             bids = self.safe_list(tick, 'bids', [])
@@ -1965,7 +1966,7 @@ class htx(ccxt.async_support.htx):
                 return
             first = self.safe_dict(data, 0, {})
             splitTopic = topic.split('.')
-            messageHash = self.safe_string(splitTopic, 0)
+            messageHash = self.safe_string(splitTopic, 0, '')
             subscription = self.safe_dict_2(client.subscriptions, messageHash, messageHash + '.*')
             if subscription is None:
                 # if subscription not found means that we subscribed to a specific currency/symbol

@@ -2370,7 +2370,8 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         if reduceOnly is not None:
             if (resolvedMarketType != 'swap') and (resolvedMarketType != 'margin'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only')
+                marketTypeString = self.safe_string(market, 'type', '')
+                raise InvalidOrder(self.id + ' createOrder() does not support reduce_only for ' + marketTypeString + ' orders, reduce_only orders are supported for swap and margin markets only')
         if reduceOnly is True:
             request['reduce_only'] = reduceOnly
         if isPostOnly:

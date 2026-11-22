@@ -58,7 +58,7 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades:' + self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchTrades() marketId is required')
         request = {
@@ -365,7 +365,7 @@ class gemini(ccxt.async_support.gemini):
             await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + self.safe_string(market, 'symbol', '')
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         if marketId is None:
             raise ArgumentsRequired(self.id + ' watchOrderBook() marketId is required')
         request = {

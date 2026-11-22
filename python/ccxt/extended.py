@@ -2268,8 +2268,6 @@ class extended(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbolsList = symbols
-        if isinstance(symbols, str):
-            symbolsList = [symbols]
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchPositionsHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_cursor('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', None, 10000)

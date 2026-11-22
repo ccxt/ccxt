@@ -675,7 +675,7 @@ class xt(ccxt.async_support.xt):
             timestamp = self.safe_integer(data, 't')
             fundingRate['timestamp'] = timestamp
             fundingRate['datetime'] = self.iso8601(timestamp)
-            symbol = fundingRate['symbol']
+            symbol = self.safe_string(fundingRate, 'symbol', '')
             self.fundingRates[symbol] = fundingRate
             event = self.safe_string(message, 'event')
             if event is not None:
@@ -978,7 +978,7 @@ class xt(ccxt.async_support.xt):
             if 'q' in data:
                 tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             parsed = self.parse_ohlcv(data, market)
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -1033,7 +1033,7 @@ class xt(ccxt.async_support.xt):
             if i is not None:
                 tradeType = 'spot'
             market = self.safe_market(marketId, None, None, tradeType)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             event = self.safe_string(message, 'event')
             tradesArray = self.safe_value(self.trades, symbol)
             if tradesArray is None:
@@ -1116,7 +1116,7 @@ class xt(ccxt.async_support.xt):
             if (data is not None) and ('fu' in data):
                 tradeType = 'contract'
             market = self.safe_market(marketId, None, None, tradeType)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             obAsks = self.safe_list(data, 'a')
             obBids = self.safe_list(data, 'b')
             messageHash = event + '::' + tradeType

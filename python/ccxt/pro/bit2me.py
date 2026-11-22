@@ -768,7 +768,8 @@ class bit2me(ccxt.async_support.bit2me):
             clientOrderIds = list(pending.keys())
             for i in range(0, len(clientOrderIds)):
                 clientOrderId = clientOrderIds[i]
-                if pending[clientOrderId] == marketId:
+                pendingMarketId = self.safe_string(pending, clientOrderId)
+                if pendingMarketId == marketId:
                     self.settle_request(client, 'added-order:' + clientOrderId, None, exception)
                     self.options['pendingWsOrders'] = self.omit(self.options['pendingWsOrders'], clientOrderId)
         elif event == 'canceled-order':

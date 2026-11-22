@@ -3739,7 +3739,7 @@ class binance(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         contractType = self.safe_string(market, 'contractType')
-        contract = ('contractType' in market)
+        contract = (contractType is not None)
         expiry = self.safe_integer_2(market, 'deliveryDate', 'expiryDate')
         settleId = self.safe_string(market, 'marginAsset')
         if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
@@ -4634,7 +4634,8 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         if self.safe_bool(market, 'option', False):
-            response = self.eapiPublicGetTicker(self.extend(request, params))
+            optionResponse = self.eapiPublicGetTicker(self.extend(request, params))
+            response = self.safe_dict(optionResponse, 0, {})
         elif self.safe_bool(market, 'linear', False):
             response = self.fapiPublicGetTicker24hr(self.extend(request, params))
         elif self.safe_bool(market, 'inverse', False):
@@ -4650,9 +4651,6 @@ class binance(Exchange, ImplicitAPI):
                     response = self.publicGetTicker(self.extend(request, paramsOmitted))
                 else:
                     response = self.publicGetTicker24hr(self.extend(request, paramsOmitted))
-        if isinstance(response, list):
-            firstTicker = self.safe_dict(response, 0, {})
-            return self.parse_ticker(firstTicker, market)
         if response is None:
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(response, market)
@@ -5692,7 +5690,7 @@ class binance(Exchange, ImplicitAPI):
         if uppercaseType == 'MARKET':
             quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
             if quoteOrderQty is True:
-                quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
+                quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                 precision = self.safe_value(market['precision'], 'price')
                 if quoteOrderQtyNew is not None:
                     request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
@@ -10708,8 +10706,8 @@ class binance(Exchange, ImplicitAPI):
                 # sometimes not all the codes are correctly returned...
                 if code in balances:
                     parsed = self.parse_account_position(self.extend(position, {
-                        'crossMargin': self.safe_value(balances[code], 'crossMargin'),
-                        'crossWalletBalance': self.safe_value(balances[code], 'crossWalletBalance'),
+                        'crossMargin': self.safe_string(balances[code], 'crossMargin'),
+                        'crossWalletBalance': self.safe_string(balances[code], 'crossWalletBalance'),
                     }), market)
                     result.append(parsed)
         return result
@@ -12755,7 +12753,7 @@ class binance(Exchange, ImplicitAPI):
                 entry = byLimit[i]
                 if limit is not None and limit <= self.safe_integer(entry, 0, 0):
                     return self.safe_integer(entry, 1)
-        return self.safe_value(config, 'cost', 1)
+        return self.safe_number(config, 'cost', 1)
 
     def request(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, config: dict = {}):
         response = self.fetch2(path, api, method, params, config)

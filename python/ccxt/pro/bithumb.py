@@ -307,8 +307,7 @@ class bithumb(ccxt.async_support.bithumb):
         #
         code = self.safe_string(ticker, 'code')
         if code is not None:
-            ticker['market'] = self.safe_string(ticker, 'market', code)
-            return self.parse_ticker(ticker, market)
+            return self.parse_ticker(self.extend(ticker, {'market': self.safe_string(ticker, 'market', code)}), market)
         date = self.safe_string(ticker, 'date', '')
         time = self.safe_string(ticker, 'time', '')
         kstDatetime = date[0:4] + '-' + date[4:6] + '-' + date[6:8] + 'T' + time[0:2] + ':' + time[2:4] + ':' + time[4:6]

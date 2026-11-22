@@ -561,7 +561,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         for i in range(0, len(data)):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker, market)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = parsed
             client.resolve(parsed, messageHash)

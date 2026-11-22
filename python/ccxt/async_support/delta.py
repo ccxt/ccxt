@@ -1081,7 +1081,7 @@ class delta(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.001)
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'close')
         quotes = self.safe_dict(ticker, 'quotes', {})
         # turnover_symbol names the currency turnover is denominated in, and on
@@ -1814,7 +1814,7 @@ class delta(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'product_symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(position, 'timestamp', 0.001)
         sizeString = self.safe_string(position, 'size')
         side = None

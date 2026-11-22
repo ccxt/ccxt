@@ -979,7 +979,9 @@ class bithumb(Exchange, ImplicitAPI):
             promises = []
             # the exchange rejects more than 200 market ids per request
             maxMarketIdsOption = self.safe_integer(self.options, 'fetchTickersGeneration2MaxMarketIdsPerRequest', 200)
-            maxMarketIdsPerRequest = self.parse_to_int(200 if ((maxMarketIdsOption is None) or (maxMarketIdsOption < 1)) else maxMarketIdsOption)
+            maxMarketIdsPerRequest = 200
+            if (maxMarketIdsOption is not None) and (maxMarketIdsOption >= 1):
+                maxMarketIdsPerRequest = self.parse_to_int(maxMarketIdsOption)
             marketIdsChunk = []
             for i in range(0, marketIdsLength):
                 marketIdsChunk.append(marketIds[i])
@@ -1037,7 +1039,7 @@ class bithumb(Exchange, ImplicitAPI):
                 if isinstance(response, list):
                     tickers = response
                 elif self.is_dictionary(response):
-                    if ('market' in response) or ('trade_date' in response) or ('trade_timestamp' in response):
+                    if (self.safe_string(response, 'market') is not None) or (self.safe_string(response, 'trade_date') is not None) or (self.safe_string(response, 'trade_timestamp') is not None):
                         tickers = [response]
                     else:
                         ids = list(response.keys())
@@ -1107,14 +1109,13 @@ class bithumb(Exchange, ImplicitAPI):
                 currencyIds = list(tickers.keys())
                 for j in range(0, len(currencyIds)):
                     currencyId = currencyIds[j]
-                    ticker = data[currencyId]
+                    ticker = self.extend({}, data[currencyId])
                     base = self.safe_currency_code(currencyId)
                     if base is None:
                         continue
                     symbol = base + '/' + quote
                     market = self.safe_market(symbol)
-                    ticker['date'] = timestamp
-                    result[symbol] = self.parse_ticker(ticker, market)
+                    result[symbol] = self.parse_ticker(self.extend(ticker, {'date': timestamp}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
@@ -1586,7 +1587,7 @@ class bithumb(Exchange, ImplicitAPI):
             if side is None:
                 raise ArgumentsRequired(self.id + ' createOrders() requires each order to have a side')
             amount = self.safe_value(rawOrder, 'amount')
-            price = self.safe_value(rawOrder, 'price')
+            price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(symbol, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)

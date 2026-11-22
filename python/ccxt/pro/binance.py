@@ -462,7 +462,7 @@ class binance(ccxt.async_support.binance):
         rawLiquidation = self.safe_dict(message, 'o', {})
         marketId = self.safe_string(rawLiquidation, 's')
         market = self.safe_market(marketId, None, '', 'contract')
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         liquidation = self.parse_ws_liquidation(rawLiquidation, market)
         if self.liquidations is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -1631,7 +1631,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         wsUrlType = type
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
@@ -1705,7 +1705,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         wsUrlType = type
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
@@ -3114,8 +3114,10 @@ class binance(ccxt.async_support.binance):
             'params': self.sign_params(self.extend(payload, paramsMethod)),
         }
         subscription = {
-            'method': self.handle_account_status_ws if (method == 'account.status') else self.handle_balance_ws,
+            'method': self.handle_balance_ws,
         }
+        if method == 'account.status':
+            subscription['method'] = self.handle_account_status_ws
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
     def handle_balance_ws(self, client: Client, message: dict):
@@ -3420,9 +3422,7 @@ class binance(ccxt.async_support.binance):
             account = self.account()
             delta = self.safe_string(message, 'd')
             if (code is not None) and (code in balance):
-                previousValue = self.safe_value(balance[code], 'free')
-                if not isinstance(previousValue, str):
-                    previousValue = self.number_to_string(previousValue)
+                previousValue = self.safe_string(balance[code], 'free')
                 account['free'] = Precise.string_add(previousValue, delta)
             else:
                 account['free'] = delta
@@ -4542,7 +4542,8 @@ class binance(ccxt.async_support.binance):
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
             messageValue = self.safe_dict(message, 'o', message)
             if (e == 'ALGO_UPDATE') and (self.safe_integer(messageValue, 'T') is None):
-                messageValue['T'] = self.safe_integer(message, 'T')  # keep the outer event time, the algo payload carries no timestamps
+                # keep the outer event time, the algo payload carries no timestamps
+                messageValue = self.extend(messageValue, {'T': self.safe_integer(message, 'T')})
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
             oField = self.safe_list(message, 'o')
             if oField is not None:
@@ -5210,7 +5211,7 @@ class binance(ccxt.async_support.binance):
                                     feeCostString = '0'
                                 fee['cost'] = float(feeCostString)
                                 order['fee'] = fee
-                            elif fee['currency'] is None:
+                            elif self.safe_string(fee, 'currency') is None:
                                 order['fee'] = tradeFee
                             else:
                                 order['fees'] = [fee, tradeFee]

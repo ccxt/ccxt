@@ -1163,7 +1163,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(info, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         funding = self.safe_number(info, 'funding')
         markPx = self.safe_number(info, 'mark')
         oraclePx = self.safe_number(info, 'oracle')
@@ -1421,7 +1421,7 @@ class pacifica(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':
@@ -2104,7 +2104,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 'timestamp')
         return self.safe_ticker({
             'symbol': symbol,
@@ -2504,7 +2504,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(order, 'symbol', 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_2(order, 'created_at', 'ct')
         status = self.safe_string_2(order, 'order_status', 'os', 'open')  # open if method is fetchOpenOrders
         side = self.safe_string(order, 'side', 'd')
@@ -2618,7 +2618,7 @@ class pacifica(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         margin = self.safe_string(position, 'margin')
         rawIsolated = self.safe_bool(position, 'isolated')
         isIsolated = (margin is not None) and (margin != '0')
@@ -3174,7 +3174,7 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(income, 'created_at')
         marketId = self.safe_string(income, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         amount = self.safe_string(income, 'payout')
         code = self.safe_currency_code('USDC')
         rate = self.safe_number(income, 'rate')

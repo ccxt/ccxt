@@ -880,7 +880,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     endIndex = tokenIdsLength
                 chunk = []
                 for i in range(startIndex, endIndex):
-                    chunk.append(tokenIds[i])
+                    chunkId = self.safe_string(tokenIds, i, '')
+                    chunk.append(chunkId)
                 # gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 # with a validation error, so the list rides through urlencodeWithArrayRepeat
                 response = await self.gammaPublicGetMarkets({'clob_token_ids': chunk, 'limit': chunkSize})
@@ -1241,14 +1242,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if not (bucketKey in buckets):
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol]
             else:
-                candle = self.safe_list(buckets, bucketKey, [])
-                candle[2] = max(candle[2], price)  # high
-                candle[3] = min(candle[3], price)  # low
-                candle[4] = price                                  # close (last tick wins)
+                prevVol = self.safe_number(buckets[bucketKey], 5)
+                candleVol = prevVol
                 if vol is not None:
-                    prevVol = candle[5]
-                    candle[5] = vol if (prevVol is None) else self.sum(prevVol, vol)  # volume
-                buckets[bucketKey] = candle  # reassign after mutation, php arrays are value types
+                    if prevVol is None:
+                        candleVol = vol
+                    else:
+                        candleVol = self.sum(prevVol, vol)
+                open = self.safe_number(buckets[bucketKey], 1)
+                # close is the last tick
+                buckets[bucketKey] = [snappedMs, open, max(self.safe_number(buckets[bucketKey], 2), price), min(self.safe_number(buckets[bucketKey], 3), price), price, candleVol]
         bucketKeys = list(buckets.keys())
         unsortedCandles = []
         for i in range(0, len(bucketKeys)):
@@ -1865,8 +1868,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             for i in range(0, len(response)):
                 # request echo first so the response's real orderID/status win on overlap
                 rawItem = response[i]
-                enriched = self.extend(requests[i], rawItem)
-                parsedItem = self.parse_prediction_order(enriched, outcomes[i])
+                enriched = self.extend(self.safe_dict(requests, i), rawItem)
+                parsedItem = self.parse_prediction_order(enriched, self.safe_dict(outcomes, i))
                 parsedItem['info'] = rawItem   # keep info the raw exchange response
                 result.append(parsedItem)
         else:
@@ -2738,11 +2741,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 await self.create_or_derive_api_key()
             return
         apiKey = self.apiKey if (self.apiKey is not None) else self.safe_string(self.options, 'l2ApiKey')
-        secret = None
-        if self.secret is not None:
-            secret = self.secret
-        else:
-            secret = self.safe_string(self.options, 'l2Secret')
+        secret = self.secret if (self.secret is not None) else self.safe_string(self.options, 'l2Secret')
         passphrase = self.password if (self.password is not None) else self.safe_string(self.options, 'l2Passphrase')
         hasL2 = (apiKey is not None) and (secret is not None) and (passphrase is not None)
         if hasL2:

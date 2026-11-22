@@ -382,7 +382,7 @@ class mudrex(Exchange, ImplicitAPI):
             if sym is None:
                 continue
             m = self.safe_market(sym)
-            symbol = m['symbol']
+            symbol = self.safe_string(m, 'symbol', '')
             if symbols is not None and not self.in_array(symbol, symbols):
                 continue
             resultTickers[symbol] = self.parse_ticker(t, m)
@@ -391,7 +391,7 @@ class mudrex(Exchange, ImplicitAPI):
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         ms = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(ms, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         pct = self.safe_number(ticker, 'change_perc')
         return self.safe_ticker({
             'symbol': symbol,
@@ -787,7 +787,7 @@ class mudrex(Exchange, ImplicitAPI):
             typ = 'limit'
         ts = self.parse8601(self.safe_string(order, 'created_at'))
         status = self.parse_order_status(self.safe_string_lower(order, 'status'))
-        sym = marketResolved['symbol']
+        sym = self.safe_string(marketResolved, 'symbol', '')
         return self.safe_order({
             'info': order,
             'id': oid,
@@ -1251,7 +1251,7 @@ class mudrex(Exchange, ImplicitAPI):
         #
         ms = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(ms, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         ts = self.parse8601(self.safe_string(trade, 'created_at'))
         # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         side = self.safe_string_lower(trade, 'order_type')

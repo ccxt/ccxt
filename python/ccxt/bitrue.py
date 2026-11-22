@@ -1756,8 +1756,7 @@ class bitrue(Exchange, ImplicitAPI):
         if isBuyer is not None:
             side = 'buy' if isBuyer else 'sell'  # this is a true side
         fee = None
-        commission = self.safe_string(trade, 'commission')
-        if commission is not None:
+        if 'commission' in trade:
             fee = {
                 'cost': self.safe_string_2(trade, 'commission', 'fee'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
@@ -2738,10 +2737,10 @@ class bitrue(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txid')
         timestamp = self.safe_integer(transaction, 'createdAt')
         updated = self.safe_integer(transaction, 'updatedAt')
-        payAmount = self.safe_string(transaction, 'payAmount')
-        ctime = self.safe_string(transaction, 'ctime')
+        payAmount = ('payAmount' in transaction)
+        ctime = ('ctime' in transaction)
         type = 'deposit'
-        if (payAmount is not None) or (ctime is not None):
+        if payAmount or ctime:
             type = 'withdrawal'
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')

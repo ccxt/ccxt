@@ -938,7 +938,7 @@ class woofipro(ccxt.async_support.woofipro):
         messageHash = 'myTrades'
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         trade = self.parse_ws_trade(message, market)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)

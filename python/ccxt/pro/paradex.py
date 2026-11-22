@@ -432,7 +432,7 @@ class paradex(ccxt.async_support.paradex):
     def clean_unsubscribed(self, client: Client, unsubHash: str, subscription: dict):
         subscribeHashes = self.safe_list(subscription, 'subscribeHashes', [])
         for j in range(0, len(subscribeHashes)):
-            subscribeHash = subscribeHashes[j]
+            subscribeHash = self.safe_string(subscribeHashes, j, '')
             if subscribeHash in client.subscriptions:
                 del client.subscriptions[subscribeHash]
             # a market moved to the deltas feed goes back to the snapshots on its next watch
@@ -964,8 +964,9 @@ class paradex(ccxt.async_support.paradex):
                 # a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                 subscribeHashes = list(client.subscriptions.keys())
                 for i in range(0, len(subscribeHashes)):
-                    if (subscribeHashes[i] == scopedHash) or (subscribeHashes[i].find(channel + '.') == 0):
-                        del client.subscriptions[subscribeHashes[i]]
+                    subscribeHash = self.safe_string(subscribeHashes, i, '')
+                    if (subscribeHash == scopedHash) or (subscribeHash.find(channel + '.') == 0):
+                        del client.subscriptions[subscribeHash]
                 unsubscribe = self.unsubscribe_request(channel)
                 await self.send_request(url, unsubscribe)
             request = self.subscribe_request(channel)
@@ -1035,7 +1036,8 @@ class paradex(ccxt.async_support.paradex):
         othersRemain = False
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
-            if (keys[i].find(channel + '.') == 0) and not self.in_array(keys[i], subscribeHashes):
+            key = self.safe_string(keys, i, '')
+            if (key.find(channel + '.') == 0) and not self.in_array(key, subscribeHashes):
                 othersRemain = True
         if (symbolsLength == 0) or ((scopedHash in client.subscriptions) and not othersRemain):
             # a scoped subscription without markets stays open with an empty filter, it is unsubscribed instead
@@ -1126,7 +1128,7 @@ class paradex(ccxt.async_support.paradex):
         # a failed request is forgotten with every market it carried, the next watch sends them again, and
         # it rejects the watchers of those markets only
         subscription = {
-            'id': request['id'],
+            'id': self.safe_integer(request, 'id'),
             'messageHashes': missingHashes,
         }
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), subscribeHashes, subscription)

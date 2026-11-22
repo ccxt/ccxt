@@ -338,14 +338,16 @@ class sxbet(PredictionExchange, ImplicitAPI):
         if self.safe_integer(raw, 'gameTime', 0) != 0:
             gameTime = self.safe_timestamp(raw, 'gameTime')
         outcomeLabels = [outcomeOneName, outcomeTwoName]
-        outcomeIds = [marketHash, marketHash + '-2']
         outcomes = []
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
             outcomeHandle = self.slug_to_outcome_symbol(eventSlug, marketSlug, label)
+            outcomeSuffix = ''
+            if oi > 0:
+                outcomeSuffix = '-2'
             outcomes.append({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': marketHash + outcomeSuffix,
+                'outcomeId': marketHash + outcomeSuffix,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,
@@ -481,7 +483,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
             evMarketsLength = len(evMarkets)
             for j in range(0, evMarketsLength):
                 m = evMarkets[j]
-                self.markets[m['market']] = m
+                marketKey = self.safe_string(m, 'market', '')
+                self.markets[marketKey] = m
             result.append(event)
         self.populate_outcomes()
         self.set_events(result)
@@ -2025,7 +2028,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
-            self.spawn(self.pong, client, msg)
+            self.spawn(self.pong, client)
             return
         requestIdString = self.safe_string(msg, 'id')
         pendingRequests = self.safe_dict(self.options, 'wsPendingRequests', {})

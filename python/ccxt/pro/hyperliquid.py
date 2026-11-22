@@ -235,11 +235,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook:' + symbolValue
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         message = self.extend(request, params)
@@ -266,12 +269,15 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         url = self.urls['api']['ws']['public']
         nonce = self.incrementing_nonce()
         id = self.number_to_string(nonce)
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'id': id,
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         message = self.extend(request, params)
@@ -343,6 +349,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         # server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
         messageHash = 'ticker:' + symbolValue
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'subscribe',
             'subscription': {
@@ -350,7 +359,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 # always 'activeAssetCtx', the server routes spot coins to the spot channel,
                 # see https://github.com/ccxt/ccxt/issues/27475
                 'type': 'activeAssetCtx',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         await self.wait_for_pending_unsubscribe(url, messageHash)
@@ -373,11 +382,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subMessageHash = 'ticker:' + symbolValue
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'activeAssetCtx',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
@@ -760,11 +772,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         message = self.extend(request, params)
@@ -792,11 +807,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         subMessageHash = 'trade:' + symbolValue
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
             },
         }
         message = self.extend(request, params)
@@ -880,7 +898,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         coin = self.safe_string(trade, 'coin')
         marketId = self.coinToMarketId(coin)
         marketResolved = self.safe_market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'tid')
         side = self.safe_string(trade, 'side')
         if side is not None:
@@ -920,11 +938,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
                 'interval': timeframe,
             },
         }
@@ -953,11 +974,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
         url = self.urls['api']['ws']['public']
+        wireCoin = self.safe_string(market, 'id', '')
+        if self.safe_bool(market, 'swap', False):
+            wireCoin = self.safe_string(market, 'baseName', '')
         request = {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['baseName'] if (self.safe_bool(market, 'swap', False)) else market['id'],
+                'coin': wireCoin,
                 'interval': timeframe,
             },
         }

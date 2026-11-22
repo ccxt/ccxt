@@ -153,7 +153,10 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -196,7 +199,10 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchTickers')
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -265,7 +271,10 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'watchMarkPrices')
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -312,7 +321,10 @@ class aster(ccxt.async_support.aster):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         methodName, paramsCallerMethodName = self.handle_param_string(params, 'callerMethodName', 'unWatchMarkPrices')
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -431,7 +443,10 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' watchBidsAsks() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')
@@ -473,7 +488,10 @@ class aster(ccxt.async_support.aster):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        if (symbolsNormalized is None) or (len(symbolsNormalized) == 0):
+        symbolsLength = 0
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+        if (symbolsNormalized is None) or (symbolsLength == 0):
             raise ArgumentsRequired(self.id + ' unWatchBidsAsks() requires a non-empty array of symbols')
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
         type = self.safe_string(firstMarket, 'type', 'swap')

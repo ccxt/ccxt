@@ -1713,7 +1713,7 @@ class nado(Exchange, ImplicitAPI):
             priceIncrement = self.parse_x18(self.safe_string(market, 'price_increment_x18'))
             amountIncrement = self.parse_x18(self.safe_string(market, 'size_increment'))
             minCost = self.parse_x18(self.safe_string(market, 'min_size'))
-            markets.append(self.safe_market_structure({
+            marketEntry = {
                 'id': id,
                 'lowercaseId': None,
                 'symbol': symbol,
@@ -1731,11 +1731,11 @@ class nado(Exchange, ImplicitAPI):
                 'option': False,
                 'active': active,
                 'contract': contract,
-                'linear': True if contract else None,
-                'inverse': False if contract else None,
+                'linear': None,
+                'inverse': None,
                 'taker': self.parse_x18(self.safe_string(market, 'taker_fee_rate_x18')),
                 'maker': self.parse_x18(self.safe_string(market, 'maker_fee_rate_x18')),
-                'contractSize': 1 if contract else None,
+                'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -1769,7 +1769,12 @@ class nado(Exchange, ImplicitAPI):
                     'v2Pair': pair,
                     'v2Asset': asset,
                 }),
-            }))
+            }
+            if contract:
+                marketEntry['linear'] = True
+                marketEntry['inverse'] = False
+                marketEntry['contractSize'] = 1
+            markets.append(self.safe_market_structure(marketEntry))
         return markets
 
     async def fetch_currencies(self, params: dict = {}) -> Currencies:

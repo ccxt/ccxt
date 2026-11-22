@@ -2255,7 +2255,7 @@ class okx(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         marketResolved = self.safe_market(marketId, market, '-', marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(marketResolved, 'spot', False)
@@ -2506,7 +2506,7 @@ class okx(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'tradeId')
         marketId = self.safe_string(trade, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(trade, 'ts')
         price = self.safe_string_2(trade, 'fillPx', 'px')
         amount = self.safe_string_2(trade, 'fillSz', 'sz')
@@ -3153,7 +3153,7 @@ class okx(Exchange, ImplicitAPI):
             request['sz'] = self.amount_to_precision(symbol, amount)
         spot = self.safe_bool(market, 'spot', False)
         contract = self.safe_bool(market, 'contract')
-        triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         # const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         tpOrdPx = self.safe_number(params, 'tpOrdPx', price)
@@ -3272,13 +3272,13 @@ class okx(Exchange, ImplicitAPI):
         elif hasStopLoss or hasTakeProfit:
             attachAlgoOrd = {}
             if hasStopLoss:
-                stopLossTriggerPrice = self.safe_value_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
+                stopLossTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice', 'slTriggerPx'])
                 if stopLossTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order')
                 slTriggerPx = self.price_to_precision(symbol, stopLossTriggerPrice)
                 slOrder = {}
                 slOrder['slTriggerPx'] = slTriggerPx
-                stopLossLimitPrice = self.safe_value_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
+                stopLossLimitPrice = self.safe_string_n(stopLoss, ['price', 'stopLossPrice', 'slOrdPx'])
                 stopLossOrderType = self.safe_string(stopLoss, 'type')
                 if stopLossOrderType is not None:
                     stopLossLimitOrderType = (stopLossOrderType == 'limit')
@@ -3303,12 +3303,12 @@ class okx(Exchange, ImplicitAPI):
                     slOrder['slTriggerPxType'] = stopLossTriggerPriceType
                 attachAlgoOrd = self.extend(attachAlgoOrd, slOrder)
             if hasTakeProfit:
-                takeProfitTriggerPrice = self.safe_value_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
+                takeProfitTriggerPrice = self.safe_string_n(takeProfit, ['triggerPrice', 'stopPrice', 'tpTriggerPx'])
                 if takeProfitTriggerPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order')
                 tpOrder = {}
                 tpOrder['tpTriggerPx'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
-                takeProfitLimitPrice = self.safe_value_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
+                takeProfitLimitPrice = self.safe_string_n(takeProfit, ['price', 'takeProfitPrice', 'tpOrdPx'])
                 takeProfitOrderType = self.safe_string_2(takeProfit, 'type', 'tpOrdKind')
                 if takeProfitOrderType is not None:
                     takeProfitLimitOrderType = (takeProfitOrderType == 'limit')
@@ -5271,7 +5271,7 @@ class okx(Exchange, ImplicitAPI):
             tag = self.safe_string(addrEx, 'comment')
         currencyId = self.safe_string(depositAddress, 'ccy')
         currencyResolved = self.safe_currency(currencyId, currency)
-        code = currencyResolved['code']
+        code = self.safe_string(currencyResolved, 'code')
         chain = self.safe_string(depositAddress, 'chain')
         networks = self.safe_dict(currencyResolved, 'networks', {})
         networksById = self.index_by(networks, 'id')
@@ -5439,7 +5439,7 @@ class okx(Exchange, ImplicitAPI):
             networkUpper = network.upper()
             networkKey = self.safe_string(self.networkAliases, networkUpper, networkUpper)
             network = self.safe_string(networks, networkKey, network)  # resolve aliases to the unified key
-            request['chain'] = currency['id'] + '-' + network
+            request['chain'] = self.safe_string(currency, 'id', '') + '-' + network
         omitKeys = ['fee']
         if network is not None:
             omitKeys.append('network')
@@ -6161,7 +6161,7 @@ class okx(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'instId')
         marketResolved = self.safe_market(marketId, market, None, 'contract')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
         side = self.safe_string_2(position, 'posSide', 'direction')
@@ -6173,7 +6173,7 @@ class okx(Exchange, ImplicitAPI):
                 posCcy = self.safe_string(position, 'posCcy')
                 parsedCurrency = self.safe_currency_code(posCcy)
                 if parsedCurrency is not None:
-                    side = 'long' if (marketResolved['base'] == parsedCurrency) else 'short'
+                    side = 'long' if (self.safe_string(marketResolved, 'base') == parsedCurrency) else 'short'
             if side is None:
                 side = self.safe_string(position, 'direction')
         else:
@@ -8621,7 +8621,7 @@ class okx(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         request = {
-            'uly': currency['code'] + '-USD',
+            'uly': self.safe_string(currency, 'code', '') + '-USD',
             'instType': 'OPTION',
         }
         response = self.publicGetMarketTickers(self.extend(request, params))

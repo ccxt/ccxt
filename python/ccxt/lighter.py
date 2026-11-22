@@ -2393,7 +2393,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)
         currency = self.currency(code)
-        currencyCode = currency['code']
+        currencyCode = self.safe_string(currency, 'code', '')
         if (currencyCode != 'USDC') and (currencyCode != 'ETH'):
             raise ExchangeError(self.id + ' transfer() only supports USDC and ETH transfers')
         amountDecimals = '6' if (currencyCode == 'USDC') else '8'
@@ -2717,7 +2717,7 @@ class lighter(Exchange, ImplicitAPI):
         strApiKeyIndex = self.number_to_string(apiKeyIndex)
         signer = self.load_account(self.safe_integer(self.options, 'chainId'), self.get_lighter_private_key(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex)
         currency = self.currency(code)
-        currencyCode = currency['code']
+        currencyCode = self.safe_string(currency, 'code', '')
         if (currencyCode != 'USDC') and (currencyCode != 'ETH'):
             raise ExchangeError(self.id + ' withdraw() only supports USDC and ETH transfers')
         amountDecimals = '6' if (currencyCode == 'USDC') else '8'

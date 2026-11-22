@@ -2274,7 +2274,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             rawOrder = self.safe_dict(orders, i)
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             type = self.safe_string_upper(rawOrder, 'type')
             side = self.safe_string_upper(rawOrder, 'side')
             amount = self.safe_string(rawOrder, 'amount')
@@ -2680,7 +2680,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             id = self.safe_string(rawOrder, 'id')
             marketId = self.safe_string(rawOrder, 'symbol')
             market = self.market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             type = self.safe_string_upper(rawOrder, 'type')
             isMarket = (type == 'MARKET')
             side = self.safe_string_upper(rawOrder, 'side')

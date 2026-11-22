@@ -1446,11 +1446,13 @@ class kraken(Exchange, ImplicitAPI):
         orderId = None
         fee = None
         symbol = None
-        isOrderTrade = (not isinstance(trade, list)) and (not isinstance(trade, str)) and (self.safe_string(trade, 'ordertxid') is not None)
+        tradeIsList = isinstance(trade, list)
+        tradeIsString = isinstance(trade, str)
+        isOrderTrade = (not tradeIsList) and (not tradeIsString) and (self.safe_string(trade, 'ordertxid') is not None)
         marketResolved = market
         if isOrderTrade:
             marketResolved = self.resolve_market_by_altname_or_id(self.safe_string(trade, 'pair'), market)
-        if isinstance(trade, list):
+        if tradeIsList:
             timestamp = self.safe_timestamp(trade, 2)
             side = 'sell' if (self.safe_string(trade, 3) == 's') else 'buy'
             type = 'limit' if (self.safe_string(trade, 4) == 'l') else 'market'
@@ -1459,7 +1461,7 @@ class kraken(Exchange, ImplicitAPI):
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = self.safe_string(trade, 6)  # artificially added as per #1794
-        elif isinstance(trade, str):
+        elif tradeIsString:
             id = trade
         elif isOrderTrade:
             orderId = self.safe_string(trade, 'ordertxid')

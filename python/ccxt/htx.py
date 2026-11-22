@@ -2525,7 +2525,7 @@ class htx(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string_2(trade, 'contract_code', 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_n(trade, ['ts', 'created-at', 'created_at', 'create_date', 'created_time'])
         order = self.safe_string_2(trade, 'order-id', 'order_id')
         side = self.safe_string_2(trade, 'direction', 'side')
@@ -3734,18 +3734,15 @@ class htx(Exchange, ImplicitAPI):
         return self.parse_order(order, market)
 
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict) -> dict:
-        account = None
+        account = self.account()
         if code in result:
-            account = self.safe_dict(result, code)
-        else:
-            account = self.account()
-        if account is None:
-            raise ExchangeError(self.id + ' parseMarginBalanceHelper() could not resolve account')
+            account = self.safe_dict(result, code, {})
+        updates = {}
         if self.safe_string(balance, 'type') == 'trade':
-            account['free'] = self.safe_string(balance, 'balance')
+            updates['free'] = self.safe_string(balance, 'balance')
         if self.safe_string(balance, 'type') == 'frozen':
-            account['used'] = self.safe_string(balance, 'balance')
-        return account
+            updates['used'] = self.safe_string(balance, 'balance')
+        return self.extend(account, updates)
 
     def fetch_spot_orders_by_states(self, states: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
@@ -6345,7 +6342,7 @@ class htx(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
-            'currency': currency['id'].lower(),
+            'currency': self.safe_string_lower(currency, 'id', ''),
         }
         if tagValue is not None:
             request['addr-tag'] = tagValue  # only for XRP?
@@ -6783,11 +6780,10 @@ class htx(Exchange, ImplicitAPI):
                     'datetime': self.iso8601(timestamp),
                 })
         else:
-            cursor = self.safe_value(data, 'current_page')
+            cursor = self.safe_string(data, 'current_page')
             result = self.safe_list(data, 'data', [])
             for i in range(0, len(result)):
-                entry = result[i]
-                entry['current_page'] = cursor
+                entry = self.extend(result[i], {'current_page': cursor})
                 marketId = self.safe_string(entry, 'contract_code')
                 symbolInner = self.safe_symbol(marketId)
                 timestamp = self.safe_integer(entry, 'funding_time')
@@ -7534,7 +7530,7 @@ class htx(Exchange, ImplicitAPI):
         #     }
         #
         marketResolved = self.safe_market(self.safe_string(position, 'contract_code'))
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         contracts = self.safe_string(position, 'volume')
         contractSize = self.safe_number(marketResolved, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)

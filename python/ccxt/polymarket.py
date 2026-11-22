@@ -917,9 +917,9 @@ class polymarket(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
-        paginate = False
         paramsOmitted = params
-        paginate, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'fetchOHLCV', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsOmitted, 'fetchOHLCV', 'paginate', False)
+        paramsOmitted = paramsPaginate
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000)
         market = self.market(symbol)
@@ -1064,9 +1064,9 @@ class polymarket(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
-        paginate = False
         paramsOmitted = params
-        paginate, paramsOmitted = self.handle_option_and_params(paramsOmitted, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsOmitted, 'fetchFundingRateHistory', 'paginate', False)
+        paramsOmitted = paramsPaginate
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100)
         market = self.market(symbol)
@@ -2292,7 +2292,7 @@ class polymarket(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             row = self.safe_dict(response, i, {})
             rowId = self.safe_string(row, 'instrument_id')
-            if rowId == market['id']:
+            if rowId == self.safe_string(market, 'id'):
                 return self.parse_leverage(row, market)
         raise BadSymbol(self.id + ' fetchLeverage() could not find the configuration for ' + symbol)
 

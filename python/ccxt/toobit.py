@@ -1255,10 +1255,11 @@ class toobit(Exchange, ImplicitAPI):
             request['endTime'] = min(since - (1 - durationMs * limit), self.milliseconds())
         if limit is not None:
             request['limit'] = limit
-        response = []
+        candles = []
         if endpoint == 'index':
             request['symbol'] = self.safe_string(market['info'], 'indexToken')  # index klines take the index id instead of the market id
-            response = self.commonGetQuoteV1IndexKlines(self.extend(request, paramsPrice))
+            indexResponse = self.commonGetQuoteV1IndexKlines(self.extend(request, paramsPrice))
+            candles = self.safe_list(indexResponse, 'data', [])
             #
             #     {
             #         "code": 200,
@@ -1287,7 +1288,8 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             #
         elif endpoint == 'mark':
-            response = self.commonGetQuoteV1MarkPriceKlines(self.extend(request, paramsPrice))
+            markResponse = self.commonGetQuoteV1MarkPriceKlines(self.extend(request, paramsPrice))
+            candles = self.safe_list(markResponse, 'data', [])
             #
             #     {
             #         "code": 200,
@@ -1306,7 +1308,7 @@ class toobit(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            response = self.commonGetQuoteV1Klines(self.extend(request, paramsPrice))
+            candles = self.commonGetQuoteV1Klines(self.extend(request, paramsPrice))
             #
             #    [
             #        [
@@ -1324,11 +1326,6 @@ class toobit(Exchange, ImplicitAPI):
             #        ],
             #        ...
             #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        else:
-            candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
@@ -2765,7 +2762,9 @@ class toobit(Exchange, ImplicitAPI):
         tagFrom = self.safe_string(transaction, 'fromAddressTag')
         addressTo = self.safe_string(transaction, 'address')
         addressFrom = self.safe_string(transaction, 'fromAddress')
-        isWithdraw = ('arriveQuantity' in transaction) or ('success' in transaction)
+        arriveQuantity = self.safe_string(transaction, 'arriveQuantity')
+        success = self.safe_bool(transaction, 'success')
+        isWithdraw = (arriveQuantity is not None) or (success is not None)
         type = 'withdrawal' if isWithdraw else 'deposit'
         return {
             'info': transaction,
