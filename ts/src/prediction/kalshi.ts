@@ -905,7 +905,7 @@ export default class kalshi extends Exchange {
         //     }
         //
         const outcomeObj = this.safeOutcome (this.safeString (market, 'outcome'), market);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (this.safeDict (market, 'info'), 'outcomeLabel', 'YES')) : 'YES';
         const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
