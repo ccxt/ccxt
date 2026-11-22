@@ -2294,7 +2294,12 @@ function wsHashPrefixes (node, scope, params, depth) {
             }
             return any;
         }
-        const out = writes.flatMap ((w) => wsHashPrefixes (w, scope, params, depth + 1));
+        // a self-append extends x's other values; repeated appends make every result a prefix only
+        const selfAppends = writes.selfAppends ?? [];
+        const own = writes.filter ((w) => !selfAppends.includes (w)).flatMap ((w) => wsHashPrefixes (w, scope, params, depth + 1));
+        const out = own.concat (selfAppends.flatMap ((w) => wsSelfAppendTail (w, node.text).reduce ((acc, operand) => acc.flatMap ((left) => (!left.exact) ? [ left ]
+            : wsHashPrefixes (operand, scope, params, depth + 1).map ((right) => ({ 'lit': left.lit + right.lit, 'exact': right.exact }))), own)
+            .map ((h) => ({ ...h, 'exact': false }))));
         return writes.appended ? out.map ((h) => ({ ...h, 'exact': false })) : out;
     }
     }
@@ -2308,6 +2313,7 @@ function wsIdentifierWrites (identifier, scope) {
         return undefined;
     }
     const values = [];
+    const selfAppends = [];
     let declared = 0;
     let bad = false;
     let appended = false;
@@ -2332,6 +2338,9 @@ function wsIdentifierWrites (identifier, scope) {
                 appended = true; // `x += y` keeps x's own leading literal
             } else if (n.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
                 bad = true;
+            } else if (wsSelfAppendTail (n.right, identifier.text) !== undefined) {
+                values.push (n.right);
+                selfAppends.push (n.right); // `x = x + a + b`: x's own values extended by the tail
             } else {
                 values.push (n.right);
             }
@@ -2343,7 +2352,19 @@ function wsIdentifierWrites (identifier, scope) {
         return undefined;
     }
     values.appended = appended;
+    values.selfAppends = selfAppends;
     return values;
+}
+
+// `x + a + b` -> [ a, b ] when the leftmost operand of the `+` chain is x itself, else undefined
+function wsSelfAppendTail (node, name) {
+    const tail = [];
+    let left = node;
+    while (left?.kind === ts.SyntaxKind.BinaryExpression && left.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
+        tail.unshift (left.right);
+        left = left.left;
+    }
+    return (tail.length > 0 && left?.kind === ts.SyntaxKind.Identifier && left.text === name) ? tail : undefined;
 }
 
 // prefixes of a hash LIST: array literal elements, or a local list's literal / pushed elements
