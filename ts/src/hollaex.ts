@@ -698,7 +698,8 @@ export default class hollaex extends Exchange {
 
     override parseTickers (tickers: any, symbols: Strings = undefined, params: Dict = {}): Tickers {
         const result: Dict = {};
-        const keys = Object.keys (tickers);
+        const tickersDict: Dict = this.extend ({}, tickers);
+        const keys = Object.keys (tickersDict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const ticker = this.safeDict (tickers, key, {});

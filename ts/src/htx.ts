@@ -1559,7 +1559,8 @@ export default class htx extends Exchange {
         [ types, paramsTypes ] = this.handleOptionAndParams (params, 'fetchMarkets', 'types', {});
         let allMarkets: List = [];
         const promises: List = [];
-        const keys = Object.keys (types);
+        const typesDict: Dict = this.extend ({}, types);
+        const keys = Object.keys (typesDict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (this.safeBool (types, key, false)) {

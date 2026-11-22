@@ -5701,7 +5701,8 @@ export default class okx extends Exchange {
             return this.safeDict (response, codeNetwork) as DepositAddress;
         }
         // if the network is not specified, return the first address
-        const keys = Object.keys (response);
+        const responseDict: Dict = this.extend ({}, response);
+        const keys = Object.keys (responseDict);
         const first = this.safeString (keys, 0, '');
         return this.safeDict (response, first) as DepositAddress;
     }
