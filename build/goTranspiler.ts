@@ -4984,7 +4984,7 @@ function goArithAsFloat (text: string, kind: Kind): string {
 }
 
 // the native text for one helper call, or undefined to keep the helper
-function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: string, kind: Kind } | undefined {
+function goArithNative (helper: string, args: string[], kinds: Kind[], powDivisor = false): { text: string, kind: Kind } | undefined {
     const [ a, b ] = args;
     const [ ka, kb ] = kinds;
     if (helper === 'OpNeg') {
@@ -5033,7 +5033,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: 
     if (helper === 'Divide') {
         // JS division is float; a zero divisor is the helper's nil, so only a nonzero constant divides
         const divisor = (kb === 'ilit') ? goArithIntLiteralValue (b) : ((kb === 'flit') ? Number (b) : undefined);
-        if (((kb === 'i64') || (kb === 'f64') || (kb === 'int')) && goPositiveDivisorLiteral (b) && ((ka === 'i64') || (ka === 'f64') || (ka === 'int') || (ka === 'ilit'))) {
+        if (((kb === 'i64') || (kb === 'f64') || (kb === 'int')) && (goPositiveDivisorLiteral (b) || powDivisor) && ((ka === 'i64') || (ka === 'f64') || (ka === 'int') || (ka === 'ilit'))) {
             return { 'text': '(' + goArithAsFloat (a, ka === 'ilit' ? 'f64' : ka) + ' / ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
         }
         if ((divisor === undefined) || (divisor === 0) || !((ka === 'i64') || (ka === 'f64') || (ka === 'int'))) {
@@ -5095,7 +5095,7 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
             }
             return /^[\w.]+$|^[\w.]+\(.*\)$|^-?\d+(?:\.\d+)?$/.test (t) && (goArithClose (goArithMask (t), t.indexOf ('(')) === t.length - 1 || t.indexOf ('(') < 0) ? t : '(' + t + ')';
         });
-        const native = goArithNative (call.helper, operands, kinds);
+        const native = goArithNative (call.helper, operands, kinds, goPowOfTenDivisor (scope, operands[1]));
         if (native === undefined) {
             continue;
         }
@@ -5338,10 +5338,24 @@ function goNegLiteralCompare (before: string, after: string, kind: Kind, operand
     return (type === 'int64') || (type === 'int') || (type === 'float64');
 }
 
+// a float64 local written only as math.Pow(10, float64(n)) with n an int local set from len(..): at least 1, never zero
+function goPowOfTenDivisor (scope: GoArithScope, operand: string | undefined): boolean {
+    const name = (operand ?? '').trim ();
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== 'float64')) {
+        return false;
+    }
+    const init = new RegExp ('\\bvar\\s+' + name + '\\s+float64\\s*=\\s*(?:math\\.Pow\\(10, float64\\(([A-Za-z_]\\w*)\\)\\)|MathPow\\(10, ([A-Za-z_]\\w*)\\))\\s*(?:\\n|$)').exec (scope.masked + '\n');
+    const n = init ? (init[1] ?? init[2]) : '';
+    if (!init || !goSingleWrite (scope, name) || !goSingleWrite (scope, n)) {
+        return false;
+    }
+    return new RegExp ('\\bvar\\s+' + n + '\\s+int\\s*=\\s*len\\([^()\\n]*\\)(?:\\s*\\+\\s*\\d+)?\\s*(?://[^\\n]*)?(?:\\n|$)').test (scope.masked + '\n');
+}
+
 // divisor names the generated code only ever binds to positive periods / sizes (user-approved list)
 function goPositiveDivisorLiteral (operand: string): boolean {
     const name = operand.replace (/^\*/, '');
-    return /^(?:duration|timeframe\w*|pageSize|chunkSize|step|ms|week|day|hour|minute|second|leverage|streamLimit|denominator)$/.test (name);
+    return /^(?:duration|timeframe\w*|pageSize|chunkSize|step|ms|week|day|hour|minute|second|leverage|streamLimit)$/.test (name);
 }
 
 function goIntegralArithmeticSelfTest (): string[] {
@@ -6312,7 +6326,7 @@ function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
     }
     const name = t.replace (/^\*/, '');
     if (/^[A-Za-z_]\w*$/.test (name)) {
-        if (goPositiveDivisorLiteral (name)) {
+        if (goPositiveDivisorLiteral (name) || goPowOfTenDivisor (scope, name)) {
             return true;
         }
         if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (goArithDeclaredType (scope.masked, scope.signature, name) !== undefined)) {
