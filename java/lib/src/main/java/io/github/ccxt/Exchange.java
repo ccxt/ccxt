@@ -228,7 +228,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchMarkPrices(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
+                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchMarkPrices() could not find a ticker for ") + symbolResolved)) ;
@@ -808,7 +808,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchTickersWs(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
+                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchTickerWs() could not find a ticker for ") + symbolResolved)) ;
@@ -900,7 +900,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             if (!java.util.Objects.equals(this.has.get("fetchOpenInterests"), null) && !java.util.Objects.equals(this.has.get("fetchOpenInterests"), false))
             {
                 OpenInterests openInterests = (this.fetchOpenInterests(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-                Map<String, Object> openInterest = (Map<String, Object>) this.safeDict(openInterests, symbol, (Object) null);
+                Map<String, Object> openInterest = this.safeDict(openInterests, symbol, null);
                 return openInterest;
             } else
             {
@@ -1020,7 +1020,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
                 Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(symbolResolved)), parameters)).join();
-                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, symbolResolved, (Object) null);
+                Map<String, Object> ticker = this.safeDict(tickers, symbolResolved, null);
                 if (java.util.Objects.equals(ticker, null))
                 {
                     throw new NullResponse(((this.id + " fetchTickers() could not find a ticker for ") + symbolResolved)) ;
@@ -1095,7 +1095,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
             // Promise<string> with Promise<Order['status']>.
             Order order = (this.fetchOrder(id, symbol, parameters)).join();
             return this.safeString(order, "status");
-        }).thenApply(res -> (String) res);
+        });
 
     }
 
@@ -1476,7 +1476,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
+            return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
         }).thenApply(Order::new);
 
     }
@@ -1719,7 +1719,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 throw new NotSupported((this.id + " fetchTradingFee() is not supported yet")) ;
             }
             TradingFees fees = (this.fetchTradingFees(parameters)).join();
-            Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, symbol, (Object) null);
+            Map<String, Object> fee = this.safeDict(fees, symbol, null);
             return fee;
         }).thenApply(TradingFeeInterface::new);
 

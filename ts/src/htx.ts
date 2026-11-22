@@ -6,7 +6,7 @@ import Exchange from './abstract/htx.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, OperationFailed, NotSupported, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, NullableDict, FeeString, List, NullableList, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, MarketInterface, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL, OpenInterest, Bool, SubType, CurrencyInterface, DepositWithdrawFees, Status, MarginLoan, Endpoint, DepositAddresses, LastPrice, LastPrices, Liquidation, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2900,9 +2900,9 @@ export default class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        let trades = this.safeValue (response, 'data');
-        if (!Array.isArray (trades)) {
-            trades = this.safeList (trades, 'trades');
+        let trades = this.safeList (response, 'data');
+        if (trades === undefined) {
+            trades = this.safeList (this.safeDict (response, 'data'), 'trades', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -3906,8 +3906,10 @@ export default class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data');
-        const order = Array.isArray (rawOrder) ? this.safeDict (rawOrder, 0) : rawOrder;
+        let order = this.safeDict (response, 'data');
+        if (order === undefined) {
+            order = this.safeDict (this.safeList (response, 'data', []), 0, {});
+        }
         return this.parseOrder (order, market);
     }
 
@@ -4161,8 +4163,10 @@ export default class htx extends Exchange {
                 }
             }
         }
-        const rawOrders = this.safeValue (response, 'data');
-        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
+        let orders = this.safeList (response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList (this.safeDict (response, 'data'), 'orders', []);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -4706,8 +4710,10 @@ export default class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        const rawOrders = this.safeValue (response, 'data');
-        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
+        let orders = this.safeList (response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList (this.safeDict (response, 'data'), 'orders', []);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5004,7 +5010,7 @@ export default class htx extends Exchange {
             };
         }
         const average = this.safeString (order, 'trade_avg_price');
-        const trades = this.safeValue (order, 'trades');
+        const trades = this.safeList (order, 'trades');
         let reduceOnly: Bool = undefined;
         if (isLinearOrder) {
             reduceOnly = this.safeBool (order, 'reduce_only');
@@ -5766,12 +5772,12 @@ export default class htx extends Exchange {
         //     }
         //
         //
-        let result: NullableDict = undefined;
+        let result: NullableList = undefined;
         if (this.safeBool (market, 'spot', false)) {
             result = this.safeList (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data');
-            if (Array.isArray (data)) {
+            const data = this.safeList (response, 'data');
+            if (data !== undefined) {
                 result = data;
             } else {
                 const batchData = this.safeDict (response, 'data', {});
@@ -6208,7 +6214,7 @@ export default class htx extends Exchange {
         } else {
             success = this.safeList (orders, 'success', []);
         }
-        const failed = this.safeList2 (orders, 'errors', 'failed', []);
+        const failed: Dict[] = this.safeList2 (orders, 'errors', 'failed', []);
         const data: Dict[] = this.safeList (orders, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
@@ -7164,6 +7170,7 @@ export default class htx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate, linear swaps only
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -7171,14 +7178,17 @@ export default class htx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
+        if (paginate) {
+            if (market['linear']) {
+                return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100) as FundingRateHistory[];
+            }
+            return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
+        }
         const request: Dict = {
             'contract_code': market['id'],
         };
@@ -7222,7 +7232,8 @@ export default class htx extends Exchange {
             //     }
             //
         } else if (this.safeBool (market, 'linear', false)) {
-            response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (request, paramsPaginate));
+            const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
+            response = await this.contractPublicGetV5MarketFundingRateHistory (this.extend (requestUntil, paramsUntil));
             //
             //     {
             //         "code": 200,
@@ -7279,7 +7290,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         // inverse swap
         //
@@ -7531,7 +7542,7 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         const interest = this.parseBorrowInterests (data, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }

@@ -1,25 +1,36 @@
-// Exchange-agnostic code via the built-in `ccxt::TypedExchange` trait — the
-// Rust analog of a C#/Go `IExchange`. Every typed wrapper (ccxt::Binance,
-// ccxt::Kraken, …) implements it, so you can be generic OR dynamic over
-// exchanges with native typed returns. Compile-check only.
-// `TypedExchange` = object-safe core (call_raw + load_markets, enables
-// `Box<dyn ...>`); `TypedExchangeExt` = the typed methods (fetch_ticker, …),
-// blanket-implemented for every `TypedExchange`. Import both to call them.
-use ccxt::Params;
-use ccxt::{Binance, Kraken, TypedExchange, TypedExchangeExt};
+// Exchange-agnostic code via the built-in `ccxt::TypedExchange` bound — the
+// Rust analog of a C#/Go `IExchange`. Every exchange (ccxt::Binance,
+// ccxt::Kraken, …) implements it, so one generic function serves every venue
+// with native typed returns. Compile-check only.
+use ccxt::{Binance, ExchangeVisitor, Kraken, Params, TypedExchange};
 
 // ── A. generic (static dispatch) ─────────────────────────────────────────────
 async fn last_price<E: TypedExchange>(ex: &mut E, symbol: &str) -> Option<f64> {
-    ex.load_markets(false).await;
+    ex.load_markets(false, ()).await.ok()?;
     ex.fetch_ticker(symbol, Params::none()).await.ok()?.last
 }
 
-// ── B. dynamic (runtime selection, heterogeneous collection) ─────────────────
-fn create(id: &str) -> Option<Box<dyn TypedExchange>> {
-    match id {
-        "binance" => Some(Box::new(Binance::new(None))),
-        "kraken" => Some(Box::new(Kraken::new(None))),
-        _ => None,
+async fn report<E: TypedExchange>(ex: &mut E) {
+    if ex.load_markets(false, ()).await.is_err() {
+        return;
+    }
+    if let Ok(t) = ex.fetch_ticker("BTC/USDT", Params::none()).await {
+        println!("{} last={:?}", t.symbol, t.last);
+    }
+    // Unsupported methods resolve to a NotSupported error at runtime:
+    match ex.fetch_deposit_addresses(None, Params::none()).await {
+        Ok(addrs) => println!("{} deposit addresses", addrs.len()),
+        Err(e) => println!("unsupported: {e}"),
+    }
+}
+
+// ── B. runtime selection by id: the venue is handed to a generic visitor ─────
+struct Report;
+
+impl ExchangeVisitor for Report {
+    type Output = ();
+    async fn visit<E: TypedExchange + 'static>(self, mut ex: E) {
+        report(&mut ex).await
     }
 }
 
@@ -29,20 +40,14 @@ async fn demo() {
     let mut b = Binance::new(None);
     let _last: Option<f64> = last_price(&mut b, "BTC/USDT").await;
 
-    // B: dynamic — mixed exchanges chosen at runtime, still typed returns
-    let mut venues: Vec<Box<dyn TypedExchange>> = ["binance", "kraken"]
-        .iter()
-        .filter_map(|id| create(id))
-        .collect();
-    for ex in &mut venues {
-        ex.load_markets(false).await;
-        if let Ok(t) = ex.fetch_ticker("BTC/USDT", Params::none()).await {
-            println!("{} last={:?}", t.symbol, t.last);
-        }
-        // Unsupported methods resolve to a NotSupported error at runtime:
-        match ex.fetch_deposit_addresses(None, Params::none()).await {
-            Ok(addrs) => println!("{} deposit addresses", addrs.len()),
-            Err(e) => println!("unsupported: {e}"),
+    // A': a fixed set of different venues is a tuple, each call monomorphised
+    let (mut b, mut k) = (Binance::new(None), Kraken::new(None));
+    futures::join!(report(&mut b), report(&mut k));
+
+    // B: venues chosen at runtime by id, still typed returns
+    for id in ["binance", "kraken"] {
+        if ccxt::exchanges::with_exchange(id, None, Report).await.is_none() {
+            println!("{id} not compiled in");
         }
     }
 }

@@ -2803,9 +2803,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1781066959396
         #     }
         #
-        trades = self.safe_value(response, 'data')
-        if not isinstance(trades, list):
-            trades = self.safe_list(trades, 'trades')
+        trades = self.safe_list(response, 'data')
+        if trades is None:
+            trades = self.safe_list(self.safe_dict(response, 'data'), 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params: dict = {}) -> list[Trade]:
@@ -3717,8 +3717,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1780967407144
         #     }
         #
-        rawOrder = self.safe_value(response, 'data')
-        order = self.safe_dict(rawOrder, 0) if isinstance(rawOrder, list) else rawOrder
+        order = self.safe_dict(response, 'data')
+        if order is None:
+            order = self.safe_dict(self.safe_list(response, 'data', []), 0, {})
         return self.parse_order(order, market)
 
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict) -> dict:
@@ -3946,8 +3947,9 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostApiV1ContractTrackHisorders(self.extend(request, paramsUntil))
                 else:
                     response = await self.contractPrivatePostApiV3ContractHisorders(self.extend(request, paramsUntil))
-        rawOrders = self.safe_value(response, 'data')
-        orders = rawOrders if isinstance(rawOrders, list) else self.safe_list(rawOrders, 'orders', [])
+        orders = self.safe_list(response, 'data')
+        if orders is None:
+            orders = self.safe_list(self.safe_dict(response, 'data'), 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -4449,8 +4451,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1780739390596
         #     }
         #
-        rawOrders = self.safe_value(response, 'data')
-        orders = rawOrders if isinstance(rawOrders, list) else self.safe_list(rawOrders, 'orders', [])
+        orders = self.safe_list(response, 'data')
+        if orders is None:
+            orders = self.safe_list(self.safe_dict(response, 'data'), 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def parse_order_status(self, status: Str) -> Str:
@@ -4736,7 +4739,7 @@ class htx(Exchange, ImplicitAPI):
                 'currency': feeCurrency,
             }
         average = self.safe_string(order, 'trade_avg_price')
-        trades = self.safe_value(order, 'trades')
+        trades = self.safe_list(order, 'trades')
         reduceOnly = None
         if isLinearOrder:
             reduceOnly = self.safe_bool(order, 'reduce_only')
@@ -5408,8 +5411,8 @@ class htx(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'spot', False):
             result = self.safe_list(response, 'data', [])
         else:
-            data = self.safe_value(response, 'data')
-            if isinstance(data, list):
+            data = self.safe_list(response, 'data')
+            if data is not None:
                 result = data
             else:
                 batchData = self.safe_dict(response, 'data', {})
@@ -6690,17 +6693,20 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate, linear swaps only
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
-        if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        if paginate:
+            if market['linear']:
+                return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100)
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
         request = {
             'contract_code': market['id'],
         }
@@ -6740,7 +6746,8 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         elif self.safe_bool(market, 'linear', False):
-            response = await self.contractPublicGetV5MarketFundingRateHistory(self.extend(request, paramsPaginate))
+            requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
+            response = await self.contractPublicGetV5MarketFundingRateHistory(self.extend(requestUntil, paramsUntil))
             #
             #     {
             #         "code": 200,
@@ -6792,7 +6799,7 @@ class htx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # inverse swap
         #
@@ -7028,7 +7035,7 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 

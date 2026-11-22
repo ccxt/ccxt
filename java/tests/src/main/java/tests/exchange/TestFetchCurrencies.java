@@ -31,12 +31,12 @@ public class TestFetchCurrencies extends BaseTest {
         Object features = exchange.features;
         Object featuresSpot = exchange.safeDict(features, "spot", new HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new HashMap<String, Object>() {{}});
-        Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
-        if (!java.util.Objects.equals(isFetchCurrenciesPrivate, true))
+        boolean isFetchCurrenciesPrivate = Boolean.TRUE.equals(exchange.safeValue(fetchCurrencies, "private", false));
+        if (!isFetchCurrenciesPrivate)
         {
             List<Object> values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
-            Integer currenciesLength = ((List<?>)values).size();
+            Integer currenciesLength = values.size();
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
             Assert(Boolean.TRUE.equals(skipAmount) || (currenciesLength != null && currenciesLength > 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));
@@ -56,13 +56,13 @@ public class TestFetchCurrencies extends BaseTest {
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
                 String code = exchange.safeString(currency, "code");
-                Object withdraw = exchange.safeBool(currency, "withdraw", (Object) null);
-                Object deposit = exchange.safeBool(currency, "deposit", (Object) null);
+                boolean withdraw = Boolean.TRUE.equals(exchange.safeBool(currency, "withdraw", (Object) null));
+                boolean deposit = Boolean.TRUE.equals(exchange.safeBool(currency, "deposit", (Object) null));
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
                 Boolean skipUsdtForMica = Helpers.isTrue((isMicaCompliant)) && (java.util.Objects.equals(code, "USDT"));
                 if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!Boolean.TRUE.equals(skipUsdtForMica)))
                 {
-                    Assert((java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
+                    Assert((withdraw) && (deposit), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
@@ -79,7 +79,7 @@ public class TestFetchCurrencies extends BaseTest {
         // detect if there are currencies with different ids for the same code
         Map<String, Object> ids = new HashMap<String, Object>() {{}};
         List<Object> keys = Helpers.objectKeys(currencyValues);
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object currency = Helpers.GetValue(currencyValues, key);

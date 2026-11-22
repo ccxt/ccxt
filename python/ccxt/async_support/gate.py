@@ -2236,7 +2236,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #    {
         #        "name": "BTC_USDT",
@@ -2906,7 +2906,7 @@ class gate(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'option', False):
             optionMarketId = self.safe_string(market, 'id')
             for i in range(0, len(response)):
-                entry = response[i]
+                entry = self.safe_dict(response, i)
                 entryName = self.safe_string(entry, 'name')
                 if entryName == optionMarketId:
                     ticker = entry
@@ -3459,7 +3459,7 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
@@ -5304,7 +5304,7 @@ class gate(Exchange, ImplicitAPI):
         spot = (type == 'spot') or (type == 'margin')
         openStatus = (status == 'open')
         openSpotOrders = spot and openStatus and (trigger is not True)
-        response: dict | List
+        response: List
         if spot:
             if trigger is not True:
                 if openStatus:
@@ -5731,7 +5731,7 @@ class gate(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, paramsOmitted)
         request, requestParams = self.multi_order_spot_prepare_request(market, trigger, query) if (type == 'spot') else self.prepare_request(market, type, query)
-        response: dict
+        response: List
         if type == 'spot' or type == 'margin':
             if trigger is True:
                 response = await self.privateSpotDeletePriceOrders(self.extend(request, requestParams))
@@ -6675,7 +6675,7 @@ class gate(Exchange, ImplicitAPI):
             requestUntil['from'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        response = None
+        response: List
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBorrowInterest', paramsUntil, 'cross')
         if isUnifiedAccount:
             response = await self.privateUnifiedGetInterestRecords(self.extend(requestUntil, paramsMarginMode))
@@ -6683,8 +6683,8 @@ class gate(Exchange, ImplicitAPI):
             if market is not None:
                 requestUntil['currency_pair'] = market['id']
             response = await self.privateMarginGetUniInterestRecords(self.extend(requestUntil, paramsMarginMode))
-        elif marginMode == 'cross':
-            # deprecated and not present in the exchange's docs but still works
+        else:
+            # cross: deprecated and not present in the exchange's docs but still works
             response = await self.privateMarginGetCrossInterestRecords(self.extend(requestUntil, paramsMarginMode))
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
@@ -7647,19 +7647,21 @@ class gate(Exchange, ImplicitAPI):
         if quoteValueString is None:
             quoteValueString = Precise.string_mul(baseValueString, priceString)
         # --- derive side ---
+        # gate reports the liquidated position (size > 0 or 'long' is a long position), the unified side
+        # is the side of the liquidation order: a long is closed by a sell, a short by a buy
         # 1) options payload has explicit 'side': 'long' | 'short'
         optPos = self.safe_string_lower(liquidation, 'side')
         side = None
         if optPos == 'long':
-            side = 'buy'
-        elif optPos == 'short':
             side = 'sell'
+        elif optPos == 'short':
+            side = 'buy'
         else:
             if size is not None:  # 2) futures/perpetual (and fallback for options): infer from size
                 if Precise.string_gt(size, '0'):
-                    side = 'buy'
-                elif Precise.string_lt(size, '0'):
                     side = 'sell'
+                elif Precise.string_lt(size, '0'):
+                    side = 'buy'
         return self.safe_liquidation({
             'info': liquidation,
             'symbol': self.safe_symbol(marketId, market),

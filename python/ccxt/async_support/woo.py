@@ -2745,7 +2745,7 @@ class woo(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(self.extend(data, {'network': self.safe_string(request, 'network')}), currency)
 
-    def get_dedicated_network_id(self, currency: dict, params: dict) -> list:
+    def get_dedicated_network_id(self, currency: Currency, params: dict) -> list:
         networkCodeRaw, paramsNetworkCode = self.handle_network_code_and_params(params)
         networks = self.safe_dict(currency, 'networks', {})
         currencyCode = self.safe_string(currency, 'code', '')
@@ -2769,7 +2769,7 @@ class woo(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositEntry, 'extra'),
         }
 
-    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
+    async def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -2825,7 +2825,8 @@ class woo(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return [currency, self.safe_list(data, 'rows', [])]
+        rows = self.safe_list(data, 'rows', [])
+        return rows
 
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[LedgerEntry]:
         """
@@ -2839,9 +2840,10 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        currencyRows = await self.get_asset_history_rows(code, since, limit, params)
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = await self.get_asset_history_rows(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2963,9 +2965,10 @@ class woo(Exchange, ImplicitAPI):
         request = {
             'type': 'BALANCE',
         }
-        currencyRows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1, [])
+        rows = await self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_transactions(rows, currency, since, limit, self.omit(params, 'tokenSide'))
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -3482,7 +3485,7 @@ class woo(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_incomes(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -3883,7 +3886,7 @@ class woo(Exchange, ImplicitAPI):
             return await self.v3PrivatePutFuturesLeverage(self.extend(request, paramsMarginMode))
         else:
             marketType = self.safe_string(market, 'type', '')
-            raise NotSupported(self.id + ' fetchLeverage() is not supported for ' + marketType + ' markets')
+            raise NotSupported(self.id + ' setLeverage() is not supported for ' + marketType + ' markets')
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

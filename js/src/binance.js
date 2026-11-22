@@ -385,6 +385,7 @@ export default class binance extends Exchange {
                         'sub-account/universalTransfer': { 'cost': 0.1 },
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': { 'cost': 1 },
                         'sub-account/transaction-statistics': { 'cost': 0.40002 }, // Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': { 'cost': 0.1 },
                         'managed-subaccount/accountSnapshot': { 'cost': 240 },
@@ -588,6 +589,8 @@ export default class binance extends Exchange {
                         'margin/max-leverage': { 'cost': 300 }, // Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': { 'cost': 0.1 },
                         'sub-account/virtualSubAccount': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 },
+                        'sub-account/subAccountApiPermission': { 'cost': 20.001 },
                         'sub-account/margin/transfer': { 'cost': 4.0002 }, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': { 'cost': 0.1 },
                         'sub-account/futures/enable': { 'cost': 0.1 },
@@ -728,6 +731,7 @@ export default class binance extends Exchange {
                         'broker/subAccountApi/ipRestriction/ipList': { 'cost': 1 },
                         'algo/spot/order': { 'cost': 0.1 },
                         'algo/futures/order': { 'cost': 0.1 },
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -747,6 +751,7 @@ export default class binance extends Exchange {
                     },
                     'post': {
                         'eth-staking/eth/stake': { 'cost': 15 }, // Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': { 'cost': 20.001 }, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay': { 'cost': 40.002 }, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -3203,7 +3208,7 @@ export default class binance extends Exchange {
         const responseCurrencies = this.safeValue(results, 0);
         let marginablesById = undefined;
         if (fetchMargins) {
-            const responseMarginables = this.safeValue(results, 1);
+            const responseMarginables = this.safeList(results, 1);
             marginablesById = this.indexBy(responseMarginables, 'assetName');
         }
         return this.parseCurrenciesCustom(responseCurrencies, marginablesById);
@@ -5022,7 +5027,7 @@ export default class binance extends Exchange {
     parseTickersForRolling(response, symbols) {
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = this.safeString(this.safeValue(response, i), 'symbol');
+            const marketId = this.safeString(this.safeDict(response, i), 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, 'spot');
             const parsedTicker = this.parseTicker(this.safeValue(response, i));
             parsedTicker['symbol'] = tickerMarket['symbol'];
@@ -6882,7 +6887,17 @@ export default class binance extends Exchange {
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = marketResolved['symbol'];
         const filled = this.safeStringN(order, ['executedQty', 'filledQty', 'actualQty'], '0'); // actualQty: algo orders
-        const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt']); // order of the keys matters here
+        let timestamp = this.safeInteger2(order, 'time', 'createTime'); // order of the keys matters here
+        if (timestamp === undefined) {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            const workingTime = this.safeInteger(order, 'workingTime');
+            if ((workingTime !== undefined) && (workingTime > 0)) {
+                timestamp = workingTime;
+            }
+            else {
+                timestamp = this.safeIntegerN(order, ['transactTime', 'updateTime', 'createdAt']);
+            }
+        }
         let lastTradeTimestamp = undefined;
         if (('transactTime' in order) || ('updateTime' in order) || ('updatedAt' in order)) {
             const timestampValue = this.safeIntegerN(order, ['updateTime', 'transactTime', 'updatedAt']);
@@ -8132,7 +8147,8 @@ export default class binance extends Exchange {
                 response = await this.sapiGetMarginAllOrders(this.extend(request, paramsPaginate));
             }
             else if (stock) {
-                response = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                const equityResponse = await this.sapiGetEquityOrderHistory(this.extend(request, paramsPaginate));
+                response = this.safeList(equityResponse, 'rows', []);
             }
             else {
                 response = await this.privateGetAllOrders(this.extend(request, paramsPaginate));
@@ -8344,10 +8360,6 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        if (stock) {
-            const result = this.safeList(response, 'rows', []);
-            return this.parseOrders(result, market, since, limitResolved);
-        }
         return this.parseOrders(response, market, since, limitResolved);
     }
     /**
@@ -11228,8 +11240,8 @@ export default class binance extends Exchange {
             const linearFees = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, 'linear'), 'trading'), 'tiers');
-            const maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11264,8 +11276,8 @@ export default class binance extends Exchange {
             const inverseFees = {};
             const feeTier = this.safeInteger(response, 'feeTier');
             const feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, 'inverse'), 'trading'), 'tiers');
-            const maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11387,7 +11399,7 @@ export default class binance extends Exchange {
         const request = {};
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);
@@ -11466,7 +11478,7 @@ export default class binance extends Exchange {
         const type = this.safeString(params, 'type', defaultType);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit(paramsSubType, 'type');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetPremiumIndex(query);
         }
@@ -11704,7 +11716,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -11934,7 +11946,7 @@ export default class binance extends Exchange {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeValue(bracket, 0))) {
+            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -13747,9 +13759,37 @@ export default class binance extends Exchange {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
         }
+        // sometimes it throws this error when providing tickers to fetchTickers
+        // <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+        // <HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+        // <TITLE>ERROR: The request could not be satisfied</TITLE>
+        // </HEAD><BODY>
+        // <H1>414 ERROR</H1>
+        // <H2>The request could not be satisfied.</H2>
+        // <HR noshade size="1px">
+        // Bad request.
+        // We can't connect to the server for this app or website at this time. There might be too much traffic or a configuration error. Try again later, or contact the app or website owner.
+        // <BR clear="all">
+        // If you provide content to customers through CloudFront, you can find steps to troubleshoot and help prevent this error by reviewing the CloudFront documentation.
+        // <BR clear="all">
+        // <HR noshade size="1px">
+        // <PRE>
+        // Generated by cloudfront (CloudFront)
+        // Request ID: ATZljS05bVwYoz1qziqrosYudg-svv4jHXZsFZVH6pM-TNgk0xp-GQ==
+        // </PRE>
+        // <ADDRESS>
+        // </ADDRESS>
+        // </BODY></HTML>
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
+        // only for http codes without a typed error in httpExceptions (e.g. 414), so 403/502/503/504 html pages keep their retryable errors from handleHttpStatusCode
+        const httpCodeString = code.toString();
+        const isMappedHttpCode = (httpCodeString in this.httpExceptions);
+        // matching 'DOCTYPE HTML' at index 2 instead of startsWith ('<!DOCTYPE HTML'), because the "!" inside the literal gets transpiled to "not" in python
+        if (!isMappedHttpCode && (body !== undefined) && (body.indexOf('DOCTYPE HTML') === 2)) {
+            throw new ExchangeError(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
+        }
         if ((code >= 400) && (body !== undefined)) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder(this.id + ' order cost = amount * price is zero or less ' + body);
@@ -14349,7 +14389,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList(response, 'rows');
+        const rows = this.safeList(response, 'rows', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -15967,7 +16007,7 @@ export default class binance extends Exchange {
         }
         const type = 'swap';
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');
-        let response = undefined;
+        let response;
         if (this.isLinear(type, subType)) {
             response = await this.fapiPublicGetFundingInfo(paramsSubType);
         }

@@ -1,7 +1,7 @@
 # CCXT – CryptoCurrency eXchange Trading Library
 
 > Unified cryptocurrency trading API for 100+ exchanges.
-> JavaScript/TypeScript, Python, PHP, C#, Go and Java. REST and WebSocket.
+> JavaScript/TypeScript, Python, PHP, C#, Go, Java and Rust. REST and WebSocket.
 
 CCXT provides a single, consistent API to interact with cryptocurrency exchanges for market data, trading, and account management. The same code structure works across all supported languages and exchanges.
 
@@ -31,10 +31,13 @@ dotnet add package ccxt
 # Go
 go get github.com/ccxt/ccxt/go/v4
 
-# Java
+# Java (Gradle)
 dependencies {
-    implementation("io.github.ccxt:ccxt:4.5.52")
+    implementation("io.github.ccxt:ccxt:4.5.93")
 }
+
+# Rust (Cargo.toml)
+ccxt = "4.5.93"
 
 ```
 
@@ -89,9 +92,12 @@ Console.WriteLine(ticker.last);
 
 ### Go
 ```go
-exchange := ccxt.NewBinance(map[string]interface{}{"enableRateLimit": true})
-ticker, _ := exchange.FetchTicker("BTC/USDT", nil)
-fmt.Println(ticker.Last)
+exchange := ccxt.NewBinance(nil) // import ccxt "github.com/ccxt/ccxt/go/v4"
+ticker, err := exchange.FetchTicker("BTC/USDT") // optional args: ccxt.WithFetchTickerParams(...)
+if err != nil {
+    panic(err)
+}
+fmt.Println(*ticker.Last)
 ```
 
 ### Java
@@ -108,6 +114,17 @@ Ticker ticker = exchange.fetchTicker("BTC/USDT");
 System.out.println(ticker.symbol + " " + ticker.last);
 ```
 
+
+## Essentials for AI Agents and Bots
+
+- **Start on testnet.** Call `exchange.setSandboxMode(true)` (`set_sandbox_mode(True)` in Python/PHP, `SetSandboxMode(true)` in Go) right after constructing the exchange; it throws `NotSupported` when there is no testnet. Keep live test orders at the exchange minimum.
+- **Check support before calling.** `exchange.has['fetchOHLCV']` is `true`, `false` or `'emulated'`. `exchange.features[marketType][subType]` describes finer options, for example which `createOrder` params (`triggerPrice`, `stopLoss`, `takeProfit`, `timeInForce`, `hedged`) and which `fetchOHLCV` `limit` an exchange accepts.
+- **Respect precision and limits.** After `loadMarkets()`, read `exchange.market(symbol)['limits']` / `['precision']` and round with `amountToPrecision(symbol, amount)` / `priceToPrecision(symbol, price)` (both return strings) before `createOrder`. Most `InvalidOrder` errors come from skipping this.
+- **Let CCXT paginate.** Pass `{ paginate: true }` in `params` (optionally `paginationCalls`) to `fetchOHLCV`, `fetchTrades`, `fetchMyTrades`, `fetchOrders`, `fetchFundingRateHistory`, ... instead of writing your own `since` loop.
+- **Attach conditions through `params`.** Use `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `stopLoss: { triggerPrice, price }`, `takeProfit: {...}`, `reduceOnly`, `postOnly`, `clientOrderId`. `stopPrice` is a legacy alias.
+- **Unsubscribe cleanly.** Every `watch*` stream has an `unWatch*` (`unWatchTicker`, `unWatchOrderBook`, ...); `close()` ends all streams and sockets.
+- **Withdrawals:** `withdraw(code, amount, address, params)`, with the memo/tag and network in params (`{ tag, network }`).
+- **Deprecated (always throw):** `fetchBorrowRate`, `borrowMargin`, `repayMargin` (and `fetchBorrowRates` does not exist). Use `fetchCrossBorrowRate`, `fetchIsolatedBorrowRate`, `borrowCrossMargin` / `borrowIsolatedMargin` and the matching `repay*`.
 
 ## API Methods Overview
 
@@ -128,7 +145,7 @@ System.out.println(ticker.symbol + " " + ticker.last);
 - `fetchBalance` – account balances
 - `fetchMyTrades` – your trade history
 - `fetchLedger` – ledger / transaction history
-- `withdraw` – withdraw funds
+- `withdraw` – withdraw funds (tag/network go in params)
 - `fetchDeposits` / `fetchWithdrawals` – deposit/withdrawal history
 
 ### Derivatives (auth required)
@@ -143,6 +160,7 @@ System.out.println(ticker.symbol + " " + ticker.last);
 - `watchTrades` – live trade stream
 - `watchOHLCV` – live candlestick updates
 - `watchBalance` / `watchOrders` / `watchMyTrades` / `watchPositions` – live account updates (auth required)
+- `unWatch*` (e.g. `unWatchTicker`) – stop one stream; `close()` – stop all
 
 ## Error Handling
 

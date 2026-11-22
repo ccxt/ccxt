@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.92'
+__version__ = '4.5.93'
 
 # ----------------------------------------------------------------------------
 
@@ -97,6 +97,7 @@ from ccxt.binanceus import binanceus                                  # noqa: F4
 from ccxt.binanceusdm import binanceusdm                              # noqa: F401
 from ccxt.bingx import bingx                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
+from ccxt.bit2me import bit2me                                        # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
@@ -152,6 +153,7 @@ from ccxt.htx import htx                                              # noqa: F4
 from ccxt.hyperliquid import hyperliquid                              # noqa: F401
 from ccxt.independentreserve import independentreserve                # noqa: F401
 from ccxt.indodax import indodax                                      # noqa: F401
+from ccxt.interactivebrokers import interactivebrokers                # noqa: F401
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
@@ -202,6 +204,7 @@ exchanges = [
     'binanceusdm',
     'bingx',
     'bit2c',
+    'bit2me',
     'bitbank',
     'bitbns',
     'bitfinex',
@@ -257,6 +260,7 @@ exchanges = [
     'hyperliquid',
     'independentreserve',
     'indodax',
+    'interactivebrokers',
     'kraken',
     'krakenfutures',
     'kucoin',

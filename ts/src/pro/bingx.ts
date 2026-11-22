@@ -1318,7 +1318,7 @@ export default class bingx extends bingxRest {
     async loadPositionsSnapshot (client: Client, messageHash: string, type: Str) {
         const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber (position, 'contracts', 0);
@@ -1415,12 +1415,12 @@ export default class bingx extends bingxRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const data = this.safeDict (message, 'a', {});
         if (!('P' in data)) {
             return;
         }
-        const rawPositions = this.safeList (data, 'P', []) as List;
+        const rawPositions: Dict[] = this.safeList (data, 'P', []);
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1827,7 +1827,7 @@ export default class bingx extends bingxRest {
         //     }
         //
         const a = this.safeDict (message, 'a', {});
-        const data = this.safeList (a, 'B', []) as List;
+        const data: Dict[] = this.safeList (a, 'B', []);
         const timestamp = this.safeInteger2 (message, 'T', 'E');
         const spotUrl = this.safeString (this.urls['api']['ws'], 'spot');
         const isSpot = (spotUrl !== undefined) && (client.url.indexOf (spotUrl) === 0);

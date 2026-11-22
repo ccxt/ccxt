@@ -145,7 +145,7 @@ public class TestTicker extends BaseTest {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
-                Object mPrecision = exchange.safeDict(market, "precision", (Object) null);
+                Object mPrecision = exchange.safeDict(market, "precision", null);
                 String amountPrecision = exchange.safeString(mPrecision, "amount");
                 String tolerance = "1.0001";
                 if (!java.util.Objects.equals(amountPrecision, null))
@@ -270,7 +270,8 @@ public class TestTicker extends BaseTest {
             String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            Assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + logText));
+            Boolean lastPriceIsBetween = Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh);
+            Assert(lastPriceIsBetween, ("last price should be within 1% of the bid/ask median price" + logText));
         }
         String percentage = exchange.safeString(entry, "percentage");
         String change = exchange.safeString(entry, "change");

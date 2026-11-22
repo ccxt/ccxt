@@ -384,30 +384,30 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	// the endpoint requires an explicit time window (in seconds)
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var requestLimit int64 = func() int64 {
-		if limit == nil {
-			return 500
-		}
-		return *limit
-	}()
+	var requestLimit int64
+	if limit == nil {
+		requestLimit = 500
+	} else {
+		requestLimit = *limit
+	}
 	var now int64 = this.Seconds()
-	var windowLength int64 = (duration * requestLimit)
-	var defaultStart any = (now - windowLength)
+	var windowLength int64 = duration * requestLimit
+	var defaultStart int64 = now - windowLength
 	var startTime int64 = this.ParseToInt(func() any {
 		if since != nil {
 			return (float64(*since) / 1000)
 		}
 		return defaultStart
 	}())
-	var windowEnd int64 = this.ParseToInt(Add(startTime, (duration * requestLimit)))
+	var windowEnd int64 = this.ParseToInt(startTime + (duration * requestLimit))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
-	var cappedEnd int64 = func() int64 {
-		if windowEnd > now {
-			return now
-		}
-		return windowEnd
-	}()
+	var cappedEnd int64
+	if windowEnd > now {
+		cappedEnd = now
+	} else {
+		cappedEnd = windowEnd
+	}
 	var endTime int64 = this.ParseToInt(func() any {
 		if until != nil {
 			return (float64(*until) / 1000)
@@ -649,7 +649,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var aggregated []any = []any{}
-	var offset any = 0
+	var offset int = 0
 	var pageLimit int = 100
 	var paging bool = true
 	for paging {
@@ -691,7 +691,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			paging = false
 		} else {
 			// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
-			offset = this.Sum(offset, pageLimit)
+			offset = offset + pageLimit
 		}
 	}
 	var result []any = []any{}
@@ -1245,12 +1245,12 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mudrex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1570,7 +1570,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	var rows []any = this.ToArray(data)
 	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var p any = DerefScalar(rows[i])
+		var p any = rows[i]
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
 		var pos map[string]any = PositionToMap(this.ParsePosition(p, m))
@@ -1743,7 +1743,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var positionId *string = this.SafeString(params, "position_id")
-	var amount any = this.SafeValue(params, "amount")
+	var amount *string = this.SafeString(params, "amount")
 	if positionId == nil {
 
 		r1 := <-this.FetchPositionsAsync([]any{symbol}, params)
@@ -1945,8 +1945,8 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		return *limit * 2
 	}()
 	var allRows []any = []any{}
-	var transactionsCount int64 = this.ParseToInt(0)
-	var calls int64 = this.ParseToInt(0)
+	var transactionsCount int = 0
+	var calls int = 0
 	var offset any = 0
 	var paging bool = true
 	for paging {
@@ -1969,15 +1969,15 @@ func (this *Mudrex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (market == nil) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
-					transactionsCount = this.ParseToInt(transactionsCount + 1)
+					transactionsCount = transactionsCount + 1
 				}
 			}
 		}
-		calls = this.ParseToInt(calls + 1)
+		calls = calls + 1
 		paging = false
 		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
 		if (limit != nil) && (dataLength == pageSize) {
-			if (transactionsCount < *limit) && (calls < maxCalls) {
+			if (int64(transactionsCount) < *limit) && (int64(calls) < maxCalls) {
 				// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
 				offset = this.Sum(offset, pageSize)
 				paging = true

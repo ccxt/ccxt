@@ -11,15 +11,15 @@ use super::*;
 
 pub async fn testWatchTradesForSymbols(mut exchange: Value, mut skippedProperties: Value, mut symbols: Value) -> Value {
     let mut method: Value = Value::Str("watchTradesForSymbols".into());
-    let mut logText: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" ".into())).into()), method).into()), Value::Str(" [symbols: ".into())).into()), exchange.json(symbols.clone())).into()), Value::Str("] ".into())).into());
-    let mut now: Value = exchange.milliseconds();
+    let mut logText: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), " ").into()), method).into()), " [symbols: ").into()), exchange.json(symbols.clone())).into()), "] ");
+    let mut now: Value = Value::Int(exchange.milliseconds());
     let mut ends: Value = (match (&(now), &(Value::Int(30000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
+    let mut symbolsLength: i64 = symbols.len() as i64;
     let mut returnedSymbols: Value = Value::from(vec![]);
-    let mut allReceived: Value = Value::Bool(false);
-    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !(allReceived.as_bool() == Some(true)) {
+    let mut allReceived: bool = false;
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !allReceived {
         let mut response: Value = Value::Null;
-        let mut success: Value = Value::Bool(true);
+        let mut success: bool = true;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_trades_for_symbols", vec![symbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -27,37 +27,36 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            success = Value::Bool(false);
+            success = false;
         }
-        now = exchange.milliseconds();
-        if (success).as_bool() == Some(true) && (response != Value::Null) {
+        now = Value::Int(exchange.milliseconds());
+        if success && (response != Value::Null) {
             assert!(ccxt::runtime::is_true(&((matches!(&response, Value::Arr(_))))));
             {
-                                let mut i: Value = Value::Int(0);
-                let mut __for_first_1601: bool = true;
-                while { if !__for_first_1601 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1601 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut trade: Value = response.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                                let mut i: i64 = 0;
+                let mut __for_first_1618: bool = true;
+                while { if !__for_first_1618 { i += 1; } __for_first_1618 = false; i < (response.len() as i64) } {
+                let mut trade: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade.clone(), Value::Str("symbol".into()).clone(), symbols.clone()]);
-                if !is_true(&exchange.in_array(symbol.clone(), returnedSymbols.clone())) {
-                    append_to_array(&mut returnedSymbols, symbol.clone());
+                if !exchange.in_array(symbol.clone(), returnedSymbols.clone()) {
+                    append_to_array(&mut returnedSymbols, symbol);
                 }
             }
             }
-            let mut returnedLength: Value = Value::Int(returnedSymbols.len() as i64);
-            if (returnedLength.as_f64() == symbolsLength.as_f64()) {
-                allReceived = Value::Bool(true);
+            let mut returnedLength: i64 = returnedSymbols.len() as i64;
+            if (returnedLength == symbolsLength) {
+                allReceived = true;
             }
         }
     }
-    let mut receivedLength: Value = Value::Int(returnedSymbols.len() as i64);
-    assert!(ccxt::runtime::is_true(&((receivedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
-    if !(allReceived.as_bool() == Some(true)) {
+    let mut receivedLength: i64 = returnedSymbols.len() as i64;
+    assert!(ccxt::runtime::is_true(&((receivedLength > 0))));
+    if !allReceived {
         // an illiquid symbol may not trade inside the window, that is the market and not a bug
-        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, Value::Str("warning: only received part of symbols before the deadline: ".into())).into()), exchange.json(returnedSymbols.clone())).into()));
+        println_val(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", logText, "warning: only received part of symbols before the deadline: ").into()), exchange.json(returnedSymbols)).into()));
     }
     return Value::Bool(true);
 

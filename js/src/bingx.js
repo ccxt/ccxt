@@ -642,6 +642,7 @@ export default class bingx extends Exchange {
                     '100490': BadSymbol, // spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest, // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest, // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol, // trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -1229,7 +1230,9 @@ export default class bingx extends Exchange {
         const maxLimit = (this.safeBool(market, 'inverse', false)) ? 1000 : 1440;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = (timeframe === '1m') ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit);
         }
         const request = {
             'symbol': market['id'],
@@ -1245,7 +1248,13 @@ export default class bingx extends Exchange {
         const until = this.safeInteger2(paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                endTime = Math.min(until, this.sum(since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         }
         else if ((this.safeBool(market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe(timeframe) * 1000;
@@ -2150,7 +2159,7 @@ export default class bingx extends Exchange {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         }
         else {
             if (this.safeBool(market, 'inverse', false)) {
@@ -2267,7 +2276,7 @@ export default class bingx extends Exchange {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         }
         else {
             if (subType === 'inverse') {
@@ -4100,7 +4109,6 @@ export default class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        const info = order;
         const newOrder = this.safeDict2(order, 'newOrderResponse', 'orderOpenResponse');
         const orderData = (newOrder !== undefined) ? newOrder : order;
         const positionSide = this.safeString2(orderData, 'positionSide', 'ps');
@@ -4175,7 +4183,7 @@ export default class bingx extends Exchange {
             }
         }
         return this.safeOrder({
-            'info': info,
+            'info': order,
             'id': this.safeStringN(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': this.safeStringN(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': this.safeSymbol(marketId, marketResolved, '-', marketType),
@@ -5316,7 +5324,20 @@ export default class bingx extends Exchange {
         }
         else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit(paramsStandard, 'twap');
+            let paramsOmitted = this.omit(paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min(limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger(paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit(paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = (limit === undefined) ? 100 : limit;
@@ -5643,7 +5664,7 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeList(this.safeDict(response, 'data'), 'data');
+        const data = this.safeList(this.safeDict(response, 'data'), 'data', []);
         const parsed = this.parseDepositAddresses(data, [currency['code']], false);
         return this.indexBy(parsed, 'network');
     }
@@ -5989,12 +6010,36 @@ export default class bingx extends Exchange {
             return await this.swapV2PrivatePostTradeMarginType(this.extend(request, paramsSubType));
         }
     }
+    /**
+     * @method
+     * @name bingx#addMargin
+     * @description add margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     async addMargin(symbol, amount, params = {}) {
         const request = {
             'type': 1,
         };
         return await this.setMargin(symbol, amount, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name bingx#reduceMargin
+     * @description remove margin from a position
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
     async reduceMargin(symbol, amount, params = {}) {
         const request = {
             'type': 2,
@@ -7216,7 +7261,7 @@ export default class bingx extends Exchange {
             'symbol': symbol,
             'maker': this.safeNumber(fee, 'makerCommissionRate'),
             'taker': this.safeNumber(fee, 'takerCommissionRate'),
-            'percentage': false,
+            'percentage': true,
             'tierBased': false,
         };
     }
@@ -7408,9 +7453,7 @@ export default class bingx extends Exchange {
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
-        const bodyResult = requestBody;
-        const headersResult = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     nonce() {
         return this.milliseconds();

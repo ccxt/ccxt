@@ -874,7 +874,7 @@ class modetrade(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -1700,7 +1700,7 @@ class modetrade(Exchange, ImplicitAPI):
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         algoType = self.safe_string(params, 'algoType')
-        paramsChildOrders = self.safe_value(params, 'childOrders')
+        paramsChildOrders = self.safe_list(params, 'childOrders')
         isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
@@ -1806,7 +1806,7 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        childOrders = self.safe_value(params, 'childOrders')
+        childOrders = self.safe_list(params, 'childOrders')
         isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
         response: dict
         if isConditional:
@@ -1872,7 +1872,7 @@ class modetrade(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
-            childOrders = self.safe_value(orderParams, 'childOrders')
+            childOrders = self.safe_list(orderParams, 'childOrders')
             isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
@@ -1931,7 +1931,7 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        childOrders = self.safe_value(params, 'childOrders')
+        childOrders = self.safe_list(params, 'childOrders')
         isConditional = (triggerPrice is not None) or (childOrders is not None)
         orderQtyKey = 'order_quantity'
         if isConditional:
@@ -2492,7 +2492,7 @@ class modetrade(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[dict]:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2535,7 +2535,8 @@ class modetrade(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return [currency, self.safe_list(data, 'rows', [])]
+        rows = self.safe_list(data, 'rows', [])
+        return rows
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
         #
@@ -2607,9 +2608,10 @@ class modetrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        currencyRows = self.get_asset_history_rows(code, since, limit, params)
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1)
+        rows = self.get_asset_history_rows(code, since, limit, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         return self.parse_ledger(rows, currency, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2725,9 +2727,10 @@ class modetrade(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         request = {}
-        currencyRows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
-        currency = self.safe_value(currencyRows, 0)
-        rows = self.safe_list(currencyRows, 1, [])
+        rows = self.get_asset_history_rows(code, since, limit, self.extend(request, params))
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         #
         #     {
         #         "rows":[],
@@ -2755,7 +2758,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         return self.safe_number(self.safe_dict(response, 'data', {}), 'withdraw_nonce')
 
-    def hash_message(self, message: object):
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> str:

@@ -89,7 +89,7 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
-        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
+        public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true, bool validateServerSsl = true)
         {
             this.url = url;
             var tcs = new TaskCompletionSource<bool>();
@@ -109,6 +109,21 @@ public partial class BaseExchange
             {
                 var webProxy = new WebProxy(proxy);
                 webSocket.Options.Proxy = webProxy;
+            }
+            if (!validateServerSsl)
+            {
+                System.Net.Security.RemoteCertificateValidationCallback acceptAll = (sender, certificate, chain, errors) => true;
+#if NETSTANDARD2_0
+                // the netstandard2.0 surface lacks the property, but .NET Core 2.1+ runtimes have it
+                var callbackProperty = typeof(ClientWebSocketOptions).GetProperty("RemoteCertificateValidationCallback");
+                if (callbackProperty == null)
+                {
+                    throw new NotSupported("validateServerSsl = false is not supported for websockets on this runtime");
+                }
+                callbackProperty.SetValue(webSocket.Options, acceptAll);
+#else
+                webSocket.Options.RemoteCertificateValidationCallback = acceptAll;
+#endif
             }
         }
 
@@ -490,9 +505,13 @@ public partial class BaseExchange
 
         public void resolve(object content, object messageHash2)
         {
-            if (this.verbose && (messageHash2 == null))
+            if (messageHash2 == null)
             {
-                Console.WriteLine("resolve received undefined messageHash");
+                if (this.verbose)
+                {
+                    Console.WriteLine("resolve received undefined messageHash");
+                }
+                return;
             }
             var messageHash = messageHash2.ToString();
             var future = (Future)ask(() =>
@@ -832,8 +851,16 @@ public partial class BaseExchange
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.isMock)
             {
-                // static ws tests: record the outgoing frame so the test can assert it
-                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                // static ws tests: record the outgoing frame so the test can assert it,
+                // non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+                try
+                {
+                    this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                }
+                catch (Newtonsoft.Json.JsonReaderException)
+                {
+                    this.mockSentMessages.Add(jsonMessage);
+                }
                 return;
             }
             if (this.verbose)

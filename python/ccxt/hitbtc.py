@@ -989,8 +989,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(currency, '_coin_id')
         code = self.safe_currency_code(currencyId)
-        entry = currency
-        rawNetworks = self.safe_list(entry, 'networks', [])
+        rawNetworks = self.safe_list(currency, 'networks', [])
         networks = {}
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
@@ -1020,14 +1019,14 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                 }
         return self.safe_currency_structure({
-            'info': entry,
+            'info': currency,
             'code': code,
             'id': currencyId,
-            'precision': self.safe_number(entry, 'precision_transfer'),
-            'name': self.safe_string(entry, 'full_name'),
-            'active': not self.safe_bool(entry, 'delisted', False),
-            'deposit': self.safe_bool(entry, 'payin_enabled'),
-            'withdraw': self.safe_bool(entry, 'payout_enabled'),
+            'precision': self.safe_number(currency, 'precision_transfer'),
+            'name': self.safe_string(currency, 'full_name'),
+            'active': not self.safe_bool(currency, 'delisted', False),
+            'deposit': self.safe_bool(currency, 'payin_enabled'),
+            'withdraw': self.safe_bool(currency, 'payout_enabled'),
             'networks': networks,
             'fee': None,
             'limits': {
@@ -1941,7 +1940,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchClosedOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateGetMarginHistoryOrder(self.extend(request, paramsOmitted))
         else:
@@ -2127,7 +2126,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchOpenOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateGetMarginOrder(self.extend(request, paramsOmitted))
         else:
@@ -2224,7 +2223,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrders', market, params)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelAllOrders', paramsMarketType)
         paramsOmitted = self.omit(paramsMarginMode, ['marginMode', 'margin'])
-        response: dict
+        response: List
         if marginMode is not None:
             response = self.privateDeleteMarginOrder(self.extend(request, paramsOmitted))
         else:
@@ -2634,7 +2633,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = self.privatePostWalletTransfer(self.extend(request, params))
         #
         #     [
-        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         #     ]
         #
         return self.parse_transfer(response, currency)
@@ -2805,18 +2804,18 @@ class hitbtc(Exchange, ImplicitAPI):
             self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = None
         request = {
             # all arguments are optional
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'until': 'Datetime or Number',
+            # 'till': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
+        requestUntil, paramsUntil = self.handle_until_option('till', request, paramsPaginate)
         if symbol is not None:
             market = self.market(symbol)
             requestUntil['symbols'] = market['id']
@@ -3224,7 +3223,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "contract_type": "perpetual",

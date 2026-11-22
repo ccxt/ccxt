@@ -14,6 +14,7 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
+var cryptoDecrypt = require('./functions/crypto-decrypt.js');
 var ethabi = require('./functions/ethabi.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
 var starknet$1 = require('./functions/starknet.js');
@@ -111,7 +112,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.92'; }
+    static { this.ccxtVersion = '4.5.93'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -184,6 +185,8 @@ class BaseExchange {
         this.orders = undefined;
         this.transactions = {};
         this.myLiquidations = undefined;
+        this.positions = undefined;
+        this.positionsByType = {};
         this.requiresWeb3 = false;
         this.enableLastJsonResponse = false;
         this.enableLastHttpResponse = true;
@@ -263,6 +266,7 @@ class BaseExchange {
         this.binaryToBase16 = binaryToBase16;
         this.numberToBE = numberToBE;
         this.base16ToBinary = base16ToBinary;
+        this.decryptPrivateKey = cryptoDecrypt.decryptPrivateKey;
         this.iso8601 = iso8601;
         this.omit = omit;
         this.isJsonEncodedObject = isJsonEncodedObject;
@@ -376,6 +380,7 @@ class BaseExchange {
         this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
         // web3 and cryptography flags
         this.requiresWeb3 = false;
         // response handling flags and properties
@@ -413,6 +418,15 @@ class BaseExchange {
         this.afterConstruct(userConfig);
         // exchange specific libs
         this.loadExchangeSpecificFiles();
+    }
+    /**
+     * @method
+     * @name Exchange#setValidateServerSsl
+     * @description enables or disables server ssl certificate validation for REST and WS connections, disable only for servers with self-signed certificates such as a local IBKR client portal gateway
+     * @param {boolean} validate false skips certificate and hostname verification
+     */
+    setValidateServerSsl(validate) {
+        this.validateServerSsl = validate;
     }
     async loadExchangeSpecificFiles() {
         if (this.id === 'mexc') {
@@ -1450,7 +1464,7 @@ class BaseExchange {
             const onClose = this.onClose.bind(this);
             const onConnected = this.onConnected.bind(this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue(this.options, 'ws', {});
+            const wsOptions = this.safeDict(this.options, 'ws', {});
             // proxy agents
             const [httpProxy, httpsProxy, socksProxy] = this.checkWsProxySettings();
             const chosenAgent = this.setProxyAgents(httpProxy, httpsProxy, socksProxy);
@@ -1464,16 +1478,19 @@ class BaseExchange {
                 finalAgent = httpProxyAgent;
             }
             const wsThrottler = new Throttler(this.tokenBucket);
+            const connectionOptions = {
+                'agent': finalAgent, // add support for proxies
+            };
+            if (!this.shouldValidateServerSsl()) {
+                connectionOptions['rejectUnauthorized'] = false;
+            }
             const options = this.deepExtend(this.streaming, {
                 'log': (this.log !== undefined) ? this.log.bind(this) : this.log,
                 'ping': (this.ping !== undefined) ? this.ping.bind(this) : this.ping,
                 'throttle': wsThrottler.throttle.bind(wsThrottler),
                 'verbose': this.verbose,
                 'throttler': wsThrottler,
-                // add support for proxies
-                'options': {
-                    'agent': finalAgent,
-                },
+                'options': connectionOptions,
                 'decompressBinary': this.safeBool(this.options, 'decompressBinary', true),
             }, wsOptions);
             this.clients[url] = new WsClient["default"](url, onMessage, onError, onClose, onConnected, options);
@@ -1684,12 +1701,14 @@ class BaseExchange {
         if (client.error !== undefined) ;
         else {
             // server disconnected a working connection
-            if (this.clients[client.url] !== undefined) {
+            if (this.clients[client.url] === client) {
                 delete this.clients[client.url];
             }
         }
     }
     async close(cleanInstanceCache = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose();
         // [WS]
         await this.sleep(0); // allow other futures to run
         const allClients = (this.clients !== undefined) ? this.clients : {};
@@ -2034,6 +2053,11 @@ class BaseExchange {
             'signatures': [this.base16ToBinary(signature)],
         })).finish());
     }
+    async initFileSystem() {
+        // node:fs / node:path are loaded asynchronously, await them before the first synchronous readFile call
+        await io.initFileSystem();
+        return undefined;
+    }
     intToBase16(elem) {
         return elem.toString(16);
     }
@@ -2045,6 +2069,63 @@ class BaseExchange {
     }
     convertToSafeDictionary(dict) {
         return dict;
+    }
+    readDhParam(path) {
+        const pem = readFile(path);
+        const der = Buffer.from(pem.replace(/-----[^-]+-----|\s/g, ''), 'base64');
+        let pos = 0;
+        const readLen = () => {
+            let len = der[pos++];
+            if (len & 0x80) {
+                const n = len & 0x7f;
+                len = 0;
+                for (let i = 0; i < n; i++) {
+                    len = (len << 8) | der[pos++];
+                }
+            }
+            return len;
+        };
+        const readInt = () => {
+            if (der[pos++] !== 0x02) {
+                throw new Error('expected INTEGER while reading DH_param file');
+            }
+            const len = readLen();
+            const hex = der.subarray(pos, pos + len).toString('hex');
+            pos += len;
+            return hex.replace(/^00/, ''); // strip sign byte
+        };
+        if (der[pos++] !== 0x30) {
+            throw new Error('expected SEQUENCE');
+        }
+        readLen();
+        const result = { 'prime': readInt(), 'generator': BigInt('0x' + readInt()) };
+        return result['prime'];
+    }
+    modPow(base, exponent, modulus) {
+        const zero = this.convertToBigInt('0');
+        const one = this.convertToBigInt('1');
+        let result = one;
+        let b = base % modulus;
+        let e = exponent;
+        while (e > zero) {
+            if ((e & one) === one) {
+                result = (result * b) % modulus;
+            }
+            b = (b * b) % modulus;
+            e = e >> one;
+        }
+        return result;
+    }
+    bigToBytes(value) {
+        // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        let hex = this.intToBase16(value);
+        if ((hex.length % 2) === 1) {
+            hex = '0' + hex;
+        }
+        if (parseInt(hex[0], 16) >= 8) {
+            hex = '00' + hex; // prepend the sign byte
+        }
+        return this.base16ToBinary(hex);
     }
     checkOptionString(methodName, optionName, value) {
         // the statically typed ports throw on a present non-string value; here it passes through unchanged
@@ -2680,6 +2761,12 @@ class BaseExchange {
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = undefined;
         this.positions = undefined;
+        this.positionsByType = {};
+    }
+    beforeClose() {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return undefined;
     }
     safeBoolN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -3197,7 +3284,7 @@ class BaseExchange {
     }
     async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
-            return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+            return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new errors.NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
     }
@@ -3283,7 +3370,7 @@ class BaseExchange {
         for (let i = 0; i < markets.length; i++) {
             const market = this.parseMarket(markets[i]);
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
-            if (market !== undefined) {
+            if (market !== undefined && this.safeString(market, 'id') !== undefined) {
                 result.push(market);
             }
         }
@@ -3489,8 +3576,8 @@ class BaseExchange {
     }
     afterConstruct(userConfig = {}) {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {}));
-        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, 'networksById', {}));
+        const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeDict(this.options, 'networks', {}));
+        this.options['networksById'] = this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, 'networksById', {}));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -4219,7 +4306,7 @@ class BaseExchange {
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            const firstTrade = this.safeValue(rawTrades, 0);
+            const firstTrade = this.safeDict(rawTrades, 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
             if (!tradesAreParsed) {
@@ -4502,14 +4589,7 @@ class BaseExchange {
             }
         }
         else {
-            const ids = Object.keys(orders);
-            for (let i = 0; i < ids.length; i++) {
-                const id = ids[i];
-                const idExtended = this.extend({ 'id': id }, orders[id]);
-                const parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                const order = this.extend(parsedOrder, params);
-                results.push(order);
-            }
+            return this.parseOrders(this.addKeyInArrayItems(orders, 'id'), market, since, limit, params);
         }
         results = this.sortBy(results, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -6217,7 +6297,7 @@ class BaseExchange {
             }
             else {
                 // still processing the same timeframe -> update opening trade
-                const prevCandle = this.safeValue(ohlcvs, candle);
+                const prevCandle = this.safeList(ohlcvs, candle);
                 const prevHigh = this.safeValue(prevCandle, i_high);
                 const prevLow = this.safeValue(prevCandle, i_low);
                 ohlcvs[candle][i_high] = Math.max((prevHigh === undefined) ? price : prevHigh, price);
@@ -7268,7 +7348,7 @@ class BaseExchange {
     parseBorrowInterests(response, market = undefined) {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
-            const row = this.safeValue(response, i);
+            const row = this.safeDict(response, i, {});
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
@@ -7279,7 +7359,7 @@ class BaseExchange {
     parseBorrowRateHistory(response, code, since, limit) {
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue(response, i);
+            const item = this.safeDict(response, i);
             const borrowRate = this.parseBorrowRate(item);
             result.push(borrowRate);
         }
@@ -7289,7 +7369,7 @@ class BaseExchange {
     parseIsolatedBorrowRates(info) {
         const result = {};
         for (let i = 0; i < info.length; i++) {
-            const item = this.safeValue(info, i);
+            const item = this.safeDict(info, i, {});
             const borrowRate = this.parseIsolatedBorrowRate(item);
             const symbol = this.safeString(borrowRate, 'symbol');
             result[symbol] = borrowRate;
@@ -9628,7 +9708,7 @@ class Exchange extends BaseExchange {
         throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported yet');
     }
     async cancelUnifiedOrder(order, params = {}) {
-        return await this.cancelOrder(this.safeString(order, 'id'), this.safeString(order, 'symbol'), params);
+        return await this.cancelOrder(this.safeString(order, 'id', ''), this.safeString(order, 'symbol'), params);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if ((this.has['fetchOpenOrders'] !== undefined && this.has['fetchOpenOrders'] !== false) && (this.has['fetchClosedOrders'] !== undefined && this.has['fetchClosedOrders'] !== false)) {

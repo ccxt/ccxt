@@ -454,9 +454,9 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if symbol != nil {
 		if stored == nil {
@@ -466,7 +466,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol][*timeframe] = stored
 			}
 		}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		if channel != nil {
 			var messageHash string = *channel + "::" + *symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -506,7 +506,7 @@ func (this *P2b) HandleTrade(client any, message map[string]any) any {
 		this.Trades[symbol] = tradesArray
 	}
 	for i := 0; i < len(trades); i++ {
-		var item any = ccxt.DerefScalar(trades[i])
+		var item any = trades[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(item, market))
 		tradesArray.Append(trade)
 	}
@@ -621,7 +621,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 			var price *float64 = this.SafeNumber(bid, 0)
 			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide ccxt.IOrderBookSide = orderbook.GetBids()
-			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
+			bookSide.Store(price, amount)
 		}
 	}
 	if asks != nil {
@@ -630,7 +630,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 			var price *float64 = this.SafeNumber(ask, 0)
 			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside ccxt.IOrderBookSide = orderbook.GetAsks()
-			bookside.(ccxt.IOrderBookSide).Store(price, amount)
+			bookside.Store(price, amount)
 		}
 	}
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)

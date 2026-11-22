@@ -1073,12 +1073,12 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	// default is 200 when requested with `since`, max 200
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 200) {
-			return 200
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 200) {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	request["limit"] = limitResolved
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
 	if since != nil {
@@ -1233,12 +1233,12 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 500
-		}
-		return *limit
-	}() // default is 50
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 500
+	} else {
+		limitResolved = *limit
+	} // default is 50
 	request["limit"] = limitResolved
 
 	r1 := <-this.PublicGetV3Trades(this.Extend(request, params))
@@ -1466,9 +1466,9 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	//
 	var rates []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
-	var resultList []any = SafeListTyped(data, "historyFunds")
+	var resultList []map[string]any = this.SafeListMapsTyped(data, "historyFunds")
 	for i := 0; i < len(resultList); i++ {
-		var entry any = resultList[i]
+		var entry map[string]any = resultList[i]
 		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
 		var marketId *string = this.SafeString(entry, "symbol")
 		rates = append(rates, map[string]any{
@@ -1553,7 +1553,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString(order, "status")
 	var side *string = this.SafeStringLower(order, "side")
 	// const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-	var remaining any = this.OmitZero(this.SafeString(order, "remainingSize"))
+	var remaining *string = this.OmitZero(this.SafeString(order, "remainingSize"))
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedTime")
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
@@ -2135,12 +2135,12 @@ func (this *Apex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Apex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Apex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Apex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Apex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2699,7 +2699,7 @@ func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = this.SafeStringLower(position, "side")
 	var quantity *string = this.SafeString(position, "size")
 	var timestamp *int64 = this.SafeInteger(position, "updatedTime")
-	var leverage any = 20
+	var leverage int64 = 20
 	var customInitialMarginRate *string = this.SafeString2(position, "customInitialMarginRate", "customImr", "0")
 	if this.PrecisionFromString(customInitialMarginRate) != 0 {
 		leverage = this.ParseToInt(Precise.StringDiv("1", customInitialMarginRate, 4))

@@ -187,7 +187,7 @@ class blofin extends \ccxt\async\blofin {
             return;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $this->safe_value($data, $i);
+            $rawTrade = $this->safe_dict($data, $i, array());
             $trade = $this->parse_ws_trade($rawTrade);
             $symbol = $this->safe_string($trade, 'symbol', '');
             $stored = $this->safe_value($this->trades, $symbol);
@@ -340,7 +340,7 @@ class blofin extends \ccxt\async\blofin {
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($symbols === null) {
-            throw new NotSupported($this->id . ' watchTickers() requires a list of symbols');
+            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of symbols');
         }
         $ticker = Async\await($this->watch_multiple_wrapper(true, 'tickers', 'watchTickers', $symbols, $params));
         if ($this->newUpdates) {
@@ -373,7 +373,7 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($this->safe_value($data, $i));
+            $ticker = $this->parse_ws_ticker($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
@@ -404,8 +404,7 @@ class blofin extends \ccxt\async\blofin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        $symbolsList = $symbolsNormalized;
+        $symbolsList = $this->market_symbols($symbols, null, false);
         $firstMarket = $this->market($symbolsList[0]);
         $channel = 'tickers';
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
@@ -431,13 +430,13 @@ class blofin extends \ccxt\async\blofin {
             }
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsList);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_bid_ask($this->safe_value($data, $i));
+            $ticker = $this->parse_ws_bid_ask($this->safe_dict($data, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'bidask:' . $symbol;
             $this->bidsasks[$symbol] = $ticker;
@@ -587,7 +586,7 @@ class blofin extends \ccxt\async\blofin {
             $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $candle = $this->safe_value($data, $i);
+            $candle = $this->safe_list($data, $i);
             $parsed = $this->parse_ohlcv($candle, $market);
             $stored->append($parsed);
         }
@@ -683,7 +682,10 @@ class blofin extends \ccxt\async\blofin {
          * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
          */
         $params['callerMethodName'] = 'watchOrders';
-        $symbolsArray = ($symbol !== null) ? array( $symbol ) : array();
+        $symbolsArray = array();
+        if ($symbol !== null) {
+            $symbolsArray[] = $symbol;
+        }
         return Async\await($this->watch_orders_for_symbols($symbolsArray, $since, $limit, $params));
     }
 
@@ -716,13 +718,39 @@ class blofin extends \ccxt\async\blofin {
             $channel = 'orders-algo';
         }
         $orders = Async\await($this->watch_multiple_wrapper(false, $channel, 'watchOrdersForSymbols', $symbols, $paramsOmitted));
-        $first = $this->safe_dict($orders, 0);
-        $tradeSymbol = $this->safe_string($first, 'symbol');
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        $requestedSymbols = null;
+        $countSymbol = null;
+        $unifiedSymbols = $this->market_symbols($symbols, null, true);
+        if ($unifiedSymbols !== null) {
+            $symbolsLength = count($unifiedSymbols);
+            if ($symbolsLength > 0) {
+                $requestedSymbols = $unifiedSymbols;
+            }
+            if ($symbolsLength === 1) {
+                $countSymbol = $unifiedSymbols[0];
+            }
+        }
+        $newest = $orders;
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limitResolved = $orders->getLimit($tradeSymbol, $limit);
+            if ($countSymbol !== null) {
+                $limitResolved = $orders->getLimit($countSymbol, $limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                $newCount = $orders->getLimit(null, null);
+                if ($newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    $newest = array();
+                } else {
+                    $newest = $this->filter_by_since_limit($orders, null, $newCount, 'timestamp', true);
+                }
+            }
         }
-        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
+        $requested = $this->filter_by_array($newest, 'symbol', $requestedSymbols, false);
+        return $this->filter_by_since_limit($requested, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -743,11 +771,16 @@ class blofin extends \ccxt\async\blofin {
         $arg = $this->safe_dict($message, 'arg');
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
+        $symbols = array();
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->parse_ws_order($this->safe_value($data, $i));
+            $order = $this->parse_ws_order($this->safe_dict($data, $i, array()));
             $orders->append($order);
+            $symbols[] = $this->safe_string($order, 'symbol', '');
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for ($i = 0; $i < count($symbols); $i++) {
             if ($channelName !== null) {
-                $client->resolve($orders, $channelName . ':' . $this->safe_string($order, 'symbol', ''));
+                $client->resolve($orders, $channelName . ':' . $symbols[$i]);
             }
             $client->resolve($orders, $channelName);
         }
@@ -802,7 +835,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($this->safe_value($data, $i));
+            $position = $this->parse_ws_position($this->safe_dict($data, $i, array()));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
@@ -895,14 +928,15 @@ class blofin extends \ccxt\async\blofin {
         }
         $rawSubscriptions = array();
         $messageHashes = array();
-        if (($symbols !== null) && (strlen($symbols) > 0)) {
+        $symbolsLength = ($symbols === null) ? 0 : count($symbols);
+        if ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
                 $channel = $channelName;
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tf = $this->safe_string($this->safe_value($symbolsArray, $i), 1);
+                    $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
                     $channel = $channel . $interval;
                 } else {
@@ -961,10 +995,9 @@ class blofin extends \ccxt\async\blofin {
             $market = $this->market($this->safe_string($symbols, $i));
             $channel = $channelName;
             if ($isOHLCV) {
-                $tfArray = $symbolsArray[$i];
-                $tf = $tfArray[1];
+                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
                 $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $channel .= $interval;
+                $channel = $channel . $interval;
             }
             $topic = array(
                 'channel' => $channel,
@@ -1080,27 +1113,33 @@ class blofin extends \ccxt\async\blofin {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $milliseconds = $this->milliseconds();
         $messageHash = 'authenticate_hash';
-        $timestamp = (string) $milliseconds;
-        $nonce = 'n_' . $timestamp;
-        $auth = '/users/self/verify' . 'GET' . $timestamp . '' . $nonce;
-        $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
-        $request = array(
-            'op' => 'login',
-            'args' => array(
-                array(
-                    'apiKey' => $this->apiKey,
-                    'passphrase' => $this->password,
-                    'timestamp' => $timestamp,
-                    'nonce' => $nonce,
-                    'sign' => $signature,
-                ),
-            ),
-        );
         $marketType = 'swap'; // for now
         $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
         $url = $this->safe_string($typeUrls, 'private');
-        Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $client = $this->client($url);
+        $future = $client->reusableFuture($messageHash);
+        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+        if ($authenticated === null) {
+            $milliseconds = $this->milliseconds();
+            $timestamp = (string) $milliseconds;
+            $nonce = 'n_' . $timestamp;
+            $auth = '/users/self/verify' . 'GET' . $timestamp . '' . $nonce;
+            $signature = base64_encode($this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'));
+            $request = array(
+                'op' => 'login',
+                'args' => array(
+                    array(
+                        'apiKey' => $this->apiKey,
+                        'passphrase' => $this->password,
+                        'timestamp' => $timestamp,
+                        'nonce' => $nonce,
+                        'sign' => $signature,
+                    ),
+                ),
+            );
+            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+        }
+        return Async\await($future);
     }
 }

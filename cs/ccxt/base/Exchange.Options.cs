@@ -247,8 +247,8 @@ public partial class BaseExchange
 
     public object transactions = new dict();
     // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
-    // pruneCachedBySymbols included). positions stays `object` — five venues store the
-    // account-type-keyed Dictionary there.
+    // pruneCachedBySymbols included). positions is one cache; venues that keep one cache per
+    // account type store them in positionsByType.
     public ccxt.pro.ArrayCache myTrades;
     public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
@@ -258,9 +258,10 @@ public partial class BaseExchange
 
     public bool newUpdates;
 
-    public object positions;
+    public ccxt.pro.ArrayCache positions;
+    public IDictionary<string, object> positionsByType = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public ccxt.pro.ArrayCache liquidations;
-    public object myLiquidations;
+    public ccxt.pro.ArrayCache myLiquidations;
     private IDictionary<string, object> tradesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     private IDictionary<string, object> orderbooksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
@@ -317,6 +318,31 @@ public partial class BaseExchange
             httpsProxyValue = value as string;
             this.initHttpClient(); // recreate httpClient with new proxy, maybe find a better way to do this
         }
+    }
+
+    private bool validateServerSslValue = true;
+    // false disables tls certificate and hostname verification for REST and WS
+    public bool validateServerSsl
+    {
+        get
+        {
+            return this.validateServerSslValue;
+        }
+        set
+        {
+            var changed = this.validateServerSslValue != value;
+            this.validateServerSslValue = value;
+            if (changed && this.httpClient != null)
+            {
+                this.initHttpClient(); // the handler's certificate validation is fixed at construction
+            }
+        }
+    }
+
+    // enables or disables server ssl certificate validation for REST and WS connections
+    public void setValidateServerSsl(bool validate)
+    {
+        this.validateServerSsl = validate;
     }
 
     void initializeProperties(Dictionary<string, object> userConfig = null)
@@ -398,6 +424,7 @@ public partial class BaseExchange
         this.httpsProxy = SafeString(extendedProperties, "httpsProxy");
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
+        this.validateServerSsl = SafeValue(extendedProperties, "validateServerSsl") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
         this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);

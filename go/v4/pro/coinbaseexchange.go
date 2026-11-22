@@ -101,16 +101,16 @@ func (this *Coinbaseexchange) subscribeBody(ch chan ccxt.AsyncResult[any], name 
 		messageHash = ccxt.Add(messageHash, ":"+*marketId)
 		productIds = append(productIds, marketId)
 	}
-	var url any
-	if derefPtr := this.SafeString(this.Urls["api"], "ws"); derefPtr != nil {
-		url = *derefPtr
-	}
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
 	if _, ok := params["signature"]; ok {
 		// need to distinguish between public trades and user trades
-		url = ccxt.Add(url, "?")
+		if url != nil {
+			urlValue := *url + "?"
+			url = &urlValue
+		}
 	}
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
@@ -161,16 +161,16 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan ccxt.AsyncResult[any
 		productIds = append(productIds, marketId)
 		messageHashes = append(messageHashes, *messageHashStart+":"+*this.SafeString(market, "symbol", ""))
 	}
-	var url any
-	if derefPtr := this.SafeString(this.Urls["api"], "ws"); derefPtr != nil {
-		url = *derefPtr
-	}
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
 	if _, ok := params["signature"]; ok {
 		// need to distinguish between public trades and user trades
-		url = ccxt.Add(url, "?")
+		if url != nil {
+			urlValue := *url + "?"
+			url = &urlValue
+		}
 	}
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",

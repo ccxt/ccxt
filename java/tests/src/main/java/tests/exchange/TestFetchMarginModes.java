@@ -27,7 +27,7 @@ public class TestFetchMarginModes extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
         List<String> marginModeKeys = new ArrayList<String>(((Map<String, Object>)marginModes).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
-        for (var i = 0; i < ((List<?>)marginModeKeys).size(); i++)
+        for (var i = 0; i < marginModeKeys.size(); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, (marginModeKeys == null || i < 0 || i >= marginModeKeys.size() ? null : marginModeKeys.get(i)));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);

@@ -271,62 +271,142 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ## How to use the Lighter Exchange in CCXT?
 
-Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+Lighter is available as part of CCXT and works like any other CCXT exchange, with two particularities:
 
+1. **Credentials** — Lighter does not use an `apiKey`/`secret` pair. You authenticate either with your L1 (Ethereum) private key, or with a Lighter API key created in the Lighter UI.
+2. **Signing library** — except in Go, you have to tell CCXT where the Lighter signing binary is (`libraryPath`).
 
-After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
+### Which credentials do I need?
 
-### Credentials requirements
+| Your situation | What to provide | Section |
+|---|---|---|
+| You can export the L1 private key of your wallet | `privateKey` | [Using the L1 private key](#using-the-l1-private-key) |
+| You use Ledger, MetaMask or another wallet whose private key you can't (or don't want to) export | `accountIndex`, `apiKeyIndex` and the Lighter API private key inside `options['auths']` | [How to use Ledger/MetaMask or Lighter API keys](#how-to-use-ledgermetamask-or-lighter-api-keys) |
 
-Lighter requires the following :
-- `privateKey`: the L1 private key **mandatory**
-- `accountIndex` (an integer) in `exchange.options`: — **optional** CCXT will fetch it if not available, set it if using a subAccount
-- `apiKeyIndex` (an integer) in `exchange.options`: **optional**  CCXT will use a default value (254)
+In both cases you also need the [signing library](#dependencies-requirements).
 
-Example
+### Using the L1 private key
+
+This is the simplest setup: the L1 private key is enough, and CCXT derives everything else from it.
+
+- `privateKey`: the L1 private key — **mandatory**
+- `accountIndex` (an integer) in `exchange.options` — **optional**, CCXT fetches it from your wallet address. Set it if you are using a sub-account.
+- `apiKeyIndex` (an integer between 4 and 254) in `exchange.options` — **optional**, CCXT uses `254` by default.
 
 ```Python
 lighter = ccxt.lighter({
-	'privateKey': 'XXXXXXX', # l1 private key
+    'privateKey': '0x...',  # L1 private key
+    'options': {
+        'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+    }
 })
 ```
+
+With this setup CCXT generates a new Lighter API key for the chosen `apiKeyIndex` and registers it on your account, replacing whatever key was stored at that index. Pick an `apiKeyIndex` that is not used by another application.
+
+### How to use Ledger/MetaMask or Lighter API keys
+
+If you can't get the L1 private key (hardware wallets like Ledger never expose it, and you may not want to export it from MetaMask), create an API key in the Lighter UI and give that to CCXT instead:
+
+1. Go to https://app.lighter.xyz/apikeys and create an API key, signing with your wallet as usual.
+2. Write down the three values shown there:
+   - the **account index**
+   - the **API key index**
+   - the **private key** of the API key — it is shown only when the key is created, so save it right away
+3. Pass them to CCXT as shown below. Do **not** set `privateKey` — that field is reserved for the L1 key.
+
+```Python
+import ccxt
+
+exchange = ccxt.lighter({
+    'options': {
+        'accountIndex': 123456,       # account index from the Lighter UI
+        'apiKeyIndex': 5,             # API key index from the Lighter UI
+        'libraryPath': r'C:\lighter\lighter-signer-windows-amd64.dll',
+        'builderFee': False,
+        'auths': {
+            '123456': {               # accountIndex, as a string
+                '5': {                # apiKeyIndex, as a string
+                    'lighterPrivateKey': 'YOUR_LIGHTER_API_PRIVATE_KEY',  # private key shown at app.lighter.xyz/apikeys when you created the API key
+                },
+            },
+        },
+    },
+})
+
+balances = exchange.fetch_balance()
+```
+
+```Javascript
+const exchange = new ccxt.lighter ({
+    'options': {
+        'accountIndex': 123456,
+        'apiKeyIndex': 5,
+        'libraryPath': '/path/to/lighter.wasm',
+        'wasmExecPath': '/path/to/wasm_exec.js',
+        'builderFee': false,
+        'auths': {
+            '123456': {
+                '5': {
+                    'lighterPrivateKey': 'YOUR_LIGHTER_API_PRIVATE_KEY',
+                },
+            },
+        },
+    },
+});
+```
+
+Things that commonly go wrong:
+
+- **The keys of `auths` must match `accountIndex` and `apiKeyIndex` exactly, written as strings** (`'123456'` and `'5'` above). If they don't match, CCXT can't find the key and fails with an authentication error.
+- **`lighterPrivateKey` goes inside `auths`, not at the top level** of the constructor or of `options`.
+- **`apiKeyIndex` must be between 4 and 254.** Any other value is silently replaced by `254`, which then won't match your `auths` entry.
+- **`accountIndex` is required here.** Without the L1 key CCXT can't work out your wallet address to look it up (alternatively set `walletAddress` and CCXT will fetch the index for you).
+- **Set `'builderFee': False`.** Approving the builder fee needs a signature from the L1 key, which is not available in this setup.
+- For the same reason, CCXT can't create or rotate Lighter API keys for you in this setup — manage them in the Lighter UI.
 
 ### Dependencies requirements
 
-Since the signing algorithms and structs are not supported natively in all languages CCXT is using the officially distributed binaries and interacting with them in order to do the signing process (via FFI/WASM), so depending on the language you need to provide a path for that binary.
+Since the signing algorithms and structs are not supported natively in all languages, CCXT uses the officially distributed binaries for signing (via FFI/WASM). Depending on the language, you need to provide the path to that binary.
 
-### Python/C#/PHP users:
+#### Python/C#/PHP users
 
 - The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/8bac9f56b9d0dd0eedaeb53a00ccb4fc9d77082e/lighter/signers
-- If they don't support the os you used, you can clone and build library from their lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
-- The path to the binary needs to be provided as `libraryPath`
-- You need to choose the binary according to your OS/architecture
+- Choose the binary that matches your OS and architecture (`.so` for Linux, `.dylib` for macOS, `.dll` for Windows).
+- If your OS/architecture is not available, you can clone and build the library from lighter-go: https://github.com/elliottech/lighter-go/tree/25847e7e39603dbb90a0bf60b689b571116b7187
+- Provide the path to the binary as `libraryPath`.
 
 ```Python
 lighter = ccxt.lighter({
-	'options': {
-		'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
-	}
+    'options': {
+        'libraryPath': 'path/to/lighter-signer-linux-arm64.so',
+    }
 })
 ```
 
-### Javascript/Typescript users
+#### Javascript/Typescript users
 
-- CCXT is using the WASM binary built from the official package and it can be downloaded here https://github.com/ccxt/lighter-wasm or built from the source
-- You also need to provide the path to `exec_wasm.js`, you can either download it from the same repo or check the path to your local file (assuming Go is installed)
+- CCXT uses the WASM binary built from the official package. It can be downloaded here https://github.com/ccxt/lighter-wasm or built from source.
+- You also need to provide the path to `wasm_exec.js`. You can download it from the same repo, or point to your local file if Go is installed.
 
-```Javacript
-lighter = ccxt.lighter({
-	'options': {
-		'libraryPath': '/user/cjg/Git/lighter-wasm/lighter.wasm',
-		'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js'
-	}
+```Javascript
+const lighter = new ccxt.lighter ({
+    'options': {
+        'libraryPath': '/path/to/lighter-wasm/lighter.wasm',
+        'wasmExecPath': '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js',
+    }
 })
 ```
 
-### GO users
+#### GO users
 
-- Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+- Nothing is required: CCXT consumes the official Go package, so you only need to provide the credentials.
+
+### Troubleshooting
+
+- **`could not load the signer, set options["libraryPath"]...`** — `libraryPath` is missing or wrong, or (when using a Lighter API key) the `auths` entry doesn't match your `accountIndex`/`apiKeyIndex`.
+- **`requires "privateKey" credential`** — no usable credentials were found. Either set the L1 `privateKey`, or check the `auths` block described in [How to use Ledger/MetaMask or Lighter API keys](#how-to-use-ledgermetamask-or-lighter-api-keys).
+- **`after the latest update (v4.5.50), CCXT now expects the l1 private key...`** — you put the Lighter API private key in `privateKey`. Move it to `options['auths'][accountIndex][apiKeyIndex]['lighterPrivateKey']`.
 
 
 ## How to use the DyDx Exchange in CCXT?
@@ -386,7 +466,199 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
 
-### How to use the GRVT Exchange in CCXT?
+## How to use the InteractiveBrokers in CCXT?
+
+InteractiveBrokers (IBKR) works differently from the other exchanges in CCXT: it is a broker rather than a single exchange, and you connect through the IBKR Web API. This section covers:
+
+1. [Choosing a connection method](#choosing-a-connection-method)
+2. [Connecting with OAuth 1.0](#connecting-with-oauth-10)
+3. [Connecting with the Client Portal Gateway](#connecting-with-the-client-portal-gateway)
+4. [One session per user](#one-session-per-user)
+5. [Account ids](#account-ids)
+6. [Paper trading](#paper-trading)
+7. [Symbols](#symbols)
+8. [Choosing which markets to load](#choosing-which-markets-to-load)
+9. [Examples](#examples)
+
+### Choosing a connection method
+
+There are two ways to connect, and which one you can use depends on your IBKR account:
+
+| | OAuth 1.0 | Client Portal Gateway |
+|---|---|---|
+| Who can use it | only accounts approved by IBKR for programmatic access (does not seem to be available to all retail users) | any account |
+| Credentials | api keys + `.pem` files | none, you log in to a local gateway app |
+| Maintenance | none once the keys are activated | the gateway has to be running, and may need a manual login once every 24 hours |
+
+If you can get OAuth access, use it. Otherwise use the Client Portal Gateway.
+
+### Connecting with OAuth 1.0
+
+1. Visit https://ndcdyn.interactivebrokers.com/oauth/ and try to generate credentials.
+2. If that page shows the error `Oauth1.0 is only available to institutional clients`, you first need to go through [this registration process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and email IBKR to request programmatic access. If your request is rejected, use the [Client Portal Gateway](#connecting-with-the-client-portal-gateway) instead.
+
+    ![OAuth 1.0 is only available to institutional clients error](https://i.imgur.com/vu8JXK9.png)
+
+3. Once approved, generate your api keys.
+
+    ![generating the OAuth api keys](https://i.imgur.com/pSHadxF.png)
+
+4. Wait for the keys to be activated, which might take up to 24 hours.
+5. Set the credentials:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'apiKey': '______ACCESS_TOKEN______',
+    'secret': '______ACCESS_TOKEN_SECRET______',
+    'options': {
+        'consumer_key': '______VALUE_HERE______',
+        'signaturePemPath': '______PATH_TO_FILE______',
+        'encryptionPemPath': '______PATH_TO_FILE______',
+        'dhParamPemPath': '______PATH_TO_FILE______',
+    },
+});
+```
+
+### Connecting with the Client Portal Gateway
+
+If your account is not permitted to generate OAuth credentials, you can use the `Client Portal Gateway`, a local IBKR bridge that does not need api keys.
+
+1. Get the gateway running, in one of two ways:
+    - **Docker (preferred)**: use the dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (you need [Docker](https://docs.docker.com/engine/install/) installed):
+        - Clone the repository and start the container:
+
+            ```bash
+            git clone https://github.com/ccxt/interactive-brokers-cpg-wrapper.git
+            cd interactive-brokers-cpg-wrapper
+            docker compose up -d --build
+            ```
+
+        - To use another port (e.g. when 5000 is taken, as on macOS where AirPlay Receiver uses it), change the port mapping in `docker-compose.yml` from `"5000:5000"` to e.g. `"5001:5000"` before starting it.
+    - **Manual**: download the files from https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow the instructions shown there. In this case you have to re-run the gateway manually after every device restart and similar cases, which is why the dockerized approach is preferred.
+2. Log in at https://localhost:5000
+3. Enable the gateway in CCXT:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        // if a custom port is needed, add the field below
+        // 'gatewayUrl': 'https://localhost:5000/',
+    },
+});
+```
+
+The gateway listens on port 5000 by default. If that port is already taken on your machine, you can run the gateway on any other port, then log in at that port and set `gatewayUrl` to match, e.g. `'gatewayUrl': 'https://localhost:5001/'`.
+
+Note that the gateway needs slightly more maintenance than OAuth: it might require you to log in manually once every 24 hours at https://localhost:5000
+
+### One session per user
+
+IBKR allows only one active session per user. If you log in to the IBKR website or to another IBKR app with the same user, your running CCXT session may be disconnected.
+
+To avoid this, create an additional user in Account Management and use it only for the API (this also applies when connecting through the gateway). Each user needs its own market data subscriptions.
+
+### Account ids
+
+If you have multiple sub-accounts, you need to specify the one you want to trade in, by providing its account id in the options:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'accountId': 'UXXXXX', // your account id here
+    },
+});
+```
+
+### Paper trading
+
+Paper trading is also supported, just toggle the option upon logging in.
+
+### Symbols
+
+IBKR is a broker, not a single exchange: the same ticker can be listed on many venues (`AAPL` on NASDAQ, on the Mexican exchange, as a CFD, ...) and the same coin is offered by several crypto providers. To keep every market unique, CCXT puts the **listing exchange** in the base part of the symbol, right after the IBKR ticker:
+
+```
+<ticker>.<listingExchange>/<currency>                        // spot: stocks, crypto, forex, bonds
+<ticker>.<listingExchange>/<currency>:<currency>             // swap: cfds and perp-style futures
+<ticker>.<listingExchange>/<currency>:<currency>-<YYMMDD>    // future: dated futures, with the expiry date
+```
+
+For example, the Apple stock is `AAPL.NASDAQ/USD`:
+
+| part | value | meaning |
+|------|-------|---------|
+| ticker | `AAPL` | the IBKR ticker |
+| listing exchange | `NASDAQ` | the venue the contract is listed on |
+| currency | `USD` | the currency the contract is quoted in |
+
+The market `id` is always the IBKR contract id (`conid`), e.g. `265598` for `AAPL.NASDAQ/USD`, and the raw IBKR contract is available in `market['info']`.
+
+#### Symbols by market type
+
+| market | example symbol | notes |
+|--------|----------------|-------|
+| stock | `AAPL.NASDAQ/USD`, `IBM.NYSE/USD`, `BRK.B.NYSE/USD` | a space in the IBKR ticker becomes a dot (`BRK B` -> `BRK.B`) |
+| crypto | `BTC.PAXOS/USD`, `BTC.ZEROHASH/USD` | one market per crypto provider |
+| forex | `EUR.OTC/USD` | |
+| cfd | `AAPL.IBUSCFD/USD:USD` | unified as a swap, `IBUSCFD` = US cfds, `IBCFD` = non-US cfds |
+| perp-style future | `BTC.NANO.COINDERIV/USD:USD` | Coinbase Derivatives, unified as a swap |
+| dated future | `BTC.MICRO.CME/USD:USD-261224`, `ETH.CME/USD:USD-261127` | the suffix is the expiry date (2026-12-24) |
+| bond | `US-T-4.125-270131.SMART/USD`, `US-T-270114.SMART/USD` | see the bond rules below |
+
+#### Special cases
+
+- **Futures**: the base is the underlying coin instead of the IBKR ticker (`MBT` -> `BTC`, `BIP` -> `BTC`), and the contract size goes in between as `NANO.` / `MICRO.` when the IBKR contract is a nano or micro one. For example, `BTC.MICRO.CME/USD:USD-261224` is the CME Micro Bitcoin future (0.1 BTC) expiring on 2026-12-24.
+- **Bonds**: every bond of an issuer has the same IBKR ticker (`US-T` for the US treasuries), so the coupon and the maturity date (`YYMMDD`) are added to tell them apart. `US-T-4.125-270131.SMART/USD` is the 4.125% note maturing on 2027-01-31, and a bill (no coupon) is `US-T-270114.SMART/USD`. Bonds are routed across many venues, so the exchange part is always `SMART`.
+- **Collisions**: if two contracts still end up with the same symbol, the later one gets the IBKR conid in place of the exchange (or appended to the base for bonds), e.g. `BTC.150045489/USD:USD`.
+
+#### Finding a symbol
+
+Since the exchange and the expiry are part of the symbol, the easiest way to find a symbol is to look it up in the loaded markets:
+
+```
+const symbols = exchange.symbols.filter ((symbol) => symbol.startsWith ('BTC.'));
+// [ 'BTC.PAXOS/USD', 'BTC.ZEROHASH/USD', ... ]
+```
+
+### Choosing which markets to load
+
+Which markets are loaded is configured in `options.fetchMarkets`. Loading only what you need makes `loadMarkets` much faster:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'fetchMarkets': {
+            // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' are loaded by default, 'bond' is opt-in
+            'types': [ 'stock', 'crypto', 'bond' ],
+            'exchanges': {
+                'STK': [ 'NASDAQ' ], // the stock exchanges to load, the default is NYSE
+            },
+            'cryptoSpotSymbols': [ 'BTC', 'ETH' ], // the coins to load, on every provider
+            'bondSymbols': [ 'US-T' ], // the bond issuers to load, US-T = US treasuries
+            'bondFilters': { '29': 'Notes', '27': '202701' }, // 29 = type (Bills, Notes, Bonds, ...), 27 = maturity month (YYYYMM)
+        },
+    },
+});
+await exchange.loadMarkets ();
+const ticker = await exchange.fetchTicker ('AAPL.NASDAQ/USD');
+```
+
+| option | what it controls |
+|--------|------------------|
+| `types` | the market types to load |
+| `exchanges` | the listing exchanges to load, per IBKR security type (`STK` = stocks) |
+| `cryptoSpotSymbols` | the coins to load, on every crypto provider |
+| `bondSymbols` | the bond issuers to load |
+| `bondFilters` | IBKR bond filters: `29` = type (Bills, Notes, Bonds, ...), `27` = maturity month (`YYYYMM`) |
+
+### Examples
+
+Complete examples: [stocks](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-stocks.ts), [crypto](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-crypto.ts) and [bonds](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-bonds.ts).
+
+## How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
 
@@ -411,7 +683,7 @@ CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Extended Exchange in CCXT?
+## How to use the Extended Exchange in CCXT?
 
 Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
 
@@ -436,7 +708,7 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Apex Exchange in CCXT?
+## How to use the Apex Exchange in CCXT?
 
 An example on how to instantiate the Apex exchange:
 
@@ -453,7 +725,7 @@ exchange = ccxt.apex({
 })
 ```
 
-### How to trade stocks at Backpack?
+## How to trade stocks at Backpack?
 
 Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
 
@@ -484,7 +756,7 @@ exchange.cancel_order(order['id'], 'SPCX.US/USDC')
 
 Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
 
-### How to trade stocks at Bitget?
+## How to trade stocks at Bitget?
 
 Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
 
@@ -580,7 +852,7 @@ order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
 
 All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
 
-### How to use the Prediction Exchange Polymarket?
+## How to use the Prediction Exchange Polymarket?
 
 Polymarket requires two credentials:
 
@@ -602,7 +874,7 @@ Notes:
 - Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
 - Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
 
-### How to use the Prediction Exchange Kalshi?
+## How to use the Prediction Exchange Kalshi?
 
 Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
 
@@ -616,7 +888,7 @@ exchange = ccxt.prediction.kalshi({
 })
 ```
 
-### How to use the Prediction Exchange Hyperliquid?
+## how to use the Prediction Exchange Hyperliquid?
 
 Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
 

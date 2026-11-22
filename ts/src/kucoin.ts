@@ -755,6 +755,7 @@ export default class kucoin extends Exchange {
                     '411100': AccountSuspended,
                     '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                     '400303': PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
+                    '400304': PermissionDenied, // {"msg":"To enjoy the full range of our products and services, log in to your master account and complete the identity verification process.","code":"400304"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
                     '600100': InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}
@@ -1636,7 +1637,7 @@ export default class kucoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        let fetchTickersFees: Bool = undefined;
+        let fetchTickersFees: boolean = true;
         let paramsRequest = undefined;
         [ fetchTickersFees, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = false;
@@ -1755,7 +1756,7 @@ export default class kucoin extends Exchange {
             promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
-        let symbolsData: List = [];
+        let symbolsData: Dict[] = [];
         if (fetchSpotMarkets) {
             symbolsData = this.safeList (responses[0], 'data', []);
         }
@@ -2116,7 +2117,7 @@ export default class kucoin extends Exchange {
         const contractData = this.safeDict (responses[1], 'data', {});
         const spotData = this.safeList (data, 'list', []);
         const contractSymbolsData = this.safeList (contractData, 'list', []);
-        const symbolsData = this.arrayConcat (spotData, contractSymbolsData);
+        const symbolsData: Dict[] = this.arrayConcat (spotData, contractSymbolsData);
         const result: List = [];
         for (let i = 0; i < symbolsData.length; i++) {
             const market = symbolsData[i];
@@ -4843,8 +4844,7 @@ export default class kucoin extends Exchange {
         //           },
         // }
         //
-        let data = this.safeDict (response, 'data', {});
-        data = this.safeList (data, 'data', []);
+        const data = this.safeList (this.safeDict (response, 'data', {}), 'data', []);
         return this.parseOrders (data);
     }
 
@@ -10259,7 +10259,7 @@ export default class kucoin extends Exchange {
         return this.parseFundingRates (rates, symbolsNormalized);
     }
 
-    override parseFundingRate (data: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (data: NullableDict, market: Market = undefined): FundingRate {
         // uta
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",
@@ -11096,9 +11096,8 @@ export default class kucoin extends Exchange {
                 'clientOid': this.safeString (clientOrderIds, i),
             });
         }
-        const idsList = this.toArray (ids);
-        for (let i = 0; i < idsList.length; i++) {
-            const orderId = this.safeString (idsList, i);
+        for (let i = 0; i < ids.length; i++) {
+            const orderId = this.safeString (ids, i);
             if (uta) {
                 ordersRequests.push ({
                     'orderId': orderId,
@@ -11923,7 +11922,7 @@ export default class kucoin extends Exchange {
             let partner = this.safeDict (this.options, 'partner', {});
             const isUtaFuturePrivate = isUtaPrivate && (tradeType === 'FUTURES');
             const isFuturePartner = isFuturePrivate || isUtaFuturePrivate;
-            partner = isFuturePartner ? this.safeValue (partner, 'future', partner) : this.safeValue (partner, 'spot', partner);
+            partner = isFuturePartner ? this.safeDict (partner, 'future', partner) : this.safeDict (partner, 'spot', partner);
             const partnerId = this.safeString (partner, 'id');
             const partnerSecret = this.safeString2 (partner, 'secret', 'key');
             if ((partnerId !== undefined) && (partnerSecret !== undefined)) {

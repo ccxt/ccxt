@@ -202,9 +202,7 @@ public final class Encode {
     }
 
     public static String binaryToHex(byte[] buff) {
-        StringBuilder sb = new StringBuilder(buff.length * 2);
-        for (byte b : buff) sb.append(String.format("%02x", b));
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(buff);
     }
 
     public static String binaryToBase16(Object buff2) {
@@ -233,6 +231,9 @@ public final class Encode {
     }
 
     public static String intToBase16(Object number) {
+        if (number instanceof BigInteger) {
+            return ((BigInteger) number).toString(16); // big integers, e.g. the result of modPow
+        }
         long n = Long.parseLong(String.valueOf(number));
         return Long.toHexString(n);
     }

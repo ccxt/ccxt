@@ -2995,6 +2995,95 @@
                     ]
                 ]
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch open swap positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "code": 0,
+                    "data": [
+                        {
+                            "positionId": 1394650,
+                            "symbol": "ETH_USDT",
+                            "positionType": 1,
+                            "openType": 1,
+                            "state": 1,
+                            "holdVol": 1,
+                            "frozenVol": 0,
+                            "closeVol": 0,
+                            "holdAvgPrice": 1217.3,
+                            "openAvgPrice": 1217.3,
+                            "closeAvgPrice": 0,
+                            "liquidatePrice": 1211.2,
+                            "oim": 0.1290338,
+                            "im": 0.1290338,
+                            "holdFee": 0,
+                            "realised": -0.0073,
+                            "leverage": 100,
+                            "createTime": 1609991676000,
+                            "updateTime": 1609991676000,
+                            "autoAddIm": false
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": 1394650,
+                            "symbol": "ETH_USDT",
+                            "positionType": 1,
+                            "openType": 1,
+                            "state": 1,
+                            "holdVol": 1,
+                            "frozenVol": 0,
+                            "closeVol": 0,
+                            "holdAvgPrice": 1217.3,
+                            "openAvgPrice": 1217.3,
+                            "closeAvgPrice": 0,
+                            "liquidatePrice": 1211.2,
+                            "oim": 0.1290338,
+                            "im": 0.1290338,
+                            "holdFee": 0,
+                            "realised": -0.0073,
+                            "leverage": 100,
+                            "createTime": 1609991676000,
+                            "updateTime": 1609991676000,
+                            "autoAddIm": false
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "contracts": 1,
+                        "contractSize": 0.01,
+                        "entryPrice": 1217.3,
+                        "positionMargin": 0.1290338,
+                        "collateral": 0.1290338,
+                        "side": "long",
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.0073,
+                        "leverage": 100,
+                        "percentage": null,
+                        "marginMode": "isolated",
+                        "notional": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "liquidationPrice": 1211.2,
+                        "initialMargin": 0.1290338,
+                        "initialMarginPercentage": 0.01,
+                        "maintenanceMargin": 0.0680338,
+                        "maintenanceMarginPercentage": null,
+                        "marginRatio": 0.5272,
+                        "timestamp": 1609991676000,
+                        "datetime": "2021-01-07T03:54:36.000Z",
+                        "hedged": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "lastUpdateTimestamp": null
+                    }
+                ]
+            }
         ]
     }
 }

@@ -106,7 +106,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -117,9 +117,10 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             return 'wss://www.deribit.com/ws/api/v2';
         }
         if ($isPrivate) {
-            return $this->urls['api']['wsPrivate'];
+            return $this->safe_string($this->urls['api'], 'wsPrivate', '');
+        } else {
+            return $this->safe_string($this->urls['api'], 'ws', '');
         }
-        return $this->urls['api']['ws'];
     }
 
     public function ping(Client $client): Dict | Str {
@@ -578,7 +579,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $positions = $this->parse_positions($rawPositions);
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
-            $this->positions->append($positions[$i]);
+            $position = $positions[$i];
+            if ($position['side'] === null) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                $position['side'] = 'long';
+                $shortPosition = $this->clone($position);
+                $shortPosition['side'] = 'short';
+                $this->positions->append($shortPosition);
+            }
+            $this->positions->append($position);
         }
         $client->resolve($this->positions, $channel);
     }
@@ -1493,7 +1502,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function handle_deltas(mixed $bookside, array $deltas) {
         $deltasLength = count($deltas);
         for ($i = 0; $i < $deltasLength; $i++) {
-            $this->handle_delta($bookside, $this->safe_value($deltas, $i));
+            $this->handle_delta($bookside, $this->safe_list($deltas, $i));
         }
     }
 

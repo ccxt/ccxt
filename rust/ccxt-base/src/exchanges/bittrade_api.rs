@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bittrade::BittradeCore;
+use super::bittrade::Bittrade;
 use crate::exchange::ExchangeRuntime;
 
-impl BittradeCore {
+impl Bittrade {
     /// Auto-generated wrapper for the `v2PublicGetReferenceCurrencies` implicit endpoint.
     pub async fn v2_public_get_reference_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_public_get_reference_currencies".into()), optional_args).await

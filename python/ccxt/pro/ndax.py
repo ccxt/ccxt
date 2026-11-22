@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
 import json
 from ccxt.base.types import Int, OrderBook, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
@@ -37,7 +37,7 @@ class ndax(ccxt.async_support.ndax):
             # },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
@@ -193,8 +193,8 @@ class ndax(ccxt.async_support.ndax):
             market = self.market(symbol)
             marketId = self.safe_string(market, 'id', '')
             messageHash = name + ':' + marketId
-            tradesArray = self.safe_value(self.trades, symbol)
-            client.resolve(tradesArray, messageHash)
+            symbolTrades = self.safe_value(self.trades, symbol)
+            client.resolve(symbolTrades, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -289,7 +289,11 @@ class ndax(ccxt.async_support.ndax):
                     self.safe_float(ohlcv, 4),
                     self.safe_float(ohlcv, 5),
                 ]
-                stored = self.safe_value(self.ohlcvs[symbol], timeframe, [])
+                stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+                if stored is None:
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    stored = ArrayCacheByTimestamp(limit)
+                    self.ohlcvs[symbol][timeframe] = stored
                 length = len(stored)
                 previous = self.safe_value(stored, length - 1)
                 previousTimestamp = self.safe_integer(previous, 0)
@@ -308,14 +312,14 @@ class ndax(ccxt.async_support.ndax):
                         low = parsedLow
                         if (previousLow is not None) and (parsedLow > previousLow):
                             low = previousLow
-                    stored[length - 1] = [
+                    stored.append([
                         candleTimestamp,
                         self.safe_float(previous, 1),
                         high,
                         low,
                         self.safe_float(ohlcv, 4),
                         self.sum(self.safe_float(ohlcv, 5), self.safe_float(previous, 5)),
-                    ]
+                    ])
                     if marketId is not None:
                         marketUpdates[timeframe] = True
                 else:
@@ -323,12 +327,8 @@ class ndax(ccxt.async_support.ndax):
                         if (previousTimestamp is not None) and (previousTimestamp > candleTimestamp):
                             continue
                     stored.append(parsed)
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    if length >= limit:
-                        stored.pop(0)
                     if marketId is not None:
                         marketUpdates[timeframe] = True
-                self.ohlcvs[symbol][timeframe] = stored
             if marketId is not None:
                 updates[marketId] = marketUpdates
         name = 'SubscribeTicker'
@@ -341,8 +341,8 @@ class ndax(ccxt.async_support.ndax):
                 messageHash = name + ':' + timeframe + ':' + marketId
                 market = self.safe_market(marketId)
                 symbol = self.safe_string(market, 'symbol', '')
-                stored = self.safe_list(self.safe_value(self.ohlcvs, symbol), timeframe, [])
-                client.resolve(stored, messageHash)
+                symbolOhlcv = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+                client.resolve(symbolOhlcv, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -516,7 +516,7 @@ class ndax(ccxt.async_support.ndax):
         #
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         id = self.safe_integer(message, 'i')
-        subscription = None if (id is None) else self.safe_dict(subscriptionsById, id)
+        subscription = self.safe_dict(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:

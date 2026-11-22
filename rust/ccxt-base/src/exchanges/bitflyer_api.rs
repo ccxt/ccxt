@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitflyer::BitflyerCore;
+use super::bitflyer::Bitflyer;
 use crate::exchange::ExchangeRuntime;
 
-impl BitflyerCore {
+impl Bitflyer {
     /// Auto-generated wrapper for the `publicGetGetmarketsUsa` implicit endpoint.
     pub async fn public_get_getmarkets_usa(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_getmarkets_usa".into()), optional_args).await

@@ -35,53 +35,51 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     let mut bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
-    let mut bidsLength: Value = get_array_length(&bids);
+    let mut bidsLength: i64 = get_array_length(&bids).as_i64().unwrap_or_default();
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1547 = false; i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) } {
-        let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
+                let mut i: i64 = 0;
+        let mut __for_first_1561: bool = true;
+        while { if !__for_first_1561 { i += 1; } __for_first_1561 = false; i < bidsLength } {
+        let mut currentBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if bidsLength.as_f64().unwrap_or(f64::NAN) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextBidString: Value = exchange.safe_string(get_value(&bids, &nextI), Value::Int(0), &[]);
+            let mut nextI: Value = Value::Int((i + 1));
+            if (bidsLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
+                let mut nextBidString: Option<String> = exchange.safe_string_opt(get_value(&bids, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&currentBidString, &nextBidString))));
             }
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &i).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &i).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&bids, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
         }
     }
     }
     let mut asks: Value = orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
-    let mut asksLength: Value = get_array_length(&asks);
+    let mut asksLength: i64 = get_array_length(&asks).as_i64().unwrap_or_default();
     {
-                let mut i: Value = Value::Int(0);
-        let mut __for_first_1548: bool = true;
-        while { if !__for_first_1548 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1548 = false; i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) } {
-        let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
+                let mut i: i64 = 0;
+        let mut __for_first_1562: bool = true;
+        while { if !__for_first_1562 { i += 1; } __for_first_1562 = false; i < asksLength } {
+        let mut currentAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(i)), Value::Int(0), &[]);
         if !(in_op(&skippedProperties, &Value::Str("compareToNextItem".into()))) {
-            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            if asksLength.as_f64().unwrap_or(f64::NAN) > nextI.as_f64().unwrap_or(f64::NAN) {
-                let mut nextAskString: Value = exchange.safe_string(get_value(&asks, &nextI), Value::Int(0), &[]);
+            let mut nextI: Value = Value::Int((i + 1));
+            if (asksLength as f64) > nextI.as_f64().unwrap_or(f64::NAN) {
+                let mut nextAskString: Option<String> = exchange.safe_string_opt(get_value(&asks, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&currentAskString, &nextAskString))));
             }
         }
         if !(in_op(&skippedProperties, &Value::Str("compareToZero".into()))) {
             // compare price & volume to zero
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &i).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
-            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &i).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(0).clone(), Value::Str("0".into()).clone()]);
+            crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&asks, &Value::Int(i)).clone(), Value::Int(1).clone(), Value::Str("0".into()).clone()]);
         }
     }
     }
     if !(in_op(&skippedProperties, &Value::Str("spread".into()))) {
-        if (bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
-            let mut firstBid: Value = exchange.safe_string(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
-            let mut firstAsk: Value = exchange.safe_string(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
+        if (bidsLength > 0) && (asksLength > 0) {
+            let mut firstBid: Option<String> = exchange.safe_string_opt(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
+            let mut firstAsk: Option<String> = exchange.safe_string_opt(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
             // check bid-ask spread
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&firstBid, &firstAsk))));
         }

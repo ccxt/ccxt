@@ -114,12 +114,12 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTicker", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
-	var url *string = func() *string {
-		if isGenerationTwo {
-			return this.SafeString(wsUrls, "publicGen2", "")
-		}
-		return this.SafeString(wsUrls, "public", "")
-	}()
+	var url *string
+	if isGenerationTwo {
+		url = this.SafeString(wsUrls, "publicGen2", "")
+	} else {
+		url = this.SafeString(wsUrls, "public", "")
+	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr("ticker:" + market["symbol"].(string))
 	var tickTypes *string = this.SafeString(paramsGeneration, "tickTypes", "24H")
@@ -188,12 +188,12 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTickers", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var symbolsLength int = func() int {
-		if symbolsNormalized == nil {
-			return 0
-		}
-		return len(symbolsNormalized)
-	}()
+	var symbolsLength int
+	if symbolsNormalized == nil {
+		symbolsLength = 0
+	} else {
+		symbolsLength = len(symbolsNormalized)
+	}
 	if isGenerationTwo && (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))
 	}
@@ -203,12 +203,12 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	}
 	var symbolsLengthDefined int = len(symbolsResolved)
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
-	var url *string = func() *string {
-		if isGenerationTwo {
-			return this.SafeString(wsUrls, "publicGen2", "")
-		}
-		return this.SafeString(wsUrls, "public", "")
-	}()
+	var url *string
+	if isGenerationTwo {
+		url = this.SafeString(wsUrls, "publicGen2", "")
+	} else {
+		url = this.SafeString(wsUrls, "public", "")
+	}
 	var streamMarketIds []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
@@ -530,12 +530,12 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchOrderBook", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
-	var url *string = func() *string {
-		if isGenerationTwo {
-			return this.SafeString(wsUrls, "publicGen2", "")
-		}
-		return this.SafeString(wsUrls, "public", "")
-	}()
+	var url *string
+	if isGenerationTwo {
+		url = this.SafeString(wsUrls, "publicGen2", "")
+	} else {
+		url = this.SafeString(wsUrls, "public", "")
+	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "orderbook" + ":" + *symbolValue
@@ -707,8 +707,11 @@ func (this *Bithumb) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta an
 		side = "bids"
 	}
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "quantity")
-	var orderbookSide any = ccxt.GetValue(orderbook, side)
-	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	var orderbookSide ccxt.IOrderBookSide = orderbook.GetAsks()
+	if side == "bids" {
+		orderbookSide = orderbook.GetBids()
+	}
+	orderbookSide.StoreArray(bidAsk)
 }
 
 /**
@@ -748,12 +751,12 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "watchTrades", "generation", 2)
 	var isGenerationTwo bool = (generation == 2)
 	var wsUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
-	var url *string = func() *string {
-		if isGenerationTwo {
-			return this.SafeString(wsUrls, "publicGen2", "")
-		}
-		return this.SafeString(wsUrls, "public", "")
-	}()
+	var url *string
+	if isGenerationTwo {
+		url = this.SafeString(wsUrls, "publicGen2", "")
+	} else {
+		url = this.SafeString(wsUrls, "public", "")
+	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash string = "trade:" + *symbolValue
@@ -1202,14 +1205,10 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		"type":  messageHash,
 		"codes": codes,
 	})
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = messageHash + ":" + *this.SafeString(market, "symbol", "")
 	}
 

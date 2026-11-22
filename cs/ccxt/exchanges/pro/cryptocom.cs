@@ -81,7 +81,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
@@ -98,7 +98,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
@@ -116,7 +116,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -126,29 +126,29 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object limitResolved = 50;
+        Int64? limitResolved = 50;
         if (((limit != null)) && ((limit != 0)))
         {
             limitResolved = limit;
         }
-        object topicParams = this.safeValue(parameters, "params");
+        IDictionary<string, object> topicParams = this.safeDict(parameters, "params");
         if ((topicParams == null))
         {
-            ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
+            parameters["params"] = new Dictionary<string, object>() {};
         }
-        (string?, object) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        (string?, IDictionary<string, object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         string? bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item1;
-        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
-        (string?, object) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        IDictionary<string, object> paramsBookSubscriptionType = (bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
+        (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
-        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
+        IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
-        (string?, object) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
-        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
-        (string?, object) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
+        (string?, IDictionary<string, object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
-        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
+        IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
             ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
@@ -177,7 +177,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -189,24 +189,24 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         Int64? limit = this.safeInteger(parameters, "limit", 50);
-        object topicParams = this.safeValue(parameters, "params");
+        IDictionary<string, object> topicParams = this.safeDict(parameters, "params");
         if ((topicParams == null))
         {
-            ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
+            parameters["params"] = new Dictionary<string, object>() {};
         }
-        (string?, object) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        (string?, IDictionary<string, object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         string? bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item1;
-        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
-        (string?, object) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        IDictionary<string, object> paramsBookSubscriptionType = (bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
+        (string?, IDictionary<string, object>) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
         string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
-        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
+        IDictionary<string, object> paramsBookSubscriptionType2 = (bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
-        (string?, object) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        (string?, IDictionary<string, object>) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
         string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
-        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
-        (string?, object) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        IDictionary<string, object> paramsBookUpdateFrequency = (bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
+        (string?, IDictionary<string, object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
         string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
-        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
+        IDictionary<string, object> paramsBookUpdateFrequency2 = (bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
             ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
@@ -234,7 +234,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, this.safeValue(deltas, i));
+            this.handleDelta(bookside, this.safeList(deltas, i));
         }
     }
 
@@ -349,7 +349,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -364,7 +364,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
@@ -381,7 +381,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -416,7 +416,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -486,7 +486,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> parsedTrades = ccxt.BaseExchange.FromTradeList(this.parseTrades(data, market));
         for (int j = 0; j < (parsedTrades?.Count ?? 0); j++)
         {
-            stored.append(this.safeValue(parsedTrades, j));
+            stored.append(this.safeDict(parsedTrades, j));
         }
         string channelReplaced = channel.Replace(("." + marketId), (string)"");
         client.resolve(stored, symbolSpecificMessageHash);
@@ -504,7 +504,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -529,7 +529,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
     }
 
     /**
@@ -541,7 +541,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -561,7 +561,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -629,7 +629,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -832,7 +832,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -862,7 +862,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -931,7 +931,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -956,7 +956,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
@@ -1026,7 +1026,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1060,7 +1060,7 @@ public partial class cryptocom : ccxt.cryptocom
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((this.positions == null)))
         {
             ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
-            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true));
+            return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(snapshot), symbolsNormalized, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, this.extend(request, parameters));
         if (this.newUpdates)
@@ -1178,7 +1178,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string messageHash = "user.balance";
@@ -1271,7 +1271,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1302,7 +1302,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1347,7 +1347,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1374,7 +1374,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1436,8 +1436,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
     public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
@@ -1461,8 +1460,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "subMessageHashes", subMessageHashes },
             { "messageHashes", messageHashes },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, this.extend(subscription, subExtend));
     }
 
     public async virtual Task<object> watchPrivateRequest(object nonce, IDictionary<string, object>? parameters = null)
@@ -1478,7 +1476,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watch(url, this.numberToString(nonce), message, true);
     }
 
-    public async virtual Task<object> watchPrivateSubscribe(string? messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivateSubscribe(string? messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();

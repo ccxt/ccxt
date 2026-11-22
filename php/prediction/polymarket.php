@@ -1974,7 +1974,7 @@ class polymarket extends Exchange {
             'datetime' => $this->iso8601($ts),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'outcome' => $mkt['outcome'],
+            'outcome' => $this->safe_string($mkt, 'outcome'),
             'outcomeId' => $this->safe_string($mkt, 'outcomeId'),
             'label' => $this->safe_string($mkt, 'label'),
             'market' => $this->safe_string($mkt, 'market'),
@@ -2595,7 +2595,7 @@ class polymarket extends Exchange {
                     $detailedEvent = Async\await($this->gammaPublicGetEventsSlugSlug(array( 'slug' => $rawEventSlug )));
                 }
                 if ($detailedEvent !== null) {
-                    $eventForParsing = $this->safe_value($detailedEvent, 'event', $detailedEvent);
+                    $eventForParsing = $this->safe_dict($detailedEvent, 'event', $detailedEvent);
                     $ccxtMarkets = $this->parse_event_to_markets($eventForParsing);
                 }
             }
@@ -3350,8 +3350,8 @@ class polymarket extends Exchange {
             $bidsLength = count($bids);
         }
         if (($bids !== null) && ($bidsLength > 0)) {
-            $bestBid = $bids[0][0];
-            $bestBidVolume = $bids[0][1];
+            $bestBid = $this->safe_number($bids[0], 0);
+            $bestBidVolume = $this->safe_number($bids[0], 1);
         }
         $bestAsk = null;
         $bestAskVolume = null;
@@ -3360,8 +3360,8 @@ class polymarket extends Exchange {
             $asksLength = count($asks);
         }
         if (($asks !== null) && ($asksLength > 0)) {
-            $bestAsk = $asks[0][0];
-            $bestAskVolume = $asks[0][1];
+            $bestAsk = $this->safe_number($asks[0], 0);
+            $bestAskVolume = $this->safe_number($asks[0], 1);
         }
         $mid = null;
         if (($bestBid !== null) && ($bestAsk !== null)) {

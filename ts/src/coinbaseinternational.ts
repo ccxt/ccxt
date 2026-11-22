@@ -764,7 +764,7 @@ export default class coinbaseinternational extends Exchange {
         const precision = this.parseNumber (this.parsePrecision (decimals));
         const networkFee = this.safeNumber (currency, 'network_fee');
         const withdrawalFee = this.safeNumber (currency, 'withdrawal_fee');
-        const rawNetworks = this.safeList (currency, 'coinbase_networks', []);
+        const rawNetworks: Dict[] = this.safeList (currency, 'coinbase_networks', []);
         const networks: Dict = {};
         for (let i = 0; i < rawNetworks.length; i++) {
             const rawNetwork = rawNetworks[i];
@@ -1007,7 +1007,7 @@ export default class coinbaseinternational extends Exchange {
         } as FundingRateHistory;
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined) {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined) {
         //
         // fetchFundingRateHistory
         //
@@ -1808,29 +1808,32 @@ export default class coinbaseinternational extends Exchange {
         //
         const instrumentName = this.safeString (position, 'instrument_name');
         const marketResolved = this.safeMarket (instrumentName, market);
-        let side = this.safeString (position, 'direction');
-        if (side === 'buy') {
+        const direction = this.safeString (position, 'direction');
+        let side: Str = undefined;
+        if (direction === 'buy') {
             side = 'long';
-        } else if (side === 'sell') {
+        } else if (direction === 'sell') {
             side = 'short';
         }
-        let notional = this.safeString (position, 'size_currency');
         const initialMargin = this.safeString (position, 'initial_margin');
         const maintenanceMargin = this.safeString (position, 'maintenance_margin');
-        let contracts: Num = this.safeNumber (position, 'size');
-        if (this.isNativeDeribitCredentials ()) {
-            let size = this.safeString (position, 'size');
-            if (!this.safeBool (marketResolved, 'option', false)) {
-                notional = size;
-                if (this.safeBool (marketResolved, 'linear', false)) {
-                    size = this.safeString (position, 'size_currency');
-                }
-            } else {
-                notional = Precise.stringMul (size, this.safeString (position, 'mark_price'));
-            }
-            const contractsString = this.safeString (position, 'contracts', Precise.stringDiv (size, this.safeString (marketResolved, 'contractSize')));
-            contracts = this.parseNumber (Precise.stringAbs (contractsString));
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        const size = this.safeString (position, 'size');
+        let amount = size;  // `contract_size` converts between `amount` and `contracts`
+        let notional: Str = undefined;
+        if (this.safeBool (marketResolved, 'option', false)) {
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = Precise.stringMul (size, this.safeString (position, 'mark_price'));
+        } else if (this.safeBool (marketResolved, 'linear', false)) {
+            amount = this.safeString (position, 'size_currency'); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size;
+        } else {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = this.safeString (position, 'size_currency');
         }
+        const contractsString = Precise.stringDiv (amount, this.safeString (marketResolved, 'contractSize'));
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -1841,7 +1844,7 @@ export default class coinbaseinternational extends Exchange {
             'collateral': undefined,
             'unrealizedPnl': this.safeNumber (position, 'floating_profit_loss'),
             'side': side,
-            'contracts': contracts,
+            'contracts': this.parseNumber (Precise.stringAbs (contractsString)),
             'contractSize': this.safeNumber (marketResolved, 'contractSize'),
             'timestamp': undefined,
             'datetime': undefined,
@@ -1999,11 +2002,11 @@ export default class coinbaseinternational extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {});
-        const logs = this.safeList (result, 'logs', []);
+        const logs: Dict[] = this.safeList (result, 'logs', []);
         if (!this.isNativeDeribitCredentials ()) {
             return this.parseTransactions (logs, currency, since, limit);
         }
-        const transactions = [];
+        const transactions: Dict[] = [];
         for (let i = 0; i < logs.length; i++) {
             const transaction = logs[i];
             const transactionType = this.safeString (transaction, 'type');
@@ -2471,7 +2474,7 @@ export default class coinbaseinternational extends Exchange {
         }, marketResolved);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'good_til_cancelled': 'GTC',
             'fill_or_kill': 'FOK',

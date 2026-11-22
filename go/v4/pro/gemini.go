@@ -299,7 +299,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var storesForSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
-		var rawTrade any = this.SafeValue(trades, i)
+		var rawTrade map[string]any = this.SafeDictMap(trades, i, map[string]any{})
 		var marketId string = strings.ToLower(*this.SafeString(rawTrade, "symbol", ""))
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -325,9 +325,9 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	}
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
-		var stored any = storesForSymbols[symbol]
+		var symbolStore any = storesForSymbols[symbol]
 		var messageHash string = "trades:" + symbol
-		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		client.(ccxt.ClientInterface).Resolve(symbolStore, messageHash)
 	}
 }
 
@@ -436,15 +436,14 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var timeframe *string = this.FindTimeframe(timeframeId)
-	var ohlcvsBySymbol map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
-	if ohlcvsBySymbol == nil {
+	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		if symbol != nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -458,9 +457,8 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var changesLength int = len(changes)
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
-		var index int64 = (int64(changesLength) - int64(i)) - 1
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, index), market))
-		stored.(ccxt.Appender).Append(parsed)
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, (changesLength-i)-1), market))
+		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -563,10 +561,10 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 		var size *float64 = this.SafeNumber(delta, 2)
 		if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
 			var bids ccxt.IOrderBookSide = orderbook.GetBids()
-			bids.(ccxt.IOrderBookSide).Store(price, size)
+			bids.Store(price, size)
 		} else {
 			var asks ccxt.IOrderBookSide = orderbook.GetAsks()
-			asks.(ccxt.IOrderBookSide).Store(price, size)
+			asks.Store(price, size)
 		}
 	}
 	orderbook.SetSymbol(symbol)
@@ -807,9 +805,9 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
 		if rawSide != nil && *rawSide == "bid" {
-			bids.(ccxt.IOrderBookSide).Store(price, size)
+			bids.Store(price, size)
 		} else {
-			asks.(ccxt.IOrderBookSide).Store(price, size)
+			asks.Store(price, size)
 		}
 	}
 	orderbook.SetSymbol(symbol)
@@ -1151,7 +1149,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		var collectedEventsOfTrades []any = []any{}
 		var eventsLength int = len(events)
 		for i := 0; i < len(events); i++ {
-			var event any = this.SafeValue(events, i)
+			var event map[string]any = this.SafeDictMap(events, i, map[string]any{})
 			var eventType *string = this.SafeString(event, "type")
 			var side *string = this.SafeString(event, "side")
 			var isOrderBook bool = (eventType != nil && *eventType == "change") && (side != nil) && this.InArray(side, []any{"ask", "bid"})
@@ -1203,12 +1201,12 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var startIndex int = len(wsBaseUrl)
 	var urlParamsIndex int = strings.Index(*url, "?")
 	var urlLength int = len(*url)
-	var endIndex int = func() int {
-		if urlParamsIndex >= 0 {
-			return urlParamsIndex
-		}
-		return urlLength
-	}()
+	var endIndex int
+	if urlParamsIndex >= 0 {
+		endIndex = urlParamsIndex
+	} else {
+		endIndex = urlLength
+	}
 	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,

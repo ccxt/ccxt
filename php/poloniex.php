@@ -453,6 +453,7 @@ class poloniex extends Exchange {
             'exceptions' => array(
                 'exact' => array(
                     // General
+                    '401' => '\\ccxt\\PermissionDenied', // {"code":401,"message":"Illegal of ip"}
                     '500' => '\\ccxt\\ExchangeNotAvailable', // Internal System Error
                     '603' => '\\ccxt\\RequestTimeout', // Internal Request Timeout
                     '601' => '\\ccxt\\BadRequest', // Invalid Parameter
@@ -601,6 +602,10 @@ class poloniex extends Exchange {
                     '21001' => '\\ccxt\\OperationRejected', // POSITION_NOT_EXIST
                 ),
                 'broad' => array(
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature' => '\\ccxt\\AuthenticationError',
+                    'ApiKey not exist' => '\\ccxt\\AuthenticationError',
+                    'Illegal of ip' => '\\ccxt\\PermissionDenied',
                 ),
             ),
         ));
@@ -858,7 +863,7 @@ class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        $markets = $this->safe_list($response, 'data');
+        $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
     }
 
@@ -1271,11 +1276,10 @@ class poloniex extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $entry = $currency;
-        $id = $this->safe_string($entry, 'coin');
+        $id = $this->safe_string($currency, 'coin');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $chains = $this->safe_list($entry, 'networkList', array());
+        $chains = $this->safe_list($currency, 'networkList', array());
         $chainsLength = count($chains);
         for ($j = 0; $j < $chainsLength; $j++) {
             $chain = $this->safe_dict($chains, $j);
@@ -1307,18 +1311,18 @@ class poloniex extends Exchange {
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
-            'name' => $this->safe_string($entry, 'name'),
+            'name' => $this->safe_string($currency, 'name'),
             'code' => $code,
             'type' => null,
             'precision' => null,
-            'info' => $entry,
+            'info' => $currency,
             'networks' => $networks,
             'deposit' => null,
             'withdraw' => null,
             'active' => null,
             'fee' => null,
             'limits' => null,
-            'margin' => $this->safe_bool($entry, 'supportBorrow'),
+            'margin' => $this->safe_bool($currency, 'supportBorrow'),
         ));
     }
 
@@ -2827,7 +2831,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum $amount of order book entries to return
+         * @param {int} [$limit] the maximum $amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -2837,10 +2841,8 @@ class poloniex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ($this->safe_bool($market, 'contract', false)) {
-                $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 100, 150 ), $limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 150 ), $limit);
         }
         if ($this->safe_bool($market, 'contract', false)) {
             $responseRaw = $this->swapPublicGetV3MarketOrderBook($this->extend($request, $params));
@@ -3555,8 +3557,8 @@ class poloniex extends Exchange {
         $timestamp = $this->safe_timestamp($transactionValue, 'timestamp');
         $currencyId = $this->safe_string($transactionValue, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $status = $this->safe_string($transactionValue, 'status', 'pending');
-        $status = $this->parse_transaction_status($status);
+        $rawStatus = $this->safe_string($transactionValue, 'status', 'pending');
+        $status = $this->parse_transaction_status($rawStatus);
         $txid = $this->safe_string($transactionValue, 'txid');
         $type = 'deposit';
         if ($this->safe_string($transactionValue, 'withdrawalRequestsId') !== null) {
@@ -4062,8 +4064,8 @@ class poloniex extends Exchange {
         if (($responseCode !== null) && ($responseCode !== '200')) {
             $message = $this->safe_string_2($response, 'message', 'msg');
             $feedback = $this->id . ' ' . $body;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $responseCode, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
         return null;

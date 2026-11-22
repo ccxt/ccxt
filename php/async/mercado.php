@@ -623,8 +623,7 @@ class mercado extends Exchange {
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
-                $cost = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
-                $request['cost'] = $this->price_to_precision($market['symbol'], $cost);
+                $request['cost'] = $this->price_to_precision($market['symbol'], $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
                 $response = Async\await($this->privatePostPlaceMarketBuyOrder($this->extend($request, $params)));
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
@@ -634,7 +633,7 @@ class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $this->safe_string($this->safe_value($this->safe_value($response, 'response_data'), 'order'), 'order_id'),
+            'id' => $this->safe_string($this->safe_dict($this->safe_dict($response, 'response_data'), 'order'), 'order_id'),
         ), $market);
     }
 
@@ -1053,7 +1052,7 @@ class mercado extends Exchange {
     public function orders_to_trades(array $orders): array {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_list($this->safe_value($orders, $i), 'trades', array());
+            $trades = $this->safe_list($this->safe_dict($orders, $i), 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }
@@ -1118,7 +1117,7 @@ class mercado extends Exchange {
         //
         //     {"status":503,"message":"Maintenancing, try again later","result":null}
         //
-        $errorMessage = $this->safe_value($response, 'error_message');
+        $errorMessage = $this->safe_string($response, 'error_message');
         if ($errorMessage !== null) {
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }

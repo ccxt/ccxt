@@ -42,7 +42,7 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    tradeRequest(name: string, params?: Dict): Promise<any>;
+    tradeRequest(name: string, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#createOrderWs

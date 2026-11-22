@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::coinbaseinternational::CoinbaseinternationalCore;
+use super::coinbaseinternational::Coinbaseinternational;
 use crate::exchange::ExchangeRuntime;
 
-impl CoinbaseinternationalCore {
+impl Coinbaseinternational {
     /// Auto-generated wrapper for the `publicPostAuth` implicit endpoint.
     pub async fn public_post_auth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_auth".into()), optional_args).await

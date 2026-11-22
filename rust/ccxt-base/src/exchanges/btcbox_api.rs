@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::btcbox::BtcboxCore;
+use super::btcbox::Btcbox;
 use crate::exchange::ExchangeRuntime;
 
-impl BtcboxCore {
+impl Btcbox {
     /// Auto-generated wrapper for the `publicGetDepth` implicit endpoint.
     pub async fn public_get_depth(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_depth".into()), optional_args).await

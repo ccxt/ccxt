@@ -241,6 +241,10 @@ abstract class okx extends _okx {
         return this.request ('public/delta-hedge-currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    override publicGetPublicCorporateActions (params = {}): Promise<Dict> {
+        return this.request ('public/corporate-actions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     override publicGetRubikStatTradingDataSupportCoin (params = {}): Promise<Dict> {
         return this.request ('rubik/stat/trading-data/support-coin', [ 'public' ], 'GET', params, { 'cost': 4 });
     }
@@ -587,6 +591,10 @@ abstract class okx extends _okx {
 
     override privateGetAssetDepositWithdrawStatus (params = {}): Promise<Dict> {
         return this.request ('asset/deposit-withdraw-status', [ 'private' ], 'GET', params, { 'cost': 20 });
+    }
+
+    override privateGetAssetTravelRuleGetLocked (params = {}): Promise<Dict> {
+        return this.request ('asset/travel-rule/get-locked', [ 'private' ], 'GET', params, { 'cost': 3.3333333333333335 });
     }
 
     override privateGetAssetMonthlyStatement (params = {}): Promise<Dict> {
@@ -1359,6 +1367,10 @@ abstract class okx extends _okx {
 
     override privatePostAssetCancelWithdrawal (params = {}): Promise<Dict> {
         return this.request ('asset/cancel-withdrawal', [ 'private' ], 'POST', params, { 'cost': 1.6666666666666667 });
+    }
+
+    override privatePostAssetTravelRuleUnlock (params = {}): Promise<Dict> {
+        return this.request ('asset/travel-rule/unlock', [ 'private' ], 'POST', params, { 'cost': 3.3333333333333335 });
     }
 
     override privatePostAssetConvertDustAssets (params = {}): Promise<Dict> {

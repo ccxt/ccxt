@@ -649,7 +649,7 @@ export default class digifinex extends Exchange {
         //
         const spotData = this.safeList (spotMarkets, 'symbol_list', []);
         const swapData = this.safeList (swapMarkets, 'data', []);
-        const response = this.arrayConcat (spotData, swapData);
+        const response: Dict[] = this.arrayConcat (spotData, swapData);
         const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
@@ -1108,7 +1108,7 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < tickers.length; i++) {
             const rawTicker = this.extend ({
                 'date': date,
-            }, this.safeValue (tickers, i));
+            }, this.safeDict (tickers, i));
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
             if (symbol !== undefined) {
@@ -1189,13 +1189,11 @@ export default class digifinex extends Exchange {
         //
         const date = this.safeInteger (response, 'date');
         const tickers = this.safeList (response, 'ticker', []);
-        const data = this.safeDict (response, 'data', {});
         const firstTicker = this.safeDict (tickers, 0, {});
-        let result: Dict = data;
         if (!this.safeBool (market, 'swap', false)) {
-            result = this.extend ({ 'date': date }, firstTicker);
+            return this.parseTicker (this.extend ({ 'date': date }, firstTicker), market);
         }
-        return this.parseTicker (result, market);
+        return this.parseTicker (this.safeDict (response, 'data', {}), market);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1915,11 +1913,9 @@ export default class digifinex extends Exchange {
             let quantity: Str = undefined;
             const [ createMarketBuyOrderRequiresPrice, paramsRequiresPrice ] = this.handleOptionBoolAndParams (paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             const isMarketBuy = isMarketOrder && (side === 'buy');
-            let keysToOmit = undefined;
+            const keysToOmit: string[] = [ 'postOnly' ];
             if (isMarketBuy) {
-                keysToOmit = [ 'cost', 'postOnly' ];
-            } else {
-                keysToOmit = [ 'postOnly' ];
+                keysToOmit.push ('cost');
             }
             paramsRequest = this.omit (paramsRequiresPrice, keysToOmit);
             if (isMarketBuy) {
@@ -3394,7 +3390,7 @@ export default class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        const rows = this.safeList (response, 'positions');
+        const rows = this.safeList (response, 'positions', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
@@ -3603,7 +3599,7 @@ export default class digifinex extends Exchange {
         return await this.fetchFundingRate (symbol, params);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
