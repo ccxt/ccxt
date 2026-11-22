@@ -2284,7 +2284,8 @@ class bybit(ccxt.async_support.bybit):
                 recordedTopics = self.safe_list(existing, 'topics', [])
                 recordedLength = len(recordedTopics)
                 for j in range(0, recordedLength):
-                    subscribedTopics[recordedTopics[j]] = True
+                    recordedTopic = self.safe_string(recordedTopics, j, '')
+                    subscribedTopics[recordedTopic] = True
             for i in range(0, topicsLength):
                 topic = topics[i]
                 if not (topic in subscribedTopics):
@@ -2617,12 +2618,13 @@ class bybit(ccxt.async_support.bybit):
                 subId = self.safe_string(subscription, 'id')
                 if reqId != subId:
                     continue
-                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                messageHashes = self.safe_string_list(subscription, ['messageHashes'])
                 subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-                for j in range(0, len(messageHashes)):
-                    unsubHash = messageHashes[j]
-                    subHash = self.safe_string(subMessageHashes, j)
-                    usePrefix = (subHash == 'orders') or (subHash == 'myTrades') or (subHash == 'positions')
-                    self.clean_unsubscription(client, subHash, unsubHash, usePrefix)
+                if messageHashes is not None:
+                    for j in range(0, len(messageHashes)):
+                        unsubHash = messageHashes[j]
+                        subHash = self.safe_string(subMessageHashes, j)
+                        usePrefix = (subHash == 'orders') or (subHash == 'myTrades') or (subHash == 'positions')
+                        self.clean_unsubscription(client, subHash, unsubHash, usePrefix)
                 self.clean_cache(subscription)
         return message

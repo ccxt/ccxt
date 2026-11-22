@@ -1278,8 +1278,11 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbolsNormalized = symbols
         if hasSymbols:
             symbolsNormalized = self.market_symbols(symbols)
-        if hasSymbols and (symbolsNormalized is not None):
-            messageHash += '::' + ','.join(symbolsNormalized)
+            joinParts = []
+            for si in range(0, len(symbolsNormalized)):
+                symbolEntry = self.safe_string(symbolsNormalized, si, '')
+                joinParts.append(symbolEntry)
+            messageHash += '::' + ','.join(joinParts)
         url = self.urls['api']['ws']['public']
         subscription = {
             'type': topic,

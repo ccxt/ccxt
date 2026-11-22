@@ -284,15 +284,11 @@ class limitless(PredictionExchange, ImplicitAPI):
             m = self.parse_market(raw)
             markets.append(m)
             if (eventKey is not None) and (eventKey != ''):
-                if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
-                eventGroup = eventGroups[eventKey]
-                # push through a local and write the slice back — the go transpiler's
-                # AppendToArray reassigns only a local copy of a map-stored array, so a
-                # direct push on eventGroup['markets'] loses the element in go
+                eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)
                 eventGroup['markets'] = groupMarkets
+                eventGroups[eventKey] = eventGroup
         eventsDict = {}
         eventKeys = list(eventGroups.keys())
         for i in range(0, len(eventKeys)):
@@ -2785,15 +2781,11 @@ class limitless(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
             if (eventKey is not None) and (eventKey != ''):
-                if not (eventKey in eventGroups):
-                    eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
-                eventGroup = eventGroups[eventKey]
-                # push through a local and write the slice back — the go transpiler's
-                # AppendToArray reassigns only a local copy of a map-stored array, so a
-                # direct push on eventGroup['markets'] loses the element in go
+                eventGroup = self.safe_dict(eventGroups, eventKey, {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []})
                 groupMarkets = eventGroup['markets']
                 groupMarkets.append(m)
                 eventGroup['markets'] = groupMarkets
+                eventGroups[eventKey] = eventGroup
         result = []
         eventKeys = list(eventGroups.keys())
         eventKeysLength = len(eventKeys)

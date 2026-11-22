@@ -839,7 +839,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
                 ccxtMarketsLength = len(ccxtMarkets)
                 for i in range(0, ccxtMarketsLength):
-                    mkt = ccxtMarkets[i]
+                    mkt = self.safe_dict(ccxtMarkets, i)
                     if mkt is None:
                         raise ExchangeError(self.id + ' fetchOutcome() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
@@ -888,7 +888,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 rawMarkets = response if (response is not None) else []
                 ccxtMarkets = self.parse_event_to_markets({'markets': rawMarkets})
                 for i in range(0, len(ccxtMarkets)):
-                    mkt = ccxtMarkets[i]
+                    mkt = self.safe_dict(ccxtMarkets, i)
                     if mkt is None:
                         raise ExchangeError(self.id + ' fetchOutcomes() could not resolve mkt')
                     self.markets[mkt['market']] = mkt
@@ -1195,8 +1195,10 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 endBound = self.parse_to_int(self.sum(startS, limit * fidelityMin * 60))
                 endS = endBound if (endBound < nowS) else nowS
         else:
-            barCount = limit if (limit is not None) else 100
-            startS = self.parse_to_int(nowS - (barCount * fidelityMin * 60))
+            if limit is not None:
+                startS = self.parse_to_int(nowS - (limit * fidelityMin * 60))
+            else:
+                startS = self.parse_to_int(nowS - (100 * fidelityMin * 60))
         # the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         # regardless of fidelity, so clamp the window to the cap: keep the requested
         # `since` anchor (oldest chunk first, consistent with since/limit paging),
@@ -2318,7 +2320,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     eventForParsing = self.safe_dict(detailedEvent, 'event', detailedEvent)
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing)
             for mi in range(0, len(ccxtMarkets)):
-                m = ccxtMarkets[mi]
+                m = self.safe_dict(ccxtMarkets, mi)
                 if m is None:
                     raise ExchangeError(self.id + ' fetchEvents() missing m')
                 self.markets[m['market']] = m
@@ -2949,8 +2951,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 self.orderbooks[outcomeValue] = seededBook
         url = self.urls['api']['ws']
         orderbook = await self.watch(url, messageHash, subscribeMsg, subscribeHash)
-        bids = orderbook['bids']
-        asks = orderbook['asks']
+        bids = self.safe_list(orderbook, 'bids', [])
+        asks = self.safe_list(orderbook, 'asks', [])
         bestBid = None
         bestBidVolume = None
         bidsLength = 0

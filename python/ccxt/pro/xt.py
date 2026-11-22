@@ -1516,12 +1516,13 @@ class xt(ccxt.async_support.xt):
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        messageHashes = self.safe_string_list(subscription, ['messageHashes'])
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for j in range(0, len(messageHashes)):
-            unsubHash = messageHashes[j]
-            subHash = subMessageHashes[j]
-            self.clean_unsubscription(client, subHash, unsubHash)
+        if messageHashes is not None:
+            for j in range(0, len(messageHashes)):
+                unsubHash = messageHashes[j]
+                subHash = subMessageHashes[j]
+                self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
     def handle_error_message(self, client: Client, message: dict):

@@ -1918,11 +1918,12 @@ class phemex(Exchange, ImplicitAPI):
                 priceString = self.safe_string(trade, 'execPriceRp')
                 amountString = self.safe_string(trade, 'execQtyRq')
                 costString = self.safe_string(trade, 'execValueRv')
-                feeCostString = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
+                execFeeRv = self.omit_zero(self.safe_string(trade, 'execFeeRv'))
                 feeRateString = self.safe_string(trade, 'feeRateRr')
-                if feeCostString is not None:
+                if execFeeRv is not None:
                     currencyId = self.safe_string(trade, 'currency')
                     feeCurrencyCode = self.safe_currency_code(currencyId)
+                    feeCostString = execFeeRv
                 else:
                     ptFeeRv = self.omit_zero(self.safe_string(trade, 'ptFeeRv'))
                     if ptFeeRv is not None:
@@ -1949,9 +1950,10 @@ class phemex(Exchange, ImplicitAPI):
                             settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                             feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 else:
-                    feeCostString = self.safe_string(trade, 'ptFeeRv')
-                    if feeCostString is not None:
+                    ptFeeRvString = self.safe_string(trade, 'ptFeeRv')
+                    if ptFeeRvString is not None:
                         feeCurrencyCode = 'PT'
+                        feeCostString = ptFeeRvString
             fee = {
                 'cost': feeCostString,
                 'rate': feeRateString,

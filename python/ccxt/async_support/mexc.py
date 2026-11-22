@@ -1084,7 +1084,8 @@ class mexc(Exchange, ImplicitAPI):
             #
             #     {}
             #
-            keys = list(spotResponse.keys())
+            spotResponseCopy = self.extend({}, spotResponse)
+            keys = list(spotResponseCopy.keys())
             length = len(keys)
             status = self.json(response) if (length > 0) else 'ok'
         elif marketType == 'swap':

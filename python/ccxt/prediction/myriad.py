@@ -1983,7 +1983,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'linear': None,
             'inverse': None,
             'contractSize': None,
-            'expiry': self.parse8601(endDate) if (endDate is not None and endDate != '') else None,
+            'expiry': self.parse8601(endDate),
             'expiryDatetime': endDate,
             'strike': None,
             'optionType': None,
@@ -2510,6 +2510,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #
         outcomes = self.safe_list(response, 'outcomes', [])
         selectedOutcome = None
+        outcomeSelected = False
         for i in range(0, len(outcomes)):
             oc = outcomes[i]
             currentId = self.safe_string(oc, 'id', self.safe_string(oc, 'outcomeId'))
@@ -2517,8 +2518,9 @@ class myriad(PredictionExchange, ImplicitAPI):
             if (outcomeId is not None) and (currentId == outcomeId):
                 selectedOutcome = oc
                 break
-            if (selectedOutcome is None) and (outcomeTitle is not None) and (currentTitle == outcomeTitle):
+            if (not outcomeSelected) and (outcomeTitle is not None) and (currentTitle == outcomeTitle):
                 selectedOutcome = oc
+                outcomeSelected = True
         # price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
         chart = None
         chartsList = self.safe_list(selectedOutcome, 'price_charts')

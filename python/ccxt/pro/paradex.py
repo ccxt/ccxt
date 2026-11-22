@@ -1107,7 +1107,7 @@ class paradex(ccxt.async_support.paradex):
             subscribeHashes.append(subscribeHash)
             if not (subscribeHash in client.subscriptions):
                 missing.append(marketId)
-                missingHashes.append(messageHashes[i])
+                missingHashes.append(self.safe_string(messageHashes, i, ''))
         missingLength = len(missing)
         if missingLength == 0:
             return await self.watch_multiple(url, messageHashes, None, subscribeHashes)
@@ -1189,7 +1189,8 @@ class paradex(ccxt.async_support.paradex):
         newBidAsk = await self.subscribe_channels(url, messageHashes, channels, params)
         if self.newUpdates:
             result = {}
-            result[newBidAsk['symbol']] = newBidAsk
+            bidAskSymbol = self.safe_string(newBidAsk, 'symbol', '')
+            result[bidAskSymbol] = newBidAsk
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
 

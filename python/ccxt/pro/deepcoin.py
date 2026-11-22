@@ -162,7 +162,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         return await self.watch(url, unsubHash, self.deep_extend(request, params), unsubHash, subscriptionExtended)
 
     async def watch_private(self, messageHash: str, params: dict = {}) -> object:
-        listenKey = await self.authenticate()
+        await self.authenticate()
+        listenKey = self.safe_string(self.options, 'listenKey', '')
         return await self.watch(self.safe_string(self.urls['api']['ws'], 'private', '') + '?listenKey=' + listenKey, messageHash, None, 'private', params)
 
     async def authenticate(self, params: dict = {}) -> Str:
@@ -1035,7 +1036,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         """
         if self.markets is None:
             await self.load_markets()
-        listenKey = await self.authenticate()
+        await self.authenticate()
+        listenKey = self.safe_string(self.options, 'listenKey', '')
         symbolsNormalized = self.market_symbols(symbols)
         messageHash = 'positions'
         messageHashes = []

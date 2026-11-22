@@ -1107,8 +1107,9 @@ class paradex(Exchange, ImplicitAPI):
         else:
             endAtRaw = self.safe_integer(requestUntil, 'end_at', self.milliseconds())
             endAt = self.parse_to_int(endAtRaw)
+            startAt = endAt - (windowLength - 1)
             requestUntil['end_at'] = endAt
-            requestUntil['start_at'] = endAt - (windowLength - 1)
+            requestUntil['start_at'] = startAt
         response = await self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
@@ -1356,7 +1357,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        rates = await self.fetch_funding_rates([market['symbol']], params)
+        rates = await self.fetch_funding_rates([self.safe_string(market, 'symbol', '')], params)
         rate = self.safe_dict(rates, market['symbol'])
         if rate is None:
             raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
@@ -2136,9 +2137,8 @@ class paradex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         request = self.omit(request, ['instruction', 'client_id', 'flags', 'recv_window'])
-        request['order_id'] = id
-        request['id'] = id
-        request = await self.sign_order_request(request, True)
+        editRequest = self.extend(request, {'order_id': id, 'id': id})
+        request = await self.sign_order_request(editRequest, True)
         response = await self.privatePutOrdersOrderId(request)
         #
         #     {
@@ -2678,7 +2678,7 @@ class paradex(Exchange, ImplicitAPI):
             rowMarketId = self.safe_string(data[i], 'market', '')
             if rowMarketId == marketId:
                 matching.append(data[i])
-        positions = self.parse_positions(matching, [market['symbol']])
+        positions = self.parse_positions(matching, [self.safe_string(market, 'symbol', '')])
         return self.safe_dict(positions, 0, {})
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
@@ -3772,7 +3772,7 @@ class paradex(Exchange, ImplicitAPI):
         next = self.safe_string(response, 'next')
         rates = []
         for i in range(0, len(results)):
-            rate = results[i]
+            rate = self.extend({}, results[i])
             if next is not None:
                 rate['next'] = next  # the cursor helper reads it from info, the last page has none
             timestamp = self.safe_integer(rate, 'created_at')

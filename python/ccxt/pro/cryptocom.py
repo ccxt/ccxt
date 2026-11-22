@@ -408,7 +408,9 @@ class cryptocom(ccxt.async_support.cryptocom):
         parsedTrades = self.parse_trades(data, market)
         for j in range(0, len(parsedTrades)):
             stored.append(self.safe_dict(parsedTrades, j))
-        channelReplaced = channel.replace('.' + marketId, '')
+        channelName = self.safe_string(message, 'channel', '')
+        marketIdName = self.safe_string(message, 'instrument_name', '')
+        channelReplaced = channelName.replace('.' + marketIdName, '')
         client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, channelReplaced)
 
@@ -1369,10 +1371,11 @@ class cryptocom(ccxt.async_support.cryptocom):
                 subId = self.safe_string(subscription, 'id')
                 if id != subId:
                     continue
-                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                messageHashes = self.safe_string_list(subscription, ['messageHashes'])
                 subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-                for j in range(0, len(messageHashes)):
-                    unsubHash = messageHashes[j]
-                    subHash = subMessageHashes[j]
-                    self.clean_unsubscription(client, subHash, unsubHash)
+                if messageHashes is not None:
+                    for j in range(0, len(messageHashes)):
+                        unsubHash = messageHashes[j]
+                        subHash = subMessageHashes[j]
+                        self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)

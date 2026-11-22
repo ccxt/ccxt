@@ -2080,12 +2080,13 @@ class htx(ccxt.async_support.htx):
             self.handle_un_subscription(client, subscription)
 
     def handle_un_subscription(self, client: Client, subscription: dict | None):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        messageHashes = self.safe_string_list(subscription, ['messageHashes'])
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for i in range(0, len(messageHashes)):
-            unsubHash = messageHashes[i]
-            subHash = subMessageHashes[i]
-            self.clean_unsubscription(client, subHash, unsubHash)
+        if messageHashes is not None:
+            for i in range(0, len(messageHashes)):
+                unsubHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message: dict) -> dict:

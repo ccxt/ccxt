@@ -1934,7 +1934,8 @@ class foxbit(Exchange, ImplicitAPI):
         query = ''
         signatureQuery = ''
         if method == 'GET':
-            paramKeys = list(paramsOmitted.keys())
+            paramsCopy = self.extend({}, paramsOmitted)
+            paramKeys = list(paramsCopy.keys())
             paramKeysLength = len(paramKeys)
             lastKeyIndex = paramKeysLength - 1
             if paramKeysLength > 0:

@@ -735,7 +735,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
         elif self.safe_bool(firstMarket, 'contract', False):
@@ -809,7 +809,7 @@ class binance(ccxt.async_support.binance):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         if self.safe_bool(firstMarket, 'option', False):
             type = 'option'
         elif self.safe_bool(firstMarket, 'contract', False):
@@ -1158,12 +1158,13 @@ class binance(ccxt.async_support.binance):
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        messageHashes = self.safe_string_list(subscription, ['messageHashes'])
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for j in range(0, len(messageHashes)):
-            unsubHash = messageHashes[j]
-            subHash = subMessageHashes[j]
-            self.clean_unsubscription(client, subHash, unsubHash)
+        if messageHashes is not None:
+            for j in range(0, len(messageHashes)):
+                unsubHash = messageHashes[j]
+                subHash = subMessageHashes[j]
+                self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1196,7 +1197,7 @@ class binance(ccxt.async_support.binance):
         name, paramsName = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         paramsOmitted = self.omit(paramsName, 'callerMethodName')
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'
@@ -1276,7 +1277,7 @@ class binance(ccxt.async_support.binance):
         name, paramsName = self.handle_option_string_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
         paramsOmitted = self.omit(paramsName, 'callerMethodName')
         firstMarket = self.market(symbolsNormalized[0])
-        type = firstMarket['type']
+        type = self.safe_string(firstMarket, 'type', '')
         isOption = firstMarket['option']
         if isOption is True:
             type = 'option'

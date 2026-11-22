@@ -6847,10 +6847,11 @@ class bingx(Exchange, ImplicitAPI):
                     arrayElement = value[j]
                     isString = (isinstance(arrayElement, str))
                     if isString:
+                        elementStr = self.safe_string(value, j, '')
                         if j > 0:
-                            arrStr += ',' + '"' + str(arrayElement) + '"'
+                            arrStr += ',' + '"' + elementStr + '"'
                         else:
-                            arrStr = '"' + str(arrayElement) + '"'
+                            arrStr = '"' + elementStr + '"'
                     else:
                         if j > 0:
                             arrStr += ',' + str(arrayElement)

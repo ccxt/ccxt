@@ -1542,8 +1542,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTime = None
         defaultOrderFlags = 32 if (isTrigger) else 64
         orderFlags = self.safe_integer(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags)
-        subAccountId = 0
-        subAccountIdOption = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0]
+        subAccountIdOption = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', 0)[0]
         if orderFlags != 0 and orderFlags != 64 and orderFlags != 32:
             raise InvalidOrder(self.id + ' invalid orderFlags, allowed values are (0, 64, 32).')
         if orderFlags > 0:
@@ -1617,8 +1616,7 @@ class dydx(Exchange, ImplicitAPI):
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         if clientOrderIds is None:
             raise NotSupported(self.id + ' cancelOrders only support clientOrderIds.')
-        subAccountId = 0
-        subAccountIdOption, paramsSubAccountId = self.handle_option_integer_and_params(params, 'cancelOrders', 'subAccountId', subAccountId)
+        subAccountIdOption, paramsSubAccountId = self.handle_option_integer_and_params(params, 'cancelOrders', 'subAccountId', 0)
         goodTillBlock = self.safe_integer(paramsSubAccountId, 'goodTillBlock')
         if goodTillBlock is None:
             latestBlockHeight = await self.fetch_latest_block_height()
@@ -2049,7 +2047,8 @@ class dydx(Exchange, ImplicitAPI):
         :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        tag = self.safe_string(params, 'tag')
+        paramsWithdrawTag = self.omit(params, 'tag')
         if code != 'USDC':
             raise NotSupported(self.id + ' withdraw() only support USDC')
         if self.markets is None:

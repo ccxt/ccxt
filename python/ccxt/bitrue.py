@@ -853,7 +853,7 @@ class bitrue(Exchange, ImplicitAPI):
             # for backward-compatibility
             types = self.safe_list(self.options, 'fetchMarkets', defaultTypes)
         for i in range(0, len(types)):
-            marketType = types[i]
+            marketType = self.safe_string(types, i, '')
             if marketType == 'spot':
                 promisesRaw.append(self.spotV1PublicGetExchangeInfo(params))
             elif marketType == 'linear':
@@ -1602,7 +1602,8 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         data = {}
-        data[(market['id'])] = response
+        tickerKey = self.safe_string(market, 'id', '')
+        data[tickerKey] = response
         return self.parse_tickers(data, symbolsNormalized)
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
@@ -1689,7 +1690,8 @@ class bitrue(Exchange, ImplicitAPI):
             if marketId is None:
                 continue
             market = self.safe_market(marketId)
-            tickers[(market['id'])] = ticker
+            tickerKey = self.safe_string(market, 'id', '')
+            tickers[tickerKey] = ticker
         return self.parse_tickers(tickers, symbolsNormalized)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:

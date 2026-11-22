@@ -2690,7 +2690,8 @@ class polymarket(Exchange, ImplicitAPI):
             headersResolved['Content-Type'] = 'application/json'
         else:
             if method == 'GET':
-                keys = list(query.keys())
+                queryCopy = self.extend({}, query)
+                keys = list(queryCopy.keys())
                 keysLength = len(keys)
                 if keysLength > 0:
                     url = baseUrl + '/' + implodedPath + '?' + self.urlencode(query)

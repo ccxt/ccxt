@@ -1818,12 +1818,13 @@ class weex(ccxt.async_support.weex):
         unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
         if unsubscribe:
             subHashIsPrefix = self.safe_bool(subscription, 'subHashIsPrefix', False)
-            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            messageHashes = self.safe_string_list(subscription, ['messageHashes'])
             subHashes = self.safe_list(subscription, 'subMessageHashes', [])
-            for i in range(0, len(messageHashes)):
-                unSubHash = self.safe_string(messageHashes, i)
-                subHash = self.safe_string(subHashes, i)
-                self.clean_unsubscription(client, subHash, unSubHash, subHashIsPrefix)
+            if messageHashes is not None:
+                for i in range(0, len(messageHashes)):
+                    unSubHash = self.safe_string(messageHashes, i)
+                    subHash = self.safe_string(subHashes, i)
+                    self.clean_unsubscription(client, subHash, unSubHash, subHashIsPrefix)
             self.clean_cache(subscription)
         return message
 

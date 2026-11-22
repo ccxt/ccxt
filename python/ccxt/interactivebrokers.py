@@ -648,9 +648,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         """
         if self.safe_bool(self.options, 'useGateway', False):
             return self.ibkr_gateway_sign_in(params)
-        encryptionPemPath = self.safe_string(self.options, 'encryptionPemPath')
-        dhParamPemPath = self.safe_string(self.options, 'dhParamPemPath')
-        if not encryptionPemPath or not dhParamPemPath:
+        encryptionPemPath = self.safe_string(self.options, 'encryptionPemPath', '')
+        dhParamPemPath = self.safe_string(self.options, 'dhParamPemPath', '')
+        if (encryptionPemPath == '') or (dhParamPemPath == ''):
             raise ArgumentsRequired(self.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details')
         self.ibkr_check_oauth_credentials()
         self.init_file_system()
@@ -674,7 +674,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         #         "live_session_token_expiration": 1714661586311
         #     }
         #
-        dhResponse = self.safe_string(response, 'diffie_hellman_response')
+        dhResponse = self.safe_string(response, 'diffie_hellman_response', '')
         sharedSecret = self.mod_pow(self.convert_to_big_int('0x' + dhResponse), dhRandom, dhPrime)
         liveSessionToken = self.hmac(self.base16_to_binary(accessTokenSecretHex), self.big_to_bytes(sharedSecret), hashlib.sha1, 'base64')
         check = self.hmac(self.encode(self.options['consumer_key']), self.base64_to_binary(liveSessionToken), hashlib.sha1, 'hex')
@@ -999,8 +999,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         """
         self.authenticate()
         accountId, accountQuery = self.load_account_id(params)
-        withPositions, positionsQuery = self.handle_option_and_params(accountQuery, 'fetchBalance', 'positions', True)
-        withOpenOrders, query = self.handle_option_and_params(positionsQuery, 'fetchBalance', 'openOrders', True)
+        accountParams = self.extend({}, accountQuery)
+        withPositions, positionsQuery = self.handle_option_bool_and_params(accountParams, 'fetchBalance', 'positions', True)
+        withOpenOrders, query = self.handle_option_bool_and_params(positionsQuery, 'fetchBalance', 'openOrders', True)
         request = {
             'accountId': accountId,
         }
@@ -1145,14 +1146,18 @@ class interactivebrokers(Exchange, ImplicitAPI):
         usedCodes = list(used.keys())
         for i in range(0, len(usedCodes)):
             code = usedCodes[i]
-            result[code]['used'] = used[code]
+            usedAccount = self.extend({}, self.safe_dict(result, code, {}))
+            usedAccount['used'] = used[code]
+            result[code] = usedAccount
         # every currency of the ledger and the positions gets a 'used' when the open orders were fetched, so that 'free' is computed
         if 'orders' in response:
             codes = list(result.keys())
             for i in range(0, len(codes)):
                 code = codes[i]
                 if (code != 'info') and (self.safe_string(result[code], 'used') is None):
-                    result[code]['used'] = '0'
+                    zeroAccount = self.extend({}, self.safe_dict(result, code, {}))
+                    zeroAccount['used'] = '0'
+                    result[code] = zeroAccount
         timestamp = self.safe_timestamp(self.safe_dict(ledger, 'BASE', {}), 'timestamp')
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
@@ -1248,19 +1253,21 @@ class interactivebrokers(Exchange, ImplicitAPI):
             if (symbol in seen) and isContract:
                 info = self.safe_dict(market, 'info', {})
                 listingExchange = self.safe_string_2(info, 'listingExchange', 'exchange', 'default')
-                marketBase = self.safe_string(market, 'base')
-                marketBaseId = self.safe_string(market, 'baseId')
+                marketBase = self.safe_string(market, 'base', '')
+                marketBaseId = self.safe_string(market, 'baseId', '')
                 isFuture = self.safe_bool(market, 'future', False)
                 # keeps the quote, settle and the expiry suffix of futures, e.g. /USD:USD-261127
                 symbolParts = symbol.split('/')
-                quoteAndSettle = '/' + symbolParts[1]
+                quotePart = self.safe_string(symbolParts, 1, '')
+                quoteAndSettle = '/' + quotePart
                 base = marketBase + '.' + listingExchange
                 if isFuture and (marketBaseId != marketBase):
                     # the futures of the same base and expiry (BRR, MBT, BFF) are told apart by the IBKR ticker, e.g. BTC.MBT/USD:USD-261127
                     base = marketBase + '.' + marketBaseId
                 newSymbol = base + quoteAndSettle
                 if newSymbol in seen:
-                    base = marketBase + '.' + self.safe_string(market, 'id')
+                    marketId = self.safe_string(market, 'id', '')
+                    base = marketBase + '.' + marketId
                     newSymbol = base + quoteAndSettle
                 market = self.extend(market, {
                     'symbol': newSymbol,
@@ -1311,7 +1318,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             secdefs = self.safe_list(responses[i], 'secdef', [])
             for j in range(0, len(secdefs)):
                 secdef = secdefs[j]
-                conid = self.safe_string(secdef, 'conid')
+                conid = self.safe_string(secdef, 'conid', '')
                 entry = self.safe_dict(plainEntries, conid)
                 entries.append(self.extend(entry, secdef))
         return entries
@@ -1536,10 +1543,13 @@ class interactivebrokers(Exchange, ImplicitAPI):
         detailMarkets = self.fetch_sec_with_details(entries)
         # keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         result = []
+        detailMarketsLength = len(detailMarkets)
         for i in range(0, len(cfdExchanges)):
-            for j in range(0, len(detailMarkets)):
+            cfdExchange = self.safe_string(cfdExchanges, i, '')
+            for j in range(0, detailMarketsLength):
                 detail = detailMarkets[j]
-                if self.safe_string(detail, 'listingExchange') == cfdExchanges[i]:
+                listingExchange = self.safe_string(detail, 'listingExchange', '')
+                if listingExchange == cfdExchange:
                     result.append(detail)
         return self.parse_markets(result)
 
@@ -1586,7 +1596,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         filterParts = []
         for i in range(0, len(filterIds)):
             filterId = filterIds[i]
-            filterParts.append(filterId + ':' + self.safe_string(bondFilters, filterId))
+            filterValue = self.safe_string(bondFilters, filterId, '')
+            filterParts.append(filterId + ':' + filterValue)
         filterPartsLength = len(filterParts)
         contractPromises = []
         for i in range(0, len(searchResults)):
@@ -1638,10 +1649,15 @@ class interactivebrokers(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(markets)):
             market = self.extend({}, markets[i])
-            symbol = self.safe_string(market, 'symbol')
+            symbol = self.safe_string(market, 'symbol', '')
             if symbol in seen:
-                base = self.safe_string(market, 'base') + '-' + self.safe_string(market, 'id')
-                symbol = base + '.' + self.safe_string(market['info'], 'exchange', 'SMART') + '/' + self.safe_string(market, 'quote')
+                marketBase = self.safe_string(market, 'base', '')
+                marketId = self.safe_string(market, 'id', '')
+                marketQuote = self.safe_string(market, 'quote', '')
+                marketInfo = self.safe_dict(market, 'info', {})
+                listingExchange = self.safe_string(marketInfo, 'exchange', 'SMART')
+                base = marketBase + '-' + marketId
+                symbol = base + '.' + listingExchange + '/' + marketQuote
                 market = self.extend(market, {
                     'symbol': symbol,
                     'base': base,
@@ -2005,11 +2021,11 @@ class interactivebrokers(Exchange, ImplicitAPI):
         if numItems == 0:
             return False
         fieldIds = ['31', '84', '86'] if (readyFields is None) else readyFields
-        for i in range(0, len(response)):
-            item = response[i]
+        numFields = len(fieldIds)
+        for i in range(0, numItems):
             found = False
-            for j in range(0, len(fieldIds)):
-                if self.safe_string(item, fieldIds[j]) is not None:
+            for j in range(0, numFields):
+                if self.safe_string(response[i], fieldIds[j]) is not None:
                     found = True
                     break
             if not found:
@@ -2256,7 +2272,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         maxLimit = self.safe_integer(self.safe_dict(self.options, 'fetchOHLCV', {}), 'limit', 1000)
-        requestLimit = maxLimit if (limit is None) else min(limit, maxLimit)
+        requestLimit = maxLimit
+        if limit is not None:
+            requestLimit = min(limit, maxLimit)
         duration = self.parse_timeframe(timeframe)
         request = {
             'conid': market['id'],
@@ -2686,6 +2704,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'createOrder', {})
         autoConfirm = self.safe_bool(options, 'autoConfirmOrderReplies', True)
         maxReplies = self.safe_integer(options, 'maxReplies', 10)
+        errorPrefix = self.id + ' ' + methodName + '() '
         current = response
         for i in range(0, maxReplies + 1):
             if not isinstance(current, list):
@@ -2695,7 +2714,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 #     { "orderId": 123456789, "reqId": "22170", "text": "...", "options": [ ... ], "messageId": "p12", "prompt": true }
                 #
                 text = self.safe_string(current, 'text')
-                raise InvalidOrder(self.id + ' ' + methodName + '() rejected: ' + text)
+                raise InvalidOrder(errorPrefix + 'rejected: ' + text)
             first = self.safe_dict(current, 0, {})
             orderId = self.safe_string_2(first, 'order_id', 'orderId')
             if orderId is not None:
@@ -2709,15 +2728,15 @@ class interactivebrokers(Exchange, ImplicitAPI):
             messages = self.safe_list(first, 'message', [])
             message = ' '.join(messages)
             if replyId is None:
-                raise InvalidOrder(self.id + ' ' + methodName + '() unexpected response: ' + self.json(current))
+                raise InvalidOrder(errorPrefix + 'unexpected response: ' + self.json(current))
             if not autoConfirm:
-                raise InvalidOrder(self.id + ' ' + methodName + '() requires confirmation (reply id ' + replyId + '): ' + message)
+                raise InvalidOrder(errorPrefix + 'requires confirmation (reply id ' + replyId + '): ' + message)
             replyRequest = {
                 'replyId': replyId,
                 'confirmed': True,
             }
             current = self.webapiPostV1ApiIserverReplyReplyId(replyRequest)
-        raise InvalidOrder(self.id + ' ' + methodName + '() exceeded options.createOrder.maxReplies order reply confirmations')
+        raise InvalidOrder(errorPrefix + 'exceeded options.createOrder.maxReplies order reply confirmations')
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2934,10 +2953,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         parsed = self.parse_orders(orders, market, None, None)
         result = []
         for i in range(0, len(parsed)):
-            order = parsed[i]
-            status = order['status']
+            status = self.safe_string(parsed[i], 'status')
             if (status == 'closed') or (status == 'canceled'):
-                result.append(order)
+                result.append(parsed[i])
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_orders_by_status_filter(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -3305,7 +3323,8 @@ class interactivebrokers(Exchange, ImplicitAPI):
         return self.parse8601(parts[5] + '-' + month + '-' + day + 'T' + parts[3] + offset)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
-        if 'qty' in trade:
+        transactionQty = self.safe_string(trade, 'qty')
+        if transactionQty is not None:
             #
             # pa/transactions
             #
@@ -3531,8 +3550,10 @@ class interactivebrokers(Exchange, ImplicitAPI):
         parts = []
         for i in range(0, len(keys)):
             key = keys[i]
-            parts.append(key + '="' + sorted[key] + '"')
-        return 'OAuth realm="' + self.options['realm'] + '", ' + ', '.join(parts)
+            value = self.safe_string(sorted, key, '')
+            parts.append(key + '="' + value + '"')
+        realm = self.safe_string(self.options, 'realm', '')
+        return 'OAuth realm="' + realm + '", ' + ', '.join(parts)
 
     def ibkr_oauth_base(self, consumerKey: str, consumerAccessToken: str) -> dict:
         return {
@@ -3552,13 +3573,17 @@ class interactivebrokers(Exchange, ImplicitAPI):
         """
         segments = path.split('/')
         pathParams = []
+        imploded = []
         for i in range(0, len(segments)):
             segment = segments[i]
             if segment.startswith(':'):
                 name = segment[1:]
                 pathParams.append(name)
-                segments[i] = self.safe_string(params, name, segment)
-        return ['/'.join(segments), pathParams]
+                value = self.safe_string(params, name, segment)
+                imploded.append(value)
+            else:
+                imploded.append(segment)
+        return ['/'.join(imploded), pathParams]
 
     def ibkr_gateway_base_url(self, baseUrl: str, gatewayUrl: str) -> str:
         """

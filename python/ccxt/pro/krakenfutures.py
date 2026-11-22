@@ -1376,7 +1376,6 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         timestamp = self.safe_integer(message, 'timestamp')
         if self.balance is None:
             self.balance = {}
-        updatedBalance = None
         if holding is not None:
             holdingKeys = list(holding.keys())                  # cashAccount
             self.balance['cash'] = self.safe_dict(self.balance, 'cash', {})
@@ -1395,7 +1394,6 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     cashBalance[code] = newAccount
             self.balance['cash'] = self.prune_stale_balance_keys(cashBalance, holdingCodes)
             self.balance['cash'] = self.safe_balance(self.balance['cash'])
-            updatedBalance = self.balance['cash']
         if futures is not None:
             futuresKeys = list(futures.keys())                  # marginAccount
             self.balance['margin'] = self.safe_dict(self.balance, 'margin', {})
@@ -1422,8 +1420,6 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['margin'] = self.prune_stale_balance_keys(marginBalance, futuresSymbols)
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + ':futures')
-            if updatedBalance is None:
-                updatedBalance = self.balance['margin']
         if flexFutures is not None:
             flexFutureCurrencies = self.safe_dict(flexFutures, 'currencies', {})
             flexFuturesKeys = list(flexFutureCurrencies.keys())  # multi-collateral margin account
@@ -1447,14 +1443,16 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['flex'] = self.prune_stale_balance_keys(flexBalance, flexCodes)
             self.balance['flex'] = self.safe_balance(self.balance['flex'])
             client.resolve(self.balance['flex'], messageHash + ':flex_futures')
-            if updatedBalance is None:
-                updatedBalance = self.balance['flex']
         # resolve the plain hash exactly once per message, with the unified
         # balance of the account the message updated (cash first, matching the
         # legacy behaviour): a second resolve on the same hash is not portable
         # (the rust client hands the consumer the LAST resolved value)
-        if updatedBalance is not None:
-            client.resolve(updatedBalance, messageHash)
+        if holding is not None:
+            client.resolve(self.balance['cash'], messageHash)
+        elif futures is not None:
+            client.resolve(self.balance['margin'], messageHash)
+        elif flexFutures is not None:
+            client.resolve(self.balance['flex'], messageHash)
 
     def prune_stale_balance_keys(self, balanceObject: dict, seenKeys: dict) -> dict:
         """

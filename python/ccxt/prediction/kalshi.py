@@ -530,7 +530,10 @@ class kalshi(PredictionExchange, ImplicitAPI):
             eventParts = eventTicker.split('-')
             eventPartsLength = len(eventParts)
             if eventPartsLength > 1:
-                seriesParts = self.array_slice(eventParts, 0, eventPartsLength - 1)
+                seriesParts = []
+                for si in range(0, eventPartsLength - 1):
+                    seriesPart = self.safe_string(eventParts, si, '')
+                    seriesParts.append(seriesPart)
                 seriesTicker = '-'.join(seriesParts)
         # market symbol (no outcome suffix)
         subtitleOrTicker = ticker
@@ -849,7 +852,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #     }
         #
         outcomeObj = self.safe_outcome(self.safe_string(market, 'outcome'), market)
-        outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(market['info'], 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
+        outcomeLabel = self.safe_string_upper(market, 'label', self.safe_string_upper(self.safe_dict(market, 'info'), 'outcomeLabel', 'YES')) if (market is not None and market is not None) else 'YES'
         isNo = outcomeLabel == 'NO'
         timestamp = self.parse8601(self.safe_string(raw, 'updated_time'))
         outcome = self.safe_string(outcomeObj, 'outcome')

@@ -915,7 +915,8 @@ class whitebit(Exchange, ImplicitAPI):
         #
         depositWithdrawFees = {}
         codesValue = self.market_codes(codes)
-        currencyIds = list(response.keys())
+        feesById = self.extend({}, response)
+        currencyIds = list(feesById.keys())
         for i in range(0, len(currencyIds)):
             entry = currencyIds[i]
             splitEntry = entry.split(' ')
@@ -1463,7 +1464,8 @@ class whitebit(Exchange, ImplicitAPI):
             try:
                 response = await self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, paramsOmitted))
                 # Search for order in executed orders response (object format)
-                marketIds = list(response.keys())
+                executedById = self.extend({}, response)
+                marketIds = list(executedById.keys())
                 for i in range(0, len(marketIds)):
                     marketId = marketIds[i]
                     marketNew = self.safe_market(marketId, None, '_')
@@ -1719,7 +1721,8 @@ class whitebit(Exchange, ImplicitAPI):
             return self.parse_trades(response, market, since, limit)
         else:
             results = []
-            keys = list(response.keys())
+            tradesById = self.extend({}, response)
+            keys = list(tradesById.keys())
             for i in range(0, len(keys)):
                 marketId = keys[i]
                 marketNew = self.safe_market(marketId, None, '_')

@@ -1084,9 +1084,8 @@ class okx(ccxt.async_support.okx):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
-            sym = symbolAndTimeframe[0]
-            tf = symbolAndTimeframe[1]
+            sym = self.safe_string(symbolsAndTimeframes[i], 0, '')
+            tf = self.safe_string(symbolsAndTimeframes[i], 1, '')
             marketId = self.market_id(sym)
             interval = self.safe_string(self.timeframes, tf, tf)
             channel = 'candle' + interval
@@ -1126,9 +1125,8 @@ class okx(ccxt.async_support.okx):
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            symbolAndTimeframe = symbolsAndTimeframes[i]
-            sym = symbolAndTimeframe[0]
-            tf = symbolAndTimeframe[1]
+            sym = self.safe_string(symbolsAndTimeframes[i], 0, '')
+            tf = self.safe_string(symbolsAndTimeframes[i], 1, '')
             marketId = self.market_id(sym)
             interval = self.safe_string(self.timeframes, tf, tf)
             channel = 'candle' + interval

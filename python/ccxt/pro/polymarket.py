@@ -679,11 +679,9 @@ class polymarket(ccxt.async_support.polymarket):
         #         }
         #     }
         #
-        data = self.safe_value(message, 'data')
+        data = self.safe_dict(message, 'data')
         rows = []
-        if isinstance(data, list):
-            rows = data
-        else:
+        if data is not None:
             rows.append(data)
         rowsLength = len(rows)
         if rowsLength == 0:
@@ -1046,7 +1044,7 @@ class polymarket(ccxt.async_support.polymarket):
                         if timeframe in self.ohlcvs[symbol]:
                             del self.ohlcvs[symbol][timeframe]
             for i in range(0, len(messageHashes)):
-                self.clean_unsubscription(client, subMessageHashes[i], messageHashes[i])
+                self.clean_unsubscription(client, self.safe_string(subMessageHashes, i), messageHashes[i])
 
     def handle_message(self, client: Client, message: dict):
         ch = self.safe_string(message, 'ch')

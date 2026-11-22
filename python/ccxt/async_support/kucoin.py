@@ -1955,7 +1955,8 @@ class kucoin(Exchange, ImplicitAPI):
             symbol = base + '/' + quote + ':' + settle
             type = 'swap'
             if future:
-                symbol = symbol + '-' + self.yymmdd(expiry, '')
+                expirySuffix = '-' + self.yymmdd(expiry, '')
+                symbol = symbol + expirySuffix
                 type = 'future'
             inverse = self.safe_bool(market, 'isInverse')
             status = self.safe_string(market, 'status')

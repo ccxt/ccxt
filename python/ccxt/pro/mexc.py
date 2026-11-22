@@ -1923,7 +1923,8 @@ class mexc(ccxt.async_support.mexc):
         # spot ws client - the first caller fetches the listenKey, concurrent
         # callers wait on the future and resume when the listenKey is ready,
         # otherwise the user-data subscriptions would be split across two connections
-        client = self.client(self.urls['api']['ws']['spot'])
+        spotUrl = self.urls['api']['ws']['spot']
+        client = self.client(spotUrl)
         messageHash = 'authenticate:listenKey'
         isFetching = self.safe_bool(self.options, 'listenKeyFetching', False)
         if isFetching:

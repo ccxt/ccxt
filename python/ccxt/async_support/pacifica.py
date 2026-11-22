@@ -3286,7 +3286,8 @@ class pacifica(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountAddress"!')
         if subAccountPrivateKey is None:
             raise ArgumentsRequired(self.id + ' createSubAccount() requires a "subAccountPrivateKey"!')
-        timestamp, paramsTimestamp = self.handle_param_integer(paramsSubAccountPrivateKey, 'timestamp', self.milliseconds())
+        timestamp = self.safe_integer(paramsSubAccountPrivateKey, 'timestamp', self.milliseconds())
+        paramsTimestamp = self.omit(paramsSubAccountPrivateKey, 'timestamp')
         expiryWindow, paramsExpiryWindow = self.handle_option_integer_and_params_2(paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000)
         subaccountSignatureHeader = {
             'timestamp': timestamp,
@@ -3511,7 +3512,8 @@ class pacifica(Exchange, ImplicitAPI):
     def sort_json_keys(self, value: object) -> object:
         if self.is_dictionary(value):
             result = {}
-            keys = list(value.keys())
+            valueCopy = self.extend({}, value)
+            keys = list(valueCopy.keys())
             sortedKeys = self.sort(keys)
             for i in range(0, len(sortedKeys)):
                 key = self.safe_string(sortedKeys, i, '')

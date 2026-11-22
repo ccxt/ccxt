@@ -985,7 +985,7 @@ class deribit(Exchange, ImplicitAPI):
                 elif not isComboMarket:
                     symbol = base + '/' + quote + ':' + settle
                     if option or future:
-                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        symbol = symbol + ('-' + self.yymmdd(expiry, ''))
                         if option:
                             strike = self.safe_number(market, 'strike')
                             optionType = self.safe_string(market, 'option_type')

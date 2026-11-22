@@ -990,12 +990,13 @@ class coinbase(ccxt.async_support.coinbase):
         subKeysLength = len(subKeys)
         if isUnsub and subKeysLength == 0:
             unSubObject = self.safe_dict(self.options, 'unSubscription', {})
-            messageHashes = self.safe_list(unSubObject, 'messageHashes', [])
+            messageHashes = self.safe_string_list(unSubObject, ['messageHashes'])
             subMessageHashes = self.safe_list(unSubObject, 'subMessageHashes', [])
-            for i in range(0, len(messageHashes)):
-                messageHash = messageHashes[i]
-                subHash = subMessageHashes[i]
-                self.clean_unsubscription(client, subHash, messageHash)
+            if messageHashes is not None:
+                for i in range(0, len(messageHashes)):
+                    messageHash = messageHashes[i]
+                    subHash = subMessageHashes[i]
+                    self.clean_unsubscription(client, subHash, messageHash)
             self.clean_cache(unSubObject)
         return message
 

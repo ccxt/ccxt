@@ -8442,11 +8442,17 @@ classic accounts only/ spot not supported*  fetches information on an order made
         lastIndex = total - 1
         last = self.safe_dict(result, lastIndex, {})
         cursorValue = self.safe_string(first, 'nextPageCursor')
-        last['info'] = {
-            'nextPageCursor': cursorValue,
-        }
-        result[lastIndex] = last
-        return self.to_array(result)
+        lastRow = self.extend(last, {
+            'info': {
+                'nextPageCursor': cursorValue,
+            },
+        })
+        rows = []
+        for i in range(0, lastIndex):
+            rows.append(self.safe_dict(result, i, {}))
+        if total > 0:
+            rows.append(lastRow)
+        return self.to_array(rows)
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
@@ -9567,11 +9573,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 })
                 sortedQuery = self.keysort(query)
                 auth = self.rawencode(sortedQuery, True)
-                signature = None
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if self.secret.find('PRIVATE KEY') > -1:
                     signature = self.rsa(auth, self.secret, 'sha256')
-                else:
-                    signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 if method == 'POST':
                     isSpot = baseUrl.find('spot') >= 0
                     extendedQuery = self.extend(query, {

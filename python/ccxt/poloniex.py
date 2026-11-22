@@ -2786,8 +2786,11 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        paramsValue = extraParams
+        prepared = self.prepare_request_for_deposit_address(code, params)
+        request = self.safe_dict(prepared, 'request')
+        paramsValue = self.safe_dict(prepared, 'query')
+        currency = self.currency(code)
+        networkEntry = self.safe_dict(prepared, 'networkEntry')
         response = self.privatePostWalletsAddress(self.extend(request, paramsValue))
         #
         #     {
@@ -2807,8 +2810,11 @@ class poloniex(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
-        request, extraParams, currency, networkEntry = self.prepare_request_for_deposit_address(code, params)
-        paramsValue = extraParams
+        prepared = self.prepare_request_for_deposit_address(code, params)
+        request = self.safe_dict(prepared, 'request')
+        paramsValue = self.safe_dict(prepared, 'query')
+        currency = self.currency(code)
+        networkEntry = self.safe_dict(prepared, 'networkEntry')
         response = self.privateGetWalletsAddresses(self.extend(request, paramsValue))
         #
         #     {
@@ -2821,7 +2827,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"')
         return self.parse_deposit_address_special(response, currency, networkEntry)
 
-    def prepare_request_for_deposit_address(self, code: str, params: dict = {}) -> object:
+    def prepare_request_for_deposit_address(self, code: str, params: dict = {}) -> dict:
         if not (code in self.currencies):
             raise BadSymbol(self.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", {"network": "TRC20"})')
         currency = self.currency(code)
@@ -2841,7 +2847,12 @@ class poloniex(Exchange, ImplicitAPI):
         request = {
             'currency': exchangeNetworkId,
         }
-        return [request, query, currency, networkEntry]
+        return {
+            'request': request,
+            'query': query,
+            'currency': currency,
+            'networkEntry': networkEntry,
+        }
 
     def parse_deposit_address_special(self, response: dict, currency: Currency, networkEntry: dict) -> DepositAddress:
         address = self.safe_string(response, 'address')

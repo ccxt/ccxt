@@ -1164,7 +1164,7 @@ class btse(Exchange, ImplicitAPI):
             entry = self.safe_dict(data, i)
             marketId = self.safe_string(entry, 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             if symbolsNormalized is None or self.in_array(symbol, symbolsNormalized):
                 levels = self.safe_list(entry, 'riskLimits', [])
                 tiers = []

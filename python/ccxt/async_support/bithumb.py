@@ -1042,7 +1042,8 @@ class bithumb(Exchange, ImplicitAPI):
                     if (self.safe_string(response, 'market') is not None) or (self.safe_string(response, 'trade_date') is not None) or (self.safe_string(response, 'trade_timestamp') is not None):
                         tickers = [response]
                     else:
-                        ids = list(response.keys())
+                        responseDict = self.extend({}, response)
+                        ids = list(responseDict.keys())
                         for j in range(0, len(ids)):
                             id = ids[j]
                             ticker = self.safe_dict(response, id)
@@ -3072,7 +3073,8 @@ class bithumb(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def urlencode_with_array_brackets(self, query: dict) -> str:
-        keys = list(query.keys())
+        queryCopy = self.extend({}, query)
+        keys = list(queryCopy.keys())
         result = ''
         for i in range(0, len(keys)):
             key = keys[i]

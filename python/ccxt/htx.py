@@ -1555,7 +1555,8 @@ class htx(Exchange, ImplicitAPI):
         types, paramsTypes = self.handle_option_and_params(params, 'fetchMarkets', 'types', {})
         allMarkets = []
         promises = []
-        keys = list(types.keys())
+        typesDict = self.extend({}, types)
+        keys = list(typesDict.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             if self.safe_bool(types, key, False):
@@ -2942,8 +2943,8 @@ class htx(Exchange, ImplicitAPI):
         }
         priceType = self.safe_string_2(paramsPaginate, 'priceType', 'price')
         paramsOmitted = self.omit(paramsPaginate, ['priceType', 'price'])
-        untilParam, paramsUntil = self.handle_param_integer(paramsOmitted, 'until')
-        until = self.safe_integer(paramsOmitted, 'until', untilParam)
+        until = self.safe_integer(paramsOmitted, 'until')
+        paramsUntil = self.omit(paramsOmitted, 'until')
         untilSeconds = None
         if until is not None:
             untilSeconds = self.parse_to_int(until / 1000)

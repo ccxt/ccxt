@@ -387,7 +387,8 @@ class bingx(ccxt.async_support.bingx):
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolValue, limit)
         result = self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
-        if self.handle_option('watchTrades', 'ignoreDuplicates', True) is True:
+        ignoreDuplicates = self.handle_option_bool_and_params({}, 'watchTrades', 'ignoreDuplicates', True)[0]
+        if ignoreDuplicates:
             filtered = self.remove_repeated_trades_from_array(result)
             filtered = self.sort_by(filtered, 'timestamp')
             return filtered

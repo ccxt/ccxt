@@ -1871,8 +1871,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if vaultAddress is None:
             data += '00'
         else:
+            vaultHex = vaultAddress.lower()
             data += '01'
-            data += vaultAddress
+            data += vaultHex
         return self.hash(self.base16_to_binary(data), 'keccak', 'binary')
 
     def sign_l1_action(self, action: dict, nonce: float, vaultAddress: Str = None) -> dict:

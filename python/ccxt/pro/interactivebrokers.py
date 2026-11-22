@@ -279,7 +279,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         ticker = await self.ibkr_watch_market_data('ticker', symbols, params)
         if self.newUpdates:
             result = {}
-            tickerSymbol = ticker['symbol']
+            tickerSymbol = self.safe_string(ticker, 'symbol', '')
             result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -297,7 +297,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         ticker = await self.ibkr_watch_market_data('bidask', symbols, params)
         if self.newUpdates:
             result = {}
-            tickerSymbol = ticker['symbol']
+            tickerSymbol = self.safe_string(ticker, 'symbol', '')
             result[tickerSymbol] = ticker
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -449,7 +449,8 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         """
         await self.load_markets()
         market = self.market(symbol)
-        unifiedSymbol = market['symbol']
+        unifiedSymbol = self.safe_string(market, 'symbol', '')
+        historyMarketId = self.safe_string(market, 'id', '')
         url = await self.ibkr_connect()
         client = self.client(url)
         messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe
@@ -459,7 +460,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         marketDataRequest, query = self.ibkr_market_data_request(market['id'], params)
         await self.ibkr_subscribe(client, messageHash, marketDataRequest, {'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe})
         # the history, it seeds the candles
-        historyHash = 'smh::' + market['id'] + '::' + timeframe
+        historyHash = 'smh::' + historyMarketId + '::' + timeframe
         if not (historyHash in client.subscriptions):
             if not (unifiedSymbol in self.ohlcvs):
                 self.ohlcvs[unifiedSymbol] = {}
@@ -478,7 +479,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 # no 'format', the bars carry the "t" timestamp only with the default format
             }
             # keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            request = 'smh+' + market['id'] + '+' + self.json(self.keysort(self.extend(historyRequest, query)))
+            request = 'smh+' + historyMarketId + '+' + self.json(self.keysort(self.extend(historyRequest, query)))
             await self.ibkr_subscribe(client, historyHash, request, {'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration})
         ohlcv = await future
         resultLimit = limit
@@ -499,10 +500,11 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         """
         await self.load_markets()
         market = self.market(symbol)
-        unifiedSymbol = market['symbol']
+        unifiedSymbol = self.safe_string(market, 'symbol', '')
+        historyMarketId = self.safe_string(market, 'id', '')
         url = await self.ibkr_connect()
         client = self.client(url)
-        subHashes = ['ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe]
+        subHashes = ['ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + historyMarketId + '::' + timeframe]
         subscription = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [[unifiedSymbol, timeframe]],
@@ -657,8 +659,14 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
             if candle is None:
                 stored.append([candleTimestamp, price, price, price, price, size])
             else:
-                high = max(candle[2], price)
-                low = min(candle[3], price)
+                high = price
+                prevHigh = self.safe_number(candle, 2)
+                if (prevHigh is not None) and (price is not None) and (prevHigh > price):
+                    high = prevHigh
+                low = price
+                prevLow = self.safe_number(candle, 3)
+                if (prevLow is not None) and (price is not None) and (price > prevLow):
+                    low = prevLow
                 volume = self.sum(candle[5], size)
                 stored.append([candleTimestamp, candle[1], high, low, price, volume])
             client.resolve(stored, 'ohlcv::' + symbol + '::' + timeframe)
@@ -1056,7 +1064,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         for i in range(0, len(args)):
             rawTrade = args[i]
             trade = self.parse_trade(rawTrade)
-            tradeTimestamp = trade['timestamp']
+            tradeTimestamp = self.safe_integer(trade, 'timestamp')
             if (threshold is not None) and (tradeTimestamp is not None) and (tradeTimestamp < threshold):
                 continue
             if skipDuplicates:

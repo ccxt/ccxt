@@ -335,7 +335,7 @@ class ndax(ccxt.async_support.ndax):
         marketIds = list(updates.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            timeframes = list(updates[marketId].keys())
+            timeframes = list(self.safe_dict(updates, marketId, {}).keys())
             for j in range(0, len(timeframes)):
                 timeframe = timeframes[j]
                 messageHash = name + ':' + timeframe + ':' + marketId

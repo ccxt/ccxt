@@ -1155,7 +1155,8 @@ class bitstamp(Exchange, ImplicitAPI):
         # resolved in the key scan below, falling back to the passed market
         marketResolved = market
         if market is None:
-            keys = list(trade.keys())
+            tradeCopy = self.extend({}, trade)
+            keys = list(tradeCopy.keys())
             for i in range(0, len(keys)):
                 currentKey = keys[i]
                 if currentKey != 'order_id' and currentKey.find('_') >= 0:
@@ -1163,7 +1164,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     marketResolved = self.safe_market(rawMarketId, marketResolved, '_')
         # if the market is still not defined
         # try to deduce it from used keys
-        if marketResolved is None:
+        if self.safe_string(marketResolved, 'id') is None:
             marketResolved = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = self.safe_string(marketResolved, 'quote')
@@ -1470,7 +1471,7 @@ class bitstamp(Exchange, ImplicitAPI):
         feesList = self.to_array(fees)
         for i in range(0, len(feesList)):
             fee = self.parse_trading_fee(feesList[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -2292,7 +2293,7 @@ class bitstamp(Exchange, ImplicitAPI):
                     market = self.safe_market(marketId, market)
             # if the market is still not defined
             # try to deduce it from used keys
-            if market is None:
+            if self.safe_string(market, 'id') is None:
                 market = self.get_market_from_trade(item)
             direction = 'in' if (self.safe_string(parsedTrade, 'side') == 'buy') else 'out'
             return self.safe_ledger_entry({
@@ -2678,7 +2679,8 @@ class bitstamp(Exchange, ImplicitAPI):
             if isinstance(error, str):
                 errors.append(error)
             elif error is not None:
-                keys = list(error.keys())
+                errorDict = self.extend({}, error)
+                keys = list(errorDict.keys())
                 for i in range(0, len(keys)):
                     key = keys[i]
                     value = self.safe_value(error, key)

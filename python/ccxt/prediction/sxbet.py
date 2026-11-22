@@ -1747,7 +1747,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         hasApiKey = not self.is_empty_string(self.apiKey)
         if not hasApiKey:
             for i in range(0, hashesLength):
-                marketHash = hashesOrder[i]
+                marketHash = self.safe_string(hashesOrder, i, '')
                 snapshot = await self.fetch_sxbet_book_snapshot(marketHash)
                 rowsByHash[marketHash] = self.parse_sxbet_snapshot_best_odds(snapshot)
             return self.parse_sxbet_tickers_by_hash(outcomesList, rowsByHash)
@@ -2191,7 +2191,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             refreshed = self.apply_sxbet_ws_snapshot(rows[i])
             refreshedLength = len(refreshed)
             for j in range(0, refreshedLength):
-                sym = refreshed[j]
+                sym = self.safe_string(refreshed, j, '')
                 client.resolve(self.safe_value(self.orderbooks, sym), 'orderbook::' + sym)
 
     async def watch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
@@ -2215,7 +2215,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
         client = self.client(url)
         channel = 'best_odds_v3:global'
         hydrated = False
-        if self.safe_dict(self.safe_dict(self.options, 'wsTickers', {}), sym) is None:
+        cachedTickers = self.safe_dict(self.options, 'wsTickers', {})
+        cachedTicker = self.safe_dict(cachedTickers, sym)
+        if cachedTicker is None:
             # hydrate from the REST snapshot so the first call does not hang until the
             # market's next top-of-book change - the channel is global, so the seed must fire
             # for every newly watched market, not only on a fresh subscription

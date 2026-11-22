@@ -5404,7 +5404,8 @@ class okx(Exchange, ImplicitAPI):
         if (codeNetwork is not None) and (codeNetwork in response):
             return self.safe_dict(response, codeNetwork)
         # if the network is not specified, return the first address
-        keys = list(response.keys())
+        responseDict = self.extend({}, response)
+        keys = list(responseDict.keys())
         first = self.safe_string(keys, 0, '')
         return self.safe_dict(response, first)
 
@@ -6019,7 +6020,8 @@ class okx(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 entry = symbols[i]
                 market = self.market(entry)
-                marketIds.append(market['id'])
+                marketId = self.safe_string(market, 'id', '')
+                marketIds.append(marketId)
             marketIdsLength = len(marketIds)
             if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)

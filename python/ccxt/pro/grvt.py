@@ -120,7 +120,7 @@ class grvt(ccxt.async_support.grvt):
         apiPart = 'privateTrading'
         if publicOrPrivate:
             apiPart = 'publicMarket'
-        return await self.watch_multiple(self.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes)
+        return await self.watch_multiple(self.safe_string(self.urls['api']['ws'], apiPart), messageHashes, payload, rawHashes)
 
     def request_id(self) -> int:
         self.lock_id()
@@ -615,7 +615,7 @@ class grvt(ccxt.async_support.grvt):
                 },
             }
             self.extend_exchange_options(defaultOptions)
-            self.client(self.urls['api']['ws']['privateTrading'])
+            self.client(self.safe_string(self.urls['api']['ws'], 'privateTrading'))
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

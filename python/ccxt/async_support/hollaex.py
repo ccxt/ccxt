@@ -688,7 +688,8 @@ class hollaex(Exchange, ImplicitAPI):
 
     def parse_tickers(self, tickers: object, symbols: Strings = None, params: dict = {}) -> Tickers:
         result = {}
-        keys = list(tickers.keys())
+        tickersDict = self.extend({}, tickers)
+        keys = list(tickersDict.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             ticker = self.safe_dict(tickers, key, {})

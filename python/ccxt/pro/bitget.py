@@ -1084,7 +1084,8 @@ class bitget(ccxt.async_support.bitget):
         if self.newUpdates:
             limitResolved = trades.getLimit(tradeSymbol, limit)
         result = self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
-        if self.handle_option('watchTrades', 'ignoreDuplicates', True) is True:
+        ignoreDuplicates = self.handle_option_bool_and_params({}, 'watchTrades', 'ignoreDuplicates', True)[0]
+        if ignoreDuplicates:
             filtered = self.remove_repeated_trades_from_array(result)
             filtered = self.sort_by(filtered, 'timestamp')
             return filtered
@@ -1638,7 +1639,9 @@ class bitget(ccxt.async_support.bitget):
         if uta:
             instType = 'UTA'
             channel = 'order'
-        subscriptionHash = subscriptionHash + ':' + instType
+        subscriptionHashInst = subscriptionHash + ':'
+        if instType is not None:
+            subscriptionHashInst = subscriptionHashInst + instType
         args = {
             'instType': instType,
         }
@@ -1651,7 +1654,7 @@ class bitget(ccxt.async_support.bitget):
             paramsRequest = self.extend(paramsMarginMode, {'uta': True})
         if not uta:
             args['instId'] = instId
-        orders = await self.watch_private(uta, messageHash, subscriptionHash, args, paramsRequest)
+        orders = await self.watch_private(uta, messageHash, subscriptionHashInst, args, paramsRequest)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)

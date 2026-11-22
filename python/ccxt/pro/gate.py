@@ -282,8 +282,8 @@ class gate(ccxt.async_support.gate):
         channel = messageType + '.order_cancel'
         url = self.get_url_by_market(market)
         await self.authenticate(url, messageType)
-        request['order_id'] = str(id)
-        res = await self.request_private(url, self.extend(request, requestParams), channel)
+        orderRequest = self.extend(request, {'order_id': str(id)})
+        res = await self.request_private(url, self.extend(orderRequest, requestParams), channel)
         return self.parse_order(res, market)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -1986,12 +1986,13 @@ class gate(ccxt.async_support.gate):
                 subId = self.safe_string(subscription, 'id')
                 if id != subId:
                     continue
-                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                messageHashes = self.safe_string_list(subscription, ['messageHashes'])
                 subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-                for j in range(0, len(messageHashes)):
-                    unsubHash = messageHashes[j]
-                    subHash = subMessageHashes[j]
-                    self.clean_unsubscription(client, subHash, unsubHash)
+                if messageHashes is not None:
+                    for j in range(0, len(messageHashes)):
+                        unsubHash = messageHashes[j]
+                        subHash = subMessageHashes[j]
+                        self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
 
     def handle_message(self, client: Client, message: dict):
@@ -2278,10 +2279,8 @@ class gate(ccxt.async_support.gate):
             if self.uid is None or len(self.uid) == 0:
                 raise ArgumentsRequired(self.id + ' requires uid to subscribe')
         idArray = [self.uid]
-        payloadWithUid = idArray if (payload is None) else self.array_concat(idArray, payload)
-        payloadValue = payload
-        if requiresUid:
-            payloadValue = payloadWithUid
+        noPayload = (payload is None)
+        payloadWithUid = idArray if noPayload else self.array_concat(idArray, payload)
         time = self.seconds()
         event = 'subscribe'
         signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + str(time)
@@ -2299,8 +2298,10 @@ class gate(ccxt.async_support.gate):
             'event': event,
             'auth': auth,
         }
-        if payloadValue is not None:
-            request['payload'] = payloadValue
+        if requiresUid:
+            request['payload'] = payloadWithUid
+        elif not noPayload:
+            request['payload'] = payload
         client = self.client(url)
         if not (messageHash in client.subscriptions):
             tempSubscriptionHash = str(requestId)

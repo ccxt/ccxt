@@ -2042,7 +2042,8 @@ class cryptocom(Exchange, ImplicitAPI):
             network = self.safe_string(self.networkAliases, networkParam, networkParam)
             if network in depositAddresses:
                 return self.safe_dict(depositAddresses, network)
-        keys = list(depositAddresses.keys())
+        addressesCopy = self.extend({}, depositAddresses)
+        keys = list(addressesCopy.keys())
         return self.safe_dict(depositAddresses, self.safe_string(keys, 0))
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -3217,7 +3218,8 @@ class cryptocom(Exchange, ImplicitAPI):
         if isinstance(object, list):
             paramsKeys = object
         else:
-            objectKeys = list(object.keys())
+            objectDict = self.extend({}, object)
+            objectKeys = list(objectDict.keys())
             paramsKeys = self.sort(objectKeys)
         for i in range(0, len((paramsKeys))):
             key = self.safe_string(paramsKeys, i, '')

@@ -922,10 +922,10 @@ class bit2me(Exchange, ImplicitAPI):
         else:
             # the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             duration = self.parse_timeframe(timeframe) * 1000
-            end = self.milliseconds()
             if until is not None:
-                end = until
-            request['startTime'] = end - requestLimit * duration
+                request['startTime'] = until - requestLimit * duration
+            else:
+                request['startTime'] = self.milliseconds() - requestLimit * duration
         if until is not None:
             request['endTime'] = until
         response = self.publicGetV1TradingCandle(self.extend(request, paramsUntil))
@@ -1303,9 +1303,11 @@ class bit2me(Exchange, ImplicitAPI):
         # startTime and endTime must always be sent together
         if (since is not None) or (until is not None):
             start = since if (since is not None) else 0
-            end = until if (until is not None) else self.milliseconds()
             request['startTime'] = self.iso8601(start)
-            request['endTime'] = self.iso8601(end)
+            if until is not None:
+                request['endTime'] = self.iso8601(until)
+            else:
+                request['endTime'] = self.iso8601(self.milliseconds())
         response = self.privateGetV1TradingOrder(self.extend(request, query))
         #
         #     [
@@ -1515,9 +1517,11 @@ class bit2me(Exchange, ImplicitAPI):
         # startTime and endTime must always be sent together
         if (since is not None) or (until is not None):
             start = since if (since is not None) else 0
-            end = until if (until is not None) else self.milliseconds()
             request['startTime'] = self.iso8601(start)
-            request['endTime'] = self.iso8601(end)
+            if until is not None:
+                request['endTime'] = self.iso8601(until)
+            else:
+                request['endTime'] = self.iso8601(self.milliseconds())
         response = self.privateGetV1TradingTrade(self.extend(request, query))
         #
         #     {

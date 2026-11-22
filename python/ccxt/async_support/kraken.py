@@ -2033,11 +2033,11 @@ class kraken(Exchange, ImplicitAPI):
         rawTrades = self.safe_list(orderOmitted, 'trades', [])
         trades = []
         for i in range(0, len(rawTrades)):
-            rawTrade = rawTrades[i]
-            if isinstance(rawTrade, str):
-                trades.append(self.safe_trade({'id': rawTrade, 'order': id, 'symbol': symbol, 'info': {}}))
+            rawTradeId = self.safe_string(rawTrades, i)
+            if rawTradeId is not None:
+                trades.append(self.safe_trade({'id': rawTradeId, 'order': id, 'symbol': symbol, 'info': {}}))
             else:
-                trades.append(rawTrade)
+                trades.append(rawTrades[i])
         # as mentioned in #24192 PR, this field is not something consistent/actual
         # triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         stopLossPrice = None
@@ -2353,11 +2353,11 @@ class kraken(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")
         else:
             for i in range(0, len(orderTrades)):
-                orderTrade = orderTrades[i]
-                if isinstance(orderTrade, str):
-                    tradeIds.append(orderTrade)
+                orderTradeId = self.safe_string(orderTrades, i)
+                if orderTradeId is not None:
+                    tradeIds.append(orderTradeId)
                 else:
-                    tradeIds.append(self.safe_string(orderTrade, 'id'))
+                    tradeIds.append(self.safe_string(orderTrades[i], 'id'))
         if self.markets is None:
             await self.load_markets()
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol

@@ -7789,12 +7789,13 @@ class bitget(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbol = self.safe_string(params, 'symbol')
-        paramsOmitted = self.omit(params, 'symbol')
+        paramsNoSymbol = self.omit(params, 'symbol')
         market = None
         if symbol is not None:
             market = self.market(symbol)
         marketType = None
-        marketType, paramsOmitted = self.handle_market_type_and_params('fetchLedger', market, paramsOmitted)
+        paramsOmitted = None
+        marketType, paramsOmitted = self.handle_market_type_and_params('fetchLedger', market, paramsNoSymbol)
         uta = None
         uta, paramsOmitted = self.handle_uta_and_params(paramsOmitted, 'fetchLedger', False)
         paginate = False
@@ -10424,7 +10425,8 @@ class bitget(Exchange, ImplicitAPI):
         if since is not None:
             requestUntil['startTime'] = since
         else:
-            requestUntil['startTime'] = self.milliseconds() - 7776000000
+            defaultStart = self.milliseconds() - 7776000000
+            requestUntil['startTime'] = defaultStart
         if limit is not None:
             requestUntil['limit'] = limit
         response = None

@@ -1886,7 +1886,9 @@ class hashkey(Exchange, ImplicitAPI):
             'coin': currency['id'],
         }
         networkCodeInParams, paramsNetworkCode = self.handle_network_code_and_params(params)
-        networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork')) if (networkCodeInParams is None) else networkCodeInParams
+        networkCode = networkCodeInParams
+        if networkCode is None:
+            networkCode = self.safe_string(self.safe_dict(self.options, 'defaultNetworks', {}), code, self.safe_string(self.options, 'defaultNetwork'))
         request['chainType'] = self.network_code_to_id(networkCode, code)
         response = await self.privateGetApiV1AccountDepositAddress(self.extend(request, paramsNetworkCode))
         #

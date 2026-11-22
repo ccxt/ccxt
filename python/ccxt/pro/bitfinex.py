@@ -898,12 +898,13 @@ class bitfinex(ccxt.async_support.bitfinex):
         subMessageHash = self.safe_string(client.subscriptions, unSubChannel, '')
         subscription = self.safe_dict(client.subscriptions, 'unsubscribe:' + subMessageHash)
         del client.subscriptions[unSubChannel]
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
+        messageHashes = self.safe_string_list(subscription, ['messageHashes'])
         subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            subHash = subMessageHashes[i]
-            self.clean_unsubscription(client, subHash, messageHash)
+        if messageHashes is not None:
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                self.clean_unsubscription(client, subHash, messageHash)
         self.clean_cache(subscription)
         return True
 

@@ -1743,18 +1743,19 @@ class kucoin(ccxt.async_support.kucoin):
             self.handle_order_book_subscription(client, message, subscription)
         isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
         if isUnSub:
-            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            messageHashes = self.safe_string_list(subscription, ['messageHashes'])
             subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-            for i in range(0, len(messageHashes)):
-                messageHash = self.safe_string(messageHashes, i)
-                subHash = self.safe_string(subMessageHashes, i)
-                self.clean_unsubscription(client, subHash, messageHash)
+            if messageHashes is not None:
+                for i in range(0, len(messageHashes)):
+                    messageHash = self.safe_string(messageHashes, i)
+                    subHash = self.safe_string(subMessageHashes, i)
+                    self.clean_unsubscription(client, subHash, messageHash)
             topic = self.safe_string(subscription, 'topic')
             if topic == 'fundingRate':
                 # todo: add fundingRate topic to cleanCache
                 symbols = self.safe_list(subscription, 'symbols', [])
                 for i in range(0, len(symbols)):
-                    symbol = symbols[i]
+                    symbol = self.safe_string(symbols, i, '')
                     if symbol in self.fundingRates:
                         del self.fundingRates[symbol]
             else:
@@ -2698,7 +2699,7 @@ class kucoin(ccxt.async_support.kucoin):
                 messageHashes.append(messageHash + ':' + symbol)
         url = await self.get_uta_url()
         client = self.client(url)
-        self.set_positions_cache(client, utaOption)
+        self.set_positions_cache(client, utaOption is True)
         fetchPositionSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
         awaitPositionSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.positions

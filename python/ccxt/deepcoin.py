@@ -588,7 +588,8 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def set_markets(self, markets: object, currencies: object = None):
         result = super(deepcoin, self).set_markets(markets, currencies)
-        symbols = list(result.keys())
+        resultCopy = self.extend({}, result)
+        symbols = list(resultCopy.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.safe_dict(result, symbol, {})
