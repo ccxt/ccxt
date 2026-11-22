@@ -2619,7 +2619,7 @@ export default class cryptocom extends Exchange {
         let type: Str = undefined;
         const rawStatus = this.safeString (transaction, 'status');
         let status: Str = undefined;
-        if (this.safeString (transaction, 'client_wid') !== undefined) {
+        if ('client_wid' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);
         } else {
