@@ -16645,6 +16645,7 @@ export function nativeJavaEqualTruthy (content) {
 // Helpers.toStringArg is the identity on a String (and on null): drop it when the argument
 // provably prints a Java String. `const x: Str = undefined` locals print `String x = null`.
 const JAVA_NULL_STRING_LOCALS = new WeakSet (); // declarations this section printed `String x = null`
+const JAVA_NULL_STRING_CONVERTED = new WeakSet (); // structure-field reads written to such a local
 
 function javaStringAnnotated (declaration) {
     const type = declaration?.type;
@@ -16739,6 +16740,17 @@ function javaNullStringLocalNested (printer, declaration) {
     }
 }
 
+function javaNullStringConverts (node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    if (ts.isConditionalExpression (value)) {
+        return javaNullStringConverts (value.whenTrue) || javaNullStringConverts (value.whenFalse);
+    }
+    return JAVA_NULL_STRING_CONVERTED.has (value);
+}
+
 // a write the Java side declares String: a literal, a String-declared local, a base safeString* call, or a ternary of those
 function javaNullStringLocalWrite (printer, node) {
     const value = unwrapParens (node);
@@ -16754,7 +16766,15 @@ function javaNullStringLocalWrite (printer, node) {
             || (declaration !== undefined && ts.isVariableDeclaration (declaration) && javaNullStringLocalNested (printer, declaration));
     }
     if (value !== undefined && ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        return javaNullStringLocalWrite (printer, value.left) && isStaticallyStringExpression (printer, value, undefined);
+        // a `+` the printer emits as the native Java concat is a String (JLS 15.18.1)
+        return (javaNullStringLocalWrite (printer, value.left) && isStaticallyStringExpression (printer, value, undefined))
+            || printedConcatIsNative (printer, value.left, value.right);
+    }
+    // a structure field the Java DTO declares `public String`: the write prints the String-slot conversion
+    if (value !== undefined && ts.isElementAccessExpression (value)
+        && (structureKeyReadLocalType (printer, value)?.type === JAVA_DATAFLOW_STRING || nullSeedMarketParamKeyRead (printer, value))) {
+        JAVA_NULL_STRING_CONVERTED.add (value);
+        return true;
     }
     return value !== undefined && (isNullishInitializer (value) || ts.isStringLiteralLike (value)
         || (isThisCall (value) && SAFE_STRING_ACCESSORS.has (String (value.expression.name.text)) && isPlainSafeStringBaseCall (printer, value)));
@@ -16795,6 +16815,21 @@ export function installJavaStringCoreArgs (transpiler) {
         typed.set (declaration, 'String');
         JAVA_NULL_STRING_LOCALS.add (declaration);
         return printed.slice (0, at) + `${iden}String ${name} = null` + printed.slice (at + marker.length);
+    };
+    // a write holding a structure-field read converts the whole right side, as the String-slot uses did
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        if (node?.operatorToken?.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier (node.left) && javaNullStringConverts (node.right)) {
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && JAVA_NULL_STRING_LOCALS.has (declaration)) {
+                    return `${printer.printNode (node.left, 0)} = java.util.Objects.toString(${printer.printNode (node.right, 0)}, null)`;
+                }
+            } catch (e) {
+                // fall through to the upstream print
+            }
+        }
+        return upstreamBinary (node, identation);
     };
     // answer before every table: the same local may be published as List<String>
     const upstreamResolver = printer.javaDeclaredLocalTypeResolver;
