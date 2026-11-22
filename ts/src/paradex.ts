@@ -3983,7 +3983,12 @@ export default class paradex extends Exchange {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [ paginationCalls, paramsCalls ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             const until = this.safeInteger (paramsCalls, 'until');
-            let endAt = Math.min (this.milliseconds (), this.sum (since, paginationCalls * 5000 * rowSpacing));
+            const pageSpan: number = this.parseToInt (paginationCalls * 5000 * rowSpacing);
+            const sinceEnd: number = this.sum (since, pageSpan);
+            let endAt: number = this.milliseconds ();
+            if (sinceEnd < endAt) {
+                endAt = sinceEnd;
+            }
             if (until !== undefined) {
                 endAt = until;
             }
