@@ -21439,7 +21439,24 @@ function r84j1BoxElementLocal (printer, declaration) {
         }
         native += verdict === 'native' ? 1 : 0;
     }
-    return native > 0;
+    return native > 0 || parsedListElement (printer, read.expression, scope);
+}
+
+// the list is a never-written const built by a base parse* method whose every return is a List of
+// the parsed structures (Map views): its element is a Map by construction, so the declared box holds
+function parsedListElement (printer, receiver, scope) {
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (receiver);
+    const declaration = symbol?.valueDeclaration?.resolve?.() ?? symbol?.valueDeclaration;
+    const call = declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+        && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 ? unwrapParens (declaration.initializer) : undefined;
+    if (call === undefined || !isThisCall (call) || enclosingFunction (declaration) !== scope) {
+        return false;
+    }
+    const name = String (call.expression.name.text);
+    return /^parse/.test (name) && JAVA_LIST_RETURN_METHODS.has (name)
+        && r90j1UnifiedStructureType (checker, checker.getTypeArguments (checker.getTypeAtLocation (receiver))?.[0])
+        && r90j1ListNeverWritten (checker, symbol, declaration, scope);
 }
 
 export function installJavaR84j1BoxElementLocals (transpiler) {
