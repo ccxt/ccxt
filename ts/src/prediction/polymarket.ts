@@ -920,7 +920,7 @@ export default class polymarket extends Exchange {
     override async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
         const tokenIds: string[] = [];
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            const outcomeSymbol = outcomeSymbols[i];
+            const outcomeSymbol: string = this.safeString (outcomeSymbols, i, '');
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -964,8 +964,9 @@ export default class polymarket extends Exchange {
             this.populateOutcomes ();
         }
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            if (!this.hasOutcome (outcomeSymbols[i])) {
-                await this.fetchOutcome (outcomeSymbols[i]);
+            const pendingSymbol: string = this.safeString (outcomeSymbols, i, '');
+            if (!this.hasOutcome (pendingSymbol)) {
+                await this.fetchOutcome (pendingSymbol);
             }
         }
         return this.outcomes;
