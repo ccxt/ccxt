@@ -2645,7 +2645,7 @@ export default class paradex extends Exchange {
         //     ]
         //   }
         //
-        const orders: Dict[] = this.safeList (response, 'results', []) as List;
+        const orders: Dict[] = this.safeList (response, 'results', []);
         const paginationCursor = this.safeString (response, 'next');
         const ordersLength = orders.length;
         if ((paginationCursor !== undefined) && (ordersLength > 0)) {
