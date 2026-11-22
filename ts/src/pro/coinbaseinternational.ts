@@ -258,7 +258,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
     handleBalance (client: Client, message: Dict) {
         const params = this.safeDict (message, 'params', {});
         const data = this.safeDict (params, 'data', {});
-        const parsed = this.parseBalanceList (data);
+        const parsed = this.parseBalanceList (data, [ data ]);
         this.balance = this.deepExtend (this.balance, parsed);
         client.resolve (this.balance, 'balance');
     }
@@ -1826,7 +1826,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         let balance: Dict = { 'info': result };
         const summariesLength = summaries.length;
         for (let i = 0; i < summariesLength; i++) {
-            balance = this.deepExtend (balance, this.parseBalanceList (summaries[i]));
+            balance = this.deepExtend (balance, this.parseBalanceList (summaries[i], [ this.safeDict (summaries, i, {}) ]));
         }
         return this.safeBalance (balance);
     }

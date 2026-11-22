@@ -1552,23 +1552,18 @@ export default class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             const summaries = this.safeList (result, 'summaries');
             if (summaries !== undefined) {
-                return this.parseBalanceList (summaries);
+                return this.parseBalanceList (summaries, summaries);
             }
-            return this.parseBalanceList (this.safeDict (result, 'summaries', []));
+            // a missing summary row has no currency, so the loop skips it
+            return this.parseBalanceList (this.safeDict (result, 'summaries', []), [ this.safeDict (result, 'summaries', {}) ]);
         }
-        return this.parseBalanceList (result);
+        return this.parseBalanceList (result, this.safeList (result, 'summaries', [ result ]));
     }
 
-    parseBalanceList (response: any): Balances {
+    parseBalanceList (response: any, summaries: Dict[]): Balances {
         const result: Dict = {
             'info': response,
         };
-        let summaries = [ response ];
-        if (Array.isArray (response)) {
-            summaries = response;
-        } else if (this.isNativeDeribitCredentials ()) {
-            summaries = this.safeList (response, 'summaries', [ response ]);
-        }
         for (let i = 0; i < summaries.length; i++) {
             const data = this.safeDict (summaries, i);
             const currencyId = this.safeString (data, 'currency');
