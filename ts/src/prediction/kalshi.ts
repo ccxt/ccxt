@@ -599,13 +599,14 @@ export default class kalshi extends Exchange {
         const outcomeLabels = [ 'YES', 'NO' ];
         const outcomes: any[] = [];
         let resolvedOutcome: Str = undefined;
+        const resultText: string = this.safeStringLower (raw, 'result', '');
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol (eventTicker, subtitleOrTicker, label);
             let winnerRaw: Bool = undefined;
             let settleFractionRaw: Num = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {
-                winnerRaw = (label.toLowerCase () === result);
+                winnerRaw = (label.toLowerCase () === resultText);
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
                 if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;
