@@ -1597,7 +1597,7 @@ export default class bullish extends Exchange {
             until = untilParam;
         }
         const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
-        const paramsResult: Dict = sinceFromUntil ? this.omit (params, 'until') : params;
+        const timeParams: Dict = {};
         if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved: Int = since;
@@ -1613,9 +1613,11 @@ export default class bullish extends Exchange {
                     until = this.sum (since, timeDelta);
                 }
             }
-            paramsResult[sinceKey] = this.iso8601 (sinceResolved);
-            paramsResult[untilKey] = this.iso8601 (until);
+            timeParams[sinceKey] = this.iso8601 (sinceResolved);
+            timeParams[untilKey] = this.iso8601 (until);
         }
+        const merged: Dict = this.extend (params, timeParams);
+        const paramsResult: Dict = sinceFromUntil ? this.omit (merged, 'until') : merged;
         return paramsResult;
     }
 
