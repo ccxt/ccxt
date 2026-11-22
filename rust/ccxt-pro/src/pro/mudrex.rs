@@ -80,7 +80,7 @@ impl Mudrex {
         match __n {
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "ping" => self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             "request_id" => crate::Value::from(self.request_id()),
@@ -349,7 +349,7 @@ impl Mudrex {
         let stream: Option<String> = (match __pro_message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (stream.is_some()) {
             if stream.as_deref().unwrap_or_default().contains("kline") || stream.as_deref().unwrap_or_default().contains("markKline") {
-                self.handle_ohlcv(&client, &message);
+                self.handle_ohlcv(client.clone(), &message);
             }  else if stream.as_deref().unwrap_or_default().contains("ticker") {
                 self.handle_ticker(&client, &message);
             }
@@ -369,7 +369,7 @@ impl Mudrex {
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }
 
-    pub fn handle_ohlcv(&mut self, client: &Value, message: &Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let stream: Option<String> = (match message.get("stream") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

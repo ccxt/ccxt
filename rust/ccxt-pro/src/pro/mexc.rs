@@ -117,7 +117,7 @@ impl Mexc {
             "handle_funding_rate" => { self.handle_funding_rate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -925,7 +925,7 @@ impl Mexc {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2772,7 +2772,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let channelParts: crate::value::List = crate::value::List::new(channel.split("@").map(Value::from).collect());
         let channelId: Option<String> = self.safe_string_opt(&channelParts, Value::Int(1), &[]);
         if (channelId.as_deref() == Some("public.kline.v3.api.pb")) {
-            self.handle_ohlcv(client, message.clone());
+            self.handle_ohlcv(client.clone(), message.clone());
         }  else if (channelId.as_deref() == Some("public.aggre.deals.v3.api.pb")) {
             self.handle_trades(client, message.clone());
         }  else if (channelId.as_deref() == Some("public.aggre.bookTicker.v3.api.pb")) {

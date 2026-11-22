@@ -96,7 +96,7 @@ impl Bitrue {
             "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1091,8 +1091,8 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, client: &Value, message: &Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1350,7 +1350,7 @@ if _try_result.is_err() {
             }  else if channel.as_deref().unwrap_or_default().contains("_trade_ticker") {
                 self.handle_trades(&client, &message);
             }  else if channel.as_deref().unwrap_or_default().contains("_kline_") {
-                self.handle_ohlcv(&client, &message);
+                self.handle_ohlcv(client.clone(), &message);
             }  else if channel.as_deref().unwrap_or_default().contains("_ticker") {
                 self.handle_ticker(&client, &message);
             }

@@ -72,6 +72,7 @@ pub(crate) use ccxt::exchanges::{
     hyperliquid::Hyperliquid,
     independentreserve::Independentreserve,
     indodax::Indodax,
+    interactivebrokers::Interactivebrokers,
     kraken::Kraken,
     krakenfutures::Krakenfutures,
     kucoin::Kucoin,
@@ -177,6 +178,7 @@ pub(crate) use ccxt_pro::pro::{
     htx::Htx as WsHtx,
     hyperliquid::Hyperliquid as WsHyperliquid,
     independentreserve::Independentreserve as WsIndependentreserve,
+    interactivebrokers::Interactivebrokers as WsInteractivebrokers,
     kraken::Kraken as WsKraken,
     krakenfutures::Krakenfutures as WsKrakenfutures,
     kucoin::Kucoin as WsKucoin,
@@ -278,6 +280,7 @@ macro_rules! for_each_core {
         $cb!(hyperliquid, Hyperliquid);
         $cb!(independentreserve, Independentreserve);
         $cb!(indodax, Indodax);
+        $cb!(interactivebrokers, Interactivebrokers);
         $cb!(kalshi, Kalshi);
         $cb!(kraken, Kraken);
         $cb!(krakenfutures, Krakenfutures);
@@ -373,6 +376,7 @@ macro_rules! for_each_ws_core {
         $cb!(htx, WsHtx);
         $cb!(hyperliquid, WsHyperliquid);
         $cb!(independentreserve, WsIndependentreserve);
+        $cb!(interactivebrokers, WsInteractivebrokers);
         $cb!(kraken, WsKraken);
         $cb!(krakenfutures, WsKrakenfutures);
         $cb!(kucoin, WsKucoin);

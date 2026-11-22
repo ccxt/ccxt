@@ -145,7 +145,7 @@ impl Okx {
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_liquidation" => { self.handle_my_liquidation(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
             "handle_order_book_message" => self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null),
                 args.get(3).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(4).copied().cloned().unwrap_or_default()).as_ref()),
@@ -1941,7 +1941,7 @@ impl Okx {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, client: &Value, message: &Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -3891,7 +3891,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let method: Option<String> = self.safe_value(&methods, Value::from(channel.as_deref()), &[]).as_str().map(str::to_owned);
             if (method.is_none()) {
                 if (((if let (Some(__h), Some(__n)) = (channel.as_deref(), Some("candle")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
-                    self.handle_ohlcv(&client, &message);
+                    self.handle_ohlcv(client.clone(), &message);
                 }
             }  else {
                 self.dispatch_ws_handler(&method, &[&client, &message]);

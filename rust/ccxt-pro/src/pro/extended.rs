@@ -94,7 +94,7 @@ impl Extended {
             "handle_mark_price" => { self.handle_mark_price(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1189,7 +1189,7 @@ impl Extended {
         }).await?))
     }
 
-    pub fn handle_ohlcv(&mut self, client: &Value, message: &Value) {
+    pub fn handle_ohlcv(&mut self, mut client: Value, message: &Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1208,7 +1208,7 @@ impl Extended {
         //         "seq": 1
         //     }
         //
-        let mut subscription: Option<crate::value::Dict> = self.find_subscription(client, Value::Str("ohlcv".into()));
+        let mut subscription: Option<crate::value::Dict> = self.find_subscription(&client, Value::Str("ohlcv".into()));
         if (subscription.is_none()) {
             return;
         }
@@ -1299,7 +1299,7 @@ impl Extended {
             if (side.is_some()) {
                 self.handle_trades(&client, &message);
             }  else {
-                self.handle_ohlcv(&client, &message);
+                self.handle_ohlcv(client.clone(), &message);
             }
         }  else if (data.is_some()) {
             // an account frame may carry several sections at once, so these are
