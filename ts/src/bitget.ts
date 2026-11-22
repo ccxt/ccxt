@@ -4014,7 +4014,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        return this.parseTicker (data[0], market);
+        return this.parseTicker (this.safeDict (data, 0, {}), market);
     }
 
     /**
@@ -4043,7 +4043,7 @@ export default class bitget extends Exchange {
             response = await this.publicMixGetV2MixMarketSymbolPrice (this.extend (request, paramsProductType));
         }
         const data: Dict[] = this.safeList (response, 'data', []);
-        return this.parseTicker (data[0], market);
+        return this.parseTicker (this.safeDict (data, 0, {}), market);
     }
 
     /**

@@ -1151,7 +1151,7 @@ export default class kraken extends Exchange {
             const id = ids[i];
             const market = this.safeMarket (id);
             const symbol: string = this.safeString (market, 'symbol', '');
-            const ticker = tickers[id];
+            const ticker = this.safeDict (tickers, id, {});
             result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);

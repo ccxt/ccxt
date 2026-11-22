@@ -1000,8 +1000,7 @@ export default class luno extends Exchange {
             const id = ids[i];
             const market = this.safeMarket (id);
             const symbol: string = this.safeString (market, 'symbol', '');
-            const ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker (this.safeDict (tickers, id, {}), market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }

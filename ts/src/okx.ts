@@ -2460,7 +2460,7 @@ export default class okx extends Exchange {
         // }
         //
         const data = this.safeList (response, 'data');
-        return this.parseTicker (this.safeDict (data, 0) as Dict, market);
+        return this.parseTicker (this.safeDict (data, 0, {}), market);
     }
 
     /**
