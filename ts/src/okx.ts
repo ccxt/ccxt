@@ -3251,7 +3251,7 @@ export default class okx extends Exchange {
         }
         const spot = this.safeBool (market, 'spot', false);
         const contract = this.safeBool (market, 'contract');
-        const triggerPrice = this.safeValueN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'triggerPx' ]);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeNumber (params, 'tpOrdPx', price);
@@ -3390,14 +3390,14 @@ export default class okx extends Exchange {
         } else if (hasStopLoss || hasTakeProfit) {
             let attachAlgoOrd = {};
             if (hasStopLoss) {
-                const stopLossTriggerPrice = this.safeValueN (stopLoss, [ 'triggerPrice', 'stopPrice', 'slTriggerPx' ]);
+                const stopLossTriggerPrice = this.safeStringN (stopLoss, [ 'triggerPrice', 'stopPrice', 'slTriggerPx' ]);
                 if (stopLossTriggerPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 const slTriggerPx = this.priceToPrecision (symbol, stopLossTriggerPrice);
                 const slOrder: Dict = {};
                 slOrder['slTriggerPx'] = slTriggerPx;
-                const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
+                const stopLossLimitPrice = this.safeStringN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
                 const stopLossOrderType = this.safeString (stopLoss, 'type');
                 if (stopLossOrderType !== undefined) {
                     const stopLossLimitOrderType = (stopLossOrderType === 'limit');
@@ -3428,13 +3428,13 @@ export default class okx extends Exchange {
                 attachAlgoOrd = this.extend (attachAlgoOrd, slOrder);
             }
             if (hasTakeProfit) {
-                const takeProfitTriggerPrice = this.safeValueN (takeProfit, [ 'triggerPrice', 'stopPrice', 'tpTriggerPx' ]);
+                const takeProfitTriggerPrice = this.safeStringN (takeProfit, [ 'triggerPrice', 'stopPrice', 'tpTriggerPx' ]);
                 if (takeProfitTriggerPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
                 const tpOrder: Dict = {};
                 tpOrder['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
-                const takeProfitLimitPrice = this.safeValueN (takeProfit, [ 'price', 'takeProfitPrice', 'tpOrdPx' ]);
+                const takeProfitLimitPrice = this.safeStringN (takeProfit, [ 'price', 'takeProfitPrice', 'tpOrdPx' ]);
                 const takeProfitOrderType = this.safeString2 (takeProfit, 'type', 'tpOrdKind');
                 if (takeProfitOrderType !== undefined) {
                     const takeProfitLimitOrderType = (takeProfitOrderType === 'limit');
