@@ -284,11 +284,7 @@ export default class limitless extends Exchange {
                     page = this.sum (page, 1);
                     request['page'] = page;
                     const response = await this.limitlessPublicGetMarketsActive (this.extend (request, rest));
-                    let responseRows: List = [];
-                    if (Array.isArray (response)) {
-                        responseRows = response;
-                    }
-                    const page_markets = this.safeList (response, 'data', responseRows);
+                    const page_markets = this.safeList (response, 'data', []);
                     const pageMarketsLength = page_markets.length;
                     if (pageMarketsLength === 0) {
                         break;
