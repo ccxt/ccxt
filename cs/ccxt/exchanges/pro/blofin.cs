@@ -811,7 +811,7 @@ public partial class blofin : ccxt.blofin
         {
             if ((channelName != null))
             {
-                client.resolve(orders, ((channelName + ":") + (symbols[i])));
+                client.resolve(orders, ((channelName + ":") + this.safeString(symbols, i, "")));
             }
             client.resolve(orders, channelName);
         }

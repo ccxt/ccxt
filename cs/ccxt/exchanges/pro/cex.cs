@@ -146,8 +146,8 @@ public partial class cex : ccxt.cex
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? currentSymbol = this.safeString((this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol");
-        if ((currentSymbol != null) && (currentSymbol != symbol))
+        string? currentSymbol = this.safeString((this.options != null && this.options.ContainsKey("watchTrades") ? this.options["watchTrades"] : null), "symbol", "");
+        if (currentSymbol != "" && (currentSymbol != symbol))
         {
             throw new ArgumentsRequired ((this.id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
         }
@@ -188,8 +188,8 @@ public partial class cex : ccxt.cex
             { "rooms", new List<object>() {((("pair-" + baseId) + "-") + quoteId)} },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object trades = await this.watch(url, messageHash, request, subscriptionHash);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
 
     public virtual void handleTradesSnapshot(WebSocketClient client, Dictionary<string, object> message)
@@ -545,7 +545,7 @@ public partial class cex : ccxt.cex
         await this.authenticate(parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("orders:" + symbolValue);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
@@ -600,8 +600,8 @@ public partial class cex : ccxt.cex
             { "oid", (market.ContainsKey("symbol") ? market["symbol"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
-        object orders = await this.watch(url, messageHash, request, subscriptionHash, request);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(orders), this.safeString(market, "symbol"), since, limit));
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscriptionHash, request));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, this.safeString(market, "symbol"), since, limit));
     }
 
     public virtual void handleTransaction(WebSocketClient client, Dictionary<string, object> message)
@@ -1257,13 +1257,13 @@ public partial class cex : ccxt.cex
             { "i", timeframeVar },
             { "rooms", new List<object>() {((("pair-" + baseId) + "-") + quoteId)} },
         };
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     public virtual void handleInitOHLCV(WebSocketClient client, Dictionary<string, object> message)

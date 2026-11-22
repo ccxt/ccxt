@@ -428,13 +428,13 @@ public partial class polymarket : ccxt.polymarket
         string messageHash = ("trade:" + symbolResolved);
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {("trades::" + this.safeString(market, "id", ""))}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object trades = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limitResolved));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -592,13 +592,13 @@ public partial class polymarket : ccxt.polymarket
         string channel = ((("klines::" + this.safeString(market, "id", "")) + "::") + interval);
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {channel}, new List<object>() {messageHash}, new List<object>() {messageHash}, new Dictionary<string, object>() {}, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object ohlcv = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolResolved, limitResolved));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -756,13 +756,13 @@ public partial class polymarket : ccxt.polymarket
         List<object> subscribeHashes = new List<object>() {"orders"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"orders"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object orders = await this.watch(url, messageHash, request, "orders");
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, "orders"));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limitResolved));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message)
@@ -791,7 +791,7 @@ public partial class polymarket : ccxt.polymarket
         //
         object data = this.safeValue(message, "data");
         List<object> rows = new List<object>() {};
-        if ((data is IList<object> hxList33571))
+        if ((data is IList<object> hxList33618))
         {
             rows = ((List<object>)data);
         } else
@@ -858,13 +858,13 @@ public partial class polymarket : ccxt.polymarket
         List<object> subscribeHashes = new List<object>() {"fills"};
         Dictionary<string, object> request = this.sendSubscription("sub", new List<object>() {"fills"}, new List<object>() {messageHash}, subscribeHashes, new Dictionary<string, object>() {}, parameters, subscribeHashes);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
-        object trades = await this.watch(url, messageHash, request, "fills");
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, "fills"));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limitResolved));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limitResolved));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)

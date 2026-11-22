@@ -2348,7 +2348,7 @@ public partial class bitvavo : Exchange
         Int64? timestamp = this.safeInteger(order, "created");
         string? marketId = this.safeString(order, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");
@@ -3055,7 +3055,8 @@ public partial class bitvavo : Exchange
     public override object calculateRateLimiterCost(IList<object> api, object method, string? path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !((parameters != null && ((IDictionary<string, object>)parameters).ContainsKey("market"))))
+        string? marketId = this.safeString(parameters, "market");
+        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && ((marketId == null)))
         {
             return ((IDictionary<string,object>)config)["noMarket"];
         }

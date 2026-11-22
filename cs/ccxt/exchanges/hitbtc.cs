@@ -2009,7 +2009,7 @@ public partial class hitbtc : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(this.safeDict(response, i, new Dictionary<string, object>() {}));
-            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+            string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -4098,7 +4098,8 @@ public partial class hitbtc : Exchange
         {
             throw new BadSymbol ((this.id + " setLeverage() supports swap contracts only")) ;
         }
-        if (((leverage < 1)) || (((maxLeverage == null || leverage > maxLeverage))))
+        Int64? leverageValue = this.parseToInt(leverage);
+        if ((((leverageValue == null || leverageValue < 1))) || ((leverageValue != null && (maxLeverage == null || leverageValue > maxLeverage))))
         {
             throw new BadRequest (((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }

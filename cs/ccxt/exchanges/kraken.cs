@@ -2823,21 +2823,21 @@ public partial class kraken : Exchange
         List<object> batch = new List<object>() {};
         for (int i = 0; i < numTradeIds; i++)
         {
-            batch.Add((tradeIds != null && i < tradeIds.Count ? tradeIds[i] : null));
+            string? tradeId = this.safeString(tradeIds, i, "");
+            batch.Add(tradeId);
             int batchLength = (batch?.Count ?? 0);
             if ((batchSize == null || batchLength >= batchSize))
             {
-                batches.Add(batch);
+                batches.Add(String.Join(",", batch.ToArray()));
                 batch = new List<object>() {};
             }
         }
-        batches.Add(batch);
+        batches.Add(String.Join(",", batch.ToArray()));
         List<object> result = new List<object>() {};
         for (int j = 0; j < (batches?.Count ?? 0); j++)
         {
-            List<object> requestIds = ((List<object>)batches[j]);
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "txid", String.Join(",", requestIds.ToArray()) },
+                { "txid", batches[j] },
             };
             Dictionary<string, object> response = await this.privatePostQueryTrades(request);
             //
@@ -2861,13 +2861,13 @@ public partial class kraken : Exchange
             //         }
             //     }
             //
-            object rawTrades = this.safeValue(response, "result");
-            List<object> ids = new List<object>(((IDictionary<string,object>)rawTrades).Keys);
+            IDictionary<string, object> rawTrades = this.safeDict(response, "result", new Dictionary<string, object>() {});
+            List<object> ids = new List<object>(rawTrades.Keys);
             Dictionary<string, object> rawTradesWithIds = new Dictionary<string, object>() {};
             for (int i = 0; i < ids.Count; i++)
             {
                 string? rawTradeId = ((string)ids[i]);
-                Dictionary<string, object> rawTradeWithId = this.extend(new Dictionary<string, object>() {}, getValue(rawTrades, rawTradeId));
+                Dictionary<string, object> rawTradeWithId = this.extend(new Dictionary<string, object>() {}, (rawTradeId != null && rawTrades.ContainsKey(rawTradeId) ? rawTrades[rawTradeId] : null));
                 rawTradeWithId["id"] = rawTradeId;
                 rawTradesWithIds[(string)rawTradeId] = rawTradeWithId;
             }
@@ -4228,41 +4228,38 @@ public partial class kraken : Exchange
         }
         if ((this.safeString(body, 0) == "{"))
         {
-            if (!(response is string))
+            string message = ((this.id + " ") + (body));
+            List<object> errors = this.safeList(response, "error");
+            if ((errors != null))
             {
-                string message = ((this.id + " ") + (body));
-                List<object> errors = this.safeList(response, "error");
-                if ((errors != null))
+                int numErrors = errors.Count;
+                if (numErrors > 0)
                 {
-                    int numErrors = errors.Count;
-                    if (numErrors > 0)
+                    for (int i = 0; i < numErrors; i++)
                     {
-                        for (int i = 0; i < numErrors; i++)
+                        object error = (errors != null && i < errors.Count ? errors[i] : null);
+                        this.throwExactlyMatchedException(this.exceptionsExact, error, message);
+                        this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
+                    }
+                    throw new ExchangeError (message) ;
+                }
+            }
+            // handleCreateOrdersErrors:
+            IDictionary<string, object> result = this.safeDict(response, "result");
+            if ((result != null))
+            {
+                if (result.ContainsKey("orders"))
+                {
+                    List<object> orders = this.safeList(result, "orders", new List<object>() {});
+                    for (int i = 0; i < orders.Count; i++)
+                    {
+                        IDictionary<string, object> order = this.safeDict(orders, i);
+                        string? error = this.safeString(order, "error");
+                        if ((error != null))
                         {
-                            object error = (errors != null && i < errors.Count ? errors[i] : null);
                             this.throwExactlyMatchedException(this.exceptionsExact, error, message);
                             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
-                        }
-                        throw new ExchangeError (message) ;
-                    }
-                }
-                // handleCreateOrdersErrors:
-                IDictionary<string, object> result = this.safeDict(response, "result");
-                if ((result != null))
-                {
-                    if (result.ContainsKey("orders"))
-                    {
-                        List<object> orders = this.safeList(result, "orders", new List<object>() {});
-                        for (int i = 0; i < orders.Count; i++)
-                        {
-                            IDictionary<string, object> order = this.safeDict(orders, i);
-                            string? error = this.safeString(order, "error");
-                            if ((error != null))
-                            {
-                                this.throwExactlyMatchedException(this.exceptionsExact, error, message);
-                                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), error, message);
-                                throw new ExchangeError (message) ;
-                            }
+                            throw new ExchangeError (message) ;
                         }
                     }
                 }

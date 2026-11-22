@@ -610,7 +610,8 @@ public partial class coinspot : Exchange
             }
         } else
         {
-            List<object> currencyIdsMap = new List<object>(((IDictionary<string,object>)balances).Keys);
+            IDictionary<string, object> balancesDict = this.safeDict2(response, "balance", "balances", new Dictionary<string, object>() {});
+            List<object> currencyIdsMap = new List<object>(balancesDict.Keys);
             for (int i = 0; i < currencyIdsMap.Count; i++)
             {
                 string? currencyId = ((string)currencyIdsMap[i]);

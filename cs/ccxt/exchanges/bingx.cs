@@ -5004,14 +5004,16 @@ public partial class bingx : Exchange
         };
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "clientOrderIds");
+        int idsCount = ids?.Count ?? 0;
         IList<object> idsToParse = ids;
         bool areClientOrderIds = ((clientOrderIds != null));
         if (areClientOrderIds)
         {
+            idsCount = clientOrderIds.Count;
             idsToParse = clientOrderIds;
         }
         List<object> parsedIds = new List<object>() {};
-        for (int i = 0; i < (idsToParse?.Count ?? 0); i++)
+        for (int i = 0; i < idsCount; i++)
         {
             string? id = this.safeString(idsToParse, i, "");
             string stringId = id.ToString();

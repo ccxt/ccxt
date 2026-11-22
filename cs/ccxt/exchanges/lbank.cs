@@ -1781,7 +1781,7 @@ public partial class lbank : Exchange
         for (int i = 0; i < fees.Count; i++)
         {
             Dictionary<string, object> fee = this.parseTradingFee(fees[i]);
-            string? symbol = ((string)(fee != null && fee.ContainsKey("symbol") ? fee["symbol"] : null));
+            string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;

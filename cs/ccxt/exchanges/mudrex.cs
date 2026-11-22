@@ -1477,9 +1477,8 @@ public partial class mudrex : Exchange
      */
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
-        object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired((-amount)), parameters);
+        return await this.addMargin(symbol,ccxt.BaseExchange.ToDoubleArgRequired(this.parseNumber(Precise.stringNeg(this.numberToString(amount)))), parameters);
     }
 
     /**

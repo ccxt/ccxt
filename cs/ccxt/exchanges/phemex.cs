@@ -4340,7 +4340,7 @@ public partial class phemex : Exchange
         string? txid = this.safeString(transaction, "txHash");
         string? currencyId = this.safeString(transaction, "currency");
         Dictionary<string, object> currencyResolved = this.safeCurrency(currencyId, currency);
-        string? code = ((string)(currencyResolved != null && currencyResolved.ContainsKey("code") ? currencyResolved["code"] : null));
+        string? code = this.safeString(currencyResolved, "code");
         string? networkId = this.safeString(transaction, "chainName");
         Int64? timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         string? type = this.safeStringLower(transaction, "type");
@@ -5369,16 +5369,18 @@ public partial class phemex : Exchange
             string payload = "";
             if ((method == "POST"))
             {
+                payload = this.json(parameters);
                 bool isOrderPlacement = ((path == "g-orders")) || ((path == "spot/orders")) || ((path == "orders"));
                 if (isOrderPlacement)
                 {
                     if ((this.safeString(parameters, "clOrdID") == null))
                     {
                         string id = this.safeString(this.options, "brokerId", "CCXT123456");
-                        ((IDictionary<string,object>)parameters)["clOrdID"] = (id + this.uuid16());
+                        payload = this.json(this.extend(parameters, new Dictionary<string, object>() {
+                            { "clOrdID", (id + this.uuid16()) },
+                        }));
                     }
                 }
-                payload = this.json(parameters);
                 requestBody = payload;
                 privateHeaders["Content-Type"] = "application/json";
             }

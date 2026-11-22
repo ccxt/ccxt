@@ -1557,6 +1557,7 @@ public partial class dydx : Exchange
         int conditionalType = 0;
         string? conditionalOrderTriggerSubticks = "0";
         int? orderFlag = null;
+        bool isShortTerm = false;
         int? timeInForceNumber = null;
         if (timeInForce == "FOK")
         {
@@ -1566,6 +1567,7 @@ public partial class dydx : Exchange
         {
             // short-term
             orderFlag = 0;
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if ((timeInForce != null))
             {
@@ -1578,6 +1580,7 @@ public partial class dydx : Exchange
             {
                 // long-term
                 orderFlag = 64;
+                isShortTerm = false;
                 if (postOnly)
                 {
                     timeInForceNumber = 2;
@@ -1588,6 +1591,7 @@ public partial class dydx : Exchange
             } else
             {
                 orderFlag = 0;
+                isShortTerm = true;
                 if (timeInForce == "IOC")
                 {
                     timeInForceNumber = 1;
@@ -1601,6 +1605,7 @@ public partial class dydx : Exchange
         {
             // conditional
             orderFlag = 32;
+            isShortTerm = false;
             if ((stopLossPrice != null))
             {
                 conditionalType = 1;
@@ -1620,7 +1625,7 @@ public partial class dydx : Exchange
         (Int64?, object) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         Int64? goodTillBlockTimeInSecondsOption = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item1;
         IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item2);
-        if ((orderFlag == 0))
+        if (isShortTerm)
         {
             if ((goodTillBlock == null))
             {

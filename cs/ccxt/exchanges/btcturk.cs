@@ -554,7 +554,7 @@ public partial class btcturk : Exchange
         //
         string? marketId = this.safeString(ticker, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open");

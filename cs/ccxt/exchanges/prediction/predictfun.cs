@@ -392,7 +392,13 @@ public partial class predictfun : PredictionExchange
             int tagsLength = tags.Count;
             if (tagsLength > 0)
             {
-                request["tagIds"] = String.Join(",", tags.ToArray());
+                List<object> tagIds = new List<object>() {};
+                for (int i = 0; i < tagsLength; i++)
+                {
+                    string? tagId = this.safeString(tags, i, "");
+                    tagIds.Add(tagId);
+                }
+                request["tagIds"] = String.Join(",", tagIds.ToArray());
             }
             postOmitKeys.Add("limit");
             Dictionary<string, object> paramsCategories = this.omit(paramsValue, new List<object>() {"limit", "tags"});
@@ -3677,7 +3683,7 @@ public partial class predictfun : PredictionExchange
         int handlesLength = handles.Count;
         for (int i = 0; i < handlesLength; i++)
         {
-            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3673_32) ? cachedValue3673_32 : null);
+            object outcomeObj = (cached != null && (handles != null && i < handles.Count ? handles[i] : null) != null && cached.TryGetValue((string)(handles != null && i < handles.Count ? handles[i] : null), out var cachedValue3679_32) ? cachedValue3679_32 : null);
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             if ((this.safeString(info, "marketId") == marketId))
             {

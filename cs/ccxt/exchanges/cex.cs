@@ -1373,7 +1373,7 @@ public partial class cex : Exchange
             marketId = ((currency1 + "-") + currency2);
         }
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? feeAmount = this.safeNumber(order, "feeAmount");

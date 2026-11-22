@@ -1817,7 +1817,7 @@ public partial class lighter : Exchange
         //
         string? marketId = this.safeString(ticker, "market_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol", "");
         string? last = this.safeString(ticker, "last_trade_price");
         string? high = this.safeString(ticker, "daily_price_high");
         string? low = this.safeString(ticker, "daily_price_low");
@@ -3692,7 +3692,7 @@ public partial class lighter : Exchange
         Int64 nonce = await this.FetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
-            { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
+            { "initial_margin_fraction", this.parseToInt(((double)10000 / this.parseToInt(leverage))) },
             { "margin_mode", ((marginMode == "cross")) ? 0 : 1 },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },

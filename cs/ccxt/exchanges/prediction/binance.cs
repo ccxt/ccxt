@@ -2116,8 +2116,12 @@ public partial class binance : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
+        IDictionary<string, object> baseUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        string baseUrl = this.safeString(baseUrls, apiGroup, "");
+        if (baseUrl == "")
+        {
+            baseUrl = this.safeString(baseUrls, "sapi", "");
+        }
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         this.checkRequiredCredentials();

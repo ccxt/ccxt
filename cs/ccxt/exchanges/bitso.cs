@@ -1992,10 +1992,27 @@ public partial class bitso : Exchange
                 IDictionary<string, object> resultValue = this.safeDict(result, code);
                 if ((resultValue == null))
                 {
-                    result[(string)code] = this.depositWithdrawFee(new Dictionary<string, object>() {});
+                    Dictionary<string, object> newInfo = new Dictionary<string, object>() {};
+                    newInfo[(string)code] = this.parseNumber((currencyId != null && withdrawalResponse.ContainsKey(currencyId) ? withdrawalResponse[currencyId] : null));
+                    result[(string)code] = this.extend(this.depositWithdrawFee(newInfo), new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", withdrawFee },
+                            { "percentage", null },
+                        } },
+                    });
+                } else
+                {
+                    Dictionary<string, object> infoUpdate = new Dictionary<string, object>() {};
+                    infoUpdate[(string)code] = this.parseNumber((currencyId != null && withdrawalResponse.ContainsKey(currencyId) ? withdrawalResponse[currencyId] : null));
+                    Dictionary<string, object> withdraw = this.extend(this.safeDict(resultValue, "withdraw", new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+                        { "fee", withdrawFee },
+                    });
+                    Dictionary<string, object> info = this.extend(this.safeDict(resultValue, "info", new Dictionary<string, object>() {}), infoUpdate);
+                    result[(string)code] = this.extend(resultValue, new Dictionary<string, object>() {
+                        { "withdraw", withdraw },
+                        { "info", info },
+                    });
                 }
-                ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "withdraw"))["fee"] = withdrawFee;
-                ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "info"))[(string)code] = withdrawFee;
             }
         }
         return result;

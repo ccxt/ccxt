@@ -5046,7 +5046,8 @@ public partial class binance : Exchange
             object res = this.safeValue(results, i);
             if ((fetchMargins == true) && ((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                List<object> keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
+                Dictionary<string, object> resBySymbol = this.indexBy(res, "symbol");
+                List<object> keysList = new List<object>(resBySymbol.Keys);
                 int length = getArrayLength((this.options != null && this.options.ContainsKey("crossMarginPairsData") ? this.options["crossMarginPairsData"] : null));
                 // first one is the cross-margin promise
                 if ((length == 0))
@@ -9158,7 +9159,6 @@ public partial class binance : Exchange
         {
             return parameters;
         }
-        Dictionary<string, object> generated = new Dictionary<string, object>() {};
         if (((path is "order")) || ((path is "sor/order")) || ((path is "order/cancelReplace")) || ((path is "um/order")) || ((path is "cm/order")) || ((path is "margin/order")))
         {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
@@ -9166,7 +9166,7 @@ public partial class binance : Exchange
             string? clientOrderId = this.safeString2(parameters, "clientOrderId", "newClientOrderId");
             if ((clientOrderId == null))
             {
-                generated[(string)clientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                ((IDictionary<string,object>)parameters)[clientOrderIdKey] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "algoOrder")) || ((path is "um/algo/order")))
         {
@@ -9174,7 +9174,7 @@ public partial class binance : Exchange
             string? clientAlgoId = this.safeString(parameters, "clientAlgoId");
             if ((clientAlgoId == null))
             {
-                generated["clientAlgoId"] = this.generateClientOrderId(null, api, path);
+                ((IDictionary<string,object>)parameters)["clientAlgoId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "cm/conditional/order")) || ((path is "um/conditional/order")))
         {
@@ -9182,7 +9182,7 @@ public partial class binance : Exchange
             string? newClientStrategyId = this.safeString(parameters, "newClientStrategyId");
             if ((newClientStrategyId == null))
             {
-                generated["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
+                ((IDictionary<string,object>)parameters)["newClientStrategyId"] = this.generateClientOrderId(null, api, path);
             }
         } else if ((path is "equity/order/place"))
         {
@@ -9190,7 +9190,7 @@ public partial class binance : Exchange
             string? equityClientOrderId = this.safeString(parameters, "clientOrderId");
             if ((equityClientOrderId == null))
             {
-                generated["clientOrderId"] = this.generateClientOrderId(null, api, path);
+                ((IDictionary<string,object>)parameters)["clientOrderId"] = this.generateClientOrderId(null, api, path);
             }
         } else if (((path is "order/oco")) || ((path is "margin/order/oco")) || ((path is "orderList/oco")) || ((path is "orderList/oto")) || ((path is "orderList/otoco")) || ((path is "orderList/opo")) || ((path is "orderList/opoco")))
         {
@@ -9212,7 +9212,7 @@ public partial class binance : Exchange
                 string? currentClientOrderId = this.safeString(parameters, currentClientOrderIdKey);
                 if ((currentClientOrderId == null))
                 {
-                    generated[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
+                    ((IDictionary<string,object>)parameters)[(string)currentClientOrderIdKey] = this.generateClientOrderId(null, api, path);
                 }
             }
         } else if ((path is "batchOrders"))
@@ -9236,8 +9236,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)parameters)["batchOrders"] = checkedBatchOrders;
             }
         }
-        Dictionary<string, object> withIds = this.extend(parameters, generated);
-        return withIds;
+        return parameters;
     }
 
     /**
@@ -11878,9 +11877,13 @@ public partial class binance : Exchange
         object earnedCurrency = (bnb != null && bnb.ContainsKey("code") ? bnb["code"] : null);
         string? applicantSymbol = ((string)(((object)(earnedCurrency == null ? null : earnedCurrency + "/" + tradedCurrency))));
         bool tradedCurrencyIsQuote = false;
-        if (((this.markets != null)) && (((applicantSymbol != null) && (this.markets != null && applicantSymbol != null && this.markets.ContainsKey(applicantSymbol)))))
+        if (((this.markets != null)) && ((earnedCurrency != null)) && ((tradedCurrency != null)))
         {
-            tradedCurrencyIsQuote = true;
+            string? knownSymbol = ((string)(((object)(earnedCurrency == null ? null : earnedCurrency + "/" + tradedCurrency))));
+            if (((knownSymbol != null) && (this.markets != null && knownSymbol != null && this.markets.ContainsKey(knownSymbol))))
+            {
+                tradedCurrencyIsQuote = true;
+            }
         }
         string? feeCostString = this.safeString(trade, "serviceChargeAmount");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
@@ -17229,7 +17232,7 @@ public partial class binance : Exchange
         if ((this.safeBool(market, "option", false) == true))
         {
             List<object> optionResponse = await this.eapiPublicGetOpenInterest(this.extend(request, parameters));
-            string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbolValue = this.safeString(market, "symbol", "");
             List<object> result = ((List<object>)this.parseOpenInterestsHistory(optionResponse, market));
             for (int i = 0; i < (result?.Count ?? 0); i++)
             {

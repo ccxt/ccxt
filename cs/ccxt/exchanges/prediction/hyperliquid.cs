@@ -548,9 +548,9 @@ public partial class hyperliquid : PredictionExchange
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<object> expParts = expiry.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             int expPartsLength = expParts.Count;
-            if (expPartsLength >= 1 && (((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null)).Length == 8))
+            string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
+            if (expPartsLength >= 1 && (ymd.Length == 8))
             {
-                string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
                 string? hm = "0000";
                 if (expPartsLength >= 2)
                 {
@@ -613,7 +613,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> marketRow = this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", outcomeKey },
             { "market", parentSymbol },
-            { "base", getValue(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
+            { "base", this.safeString(parentSymbol.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0) },
             { "quote", quoteCurrency },
             { "settle", null },
             { "baseId", outcomeKey },
@@ -2248,9 +2248,9 @@ public partial class hyperliquid : PredictionExchange
         {
             List<object> parts = expiryRaw.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             int partsLength = parts.Count;
-            if (partsLength >= 1 && (((string)(parts != null && 0 < parts.Count ? parts[0] : null)).Length == 8))
+            string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+            if (partsLength >= 1 && (ymd.Length == 8))
             {
-                string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
                 string? hm = "0000";
                 if (partsLength >= 2)
                 {

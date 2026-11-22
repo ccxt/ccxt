@@ -1507,7 +1507,7 @@ public partial class apex : Exchange
         IDictionary<string, object> fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});
         string? taker = this.safeString(fees, "taker", "0.0005");
         string? maker = this.safeString(fees, "maker", "0.0002");
-        object pricePrecision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
+        double? pricePrecision = this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price");
         string limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         Int64 timeNow = this.milliseconds();
         string? triggerPrice = this.safeString(parameters, "triggerPrice");

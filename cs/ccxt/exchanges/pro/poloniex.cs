@@ -806,8 +806,8 @@ public partial class poloniex : ccxt.poloniex
         if (!((this.balance != null && this.balance.ContainsKey("info"))))
         {
             this.balance["info"] = (response != null && response.ContainsKey("info") ? response["info"] : null);
-            this.balance["timestamp"] = (response != null && response.ContainsKey("timestamp") ? response["timestamp"] : null);
-            this.balance["datetime"] = (response != null && response.ContainsKey("datetime") ? response["datetime"] : null);
+            this.balance["timestamp"] = this.safeInteger(response, "timestamp");
+            this.balance["datetime"] = this.safeString(response, "datetime");
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
@@ -1153,7 +1153,7 @@ public partial class poloniex : ccxt.poloniex
                         previousOrder["trades"] = new List<object>() {};
                     }
                     ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
-                    previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
+                    previousOrder["lastTradeTimestamp"] = trade.timestamp;
                     string? totalCost = "0";
                     string? totalAmount = "0";
                     List<object> previousOrderTrades = this.safeList(previousOrder, "trades", new List<object>() {});
@@ -1194,7 +1194,7 @@ public partial class poloniex : ccxt.poloniex
                     }
                     if (((this.safeString((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") != null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                     {
-                        string? stringOrderCost = this.numberToString(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"));
+                        string? stringOrderCost = this.safeString((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost");
                         string? stringTradeCost = this.numberToString(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
                         ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }

@@ -3041,21 +3041,20 @@ public partial class htx : ccxt.htx
             {
                 string? contractCode = this.safeString(message, "contract_code");
                 Dictionary<string, object> market = ((contractCode != null)) ? this.safeMarket(contractCode) : null;
-                if ((data is IList<object> hxList122822))
+                List<object> dataList = this.safeList(message, "data", new List<object>() {});
+                for (int i = 0; i < dataList.Count; i++)
                 {
-                    List<object> dataList = this.safeList(message, "data", new List<object>() {});
-                    for (int i = 0; i < dataList.Count; i++)
+                    ccxt.Trade parsed = this.parseWsTrade(dataList[i], market);
+                    string? symbol = parsed.symbol;
+                    if ((symbol != null))
                     {
-                        ccxt.Trade parsed = this.parseWsTrade(dataList[i], market);
-                        string? symbol = parsed.symbol;
-                        if ((symbol != null))
-                        {
-                            cachedTrades.append(ccxt.BaseExchange.FromTrade(parsed));
-                        }
+                        cachedTrades.append(ccxt.BaseExchange.FromTrade(parsed));
                     }
-                } else
+                }
+                IDictionary<string, object> dataDict = this.safeDict(message, "data");
+                if ((dataDict != null))
                 {
-                    Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(data, market));
+                    Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(this.parseWsTrade(dataDict, market));
                     string? symbol = this.safeString(parsed, "symbol");
                     if ((symbol != null))
                     {

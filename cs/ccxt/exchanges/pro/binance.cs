@@ -330,7 +330,7 @@ public partial class binance : ccxt.binance
         streamType ??= "market";
         IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
         IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
-        string? baseUrl = ((string)((wsUrls != null && wsUrls.ContainsKey("stock") ? wsUrls["stock"] : null)));
+        string? baseUrl = this.safeString(wsUrls, "stock", "");
         if ((streamType == "combined"))
         {
             return ((string?)((object)(baseUrl.Replace("/ws", (string)"/stream"))));
@@ -1064,8 +1064,10 @@ public partial class binance : ccxt.binance
             { "method", this.handleFetchOrderBook },
         };
         object snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
-        ((IDictionary<string,object>)snapshot)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
-        ccxt.pro.OrderBook orderbook = this.orderBook(snapshot);
+        Dictionary<string, object> symbolEntry = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+        };
+        ccxt.pro.OrderBook orderbook = this.orderBook(this.extend(snapshot, symbolEntry));
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
@@ -1866,7 +1868,7 @@ public partial class binance : ccxt.binance
             marketType = "spot";
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("trade::" + symbol);
         ccxt.Trade trade = this.parseWsTrade(message, market);
         ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -2243,7 +2245,7 @@ public partial class binance : ccxt.binance
             marketType = "spot";
         }
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         bool? inverse = this.safeBool(market, "inverse");
         string volumeKey = ((inverse == true)) ? "q" : "v";
@@ -3220,6 +3222,7 @@ public partial class binance : ccxt.binance
             unifiedPrefix = "ticker";
         }
         string? channelName = null;
+        string batchMessageHash = "";
         List<object> resolvedMessageHashes = new List<object>() {};
         List<object> rawTickers = new List<object>() {};
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
@@ -3280,15 +3283,18 @@ public partial class binance : ccxt.binance
                     this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsedTicker);
                 }
             }
-            string messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
-            resolvedMessageHashes.Add(messageHash);
-            client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
+            batchMessageHash = ((unifiedPrefix + "s:") + channelName);
+            if ((symbol != null))
+            {
+                string messageHash = ((((unifiedPrefix + ":") + channelName) + "@") + symbol);
+                resolvedMessageHashes.Add(messageHash);
+                client.resolve(ccxt.BaseExchange.FromTicker(parsedTicker), messageHash);
+            }
         }
         // resolve batch endpoint
         int length = (resolvedMessageHashes?.Count ?? 0);
         if (length > 0)
         {
-            string batchMessageHash = ((unifiedPrefix + "s:") + channelName);
             client.resolve(newTickers, batchMessageHash);
         }
     }
@@ -3953,7 +3959,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190163 && ((hxArr190163 is IList<object>) || (hxArr190163.GetType().IsGenericType && hxArr190163.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190420 && ((hxArr190420 is IList<object>) || (hxArr190420.GetType().IsGenericType && hxArr190420.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -5736,9 +5742,9 @@ public partial class binance : ccxt.binance
                 { "info", rate },
             });
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
-            tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(parsed);
             string? priceSymbol = this.safeString(ccxt.BaseExchange.FromTicker(parsed), "symbol", "");
             client.resolve(ccxt.BaseExchange.FromTicker(parsed), ("stock:price:" + priceSymbol));
+            tickers[(string)priceSymbol] = ccxt.BaseExchange.FromTicker(parsed);
         }
         client.resolve(tickers, "stock:price");
     }

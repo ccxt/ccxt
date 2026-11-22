@@ -872,8 +872,8 @@ public partial class toobit : ccxt.toobit
         {
             this.balance[type] = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)(this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null))["info"] = this.safeList(message, "B", new List<object>() {});
         IDictionary<string, object> typeBalance = this.safeDict(this.balance, type, new Dictionary<string, object>() {});
+        typeBalance["info"] = this.safeList(message, "B", new List<object>() {});
         typeBalance["timestamp"] = timestamp;
         typeBalance["datetime"] = this.iso8601(timestamp);
         for (int i = 0; i < data.Count; i++)

@@ -5398,13 +5398,13 @@ public partial class gate : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseTransactionType(object type)
+    public virtual string? parseTransactionType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "d", "deposit" },
             { "w", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, IDictionary<string, object> currency = null)
@@ -5481,7 +5481,8 @@ public partial class gate : Exchange
                 amountString = Precise.stringAbs(amountString);
             } else
             {
-                type = this.parseTransactionType((id != null && 0 < id.Length ? id[0].ToString () : null));
+                string? idPrefix = ((id == null) ? null : id.Substring(0, Math.Min(1, id.Length)));
+                type = this.parseTransactionType(idPrefix);
             }
         }
         string? feeCostString = this.safeString2(transaction, "fee", "fee_amount");
@@ -6688,7 +6689,7 @@ public partial class gate : Exchange
             Dictionary<string, object> contractRequest = contractRequestcontractParamsVariable.Item1;
             IDictionary<string, object> contractParams = (contractRequestcontractParamsVariable.Item2);
             Dictionary<string, object> contractOrder = this.extend(contractRequest, new Dictionary<string, object>() {
-                { "order_id", orderId.ToString() },
+                { "order_id", orderId },
             });
             return new List<object>() {contractOrder, contractParams};
         }

@@ -249,9 +249,9 @@ public partial class upbit : ccxt.upbit
         if ((symbol != null))
         {
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
+            string messageHash = ("ticker:" + symbol);
+            client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
         }
-        string messageHash = ("ticker:" + symbol);
-        client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)

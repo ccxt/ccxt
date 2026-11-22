@@ -476,7 +476,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("myTrades:" + symbolValue);
         string method = "deals_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters);
@@ -624,7 +624,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("orders:" + symbolValue);
         string method = "ordersPending_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters);

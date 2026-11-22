@@ -1409,18 +1409,18 @@ public partial class paradex : Exchange
         {
             requestUntil["start_at"] = since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            Int64 windowEnd = this.sum(this.parseToInt(since), (windowLength - 1));
-            Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!hasEnd || (endAt > windowEnd))
+            Int64 barWindowEnd = this.sum(this.parseToInt(since), (windowLength - 1));
+            Int64? clampedEndAt = this.safeInteger(requestUntil, "end_at", barWindowEnd);
+            if (!hasEnd || (clampedEndAt > barWindowEnd))
             {
-                requestUntil["end_at"] = windowEnd;
+                requestUntil["end_at"] = barWindowEnd;
             }
         } else
         {
             Int64? endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
             Int64? endAt = this.parseToInt(endAtRaw);
             requestUntil["end_at"] = endAt;
-            requestUntil["start_at"] = add((endAt - windowLength), 1);
+            requestUntil["start_at"] = (endAt - ((windowLength - 1)));
         }
         Dictionary<string, object> response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -3343,9 +3343,11 @@ public partial class paradex : Exchange
         List<object> data = this.safeList(response, "results", new List<object>() {});
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         List<object> matching = new List<object>() {};
+        string? marketId = this.safeString(market, "id", "");
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            if (isEqual(this.safeString(data[i], "market"), (market.ContainsKey("id") ? market["id"] : null)))
+            string? rowMarketId = this.safeString(data[i], "market", "");
+            if ((rowMarketId == marketId))
             {
                 matching.Add(data[i]);
             }
@@ -3626,17 +3628,15 @@ public partial class paradex : Exchange
         List<object> rows = this.safeList(response, "results", new List<object>() {});
         // the cursor pagination reads the next page cursor from the parsed entries
         string? next = this.safeString(response, "next");
-        for (int i = 0; i < (rows?.Count ?? 0); i++)
-        {
-            ((IDictionary<string,object>)rows[i])["next"] = next;
-        }
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
-            if ((allKinds == true) || ((this.safeString(row, "kind") == "DEPOSIT")))
+            if ((allKinds == true) || ((this.safeString(rows[i], "kind") == "DEPOSIT")))
             {
-                deposits.Add(row);
+                Dictionary<string, object> withCursor = this.extend(rows[i], new Dictionary<string, object>() {
+                    { "next", next },
+                });
+                deposits.Add(withCursor);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, null, since, limit));
@@ -3714,17 +3714,15 @@ public partial class paradex : Exchange
         List<object> rows = this.safeList(response, "results", new List<object>() {});
         // the cursor pagination reads the next page cursor from the parsed entries
         string? next = this.safeString(response, "next");
-        for (int i = 0; i < (rows?.Count ?? 0); i++)
-        {
-            ((IDictionary<string,object>)rows[i])["next"] = next;
-        }
         List<object> deposits = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            IDictionary<string, object> row = ((IDictionary<string, object>)rows[i]);
-            if ((allKinds == true) || ((this.safeString(row, "kind") == "WITHDRAWAL")))
+            if ((allKinds == true) || ((this.safeString(rows[i], "kind") == "WITHDRAWAL")))
             {
-                deposits.Add(row);
+                Dictionary<string, object> withCursor = this.extend(rows[i], new Dictionary<string, object>() {
+                    { "next", next },
+                });
+                deposits.Add(withCursor);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, null, since, limit));
@@ -4401,7 +4399,8 @@ public partial class paradex : Exchange
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
                 {
-                    result[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseOption(entry, null, market);
+                    string? optionSymbol = this.safeString(market, "symbol", "");
+                    result[(string)optionSymbol] = this.parseOption(entry, null, market);
                 }
             }
         }
@@ -4645,11 +4644,11 @@ public partial class paradex : Exchange
             requestUntil["start_at"] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            Int64 windowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
-            Int64? endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (((this.safeInteger(requestUntil, "end_at") == null)) || (endAt > windowEnd))
+            Int64 pageWindowEnd = this.sum(this.parseToInt(since), (pageSize * rowSpacing));
+            Int64? pageEndAt = this.safeInteger(requestUntil, "end_at", pageWindowEnd);
+            if (((this.safeInteger(requestUntil, "end_at") == null)) || (pageEndAt > pageWindowEnd))
             {
-                requestUntil["end_at"] = windowEnd;
+                requestUntil["end_at"] = pageWindowEnd;
             }
         }
         Dictionary<string, object> response = await this.publicGetFundingData(this.extend(requestUntil, paramsUntil));

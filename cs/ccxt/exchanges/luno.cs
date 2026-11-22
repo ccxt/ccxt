@@ -1079,7 +1079,7 @@ public partial class luno : Exchange
         {
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
         }

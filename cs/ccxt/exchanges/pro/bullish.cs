@@ -768,8 +768,8 @@ public partial class bullish : ccxt.bullish
             account["total"] = this.safeString(data, "availableQuantity");
             account["used"] = this.safeString(data, "lockedQuantity");
             string? code = this.safeCurrencyCode(assetId);
-            ((IDictionary<string,object>)(this.balance != null && tradingAccountId != null && this.balance.ContainsKey(tradingAccountId) ? this.balance[tradingAccountId] : null))["info"] = message;
             IDictionary<string, object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new Dictionary<string, object>() {});
+            deltaBalance["info"] = message;
             if (((tradingAccountId != null)) && ((code != null)))
             {
                 deltaBalance[(string)code] = account;
@@ -807,9 +807,6 @@ public partial class bullish : ccxt.bullish
         if (hasSymbols)
         {
             symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && ((symbolsNormalized != null)))
-        {
             messageHash = messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

@@ -1831,7 +1831,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(ticker, "t");
         string? marketId = this.safeString(ticker, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "c");
         string? baseVolume = this.safeString(ticker, "v");
         string? contractSizeValue = this.safeString(marketResolved, "contractSize");
@@ -4140,7 +4140,7 @@ public partial class hashkey : Exchange
     {
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         return this.safePosition(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "id", null },

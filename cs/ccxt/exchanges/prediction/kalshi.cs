@@ -794,6 +794,7 @@ public partial class kalshi : PredictionExchange
         List<object> outcomeLabels = new List<object>() {"YES", "NO"};
         List<object> outcomes = new List<object>() {};
         string? resolvedOutcome = null;
+        string? resultText = this.safeStringLower(raw, "result", "");
         for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); oi++)
         {
             string? label = ((string)outcomeLabels[oi]);
@@ -802,7 +803,7 @@ public partial class kalshi : PredictionExchange
             int? settleFractionRaw = null;
             if (resolved && ((result != null)) && (result != ""))
             {
-                winnerRaw = ((label.ToLower() == result));
+                winnerRaw = ((label.ToLower() == resultText));
                 settleFractionRaw = winnerRaw == true ? 1 : 0;
                 if ((winnerRaw == true))
                 {

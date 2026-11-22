@@ -384,10 +384,14 @@ public partial class hyperliquid : Exchange
             {
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 string? quote = this.safeString(symbolParts, 1);
-                string newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
-                if ((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol)))
+                string? unifiedBase = this.safeCurrencyCode(unifiedBaseName);
+                if (((unifiedBase != null)) && ((quote != null)))
                 {
-                    return ccxt.BaseExchange.ToDict((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol) ? this.markets[newSymbol] : null));
+                    string newSymbol = ((unifiedBase + "/") + quote);
+                    if ((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol)))
+                    {
+                        return ccxt.BaseExchange.ToDict((this.markets != null && newSymbol != null && this.markets.ContainsKey(newSymbol) ? this.markets[newSymbol] : null));
+                    }
                 }
             }
         }
@@ -2433,7 +2437,7 @@ public partial class hyperliquid : Exchange
         string? vaultAddressOption = vaultAddressOptionparamsVaultVariable.Item1;
         IDictionary<string, object> paramsVault = (vaultAddressOptionparamsVaultVariable.Item2);
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
-        double durationMins = (Math.Floor(Double.Parse((((duration / 1000) / 60)).ToString()))); // convert from ms to minutes
+        double durationMins = (Math.Floor(Double.Parse(((((double?)this.parseToInt(duration) / 1000) / 60)).ToString()))); // convert from ms to minutes
         Dictionary<string, object> orderObj = new Dictionary<string, object>() {
             { "a", this.parseToInt((market.ContainsKey("baseId") ? market["baseId"] : null)) },
             { "b", isBuy },

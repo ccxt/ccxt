@@ -1616,7 +1616,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         string? messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if ((result is IList<object> hxList69479))
+        if ((result is IList<object> hxList69538))
         {
             List<object> parsedOrders = new List<object>() {};
             List<object> rows = this.safeList(message, "result", new List<object>() {});
@@ -1692,7 +1692,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72181))
+            if ((result is IList<object> hxList72240))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});
@@ -1734,7 +1734,7 @@ public partial class hitbtc : ccxt.hitbtc
                 List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
                 for (int j = 0; j < subMessageHashes.Count; j++)
                 {
-                    this.cleanUnsubscription(client, subMessageHashes[j], (messageHashes != null && j < messageHashes.Count ? messageHashes[j] : null));
+                    this.cleanUnsubscription(client, subMessageHashes[j], this.safeString(messageHashes, j));
                 }
                 this.cleanCache(subscription);
                 return;

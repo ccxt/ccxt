@@ -2598,27 +2598,26 @@ public partial class bullish : Exchange
         (string?, IDictionary<string, object>) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");
         string? tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.Item1;
         IDictionary<string, object> paramsTradingAccountId = (tradingAccountIdOptionparamsTradingAccountIdVariable.Item2);
-        if ((tradingAccountIdOption != null))
+        string? tradingAccountId = tradingAccountIdOption;
+        if ((tradingAccountId == null))
         {
-            this.options["tradingAccountId"] = tradingAccountIdOption;
-            return this.safeString(this.options, "tradingAccountId");
-        }
-        List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-        IList<object> accounts = response;
-        for (int i = 0; i < (accounts?.Count ?? 0); i++)
-        {
-            IDictionary<string, object> account = this.safeDict(accounts, i);
-            string? name = this.safeString(account, "tradingAccountName");
-            if (name == "Primary Account")
+            List<object> response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
+            IList<object> accounts = response;
+            for (int i = 0; i < (accounts?.Count ?? 0); i++)
             {
-                string? primaryAccountId = this.safeString(account, "tradingAccountId");
-                if ((primaryAccountId != null))
+                IDictionary<string, object> account = this.safeDict(accounts, i);
+                string? name = this.safeString(account, "tradingAccountName");
+                if (name == "Primary Account")
                 {
-                    this.options["tradingAccountId"] = primaryAccountId;
-                    return this.safeString(this.options, "tradingAccountId");
+                    tradingAccountId = this.safeString(account, "tradingAccountId");
+                    break;
                 }
-                break;
             }
+        }
+        if ((tradingAccountId != null))
+        {
+            this.options["tradingAccountId"] = tradingAccountId;
+            return this.safeString(this.options, "tradingAccountId");
         }
         throw new ArgumentsRequired ((this.id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account")) ;
     }

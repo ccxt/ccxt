@@ -2727,7 +2727,7 @@ public partial class sxbet : PredictionExchange
         }
         string? held = this.safeString(this.safeDict(this.options, "wsBookVersions", new Dictionary<string, object>() {}), marketHash, "");
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if ((held != "") && (isLessThanOrEqual(version, held)))
+        if ((held != "") && ((version == "") || Precise.stringLe(version, held)))
         {
             return refreshed;
         }

@@ -2777,7 +2777,7 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        string? outcomeId = ((market != null) && (market != null)) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
+        string? outcomeId = this.safeString(this.safeDict(market, "info"), "outcomeId");
         List<object> outcomes = this.safeList(raw, "outcomes", new List<object>() {});
         double? price = null;
         double? change = null;
@@ -2798,7 +2798,7 @@ public partial class myriad : PredictionExchange
                 {
                     object previousCloseValue = (priceValue - changeValue);
                     previousClose = previousCloseValue;
-                    if (!isEqual(previousCloseValue, 0))
+                    if ((priceValue != changeValue))
                     {
                         percentage = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(divide(changeValue, previousCloseValue), 100);
                     }
@@ -3404,10 +3404,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154809_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154809_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154809_0, hxauTask154809_1);
-            List<object> responses = new List<object> { hxauTask154809_0.Result, hxauTask154809_1.Result };
+            var hxauTask154779_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154779_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154779_0, hxauTask154779_1);
+            List<object> responses = new List<object> { hxauTask154779_0.Result, hxauTask154779_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3428,10 +3428,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155787_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155787_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155787_0, hxauTask155787_1);
-                List<object> listResponses = new List<object> { hxauTask155787_0.Result, hxauTask155787_1.Result };
+                var hxauTask155757_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155757_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155757_0, hxauTask155757_1);
+                List<object> listResponses = new List<object> { hxauTask155757_0.Result, hxauTask155757_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3440,7 +3440,7 @@ public partial class myriad : PredictionExchange
                 for (int i = 0; i < requestedTagsLength; i++)
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    string? tagSlug = ((string)(requestedTags != null && i < requestedTags.Count ? requestedTags[i] : null));
+                    string? tagSlug = this.safeString(requestedTags, i, "");
                     tagQueries.Add(tagSlug.Replace("-", (string)" "));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3659,7 +3659,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < linesLength; i++)
         {
             string? line = ((string)(lines != null && i < lines.Count ? lines[i] : null));
-            if (line.Length > 0)
+            if (line != "")
             {
                 object parsed = JsonHelper.Deserialize(line);
                 this.handleCentrifugoFrame(client, parsed);

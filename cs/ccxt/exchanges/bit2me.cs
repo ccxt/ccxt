@@ -1222,17 +1222,14 @@ public partial class bit2me : Exchange
             {
                 throw new InvalidOrder ((this.id + " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order")) ;
             }
-            string? quoteAmount = null;
             if ((cost != null))
             {
-                quoteAmount = cost;
+                request["amount"] = this.costToPrecision(symbol, cost);
+                request["amountInQuote"] = true;
             } else if (((side is "buy")) && ((price != null)))
             {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
-            }
-            if ((quoteAmount != null))
-            {
+                string? quoteAmount = Precise.stringMul(this.numberToString(amount), this.numberToString(price));
                 request["amount"] = this.costToPrecision(symbol, quoteAmount);
                 request["amountInQuote"] = true;
             } else

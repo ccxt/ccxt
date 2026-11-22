@@ -229,13 +229,13 @@ public partial class hollaex : ccxt.hollaex
             string? marketId = this.safeString(market, "id", "");
             messageHash = ((messageHash + ":") + marketId);
         }
-        object trades = await this.watchPrivate(messageHash, parameters);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
@@ -332,13 +332,13 @@ public partial class hollaex : ccxt.hollaex
             string? marketId = this.safeString(market, "id", "");
             messageHash = ((messageHash + ":") + marketId);
         }
-        object orders = await this.watchPrivate(messageHash, parameters);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, parameters));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
     public virtual void handleOrder(WebSocketClient client, Dictionary<string, object> message, object subscription = null)

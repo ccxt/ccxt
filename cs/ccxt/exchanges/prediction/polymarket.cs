@@ -1249,7 +1249,7 @@ public partial class polymarket : PredictionExchange
         List<object> tokenIds = new List<object>() {};
         for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            string? outcomeSymbol = ((string)(outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
+            string? outcomeSymbol = this.safeString(outcomeSymbols, i, "");
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -1307,9 +1307,10 @@ public partial class polymarket : PredictionExchange
         }
         for (int i = 0; i < (outcomeSymbols?.Count ?? 0); i++)
         {
-            if (!this.hasOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null)))
+            string? pendingSymbol = this.safeString(outcomeSymbols, i, "");
+            if (!this.hasOutcome(pendingSymbol))
             {
-                await this.FetchOutcome((outcomeSymbols != null && i < outcomeSymbols.Count ? outcomeSymbols[i] : null));
+                await this.FetchOutcome(pendingSymbol);
             }
         }
         return this.outcomes;
@@ -1741,8 +1742,20 @@ public partial class polymarket : PredictionExchange
                     }
                 }
                 double? open = this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 1);
+                double? high = price;
+                double? prevHigh = this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 2);
+                if (((prevHigh != null)) && ((price != null)) && (prevHigh.Value > price.Value))
+                {
+                    high = prevHigh;
+                }
+                double? low = price;
+                double? prevLow = this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 3);
+                if (((prevLow != null)) && ((price != null)) && (price.Value > prevLow.Value))
+                {
+                    low = prevLow;
+                }
                 // close is the last tick
-                buckets[(string)bucketKey] = new List<object>() {snappedMs, open, mathMax(this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 2), price), mathMin(this.safeNumber((bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null), 3), price), price, candleVol};
+                buckets[(string)bucketKey] = new List<object>() {snappedMs, open, high, low, price, candleVol};
             }
         }
         List<object> bucketKeys = new List<object>(buckets.Keys);
@@ -2175,7 +2188,8 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; i < (outcomes?.Count ?? 0); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null));
-            wantedIds[(string)(outcomeObj != null && outcomeObj.ContainsKey("outcomeId") ? outcomeObj["outcomeId"] : null)] = true;
+            string? outcomeId = this.safeString(outcomeObj, "outcomeId", "");
+            wantedIds[(string)outcomeId] = true;
         }
         List<object> result = new List<object>() {};
         for (int i = 0; i < (parsed?.Count ?? 0); i++)
@@ -3355,7 +3369,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr151493 && ((hxArr151493 is IList<object>) || (hxArr151493.GetType().IsGenericType && hxArr151493.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152062 && ((hxArr152062 is IList<object>) || (hxArr152062.GetType().IsGenericType && hxArr152062.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

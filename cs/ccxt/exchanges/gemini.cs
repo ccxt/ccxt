@@ -956,7 +956,7 @@ public partial class gemini : Exchange
         List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         List<object> marketIds = new List<object>() {};
         List<object> allMarketIds = new List<object>() {};
-        if (((marketIdsRaw is IList<object>) || (marketIdsRaw.GetType().IsGenericType && marketIdsRaw.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((marketIdsRaw != null))
         {
             allMarketIds = marketIdsRaw;
         }
@@ -2387,7 +2387,7 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string? codeValue = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
+        string? codeValue = this.safeString(currency, "code", "");
         (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
         string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
         IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
@@ -2561,12 +2561,7 @@ public partial class gemini : Exchange
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        List<object> candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     /**

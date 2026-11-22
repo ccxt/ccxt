@@ -2212,11 +2212,14 @@ public partial class coinbaseexchange : Exchange
         IDictionary<string, object> paramsUntil = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, paramsUntil));
         IList<object> entries = response;
+        List<object> entriesWithCurrency = new List<object>() {};
         for (int i = 0; i < (entries?.Count ?? 0); i++)
         {
-            ((IDictionary<string,object>)entries[i])["currency"] = code;
+            entriesWithCurrency.Add(this.extend(entries[i], new Dictionary<string, object>() {
+                { "currency", code },
+            }));
         }
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entriesWithCurrency, currency, since, limit));
     }
 
     /**

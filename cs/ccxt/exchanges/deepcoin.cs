@@ -980,7 +980,7 @@ public partial class deepcoin : Exchange
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "-");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         object quoteVolume = this.safeString(ticker, "volCcy24h");

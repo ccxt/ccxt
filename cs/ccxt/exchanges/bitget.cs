@@ -11794,7 +11794,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;
@@ -12543,7 +12543,8 @@ public partial class bitget : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((amount > 0))
+        string? amountString = this.numberToString(amount);
+        if (Precise.stringGt(amountString, "0"))
         {
             throw new BadRequest ((this.id + " reduceMargin() amount parameter must be a negative value")) ;
         }

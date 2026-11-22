@@ -634,7 +634,8 @@ public partial class gemini : ccxt.gemini
             string messageHash = ((itemHashName + ":") + symbol);
             messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);
-            marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
+            marketIds.Add(marketId);
         }
         string queryStr = String.Join(",", marketIds.ToArray());
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");

@@ -658,8 +658,12 @@ public partial class bittrade : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (symbolsResolved?.Count ?? 0); i++)
         {
-            string? symbol = ((string)symbolsResolved[i]);
-            result[(string)symbol] = await this.FetchTradingLimitsById(this.marketId(symbol), parameters);
+            string? symbol = this.safeString(symbolsResolved, i);
+            Dictionary<string, object> limits = await this.FetchTradingLimitsById(this.marketId(symbol), parameters);
+            if ((symbol != null))
+            {
+                result[(string)symbol] = limits;
+            }
         }
         return result;
     }

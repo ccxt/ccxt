@@ -763,7 +763,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         List<object> previousTrades = this.safeList(previousOrder, "trades", new List<object>() {});
                         previousTrades.Add(ccxt.BaseExchange.FromTrade(trade));
                         previousOrder["trades"] = previousTrades;
-                        previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
+                        previousOrder["lastTradeTimestamp"] = trade.timestamp;
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         for (int i = 0; i < (previousTrades?.Count ?? 0); i++)
@@ -788,10 +788,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         }
                         if ((this.safeDict(previousOrder, "fee") == null))
                         {
-                            previousOrder["fee"] = new Dictionary<string, object>() {
+                            Dictionary<string, object> newFee = new Dictionary<string, object>() {
                                 { "cost", 0 },
                                 { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                             };
+                            previousOrder["fee"] = newFee;
                         }
                         IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee", new Dictionary<string, object>() {});
                         if ((!(this.safeNumber(previousOrderFee, "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))

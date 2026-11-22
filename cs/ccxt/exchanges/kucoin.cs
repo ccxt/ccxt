@@ -4975,7 +4975,8 @@ public partial class kucoin : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " requires an amount argument")) ;
             }
-            if (isLessThan(amount, 1))
+            Int64? amountInt = this.parseToInt(amount);
+            if (((amountInt == null || amountInt < 1)))
             {
                 throw new InvalidOrder ((this.id + " createOrder() minimum contract order amount is 1")) ;
             }
@@ -8888,24 +8889,26 @@ public partial class kucoin : Exchange
         //
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        object address = this.safeString(transaction, "address");
+        string? address = this.safeString(transaction, "address");
         string? amount = this.safeString(transaction, "amount");
-        string? txid = this.safeString(transaction, "walletTxId");
-        if ((txid != null))
+        string? walletTxId = this.safeString(transaction, "walletTxId");
+        string? txid = null;
+        if ((walletTxId != null))
         {
-            List<object> txidParts = txid.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
+            List<object> txidParts = walletTxId.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
             int numTxidParts = txidParts.Count;
             if (numTxidParts > 1)
             {
+                string? txidAddress = ((string)(txidParts != null && 1 < txidParts.Count ? txidParts[1] : null));
                 if ((address == null))
                 {
-                    if (((string)(txidParts != null && 1 < txidParts.Count ? txidParts[1] : null)).Length > 1)
+                    if (txidAddress.Length > 1)
                     {
-                        address = (txidParts != null && 1 < txidParts.Count ? txidParts[1] : null);
+                        address = txidAddress;
                     }
                 }
             }
-            txid = ((string)(txidParts != null && 0 < txidParts.Count ? txidParts[0] : null));
+            txid = this.safeString(txidParts, 0);
         }
         string type = "deposit";
         if ((txid == null))

@@ -2418,7 +2418,7 @@ public partial class htx : Exchange
     public override string? costToPrecision(object symbol, object cost)
     {
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(cost, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "cost"), this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "cost"), this.precisionMode);
     }
 
     /**
@@ -2854,9 +2854,10 @@ public partial class htx : Exchange
             this.options["futureMarketIdsForSymbols"] = new Dictionary<string, object>() {};
         }
         IDictionary<string, object> futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
-        if ((futureMarketIdsForSymbols != null && symbolOrMarketId is string inOpKey1 && futureMarketIdsForSymbols.ContainsKey(inOpKey1)))
+        string? knownSymbol = this.safeString(futureMarketIdsForSymbols, symbolOrMarketId, "");
+        if (knownSymbol != "")
         {
-            return (futureMarketIdsForSymbols != null && symbolOrMarketId != null && futureMarketIdsForSymbols.ContainsKey((string)symbolOrMarketId) ? futureMarketIdsForSymbols[(string)symbolOrMarketId] : null);
+            return knownSymbol;
         }
         List<object> futureMarkets = this.filterBy(this.markets, "future", true);
         Dictionary<string, object> futuresCharsMaps = new Dictionary<string, object>() {
@@ -2957,7 +2958,7 @@ public partial class htx : Exchange
         string? askVolume = null;
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
         {
-            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr119903 && ((hxArr119903 is IList<object>) || (hxArr119903.GetType().IsGenericType && hxArr119903.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((((IDictionary<string,object>)ticker)["bid"]) is var hxArr119964 && ((hxArr119964 is IList<object>) || (hxArr119964.GetType().IsGenericType && hxArr119964.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 bid = this.safeString(((IDictionary<string,object>)ticker)["bid"], 0);
                 bidVolume = this.safeString(((IDictionary<string,object>)ticker)["bid"], 1);
@@ -2969,7 +2970,7 @@ public partial class htx : Exchange
         }
         if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
         {
-            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120270 && ((hxArr120270 is IList<object>) || (hxArr120270.GetType().IsGenericType && hxArr120270.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if (((((IDictionary<string,object>)ticker)["ask"]) is var hxArr120331 && ((hxArr120331 is IList<object>) || (hxArr120331.GetType().IsGenericType && hxArr120331.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 ask = this.safeString(((IDictionary<string,object>)ticker)["ask"], 0);
                 askVolume = this.safeString(((IDictionary<string,object>)ticker)["ask"], 1);
@@ -9304,13 +9305,15 @@ public partial class htx : Exchange
                 (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchFundingHistory", paramsUntil, "cross");
                 string? marginMode = marginModeparamsMarginModeVariable.Item1;
                 IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
-                request["margin_mode"] = marginMode;
-                request["contract_code"] = (market.ContainsKey("id") ? market["id"] : null);
+                Dictionary<string, object> linearRequest = new Dictionary<string, object>() {
+                    { "margin_mode", marginMode },
+                    { "contract_code", (market.ContainsKey("id") ? market["id"] : null) },
+                };
                 if ((limit != null))
                 {
-                    request["limit"] = limit;
+                    linearRequest["limit"] = limit;
                 }
-                response = await this.contractPrivateGetV5AccountBills(this.extend(request, paramsMarginMode));
+                response = await this.contractPrivateGetV5AccountBills(this.extend(this.extend(request, linearRequest), paramsMarginMode));
             } else
             {
                 request["contract"] = (market.ContainsKey("id") ? market["id"] : null);

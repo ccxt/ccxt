@@ -984,11 +984,12 @@ public partial class latoken : Exchange
         object marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
+            string knownSymbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && ((this.markets != null && knownSymbol != null && this.markets.ContainsKey(knownSymbol))))
             {
-                marketResolved = this.market(symbol);
+                marketResolved = this.market(knownSymbol);
             }
+            symbol = knownSymbol;
         }
         string? last = this.safeString(ticker, "lastPrice");
         Int64? timestamp = this.safeIntegerOmitZero(ticker, "updateTimestamp"); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1180,11 +1181,12 @@ public partial class latoken : Exchange
         IDictionary<string, object> marketResolved = market;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
+            string knownSymbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && ((this.markets != null && knownSymbol != null && this.markets.ContainsKey(knownSymbol))))
             {
-                marketResolved = this.market(symbol);
+                marketResolved = this.market(knownSymbol);
             }
+            symbol = knownSymbol;
         }
         string? id = this.safeString(trade, "id");
         string? orderId = this.safeString(trade, "order");
@@ -1481,11 +1483,16 @@ public partial class latoken : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = null;
+        bool symbolKnown = false;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = ((bs + "/") + quote);
+            string knownSymbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && ((this.markets != null && knownSymbol != null && this.markets.ContainsKey(knownSymbol))))
+            {
+                symbolKnown = true;
+            }
+            symbol = knownSymbol;
         }
-        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol))));
         IDictionary<string, object> marketResolved = market;
         if (symbolKnown)
         {

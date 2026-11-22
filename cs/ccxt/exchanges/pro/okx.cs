@@ -1304,7 +1304,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54565 && ((hxArr54565 is IList<object>) || (hxArr54565.GetType().IsGenericType && hxArr54565.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54588 && ((hxArr54588 is IList<object>) || (hxArr54588.GetType().IsGenericType && hxArr54588.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1360,7 +1360,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57035 && ((hxArr57035 is IList<object>) || (hxArr57035.GetType().IsGenericType && hxArr57035.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57058 && ((hxArr57058 is IList<object>) || (hxArr57058.GetType().IsGenericType && hxArr57058.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

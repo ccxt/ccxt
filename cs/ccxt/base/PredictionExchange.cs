@@ -984,8 +984,6 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < rawWords.Count; i++)
         {
             string? word = ((string)rawWords[i]);
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if ((word.Length == 0))
             {
                 continue;

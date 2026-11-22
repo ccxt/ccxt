@@ -2833,6 +2833,10 @@ public partial class okx : Exchange
         string? maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         double? maxSpotCost = this.safeNumber(market, "maxMktSz");
+        if (contract)
+        {
+            maxSpotCost = null;
+        }
         bool leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         bool quoteEqualSettle = ((quoteId == settleId));
         bool baseEqualSettle = ((baseId == settleId));
@@ -2883,7 +2887,7 @@ public partial class okx : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", contract ? null : maxSpotCost },
+                    { "max", maxSpotCost },
                 } },
             } },
             { "info", market },
@@ -7009,7 +7013,7 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        bool hasTag = ((tagWithdrawTag != null)) && (tagWithdrawTag.Length > 0);
+        bool hasTag = ((tagWithdrawTag != null)) && (!(tagWithdrawTag == ""));
         string addressWithTag = address;
         if (hasTag)
         {
@@ -8297,9 +8301,10 @@ public partial class okx : Exchange
                         string? clientOrderId = this.safeString(entry, "clOrdId");
                         if ((clientOrderId == null))
                         {
-                            ((IDictionary<string,object>)entry)["clOrdId"] = (brokerId + this.uuid16());
-                            ((IDictionary<string,object>)entry)["tag"] = brokerId;
-                            ((List<object>)parameters)[Convert.ToInt32(i)] = entry;
+                            Dictionary<string, object> taggedEntry = this.extend(new Dictionary<string, object>() {}, entry);
+                            taggedEntry["clOrdId"] = (brokerId + this.uuid16());
+                            taggedEntry["tag"] = brokerId;
+                            ((List<object>)parameters)[Convert.ToInt32(i)] = taggedEntry;
                         }
                     }
                 } else

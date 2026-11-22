@@ -808,7 +808,10 @@ public partial class paradex : ccxt.paradex
                 this.options["liquidationsBySymbol"] = caches;
             }
             ccxt.pro.BaseCache.appendTo(liquidations, liquidation);
-            client.resolve(liquidations, ("liquidations:" + symbol));
+            if ((symbol != null))
+            {
+                client.resolve(liquidations, ("liquidations:" + symbol));
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1288,7 +1291,7 @@ public partial class paradex : ccxt.paradex
         {
             object symbol = (symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null);
             Dictionary<string, object> market = this.market(symbol);
-            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             marketIds.Add(marketId);
             subscribeHashes.Add(((channel + ".") + marketId));
             subMessageHashes.Add(((channel + ".") + (symbol)));
@@ -1390,7 +1393,7 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
-            string marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
             string subscribeHash = ((channel + ".") + marketId);
             subscribeHashes.Add(subscribeHash);
             if (!((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash))))
@@ -1581,9 +1584,12 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> bidAsk = this.parseWsBidAsk(data);
-        string? symbol = ((string)(bidAsk != null && bidAsk.ContainsKey("symbol") ? bidAsk["symbol"] : null));
+        string? symbol = this.safeString(bidAsk, "symbol");
         this.bidsasks[(string)symbol] = bidAsk;
-        client.resolve(bidAsk, ("bidask:" + symbol));
+        if ((symbol != null))
+        {
+            client.resolve(bidAsk, ("bidask:" + symbol));
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, "bidask");
     }
@@ -1820,9 +1826,12 @@ public partial class paradex : ccxt.paradex
             messageHashes.Add(channel);
         } else
         {
-            for (int i = 0; i < symbolsLength; i++)
+            if ((symbolsNormalized != null))
             {
-                messageHashes.Add(((channel + ":") + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
+                for (int i = 0; i < symbolsLength; i++)
+                {
+                    messageHashes.Add(((channel + ":") + ((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null))));
+                }
             }
         }
         Dictionary<string, object> request = this.subscribeRequest(channel);
@@ -1871,7 +1880,7 @@ public partial class paradex : ccxt.paradex
         }
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> position = this.parsePosition(data);
-        string? symbol = ((string)(position != null && position.ContainsKey("symbol") ? position["symbol"] : null));
+        string? symbol = this.safeString(position, "symbol");
         List<object> newPositions = new List<object>() {};
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -1896,7 +1905,10 @@ public partial class paradex : ccxt.paradex
         cache.append(position);
         newPositions.Add(position);
         client.resolve(newPositions, "positions");
-        client.resolve(newPositions, ("positions:" + symbol));
+        if ((symbol != null))
+        {
+            client.resolve(newPositions, ("positions:" + symbol));
+        }
     }
 
     /**

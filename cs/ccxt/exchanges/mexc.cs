@@ -5586,13 +5586,13 @@ public partial class mexc : Exchange
         if ((code != null))
         {
             currency = this.currency(code);
-            object currencyId = (currency.ContainsKey("id") ? currency["id"] : null);
+            string currencyId = this.safeString(currency, "id", "");
             request["coin"] = currencyId;
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if ((rawNetwork != null))
             {
-                request["coin"] = ((object)(currencyId == null ? null : currencyId + "-" + rawNetwork));
+                request["coin"] = ((currencyId + "-") + rawNetwork);
             }
         }
         if ((since != null))

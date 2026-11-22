@@ -1296,7 +1296,9 @@ public partial class onetrading : ccxt.onetrading
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((this.safeString(getValue(timeframesResolved, key), "unit") == unit) && (this.safeString(getValue(timeframesResolved, key), "period") == period))
+            string? rowUnit = this.safeString(getValue(timeframesResolved, key), "unit");
+            string? rowPeriod = this.safeString(getValue(timeframesResolved, key), "period");
+            if ((rowUnit == unit) && (rowPeriod == period))
             {
                 return key;
             }

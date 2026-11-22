@@ -387,12 +387,7 @@ public partial class limitless : PredictionExchange
                     page = this.sum(page, 1);
                     request["page"] = page;
                     Dictionary<string, object> response = await this.limitlessPublicGetMarketsActive(this.extend(request, rest));
-                    object responseRows = new List<object>() {};
-                    if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-                    {
-                        responseRows = response;
-                    }
-                    List<object> page_markets = this.safeList(response, "data", responseRows);
+                    List<object> page_markets = this.safeList(response, "data", new List<object>() {});
                     int pageMarketsLength = page_markets.Count;
                     if ((pageMarketsLength == 0))
                     {

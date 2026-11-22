@@ -3108,7 +3108,8 @@ public partial class bitstamp : Exchange
         {
             ccxt.Trade parsedTrade = this.parseTrade(item);
             IDictionary<string, object> market = null;
-            List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
+            Dictionary<string, object> itemDict = this.extend(new Dictionary<string, object>() {}, item);
+            List<object> keys = new List<object>(itemDict.Keys);
             for (int i = 0; i < keys.Count; i++)
             {
                 string? currentKey = ((string)keys[i]);

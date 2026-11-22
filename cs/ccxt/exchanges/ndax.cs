@@ -1243,12 +1243,7 @@ public partial class ndax : Exchange
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        List<object> candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)

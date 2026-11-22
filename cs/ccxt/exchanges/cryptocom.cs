@@ -2458,7 +2458,8 @@ public partial class cryptocom : Exchange
             string? address = ((string)(addressParts != null && 0 < addressParts.Count ? addressParts[0] : null));
             string? rawTag = ((string)(addressParts != null && 1 < addressParts.Count ? addressParts[1] : null));
             List<object> splitted = rawTag.Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
-            return new List<object>() {address, (splitted != null && 1 < splitted.Count ? splitted[1] : null)};
+            string? tag = this.safeString(splitted, 1);
+            return new List<object>() {address, tag};
         }
         return new List<object>() {addressString, null};
     }

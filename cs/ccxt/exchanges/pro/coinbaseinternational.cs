@@ -1077,7 +1077,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
         int symbolsAndTimeframesLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49698 && ((hxArr49698 is IList<object>) || (hxArr49698.GetType().IsGenericType && hxArr49698.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsAndTimeframesLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr49770 && ((hxArr49770 is IList<object>) || (hxArr49770.GetType().IsGenericType && hxArr49770.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
         }

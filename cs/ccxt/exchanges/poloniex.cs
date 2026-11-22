@@ -952,12 +952,7 @@ public partial class poloniex : Exchange
         //         ]
         //     ]
         //
-        List<object> candles = new List<object>() {};
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            candles = response;
-        }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limit));
     }
 
     public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, IDictionary<string, object> parameters = null)
@@ -4512,7 +4507,7 @@ public partial class poloniex : Exchange
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if ((method == "GET") && (((IDictionary<string, object>)parameters).ContainsKey("symbol")))
         {
-            ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(((IDictionary<string,object>)parameters)["symbol"]); // handle symbols like 索拉拉/USDT'
+            ((IDictionary<string,object>)parameters)["symbol"] = this.encodeURIComponent(this.safeString(parameters, "symbol")); // handle symbols like 索拉拉/USDT'
         }
         object query = this.omit(parameters, this.extractParams(path));
         string? implodedPath = this.implodeParams(path, parameters);

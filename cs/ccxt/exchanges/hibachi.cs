@@ -607,7 +607,7 @@ public partial class hibachi : Exchange
         //      }
         string? marketId = this.safeString(trade, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
+        string? symbol = this.safeString(marketResolved, "symbol");
         string? id = this.safeString(trade, "id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");

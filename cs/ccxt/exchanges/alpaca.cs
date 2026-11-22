@@ -1500,13 +1500,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         List<object> response = await this.traderPrivateDeleteV2Orders(parameters);
-        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            return this.parseOrders(response);
-        } else
-        {
-            return ccxt.BaseExchange.ToOrderList(new List<object> {ccxt.BaseExchange.FromOrder(this.safeOrder(new Dictionary<string, object>() {     { "info", response }, }))});
-        }
+        return this.parseOrders(response);
     }
 
     /**
