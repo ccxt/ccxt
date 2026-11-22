@@ -1092,12 +1092,11 @@ export default class hashkey extends Exchange {
             }
         }
         const tradingFees = this.safeDict (this.fees, 'trading');
-        let fees: NullableDict = undefined;
+        let feeKey = 'swap';
         if (isSpot) {
-            fees = this.safeDict (tradingFees, 'spot');
-        } else {
-            fees = this.safeDict (tradingFees, 'swap');
+            feeKey = 'spot';
         }
+        const fees = this.safeDict (tradingFees, feeKey);
         return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
