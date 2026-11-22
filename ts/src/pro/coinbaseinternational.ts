@@ -536,9 +536,11 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const position = positions[i];
             if (this.safeString (position, 'side') === undefined) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position['side'] = 'long';
                 const shortPosition = this.extend (position, { 'side': 'short' });
                 this.positions.append (shortPosition);
+                const longPosition = this.extend (position, { 'side': 'long' });
+                this.positions.append (longPosition);
+                continue;
             }
             this.positions.append (position);
         }
