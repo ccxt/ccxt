@@ -2441,11 +2441,7 @@ export default class interactivebrokers extends Exchange {
             multiplier = '1000000000';
         }
         if (multiplier !== undefined) {
-            const scaled = Precise.stringMul (result.slice (0, result.length - 1), multiplier);
-            if (scaled === undefined) {
-                return undefined;
-            }
-            result = scaled;
+            return Precise.stringMul (result.slice (0, result.length - 1), multiplier);
         }
         if (result === '') {
             return undefined;
