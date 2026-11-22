@@ -3773,10 +3773,7 @@ export default class binance extends binanceRest {
             const account = this.account ();
             const delta = this.safeString (message, 'd');
             if ((code !== undefined) && (code in balance)) {
-                let previousValue = this.safeValue (balance[code], 'free');
-                if (typeof previousValue !== 'string') {
-                    previousValue = this.numberToString (previousValue);
-                }
+                const previousValue = this.safeString (balance[code], 'free');
                 account['free'] = Precise.stringAdd (previousValue, delta);
             } else {
                 account['free'] = delta;
