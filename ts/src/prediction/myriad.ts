@@ -3574,12 +3574,12 @@ export default class myriad extends Exchange {
         const seenChannels: Dict = {};
         const resolvedSymbols: Str[] = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const outcomeObj = this.outcome (outcomes[i]);
+            const outcomeObj = this.outcome (this.safeString (outcomes, i, ''));
             const info = this.safeDict (outcomeObj, 'info', {});
             const networkId = this.safeString (info, 'networkId', '');
             const marketId = this.safeString (info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
-            resolvedSymbols.push (this.safeOutcomeSymbol (outcomes[i], outcomeObj));
+            resolvedSymbols.push (this.safeOutcomeSymbol (this.safeString (outcomes, i, ''), outcomeObj));
             if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId (url);

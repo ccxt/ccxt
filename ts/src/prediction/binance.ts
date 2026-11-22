@@ -455,7 +455,7 @@ export default class binance extends Exchange {
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
-                'query': queries[qi],
+                'query': this.safeString (queries, qi),
             };
             request['topK'] = limitResolved;
             const response = await this.sapiPrivateGetMarketSearch (this.extend (request, rest));

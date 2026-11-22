@@ -2459,7 +2459,7 @@ export default class bybit extends bybitRest {
             for (let i = 0; i < messageHashesLength; i++) {
                 const messageHash = messageHashes[i];
                 if (!(messageHash in client.subscriptions)) {
-                    newTopics.push (topics[i]);
+                    newTopics.push (this.safeString (topics, i, ''));
                 }
             }
         } else {
