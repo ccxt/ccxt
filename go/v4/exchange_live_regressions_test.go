@@ -88,7 +88,7 @@ func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
 		t.Fatal(r.Err)
 	}
 	promises := ListTyped(r.Value)
-	first := e.SafeListSlice(promises, 0, []any{})        // bingx form
+	first := e.SafeListSlice(promises, 0, []any{})         // bingx form
 	second := ArrayTyped(e.SafeList(promises, 1, []any{})) // hyperliquid / kucoin form
 	all := e.ArrayConcat(first, second)
 	if len(all) != 2 {
