@@ -651,7 +651,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < parsed.size(); i++)
         {
-            Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> trade = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             cachedTrades.append(trade);
             String symbol = this.safeString(trade, "symbol");
             marketIds.put((String)symbol, true);
@@ -959,7 +959,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             orders = this.parseOrders(dataList, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         } else
         {
-            Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
             orders = new ArrayList<Object>(Arrays.asList(order));
         }

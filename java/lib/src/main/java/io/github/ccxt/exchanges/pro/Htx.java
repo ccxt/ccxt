@@ -916,8 +916,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol)))) ;
             }
         }
-        Boolean spotConditon = (java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(prevSeqNum, this.safeInteger(orderbook, "nonce")));
-        Boolean nonSpotCondition = (java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (java.util.Objects.equals((version - 1L), this.safeInteger(orderbook, "nonce")));
+        Long currentNonce = this.safeInteger(orderbook, "nonce");
+        Boolean spotConditon = (java.util.Objects.equals(market.get("spot"), true)) && (java.util.Objects.equals(prevSeqNum, currentNonce));
+        Boolean nonSpotCondition = (java.util.Objects.equals(market.get("contract"), true)) && (!java.util.Objects.equals(version, null)) && ((currentNonce != null && (version - 1L) == currentNonce));
         if (Boolean.TRUE.equals(spotConditon) || Boolean.TRUE.equals(nonSpotCondition))
         {
             List<Object> asks = this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
@@ -1487,7 +1488,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 // when a spot order is filled we get an update message
                 // with the trade info
-                Object parsedTrade = this.parseOrderTrade(data, market);
+                Map<String, Object> parsedTrade = this.parseOrderTrade(data, market);
                 // inject trade in existing order by faking an order object
                 String orderId = this.safeString(parsedTrade, "order");
                 List<Object> trades = new ArrayList<Object>(Arrays.asList(parsedTrade));
@@ -1797,7 +1798,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         return this.safeOrder(mapLiteral2, marketResolved);
     }
 
-    public Object parseOrderTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // spot private wrapped trade
         //
@@ -2425,7 +2426,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
-            String messageHash = this.safeString(splitTopic, 0);
+            String messageHash = this.safeString(splitTopic, 0, "");
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"), (Object) null);
             if (java.util.Objects.equals(subscription, null))
             {

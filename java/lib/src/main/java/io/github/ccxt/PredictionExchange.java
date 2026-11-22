@@ -1636,7 +1636,7 @@ public Map<String, Object> describe()
             }
             for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tradeAmount = this.safeString(trade, "amount");
                 if (!java.util.Objects.equals(tradeAmount, null))
                 {
@@ -1795,7 +1795,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object safePredictionTicker(Map<String, Object> ticker, Object outcomeObj)
+    public Map<String, Object> safePredictionTicker(Map<String, Object> ticker, Object outcomeObj)
     {
         // build the prediction ticker directly (no crypto safeTicker, which injects vwap/previousClose/
         // indexPrice/markPrice the type omits). derive change/percentage/average only from open+close —

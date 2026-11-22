@@ -1780,7 +1780,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOpenInterestsHistory(data, market, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v2 -> hx4J40v2; case Number hx4J40v2 -> Long.valueOf(hx4J40v2.longValue()); case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v2.getClass().getName()); })), limitResolved);
+        return this.parseOpenInterestsHistory(data, market, ((Long) (switch ((Object) (sinceResolved)) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); })), limitResolved);
 
     }
 
@@ -2891,7 +2891,7 @@ public class Extended extends ExtendedApi
     private Object fetchPositionCore(Object symbol, Map<String, Object> parameters)
     {
 
-        List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+        List<Position> positions = (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(symbol)))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
         return this.safeDict(positions, 0, null);
 
     }
@@ -2908,20 +2908,16 @@ public class Extended extends ExtendedApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Position[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositionsHistory(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsHistoryCore(symbols, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsHistoryCore(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    private Object fetchPositionsHistoryCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object symbolsList = symbols;
-        if ((symbols instanceof String))
-        {
-            symbolsList = new ArrayList<Object>(Arrays.asList(symbols));
-        }
+        List<String> symbolsList = symbols;
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositionsHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
@@ -2978,13 +2974,9 @@ public class Extended extends ExtendedApi
             }
             ((List<Object>)result).add(entry);
         }
-        List<Object> positions = this.parsePositions(result, ((List<String>) (switch ((Object) (symbolsList)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(result, symbolsList, new HashMap<String, Object>() {{}});
         return this.filterBySinceLimit(positions, since, limit, "timestamp", false);
 
-    }
-    public CompletableFuture<List<Position>> fetchPositionsHistory(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
-    {
-        return this.fetchPositionsHistory((Object) (symbols), since, limit, parameters);
     }
 
     public Map<String, Object> parsePosition(Map<String, Object> position, Map<String, Object> market)

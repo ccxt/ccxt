@@ -1588,25 +1588,19 @@ public class Toobit extends ToobitApi
         {
             request.put("limit", limit);
         }
-        Object response = new ArrayList<Object>(Arrays.asList());
+        List<Object> candles = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(endpoint, "index"))
         {
             request.put("symbol", this.safeString(market.get("info"), "indexToken")); // index klines take the index id instead of the market id
-            response = (this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice))).join();
+            Map<String, Object> indexResponse = (this.commonGetQuoteV1IndexKlines(this.extend(request, paramsPrice))).join();
+            candles = (List<Object>) this.safeList(indexResponse, "data", new ArrayList<Object>(Arrays.asList()));
         } else if (java.util.Objects.equals(endpoint, "mark"))
         {
-            response = (this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice))).join();
+            Map<String, Object> markResponse = (this.commonGetQuoteV1MarkPriceKlines(this.extend(request, paramsPrice))).join();
+            candles = (List<Object>) this.safeList(markResponse, "data", new ArrayList<Object>(Arrays.asList()));
         } else
         {
-            response = (this.commonGetQuoteV1Klines(this.extend(request, paramsPrice))).join();
-        }
-        Object candles = new ArrayList<Object>(Arrays.asList());
-        if ((response instanceof List))
-        {
-            candles = response;
-        } else
-        {
-            candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            candles = (this.commonGetQuoteV1Klines(this.extend(request, paramsPrice))).join();
         }
         return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
 
@@ -3315,7 +3309,9 @@ public class Toobit extends ToobitApi
         String tagFrom = this.safeString(transaction, "fromAddressTag");
         String addressTo = this.safeString(transaction, "address");
         String addressFrom = this.safeString(transaction, "fromAddress");
-        Boolean isWithdraw = (transaction.containsKey("arriveQuantity")) || (transaction.containsKey("success"));
+        String arriveQuantity = this.safeString(transaction, "arriveQuantity");
+        Boolean success = (Boolean) this.safeBool(transaction, "success", (Object) null);
+        Boolean isWithdraw = (!java.util.Objects.equals(arriveQuantity, null)) || (!java.util.Objects.equals(success, null));
         String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();

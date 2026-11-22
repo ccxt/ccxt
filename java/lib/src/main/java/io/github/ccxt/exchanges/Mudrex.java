@@ -556,7 +556,7 @@ public class Mudrex extends MudrexApi
                 continue;
             }
             Map<String, Object> m = this.safeMarket(sym, (Map<String, Object>) null, (String) null, (String) null);
-            String symbol = (String) m.get("symbol");
+            String symbol = this.safeString(m, "symbol", "");
             if (!java.util.Objects.equals(symbols, null) && !this.inArray(symbol, symbols))
             {
                 continue;
@@ -571,7 +571,7 @@ public class Mudrex extends MudrexApi
     {
         String ms = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         Double pct = this.safeNumber(ticker, "change_perc", (Object) null);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1116,7 +1116,7 @@ public class Mudrex extends MudrexApi
         }
         Long ts = this.parse8601(this.safeString(order, "created_at"));
         String status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        String sym = (String) marketResolved.get("symbol");
+        String sym = this.safeString(marketResolved, "symbol", "");
         HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
         mapLiteral5.put("info", order);
         mapLiteral5.put("id", oid);
@@ -1788,7 +1788,7 @@ public class Mudrex extends MudrexApi
         //
         String ms = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(ms, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         String side = this.safeStringLower(trade, "order_type");

@@ -5420,7 +5420,7 @@ public class Binance extends BinanceApi
             return null;
         }
         String contractType = this.safeString(market, "contractType");
-        Boolean contract = (((Map<?, ?>)market).containsKey("contractType"));
+        Boolean contract = (!java.util.Objects.equals(contractType, null));
         Long expiry = (Long) this.safeInteger2(market, "deliveryDate", "expiryDate");
         String settleId = this.safeString(market, "marginAsset");
         if ((java.util.Objects.equals(contractType, "PERPETUAL")) || ((expiry != null && expiry == 4133404800000L)))
@@ -6511,7 +6511,8 @@ public class Binance extends BinanceApi
         Object response = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "option", false)))
         {
-            response = (this.eapiPublicGetTicker(this.extend(request, parameters))).join();
+            List<Object> optionResponse = (this.eapiPublicGetTicker(this.extend(request, parameters))).join();
+            response = this.safeDict(optionResponse, 0, new HashMap<String, Object>() {{}});
         } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
         {
             response = (this.fapiPublicGetTicker24hr(this.extend(request, parameters))).join();
@@ -6536,11 +6537,6 @@ public class Binance extends BinanceApi
                     response = (this.publicGetTicker24hr(this.extend(request, paramsOmitted))).join();
                 }
             }
-        }
-        if ((response instanceof List))
-        {
-            Map<String, Object> firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseTicker(firstTicker, market);
         }
         if (java.util.Objects.equals(response, null))
         {
@@ -7843,7 +7839,7 @@ public class Binance extends BinanceApi
             boolean quoteOrderQty = Boolean.TRUE.equals(this.handleOption("createOrder", "quoteOrderQty", true));
             if (quoteOrderQty)
             {
-                Object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
+                String quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
                 Object precision = this.safeValue(market.get("precision"), "price");
                 if (!java.util.Objects.equals(quoteOrderQtyNew, null))
                 {
@@ -14092,8 +14088,8 @@ public class Binance extends BinanceApi
                 if (balances.containsKey(code))
                 {
                     HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                    j39v4.put("crossMargin", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                    j39v4.put("crossWalletBalance", this.safeValue((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                    j39v4.put("crossMargin", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
+                    j39v4.put("crossWalletBalance", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
                     Map<String, Object> parsed = this.parseAccountPosition((Map<String, Object>) (this.extend(position, j39v4)), market);
                     ((List<Object>)result).add(parsed);
                 }
@@ -16742,7 +16738,7 @@ public class Binance extends BinanceApi
                 }
             }
         }
-        return this.safeValue(config, "cost", 1);
+        return this.safeNumber(config, "cost", 1);
     }
 
     public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Map<String, Object> config)

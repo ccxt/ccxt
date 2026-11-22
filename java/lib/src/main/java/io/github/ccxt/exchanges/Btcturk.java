@@ -891,11 +891,11 @@ public class Btcturk extends BtcturkApi
             }
             int seconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"));
             Long limitCount = (((java.util.Objects.equals(limit, null)))) ? 100 : Math.min(limit, 11000);
-            Long limitSeconds = this.parseToInt((seconds * (limitCount - 1L)));
+            Long limitSeconds = (seconds * (limitCount - 1L));
             if (!java.util.Objects.equals(since, null))
             {
                 Long sinceSeconds = this.parseToInt((((double) since) / ((double) 1000)));
-                Long to = (Long) (sinceSeconds + limitSeconds);
+                Long to = (sinceSeconds + limitSeconds);
                 if ((untilSeconds != null && (to == null || to < untilSeconds)))
                 {
                     request.put("to", to);

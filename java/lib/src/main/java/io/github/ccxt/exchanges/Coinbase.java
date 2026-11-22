@@ -4492,12 +4492,14 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        Integer ordersLength = orders.size();
         String cursor = this.safeString(response, "cursor");
-        if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+        if (((ordersLength != null && ordersLength > 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
         {
+            Long lastIndex = (((long) ordersLength) - 1L);
             HashMap<String, Object> mapLiteral34 = new HashMap<String, Object>();
             mapLiteral34.put("cursor", cursor);
-            Helpers.addElementToObject(orders, 0, this.extend(this.safeDict(orders, 0, new HashMap<String, Object>() {{}}), mapLiteral34));
+            orders.set((int) (long) (lastIndex), this.extend(this.safeDict(orders, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral34));
         }
         return this.parseOrders(orders, market, since, java.util.Objects.requireNonNullElse(limit, 100L), new HashMap<String, Object>() {{}});
 
@@ -4583,12 +4585,14 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         List<Object> orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+        Integer ordersLength = orders.size();
         String cursor = this.safeString(response, "cursor");
-        if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+        if (((ordersLength != null && ordersLength > 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
         {
+            Long lastIndex = (((long) ordersLength) - 1L);
             HashMap<String, Object> mapLiteral35 = new HashMap<String, Object>();
             mapLiteral35.put("cursor", cursor);
-            Helpers.addElementToObject(orders, 0, this.extend(this.safeDict(orders, 0, new HashMap<String, Object>() {{}}), mapLiteral35));
+            orders.set((int) (long) (lastIndex), this.extend(this.safeDict(orders, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral35));
         }
         return this.parseOrders(orders, market, since, limitResolved, new HashMap<String, Object>() {{}});
 
@@ -4970,12 +4974,14 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         List<Object> trades = this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
+        Integer tradesLength = trades.size();
         String cursor = this.safeString(response, "cursor");
-        if ((!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+        if (((tradesLength != null && tradesLength > 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
         {
+            Long lastIndex = (((long) tradesLength) - 1L);
             HashMap<String, Object> mapLiteral36 = new HashMap<String, Object>();
             mapLiteral36.put("cursor", cursor);
-            Helpers.addElementToObject(trades, 0, this.extend(this.safeDict(trades, 0, new HashMap<String, Object>() {{}}), mapLiteral36));
+            trades.set((int) (long) (lastIndex), this.extend(this.safeDict(trades, lastIndex, new HashMap<String, Object>() {{}}), mapLiteral36));
         }
         return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 

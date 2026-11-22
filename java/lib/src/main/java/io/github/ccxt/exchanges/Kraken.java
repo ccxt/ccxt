@@ -1749,13 +1749,15 @@ public class Kraken extends KrakenApi
         String orderId = null;
         Map<String, Object> fee = null;
         String symbol = null;
-        Boolean isOrderTrade = (!(trade instanceof List)) && (!(trade instanceof String)) && (!java.util.Objects.equals(this.safeString(trade, "ordertxid"), null));
+        Boolean tradeIsList = (trade instanceof List);
+        Boolean tradeIsString = (trade instanceof String);
+        Boolean isOrderTrade = (!Boolean.TRUE.equals(tradeIsList)) && (!Boolean.TRUE.equals(tradeIsString)) && (!java.util.Objects.equals(this.safeString(trade, "ordertxid"), null));
         Object marketResolved = market;
         if (Boolean.TRUE.equals(isOrderTrade))
         {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, "pair"), market);
         }
-        if ((trade instanceof List))
+        if (Boolean.TRUE.equals(tradeIsList))
         {
             timestamp = this.safeTimestamp(trade, 2);
             side = (((java.util.Objects.equals(this.safeString(trade, 3), "s")))) ? "sell" : "buy";
@@ -1767,7 +1769,7 @@ public class Kraken extends KrakenApi
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
             }
-        } else if ((trade instanceof String))
+        } else if (Boolean.TRUE.equals(tradeIsString))
         {
             id = trade;
         } else if (Boolean.TRUE.equals(isOrderTrade))

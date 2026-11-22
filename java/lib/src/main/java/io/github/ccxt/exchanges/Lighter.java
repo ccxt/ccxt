@@ -3146,7 +3146,7 @@ public class Lighter extends LighterApi
         String strApiKeyIndex = this.numberToString(apiKeyIndex);
         Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsToAccountIndex)).join();
         Map<String, Object> currency = this.currency((String) (code));
-        String currencyCode = (String) currency.get("code");
+        String currencyCode = this.safeString(currency, "code", "");
         if ((!java.util.Objects.equals(currencyCode, "USDC")) && (!java.util.Objects.equals(currencyCode, "ETH")))
         {
             throw new ExchangeError((this.id + " transfer() only supports USDC and ETH transfers")) ;
@@ -3574,7 +3574,7 @@ public class Lighter extends LighterApi
         String strApiKeyIndex = this.numberToString(apiKeyIndex);
         Object signer = (this.loadAccount(this.safeInteger(this.options, "chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, paramsAccountIndex)).join();
         Map<String, Object> currency = this.currency((String) (code));
-        String currencyCode = (String) currency.get("code");
+        String currencyCode = this.safeString(currency, "code", "");
         if ((!java.util.Objects.equals(currencyCode, "USDC")) && (!java.util.Objects.equals(currencyCode, "ETH")))
         {
             throw new ExchangeError((this.id + " withdraw() only supports USDC and ETH transfers")) ;

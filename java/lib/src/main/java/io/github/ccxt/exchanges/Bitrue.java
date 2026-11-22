@@ -1985,8 +1985,7 @@ public class Bitrue extends BitrueApi
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell"; // this is a true side
         }
         Map<String, Object> fee = null;
-        String commission = this.safeString(trade, "commission");
-        if (!java.util.Objects.equals(commission, null))
+        if (((Map<?, ?>)trade).containsKey("commission"))
         {
             fee = new HashMap<String, Object>() {{
                 put( "cost", Bitrue.this.safeString2(trade, "commission", "fee") );
@@ -3214,10 +3213,10 @@ public class Bitrue extends BitrueApi
         String txid = this.safeString(transaction, "txid");
         Long timestamp = this.safeInteger(transaction, "createdAt");
         Long updated = this.safeInteger(transaction, "updatedAt");
-        String payAmount = this.safeString(transaction, "payAmount");
-        String ctime = this.safeString(transaction, "ctime");
+        Boolean payAmount = (transaction.containsKey("payAmount"));
+        Boolean ctime = (transaction.containsKey("ctime"));
         String type = "deposit";
-        if ((!java.util.Objects.equals(payAmount, null)) || (!java.util.Objects.equals(ctime, null)))
+        if (Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime))
         {
             type = "withdrawal";
         }

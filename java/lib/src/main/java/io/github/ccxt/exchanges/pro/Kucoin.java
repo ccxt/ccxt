@@ -1620,7 +1620,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> data = this.safeDict(message, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object trade = this.parseWsUtaTrade(data, market);
+        Map<String, Object> trade = this.parseWsUtaTrade(data, market);
         String symbol = this.safeString(trade, "symbol", "");
         String messageHash = ("uta:trades:" + symbol);
         if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
@@ -1634,7 +1634,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         client.resolve(cache, messageHash);
     }
 
-    public Object parseWsUtaTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsUtaTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // trades
         //     {
@@ -3014,7 +3014,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         Map<String, Object> data = this.safeDict(message, "d", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object trade = this.parseWsUtaTrade(data, market);
+        Map<String, Object> trade = this.parseWsUtaTrade(data, market);
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -1413,7 +1413,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 symbolOrInstId = "symbol";
             }
-            args.put(topicOrChannel, ((Boolean.TRUE.equals(uta))) ? "publicTrade" : "trade");
+            String tradeTopic = "trade";
+            if (Boolean.TRUE.equals(uta))
+            {
+                tradeTopic = "publicTrade";
+            }
+            args.put(topicOrChannel, tradeTopic);
             args.put(symbolOrInstId, market.get("id"));
             ((List<Object>)topics).add(args);
             messageHashes.add(("trade:" + symbol));
@@ -2056,7 +2061,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         if ((java.util.Objects.equals(productType, null)) && (!java.util.Objects.equals(type, "spot")) && (java.util.Objects.equals(symbolResolved, null)))
         {
-            messageHash = ((messageHash + ":") + subType);
+            if (!java.util.Objects.equals(subType, null))
+            {
+                messageHash = ((messageHash + ":") + subType);
+            }
         } else if (java.util.Objects.equals(productType, "USDT-FUTURES"))
         {
             messageHash = (messageHash + ":linear");
@@ -2078,7 +2086,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         if (java.util.Objects.equals(type, "spot") && (!java.util.Objects.equals(symbolResolved, null)))
         {
-            String resolvedSymbol = symbolResolved;
+            String resolvedSymbol = this.safeString(market, "symbol", "");
             subscriptionHash = ((subscriptionHash + ":") + resolvedSymbol);
         }
         if (java.util.Objects.equals(isTrigger, true))
@@ -2102,8 +2110,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (!java.util.Objects.equals(marginMode, null))
         {
             instType = "MARGIN";
-            String marginModeValue = marginMode;
-            messageHash = ((messageHash + ":") + marginModeValue);
+            messageHash = ((messageHash + ":") + marginMode);
             if (java.util.Objects.equals(marginMode, "isolated"))
             {
                 channel = "orders-isolated";
@@ -2491,7 +2498,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String marketId = this.safeString2(order, "instId", "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "cTime", "createdTime");
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String rawStatus = this.safeString2(order, "status", "orderStatus");
         List<Object> orderFee = this.safeList(order, "feeDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> fee = this.safeDict(orderFee, 0, null);
@@ -3564,12 +3571,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String instId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("unsubscribe:orderbook:" + this.safeString(market, "symbol", ""));
         String subMessageHash = ("orderbook:" + symbol);
         if (this.orderbooks.containsKey(symbol))
         {
-            this.orderbooks.remove(symbol);
+            this.orderbooks.remove((String)symbol);
         }
         if (client.subscriptions.containsKey(subMessageHash))
         {
@@ -3638,12 +3645,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         String instId = this.safeString2(arg, "instId", "symbol");
         Map<String, Object> market = this.safeMarket(instId, (Map<String, Object>) null, (String) null, type);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("unsubscribe:ticker:" + this.safeString(market, "symbol", ""));
         String subMessageHash = ("ticker:" + symbol);
         if (this.tickers.containsKey(symbol))
         {
-            this.tickers.remove(symbol);
+            this.tickers.remove((String)symbol);
         }
         if (client.subscriptions.containsKey(subMessageHash))
         {

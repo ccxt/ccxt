@@ -4047,6 +4047,15 @@ public class Whitebit extends WhitebitApi
         String currencyId = this.safeString(transaction, "ticker");
         String status = this.safeString(transaction, "status");
         String method = this.safeString(transaction, "method");
+        String addressFrom = null;
+        String addressTo = null;
+        if (java.util.Objects.equals(method, "1"))
+        {
+            addressFrom = address;
+        } else if (java.util.Objects.equals(method, "2"))
+        {
+            addressTo = address;
+        }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("id", this.safeString(transaction, "uniqueId"));
@@ -4054,9 +4063,9 @@ public class Whitebit extends WhitebitApi
             h2kMap2.put("timestamp", timestamp);
             h2kMap2.put("datetime", this.iso8601(timestamp));
             h2kMap2.put("network", this.networkIdToCode(this.safeString(transaction, "network"), this.safeCurrencyCode(currencyId, currencyResolved)));
-            h2kMap2.put("addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null);
+            h2kMap2.put("addressFrom", addressFrom);
             h2kMap2.put("address", address);
-            h2kMap2.put("addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null);
+            h2kMap2.put("addressTo", addressTo);
             h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
             h2kMap2.put("type", (((java.util.Objects.equals(method, "1")))) ? "deposit" : "withdrawal");
             h2kMap2.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));

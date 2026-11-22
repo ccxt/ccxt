@@ -1185,7 +1185,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String messageHash = "myTrades";
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         Map<String, Object> trade = this.parseWsTrade(message, market);
         if (java.util.Objects.equals(this.myTrades, null))
         {

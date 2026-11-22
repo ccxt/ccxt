@@ -1696,9 +1696,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             symbol = this.safeString(market, "symbol");
         }
         Map<String, Object> fee = null;
-        if (trade.containsKey("fees"))
+        List<Object> fees = this.safeList(trade, "fees", null);
+        if (!java.util.Objects.equals(fees, null))
         {
-            List<Object> fees = this.safeList(trade, "fees", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> firstFee = this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
             fee = new HashMap<String, Object>() {{
                 put( "cost", Kraken.this.safeNumber(firstFee, "qty", (Object) null) );

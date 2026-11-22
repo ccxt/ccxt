@@ -1029,7 +1029,7 @@ public class Bullish extends BullishApi
             spot = true;
             contract = false;
             margin = (Boolean) this.safeBool(market, "marginTradingEnabled", (Object) null);
-        } else
+        } else if (!java.util.Objects.equals(settle, null))
         {
             contractSize = this.safeNumber(market, "contractMultiplier", (Object) null);
             symbol = ((((base + "/") + quote) + ":") + settle);
@@ -1053,7 +1053,8 @@ public class Bullish extends BullishApi
                     option = true;
                     optionType = this.safeStringLower(market, "optionType");
                     strike = this.parseToNumeric(this.safeString(market, "optionStrikePrice"));
-                    symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + this.safeString(idParts, 4));
+                    String optionSide = this.safeString(idParts, 4, "");
+                    symbol = ((((((((((base + "/") + quote) + ":") + settle) + "-") + dateYmd) + "-") + this.numberToString(strike)) + "-") + optionSide);
                 }
             }
         }

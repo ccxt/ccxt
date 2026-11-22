@@ -2206,7 +2206,10 @@ public class Bitfinex extends BitfinexApi
          */
         Map<String, Object> market = this.market(symbol);
         String amountString = this.amountToPrecision(symbol, amount);
-        amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+        if (!java.util.Objects.equals(side, "buy"))
+        {
+            amountString = Precise.stringNeg(amountString);
+        }
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("amount", amountString);
@@ -4864,7 +4867,10 @@ public class Bitfinex extends BitfinexApi
         if (!java.util.Objects.equals(amount, null))
         {
             String amountString = this.amountToPrecision(symbol, amount);
-            amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : Precise.stringNeg(amountString);
+            if (!java.util.Objects.equals(side, "buy"))
+            {
+                amountString = Precise.stringNeg(amountString);
+            }
             request.put("amount", amountString);
         }
         String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");

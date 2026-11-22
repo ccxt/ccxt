@@ -2876,7 +2876,7 @@ public class Hyperliquid extends HyperliquidApi
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = this.market(marketId);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             String type = this.safeStringUpper(rawOrder, "type");
             String side = this.safeStringUpper(rawOrder, "side");
             String amount = this.safeString(rawOrder, "amount");
@@ -3420,7 +3420,7 @@ public class Hyperliquid extends HyperliquidApi
             String id = this.safeString(rawOrder, "id");
             String marketId = this.safeString(rawOrder, "symbol");
             Map<String, Object> market = this.market(marketId);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             String type = this.safeStringUpper(rawOrder, "type");
             Boolean isMarket = (java.util.Objects.equals(type, "MARKET"));
             String side = this.safeStringUpper(rawOrder, "side");

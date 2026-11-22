@@ -1710,7 +1710,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         return this.safeTrade(mapLiteral1, marketResolved);
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {
@@ -1794,7 +1794,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     public void handleMyTrade(Client client, Map<String, Object> message)
     {
-        Object trade = this.parseWsMyTrade(message, (Map<String, Object>) null);
+        Map<String, Object> trade = this.parseWsMyTrade(message, (Map<String, Object>) null);
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -116,7 +116,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = (("ORDER_BOOK" + ":") + symbolValue);
         String marketIdValue = this.safeString(market, "id", "");
         String endPart = null;
@@ -198,7 +198,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = (("TRADE" + ":") + symbolValue);
         List<Object> trades = (List<Object>) (this.watchPublic("trades", messageHash, (String) (market.get("id")))).join();
         Long limitResolved = limit;
@@ -245,7 +245,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         }
         for (var i = 0; i < trades.size(); i++)
         {
-            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             tradesCache.append(trade);
         }
         this.trades.put(symbol, tradesCache);
@@ -284,7 +284,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
+            String symbolValue = this.safeString(market, "symbol", "");
             messageHash = ((messageHash + ":") + symbolValue);
         }
         String wsUrl = this.safeString(this.urls.get("ws"), "private");
@@ -466,7 +466,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = (("TICKER" + ":") + symbolValue);
         return (this.watchPublic("tickers", messageHash, (String) (market.get("id")))).join();
 

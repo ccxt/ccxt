@@ -577,7 +577,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             orders = this.parseOrders(dataList, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         } else
         {
-            Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
             orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, (Map<String, Object>) null)));
         }
         Integer ordersLength = orders.size();
@@ -707,7 +707,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
             Map<String, Object> position = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-            if (java.util.Objects.equals(position.get("side"), null))
+            if (java.util.Objects.equals(this.safeString(position, "side"), null))
             {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position.put("side", "long");

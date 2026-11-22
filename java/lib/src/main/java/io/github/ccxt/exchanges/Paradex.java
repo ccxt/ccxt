@@ -914,7 +914,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> assetKinds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)types).size(); i++)
         {
-            Object marketType = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
+            String marketType = this.safeString(types, i, "");
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 assetKinds.put("PERP", true);
@@ -1172,11 +1172,11 @@ public class Paradex extends ParadexApi
         //
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         Integer partsLength = parts.size();
-        String base = null;
+        String base = "";
         String quote = "";
         String settle = null;
         String expiryDate = null;
-        String strike = null;
+        String strike = "";
         String optionType = "";
         if (((String)symbol).indexOf("/") > -1)
         {
@@ -1186,13 +1186,13 @@ public class Paradex extends ParadexApi
             }
             String pair = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
             List<Object> pairParts = new ArrayList<Object>(Arrays.asList(pair.split(java.util.regex.Pattern.quote("/"))));
-            base = this.safeString(pairParts, 0);
+            base = this.safeString(pairParts, 0, "");
             String quoteAndSettle = this.safeString(pairParts, 1, "");
             List<Object> quoteParts = new ArrayList<Object>(Arrays.asList(((String)quoteAndSettle).split(java.util.regex.Pattern.quote(":"))));
             quote = this.safeString(quoteParts, 0, "");
             settle = this.safeString(quoteParts, 1, quote);
             expiryDate = this.safeString(parts, 1);
-            strike = this.safeString(parts, 2);
+            strike = this.safeString(parts, 2, "");
             optionType = this.safeString(parts, 3, "");
         } else
         {
@@ -1200,7 +1200,7 @@ public class Paradex extends ParadexApi
             {
                 throw new BadSymbol(((this.id + " does not have market symbol ") + symbol)) ;
             }
-            base = this.safeString(parts, 0);
+            base = this.safeString(parts, 0, "");
             quote = this.safeString(parts, 1, "");
             settle = "USDC"; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate(this.safeString(parts, 2));
@@ -1222,14 +1222,12 @@ public class Paradex extends ParadexApi
         {
             active = false;
         }
-        String strikeInId = "";
-        if (!java.util.Objects.equals(strike, null))
-        {
-            strikeInId = (strike == null ? null : ((String)strike).replaceFirst(java.util.regex.Pattern.quote("."), "_"));
-        }
+        String strikeInId = (strike == null ? null : ((String)strike).replaceFirst(java.util.regex.Pattern.quote("."), "_"));
+        String idTail = ((("-" + strikeInId) + "-") + optionType);
+        String symbolTail = ((("-" + strike) + "-") + optionType);
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("id", ((((((((base + "-") + quote) + "-") + idDate) + "-") + strikeInId) + "-") + optionType));
-        mapLiteral2.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiryDate) + "-") + strike) + "-") + optionType));
+        mapLiteral2.put("id", (((((base + "-") + quote) + "-") + idDate) + idTail));
+        mapLiteral2.put("symbol", (((((((base + "/") + quote) + ":") + settle) + "-") + expiryDate) + symbolTail));
         mapLiteral2.put("base", base);
         mapLiteral2.put("quote", quote);
         mapLiteral2.put("settle", settle);
@@ -1489,7 +1487,7 @@ public class Paradex extends ParadexApi
         Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-        Boolean hasEnd = (((Map<?, ?>)requestUntil).containsKey("end_at"));
+        Boolean hasEnd = (!java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null));
         Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
         // exchange has undocumented limit slightly above, but 1000 is reliable limit
         Long limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
@@ -2023,11 +2021,14 @@ public class Paradex extends ParadexApi
         //     }
         //
         List<Object> trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
         {
-            Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
+            ((List<Object>)tagged).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
+                put( "next", Paradex.this.safeString(response, "next") );
+            }}));
         }
-        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTrades(tagged, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -2689,14 +2690,18 @@ public class Paradex extends ParadexApi
             throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
         }
         Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-        Map<String, Object> orderReq = new HashMap<String, Object>() {{
-            put( "timestamp", now );
-            put( "market", Paradex.this.stringToBase16(Paradex.this.safeString(request, "market")) );
-            put( "side", (((java.util.Objects.equals(Paradex.this.safeString(request, "side"), "BUY")))) ? "1" : "2" );
-            put( "orderType", Paradex.this.stringToBase16(Paradex.this.safeString(request, "type")) );
-            put( "size", Paradex.this.scaleNumber(Paradex.this.safeString(request, "size")) );
-            put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(Paradex.this.safeString(request, "price")) );
-        }};
+        String orderPrice = "0";
+        if (!Boolean.TRUE.equals(isMarket))
+        {
+            orderPrice = this.scaleNumber(this.safeString(request, "price"));
+        }
+        Map<String, Object> orderReq = new HashMap<String, Object>();
+        orderReq.put("timestamp", now);
+        orderReq.put("market", this.stringToBase16(this.safeString(request, "market")));
+        orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
+        orderReq.put("orderType", this.stringToBase16(this.safeString(request, "type")));
+        orderReq.put("size", this.scaleNumber(this.safeString(request, "size")));
+        orderReq.put("price", orderPrice);
         List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "name", "timestamp" );
     put( "type", "felt" );
@@ -3538,11 +3543,14 @@ public class Paradex extends ParadexApi
         //     }
         //
         List<Object> trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
         {
-            Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
+            ((List<Object>)tagged).add(this.extend((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), new HashMap<String, Object>() {{
+                put( "next", Paradex.this.safeString(response, "next") );
+            }}));
         }
-        return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTrades(tagged, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4060,11 +4068,14 @@ public class Paradex extends ParadexApi
         List<Object> rows = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the cursor pagination reads the next page cursor from the parsed entries
         String next = this.safeString(response, "next");
+        List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
+            ((List<Object>)tagged).add(this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
+                put( "next", next );
+            }}));
         }
-        return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
+        return this.parseTransfers(tagged, currency, since, limit, new HashMap<String, Object>() {{}});
 
     }
 
@@ -4853,11 +4864,14 @@ public class Paradex extends ParadexApi
         List<Object> results = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
         // the cursor pagination reads the next page cursor from the parsed entries
         String next = this.safeString(response, "next");
+        List<Object> tagged = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < results.size(); i++)
         {
-            Helpers.addElementToObject((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "next", next);
+            ((List<Object>)tagged).add(this.extend((results == null || i < 0 || i >= results.size() ? null : results.get(i)), new HashMap<String, Object>() {{
+                put( "next", next );
+            }}));
         }
-        return this.parseIncomes(results, market, since, limit);
+        return this.parseIncomes(tagged, market, since, limit);
 
     }
 
@@ -4966,7 +4980,7 @@ public class Paradex extends ParadexApi
             // rows and skip since, the range is cut to one page of rows from since
             Object windowEnd = this.sum(since, (pageSize * rowSpacing));
             Object endAt = this.safeInteger(requestUntil, "end_at", windowEnd);
-            if (!(((Map<?, ?>)requestUntil).containsKey("end_at")) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endAt, windowEnd)))
+            if ((java.util.Objects.equals(this.safeInteger(requestUntil, "end_at"), null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(endAt, windowEnd)))
             {
                 requestUntil.put("end_at", windowEnd);
             }

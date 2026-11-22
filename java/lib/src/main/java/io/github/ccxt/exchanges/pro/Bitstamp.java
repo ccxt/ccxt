@@ -719,12 +719,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Object trade = this.parseWsMyTrade(data, market);
+        Map<String, Object> trade = this.parseWsMyTrade(data, market);
         stored.append(trade);
         client.resolve(stored, channel);
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //     {

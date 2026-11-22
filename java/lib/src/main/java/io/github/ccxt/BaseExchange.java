@@ -6027,7 +6027,7 @@ public Map<String, Object> describe()
     public void afterConstruct(Map<String, Object> userConfig)
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
-        Object networkIdsToCodesGenerated = this.invertFlatStringDictionary((Map<String, Object>) (this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}})));
+        Map<String, Object> networkIdsToCodesGenerated = this.invertFlatStringDictionary((Map<String, Object>) (this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}})));
         this.options.put("networksById", BaseExchange.this.extend(networkIdsToCodesGenerated, this.safeDict(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         this.hasAutocorrect();
@@ -6152,7 +6152,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object featuresMapper(Map<String, Object> initialFeatures, String marketType, String subType)
+    public Map<String, Object> featuresMapper(Map<String, Object> initialFeatures, String marketType, String subType)
     {
         Map<String, Object> featuresObj = this.safeDict(initialFeatures, marketType, null);
         if (!java.util.Objects.equals(subType, null))
@@ -6163,7 +6163,7 @@ public Map<String, Object> describe()
         if (!java.util.Objects.equals(extendsStr, null))
         {
             featuresObj = this.omit(featuresObj, "extends");
-            Object extendObj = this.featuresMapper(initialFeatures, extendsStr, (String) null);
+            Map<String, Object> extendObj = this.featuresMapper(initialFeatures, extendsStr, (String) null);
             featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         // if exchange does not have that market-type (eg. future>inverse)
@@ -6355,7 +6355,7 @@ public Map<String, Object> describe()
         }};
     }
 
-    public Object safeLedgerEntry(Object entry, Map<String, Object> currency)
+    public Map<String, Object> safeLedgerEntry(Object entry, Map<String, Object> currency)
     {
         Map<String, Object> currencyResolved = this.safeCurrency((String) (null), currency);
         String direction = this.safeString(entry, "direction");
@@ -7304,7 +7304,7 @@ public Map<String, Object> describe()
         return this.calculateFeeWithRate(symbol, type, side, amount, price, java.util.Objects.requireNonNullElse(takerOrMaker, "taker"), (Object) null, parameters);
     }
 
-    public Object safeLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
+    public Map<String, Object> safeLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
     {
         String contracts = this.safeString(liquidation, "contracts");
         String contractSize = this.safeString(market, "contractSize");
@@ -7488,7 +7488,7 @@ public Map<String, Object> describe()
         return result;
     }
 
-    public Object invertFlatStringDictionary(Map<String, Object> dict)
+    public Map<String, Object> invertFlatStringDictionary(Map<String, Object> dict)
     {
         Map<String, Object> reversed = new HashMap<String, Object>() {{}};
         List<String> keys = new ArrayList<String>(dict.keySet());
@@ -8313,7 +8313,7 @@ public Map<String, Object> describe()
         }});
     }
 
-    public Object parseOrderBookL3(Object orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
+    public Map<String, Object> parseOrderBookL3(Object orderbook, String symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
         List<Object> bids = (List<Object>) this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         List<Object> asks = (List<Object>) this.parseOrderBookBidsAsksL3(this.safeValue(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
@@ -10072,7 +10072,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object setTakeProfitAndStopLossParams(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
+    public Map<String, Object> setTakeProfitAndStopLossParams(String symbol, String type, String side, Object amount, Object price, Object takeProfit, Object stopLoss, Map<String, Object> parameters)
     {
         if ((java.util.Objects.equals(takeProfit, null)) && (java.util.Objects.equals(stopLoss, null)))
         {
@@ -10907,7 +10907,7 @@ public Map<String, Object> describe()
         return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })), false);
     }
 
-    public Object parseIsolatedBorrowRates(Object info)
+    public Map<String, Object> parseIsolatedBorrowRates(Object info)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)info).size(); i++)
@@ -11479,7 +11479,7 @@ public Map<String, Object> describe()
         }};
     }
 
-    public Object assignDefaultDepositWithdrawFees(Map<String, Object> fee, Map<String, Object> currency)
+    public Map<String, Object> assignDefaultDepositWithdrawFees(Map<String, Object> fee, Map<String, Object> currency)
     {
         /**
          * @ignore
@@ -11623,7 +11623,7 @@ public Map<String, Object> describe()
         return this.toArray(this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true)));
     }
 
-    public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
+    public Map<String, Object> createOHLCVObject(Object symbol, Object timeframe, Object data)
     {
         Map<String, Object> res = new HashMap<String, Object>() {{}};
         Map<String, Object> inner = new HashMap<String, Object>() {{}};
@@ -12171,7 +12171,7 @@ public Map<String, Object> describe()
         return values;
     }
 
-    public Object removeKeysFromDict(Map<String, Object> dict, Object removeKeys)
+    public Map<String, Object> removeKeysFromDict(Map<String, Object> dict, Object removeKeys)
     {
         List<String> keys = new ArrayList<String>(dict.keySet());
         Map<String, Object> newDict = new HashMap<String, Object>() {{}};
@@ -12279,7 +12279,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseOption () is not supported yet")) ;
     }
 
-    public Object parseOptionChain(Object response, String currencyKey, String symbolKey)
+    public Map<String, Object> parseOptionChain(Object response, String currencyKey, String symbolKey)
     {
         Map<String, Object> optionStructures = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
@@ -12293,7 +12293,7 @@ public Map<String, Object> describe()
         return optionStructures;
     }
 
-    public Object parseMarginModes(Object response, List<String> symbols, String symbolKey, String marketType)
+    public Map<String, Object> parseMarginModes(Object response, List<String> symbols, String symbolKey, String marketType)
     {
         Map<String, Object> marginModeStructures = new HashMap<String, Object>() {{}};
         String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap
@@ -12315,7 +12315,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseMarginMode () is not supported yet")) ;
     }
 
-    public Object parseLeverages(Object response, List<String> symbols, String symbolKey, String marketType)
+    public Map<String, Object> parseLeverages(Object response, List<String> symbols, String symbolKey, String marketType)
     {
         Map<String, Object> leverageStructures = new HashMap<String, Object>() {{}};
         String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? "swap" : marketType; // default to swap

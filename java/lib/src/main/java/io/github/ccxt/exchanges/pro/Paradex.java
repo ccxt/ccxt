@@ -628,7 +628,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<Object> subscribeHashes = this.safeList(subscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < subscribeHashes.size(); j++)
         {
-            Object subscribeHash = ((String)(subscribeHashes == null || j < 0 || j >= subscribeHashes.size() ? null : subscribeHashes.get(j)));
+            String subscribeHash = this.safeString(subscribeHashes, j, "");
             if (client.subscriptions.containsKey(subscribeHash))
             {
                 client.subscriptions.remove((String)subscribeHash);
@@ -844,7 +844,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
 
     }
 
-    public Object parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
+    public Map<String, Object> parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
     {
         //
         //     {
@@ -913,7 +913,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
-            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(data, (Map<String, Object>) null);
+            Map<String, Object> liquidation = this.parseWsLiquidation(data, (Map<String, Object>) null);
             Map<String, Object> caches = this.safeDict(this.options, "liquidationsBySymbol", new HashMap<String, Object>() {{}});
             Object liquidations = this.safeValue(caches, symbol);
             if (java.util.Objects.equals(liquidations, null))
@@ -1368,9 +1368,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 List<String> subscribeHashes = new ArrayList<String>(client.subscriptions.keySet());
                 for (var i = 0; i < subscribeHashes.size(); i++)
                 {
-                    if ((java.util.Objects.equals((subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i)), scopedHash)) || ((((String)(subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i))).indexOf((channel + ".")) == 0)))
+                    String subscribeHash = this.safeString(subscribeHashes, i, "");
+                    if ((java.util.Objects.equals(subscribeHash, scopedHash)) || ((((String)subscribeHash).indexOf((channel + ".")) == 0)))
                     {
-                        client.subscriptions.remove((String)(subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i)));
+                        client.subscriptions.remove((String)subscribeHash);
                     }
                 }
                 Map<String, Object> unsubscribe = this.unsubscribeRequest(channel);
@@ -1479,7 +1480,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<String> keys = new ArrayList<String>(client.subscriptions.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
-            if (((((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf((channel + ".")) == 0)) && !this.inArray((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), subscribeHashes))
+            String key = this.safeString(keys, i, "");
+            if (((((String)key).indexOf((channel + ".")) == 0)) && !this.inArray(key, subscribeHashes))
             {
                 othersRemain = true;
             }
@@ -1597,7 +1599,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
         // it rejects the watchers of those markets only
         Map<String, Object> subscription = new HashMap<String, Object>();
-        subscription.put("id", request.get("id"));
+        subscription.put("id", this.safeInteger(request, "id"));
         subscription.put("messageHashes", missingHashes);
         return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscribeHashes, subscription)).join();
 

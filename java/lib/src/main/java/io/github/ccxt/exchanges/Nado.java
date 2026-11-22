@@ -2105,38 +2105,38 @@ public class Nado extends NadoApi
             Double priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             Double amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             Double minCost = this.parseX18(this.safeString(market, "min_size"));
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", id);
-            j39v1.put("lowercaseId", null);
-            j39v1.put("symbol", symbol);
-            j39v1.put("base", base);
-            j39v1.put("quote", quote);
-            j39v1.put("settle", settle);
-            j39v1.put("baseId", baseId);
-            j39v1.put("quoteId", quoteId);
-            j39v1.put("settleId", settleId);
-            j39v1.put("type", type);
-            j39v1.put("spot", (java.util.Objects.equals(type, "spot")));
-            j39v1.put("margin", null);
-            j39v1.put("swap", contract);
-            j39v1.put("future", false);
-            j39v1.put("option", false);
-            j39v1.put("active", active);
-            j39v1.put("contract", contract);
-            j39v1.put("linear", ((Boolean.TRUE.equals(contract))) ? true : null);
-            j39v1.put("inverse", ((Boolean.TRUE.equals(contract))) ? false : null);
-            j39v1.put("taker", this.parseX18(this.safeString(market, "taker_fee_rate_x18")));
-            j39v1.put("maker", this.parseX18(this.safeString(market, "maker_fee_rate_x18")));
-            j39v1.put("contractSize", ((Boolean.TRUE.equals(contract))) ? 1 : null);
-            j39v1.put("expiry", null);
-            j39v1.put("expiryDatetime", null);
-            j39v1.put("strike", null);
-            j39v1.put("optionType", null);
-            j39v1.put("precision", new HashMap<String, Object>() {{
+            Map<String, Object> marketEntry = new HashMap<String, Object>();
+            marketEntry.put("id", id);
+            marketEntry.put("lowercaseId", null);
+            marketEntry.put("symbol", symbol);
+            marketEntry.put("base", base);
+            marketEntry.put("quote", quote);
+            marketEntry.put("settle", settle);
+            marketEntry.put("baseId", baseId);
+            marketEntry.put("quoteId", quoteId);
+            marketEntry.put("settleId", settleId);
+            marketEntry.put("type", type);
+            marketEntry.put("spot", (java.util.Objects.equals(type, "spot")));
+            marketEntry.put("margin", null);
+            marketEntry.put("swap", contract);
+            marketEntry.put("future", false);
+            marketEntry.put("option", false);
+            marketEntry.put("active", active);
+            marketEntry.put("contract", contract);
+            marketEntry.put("linear", null);
+            marketEntry.put("inverse", null);
+            marketEntry.put("taker", this.parseX18(this.safeString(market, "taker_fee_rate_x18")));
+            marketEntry.put("maker", this.parseX18(this.safeString(market, "maker_fee_rate_x18")));
+            marketEntry.put("contractSize", null);
+            marketEntry.put("expiry", null);
+            marketEntry.put("expiryDatetime", null);
+            marketEntry.put("strike", null);
+            marketEntry.put("optionType", null);
+            marketEntry.put("precision", new HashMap<String, Object>() {{
                     put( "amount", amountIncrement );
                     put( "price", priceIncrement );
                 }});
-            j39v1.put("limits", new HashMap<String, Object>() {{
+            marketEntry.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -2154,14 +2154,20 @@ public class Nado extends NadoApi
                         put( "max", null );
                     }} );
                 }});
-            j39v1.put("created", null);
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("ticker_id", tickerId);
-            j39v2.put("name", this.safeString(asset, "name"));
-            j39v2.put("v2Pair", pair);
-            j39v2.put("v2Asset", asset);
-            j39v1.put("info", this.extend(market, j39v2));
-            ((List<Object>)markets).add(this.safeMarketStructure(j39v1));
+            marketEntry.put("created", null);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("ticker_id", tickerId);
+            mapLiteral2.put("name", this.safeString(asset, "name"));
+            mapLiteral2.put("v2Pair", pair);
+            mapLiteral2.put("v2Asset", asset);
+            marketEntry.put("info", this.extend(market, mapLiteral2));
+            if (Boolean.TRUE.equals(contract))
+            {
+                marketEntry.put("linear", true);
+                marketEntry.put("inverse", false);
+                marketEntry.put("contractSize", 1);
+            }
+            ((List<Object>)markets).add(this.safeMarketStructure(marketEntry));
         }
         return markets;
 
@@ -2871,21 +2877,21 @@ public class Nado extends NadoApi
                 parsedCost = absoluteCost;
             }
         }
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("info", trade);
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("symbol", marketResolved.get("symbol"));
-        mapLiteral2.put("id", this.safeString2(trade, "trade_id", "submission_idx"));
-        mapLiteral2.put("order", this.safeString(trade, "digest"));
-        mapLiteral2.put("type", null);
-        mapLiteral2.put("side", side);
-        mapLiteral2.put("takerOrMaker", takerOrMaker);
-        mapLiteral2.put("price", price);
-        mapLiteral2.put("amount", parsedAmount);
-        mapLiteral2.put("cost", parsedCost);
-        mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("id", this.safeString2(trade, "trade_id", "submission_idx"));
+        mapLiteral3.put("order", this.safeString(trade, "digest"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", parsedAmount);
+        mapLiteral3.put("cost", parsedCost);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -3227,32 +3233,32 @@ public class Nado extends NadoApi
                 notional = this.parseNumber(Precise.stringDiv(notionalX36, "1000000000000000000000000000000000000"));
             }
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", position);
-        mapLiteral3.put("id", null);
-        mapLiteral3.put("symbol", marketResolved.get("symbol"));
-        mapLiteral3.put("timestamp", null);
-        mapLiteral3.put("datetime", null);
-        mapLiteral3.put("isolated", null);
-        mapLiteral3.put("hedged", false);
-        mapLiteral3.put("side", side);
-        mapLiteral3.put("contracts", contracts);
-        mapLiteral3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
-        mapLiteral3.put("entryPrice", entryPrice);
-        mapLiteral3.put("markPrice", markPrice);
-        mapLiteral3.put("notional", notional);
-        mapLiteral3.put("leverage", null);
-        mapLiteral3.put("collateral", null);
-        mapLiteral3.put("initialMargin", null);
-        mapLiteral3.put("initialMarginPercentage", null);
-        mapLiteral3.put("maintenanceMargin", null);
-        mapLiteral3.put("maintenanceMarginPercentage", null);
-        mapLiteral3.put("unrealizedPnl", null);
-        mapLiteral3.put("liquidationPrice", null);
-        mapLiteral3.put("marginMode", null);
-        mapLiteral3.put("marginRatio", null);
-        mapLiteral3.put("percentage", null);
-        return this.safePosition(mapLiteral3);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", null);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("timestamp", null);
+        mapLiteral4.put("datetime", null);
+        mapLiteral4.put("isolated", null);
+        mapLiteral4.put("hedged", false);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("contracts", contracts);
+        mapLiteral4.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral4.put("entryPrice", entryPrice);
+        mapLiteral4.put("markPrice", markPrice);
+        mapLiteral4.put("notional", notional);
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("initialMargin", null);
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("maintenanceMargin", null);
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("unrealizedPnl", null);
+        mapLiteral4.put("liquidationPrice", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("percentage", null);
+        return this.safePosition(mapLiteral4);
     }
 
     public Boolean isArchiveOrderClosed(Map<String, Object> order)
@@ -3462,31 +3468,31 @@ public class Nado extends NadoApi
             }
             price = this.parseX18(this.safeString(rawOrder, "priceX18"));
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("info", order);
-        mapLiteral4.put("id", id);
-        mapLiteral4.put("clientOrderId", null);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("lastTradeTimestamp", lastTradeTimestamp);
-        mapLiteral4.put("lastUpdateTimestamp", lastUpdateTimestamp);
-        mapLiteral4.put("symbol", marketResolved.get("symbol"));
-        mapLiteral4.put("type", "limit");
-        mapLiteral4.put("timeInForce", timeInForce);
-        mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("side", side);
-        mapLiteral4.put("price", price);
-        mapLiteral4.put("stopPrice", null);
-        mapLiteral4.put("triggerPrice", null);
-        mapLiteral4.put("amount", amount);
-        mapLiteral4.put("cost", cost);
-        mapLiteral4.put("average", average);
-        mapLiteral4.put("filled", filled);
-        mapLiteral4.put("remaining", remaining);
-        mapLiteral4.put("status", status);
-        mapLiteral4.put("fee", fee);
-        mapLiteral4.put("trades", null);
-        return this.safeOrder(mapLiteral4, marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", "limit");
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("stopPrice", null);
+        mapLiteral5.put("triggerPrice", null);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseOrderTimeInForce(String timeInForce)

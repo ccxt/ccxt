@@ -1872,7 +1872,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; i < trades.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
-            Object parsedTrade = this.parseWsMyTrade(trade, (Map<String, Object>) null);
+            Map<String, Object> parsedTrade = this.parseWsMyTrade(trade, (Map<String, Object>) null);
             String tradeSymbol = this.safeString(parsedTrade, "symbol");
             if (!java.util.Objects.equals(tradeSymbol, null))
             {
@@ -1890,7 +1890,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         client.resolve(stored, "myTrades");
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {

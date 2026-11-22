@@ -1720,7 +1720,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 throw new OrderNotFound(((((this.id + " cancelOrders() failed for ") + this.safeString(requestIds, i, this.safeString(requestIds, 0))) + ": ") + error)) ;
             }
-            Boolean success = (java.util.Objects.equals(status, "success")) || (java.util.Objects.equals(this.safeString(status, "status"), "success"));
+            Boolean success = (java.util.Objects.equals(this.safeString(statuses, i), "success")) || (java.util.Objects.equals(this.safeString(status, "status"), "success"));
             if (!Boolean.TRUE.equals(success))
             {
                 throw new ExchangeError(((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;

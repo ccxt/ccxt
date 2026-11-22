@@ -1712,7 +1712,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol", "");
         String eventVar = this.safeString(data, "e", "");
         Object parsed = null;
         if (((((String)eventVar).indexOf("rfq") == 0)) || ((((String)eventVar).indexOf("quote") == 0)))
@@ -2156,7 +2156,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String id = this.safeString(position, "i");
         String marketId = this.safeString(position, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String notional = this.safeString(position, "n");
         String liquidationPrice = this.safeString(position, "l");
         String entryPrice = this.safeString(position, "b");

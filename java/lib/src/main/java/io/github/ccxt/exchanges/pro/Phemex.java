@@ -378,7 +378,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
         Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
         String messageHash = "perpetual:balance";
-        if (!Boolean.TRUE.equals(usePerpetualApi))
+        if (!Boolean.TRUE.equals(usePerpetualApi) && (!java.util.Objects.equals(type, null)))
         {
             messageHash = (type + ":balance");
         }
@@ -605,7 +605,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         Boolean isSwap = (Boolean) market.get("swap");
         Boolean settleIsUSDT = java.util.Objects.equals(market.get("settle"), "USDT");
         String name = "spot_market24h";
@@ -716,7 +716,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -771,7 +771,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -822,7 +822,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         Long requestId = this.requestId();
         Boolean isSwap = (Boolean) market.get("swap");
@@ -1136,7 +1136,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(settle, "USDT"))
             {
                 messageHash = "trades:perpetual";
-            } else
+            } else if (!java.util.Objects.equals(type, null))
             {
                 messageHash = ("trades:" + type);
             }
@@ -1337,7 +1337,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (Boolean.TRUE.equals(isUSDTSettled))
             {
                 messageHash = "orders:perpetual";
-            } else
+            } else if (!java.util.Objects.equals(type, null))
             {
                 messageHash = ("orders:" + type);
             }

@@ -889,6 +889,14 @@ public class Blofin extends BlofinApi
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize", (Object) null);
         Double maxSpotCost = this.safeNumber(market, "maxMarketSize", (Object) null); // for spot, market-buy size is denominated in the quote currency, i.e. cost
+        Map<String, Object> costLimits = new HashMap<String, Object>() {{
+            put( "min", null );
+            put( "max", maxSpotCost );
+        }};
+        if (Boolean.TRUE.equals(contract))
+        {
+            costLimits.put("max", null);
+        }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", id);
         mapLiteral1.put("symbol", symbol);
@@ -933,10 +941,7 @@ public class Blofin extends BlofinApi
                     put( "min", null );
                     put( "max", null );
                 }});
-        mapLiteral2.put("cost", new HashMap<String, Object>() {{
-                    put( "min", null );
-                    put( "max", ((Boolean.TRUE.equals(contract))) ? null : maxSpotCost );
-                }});
+        mapLiteral2.put("cost", costLimits);
         mapLiteral1.put("limits", mapLiteral2);
         mapLiteral1.put("info", market);
         return this.safeMarketStructure(mapLiteral1);
@@ -3723,7 +3728,7 @@ public class Blofin extends BlofinApi
         //
         String marketId = this.safeString(position, "instId");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol", "");
         String pos = this.safeString(position, "positions");
         String contractsAbs = Precise.stringAbs(pos);
         String side = this.safeString(position, "positionSide");

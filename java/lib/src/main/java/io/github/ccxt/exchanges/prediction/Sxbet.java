@@ -421,23 +421,27 @@ public class Sxbet extends SxbetApi
             gameTime = this.safeTimestamp(raw, "gameTime");
         }
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(outcomeOneName, outcomeTwoName));
-        List<String> outcomeIds = new ArrayList<String>(Arrays.asList(marketHash, (marketHash + "-2")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
             String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
-            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
-            j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
-            j39v1.put("outcome", outcomeHandle);
-            j39v1.put("market", marketSymbol);
-            j39v1.put("label", label);
-            j39v1.put("active", active);
-            j39v1.put("winner", null);
-            j39v1.put("settleFraction", null);
-            j39v1.put("info", raw);
-            ((List<Object>)outcomes).add(j39v1);
+            String outcomeSuffix = "";
+            if (oi > 0)
+            {
+                outcomeSuffix = "-2";
+            }
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", (marketHash + outcomeSuffix));
+            mapLiteral1.put("outcomeId", (marketHash + outcomeSuffix));
+            mapLiteral1.put("outcome", outcomeHandle);
+            mapLiteral1.put("market", marketSymbol);
+            mapLiteral1.put("label", label);
+            mapLiteral1.put("active", active);
+            mapLiteral1.put("winner", null);
+            mapLiteral1.put("settleFraction", null);
+            mapLiteral1.put("info", raw);
+            ((List<Object>)outcomes).add(mapLiteral1);
         }
         {
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
@@ -542,22 +546,22 @@ public class Sxbet extends SxbetApi
         List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(eventId, null))
         {
-            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
-            mapLiteral1.put("sportXeventId", eventId);
-            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral1, rest), (Long) null)).join();
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("sportXeventId", eventId);
+            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral2, rest), (Long) null)).join();
             // the venue's sportXeventId filter on /markets/active is unreliable (observed live
             // returning every fixture) — enforce the scope client-side
             rawMarkets = this.filterRawMarketsByFixture(rawMarkets, (String) (eventId));
         } else if (!java.util.Objects.equals(leagueId, null))
         {
-            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-            mapLiteral2.put("leagueId", leagueId);
-            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral2, rest), (Long) null)).join();
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("leagueId", leagueId);
+            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral3, rest), (Long) null)).join();
         } else if (!java.util.Objects.equals(sportId, null))
         {
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("sportId", sportId);
-            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral3, rest), (Long) null)).join();
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("sportId", sportId);
+            rawMarkets = (this.fetchRawMarketsPaged(this.extend(mapLiteral4, rest), (Long) null)).join();
         } else
         {
             // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
@@ -611,7 +615,8 @@ public class Sxbet extends SxbetApi
             for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
             {
                 Object m = (evMarkets == null || j < 0 || j >= evMarkets.size() ? null : evMarkets.get(j));
-                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(Helpers.GetValue(m, "market"), m);
+                String marketKey = this.safeString(m, "market", "");
+                ((Map<Object, Object>) (Map<?, ?>) this.markets).put(marketKey, m);
             }
             ((List<Object>)result).add(eventVar);
         }
@@ -738,9 +743,9 @@ public class Sxbet extends SxbetApi
                 earliestGameTime = gameTime;
             }
         }
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("gameTime", earliestGameTime);
-        Long end = this.safeTimestamp(mapLiteral4, "gameTime");
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("gameTime", earliestGameTime);
+        Long end = this.safeTimestamp(mapLiteral5, "gameTime");
         // some fixtures carry no team names on their market rows - fall back to the fixture id
         // so the unified event handle is never empty or built from stringified nulls
         String title = null;
@@ -1005,10 +1010,10 @@ public class Sxbet extends SxbetApi
         }
         String owner = this.walletAddress;
         String nonceCallData = ("0x7ecebe00" + this.padHexAddress(owner)); // nonces(address)
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("to", tokenAddress);
-        mapLiteral5.put("data", nonceCallData);
-        Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral5, "latest")))).join();
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("to", tokenAddress);
+        mapLiteral6.put("data", nonceCallData);
+        Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral6, "latest")))).join();
         String nonceHex = this.hexToRlpBytes((String) (nonceResult));
         String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt(nonceHex));
         String tokenName = (this.fetchErc20Name((String) (rpcUrl), tokenAddress)).join();
@@ -1284,28 +1289,28 @@ public class Sxbet extends SxbetApi
             }
         }
         Long now = this.milliseconds();
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("id", this.safeString2(first, "orderId", "orderHash"));
-        mapLiteral6.put("clientOrderId", this.safeString(first, "clientOrderId", clientOrderId));
-        mapLiteral6.put("info", response);
-        mapLiteral6.put("timestamp", now);
-        mapLiteral6.put("datetime", this.iso8601(now));
-        mapLiteral6.put("status", orderStatus);
-        mapLiteral6.put("filled", filled);
-        mapLiteral6.put("remaining", remaining);
-        mapLiteral6.put("cost", filled);
-        mapLiteral6.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral6.put("outcomeId", outcomeId);
-        mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("timeInForce", timeInForce);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("price", this.parseNumber(roundedProbability));
-        mapLiteral6.put("amount", amount);
-        mapLiteral6.put("fee", null);
-        mapLiteral6.put("trades", new ArrayList<Object>(Arrays.asList()));
-        return this.safePredictionOrder(mapLiteral6, ((Object)outcomeObj));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("id", this.safeString2(first, "orderId", "orderHash"));
+        mapLiteral7.put("clientOrderId", this.safeString(first, "clientOrderId", clientOrderId));
+        mapLiteral7.put("info", response);
+        mapLiteral7.put("timestamp", now);
+        mapLiteral7.put("datetime", this.iso8601(now));
+        mapLiteral7.put("status", orderStatus);
+        mapLiteral7.put("filled", filled);
+        mapLiteral7.put("remaining", remaining);
+        mapLiteral7.put("cost", filled);
+        mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral7.put("outcomeId", outcomeId);
+        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("timeInForce", timeInForce);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("price", this.parseNumber(roundedProbability));
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("fee", null);
+        mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral7, ((Object)outcomeObj));
 
     }
 
@@ -1327,32 +1332,32 @@ public class Sxbet extends SxbetApi
         Integer cancelledLength = cancelled.size();
         for (var i = 0; (cancelledLength != null && i < cancelledLength); i++)
         {
-            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
-            j39v2.put("id", this.safeString((cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i)), "orderId"));
-            j39v2.put("status", "canceled");
-            j39v2.put("info", response);
-            ((List<Object>)result).add(this.safePredictionOrder(j39v2, (Object) null));
+            HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+            j39v1.put("id", this.safeString((cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i)), "orderId"));
+            j39v1.put("status", "canceled");
+            j39v1.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v1, (Object) null));
         }
         List<Object> notCancelled = this.safeList(data, "notCancelled", new ArrayList<Object>(Arrays.asList()));
         Integer notCancelledLength = notCancelled.size();
         for (var i = 0; (notCancelledLength != null && i < notCancelledLength); i++)
         {
             // the venue reports why (e.g. NOT_FOUND) - the order was not cancelled, report it honestly
-            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
-            j39v3.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
-            j39v3.put("status", null);
-            j39v3.put("info", response);
-            ((List<Object>)result).add(this.safePredictionOrder(j39v3, (Object) null));
+            HashMap<String, Object> j39v2 = new HashMap<String, Object>();
+            j39v2.put("id", this.safeString((notCancelled == null || i < 0 || i >= notCancelled.size() ? null : notCancelled.get(i)), "orderId"));
+            j39v2.put("status", null);
+            j39v2.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v2, (Object) null));
         }
         List<Object> unconfirmed = this.safeList(data, "unconfirmed", new ArrayList<Object>(Arrays.asList()));
         Integer unconfirmedLength = unconfirmed.size();
         for (var i = 0; (unconfirmedLength != null && i < unconfirmedLength); i++)
         {
-            HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-            j39v4.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
-            j39v4.put("status", null);
-            j39v4.put("info", response);
-            ((List<Object>)result).add(this.safePredictionOrder(j39v4, (Object) null));
+            HashMap<String, Object> j39v3 = new HashMap<String, Object>();
+            j39v3.put("id", this.safeString((unconfirmed == null || i < 0 || i >= unconfirmed.size() ? null : unconfirmed.get(i)), "orderId"));
+            j39v3.put("status", null);
+            j39v3.put("info", response);
+            ((List<Object>)result).add(this.safePredictionOrder(j39v3, (Object) null));
         }
         return result;
     }
@@ -1434,9 +1439,9 @@ public class Sxbet extends SxbetApi
             Integer chunkIdsLength = (chunkIds == null ? 0 : chunkIds.size());
             for (var i = 0; (chunkIdsLength != null && i < chunkIdsLength); i++)
             {
-                HashMap<String, Object> j39v5 = new HashMap<String, Object>();
-                j39v5.put("orderId", (chunkIds == null || i < 0 || i >= chunkIds.size() ? null : chunkIds.get(i)));
-                ((List<Object>)orderItems).add(j39v5);
+                HashMap<String, Object> j39v4 = new HashMap<String, Object>();
+                j39v4.put("orderId", (chunkIds == null || i < 0 || i >= chunkIds.size() ? null : chunkIds.get(i)));
+                ((List<Object>)orderItems).add(j39v4);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orders", orderItems );
@@ -1580,32 +1585,32 @@ public class Sxbet extends SxbetApi
             }
         }
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("id", orderId);
-        mapLiteral7.put("clientOrderId", this.safeString(order, "clientOrderId"));
-        mapLiteral7.put("timestamp", timestamp);
-        mapLiteral7.put("datetime", this.iso8601(timestamp));
-        mapLiteral7.put("lastTradeTimestamp", this.parse8601(this.safeString(order, "updatedAt")));
-        mapLiteral7.put("status", status);
-        mapLiteral7.put("type", "limit");
-        mapLiteral7.put("timeInForce", null);
-        mapLiteral7.put("side", "buy");
-        mapLiteral7.put("price", price);
-        mapLiteral7.put("average", null);
-        mapLiteral7.put("amount", amount);
-        mapLiteral7.put("filled", filled);
-        mapLiteral7.put("remaining", remaining);
-        mapLiteral7.put("cost", null);
-        mapLiteral7.put("fee", null);
-        mapLiteral7.put("reduceOnly", null);
-        mapLiteral7.put("postOnly", null);
-        mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
-        mapLiteral7.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral7.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
-        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral7.put("info", order);
-        return this.safePredictionOrder(mapLiteral7, outcomeObj);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", orderId);
+        mapLiteral8.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastTradeTimestamp", this.parse8601(this.safeString(order, "updatedAt")));
+        mapLiteral8.put("status", status);
+        mapLiteral8.put("type", "limit");
+        mapLiteral8.put("timeInForce", null);
+        mapLiteral8.put("side", "buy");
+        mapLiteral8.put("price", price);
+        mapLiteral8.put("average", null);
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("filled", filled);
+        mapLiteral8.put("remaining", remaining);
+        mapLiteral8.put("cost", null);
+        mapLiteral8.put("fee", null);
+        mapLiteral8.put("reduceOnly", null);
+        mapLiteral8.put("postOnly", null);
+        mapLiteral8.put("trades", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral8.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral8.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
+        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral8.put("info", order);
+        return this.safePredictionOrder(mapLiteral8, outcomeObj);
     }
 
     /**
@@ -1879,24 +1884,24 @@ public class Sxbet extends SxbetApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", this.safeString(fill, "id"));
-        mapLiteral8.put("info", fill);
-        mapLiteral8.put("timestamp", timestamp);
-        mapLiteral8.put("datetime", this.iso8601(timestamp));
-        mapLiteral8.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral8.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
-        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral8.put("order", this.safeString(fill, "orderId"));
-        mapLiteral8.put("type", null);
-        mapLiteral8.put("side", "buy");
-        mapLiteral8.put("takerOrMaker", takerOrMaker);
-        mapLiteral8.put("price", price);
-        mapLiteral8.put("amount", amount);
-        mapLiteral8.put("cost", amount);
-        mapLiteral8.put("fee", null);
-        return this.safePredictionTrade(mapLiteral8, market);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", this.safeString(fill, "id"));
+        mapLiteral9.put("info", fill);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
+        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral9.put("order", this.safeString(fill, "orderId"));
+        mapLiteral9.put("type", null);
+        mapLiteral9.put("side", "buy");
+        mapLiteral9.put("takerOrMaker", takerOrMaker);
+        mapLiteral9.put("price", price);
+        mapLiteral9.put("amount", amount);
+        mapLiteral9.put("cost", amount);
+        mapLiteral9.put("fee", null);
+        return this.safePredictionTrade(mapLiteral9, market);
     }
 
     /**
@@ -2062,22 +2067,22 @@ public class Sxbet extends SxbetApi
         String totalStake = this.safeString(raw, "totalStake", "0");
         String pnl = this.safeString(raw, "pnl");
         Long timestamp = this.parse8601(this.safeString(raw, "betTime"));
-        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
-        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral9.put("timestamp", timestamp);
-        mapLiteral9.put("datetime", this.iso8601(timestamp));
-        mapLiteral9.put("lastUpdateTimestamp", this.parse8601(this.safeString(raw, "updatedAt")));
-        mapLiteral9.put("contracts", this.parseNumber(Precise.stringDiv(totalStake, usdcDecimals, 6)));
-        mapLiteral9.put("entryPrice", entryPrice);
-        mapLiteral9.put("markPrice", null);
-        mapLiteral9.put("unrealizedPnl", null);
-        mapLiteral9.put("realizedPnl", (((!java.util.Objects.equals(pnl, null)))) ? this.parseNumber(Precise.stringDiv(pnl, usdcDecimals, 6)) : null);
-        mapLiteral9.put("side", "long");
-        mapLiteral9.put("info", raw);
-        return this.safePredictionPosition(mapLiteral9);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral10.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
+        mapLiteral10.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral10.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("lastUpdateTimestamp", this.parse8601(this.safeString(raw, "updatedAt")));
+        mapLiteral10.put("contracts", this.parseNumber(Precise.stringDiv(totalStake, usdcDecimals, 6)));
+        mapLiteral10.put("entryPrice", entryPrice);
+        mapLiteral10.put("markPrice", null);
+        mapLiteral10.put("unrealizedPnl", null);
+        mapLiteral10.put("realizedPnl", (((!java.util.Objects.equals(pnl, null)))) ? this.parseNumber(Precise.stringDiv(pnl, usdcDecimals, 6)) : null);
+        mapLiteral10.put("side", "long");
+        mapLiteral10.put("info", raw);
+        return this.safePredictionPosition(mapLiteral10);
     }
 
     /**
@@ -2494,29 +2499,29 @@ public class Sxbet extends SxbetApi
         {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(this.numberToString(bid), this.numberToString(ask)), "2"));
         }
-        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-        j39v6.put("outcome", this.safeString(outcomeObj, "outcome"));
-        j39v6.put("outcomeId", outcomeId);
-        j39v6.put("label", this.safeString(outcomeObj, "label"));
-        j39v6.put("market", this.safeString(outcomeObj, "market"));
-        j39v6.put("timestamp", timestamp);
-        j39v6.put("datetime", this.iso8601(timestamp));
-        j39v6.put("high", null);
-        j39v6.put("low", null);
-        j39v6.put("bid", bid);
-        j39v6.put("bidVolume", null);
-        j39v6.put("ask", ask);
-        j39v6.put("askVolume", null);
-        j39v6.put("open", null);
-        j39v6.put("close", bid);
-        j39v6.put("last", bid);
-        j39v6.put("change", null);
-        j39v6.put("percentage", null);
-        j39v6.put("average", average);
-        j39v6.put("baseVolume", null);
-        j39v6.put("quoteVolume", null);
-        j39v6.put("info", raw);
-        return (Map<String, Object>) (this.safePredictionTicker(j39v6, market));
+        HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+        j39v5.put("outcome", this.safeString(outcomeObj, "outcome"));
+        j39v5.put("outcomeId", outcomeId);
+        j39v5.put("label", this.safeString(outcomeObj, "label"));
+        j39v5.put("market", this.safeString(outcomeObj, "market"));
+        j39v5.put("timestamp", timestamp);
+        j39v5.put("datetime", this.iso8601(timestamp));
+        j39v5.put("high", null);
+        j39v5.put("low", null);
+        j39v5.put("bid", bid);
+        j39v5.put("bidVolume", null);
+        j39v5.put("ask", ask);
+        j39v5.put("askVolume", null);
+        j39v5.put("open", null);
+        j39v5.put("close", bid);
+        j39v5.put("last", bid);
+        j39v5.put("change", null);
+        j39v5.put("percentage", null);
+        j39v5.put("average", average);
+        j39v5.put("baseVolume", null);
+        j39v5.put("quoteVolume", null);
+        j39v5.put("info", raw);
+        return (Map<String, Object>) (this.safePredictionTicker(j39v5, market));
     }
 
     /**
@@ -2564,14 +2569,14 @@ public class Sxbet extends SxbetApi
             }
         }
         Long timestamp = this.milliseconds();
-        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
-        mapLiteral10.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
-        mapLiteral10.put("bids", sortedBids);
-        mapLiteral10.put("asks", sortedAsks);
-        mapLiteral10.put("timestamp", timestamp);
-        mapLiteral10.put("datetime", this.iso8601(timestamp));
-        mapLiteral10.put("nonce", null);
-        return this.safePredictionOrderBook((Map<String, Object>) (mapLiteral10), outcomeObj);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+        mapLiteral11.put("bids", sortedBids);
+        mapLiteral11.put("asks", sortedAsks);
+        mapLiteral11.put("timestamp", timestamp);
+        mapLiteral11.put("datetime", this.iso8601(timestamp));
+        mapLiteral11.put("nonce", null);
+        return this.safePredictionOrderBook((Map<String, Object>) (mapLiteral11), outcomeObj);
 
     }
 
@@ -2793,7 +2798,7 @@ public class Sxbet extends SxbetApi
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
-            this.pong(client, msg);
+            this.pong(client, (Object) null);
             return;
         }
         String requestIdString = this.safeString(msg, "id");
@@ -3191,24 +3196,24 @@ public class Sxbet extends SxbetApi
         String stake = this.safeString(trade, "totalStake", "0");
         Double amount = this.parseNumber(Precise.stringDiv(stake, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(trade, "betTime"));
-        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
-        mapLiteral11.put("id", this.safeString(trade, "tradeId"));
-        mapLiteral11.put("info", trade);
-        mapLiteral11.put("timestamp", timestamp);
-        mapLiteral11.put("datetime", this.iso8601(timestamp));
-        mapLiteral11.put("outcome", this.safeString(outcomeObj, "outcome"));
-        mapLiteral11.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
-        mapLiteral11.put("label", this.safeString(outcomeObj, "label"));
-        mapLiteral11.put("market", this.safeString(outcomeObj, "market"));
-        mapLiteral11.put("order", null);
-        mapLiteral11.put("type", null);
-        mapLiteral11.put("side", "buy");
-        mapLiteral11.put("takerOrMaker", null);
-        mapLiteral11.put("price", price);
-        mapLiteral11.put("amount", amount);
-        mapLiteral11.put("cost", amount);
-        mapLiteral11.put("fee", null);
-        return this.safePredictionTrade(mapLiteral11, (Object) null);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("id", this.safeString(trade, "tradeId"));
+        mapLiteral12.put("info", trade);
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        mapLiteral12.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral12.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
+        mapLiteral12.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral12.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral12.put("order", null);
+        mapLiteral12.put("type", null);
+        mapLiteral12.put("side", "buy");
+        mapLiteral12.put("takerOrMaker", null);
+        mapLiteral12.put("price", price);
+        mapLiteral12.put("amount", amount);
+        mapLiteral12.put("cost", amount);
+        mapLiteral12.put("fee", null);
+        return this.safePredictionTrade(mapLiteral12, (Object) null);
     }
 
     public void handleTrades(Client client, Object rows)

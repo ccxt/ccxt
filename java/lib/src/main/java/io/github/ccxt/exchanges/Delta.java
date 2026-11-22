@@ -1294,7 +1294,7 @@ public class Delta extends DeltaApi
         Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.001);
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String last = this.safeString(ticker, "close");
         Map<String, Object> quotes = this.safeDict(ticker, "quotes", new HashMap<String, Object>() {{}});
         // turnover_symbol names the currency turnover is denominated in, and on
@@ -2137,7 +2137,7 @@ public class Delta extends DeltaApi
         //
         String marketId = this.safeString(position, "product_symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
         String sizeString = this.safeString(position, "size");
         String side = null;

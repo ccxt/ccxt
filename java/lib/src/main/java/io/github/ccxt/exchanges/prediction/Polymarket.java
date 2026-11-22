@@ -1339,7 +1339,8 @@ public class Polymarket extends PolymarketApi
                 List<String> chunk = new ArrayList<String>(Arrays.asList());
                 for (long i = startIndex; i < endIndex; i++)
                 {
-                    chunk.add((tokenIds == null || ((int) i) < 0 || ((int) i) >= tokenIds.size() ? null : tokenIds.get(((int) i))));
+                    String chunkId = this.safeString(tokenIds, i, "");
+                    chunk.add(chunkId);
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1806,16 +1807,21 @@ public class Polymarket extends PolymarketApi
                 buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, price, price, price, price, vol)));
             } else
             {
-                List<Object> candle = this.safeList(buckets, bucketKey, new ArrayList<Object>(Arrays.asList()));
-                Helpers.addElementToObject(candle, 2, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((candle == null || 2 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(2)), price)); // high
-                Helpers.addElementToObject(candle, 3, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((candle == null || 3 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(3)), price)); // low
-                Helpers.addElementToObject(candle, 4, price); // close (last tick wins)
+                Double prevVol = this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 5, (Object) null);
+                Object candleVol = prevVol;
                 if (!java.util.Objects.equals(vol, null))
                 {
-                    Object prevVol = (candle == null || 5 >= ((List<?>)candle).size() ? null : ((List<?>)candle).get(5));
-                    Helpers.addElementToObject(candle, 5, (((java.util.Objects.equals(prevVol, null)))) ? vol : this.sum(prevVol, vol)); // volume
+                    if (java.util.Objects.equals(prevVol, null))
+                    {
+                        candleVol = vol;
+                    } else
+                    {
+                        candleVol = this.sum(prevVol, vol);
+                    }
                 }
-                buckets.put(bucketKey, candle); // reassign after mutation, php arrays are value types
+                Double open = this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 1, (Object) null);
+                // close is the last tick
+                buckets.put(bucketKey, new ArrayList<Object>(Arrays.asList(snappedMs, open, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 2, (Object) null), price), ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.safeNumber((buckets == null || bucketKey == null ? null : buckets.get(bucketKey)), 3, (Object) null), price), price, candleVol)));
             }
         }
         List<String> bucketKeys = new ArrayList<String>(buckets.keySet());
@@ -2324,7 +2330,7 @@ public class Polymarket extends PolymarketApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
         {
-            Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> position = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Map<String, Object> info = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(info, "asset");
             if ((!java.util.Objects.equals(assetId, null)) && (wantedIds.containsKey(assetId)))
@@ -2662,8 +2668,8 @@ public class Polymarket extends PolymarketApi
             {
                 // request echo first so the response's real orderID/status win on overlap
                 Object rawItem = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
-                Map<String, Object> enriched = this.extend((requests == null || i < 0 || i >= requests.size() ? null : requests.get(i)), rawItem);
-                Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)(outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> enriched = this.extend(this.safeDict(requests, i, null), rawItem);
+                Object parsedItem = this.parsePredictionOrder(enriched, ((Map<String, Object>) (switch ((Object) (((Object)this.safeDict(outcomes, i, null)))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 ((Map<String, Object>)parsedItem).put("info", rawItem); // keep info the raw exchange response
                 ((List<Object>)result).add(parsedItem);
             }
@@ -3883,14 +3889,7 @@ public class Polymarket extends PolymarketApi
             return null;
         }
         String apiKey = (((!java.util.Objects.equals(this.apiKey, null)))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        Object secret = null;
-        if (!java.util.Objects.equals(this.secret, null))
-        {
-            secret = this.secret;
-        } else
-        {
-            secret = this.safeString(this.options, "l2Secret");
-        }
+        String secret = (((!java.util.Objects.equals(this.secret, null)))) ? this.secret : this.safeString(this.options, "l2Secret");
         String passphrase = (((!java.util.Objects.equals(this.password, null)))) ? this.password : this.safeString(this.options, "l2Passphrase");
         Boolean hasL2 = (!java.util.Objects.equals(apiKey, null)) && (!java.util.Objects.equals(secret, null)) && (!java.util.Objects.equals(passphrase, null));
         if (Boolean.TRUE.equals(hasL2))

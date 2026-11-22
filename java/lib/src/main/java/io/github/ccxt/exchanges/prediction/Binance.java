@@ -1569,7 +1569,7 @@ public class Binance extends BinanceApi
         Integer positionsLength = positions.size();
         for (var i = 0; (positionsLength != null && i < positionsLength); i++)
         {
-            Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+            Map<String, Object> position = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String positionOutcome = this.safeString(position, "outcome");
             if ((!java.util.Objects.equals(positionOutcome, null)) && (requestedOutcomeSymbols.containsKey(positionOutcome)))
             {
@@ -1604,7 +1604,7 @@ public class Binance extends BinanceApi
             (this.loadOutcome((String) (outcome), false)).join();
             outcomeObj = this.outcome((String) (outcome));
             Map<String, Object> market = this.market(this.safeString(outcomeObj, "market"));
-            request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
+            request.put("marketTopicId", this.safeString(market.get("info"), "marketTopicId"));
         }
         Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
         request.put("walletAddress", this.safeString(wallet, "walletAddress"));

@@ -2005,7 +2005,7 @@ public class Kalshi extends KalshiApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
         {
-            Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> position = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Map<String, Object> positionInfo = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
             String positionTicker = this.safeString(positionInfo, "ticker");
             if ((!java.util.Objects.equals(positionTicker, null)) && (wantedTickers.containsKey(positionTicker)))

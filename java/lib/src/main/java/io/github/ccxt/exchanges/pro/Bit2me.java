@@ -988,7 +988,8 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
             for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 String clientOrderId = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
-                if (java.util.Objects.equals((pending == null || clientOrderId == null ? null : pending.get(clientOrderId)), marketId))
+                String pendingMarketId = this.safeString(pending, clientOrderId);
+                if (java.util.Objects.equals(pendingMarketId, marketId))
                 {
                     this.settleRequest(client, ("added-order:" + clientOrderId), null, exception);
                     this.options.put("pendingWsOrders", this.omit(this.options.get("pendingWsOrders"), clientOrderId));

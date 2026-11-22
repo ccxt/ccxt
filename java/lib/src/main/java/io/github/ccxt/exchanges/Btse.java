@@ -1185,7 +1185,7 @@ public class Btse extends BtseApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rates.size(); i++)
         {
-            Object rate = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
+            Map<String, Object> rate = (Map<String, Object>) (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
             Long timestamp = this.safeInteger(rate, "timestamp");
             if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
             {
@@ -1875,7 +1875,7 @@ public class Btse extends BtseApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < trades.size(); i++)
         {
-            Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Long timestamp = this.safeInteger(trade, "timestamp");
             if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
             {

@@ -2410,7 +2410,7 @@ public class Bitso extends BitsoApi
         {
             return null;  // fallback to default error handler
         }
-        if ((switch ((Object)(response)) { case List<?> j39v5 -> j39v5.contains("success"); case Map<?, ?> j39v4 -> j39v4.containsKey("success"); case null, default -> false; }))
+        if (!java.util.Objects.equals(this.safeBool(response, "success", (Object) null), null))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

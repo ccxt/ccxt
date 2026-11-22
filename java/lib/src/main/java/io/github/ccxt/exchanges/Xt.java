@@ -4877,7 +4877,9 @@ public class Xt extends XtApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        String marketType = (((((Map<?, ?>)order).containsKey("result")) || (((Map<?, ?>)order).containsKey("positionSide")))) ? "contract" : "spot";
+        String resultId = this.safeString(order, "result");
+        String orderPositionSide = this.safeString(order, "positionSide");
+        String marketType = (((!java.util.Objects.equals(resultId, null)) || (!java.util.Objects.equals(orderPositionSide, null)))) ? "contract" : "spot";
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");

@@ -446,10 +446,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
+        Map<String, Object> paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
         if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLossWs"), false))
         {
-            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })))).join();
+            return (this.createOrderWs(symbol, (String) (type), (String) (side), amount, price, paramsValue)).join();
         }
         throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
 
@@ -1485,10 +1485,10 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        Object paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
+        Map<String, Object> paramsValue = this.setTakeProfitAndStopLossParams(symbol, (String) (type), (String) (side), amount, price, takeProfit, stopLoss, parameters);
         if (!java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), null) && !java.util.Objects.equals(this.has.get("createOrderWithTakeProfitAndStopLoss"), false))
         {
-            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, ((Map<String, Object>) (switch ((Object) (paramsValue)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+            return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, paramsValue)).join();
         }
         throw new NotSupported((this.id + " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
 

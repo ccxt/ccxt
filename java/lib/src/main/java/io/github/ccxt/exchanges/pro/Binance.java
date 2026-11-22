@@ -575,7 +575,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> rawLiquidation = this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawLiquidation, "s");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "", "contract");
-        String symbol = (String) market.get("symbol");
+        String symbol = this.safeString(market, "symbol");
         Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(rawLiquidation, market);
         if (java.util.Objects.equals(this.liquidations, null))
         {
@@ -2120,7 +2120,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, true);
         Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         String wsUrlType = type;
         if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
         {
@@ -2225,7 +2225,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
         List<String> marketSymbols = this.marketSymbols(symbols, (Object) null, false, false, true);
         Map<String, Object> firstMarket = this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
-        String type = (String) firstMarket.get("type");
+        String type = this.safeString(firstMarket, "type", "");
         String wsUrlType = type;
         if (Boolean.TRUE.equals(this.safeBool(firstMarket, "option", false)))
         {
@@ -4198,8 +4198,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         message.put("id", messageHash);
         message.put("method", method);
         message.put("params", this.signParams(this.extend(payload, paramsMethod)));
-        Map<String, Object> subscription = new HashMap<String, Object>();
-        subscription.put("method", (((java.util.Objects.equals(method, "account.status")))) ? "handleAccountStatusWs" : "handleBalanceWs");
+        Map<String, Object> subscription = new HashMap<String, Object>() {{
+            put( "method", "handleBalanceWs");
+        }};
+        if (java.util.Objects.equals(method, "account.status"))
+        {
+            subscription.put("method", "handleAccountStatusWs");
+        }
         return (this.watch(url, messageHash, message, messageHash, subscription)).join();
 
     }
@@ -4586,11 +4591,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String delta = this.safeString(message, "d");
             if ((!java.util.Objects.equals(code, null)) && (balance.containsKey(code)))
             {
-                Object previousValue = this.safeValue((balance == null || code == null ? null : balance.get(code)), "free");
-                if (!(previousValue instanceof String))
-                {
-                    previousValue = this.numberToString(previousValue);
-                }
+                String previousValue = this.safeString((balance == null || code == null ? null : balance.get(code)), "free");
                 account.put("free", Precise.stringAdd(previousValue, delta));
             } else
             {
@@ -6001,7 +6002,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             messageValue = (Map<String, Object>) this.safeDict(message, "o", message);
             if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && (java.util.Objects.equals(this.safeInteger(messageValue, "T"), null)))
             {
-                messageValue.put("T", this.safeInteger(message, "T")); // keep the outer event time, the algo payload carries no timestamps
+                // keep the outer event time, the algo payload carries no timestamps
+                messageValue = this.extend(messageValue, new HashMap<String, Object>() {{
+                    put( "T", Binance.this.safeInteger(message, "T") );
+                }});
             }
         }
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
@@ -6887,7 +6891,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                                 }
                                 fee.put("cost", Double.parseDouble(feeCostString));
                                 order.put("fee", fee);
-                            } else if (java.util.Objects.equals(fee.get("currency"), null))
+                            } else if (java.util.Objects.equals(this.safeString(fee, "currency"), null))
                             {
                                 order.put("fee", tradeFee);
                             } else

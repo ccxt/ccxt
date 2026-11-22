@@ -399,8 +399,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String code = this.safeString(ticker, "code");
         if (!java.util.Objects.equals(code, null))
         {
-            ((Map<String, Object>)ticker).put("market", this.safeString(ticker, "market", code));
-            return this.parseTicker(ticker, market);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("market", this.safeString(ticker, "market", code));
+            return this.parseTicker(this.extend(ticker, mapLiteral2), market);
         }
         String date = this.safeString(ticker, "date", "");
         String time = this.safeString(ticker, "time", "");
@@ -413,28 +414,28 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             timestamp = (kstTimestamp - 32400000L);
         }
         String marketId = this.safeString(ticker, "symbol");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString(ticker, "highPrice"));
-        mapLiteral2.put("low", this.safeString(ticker, "lowPrice"));
-        mapLiteral2.put("bid", null);
-        mapLiteral2.put("bidVolume", this.safeString(ticker, "buyVolume"));
-        mapLiteral2.put("ask", null);
-        mapLiteral2.put("askVolume", this.safeString(ticker, "sellVolume"));
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(ticker, "openPrice"));
-        mapLiteral2.put("close", this.safeString(ticker, "closePrice"));
-        mapLiteral2.put("last", null);
-        mapLiteral2.put("previousClose", this.safeString(ticker, "prevClosePrice"));
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", null);
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString(ticker, "volume"));
-        mapLiteral2.put("quoteVolume", this.safeString(ticker, "value"));
-        mapLiteral2.put("info", ticker);
-        return this.safeTicker(mapLiteral2, market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", this.safeString(ticker, "highPrice"));
+        mapLiteral3.put("low", this.safeString(ticker, "lowPrice"));
+        mapLiteral3.put("bid", null);
+        mapLiteral3.put("bidVolume", this.safeString(ticker, "buyVolume"));
+        mapLiteral3.put("ask", null);
+        mapLiteral3.put("askVolume", this.safeString(ticker, "sellVolume"));
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("open", this.safeString(ticker, "openPrice"));
+        mapLiteral3.put("close", this.safeString(ticker, "closePrice"));
+        mapLiteral3.put("last", null);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prevClosePrice"));
+        mapLiteral3.put("change", null);
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", this.safeString(ticker, "volume"));
+        mapLiteral3.put("quoteVolume", this.safeString(ticker, "value"));
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, market);
     }
 
     /**
@@ -814,10 +815,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         if (!java.util.Objects.equals(marketCode, null))
         {
             Long tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
-            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-            mapLiteral3.put("market", marketCode);
-            mapLiteral3.put("timestamp", tradeTimestamp);
-            Map<String, Object> normalized = this.extend(trade, mapLiteral3);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("market", marketCode);
+            mapLiteral4.put("timestamp", tradeTimestamp);
+            Map<String, Object> normalized = this.extend(trade, mapLiteral4);
             return this.parseTrade(normalized, market);
         }
         String marketId = this.safeString(trade, "symbol");
@@ -830,21 +831,21 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             timestamp = (kstTimestamp - 32400000L);
         }
         String sideId = this.safeString(trade, "buySellGb");
-        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
-        mapLiteral4.put("id", null);
-        mapLiteral4.put("info", trade);
-        mapLiteral4.put("timestamp", timestamp);
-        mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
-        mapLiteral4.put("order", null);
-        mapLiteral4.put("type", null);
-        mapLiteral4.put("side", (((java.util.Objects.equals(sideId, "1")))) ? "buy" : "sell");
-        mapLiteral4.put("takerOrMaker", null);
-        mapLiteral4.put("price", this.safeString(trade, "contPrice"));
-        mapLiteral4.put("amount", this.safeString(trade, "contQty"));
-        mapLiteral4.put("cost", this.safeString(trade, "contAmt"));
-        mapLiteral4.put("fee", null);
-        return this.safeTrade(mapLiteral4, market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", this.safeSymbol(marketId, market, "_", (String) null));
+        mapLiteral5.put("order", null);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", (((java.util.Objects.equals(sideId, "1")))) ? "buy" : "sell");
+        mapLiteral5.put("takerOrMaker", null);
+        mapLiteral5.put("price", this.safeString(trade, "contPrice"));
+        mapLiteral5.put("amount", this.safeString(trade, "contQty"));
+        mapLiteral5.put("cost", this.safeString(trade, "contAmt"));
+        mapLiteral5.put("fee", null);
+        return this.safeTrade(mapLiteral5, market);
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
@@ -1078,10 +1079,10 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String url = this.safeString(wsUrls, "privateGen2", "");
         String messageHash = "myOrder";
         List<Object> codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("type", messageHash);
-        mapLiteral5.put("codes", codes);
-        List<Object> request = this.buildGen2SubscriptionRequest(messageHash, mapLiteral5);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("type", messageHash);
+        mapLiteral6.put("codes", codes);
+        List<Object> request = this.buildGen2SubscriptionRequest(messageHash, mapLiteral6);
         String symbolResolved = null;
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1219,30 +1220,30 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
                 fee = hx4NewMap0;
             }
         }
-        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-        mapLiteral6.put("info", order);
-        mapLiteral6.put("id", this.safeString2(order, "uuid", "order_id"));
-        mapLiteral6.put("clientOrderId", null);
-        mapLiteral6.put("timestamp", timestamp);
-        mapLiteral6.put("datetime", this.iso8601(timestamp));
-        mapLiteral6.put("lastTradeTimestamp", this.safeInteger(order, "trade_timestamp"));
-        mapLiteral6.put("symbol", symbol);
-        mapLiteral6.put("type", type);
-        mapLiteral6.put("timeInForce", null);
-        mapLiteral6.put("postOnly", null);
-        mapLiteral6.put("side", side);
-        mapLiteral6.put("price", price);
-        mapLiteral6.put("stopPrice", null);
-        mapLiteral6.put("triggerPrice", null);
-        mapLiteral6.put("amount", amount);
-        mapLiteral6.put("cost", cost);
-        mapLiteral6.put("average", null);
-        mapLiteral6.put("filled", filled);
-        mapLiteral6.put("remaining", remaining);
-        mapLiteral6.put("status", status);
-        mapLiteral6.put("fee", fee);
-        mapLiteral6.put("trades", null);
-        return this.safeOrder(mapLiteral6, market);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", order);
+        mapLiteral7.put("id", this.safeString2(order, "uuid", "order_id"));
+        mapLiteral7.put("clientOrderId", null);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("lastTradeTimestamp", this.safeInteger(order, "trade_timestamp"));
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("timeInForce", null);
+        mapLiteral7.put("postOnly", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("price", price);
+        mapLiteral7.put("stopPrice", null);
+        mapLiteral7.put("triggerPrice", null);
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("cost", cost);
+        mapLiteral7.put("average", null);
+        mapLiteral7.put("filled", filled);
+        mapLiteral7.put("remaining", remaining);
+        mapLiteral7.put("status", status);
+        mapLiteral7.put("fee", fee);
+        mapLiteral7.put("trades", null);
+        return this.safeOrder(mapLiteral7, market);
     }
 
     public void handleTextMessage(Client client, Object message)

@@ -210,7 +210,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -276,7 +281,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -384,7 +394,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -456,7 +471,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         List<Object> methodNameparamsCallerMethodNameVariable = (List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
         String methodName = (String) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(0);
         Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) methodNameparamsCallerMethodNameVariable).get(1);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a non-empty array of symbols")) ;
         }
@@ -602,7 +622,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((this.id + " watchBidsAsks() requires a non-empty array of symbols")) ;
         }
@@ -665,7 +690,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-        if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsNormalized.size() == 0)))
+        Integer symbolsLength = 0;
+        if (!java.util.Objects.equals(symbolsNormalized, null))
+        {
+            symbolsLength = symbolsNormalized.size();
+        }
+        if ((java.util.Objects.equals(symbolsNormalized, null)) || (java.util.Objects.equals(symbolsLength, 0)))
         {
             throw new ArgumentsRequired((this.id + " unWatchBidsAsks() requires a non-empty array of symbols")) ;
         }

@@ -1853,7 +1853,7 @@ public class Opinion extends OpinionApi
         List<Object> filtered = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
         {
-            Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> position = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             Map<String, Object> info = this.safeDict(position, "info", new HashMap<String, Object>() {{}});
             String tokenId = this.safeString(info, "tokenId");
             if ((!java.util.Objects.equals(tokenId, null)) && (wantedTokenIds.containsKey(tokenId)))
@@ -2352,7 +2352,7 @@ public class Opinion extends OpinionApi
         mapLiteral7.put("close", last);
         mapLiteral7.put("last", last);
         mapLiteral7.put("info", message);
-        Object ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
+        Map<String,Object> ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
         Map<String, Object> cachedTickers = this.safeDict(this.options, "wsTickers", new HashMap<String, Object>() {{}});
         cachedTickers.put(sym, ticker);
         this.options.put("wsTickers", cachedTickers);

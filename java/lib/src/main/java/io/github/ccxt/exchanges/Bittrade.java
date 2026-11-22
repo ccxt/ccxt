@@ -2645,7 +2645,8 @@ public class Bittrade extends BittradeApi
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (java.util.Objects.equals(network, "erc20"))
             {
-                request.put("chain", (currency.get("id") + network));
+                String currencyId = this.safeString(currency, "id", "");
+                request.put("chain", (currencyId + network));
             } else
             {
                 request.put("chain", (network + currency.get("id")));

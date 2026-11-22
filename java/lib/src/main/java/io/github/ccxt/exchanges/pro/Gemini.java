@@ -84,7 +84,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("trades:" + this.safeString(market, "symbol", ""));
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id");
         if (java.util.Objects.equals(marketId, null))
         {
             throw new ArgumentsRequired((this.id + " watchTrades() marketId is required")) ;
@@ -464,7 +464,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-        String marketId = (String) market.get("id");
+        String marketId = this.safeString(market, "id");
         if (java.util.Objects.equals(marketId, null))
         {
             throw new ArgumentsRequired((this.id + " watchOrderBook() marketId is required")) ;

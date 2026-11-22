@@ -1521,7 +1521,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(info, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Double funding = this.safeNumber(info, "funding", (Object) null);
         Double markPx = this.safeNumber(info, "mark", (Object) null);
         Double oraclePx = this.safeNumber(info, "oracle", (Object) null);
@@ -1837,7 +1837,7 @@ public class Pacifica extends PacificaApi
         String amount = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
         if (java.util.Objects.equals(side, "open_long"))
@@ -2748,7 +2748,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(ticker, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -3253,7 +3253,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString2(order, "symbol", "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = (Long) this.safeInteger2(order, "created_at", "ct");
         String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         String side = this.safeString(order, "side", "d");
@@ -3397,7 +3397,7 @@ public class Pacifica extends PacificaApi
         //
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String margin = this.safeString(position, "margin");
         Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
         Boolean isIsolated = (!java.util.Objects.equals(margin, null)) && (!java.util.Objects.equals(margin, "0"));
@@ -4133,7 +4133,7 @@ public class Pacifica extends PacificaApi
         Long timestamp = this.safeInteger(income, "created_at");
         String marketId = this.safeString(income, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
+        String symbol = this.safeString(marketResolved, "symbol");
         String amount = this.safeString(income, "payout");
         String code = this.safeCurrencyCode("USDC", (Map<String, Object>) null);
         Double rate = this.safeNumber(income, "rate", (Object) null);

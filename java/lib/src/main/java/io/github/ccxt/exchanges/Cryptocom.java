@@ -1206,19 +1206,13 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(symbols, null))
         {
-            Object symbol = null;
-            if ((symbols instanceof List))
+            String symbol = null;
+            Integer symbolsLength = symbols.size();
+            if ((symbolsLength != null && symbolsLength > 1))
             {
-                Integer symbolsLength = symbols.size();
-                if ((symbolsLength != null && symbolsLength > 1))
-                {
-                    throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                symbol = this.safeString(symbols, 0);
-            } else
-            {
-                symbol = symbols;
+                throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
             }
+            symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             request.put("instrument_name", market.get("id"));
         }
@@ -3287,7 +3281,7 @@ public class Cryptocom extends CryptocomApi
         String type = null;
         String rawStatus = this.safeString(transaction, "status");
         String status = null;
-        if (!java.util.Objects.equals(this.safeString(transaction, "client_wid"), null))
+        if (transaction.containsKey("client_wid"))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);
@@ -4106,20 +4100,14 @@ public class Cryptocom extends CryptocomApi
         if (!java.util.Objects.equals(symbolsNormalized, null))
         {
             Object symbol = null;
-            if ((symbolsNormalized instanceof List))
+            Integer symbolsLength = symbolsNormalized.size();
+            if ((symbolsLength != null && symbolsLength > 1))
             {
-                Integer symbolsLength = symbolsNormalized.size();
-                if ((symbolsLength != null && symbolsLength > 1))
-                {
-                    throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
-                }
-                if (java.util.Objects.equals(symbolsLength, 1))
-                {
-                    symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
-                }
-            } else
+                throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+            }
+            if (java.util.Objects.equals(symbolsLength, 1))
             {
-                symbol = symbolsNormalized;
+                symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
             }
             market = this.market(symbol);
             request.put("instrument_name", market.get("id"));

@@ -813,7 +813,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Object ticker = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, market);
-            String symbol = (String) parsed.get("symbol");
+            String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
                 this.tickers.put(symbol, parsed);

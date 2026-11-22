@@ -993,7 +993,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long timestamp = this.safeInteger(data, "t");
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
-            String symbol = (String) fundingRate.get("symbol");
+            String symbol = this.safeString(fundingRate, "symbol", "");
             this.fundingRates.put(symbol, fundingRate);
             String eventVar = this.safeString(message, "event");
             if (!java.util.Objects.equals(eventVar, null))
@@ -1358,7 +1358,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "spot";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             List<Object> parsed = (List<Object>) this.parseOHLCV(data, market);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
@@ -1423,7 +1423,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "spot";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             String eventVar = this.safeString(message, "event");
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
@@ -1516,7 +1516,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 tradeType = "contract";
             }
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, tradeType);
-            String symbol = (String) market.get("symbol");
+            String symbol = this.safeString(market, "symbol", "");
             List<Object> obAsks = this.safeList(data, "a", null);
             List<Object> obBids = this.safeList(data, "b", null);
             String messageHash = ((eventVar + "::") + tradeType);

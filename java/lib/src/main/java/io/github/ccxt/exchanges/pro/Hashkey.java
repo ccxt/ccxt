@@ -918,7 +918,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
         if (Boolean.TRUE.equals(snapshot))
         {
-            String messageHash = ((type + ":") + "fetchBalanceSnapshot");
+            String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);

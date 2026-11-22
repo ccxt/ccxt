@@ -1819,15 +1819,7 @@ public class Myriad extends MyriadApi
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        String traderParam = this.safeString2(parameters, "trader", "address");
-        String trader = null;
-        if (!java.util.Objects.equals(traderParam, null))
-        {
-            trader = traderParam;
-        } else
-        {
-            trader = this.walletAddressOrUndefined();
-        }
+        String trader = this.safeString2(parameters, "trader", "address", this.walletAddressOrUndefined());
         if (java.util.Objects.equals(trader, null))
         {
             throw new ArgumentsRequired((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
@@ -2577,9 +2569,9 @@ public class Myriad extends MyriadApi
         String endDate = this.safeString(raw, "expiresAt");
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("id", market.get("id"));
+            h2kMap2.put("id", this.safeString(market, "id", ""));
             h2kMap2.put("slug", slug);
-            h2kMap2.put("event", market.get("market"));
+            h2kMap2.put("event", this.safeString(market, "market", ""));
             h2kMap2.put("title", this.safeString2(raw, "title", "shortName"));
             h2kMap2.put("description", this.safeString(raw, "description"));
             h2kMap2.put("markets", new ArrayList<Object>(Arrays.asList(market)));
@@ -2706,9 +2698,10 @@ public class Myriad extends MyriadApi
         Integer outcomesLength = outcomes.size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
         String marketResolvedOutcome = resolvedOutcome;
+        String compositeId = ((this.safeString(raw, "networkId", "") + ":") + this.safeString(raw, "id", ""));
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("id", ((networkId + ":") + marketId));
+            h2kMap3.put("id", compositeId);
             h2kMap3.put("market", marketSymbol);
             h2kMap3.put("marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary");
             h2kMap3.put("executionModel", marketExecutionModel);
@@ -3953,7 +3946,7 @@ public class Myriad extends MyriadApi
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
-            this.pong(client, msg);
+            this.pong(client, (Object) null);
             return;
         }
         Map<String, Object> connectReply = this.safeDict(msg, "connect", null);
@@ -4461,7 +4454,7 @@ public class Myriad extends MyriadApi
             mapLiteral17.put("baseVolume", null);
             mapLiteral17.put("quoteVolume", null);
             mapLiteral17.put("info", oc);
-            Object ticker = this.safePredictionTicker(mapLiteral17, market);
+            Map<String,Object> ticker = this.safePredictionTicker(mapLiteral17, market);
             cachedTickers.put(sym, ticker);
             client.resolve(ticker, ("ticker::" + sym));
         }

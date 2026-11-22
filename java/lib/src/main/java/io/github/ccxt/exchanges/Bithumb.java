@@ -1186,7 +1186,11 @@ public class Bithumb extends BithumbApi
             List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             // the exchange rejects more than 200 market ids per request
             Long maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
-            Long maxMarketIdsPerRequest = this.parseToInt(((((java.util.Objects.equals(maxMarketIdsOption, null)) || (((maxMarketIdsOption == null || maxMarketIdsOption < 1)))))) ? 200 : maxMarketIdsOption);
+            Long maxMarketIdsPerRequest = 200L;
+            if ((!java.util.Objects.equals(maxMarketIdsOption, null)) && (((maxMarketIdsOption != null && maxMarketIdsOption >= 1))))
+            {
+                maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
+            }
             List<String> marketIdsChunk = new ArrayList<String>(Arrays.asList());
             for (var i = 0; (marketIdsLength != null && i < marketIdsLength); i++)
             {
@@ -1255,7 +1259,7 @@ public class Bithumb extends BithumbApi
                     tickers = response;
                 } else if (Boolean.TRUE.equals(this.isDictionary(response)))
                 {
-                    if (((switch ((Object)(response)) { case List<?> j39v11 -> j39v11.contains("market"); case Map<?, ?> j39v10 -> j39v10.containsKey("market"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v9 -> j39v9.contains("trade_date"); case Map<?, ?> j39v8 -> j39v8.containsKey("trade_date"); case null, default -> false; })) || ((switch ((Object)(response)) { case List<?> j39v7 -> j39v7.contains("trade_timestamp"); case Map<?, ?> j39v6 -> j39v6.containsKey("trade_timestamp"); case null, default -> false; })))
+                    if ((!java.util.Objects.equals(this.safeString(response, "market"), null)) || (!java.util.Objects.equals(this.safeString(response, "trade_date"), null)) || (!java.util.Objects.equals(this.safeString(response, "trade_timestamp"), null)))
                     {
                         tickers = new ArrayList<Object>(Arrays.asList(response));
                     } else
@@ -1332,7 +1336,7 @@ public class Bithumb extends BithumbApi
                 for (var j = 0; j < currencyIds.size(); j++)
                 {
                     String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
-                    Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
+                    Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{}}, (data == null || currencyId == null ? null : data.get(currencyId)));
                     String base = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (java.util.Objects.equals(base, null))
                     {
@@ -1340,8 +1344,9 @@ public class Bithumb extends BithumbApi
                     }
                     String symbol = ((base + "/") + quote);
                     Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
-                    ((Map<String, Object>)ticker).put("date", timestamp);
-                    result.put(symbol, this.parseTicker(ticker, market));
+                    result.put(symbol, this.parseTicker(this.extend(ticker, new HashMap<String, Object>() {{
+    put( "date", timestamp );
+}}), market));
                 }
             }
         }
@@ -1932,7 +1937,7 @@ public class Bithumb extends BithumbApi
                 throw new ArgumentsRequired((this.id + " createOrders() requires each order to have a side")) ;
             }
             Object amount = this.safeValue(rawOrder, "amount");
-            Object price = this.safeValue(rawOrder, "price");
+            Double price = this.safeNumber(rawOrder, "price", (Object) null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ((List<Object>)ordersRequests).add(orderRequest);
@@ -2134,13 +2139,13 @@ public class Bithumb extends BithumbApi
         {
             throw new InvalidOrder((this.id + " createOrder() did not return an order id")) ;
         }
-        HashMap<String, Object> j39v12 = new HashMap<String, Object>();
-        j39v12.put("info", response);
-        j39v12.put("symbol", symbol);
-        j39v12.put("type", type);
-        j39v12.put("side", side);
-        j39v12.put("id", id);
-        return this.extend(this.parseOrder(response, market), j39v12);
+        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+        j39v6.put("info", response);
+        j39v6.put("symbol", symbol);
+        j39v6.put("type", type);
+        j39v6.put("side", side);
+        j39v6.put("id", id);
+        return this.extend(this.parseOrder(response, market), j39v6);
 
     }
 

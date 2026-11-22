@@ -1124,11 +1124,11 @@ public class Polymarket extends PolymarketApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Boolean paginate = false;
         Map<String, Object> paramsOmitted = parameters;
-        List<Object> paginateparamsOmittedVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate", (Object) null);
-        paginate = Boolean.TRUE.equals(((List<Object>) paginateparamsOmittedVariable).get(0));
-        paramsOmitted = (Map<String, Object>) ((List<Object>) paginateparamsOmittedVariable).get(1);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        paramsOmitted = paramsPaginate;
         if (Boolean.TRUE.equals(paginate))
         {
             return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsOmitted, 1000L)).join();
@@ -1308,11 +1308,11 @@ public class Polymarket extends PolymarketApi
             throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Boolean paginate = false;
         Map<String, Object> paramsOmitted = parameters;
-        List<Object> paginateparamsOmittedVariable = (List<Object>) this.handleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate", (Object) null);
-        paginate = Boolean.TRUE.equals(((List<Object>) paginateparamsOmittedVariable).get(0));
-        paramsOmitted = (Map<String, Object>) ((List<Object>) paginateparamsOmittedVariable).get(1);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsOmitted), "fetchFundingRateHistory", "paginate", false);
+        Boolean paginate = paginateparamsPaginateVariable.first();
+        Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
+        paramsOmitted = paramsPaginate;
         if (Boolean.TRUE.equals(paginate))
         {
             return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100L)).join();
@@ -2900,7 +2900,7 @@ public class Polymarket extends PolymarketApi
         {
             Map<String, Object> row = this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String rowId = this.safeString(row, "instrument_id");
-            if (java.util.Objects.equals(rowId, market.get("id")))
+            if (java.util.Objects.equals(rowId, this.safeString(market, "id")))
             {
                 return this.parseLeverage(row, market);
             }

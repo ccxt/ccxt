@@ -2452,7 +2452,7 @@ public class Predictfun extends PredictfunApi
         Integer parsedLength = parsed.size();
         for (var i = 0; (parsedLength != null && i < parsedLength); i++)
         {
-            Object position = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
+            Map<String, Object> position = (Map<String, Object>) (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             String outcomeId = this.safeString(position, "outcomeId");
             if ((!java.util.Objects.equals(outcomeId, null)) && (wanted.containsKey(outcomeId)))
             {

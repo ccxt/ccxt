@@ -1528,7 +1528,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Object parsed = this.parseWsMyTrade(trade, (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseWsMyTrade(trade, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1552,7 +1552,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         client.resolve(trades, messageHash);
     }
 
-    public Object parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parseWsMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         // spot

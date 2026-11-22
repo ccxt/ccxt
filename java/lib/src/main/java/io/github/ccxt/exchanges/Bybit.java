@@ -3305,6 +3305,14 @@ public class Bybit extends BybitApi
                 symbol = ((symbol + "-") + this.yymmdd(expiry));
             }
             Double contractSize = ((Boolean.TRUE.equals(inverse))) ? this.safeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty", (Object) null) : this.parseNumber("1");
+            Map<String, Object> costLimits = new HashMap<String, Object>() {{
+                put( "min", null );
+                put( "max", null );
+            }};
+            if (Boolean.TRUE.equals(linear))
+            {
+                costLimits.put("min", this.safeNumber(lotSizeFilter, "minNotionalValue", (Object) null)); // https://bybit-exchange.github.io/docs/v5/market/instrument
+            }
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
             mapLiteral4.put("id", id);
             mapLiteral4.put("symbol", symbol);
@@ -3348,10 +3356,7 @@ public class Bybit extends BybitApi
                         put( "min", Bybit.this.safeNumber(priceFilter, "minPrice", (Object) null) );
                         put( "max", Bybit.this.safeNumber(priceFilter, "maxPrice", (Object) null) );
                     }} );
-                    put( "cost", new HashMap<String, Object>() {{
-                        put( "min", ((Boolean.TRUE.equals(linear))) ? Bybit.this.safeNumber(lotSizeFilter, "minNotionalValue", (Object) null) : null );
-                        put( "max", null );
-                    }} );
+                    put( "cost", costLimits );
                 }});
             mapLiteral4.put("created", this.safeInteger(market, "launchTime"));
             mapLiteral4.put("info", market);
@@ -4287,7 +4292,7 @@ public class Bybit extends BybitApi
         }};
         Map<String, Object> market = this.market(symbol);
         Long fundingTimeFrameMins = this.safeInteger(market.get("info"), "fundingInterval");
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         request.put("symbol", market.get("id"));
         Pair<String, Map<String, Object>> typeparamsValueVariable = this.getBybitType("fetchFundingRateHistory", market, paramsPaginate);
         String type = typeparamsValueVariable.first();
@@ -4517,8 +4522,7 @@ public class Bybit extends BybitApi
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("execId", "id", "tradeId")));
         String marketId = this.safeString(trade, "symbol");
         String marketType = "spot";
-        String createType = this.safeString(trade, "createType");
-        if (!java.util.Objects.equals(createType, null))
+        if (((Map<?, ?>)trade).containsKey("createType"))
         {
             marketType = "contract";
         }
@@ -5329,8 +5333,7 @@ public class Bybit extends BybitApi
             }
         }
         String marketId = this.safeString(order, "symbol");
-        String tpslMode = this.safeString(order, "tpslMode");
-        Boolean isContract = (!java.util.Objects.equals(tpslMode, null));
+        Boolean isContract = (((Map<?, ?>)order).containsKey("tpslMode"));
         String marketType = null;
         if (!java.util.Objects.equals(market, null))
         {
@@ -5626,7 +5629,7 @@ public class Bybit extends BybitApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String lowerCaseType = ((String)type).toLowerCase();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
@@ -8036,8 +8039,7 @@ public class Bybit extends BybitApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee", (Object) null);
         String type = "withdrawal";
-        String depositFee = this.safeString(transaction, "depositFee");
-        if (!java.util.Objects.equals(depositFee, null))
+        if (transaction.containsKey("depositFee"))
         {
             type = "deposit";
         }
