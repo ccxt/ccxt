@@ -1676,7 +1676,7 @@ export default class bithumb extends Exchange {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires each order to have a side');
             }
             const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);

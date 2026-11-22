@@ -5894,7 +5894,7 @@ export default class binance extends Exchange {
         if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
             if (quoteOrderQty === true) {
-                const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                 const precision = this.safeValue (market['precision'], 'price');
                 if (quoteOrderQtyNew !== undefined) {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
@@ -11389,8 +11389,8 @@ export default class binance extends Exchange {
                 // sometimes not all the codes are correctly returned...
                 if (code in balances) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
-                        'crossMargin': this.safeValue (balances[code], 'crossMargin'),
-                        'crossWalletBalance': this.safeValue (balances[code], 'crossWalletBalance'),
+                        'crossMargin': this.safeString (balances[code], 'crossMargin'),
+                        'crossWalletBalance': this.safeString (balances[code], 'crossWalletBalance'),
                     }), market);
                     result.push (parsed);
                 }
@@ -13656,7 +13656,7 @@ export default class binance extends Exchange {
                 }
             }
         }
-        return this.safeValue (config, 'cost', 1);
+        return this.safeNumber (config, 'cost', 1);
     }
 
     override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
