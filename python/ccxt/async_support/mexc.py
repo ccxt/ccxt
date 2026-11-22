@@ -5420,7 +5420,7 @@ class mexc(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         paramsOmitted = params
         if isIsolatedMargin:
-            paramsOmitted = self.omit(params, 'symbol')
+            paramsOmitted = self.omit(paramsOmitted, 'symbol')
         response = await self.spotPrivatePostCapitalTransfer(self.extend(request, paramsOmitted))
         #
         #     {

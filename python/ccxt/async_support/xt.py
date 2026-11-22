@@ -1836,7 +1836,7 @@ class xt(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i], market)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1922,7 +1922,7 @@ class xt(Exchange, ImplicitAPI):
                 marketType = 'contract'
             marketInner = self.safe_market(marketId, market, '_', marketType)
             ticker = self.parse_ticker(rawTicker, marketInner)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1979,7 +1979,7 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         marketResolved = self.safe_market(marketId, market, '_', marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 't')
         open = self.safe_string(ticker, 'o')
         # spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -4947,7 +4947,8 @@ class xt(Exchange, ImplicitAPI):
             # endpoint, including here and on position/list; there is no one-way/net
             # mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             # both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')] = breakEntry
+            breakKey = self.safe_string(breakEntry, 'symbol', '') + '_' + self.safe_string(breakEntry, 'positionSide', '')
+            breakBySymbolSide[breakKey] = breakEntry
         return breakBySymbolSide
 
     def merge_position_break_info(self, entry: dict, breakBySymbolSide: dict) -> dict:

@@ -1265,7 +1265,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string_2(trade, 'id', 'tradeId')
         orderId = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer(trade, 'time')
@@ -1814,7 +1814,7 @@ class coinsph(Exchange, ImplicitAPI):
         fees = self.to_array(response)
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -1829,7 +1829,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(fee, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return {
             'info': fee,
             'symbol': symbol,

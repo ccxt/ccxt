@@ -267,7 +267,8 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 rawMarkets.append(pageMarkets[i])
             paginationKey = self.safe_string(result, 'nextKey')
             page = page + 1
-            collectedLength = self.parse_to_int(len(rawMarkets))
+            rawMarketsCount = len(rawMarkets)
+            collectedLength = self.parse_to_int(rawMarketsCount)
             if (pageMarketsLength < pageSize) or (page >= maxPages) or (paginationKey is None) or ((collectCap is not None) and (collectedLength >= collectCap)):
                 break
         return rawMarkets

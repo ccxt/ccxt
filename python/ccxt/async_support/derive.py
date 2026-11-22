@@ -3458,9 +3458,10 @@ class derive(Exchange, ImplicitAPI):
             used = usedUsd
             if Precise.string_gt(used, totalUsdc):
                 used = totalUsdc
-            usdcAccount['used'] = used
-            usdcAccount['free'] = Precise.string_sub(totalUsdc, used)
-            result['USDC'] = usdcAccount
+            result['USDC'] = self.extend(usdcAccount, {
+                'used': used,
+                'free': Precise.string_sub(totalUsdc, used),
+            })
         return self.safe_balance(result)
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}) -> TransferEntry:

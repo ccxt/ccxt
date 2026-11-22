@@ -235,7 +235,7 @@ class luno(ccxt.async_support.luno):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def custom_parse_order_book(self, orderbook: dict, symbol: Str, timestamp: Int = None, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+    def custom_parse_order_book(self, orderbook: dict, symbol: Str, timestamp: Int = None, bidsKey: Str = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) -> dict:
         bids = self.parse_order_book_bids_asks(self.safe_list(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {
@@ -254,7 +254,7 @@ class luno(ccxt.async_support.luno):
             result.append(self.custom_parse_bid_ask(bidasksValue[i], priceKey, amountKey, thirdKey))
         return result
 
-    def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2):
+    def custom_parse_bid_ask(self, bidask: object, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) -> list:
         price = self.safe_number(bidask, priceKey)
         amount = self.safe_number(bidask, amountKey)
         result = [price, amount]

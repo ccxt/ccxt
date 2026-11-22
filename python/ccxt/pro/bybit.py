@@ -1239,7 +1239,9 @@ class bybit(ccxt.async_support.bybit):
         takerOrMaker = None
         m = self.safe_value(trade, 'm')
         if side is None:
-            side = 'buy' if (m is True) else 'sell'
+            side = 'sell'
+            if m is True:
+                side = 'buy'
         else:
             # spot private
             takerOrMaker = m
@@ -2270,7 +2272,7 @@ class bybit(ccxt.async_support.bybit):
             for i in range(0, messageHashesLength):
                 messageHash = messageHashes[i]
                 if not (messageHash in client.subscriptions):
-                    newTopics.append(topics[i])
+                    newTopics.append(self.safe_string(topics, i, ''))
         else:
             # watchOrders spot: two topics, one hash. Collect topics already
             # recorded on any subscription so a later call with a new hash

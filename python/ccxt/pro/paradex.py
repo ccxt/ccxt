@@ -855,7 +855,7 @@ class paradex(ccxt.async_support.paradex):
             # no book to apply it to: before the first snapshot, and between a resync and its snapshot
             if (storedNonce is None) or (nonce is None) or (nonce <= storedNonce):
                 return
-            if nonce != self.sum(storedNonce, 1):
+            if nonce != storedNonce + 1:
                 # a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored['nonce'] = None
                 self.spawn(self.resubscribe_order_book, client, deltasChannel, messageHash)
@@ -1122,8 +1122,8 @@ class paradex(ccxt.async_support.paradex):
                 },
             }
         else:
-            request = self.subscribe_request(channel)
-            request['params']['markets'] = missing
+            subscribeParams = {'channel': channel, 'markets': missing}
+            request = self.extend(self.subscribe_request(channel), {'params': subscribeParams})
             subscribeHashes.append(scopedHash)
         # a failed request is forgotten with every market it carried, the next watch sends them again, and
         # it rejects the watchers of those markets only
@@ -1624,7 +1624,7 @@ class paradex(ccxt.async_support.paradex):
         data = self.safe_dict(params, 'data', {})
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         channel = self.safe_string(params, 'channel')
         ticker = self.parse_ticker(data, market)
         self.tickers[symbol] = ticker

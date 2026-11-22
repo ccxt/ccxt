@@ -260,7 +260,7 @@ class bingx(ccxt.async_support.bingx):
         if isSwap:
             marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         # the Coin-M stream is a distinct endpoint, so it identifies an inverse
         # ticker even when the market id could not be resolved
         inverseUrl = self.safe_string(self.urls['api']['ws'], 'inverse')
@@ -362,7 +362,7 @@ class bingx(ccxt.async_support.bingx):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         url = None
         marketType, paramsMarketType = self.handle_market_type_and_params('watchTrades', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchTrades', market, paramsMarketType, 'linear')
@@ -506,7 +506,7 @@ class bingx(ccxt.async_support.bingx):
         if isSwap:
             marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade::' + symbol
         trades: list[Trade]
         if self.safe_dict(message, 'data') is None:
@@ -681,7 +681,7 @@ class bingx(ccxt.async_support.bingx):
         if isSwap:
             marketType = 'swap'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             # const limit = [ 5, 10, 20, 50, 100 ]
@@ -823,7 +823,7 @@ class bingx(ccxt.async_support.bingx):
         else:
             data = self.safe_dict(message, 'data', {})
             candles = [self.safe_dict(data, 'K', {})]
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         timeframeParts = dataType.split('_')
         rawTimeframe = self.safe_string(timeframeParts, 1)

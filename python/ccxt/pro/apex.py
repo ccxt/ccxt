@@ -688,7 +688,7 @@ class apex(ccxt.async_support.apex):
         for i in range(0, len(lists)):
             rawTrade = self.safe_dict(lists, i, {})
             parsed = self.parse_ws_trade(rawTrade)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             symbols[symbol] = True
             trades.append(parsed)
         keys = list(symbols.keys())
@@ -737,7 +737,7 @@ class apex(ccxt.async_support.apex):
         symbols = {}
         for i in range(0, len(lists)):
             parsed = self.parse_order(self.safe_dict(lists, i, {}))
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
             symbols[symbol] = True
             orders.append(parsed)
         symbolsArray = list(symbols.keys())

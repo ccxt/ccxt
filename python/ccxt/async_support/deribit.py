@@ -2194,7 +2194,7 @@ class deribit(Exchange, ImplicitAPI):
         isTrailingAmountOrder = trailingAmount is not None
         paramsOmitted = params
         if isTrailingAmountOrder:
-            paramsOmitted = self.omit(params, 'trigger_offset')
+            paramsOmitted = self.omit(paramsOmitted, 'trigger_offset')
         if isTrailingAmountOrder:
             request['trigger_offset'] = self.parse_to_numeric(trailingAmount)
         response = await self.privateGetEdit(self.extend(request, paramsOmitted))

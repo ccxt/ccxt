@@ -2020,7 +2020,7 @@ class bitteam(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'pair')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string_2(trade, 'id', 'trade_id')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'quantity', 'base_volume')

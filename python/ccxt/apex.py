@@ -1171,7 +1171,7 @@ class apex(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientId')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'size')
         orderType = self.safe_string(order, 'type')
@@ -1415,7 +1415,8 @@ class apex(Exchange, ImplicitAPI):
         subAccountId = self.safe_string(spotAccount, 'defaultSubAccountId', '0')
         subAccounts = self.safe_list(spotAccount, 'subAccounts', [])
         nonce = '0'
-        if len(subAccounts) > 0:
+        subAccountsLength = len(subAccounts)
+        if subAccountsLength > 0:
             nonce = self.safe_string(subAccounts[0], 'nonce', '0')
         finalNonce = nonce  # java req
         ethAddress = self.safe_string(accountData, 'ethereumAddress', '')
@@ -1851,7 +1852,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string_lower(position, 'side')
         quantity = self.safe_string(position, 'size')
         timestamp = self.safe_integer(position, 'updatedTime')

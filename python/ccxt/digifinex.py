@@ -2001,7 +2001,7 @@ class digifinex(Exchange, ImplicitAPI):
         if marketType == 'swap':
             if market is None:
                 raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument for swap markets')
-            marketSymbol = market['symbol']
+            marketSymbol = self.safe_string(market, 'symbol', '')
             orders = []
             for i in range(0, len(ids)):
                 orderItem = {

@@ -487,8 +487,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             if self.safe_string(position, 'side') is None:
                 # flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position['side'] = 'long'
-                shortPosition = self.clone(position)
-                shortPosition['side'] = 'short'
+                shortPosition = self.extend(position, {'side': 'short'})
                 self.positions.append(shortPosition)
             self.positions.append(position)
         client.resolve(self.positions, channel)
@@ -1156,7 +1155,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         isGrouped = channelPartsLength == 5
         if not (symbol in self.orderbooks):
             limit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-            self.orderbooks[symbol] = self.order_book({}, limit) if isGrouped else self.counted_order_book({}, limit)
+            if isGrouped:
+                self.orderbooks[symbol] = self.order_book({}, limit)
+            else:
+                self.orderbooks[symbol] = self.counted_order_book({}, limit)
         orderbook = self.orderbooks[symbol]
         nonce = self.safe_integer(orderbook, 'nonce')
         if not isGrouped and (type != 'snapshot') and (nonce is None):

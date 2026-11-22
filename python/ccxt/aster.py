@@ -3209,7 +3209,7 @@ class aster(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'amount': amountValue,
         }
-        code = market['quote']
+        code = self.safe_string(market, 'quote')
         response = self.fapiPrivatePostV3PositionMargin(self.extend(request, params))
         #
         #     {

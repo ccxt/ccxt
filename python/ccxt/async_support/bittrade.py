@@ -824,7 +824,7 @@ class bittrade(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             marketId = self.safe_string(tickers[i], 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             ticker = self.parse_ticker(tickers[i], market)
             ticker['timestamp'] = timestamp
             ticker['datetime'] = self.iso8601(timestamp)

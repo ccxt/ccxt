@@ -1063,7 +1063,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 request['currency'] = parsedNetwork
         paramsOmitted = params
         if (network is not None) and (code == 'USDT'):
-            paramsOmitted = self.omit(params, 'network')
+            paramsOmitted = self.omit(paramsOmitted, 'network')
         response = self.privatePostWalletCryptoAddress(self.extend(request, paramsOmitted))
         #
         #  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
@@ -1102,7 +1102,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 request['currency'] = parsedNetwork
         paramsOmitted = params
         if (network is not None) and (code == 'USDT'):
-            paramsOmitted = self.omit(params, 'network')
+            paramsOmitted = self.omit(paramsOmitted, 'network')
         response = self.privateGetWalletCryptoAddress(self.extend(request, paramsOmitted))
         #
         #  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]

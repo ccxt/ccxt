@@ -1055,7 +1055,7 @@ class paradex(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(loadedFees)):
             fee = self.parse_trading_fee(loadedFees[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             result[symbol] = fee
         return result
 
@@ -1200,7 +1200,7 @@ class paradex(Exchange, ImplicitAPI):
         if symbols is not None:
             symbolsLength = len(symbols)
             if symbolsLength == 1:
-                return self.market(symbols[0])['id']
+                return self.safe_string(self.market(symbols[0]), 'id', '')
         return 'ALL'
 
     def filter_loaded_summaries(self, summaries: list[dict], marketType: Str = None) -> list[dict]:
@@ -1293,7 +1293,7 @@ class paradex(Exchange, ImplicitAPI):
         last = self.safe_string(ticker, 'last_traded_price')
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 'created_at')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1643,7 +1643,7 @@ class paradex(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(interest, 'created_at')
         marketId = self.safe_string(interest, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_open_interest({
             'symbol': symbol,
             'openInterestAmount': self.safe_string(interest, 'open_interest'),
@@ -1814,7 +1814,7 @@ class paradex(Exchange, ImplicitAPI):
             clientOrderId = None
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'size')
         orderType = self.safe_string(order, 'type')
@@ -2496,8 +2496,7 @@ class paradex(Exchange, ImplicitAPI):
         paginationCursor = self.safe_string(response, 'next')
         ordersLength = len(orders)
         if (paginationCursor is not None) and (ordersLength > 0):
-            first = orders[0]
-            first['next'] = paginationCursor
+            first = self.extend(orders[0], {'next': paginationCursor})
             orders[0] = first
         return self.parse_orders(orders, market, since, limit)
 
@@ -2759,7 +2758,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'market')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string_lower(position, 'side')
         # side carries the direction, the unified contracts is a magnitude whether or not size is signed
         quantity = Precise.string_abs(self.safe_string(position, 'size'))
@@ -3450,7 +3449,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(greeks, 'symbol')
         marketResolved = self.safe_market(marketId, market, None, 'option')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(greeks, 'created_at')
         greeksData = self.safe_dict(greeks, 'greeks', {})
         return {
@@ -3745,7 +3744,7 @@ class paradex(Exchange, ImplicitAPI):
             requestUntil['start_at'] = since
             # a page holds the newest rows of its range, so a range wider than one page would return the latest
             # rows and skip since, the range is cut to one page of rows from since
-            windowEnd = self.sum(since, pageSize * rowSpacing)
+            windowEnd = self.sum(self.parse_to_int(since), pageSize * rowSpacing)
             endAt = self.safe_integer(requestUntil, 'end_at', windowEnd)
             if (self.safe_integer(requestUntil, 'end_at') is None) or (endAt > windowEnd):
                 requestUntil['end_at'] = windowEnd

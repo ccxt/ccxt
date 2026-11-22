@@ -425,7 +425,7 @@ class binance(PredictionExchange, ImplicitAPI):
             limitResolved = 50
         for qi in range(0, queriesLength):
             request = {
-                'query': queries[qi],
+                'query': self.safe_string(queries, qi),
             }
             request['topK'] = limitResolved
             response = await self.sapiPrivateGetMarketSearch(self.extend(request, rest))
@@ -922,7 +922,8 @@ class binance(PredictionExchange, ImplicitAPI):
             outcome = self.safe_string_upper(order, 'outcome')
             market = self.safe_market(marketId)
             marketName = self.safe_string(market, 'market', marketId)
-            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
+            outcomeKey = marketName + ':' + outcome
+            outcomeObjResolved = self.safe_outcome(outcomeKey)
         side = self.safe_string_lower(order, 'side')
         timestamp = self.safe_integer(order, 'createTime')
         return self.safe_prediction_order({
@@ -1414,7 +1415,8 @@ class binance(PredictionExchange, ImplicitAPI):
             outcome = self.safe_string_upper(trade, 'outcome')
             market = self.safe_market(marketId)
             marketName = self.safe_string(market, 'market', marketId)
-            outcomeObjResolved = self.safe_outcome(marketName + ':' + outcome)
+            outcomeKey = marketName + ':' + outcome
+            outcomeObjResolved = self.safe_outcome(outcomeKey)
         timestamp = self.safe_integer(trade, 'createTime')
         filled = self.safe_string(trade, 'filledShareQty')
         cost = self.safe_string(trade, 'filledUsdtAmount')

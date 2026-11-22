@@ -1469,11 +1469,6 @@ class tokocrypto(Exchange, ImplicitAPI):
             request['startTime'] = since
         if until is not None:
             request['endTime'] = until
-        response = None
-        if self.is_native_market(market):
-            response = self.publicGetOpenV1MarketKlines(self.extend(request, paramsOmitted))
-        else:
-            response = self.binanceGetKlines(self.extend(request, paramsOmitted))
         #
         # binanceGetKlines
         #
@@ -1508,15 +1503,16 @@ class tokocrypto(Exchange, ImplicitAPI):
         #     }
         #
         data = []
-        if isinstance(response, list):
-            data = response
-        else:
+        if self.is_native_market(market):
+            response = self.publicGetOpenV1MarketKlines(self.extend(request, paramsOmitted))
             dataList = self.safe_list(response, 'data')
             if dataList is not None:
                 data = dataList
             else:
                 dataDict = self.safe_dict(response, 'data', {})
                 data = self.safe_list(dataDict, 'list', [])
+        else:
+            data = self.binanceGetKlines(self.extend(request, paramsOmitted))
         return self.parse_ohlcvs(data, market, timeframe, since, limitValue)
 
     def fetch_balance(self, params: dict = {}) -> Balances:

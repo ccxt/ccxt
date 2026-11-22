@@ -585,7 +585,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             dex = self.safe_dict(fetchDexes, i, {})
             secondPart = i * 10000 - 10000
             offset = self.sum(110000, secondPart)
-            perpDexesOffset[self.safe_string(dex, 'name', '')] = offset
+            dexKey = self.safe_string(dex, 'name', '')
+            perpDexesOffset[dexKey] = offset
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
         hip3 = self.safe_dict(options, 'hip3', {})
@@ -2280,7 +2281,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             price = self.safe_string(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             slippage = self.safe_string(orderParams, 'slippage', defaultSlippage)
-            orderParams['slippage'] = slippage
+            orderParams = self.extend(orderParams, {'slippage': slippage})
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
             hasStopLoss = (stopLoss is not None)
@@ -2635,7 +2636,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         cancelAction = {
             'type': 'scheduleCancel',
-            'time': nonce + timeout,
+            'time': nonce + self.parse_to_int(timeout),
         }
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress')
@@ -3304,7 +3305,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             marketResolved = self.safe_market(marketId)
         else:
             marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(entry, 'timestamp')
         status = self.safe_string_2(order, 'status', 'ccxtStatus')
         orderOmitted = self.omit(order, ['ccxtStatus'])
@@ -3466,7 +3467,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         coin = self.safe_string(trade, 'coin')
         marketId = self.coin_to_market_id(coin)
         marketResolved = self.safe_market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'tid')
         side = self.safe_string(trade, 'side')
         if side is not None:
@@ -3577,7 +3578,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(liquidation, 'time')
         marketId = self.coin_to_market_id(self.safe_string(liquidation, 'coin'))
         marketResolved = self.safe_market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         # swap ids are asset indexes, so the market is looked up by symbol
         if (symbol is not None) and (self.markets is not None) and (symbol in self.markets):
             marketResolved = self.market(symbol)
@@ -3736,7 +3737,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         coin = self.safe_string(entry, 'coin')
         marketId = self.coin_to_market_id(coin)
         marketResolved = self.safe_market(marketId)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         leverage = self.safe_dict(entry, 'leverage', {})
         marginMode = self.safe_string(leverage, 'type')
         isIsolated = (marginMode == 'isolated')

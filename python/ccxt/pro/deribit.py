@@ -823,7 +823,7 @@ class deribit(ccxt.async_support.deribit):
         marketId = self.safe_string(parts, 2)
         rawTimeframe = self.safe_string(parts, 3)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         wsOptions = self.safe_dict(self.options, 'ws', {})
         timeframes = self.safe_dict(wsOptions, 'timeframes', {})
         unifiedTimeframe = self.find_timeframe(rawTimeframe, timeframes)

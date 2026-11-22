@@ -2948,7 +2948,7 @@ class htx(Exchange, ImplicitAPI):
         if until is not None:
             untilSeconds = self.parse_to_int(until / 1000)
         isContract = (market['contract'] is True)
-        marketType = market['type']
+        marketType = self.safe_string(market, 'type', '')
         contractLimit = limit if (limit is not None) else 2000  # only used for from/to calculation
         rangeLimit = limit
         if isContract:
@@ -3259,7 +3259,8 @@ class htx(Exchange, ImplicitAPI):
         # here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if networkId is None:
             return None
-        keys = list(self.options['networkNamesByChainIds'].keys())
+        namesByChainIds = self.safe_dict(self.options, 'networkNamesByChainIds', {})
+        keys = list(namesByChainIds.keys())
         keysLength = len(keys)
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
@@ -3271,7 +3272,8 @@ class htx(Exchange, ImplicitAPI):
             return None
         if currencyCode is None:
             return super(htx, self).network_code_to_id(networkCode)
-        keys = list(self.options['networkChainIdsByNames'].keys())
+        chainIdsByNames = self.safe_dict(self.options, 'networkChainIdsByNames', {})
+        keys = list(chainIdsByNames.keys())
         keysLength = len(keys)
         if keysLength == 0:
             raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')

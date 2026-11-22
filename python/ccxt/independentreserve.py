@@ -470,7 +470,7 @@ class independentreserve(Exchange, ImplicitAPI):
         if (baseId is not None) and (quoteId is not None):
             defaultMarketId = baseId + '/' + quoteId
         marketResolved = self.safe_market(defaultMarketId, market, '/')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'LastPrice')
         return self.safe_ticker({
             'symbol': symbol,

@@ -903,7 +903,8 @@ class lighter(Exchange, ImplicitAPI):
             # a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
             groupOrderExpiry = self.sum(self.milliseconds(), 2419200000)  # 28 days
             for i in range(0, totalOrderRequests):
-                if self.safe_integer(orderRequests[i], 'order_expiry') == -1:
+                legExpiry = self.safe_integer(orderRequests[i], 'order_expiry', 0)
+                if legExpiry == -1:
                     orderRequests[i]['order_expiry'] = groupOrderExpiry
         if totalOrderRequests < 1:
             raise InvalidOrder(self.id + ' createOrder() built no order request')

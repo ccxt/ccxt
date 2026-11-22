@@ -901,7 +901,9 @@ class bit2c(Exchange, ImplicitAPI):
             tradeMarket = self.safe_market(reference_parts[0], marketByPair)
             isMaker = self.safe_bool(trade, 'isMaker', False)
             makerOrTaker = 'maker' if isMaker else 'taker'
-            orderId = reference_parts[2] if isMaker else reference_parts[1]
+            orderId = self.safe_string(reference_parts, 1)
+            if isMaker:
+                orderId = self.safe_string(reference_parts, 2)
             action = self.safe_integer(trade, 'action')
             if action == 0:
                 side = 'buy'

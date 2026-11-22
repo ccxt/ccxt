@@ -2944,8 +2944,6 @@ class bitfinex(Exchange, ImplicitAPI):
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
                 raise ExchangeError(self.id + ' ' + body)
-        elif response == '':
-            raise ExchangeError(self.id + ' returned empty response')
         if code == 429:
             raise RateLimitExceeded(self.id + ' ' + body)
         if code == 500:

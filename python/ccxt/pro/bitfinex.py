@@ -243,7 +243,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         marketId = self.safe_string(keyParts, 2, '')
         market = self.safe_market(marketId)
         timeframe = self.find_timeframe(interval)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = channel + ':' + interval + ':' + marketId
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -346,7 +346,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         name = 'myTrade'
         data = self.safe_list(message, 2)
         trade = self.parse_ws_trade({'result': data})
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol')
         market = self.market(symbol)
         marketId = self.safe_string(market, 'id', '')
         messageHash = name + ':' + marketId

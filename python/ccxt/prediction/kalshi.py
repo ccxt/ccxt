@@ -552,7 +552,6 @@ class kalshi(PredictionExchange, ImplicitAPI):
         }
         # Build outcomes
         outcomeLabels = ['YES', 'NO']
-        outcomeIds = [ticker, ticker + '-NO']
         outcomes = []
         resolvedOutcome = None
         for oi in range(0, len(outcomeLabels)):
@@ -569,9 +568,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # reassigned local into the anonymous inner class it emits for a map literal)
             winner = winnerRaw
             settleFraction = settleFractionRaw
+            outcomeSuffix = ''
+            if oi > 0:
+                outcomeSuffix = '-NO'
+            outcomeId = ticker + outcomeSuffix
             outcomes.append({
-                'id': outcomeIds[oi],
-                'outcomeId': outcomeIds[oi],
+                'id': outcomeId,
+                'outcomeId': outcomeId,
                 'outcome': outcomeHandle,
                 'market': marketSymbol,
                 'label': label,

@@ -2212,7 +2212,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :returns any: ignore
         """
-        if not ('hf' in self.options) or (self.options['hf'] is None) or force:
+        if not ('hf' in self.options) or (self.safe_bool(self.options, 'hf') is None) or force:
             result = self.privateGetHfAccountsOpened()
             self.options['hf'] = self.safe_bool(result, 'data')
         return True
@@ -4045,7 +4045,7 @@ class kucoin(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
             elif marginMode == 'cross':
                 marginModes = self.safe_dict(self.options, 'marginModes', {})
-                request['tradeType'] = marginModes[marginMode]
+                request['tradeType'] = self.safe_string(marginModes, marginMode)
         elif isMarginOrder:
             if marginMode == 'isolated':
                 request['isIsolated'] = True
@@ -5052,7 +5052,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders')
         if marginMode is not None:
             marginModes = self.safe_dict(self.options, 'marginModes', {})
-            request['tradeType'] = marginModes[marginMode]
+            request['tradeType'] = self.safe_string(marginModes, marginMode)
             if marginMode == 'isolated' and (trigger):
                 raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
         response = None

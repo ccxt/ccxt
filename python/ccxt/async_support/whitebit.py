@@ -1579,7 +1579,7 @@ class whitebit(Exchange, ImplicitAPI):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             ticker = self.parse_ticker(self.safe_value(response, marketId), market)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
@@ -1781,7 +1781,7 @@ class whitebit(Exchange, ImplicitAPI):
         amount = self.safe_string_2(trade, 'amount', 'quote_volume')
         id = self.safe_string_2(trade, 'id', 'tradeID')
         side = self.safe_string_2(trade, 'type', 'side')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         role = self.safe_integer(trade, 'role')
         takerOrMaker = None
         if role is not None:
@@ -2223,7 +2223,8 @@ class whitebit(Exchange, ImplicitAPI):
         # Sort by timestamp (most recent first)
         sortedOrders = self.sort_by(allOrders, 'timestamp', True)
         # Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if limit is not None and len(sortedOrders) > limit:
+        sortedOrdersLength = len(sortedOrders)
+        if limit is not None and sortedOrdersLength > limit:
             return self.array_slice(sortedOrders, 0, limit)
         return sortedOrders
 
@@ -2486,7 +2487,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market, '_')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string(order, 'side')
         filled = self.safe_string(order, 'dealStock')
         remaining = self.safe_string(order, 'left')

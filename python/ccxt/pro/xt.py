@@ -823,7 +823,7 @@ class xt(ccxt.async_support.xt):
             cv = self.safe_string(data, 'cv')
             isSpot = cv is not None
             ticker = self.parse_ticker(data)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = ticker
             event = self.safe_string(message, 'event')
@@ -913,7 +913,7 @@ class xt(ccxt.async_support.xt):
         for i in range(0, len(data)):
             tickerData = data[i]
             ticker = self.parse_ticker(tickerData)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 self.tickers[symbol] = ticker
             newTickers.append(ticker)
@@ -1441,7 +1441,7 @@ class xt(ccxt.async_support.xt):
             self.myTrades = ArrayCacheBySymbolById(limit)
         stored = self.myTrades
         parsedTrade = self.parse_trade(data)
-        tradeSymbol = parsedTrade['symbol']
+        tradeSymbol = self.safe_string(parsedTrade, 'symbol')
         if tradeSymbol is None:
             return
         market = self.market(tradeSymbol)

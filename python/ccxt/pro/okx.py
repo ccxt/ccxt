@@ -1484,7 +1484,7 @@ class okx(ccxt.async_support.okx):
         data = self.safe_list(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         depths = {
             'bbo-tbt': 1,
             'books': 400,
@@ -2044,7 +2044,8 @@ class okx(ccxt.async_support.okx):
                 stored.append(order)
                 symbol = self.safe_string(order, 'symbol', '')
                 market = self.market(symbol)
-                marketIds.append(market['id'])
+                marketId = self.safe_string(market, 'id', '')
+                marketIds.append(marketId)
             client.resolve(stored, channel)
             for i in range(0, len(marketIds)):
                 if channel is not None:

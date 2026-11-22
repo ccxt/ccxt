@@ -170,7 +170,7 @@ class gemini(ccxt.async_support.gemini):
         #     }
         #
         trade = self.parse_ws_trade(message)
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol')
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -178,7 +178,7 @@ class gemini(ccxt.async_support.gemini):
             if symbol is not None:
                 self.trades[symbol] = stored
         stored.append(trade)
-        messageHash = 'trades:' + symbol
+        messageHash = 'trades:' + self.safe_string(trade, 'symbol', '')
         client.resolve(stored, messageHash)
 
     def handle_trades(self, client: Client, message: dict):

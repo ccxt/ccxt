@@ -694,7 +694,7 @@ class hollaex(Exchange, ImplicitAPI):
             ticker = self.safe_dict(tickers, key, {})
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             result[symbol] = self.extend(self.parse_ticker(ticker, market), params)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
@@ -727,7 +727,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'symbol')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.parse8601(self.safe_string_2(ticker, 'time', 'timestamp'))
         close = self.safe_string(ticker, 'close')
         return self.safe_ticker({
@@ -813,7 +813,7 @@ class hollaex(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         datetime = self.safe_string(trade, 'timestamp')
         timestamp = self.parse8601(datetime)
         side = self.safe_string(trade, 'side')

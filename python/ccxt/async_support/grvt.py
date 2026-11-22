@@ -3113,8 +3113,8 @@ class grvt(Exchange, ImplicitAPI):
         secretOrPrivkey = self.privateKey if usesPrivKey else self.secret
         privateKeyWithoutZero = self.remove0x_prefix(secretOrPrivkey)
         signature = self.ecdsa(self.hash(ethEncodedMessage, 'keccak', 'hex'), privateKeyWithoutZero, 'secp256k1', None)
-        request['signature'] = {
-            'signer': self.eth_get_address_from_private_key('0x' + privateKeyWithoutZero) if (signerAddress is None) else signerAddress,
+        signatureEntry = {
+            'signer': None,
             'r': self.format_signature_rs(signature['r']),
             's': self.format_signature_rs(signature['s']),
             'v': self.sum(27, signature['v']),
@@ -3122,6 +3122,11 @@ class grvt(Exchange, ImplicitAPI):
             'nonce': requestSignature['nonce'],
             'chain_id': requestSignature['chain_id'],
         }
+        if signerAddress is None:
+            signatureEntry['signer'] = self.eth_get_address_from_private_key('0x' + privateKeyWithoutZero)
+        else:
+            signatureEntry['signer'] = signerAddress
+        request['signature'] = signatureEntry
         return request
 
     def format_signature_rs(self, value: str) -> str:

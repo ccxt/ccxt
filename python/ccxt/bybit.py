@@ -3244,7 +3244,7 @@ class bybit(Exchange, ImplicitAPI):
         if market is not None:
             marketType = self.safe_string(market, 'type')
         marketResolved = self.safe_market(marketId, market, None, marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
         priceString = self.safe_string_n(trade, ['execPrice', 'orderPrice', 'price'])
         costString = self.safe_string(trade, 'execValue')
@@ -3915,7 +3915,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             marketType = 'contract' if isContract else 'spot'
         marketResolved = self.safe_market(marketId, market, None, marketType)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
         marketUnit = self.safe_string(order, 'marketUnit')  # '' is filtered by safeString, do not force a default:
         # bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -7762,7 +7762,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -8498,7 +8498,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 id = self.safe_integer(entry[j], 'id')
                 entry[j]['id'] = id
             market = self.safe_market(marketId, None, None, 'contract')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             tiers[symbol] = self.parse_market_leverage_tiers(self.sort_by(entry, 'id'), market)
         return tiers
 

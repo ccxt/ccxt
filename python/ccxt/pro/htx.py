@@ -1482,7 +1482,7 @@ class htx(ccxt.async_support.htx):
         #
         marketResolved = self.safe_market(None, market)
         marketValue = marketResolved
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         tradeId = self.safe_string(trade, 'tradeId')
         price = self.safe_string(trade, 'tradePrice')
         amount = self.safe_string(trade, 'tradeVolume')
@@ -1493,7 +1493,7 @@ class htx(ccxt.async_support.htx):
         if type is not None:
             typeParts = type.split('-')
             side = typeParts[0]
-            type = typeParts[1]
+            type = self.safe_string(typeParts, 1)
         aggressor = self.safe_bool(trade, 'aggressor')
         takerOrMaker = None
         if aggressor is not None:
@@ -1566,8 +1566,10 @@ class htx(ccxt.async_support.htx):
             cacheKey = 'cross'
         if isV5Linear:
             v5Market = None
-            if (symbolsNormalized is not None) and (len(symbolsNormalized) == 1):
-                v5Market = market
+            if symbolsNormalized is not None:
+                symbolsNormalizedLength = len(symbolsNormalized)
+                if symbolsNormalizedLength == 1:
+                    v5Market = market
             channelAndMessageHashAndParams = self.get_v5_linear_channel_and_message_hash('positions', v5Market, paramsRequest)
             channel = self.safe_string(channelAndMessageHashAndParams, 0)
             paramsRequest = self.safe_dict(channelAndMessageHashAndParams, 2, {})

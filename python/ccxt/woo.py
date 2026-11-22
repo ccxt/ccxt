@@ -2912,7 +2912,7 @@ class woo(Exchange, ImplicitAPI):
             firstPart = self.safe_string(parts, 0)
             currencyId = self.safe_string(parts, 1, firstPart)
             if partsLength > 2:
-                currencyId += '_' + self.safe_string(parts, 2, '')
+                currencyId = self.safe_string(parts, 1, '') + '_' + self.safe_string(parts, 2, '')
             return self.safe_currency(currencyId)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:

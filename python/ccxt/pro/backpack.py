@@ -161,7 +161,7 @@ class backpack(ccxt.async_support.backpack):
                 topic = 'externalTicker.' + externalBaseId + '_USDC'
             elif (self.safe_string(market, 'executionModel') == 'rfq') and (market['stock'] is not True):
                 raise NotSupported(self.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data')
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             messageHash = kind + ':' + symbol + '@' + topic
             subscriptionKey = 'marketData:' + topic
             subscriptions = self.safe_dict(client.subscriptions, subscriptionKey, {})
@@ -379,7 +379,7 @@ class backpack(ccxt.async_support.backpack):
         #
         ticker = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -459,7 +459,7 @@ class backpack(ccxt.async_support.backpack):
         """
         data = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -533,7 +533,7 @@ class backpack(ccxt.async_support.backpack):
         #     }
         data = self.safe_dict(message, 'data', {})
         stream = self.safe_string(message, 'stream', '')
-        subscriptions = self.safe_dict(client.subscriptions, 'marketData:' + stream, {})
+        subscriptions = self.extend({}, self.safe_dict(client.subscriptions, 'marketData:' + stream, {}))
         hashes = list(subscriptions.keys())
         hashesLength = len(hashes)
         for i in range(0, hashesLength):
@@ -716,7 +716,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stream = self.safe_string(message, 'stream', '')
         parts = stream.split('.')
         timeframe = self.safe_string(parts, 1, '')
@@ -878,7 +878,7 @@ class backpack(ccxt.async_support.backpack):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)
@@ -1370,7 +1370,7 @@ class backpack(ccxt.async_support.backpack):
         status = self.parse_ws_order_status(self.safe_string(order, 'X'), market)
         marketId = self.safe_string(order, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         type = self.safe_string_lower(order, 'o')
         timeInForce = self.safe_string(order, 'f')
         side = self.parse_ws_order_side(self.safe_string(order, 'S'))

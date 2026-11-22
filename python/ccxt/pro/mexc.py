@@ -587,7 +587,8 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'candles:' + symbolValue + ':' + timeframe
         ohlcv = None
         if self.safe_bool(market, 'spot', False):
-            spotChannel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
+            spotTimeframeId = self.safe_string(timeframes, timeframe, '')
+            spotChannel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + spotTimeframeId
             ohlcv = await self.watch_spot_public(spotChannel, messageHash, params)
         else:
             channel = 'sub.kline'
@@ -1799,7 +1800,8 @@ class mexc(ccxt.async_support.mexc):
         url = None
         if self.safe_bool(market, 'spot', False):
             url = self.urls['api']['ws']['spot']
-            channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
+            spotTimeframeId = self.safe_string(timeframes, timeframe, '')
+            channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + spotTimeframeId
             params['unsubscribed'] = True
             self.spawn(self.watch_spot_public, channel, messageHash, params)
         else:

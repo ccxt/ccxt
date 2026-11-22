@@ -533,7 +533,7 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchTrades is only supported for swap markets')
         baseIdLower = self.safe_string_lower(market, 'baseId', '')
@@ -674,7 +674,7 @@ class bitrue(ccxt.async_support.bitrue):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if market['swap'] is not True:
             raise NotSupported(self.id + ' unWatchOHLCV is only supported for swap markets')
         futuresTimeframes = self.safe_dict(self.options, 'futuresTimeframes', {})

@@ -1313,7 +1313,9 @@ class onetrading(ccxt.async_support.onetrading):
             marketId = marketIds[i]
             subscription[marketId] = True
         request['type'] = type
-        request['channels'][0]['instrument_codes'] = list(subscription.keys())
+        instrumentCodes = list(subscription.keys())
+        channel = self.extend(self.safe_dict(self.safe_list(request, 'channels', []), 0, {}), {'instrument_codes': instrumentCodes})
+        request['channels'] = [channel]
         return await self.watch(url, messageHash, self.deep_extend(request, params), subscriptionHash, subscription)
 
     async def authenticate(self, params: dict = {}):

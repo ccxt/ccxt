@@ -4478,7 +4478,8 @@ class gate(Exchange, ImplicitAPI):
                     exchangeSpecificTif = self.safe_string(self.options['timeInForce'], defaultTif, 'ioc')
                     timeInForce = exchangeSpecificTif
         priceResolved = price
-        if isMarketOrder and (contract is True):
+        zeroPrice = isMarketOrder and (contract is True)
+        if zeroPrice:
             priceResolved = 0
         contractAmount = 0
         signedAmount = None
@@ -4514,7 +4515,7 @@ class gate(Exchange, ImplicitAPI):
                 if isMarketOrder:
                     request['price'] = '0'  # set to 0 for market orders
                 else:
-                    request['price'] = '0' if (priceResolved == 0) else self.price_to_precision(symbol, priceResolved)
+                    request['price'] = '0' if zeroPrice else self.price_to_precision(symbol, priceResolved)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -4596,7 +4597,7 @@ class gate(Exchange, ImplicitAPI):
                 if type == 'market':
                     initial['price'] = '0'
                 else:
-                    initial['price'] = '0' if (priceResolved == 0) else self.price_to_precision(symbol, priceResolved)
+                    initial['price'] = '0' if zeroPrice else self.price_to_precision(symbol, priceResolved)
                 if reduceOnly is not None:
                     initial['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -5850,7 +5851,7 @@ class gate(Exchange, ImplicitAPI):
         isMarginTransfer = (fromId == 'margin') or (toId == 'margin')
         query = params
         if isMarginTransfer:
-            query = self.omit(params, 'symbol')
+            query = self.omit(query, 'symbol')
         response = await self.privateWalletPostTransfers(self.extend(request, query))
         #
         # according to the docs (however actual response seems to be an empty string '')

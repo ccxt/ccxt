@@ -1118,7 +1118,8 @@ class kraken(Exchange, ImplicitAPI):
                 symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 if self.safe_bool(market, 'active', False):
-                    marketIds.append(market['id'])
+                    marketId = self.safe_string(market, 'id', '')
+                    marketIds.append(marketId)
             request['pair'] = ','.join(marketIds)
         response = await self.publicGetTicker(self.extend(request, params))
         tickers = self.safe_dict(response, 'result', {})
@@ -1127,7 +1128,7 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
@@ -1529,7 +1530,7 @@ class kraken(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        id = market['id']
+        id = self.safe_string(market, 'id')
         request = {
             'pair': id,
         }
@@ -2289,7 +2290,7 @@ class kraken(Exchange, ImplicitAPI):
         query = params
         if clientOrderId is not None:
             request['userref'] = clientOrderId
-            query = self.omit(params, ['userref', 'clientOrderId'])
+            query = self.omit(query, ['userref', 'clientOrderId'])
         response = await self.privatePostQueryOrders(self.extend(request, query))
         #
         #     {
@@ -2368,7 +2369,8 @@ class kraken(Exchange, ImplicitAPI):
         batch = []
         for i in range(0, numTradeIds):
             batch.append(tradeIds[i])
-            if len(batch) >= batchSize:
+            batchLength = len(batch)
+            if batchLength >= batchSize:
                 batches.append(batch)
                 batch = []
         batches.append(batch)
@@ -3225,7 +3227,7 @@ class kraken(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'tag')
         currencyResolved = self.safe_currency(None, currency)
-        code = currencyResolved['code']
+        code = self.safe_string(currencyResolved, 'code')
         self.check_address(address)
         return {
             'info': depositAddress,

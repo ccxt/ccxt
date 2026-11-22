@@ -313,7 +313,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         coin = self.safe_string(entry, 'coin')
         marketId = self.coinToMarketId(coin)
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         rawData = self.safe_list(entry, 'levels', [])
         data = {
             'bids': self.safe_list(rawData, 0, []),
@@ -609,7 +609,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 name = keys[i]
                 marketId = self.coinToMarketId(name)
                 market = self.safe_market(marketId, None, None, 'swap')
-                symbol = market['symbol']
+                symbol = self.safe_string(market, 'symbol', '')
                 ticker = self.parse_ws_ticker({
                     'price': self.safe_number(mids, name),
                 }, market)
@@ -648,7 +648,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         coin = self.safe_string(data, 'coin')
         marketId = self.coinToMarketId(coin)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         ctx = self.safe_dict(data, 'ctx', {})
         ticker = self.parse_ws_ticker(ctx, market)
         self.tickers[symbol] = ticker
@@ -703,7 +703,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = self.parse_ws_trade(rawTrade)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             symbols[symbol] = True
             trades.append(parsed)
         keys = list(symbols.keys())
@@ -845,7 +845,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         coin = self.safe_string(first, 'coin')
         marketId = self.coinToMarketId(coin)
         market = self.market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             stored = ArrayCache(limit)

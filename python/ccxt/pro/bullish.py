@@ -329,8 +329,9 @@ class bullish(ccxt.async_support.bullish):
         }
         parsed = self.parse_order_book(snapshot, symbol, timestamp)
         sequenceNumberRange = self.safe_list(data, 'sequenceNumberRange', [])
-        if len(sequenceNumberRange) > 0:
-            lastIndex = len(sequenceNumberRange) - 1
+        sequenceNumberRangeLength = len(sequenceNumberRange)
+        if sequenceNumberRangeLength > 0:
+            lastIndex = sequenceNumberRangeLength - 1
             parsed['nonce'] = self.safe_integer(sequenceNumberRange, lastIndex)
         orderbook.reset(parsed)
         self.orderbooks[symbol] = orderbook

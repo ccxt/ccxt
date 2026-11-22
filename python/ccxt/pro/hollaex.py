@@ -352,7 +352,8 @@ class hollaex(ccxt.async_support.hollaex):
         if dataDict is not None:
             rawOrders = [dataDict]
         # usually the first message is an empty array
-        if len(rawOrders) == 0:
+        rawOrdersLength = len(rawOrders)
+        if rawOrdersLength == 0:
             return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)

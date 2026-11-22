@@ -560,7 +560,7 @@ class zebpay(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -921,7 +921,7 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 'timestamp', 'tradeTime')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market, '_')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         side = self.safe_string_lower(trade, 'side')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'amount', 'quantity')
@@ -1270,7 +1270,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         type = self.safe_string(order, 'type')
         timestamp = self.safe_number(order, 'timestamp')
         datetime = self.iso8601(timestamp)

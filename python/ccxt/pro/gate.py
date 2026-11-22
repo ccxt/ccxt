@@ -1035,7 +1035,7 @@ class gate(ccxt.async_support.gate):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         marketId = self.safe_string(market, 'id', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
@@ -1223,7 +1223,7 @@ class gate(ccxt.async_support.gate):
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
-            symbol = trade['symbol']
+            symbol = self.safe_string(trade, 'symbol')
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())
@@ -1537,7 +1537,7 @@ class gate(ccxt.async_support.gate):
         if symbol is not None:
             marketResolved = self.market(symbol)
             market = marketResolved
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         type = None
         query = None
         type, query = self.handle_market_type_and_params('watchOrders', market, params)
@@ -1923,7 +1923,8 @@ class gate(ccxt.async_support.gate):
                         else:
                             marketType = parsedChannel[0]
                         symbol = self.safe_symbol(payload[i], None, '_', marketType)
-                        messageHashSymbol = parsedChannel[1] + ':' + symbol
+                        channelName = self.safe_string(parsedChannel, 1, '')
+                        messageHashSymbol = channelName + ':' + symbol
                         if (messageHashSymbol is not None) and (messageHashSymbol in client.subscriptions):
                             del client.subscriptions[messageHashSymbol]
             if (id is not None) and (id in client.subscriptions):

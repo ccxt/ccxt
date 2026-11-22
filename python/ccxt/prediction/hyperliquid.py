@@ -1561,11 +1561,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         # recentTrades returns the coin's most recent public trades (newest first)
         response = await self.publicPostInfo(self.extend(request, params))
-        trades = []
-        if isinstance(response, list):
-            trades = response
-        elif not isinstance(response, str):
-            trades = self.to_array(response)
+        trades = self.info_list(response)
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
@@ -1602,11 +1598,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = await self.publicPostInfo(self.extend(request, paramsOmitted))
-        fills = []
-        if isinstance(response, list):
-            fills = response
-        elif not isinstance(response, str):
-            fills = self.to_array(response)
+        fills = self.info_list(response)
         # parse without an outcome fallback — fills span every market the wallet traded, so a
         # requested-outcome fallback would mislabel fills whose market is no longer listed
         parsedTrades = self.parse_prediction_trades(fills, None)
@@ -2041,7 +2033,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return None
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
-        if ('byType' in config) and ('type' in params):
+        if 'byType' in config:
             type = self.safe_string(params, 'type')
             byType = config['byType']
             if type is not None:

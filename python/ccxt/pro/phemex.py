@@ -579,6 +579,7 @@ class phemex(ccxt.async_support.phemex):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -593,7 +594,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         }
         request = self.deep_extend(subscribe, params)
@@ -621,6 +622,7 @@ class phemex(ccxt.async_support.phemex):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -635,7 +637,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         }
         request = self.deep_extend(subscribe, params)
@@ -661,6 +663,7 @@ class phemex(ccxt.async_support.phemex):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
         url = self.urls['api']['ws']
         requestId = self.request_id()
         isSwap = market['swap']
@@ -675,7 +678,7 @@ class phemex(ccxt.async_support.phemex):
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
                 self.safe_integer(self.timeframes, timeframe),
             ],
         }
@@ -717,8 +720,10 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        isSwap = market['swap']
+        isUsdtSwap = (isSwap is True) and (market['settle'] == 'USDT')
         name = 'trade'
         if isUsdtSwap:
             name = 'trade_p'
@@ -726,7 +731,7 @@ class phemex(ccxt.async_support.phemex):
             'topic': 'trades',
             'symbols': [symbolValue],
         }
-        return await self.un_subscribe_public(name + '.unsubscribe', 'trade:' + symbolValue, [market['id']], subscription, params)
+        return await self.un_subscribe_public(name + '.unsubscribe', 'trade:' + symbolValue, [marketId], subscription, params)
 
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
         """
@@ -743,8 +748,10 @@ class phemex(ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
-        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        symbolValue = self.safe_string(market, 'symbol', '')
+        marketId = self.safe_string(market, 'id', '')
+        isSwap = market['swap']
+        isUsdtSwap = (isSwap is True) and (market['settle'] == 'USDT')
         name = 'kline'
         if isUsdtSwap:
             name = 'kline_p'
@@ -753,7 +760,7 @@ class phemex(ccxt.async_support.phemex):
             'symbolsAndTimeframes': [[symbolValue, timeframe]],
         }
         # phemex drops only the given interval when it is sent along with the symbol
-        marketParams = [market['id'], self.safe_integer(self.timeframes, timeframe)]
+        marketParams = [marketId, self.safe_integer(self.timeframes, timeframe)]
         return await self.un_subscribe_public(name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params)
 
     def handle_un_subscription(self, client: Client, message: dict):

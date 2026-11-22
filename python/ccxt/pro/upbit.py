@@ -282,7 +282,7 @@ class upbit(ccxt.async_support.upbit):
         #   "sequential_id": 1584508285000002,
         #   "stream_type": "REALTIME" }
         trade = self.parse_trade(message)
-        symbol = trade['symbol']
+        symbol = self.safe_string(trade, 'symbol')
         if symbol is None:
             return
         stored = self.safe_value(self.trades, symbol)

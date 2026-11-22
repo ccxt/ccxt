@@ -2091,7 +2091,8 @@ class bitstamp(Exchange, ImplicitAPI):
             # dt (destination tag) is embedded into the address field
             addressParts = addressRaw.split('?dt=')
             address = self.safe_string(addressParts, 0)
-            if len(addressParts) > 1:
+            addressPartsLength = len(addressParts)
+            if addressPartsLength > 1:
                 tag = self.safe_string(addressParts, 1)
         fee = {
             'currency': None,

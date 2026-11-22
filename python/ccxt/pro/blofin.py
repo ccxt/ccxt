@@ -769,14 +769,14 @@ class blofin(ccxt.async_support.blofin):
             for i in range(0, len(symbols)):
                 current = symbols[i]
                 market = None
-                channel = channelName
+                interval = ''
                 if isOHLCV:
                     market = self.market(current)
                     tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                     interval = self.safe_string(self.timeframes, tf, tf)
-                    channel = channel + interval
                 else:
                     market = self.market(current)
+                channel = '' + channelName + interval
                 topic = {
                     'channel': channel,
                     'instId': market['id'],
@@ -816,11 +816,11 @@ class blofin(ccxt.async_support.blofin):
         messageHashes = []
         for i in range(0, len(symbols)):
             market = self.market(self.safe_string(symbols, i))
-            channel = channelName
+            interval = ''
             if isOHLCV:
                 tf = self.safe_string(self.safe_list(symbolsArray, i), 1, '')
                 interval = self.safe_string(self.timeframes, tf, tf)
-                channel = channel + interval
+            channel = channelName + interval
             topic = {
                 'channel': channel,
                 'instId': market['id'],

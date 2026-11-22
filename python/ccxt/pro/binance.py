@@ -1572,7 +1572,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         stock, paramsStock = self.handle_option_bool_and_params(params, 'watchOHLCV', 'stock', False)
         if stock is True:
             if (timeframe != '5m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
@@ -1777,7 +1777,7 @@ class binance(ccxt.async_support.binance):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         params['callerMethodName'] = 'watchOHLCV'
         return await self.un_watch_ohlcv_for_symbols([[symbolValue, timeframe]], params)
 
@@ -3685,11 +3685,11 @@ class binance(ccxt.async_support.binance):
         else:
             payload = self.editContractOrderRequest(id, symbol, type, side, amount, price, params)
         returnRateLimits, paramsReturnRateLimits = self.handle_option_bool_and_params(params, 'editOrderWs', 'returnRateLimits', False)
-        payload['returnRateLimits'] = returnRateLimits
+        payloadWithLimits = self.extend(payload, {'returnRateLimits': returnRateLimits})
         message = {
             'id': messageHash,
             'method': 'order.modify' if (isSwap) else 'order.cancelReplace',
-            'params': self.sign_params(self.extend(payload, paramsReturnRateLimits)),
+            'params': self.sign_params(self.extend(payloadWithLimits, paramsReturnRateLimits)),
         }
         subscription = {
             'method': self.handle_edit_order_ws,
@@ -4590,7 +4590,8 @@ class binance(ccxt.async_support.binance):
             })
             self.tickers[symbol] = parsed
             tickers[symbol] = parsed
-            client.resolve(parsed, 'stock:price:' + symbol)
+            priceSymbol = self.safe_string(parsed, 'symbol', '')
+            client.resolve(parsed, 'stock:price:' + priceSymbol)
         client.resolve(tickers, 'stock:price')
 
     def handle_stock_quote(self, client: Client, message: dict):
@@ -4610,7 +4611,8 @@ class binance(ccxt.async_support.binance):
             'info': message,
         })
         self.bidsasks[symbol] = parsed
-        client.resolve(parsed, 'stock:quote:' + symbol)
+        quoteSymbol = self.safe_string(parsed, 'symbol', '')
+        client.resolve(parsed, 'stock:quote:' + quoteSymbol)
 
     def handle_options_order_update(self, client: Client, message: dict):
         #
@@ -4658,7 +4660,8 @@ class binance(ccxt.async_support.binance):
                 side = 'SELL'
             absQty = Precise.string_abs(rawQty)
             executionType = 'NEW'
-            if len(fills) > 0:
+            fillsLength = len(fills)
+            if fillsLength > 0:
                 executionType = 'TRADE'
             # normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
             normalizedOrder = {

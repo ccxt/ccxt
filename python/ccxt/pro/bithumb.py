@@ -361,7 +361,7 @@ class bithumb(ccxt.async_support.bithumb):
         wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook' + ':' + symbolValue
         request = {
             'type': 'orderbookdepth',
@@ -520,7 +520,7 @@ class bithumb(ccxt.async_support.bithumb):
         wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trade:' + symbolValue
         request = {
             'type': 'transaction',

@@ -1957,6 +1957,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # effectively-final copy for the market object literal below (reassigned in the loop)
         marketResolvedOutcome = resolvedOutcome
         compositeId = self.safe_string(raw, 'networkId', '') + ':' + self.safe_string(raw, 'id', '')
+        compositeBaseId = self.safe_string(raw, 'networkId', '') + ':' + self.safe_string(raw, 'id', '')
         return {
             'id': compositeId,
             'market': marketSymbol,
@@ -1965,7 +1966,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'base': slug,
             'quote': quoteCurrency,
             'settle': None,
-            'baseId': networkId + ':' + marketId,
+            'baseId': compositeBaseId,
             'quoteId': quoteCurrency,
             'settleId': None,
             'type': 'prediction',
@@ -2233,7 +2234,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         percentage = None
         for i in range(0, len(outcomes)):
             o = self.safe_dict(outcomes, i)
-            if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
+            entryOutcomeId = self.safe_string(o, 'outcomeId', self.safe_string(o, 'id'))
+            if entryOutcomeId == outcomeId:
                 priceValue = self.safe_number(o, 'price')
                 changeValue = self.safe_number(o, 'priceChange24h')
                 price = priceValue
@@ -2387,7 +2389,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         ask = None
         for i in range(0, len(outcomes)):
             o = self.safe_dict(outcomes, i)
-            if self.safe_string(o, 'outcomeId', self.safe_string(o, 'id')) == outcomeId:
+            entryOutcomeId = self.safe_string(o, 'outcomeId', self.safe_string(o, 'id'))
+            if entryOutcomeId == outcomeId:
                 price = self.safe_number(o, 'price')
                 if price is not None:
                     if price > 0.001:
@@ -3238,12 +3241,12 @@ class myriad(PredictionExchange, ImplicitAPI):
         seenChannels = {}
         resolvedSymbols = []
         for i in range(0, symbolsLength):
-            outcomeObj = self.outcome(outcomes[i])
+            outcomeObj = self.outcome(self.safe_string(outcomes, i, ''))
             info = self.safe_dict(outcomeObj, 'info', {})
             networkId = self.safe_string(info, 'networkId', '')
             marketId = self.safe_string(info, 'marketId', '')
             channel = 'prices:' + networkId + ':' + marketId
-            resolvedSymbols.append(self.safe_outcome_symbol(outcomes[i], outcomeObj))
+            resolvedSymbols.append(self.safe_outcome_symbol(self.safe_string(outcomes, i, ''), outcomeObj))
             if not (channel in seenChannels):
                 seenChannels[channel] = True
                 requestId = self.request_id(url)

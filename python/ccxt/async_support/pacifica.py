@@ -982,7 +982,7 @@ class pacifica(Exchange, ImplicitAPI):
             setting = settings[i]
             marketId = self.safe_string(setting, 'symbol')
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             settingsBySymbol[symbol] = setting
         return settingsBySymbol
 

@@ -2867,7 +2867,8 @@ class limitless(PredictionExchange, ImplicitAPI):
             categories = categoriesResponse
         wanted = []
         for i in range(0, len(tags)):
-            wanted.append(tags[i].lower())
+            tag = self.safe_string(tags, i, '')
+            wanted.append(tag.lower())
         categoryIds = []
         categoriesLength = len(categories)
         for i in range(0, categoriesLength):

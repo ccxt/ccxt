@@ -112,7 +112,7 @@ class bittrade(ccxt.async_support.bittrade):
         timestamp = self.safe_integer(message, 'ts')
         ticker['timestamp'] = timestamp
         ticker['datetime'] = self.iso8601(timestamp)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         self.tickers[symbol] = ticker
         client.resolve(ticker, ch)
         return message
@@ -185,7 +185,7 @@ class bittrade(ccxt.async_support.bittrade):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         tradesCache = self.safe_value(self.trades, symbol)
         if tradesCache is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -261,7 +261,7 @@ class bittrade(ccxt.async_support.bittrade):
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(parts, 3)
         timeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})

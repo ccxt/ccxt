@@ -2398,7 +2398,7 @@ class bingx(Exchange, ImplicitAPI):
         if lastQty is None:
             type = 'spot'
         if market is not None:
-            type = market['type']
+            type = self.safe_string(market, 'type')
         marketResolved = self.safe_market(marketId, market, None, type)
         symbol = self.safe_string(marketResolved, 'symbol')
         open = self.safe_string(ticker, 'openPrice')
@@ -6184,7 +6184,7 @@ class bingx(Exchange, ImplicitAPI):
         return self.parse_transaction(data)
 
     def parse_params(self, params: dict) -> dict:
-        copied = self.clone(params)
+        copied = self.extend({}, params)
         sortedParams = self.keysort(params)
         rawKeys = list(sortedParams.keys())
         rawKeysLength = len(rawKeys)

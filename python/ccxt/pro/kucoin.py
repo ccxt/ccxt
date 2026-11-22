@@ -775,7 +775,7 @@ class kucoin(ccxt.async_support.kucoin):
         topic = self.safe_string(ticker, 'topic')
         if topic.find('contractMarket') < 0:
             parts = topic.split(':')
-            marketId = parts[1]
+            marketId = self.safe_string(parts, 1)
             marketResolved = self.safe_market(marketId, market)
             symbol = self.safe_string(marketResolved, 'symbol')
             data = self.safe_dict(ticker, 'data', {})
@@ -2100,7 +2100,7 @@ class kucoin(ccxt.async_support.kucoin):
             # derives cost from the order price otherwise, which is wrong for
             # orders filled at better prices, so the accumulated values win on
             # the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if order['average'] is not None:
+            if self.safe_number(order, 'average') is not None:
                 parsed['average'] = self.safe_number(order, 'average')
                 parsed['cost'] = self.safe_number(order, 'cost')
             if self.safe_number(parsed, 'filled') is None:
@@ -2382,7 +2382,7 @@ class kucoin(ccxt.async_support.kucoin):
             amount = self.safe_string(trade, 'size')
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer_product_2(trade, 'ts', 'time', 0.000001)
-        feeCurrency = marketResolved['quote']
+        feeCurrency = self.safe_string(marketResolved, 'quote')
         feeRate = self.safe_string(trade, 'feeRate')
         feeCost = self.safe_string(trade, 'fee')
         return self.safe_trade({

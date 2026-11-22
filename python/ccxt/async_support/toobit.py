@@ -742,7 +742,7 @@ class toobit(Exchange, ImplicitAPI):
             coin = coins[i]
             parsed = self.parse_currency(coin)
             if parsed is not None:
-                code = parsed['code']
+                code = self.safe_string(parsed, 'code', '')
                 result[code] = parsed
         return result
 
@@ -1186,7 +1186,7 @@ class toobit(Exchange, ImplicitAPI):
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
         marketResolved = self.safe_market(None, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -2583,7 +2583,8 @@ class toobit(Exchange, ImplicitAPI):
         result = {}
         marketResolved = self.safe_market(self.safe_string(response, 'symbol'), market)
         fee = self.parse_trading_fee(response, marketResolved)
-        result[marketResolved['symbol']] = fee
+        feeSymbol = self.safe_string(marketResolved, 'symbol', '')
+        result[feeSymbol] = fee
         return result
 
     def parse_trading_fee(self, data: dict, market: Market = None) -> TradingFeeInterface:

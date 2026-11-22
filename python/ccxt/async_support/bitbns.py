@@ -898,11 +898,11 @@ class bitbns(Exchange, ImplicitAPI):
         else:
             amountString = self.safe_string(trade, 'base_volume')
             costString = self.safe_string(trade, 'quote_volume')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrencyCode = marketResolved['quote']
+            feeCurrencyCode = self.safe_string(marketResolved, 'quote')
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,

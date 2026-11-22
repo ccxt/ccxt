@@ -81,9 +81,9 @@ class whitebit(ccxt.async_support.whitebit):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_integer(self.options['timeframes'], timeframe)
-        marketId = market['id']
+        marketId = self.safe_string(market, 'id')
         # currently there is no way of knowing
         # the interval upon getting an update
         # so that can't be part of the message hash, and the user can only subscribe
@@ -121,7 +121,7 @@ class whitebit(ccxt.async_support.whitebit):
             data = params[i]
             marketId = self.safe_string(data, 7)
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             messageHash = 'candles' + ':' + symbol
             parsed = self.parse_ohlcv(data, market)
             if not (symbol in self.ohlcvs):
@@ -248,7 +248,7 @@ class whitebit(ccxt.async_support.whitebit):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         method = 'market_subscribe'
         messageHash = 'ticker:' + symbolValue
         # every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -307,7 +307,7 @@ class whitebit(ccxt.async_support.whitebit):
         tickers = self.safe_list(message, 'params', [])
         marketId = self.safe_string(tickers, 0)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         rawTicker = self.safe_dict(tickers, 1, {})
         messageHash = 'ticker' + ':' + symbol
         ticker = self.parse_ticker(rawTicker, market)
@@ -346,7 +346,7 @@ class whitebit(ccxt.async_support.whitebit):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trades' + ':' + symbolValue
         method = 'trades_subscribe'
         # every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -384,7 +384,7 @@ class whitebit(ccxt.async_support.whitebit):
         params = self.safe_list(message, 'params', [])
         marketId = self.safe_string(params, 0)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -630,7 +630,7 @@ class whitebit(ccxt.async_support.whitebit):
             amount = self.safe_string(order, 'amount')
         timestamp = self.safe_timestamp(order, 'ctime')
         lastTradeTimestamp = self.safe_timestamp(order, 'mtime')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         rawSide = self.safe_integer(order, 'side')
         side = 'buy'
         if rawSide == 1:
@@ -838,7 +838,7 @@ class whitebit(ccxt.async_support.whitebit):
         if client is None:
             subscription = {}
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             if marketId is not None:
                 subscription[marketId] = True
             marketIds = [marketId]
@@ -855,7 +855,7 @@ class whitebit(ccxt.async_support.whitebit):
             subscription = self.safe_dict(client.subscriptions, method, {})
             hasSymbolSubscription = True
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
             isSubscribed = self.safe_bool(subscription, marketId, False)
             if not isSubscribed:
                 if marketId is not None:

@@ -810,6 +810,7 @@ class coinbase(ccxt.async_support.coinbase):
         if events is None:
             return
         marketIds = []
+        seenMarketIds = {}
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
@@ -824,7 +825,8 @@ class coinbase(ccxt.async_support.coinbase):
                 cachedOrders = self.orders
                 marketId = self.safe_string(responseOrder, 'product_id')
                 if marketId is not None:
-                    if not (marketId in marketIds):
+                    if not (marketId in seenMarketIds):
+                        seenMarketIds[marketId] = True
                         marketIds.append(marketId)
                 cachedOrders.append(parsed)
         for i in range(0, len(marketIds)):

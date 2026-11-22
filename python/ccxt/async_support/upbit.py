@@ -1268,8 +1268,9 @@ class upbit(Exchange, ImplicitAPI):
                 request['volume'] = self.amount_to_precision(symbol, amount)
         else:
             raise InvalidOrder(self.id + ' createOrder() supports only limit or market types in the type argument.')
-        paramsOrdType = self.omit(params, ['ordType', 'ord_type']) if (customType == 'best') else params
+        paramsOrdType = params
         if customType == 'best':
+            paramsOrdType = self.omit(paramsOrdType, ['ordType', 'ord_type'])
             request['ord_type'] = 'best'
             if side == 'buy':
                 orderPrice = self.calc_order_price(symbol, amount, price, paramsOrdType)

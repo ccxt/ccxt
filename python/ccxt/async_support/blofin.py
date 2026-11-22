@@ -798,7 +798,7 @@ class blofin(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open24h')
         spot = self.safe_bool(marketResolved, 'spot', False)
@@ -937,7 +937,7 @@ class blofin(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'tradeId')
         marketId = self.safe_string(trade, 'instId')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(trade, 'ts')
         price = self.safe_string_2(trade, 'price', 'fillPrice')
         amount = self.safe_string_2(trade, 'size', 'fillSize')

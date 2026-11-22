@@ -163,7 +163,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer(message, 'timestamp')
         if not (symbol in self.orderbooks):
             self.orderbooks[symbol] = self.order_book()
@@ -192,7 +192,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request = {
             'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
@@ -213,7 +213,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         request = {
             'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
@@ -306,7 +306,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
         request = {
@@ -328,7 +328,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
         request = {
@@ -546,7 +546,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -899,7 +899,7 @@ class lighter(ccxt.async_support.lighter):
         parts = channel.split(':')
         marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol')
         stored = self.safe_value(self.liquidations, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
@@ -1265,7 +1265,7 @@ class lighter(ccxt.async_support.lighter):
             for j in range(0, len(orders)):
                 order = self.parse_order(orders[j], market)
                 stored.append(order)
-                symbol = order['symbol']
+                symbol = self.safe_string(order, 'symbol')
                 if symbol is not None:
                     symbolSpecificMessageHash = self.get_message_hash('orders', symbol)
                     client.resolve(stored, symbolSpecificMessageHash)

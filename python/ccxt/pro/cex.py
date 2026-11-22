@@ -359,7 +359,7 @@ class cex(ccxt.async_support.cex):
         #
         data = self.safe_dict(message, 'data', {})
         ticker = self.parse_ws_ticker(data)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is None:
             return
         self.tickers[symbol] = ticker

@@ -977,7 +977,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             request['clientOrderId'] = clientOrderId
         paramsTriggerPrice = params
         if triggerPriceIsRequired:
-            paramsTriggerPrice = self.omit(params, 'triggerPrice')
+            paramsTriggerPrice = self.omit(paramsTriggerPrice, 'triggerPrice')
         paramsOmitted = self.omit(paramsTriggerPrice, 'clientOrderId')
         response = self.privatePostOrders(self.extend(request, paramsOmitted))
         #
