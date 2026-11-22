@@ -1413,7 +1413,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const rates = await this.fetchFundingRates ([ market['symbol'] ], params);
+        const rates = await this.fetchFundingRates ([ this.safeString (market, 'symbol', '') ], params);
         const rate = this.safeDict (rates, market['symbol']);
         if (rate === undefined) {
             throw new BadSymbol (this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
@@ -2855,7 +2855,7 @@ export default class paradex extends Exchange {
                 matching.push (data[i]);
             }
         }
-        const positions = this.parsePositions (matching, [ market['symbol'] ]);
+        const positions = this.parsePositions (matching, [ this.safeString (market, 'symbol', '') ]);
         return this.safeDict (positions, 0, {}) as Position;
     }
 
