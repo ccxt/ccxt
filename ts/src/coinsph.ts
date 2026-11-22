@@ -1290,7 +1290,7 @@ export default class coinsph extends Exchange {
         //
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const id = this.safeString2 (trade, 'id', 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'time');
@@ -1892,7 +1892,7 @@ export default class coinsph extends Exchange {
         const fees: Dict[] = this.toArray (response);
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -1910,7 +1910,7 @@ export default class coinsph extends Exchange {
         //
         const marketId = this.safeString (fee, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,

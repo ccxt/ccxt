@@ -1139,7 +1139,7 @@ export default class gate extends gateRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const marketId: string = this.safeString (market, 'id', '');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
@@ -1343,7 +1343,7 @@ export default class gate extends gateRest {
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append (trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             if (symbol !== undefined) {
                 marketIds[symbol] = true;
             }
@@ -1692,7 +1692,7 @@ export default class gate extends gateRest {
         if (symbol !== undefined) {
             const marketResolved = this.market (symbol);
             market = marketResolved;
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let type: Str = undefined;
         let query: NullableDict = undefined;

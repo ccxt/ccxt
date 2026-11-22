@@ -1642,7 +1642,7 @@ export default class whitebit extends Exchange {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (this.safeValue (response, marketId), market);
-            const symbol: Str = ticker['symbol'];
+            const symbol: Str = this.safeString (ticker, 'symbol');
             result[(symbol as string)] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
@@ -1856,7 +1856,7 @@ export default class whitebit extends Exchange {
         const amount = this.safeString2 (trade, 'amount', 'quote_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
-        const symbol: string = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const role = this.safeInteger (trade, 'role');
         let takerOrMaker: Str = undefined;
         if (role !== undefined) {
@@ -2647,7 +2647,7 @@ export default class whitebit extends Exchange {
         //
         const marketId = this.safeString (order, 'market');
         const marketResolved: Market = this.safeMarket (marketId, market, '_');
-        const symbol: string = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
         let remaining = this.safeString (order, 'left');

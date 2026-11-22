@@ -3359,7 +3359,7 @@ export default class aster extends Exchange {
             'symbol': market['id'],
             'amount': amountValue,
         };
-        const code = market['quote'];
+        const code = this.safeString (market, 'quote');
         const response = await this.fapiPrivatePostV3PositionMargin (this.extend (request, params));
         //
         //     {
