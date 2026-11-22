@@ -130,7 +130,7 @@ public class Misc {
         return roundTimeframe(timeframe, timestamp, null);
     }
 
-    public static Object implodeParams(Object path2, Object parameter2) {
+    public static String implodeParams(Object path2, Object parameter2) {
 
         String path = (String) path2;
 

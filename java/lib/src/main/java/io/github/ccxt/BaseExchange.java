@@ -1610,7 +1610,7 @@ public class BaseExchange {
         return Misc.roundTimeframe(timeframe, timestamp, direction);
     }
 
-    public Object implodeParams(Object path2, Object parameter2) {
+    public String implodeParams(Object path2, Object parameter2) {
         return Misc.implodeParams(path2, parameter2);
     }
 

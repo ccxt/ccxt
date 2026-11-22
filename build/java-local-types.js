@@ -16775,6 +16775,19 @@ function javaNullStringLocalWrite (printer, node) {
         JAVA_NULL_STRING_CONVERTED.add (value);
         return true;
     }
+    // a sync this-call whose printed Java signature returns String (declared type, checked by javac)
+    if (value !== undefined && isThisCall (value) && !value.arguments.some ((a) => ts.isSpreadElement (a)) && !isAsyncMethodCall (printer, value)) {
+        try {
+            // a base-tier callee prints in another file: only its on-disk Java declaration counts
+            const callee = printer.getChecker ().getSymbolAtLocation (value.expression)?.valueDeclaration?.resolve?.();
+            const inBase = callee === undefined || BASE_SOURCE_FILE.test (String (callee.getSourceFile ().fileName));
+            if (inBase ? javaBaseStringCoreCall (printer, value) : printer.javaExpressionPrintsType (value, 'String')) {
+                return true;
+            }
+        } catch (e) {
+            // fall through to the plain forms
+        }
+    }
     return value !== undefined && (isNullishInitializer (value) || ts.isStringLiteralLike (value)
         || (isThisCall (value) && SAFE_STRING_ACCESSORS.has (String (value.expression.name.text)) && isPlainSafeStringBaseCall (printer, value)));
 }
