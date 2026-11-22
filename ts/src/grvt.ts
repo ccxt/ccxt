@@ -585,7 +585,8 @@ export default class grvt extends Exchange {
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
+        await this.loadAccountInfos ();
+        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders () ]);
         //
         // {
         //     "results": [{

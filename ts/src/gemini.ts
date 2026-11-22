@@ -1031,6 +1031,7 @@ export default class gemini extends Exchange {
     }
 
     async fetchTickerV1AndV2 (symbol: string, params: Dict = {}): Promise<Ticker> {
+        await this.loadMarkets ();
         const tickerPromiseA = this.fetchTickerV1 (symbol, params);
         const tickerPromiseB = this.fetchTickerV2 (symbol, params);
         const [ tickerA, tickerB ] = await Promise.all ([ tickerPromiseA, tickerPromiseB ]);
