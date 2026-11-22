@@ -16820,8 +16820,9 @@ function goNearestLocalType (lines: string[], funcStart: number, at: number, nam
         if ((k < at) && (lines[k].trim () !== '')) {
             floor = Math.min (floor, indent (lines[k]));
         }
+        // a bare `var x map[string]any` declares the type of the comma-ok read on the next line
         const m = decl.exec (lines[k]) ?? goJoinedDeclarationType (lines, k, name) ?? new RegExp ('^(\\s*)var ' + name + GO_COMMA_OK_DECL_TAIL).exec (lines[k])
-            ?? goBoundedRowDeclarationType (lines, k, name);
+            ?? goBoundedRowDeclarationType (lines, k, name) ?? new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any)$').exec (lines[k]);
         if ((m !== null) && (k < at)) {
             return (m[1].length <= floor) ? m[2] : undefined;
         }
