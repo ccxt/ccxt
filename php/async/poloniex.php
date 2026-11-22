@@ -3572,7 +3572,7 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count($responseKeys); $i++) {
             $currencyId = $responseKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            $feeInfo = $this->safe_dict($response, $currencyId);
+            $feeInfo = $this->safe_dict($feesById, $currencyId);
             if (($code !== null) && (($codesValue === null) || ($this->in_array($code, $codesValue)))) {
                 $currency = $this->currency($code);
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $currency);
@@ -3584,7 +3584,7 @@ class poloniex extends Exchange {
                         $rawNetworkId = $this->safe_string($childChains, $j, '');
                         $networkId = str_replace($code, '', $rawNetworkId);
                         $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
-                        $networkInfo = $this->safe_dict($response, $networkId);
+                        $networkInfo = $this->safe_dict($feesById, $networkId);
                         $networkObject = array();
                         $withdrawFee = $this->safe_number($networkInfo, 'withdrawalFee');
                         $withdrawObject = array( 'fee' => $withdrawFee, 'percentage' => null );

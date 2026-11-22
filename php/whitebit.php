@@ -1218,7 +1218,7 @@ class whitebit extends Exchange {
         $currencyKeys = is_array($currenciesData) ? array_keys($currenciesData) : array();
         for ($i = 0; $i < count($currencyKeys); $i++) {
             $code = $currencyKeys[$i];
-            $currency = $currenciesData[$code];
+            $currency = $this->safe_dict($currenciesData, $code);
             if ($currency === null) {
                 // Skip invalid currency silently
                 continue;
@@ -2578,7 +2578,7 @@ class whitebit extends Exchange {
             $marketNew = $this->safe_market($marketId, null, '_');
             $orders = $this->safe_list($response, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
-                $order = $this->parse_order($orders[$j], $marketNew);
+                $order = $this->parse_order($this->safe_dict($orders, $j, array()), $marketNew);
                 $results[] = $this->extend($order, array( 'status' => 'closed' ));
             }
         }

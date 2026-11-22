@@ -1621,8 +1621,7 @@ class lighter extends Exchange {
         $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
         $swapTickers = $this->safe_list($response, 'order_book_details', array());
         $tickers = $this->array_concat($spotTickers, $swapTickers);
-        $first = $this->safe_dict($tickers, 0, array());
-        return $this->parse_ticker($first, $market);
+        return $this->parse_ticker($this->safe_dict($tickers, 0, array()), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): array {

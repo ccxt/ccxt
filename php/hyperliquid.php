@@ -590,10 +590,9 @@ class hyperliquid extends Exchange {
         $dexesCount = count($fetchDexes);
         for ($i = 1; $i < $dexesCount; $i++) {
             // builder-deployed perp dexs start at 110000
-            $dex = $this->safe_dict($fetchDexes, $i, array());
             $secondPart = $i * 10000 - 10000;
             $offset = $this->sum(110000, $secondPart);
-            $dexKey = $this->safe_string($dex, 'name', '');
+            $dexKey = $this->safe_string($this->safe_dict($fetchDexes, $i), 'name', '');
             $perpDexesOffset[$dexKey] = $offset;
         }
         $fetchDexesList = array();
@@ -618,11 +617,7 @@ class hyperliquid extends Exchange {
                 if ($i >= $fetchDexesLength) {
                     break;
                 }
-                $dex = $this->safe_dict($fetchDexes, $i, array());
-                if ($dex === null) {
-                    continue;
-                }
-                $dexName = $this->safe_string($dex, 'name');
+                $dexName = $this->safe_string($this->safe_dict($fetchDexes, $i), 'name');
                 $fetchDexesList[] = $dexName;
             }
         }
@@ -3988,7 +3983,7 @@ class hyperliquid extends Exchange {
         $data = $this->safe_list($response, 'assetPositions', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_position($data[$i]);
+            $result[] = $this->parse_position($this->safe_dict($data, $i, array()));
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }

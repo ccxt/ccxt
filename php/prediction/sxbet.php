@@ -2864,7 +2864,7 @@ class sxbet extends Exchange {
             $baseUrl = $groupUrl;
         }
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
-        $query = $this->omit($params, $this->extract_params($path));
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
         $existingHeaders = array();
         $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
@@ -2877,7 +2877,11 @@ class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         $sendAsQuery = ($method === 'GET');
         if ($method === 'DELETE') {
-            $sendAsQuery = !(is_array($query) && array_key_exists('orders' ?? '', $query));
+            if (is_array($query) && array_key_exists('orders' ?? '', $query)) {
+                $sendAsQuery = false;
+            } else {
+                $sendAsQuery = true;
+            }
         }
         $bodyValue = null;
         if ($sendAsQuery) {

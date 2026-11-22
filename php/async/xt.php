@@ -1821,7 +1821,7 @@ class xt extends Exchange {
         //
         if ($this->safe_bool($market, 'spot', false)) {
             $tickers = $this->safe_list($response, 'result', array());
-            return $this->parse_ticker($tickers[0], $market);
+            return $this->parse_ticker($this->safe_dict($tickers, 0, array()), $market);
         }
         $ticker = $this->safe_dict($response, 'result', array());
         return $this->parse_ticker($ticker, $market);
@@ -1915,7 +1915,7 @@ class xt extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i], $market);
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $market);
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;

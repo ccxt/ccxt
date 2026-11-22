@@ -1797,7 +1797,7 @@ class nado extends \ccxt\async\nado {
                     'bid' => $this->parseX18($bid),
                     'info' => $bbo,
                 ), $market);
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_string($market, 'symbol', '');
                 $result[$symbol] = $ticker;
             }
         }

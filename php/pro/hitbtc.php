@@ -1551,19 +1551,18 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_value($message, 'result', array());
-        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+        $rows = $this->safe_list($message, 'result');
+        if ($rows === null) {
+            $parsedOrder = $this->parse_ws_order($this->safe_dict($message, 'result', array()));
+            $client->resolve($parsedOrder, $messageHash);
+        } else {
             $parsedOrders = array();
-            $rows = $this->safe_list($message, 'result', array());
             $rowsLength = count($rows);
             for ($i = 0; $i < $rowsLength; $i++) {
                 $parsedOrder = $this->parse_ws_order($rows[$i]);
                 $parsedOrders[] = $parsedOrder;
             }
             $client->resolve($parsedOrders, $messageHash);
-        } else {
-            $parsedOrder = $this->parse_ws_order($result);
-            $client->resolve($parsedOrder, $messageHash);
         }
         return $message;
     }

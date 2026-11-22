@@ -1774,7 +1774,7 @@ class kucoin extends Exchange {
         $responses = Async\await(Promise\all($promises));
         $symbolsData = array();
         if ($fetchSpotMarkets) {
-            $symbolsData = $this->safe_list($responses[0], 'data', array());
+            $symbolsData = $this->safe_list($this->safe_dict($responses, 0, array()), 'data', array());
         }
         $crossIndex = 0;
         $isolatedIndex = 0;
@@ -1797,10 +1797,10 @@ class kucoin extends Exchange {
         if ($fetchContractMarkets) {
             $contractIndex = $nextIndex;
         }
-        $crossData = ($requestMarginables) ? $this->safe_dict($responses[$crossIndex], 'data', array()) : array();
+        $crossData = ($requestMarginables) ? $this->safe_dict($this->safe_dict($responses, $crossIndex, array()), 'data', array()) : array();
         $crossItems = $this->safe_list($crossData, 'items', array());
         $crossById = $this->index_by($crossItems, 'symbol');
-        $isolatedData = ($requestMarginables) ? $responses[$isolatedIndex] : array();
+        $isolatedData = ($requestMarginables) ? $this->safe_dict($responses, $isolatedIndex, array()) : array();
         $isolatedItems = $this->safe_list($isolatedData, 'data', array());
         $isolatedById = $this->index_by($isolatedItems, 'symbol');
         $tickersResponse = $fetchTickersFees ? $this->safe_dict($responses, $tickersIndex, array()) : array();
@@ -10913,7 +10913,7 @@ class kucoin extends Exchange {
         );
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchPosition', 'uta', $uta);
-        $position = null;
+        $position = array();
         if ($utaOption) {
             $request['accountMode'] = 'unified';
             $response = Async\await($this->utaPrivateGetAccountModePositionOpenList($this->extend($request, $paramsUta)));

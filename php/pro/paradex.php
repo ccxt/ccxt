@@ -2211,7 +2211,7 @@ class paradex extends \ccxt\async\paradex {
             $next = $position + 2;
             $high = mb_strpos($digits, mb_substr($frameHex, $position, $middle - $position));
             $low = mb_strpos($digits, mb_substr($frameHex, $middle, $next - $middle));
-            $result = $this->parse_to_int($this->sum($result, $high * 16 * $factor, $low * $factor));
+            $result = $this->parse_to_int($this->sum($result, $high * $factor * 16, $low * $factor));
             $factor = $this->parse_to_int($factor * 256);
             $position = $this->parse_to_int($next);
         }

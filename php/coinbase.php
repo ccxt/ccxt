@@ -2153,7 +2153,7 @@ class coinbase extends Exchange {
             $marketId = $baseId . $delimiter . $quoteId;
             $market = $this->safe_market($marketId, null, $delimiter);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $result[$symbol] = $this->parse_ticker($rates[$baseId], $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_dict($rates, $baseId, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }

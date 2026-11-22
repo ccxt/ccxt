@@ -133,8 +133,8 @@ class lighter extends \ccxt\async\lighter {
 
     private function do_subscribe_private(string $messageHash, $params = array()) {
         Async\await($this->preLoadLighterLibrary());
-        $params['auth'] = $this->createAuth($params);
-        return Async\await($this->subscribe_public($messageHash, $params));
+        $request = $this->extend($params, array( 'auth' => $this->createAuth($params) ));
+        return Async\await($this->subscribe_public($messageHash, $request));
     }
 
     public function handle_delta(mixed $bookside, mixed $delta) {
@@ -1464,7 +1464,7 @@ class lighter extends \ccxt\async\lighter {
             $market = $this->safe_market($marketId);
             $orders = $this->safe_list($data, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
-                $order = $this->parse_order($orders[$j], $market);
+                $order = $this->parse_order($this->safe_dict($orders, $j, array()), $market);
                 $stored->append($order);
                 $symbol = $this->safe_string($order, 'symbol');
                 if ($symbol !== null) {

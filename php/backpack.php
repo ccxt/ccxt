@@ -999,7 +999,10 @@ class backpack extends Exchange {
         if (($market !== null) && $stock && !$this->safe_bool($market, 'stock', false)) {
             throw new BadSymbol($this->id . ' ' . $methodName . '() requires a stock market');
         }
-        return array( $stock, $query );
+        if ($stock === true) {
+            return array( true, $query );
+        }
+        return array( false, $query );
     }
 
     public function fetch_securities($params = array()): array {
@@ -1033,8 +1036,7 @@ class backpack extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('fetchStockIndicativeQuote', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('fetchStockIndicativeQuote', $params, $market);
         if ($market['stock'] !== true) {
             throw new BadSymbol($this->id . ' fetchStockIndicativeQuote() requires a stock market');
         }
@@ -1217,8 +1219,7 @@ class backpack extends Exchange {
          */
         $this->load_markets();
         $market = $this->rfq_conversion_market($fromCode, $toCode);
-        $selection = $this->handle_stock_params('createConvertTrade', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('createConvertTrade', $params, $market);
         $quoteId = $this->safe_string($query, 'quoteId');
         if ($quoteId !== null) {
             $acceptParams = $this->omit($query, array( 'quoteId', 'price', 'baseAmount', 'clientOrderId' ));
@@ -1304,9 +1305,8 @@ class backpack extends Exchange {
          * @param {array} [$market] resolved $market
          * @return {array} $market data parameters
          */
-        $selection = $this->handle_stock_params($methodName, $params, $market);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockValue, $query) = $this->handle_stock_params($methodName, $params, $market);
+        $stock = ($stockValue === true);
         $request = $this->extend(array(), $query);
         $source = $this->safe_string($query, 'source');
         $marketInfo = $this->safe_dict($market, 'info', array());
@@ -1560,8 +1560,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('fetchOrderBook', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('fetchOrderBook', $params, $market);
         $source = $this->safe_string($query, 'source', 'Venue');
         if (($source !== 'Venue') || ($this->safe_string($market['info'], 'marketType') === 'RFQ')) {
             throw new NotSupported($this->id . ' fetchOrderBook() requires a venue order-book market; use fetchStockIndicativeQuote() for size-specific RFQ prices');
@@ -1866,8 +1865,7 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('fetchTrades', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('fetchTrades', $params, $market);
         if (($this->safe_string($query, 'source', 'Venue') !== 'Venue') || ($this->safe_string($market['info'], 'marketType') === 'RFQ')) {
             throw new NotSupported($this->id . ' fetchTrades() only supports venue order-book trades; use fetchMyTrades() for RFQ fills');
         }
@@ -1917,9 +1915,8 @@ class backpack extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $this->safe_string($market, 'id');
         }
-        $selection = $this->handle_stock_params('fetchMyTrades', $params, $market);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockValue, $query) = $this->handle_stock_params('fetchMyTrades', $params, $market);
+        $stock = ($stockValue === true);
         $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
         $aggregate = $stock && ($market === null) && !$rfq;
         if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
@@ -2454,7 +2451,7 @@ class backpack extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * creates a venue order or bounded requester RFQ for a tokenized stock
+         * creates a venue order or bounded requester RFQ for a tokenized $stock
          *
          * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order
          * @see https://docs.backpack.exchange/#tag/RFQ/operation/submit_rfq
@@ -2466,7 +2463,7 @@ class backpack extends Exchange {
          * @param {float} [$price] limit $price, ignored for venue $market orders but an optional execution bound for $market RFQs
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] venue $market orders only, quote-currency cost instead of $amount
-         * @param {boolean} [$params->stock] selects tokenized stock spot or RFQ execution; inferred from $symbol when omitted
+         * @param {boolean} [$params->stock] selects tokenized $stock spot or RFQ execution; inferred from $symbol when omitted
          * @param {string} [$params->executionMode] RFQ only, Immediate (default) or AwaitAccept for manually accepted limit RFQs
          * @param {int} [$params->orderExpiryTime] RFQ only, resting Immediate RFQ expiry in milliseconds
          * @param {int} [$params->clientOrderId] a unique id for the order
@@ -2491,9 +2488,8 @@ class backpack extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('createOrder', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
-        $orderParams = $this->extend($query, array( 'stock' => $this->safe_bool($selection, 0, false) ));
+        list($stock, $query) = $this->handle_stock_params('createOrder', $params, $market);
+        $orderParams = $this->extend($query, array( 'stock' => $stock ));
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             $rfqResponse = $this->create_rfq_order($symbol, $type, $side, $amount, $price, $orderParams);
             $rfqOrder = $this->safe_dict(array( 'order' => $rfqResponse ), 'order');
@@ -2524,8 +2520,8 @@ class backpack extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('createRfqOrder', $params, $market);
-        $paramsResolved = $this->safe_dict($selection, 1, array());
+        list(, $rfqParams) = $this->handle_stock_params('createRfqOrder', $params, $market);
+        $paramsResolved = $rfqParams;
         if ($this->safe_string($market['info'], 'marketType') !== 'RFQ') {
             throw new BadSymbol($this->id . ' createRfqOrder() requires an RFQ market');
         }
@@ -2619,8 +2615,7 @@ class backpack extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('acceptRfqQuote', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('acceptRfqQuote', $params, $market);
         if ($this->safe_string($market['info'], 'marketType') !== 'RFQ') {
             throw new BadSymbol($this->id . ' acceptRfqQuote() requires an RFQ market');
         }
@@ -2685,8 +2680,7 @@ class backpack extends Exchange {
             throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('createOrder', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('createOrder', $params, $market);
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             throw new NotSupported($this->id . ' createOrders() does not support RFQ batches; use createOrder()');
         }
@@ -2799,9 +2793,8 @@ class backpack extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $this->safe_string($market, 'id');
         }
-        $selection = $this->handle_stock_params('fetchOpenOrders', $params, $market);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockValue, $query) = $this->handle_stock_params('fetchOpenOrders', $params, $market);
+        $stock = ($stockValue === true);
         $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
         if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
             throw new BadSymbol($this->id . ' fetchOpenOrders() rfq requires an RFQ market symbol');
@@ -2843,8 +2836,7 @@ class backpack extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('fetchOpenOrder', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('fetchOpenOrder', $params, $market);
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             $rfqResponse = $this->privateGetApiV1Rfqs($this->extend($query, array( 'symbol' => $market['id'], 'rfqId' => $id )));
             for ($i = 0; $i < count($rfqResponse); $i++) {
@@ -2882,8 +2874,7 @@ class backpack extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('fetchOrder', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockSelected, $query) = $this->handle_stock_params('fetchOrder', $params, $market);
         $rfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
         $request = array( 'symbol' => $market['id'] );
         if ($rfq) {
@@ -2903,7 +2894,7 @@ class backpack extends Exchange {
                 return $order;
             }
         }
-        $openOrderParams = $this->extend($query, array( 'stock' => $this->safe_bool($selection, 0, false) ));
+        $openOrderParams = $this->extend($query, array( 'stock' => $stockSelected ));
         return $this->fetch_open_order($id, $symbol, $openOrderParams);
     }
 
@@ -2928,8 +2919,7 @@ class backpack extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('cancelOrder', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('cancelOrder', $params, $market);
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             $clientOrderId = $this->safe_integer($query, 'clientOrderId');
             $rfqRequest = array();
@@ -2968,8 +2958,7 @@ class backpack extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        $selection = $this->handle_stock_params('cancelAllOrders', $params, $market);
-        $query = $this->safe_dict($selection, 1, array());
+        list(, $query) = $this->handle_stock_params('cancelAllOrders', $params, $market);
         if ($this->safe_string($market['info'], 'marketType') === 'RFQ') {
             throw new NotSupported($this->id . ' cancelAllOrders() does not support RFQs; cancel each RFQ explicitly with cancelOrder()');
         }
@@ -3010,9 +2999,8 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $selection = $this->handle_stock_params('fetchOrders', $params, $market);
-        $stock = $this->safe_bool($selection, 0, false);
-        $query = $this->safe_dict($selection, 1, array());
+        list($stockValue, $query) = $this->handle_stock_params('fetchOrders', $params, $market);
+        $stock = ($stockValue === true);
         $rfq = $this->safe_bool($query, 'rfq', false) || ($this->safe_string($this->safe_dict($market, 'info'), 'marketType') === 'RFQ');
         if ($rfq && ($market !== null) && ($this->safe_string($market['info'], 'marketType') !== 'RFQ')) {
             throw new BadSymbol($this->id . ' fetchOrders() rfq requires an RFQ market symbol');

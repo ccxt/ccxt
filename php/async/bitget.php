@@ -4075,7 +4075,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ticker($data[0], $market);
+        return $this->parse_ticker($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_mark_price(string $symbol, $params = array()): PromiseInterface {
@@ -4108,7 +4108,7 @@ class bitget extends Exchange {
             $response = Async\await($this->publicMixGetV2MixMarketSymbolPrice($this->extend($request, $paramsProductType)));
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ticker($data[0], $market);
+        return $this->parse_ticker($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -9397,7 +9397,7 @@ class bitget extends Exchange {
         }
         $result = array();
         for ($i = 0; $i < count($position); $i++) {
-            $parsedPosition = $this->parse_position($position[$i], $market);
+            $parsedPosition = $this->parse_position($this->safe_dict($position, $i, array()), $market);
             $result[] = $parsedPosition;
         }
         $symbolsNormalized = $this->market_symbols($symbols);

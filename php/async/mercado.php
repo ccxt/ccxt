@@ -604,13 +604,14 @@ class mercado extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'coin_pair' => $market['id'],
         );
         $response = null;
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
-            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['limit_price'] = $this->price_to_precision($precisionSymbol, $price);
+            $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
             if ($side === 'buy') {
                 $response = Async\await($this->privatePostPlaceBuyOrder($this->extend($request, $params)));
             } else {
@@ -623,10 +624,10 @@ class mercado extends Exchange {
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
-                $request['cost'] = $this->price_to_precision($market['symbol'], $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
+                $request['cost'] = $this->price_to_precision($precisionSymbol, $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
                 $response = Async\await($this->privatePostPlaceMarketBuyOrder($this->extend($request, $params)));
             } else {
-                $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
                 $response = Async\await($this->privatePostPlaceMarketSellOrder($this->extend($request, $params)));
             }
         }

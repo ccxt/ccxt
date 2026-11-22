@@ -5132,7 +5132,7 @@ class mexc extends Exchange {
             $networkUnified = $this->network_id_to_code($networkCode, $code);
             $networks = $this->safe_dict($currency, 'networks', array());
             if (($networkUnified !== null) && (is_array($networks) && array_key_exists($networkUnified ?? '', $networks))) {
-                $network = ($networkUnified === null) ? array() : $this->safe_dict($networks, $networkUnified, array());
+                $network = $this->safe_dict($networks, $networkUnified, array());
                 $networkInfo = $this->safe_dict($network, 'info', array());
                 $networkId = $this->safe_string($networkInfo, 'network');
             } else {
@@ -5191,7 +5191,7 @@ class mexc extends Exchange {
         $networkUnified = $this->network_id_to_code($networkCode, $code);
         $networks = $this->safe_dict($currency, 'networks', array());
         if (($networkUnified !== null) && (is_array($networks) && array_key_exists($networkUnified ?? '', $networks))) {
-            $network = ($networkUnified === null) ? array() : $this->safe_dict($networks, $networkUnified, array());
+            $network = $this->safe_dict($networks, $networkUnified, array());
             $networkInfo = $this->safe_dict($network, 'info', array());
             $networkId = $this->safe_string($networkInfo, 'network');
         } else {

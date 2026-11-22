@@ -1463,7 +1463,7 @@ class deribit extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $tickers = array();
         for ($i = 0; $i < count($result); $i++) {
-            $ticker = $this->parse_ticker($result[$i]);
+            $ticker = $this->parse_ticker($this->safe_dict($result, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $tickers[$symbol] = $ticker;
@@ -1669,7 +1669,10 @@ class deribit extends Exchange {
             $request['count'] = min($limit, 1000); // default 10
         }
         $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
-        $paramsOmitted = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($until !== null) {
+            $paramsOmitted = $this->omit($params, array( 'until' ));
+        }
         if ($until !== null) {
             $request['end_timestamp'] = $until;
         }
@@ -2289,7 +2292,7 @@ class deribit extends Exchange {
         }
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'trigger_offset');
         $isTrailingAmountOrder = $trailingAmount !== null;
-        $paramsOmitted = $params;
+        $paramsOmitted = $this->omit($params, array());
         if ($isTrailingAmountOrder) {
             $paramsOmitted = $this->omit($paramsOmitted, 'trigger_offset');
         }

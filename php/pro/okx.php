@@ -753,7 +753,7 @@ class okx extends \ccxt\async\okx {
         $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ticker($data[$i]);
+            $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
             $this->tickers[$symbol] = $ticker;
             $newTickers[$symbol] = $ticker;
         }

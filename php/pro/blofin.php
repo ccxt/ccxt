@@ -837,17 +837,13 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($this->safe_dict($data, $i, array()));
+            $position = $this->parse_position($this->safe_dict($data, $i, array()));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
                 $client->resolve($position, $channelName . ':' . $this->safe_string($position, 'symbol', ''));
             }
         }
-    }
-
-    public function parse_ws_position(array $position, ?array $market = null): array {
-        return $this->parse_position($position, $market);
     }
 
     public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {

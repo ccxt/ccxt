@@ -1031,9 +1031,9 @@ class luno extends Exchange {
          *
          * @see https://www.luno.com/en/developers/api#tag/Market/operation/GetTickers
          *
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1048,8 +1048,7 @@ class luno extends Exchange {
             $id = $ids[$i];
             $market = $this->safe_market($id);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $ticker = $tickers[$id];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_dict($tickers, $id, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
@@ -1414,6 +1413,7 @@ class luno extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'pair' => $market['id'],
         );
@@ -1423,14 +1423,14 @@ class luno extends Exchange {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['counter_volume'] = $this->amount_to_precision($precisionSymbol, $amount);
             } else {
-                $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['base_volume'] = $this->amount_to_precision($precisionSymbol, $amount);
             }
             $response = Async\await($this->privatePostMarketorder($this->extend($request, $params)));
         } else {
-            $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['volume'] = $this->amount_to_precision($precisionSymbol, $amount);
+            $request['price'] = $this->price_to_precision($precisionSymbol, $price);
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
             $response = Async\await($this->privatePostPostorder($this->extend($request, $params)));
         }

@@ -1208,8 +1208,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 return;
             }
             for ($i = 0; $i < count($data); $i++) {
-                $value = $data[$i];
-                $parsed = $this->parse_ws_order($value);
+                $parsed = $this->parse_ws_order($data[$i]);
                 $symbol = $this->safe_string($parsed, 'symbol', '');
                 $symbolIds[$symbol] = true;
                 $orders->append($parsed);

@@ -1345,10 +1345,10 @@ class opinion extends Exchange {
          * @see https://docs.opinion.trade/developer-guide/opinion-open-api/trade
          *
          * @param {string} [$outcome] filter by unified $outcome or $outcome token id
-         * @param {int} [$since] timestamp in ms of the earliest $trade to fetch
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum number of $trades to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of [prediction $trade structures](https://docs.ccxt.com/#/?id=prediction-$trade-structure)
+         * @param {array} [$params] $extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
          */
         if ($this->walletAddress === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a walletAddress');
@@ -1365,18 +1365,26 @@ class opinion extends Exchange {
         $result = $this->safe_dict($response, 'result', array());
         $trades = $this->safe_list($result, 'list', array());
         $tradesLength = count($trades);
+        $filled = array();
         for ($i = 0; $i < $tradesLength; $i++) {
-            $trade = $trades[$i];
-            $tokenId = $this->safe_string($trade, 'tokenId');
-            $marketId = $this->safe_integer($trade, 'marketId');
+            $tokenId = $this->safe_string($trades[$i], 'tokenId');
+            $marketId = $this->safe_integer($trades[$i], 'marketId');
             if (($tokenId === null) && ($marketId !== null)) {
                 $tradeMarket = Async\await($this->load_trade_market($marketId));
                 $info = $this->safe_dict($tradeMarket, 'info', array());
-                $isYes = ($this->safe_string_lower($trade, 'outcomeSideEnum') === 'yes');
-                $trade['tokenId'] = $isYes ? $this->safe_string($info, 'yesTokenId') : $this->safe_string($info, 'noTokenId');
+                $isYes = ($this->safe_string_lower($trades[$i], 'outcomeSideEnum') === 'yes');
+                $extra = array();
+                if ($isYes) {
+                    $extra['tokenId'] = $this->safe_string($info, 'yesTokenId');
+                } else {
+                    $extra['tokenId'] = $this->safe_string($info, 'noTokenId');
+                }
+                $filled[] = $this->extend($trades[$i], $extra);
+            } else {
+                $filled[] = $trades[$i];
             }
         }
-        return $this->parse_prediction_trades($trades, $outcomeObj, $since, $limit);
+        return $this->parse_prediction_trades($filled, $outcomeObj, $since, $limit);
     }
 
     public function load_trade_market(int $marketId): PromiseInterface {

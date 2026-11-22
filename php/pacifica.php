@@ -1735,8 +1735,7 @@ class pacifica extends Exchange {
             $side = $this->safe_string($order, 'side');
             $price = $this->safe_string($order, 'price');
             $type = $this->safe_string($order, 'type', 'limit');
-            $orderParams = $this->safe_dict($order, 'params', array());
-            $orderParams['timestamp'] = $timestamp;
+            $orderParams = $this->extend($this->safe_dict($order, 'params', array()), array( 'timestamp' => $timestamp ));
             $amount = $this->safe_string($order, 'amount');
             $amountNumber = $this->parse_number($amount);
             $priceNumber = $this->parse_number($price);
@@ -2499,7 +2498,7 @@ class pacifica extends Exchange {
         $sorted = $this->sort_by($data, 'history_id', true);
         $lastIdx = count($sorted);
         if ($lastIdx > 0) {
-            return $this->parse_order($sorted[0], $market);
+            return $this->parse_order($this->safe_dict($sorted, 0, array()), $market);
         }
         return $this->parse_order(array(), $market);
     }
@@ -2741,7 +2740,7 @@ class pacifica extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_position($data[$i], null);
+            $result[] = $this->parse_position($this->safe_dict($data, $i, array()), null);
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }

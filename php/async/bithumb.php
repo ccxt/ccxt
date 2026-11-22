@@ -414,7 +414,7 @@ class bithumb extends Exchange {
 
     public function amount_to_precision(?string $symbol, mixed $amount): ?string {
         $market = $this->market($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_value($market['precision'], 'amount'), DECIMAL_PLACES);
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->safe_integer($market['precision'], 'amount'), DECIMAL_PLACES);
     }
 
     public function get_gen2_market_id(array $market): string {

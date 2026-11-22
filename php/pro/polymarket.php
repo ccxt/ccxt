@@ -1178,12 +1178,12 @@ class polymarket extends \ccxt\async\polymarket {
         if ($errorMessage !== null) {
             $error = new ExchangeError($this->id . ' ' . $errorMessage);
             for ($i = 0; $i < count($messageHashes); $i++) {
-                $client->reject($error, $messageHashes[$i]);
+                $messageHash = $messageHashes[$i];
+                $client->reject($error, $messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                $messageHash = $messageHashes[$i];
                 if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }

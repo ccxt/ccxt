@@ -967,7 +967,7 @@ class mudrex extends Exchange {
         }
         $orders = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $orders[] = $this->parse_order($rows[$i], $market);
+            $orders[] = $this->parse_order($this->safe_dict($rows, $i, array()), $market);
         }
         return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
     }
@@ -1040,10 +1040,9 @@ class mudrex extends Exchange {
         $rows = $this->to_array($data);
         $outPos = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $p = $rows[$i];
-            $symRaw = $this->safe_string($p, 'symbol');
+            $symRaw = $this->safe_string($rows[$i], 'symbol');
             $m = $this->safe_market($symRaw);
-            $pos = $this->parse_position($p, $m);
+            $pos = $this->parse_position($this->safe_dict($rows, $i, array()), $m);
             $outPos[] = $pos;
         }
         return $this->filter_by_array_positions($outPos, 'symbol', $symbols);

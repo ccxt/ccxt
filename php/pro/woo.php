@@ -901,7 +901,7 @@ class woo extends \ccxt\async\woo {
         $data = $this->safe_dict($message, 'data');
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
         $tradesArray = $this->safe_value($this->trades, $symbol);
         if ($tradesArray === null) {
@@ -1535,8 +1535,7 @@ class woo extends \ccxt\async\woo {
         for ($i = 0; $i < count($postitionsIds); $i++) {
             $marketId = $postitionsIds[$i];
             $market = $this->safe_market($marketId);
-            $rawPosition = $rawPositions[$marketId];
-            $position = $this->parse_position($rawPosition, $market);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $marketId, array()), $market);
             $newPositions[] = $position;
             $cache->append($position);
             $marketSymbol = $this->safe_string($market, 'symbol', '');

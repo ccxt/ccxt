@@ -2506,7 +2506,7 @@ class okx extends Exchange {
         // }
         //
         $data = $this->safe_list($response, 'data');
-        return $this->parse_ticker($this->safe_dict($data, 0), $market);
+        return $this->parse_ticker($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
@@ -6592,7 +6592,7 @@ class okx extends Exchange {
         $positions = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i]);
+            $result[] = $this->parse_position($this->safe_dict($positions, $i, array()));
         }
         return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols));
     }

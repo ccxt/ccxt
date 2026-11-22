@@ -2031,7 +2031,12 @@ class bitfinex extends Exchange {
                 'id' => $this->parse_to_int($id),
             );
         }
-        $paramsOmitted = ($cid !== null) ? $this->omit($params, array( 'cid', 'clientOrderId' )) : $params;
+        $paramsOmitted = array();
+        if ($cid !== null) {
+            $paramsOmitted = $this->omit($params, array( 'cid', 'clientOrderId' ));
+        } else {
+            $paramsOmitted = $params;
+        }
         $response = $this->privatePostAuthWOrderCancel($this->extend($request, $paramsOmitted));
         $order = $this->safe_list($response, 4);
         $newOrder = array( 'result' => $order );

@@ -1226,14 +1226,15 @@ class bitso extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'book' => $market['id'],
             'side' => $side,
             'type' => $type,
-            'major' => $this->amount_to_precision($market['symbol'], $amount),
+            'major' => $this->amount_to_precision($precisionSymbol, $amount),
         );
         if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
         $payload = $this->safe_dict($response, 'payload', array());
@@ -1471,7 +1472,7 @@ class bitso extends Exchange {
         $payload = $this->safe_list($response, 'payload', array());
         $numOrders = count($payload);
         if ($numOrders === 1) {
-            return $this->parse_order($payload[0]);
+            return $this->parse_order($this->safe_dict($payload, 0, array()));
         }
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }

@@ -1344,7 +1344,7 @@ class derive extends Exchange {
         $settlements = $this->safe_list($result, 'settlements', array());
         $parsed = $this->parse_settlements($settlements, $market);
         $sorted = $this->sort_by($parsed, 'timestamp');
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 

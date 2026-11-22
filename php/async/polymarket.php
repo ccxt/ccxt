@@ -1703,12 +1703,13 @@ class polymarket extends Exchange {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         if (($amount === null) || ($price === null)) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires both the amount and the price arguments');
         }
         $orderId = $this->parse_to_int($id);
-        $priceString = $this->price_to_precision($market['symbol'], $price);
-        $quantity = $this->amount_to_precision($market['symbol'], $amount);
+        $priceString = $this->price_to_precision($precisionSymbol, $price);
+        $quantity = $this->amount_to_precision($precisionSymbol, $amount);
         $signable = array( 'modifyOrders', array( array( $orderId, $priceString, $quantity ) ) );
         $bodyOp = array(
             'type' => 'modifyOrders',

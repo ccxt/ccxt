@@ -2789,7 +2789,7 @@ class phemex extends Exchange {
         } else {
             $request['clOrdID'] = $clientOrderId;
         }
-        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, array( 'clOrdID', 'clientOrderId' )) : $params;
+        $paramsOmitted = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
         $triggerPrice = $this->safe_string_n($paramsOmitted, array( 'stopPx', 'stopPrice', 'triggerPrice' ));
         if ($triggerPrice !== null) {
             if ($isStableSettled) {
@@ -3068,6 +3068,7 @@ class phemex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'symbol' => $market['id'],
         );
@@ -3082,7 +3083,7 @@ class phemex extends Exchange {
         }
         if ($price !== null) {
             if ($isStableSettled) {
-                $request['priceRp'] = $this->price_to_precision($market['symbol'], $price);
+                $request['priceRp'] = $this->price_to_precision($precisionSymbol, $price);
             } else {
                 $request['priceEp'] = $this->to_ep($price, $market);
             }
@@ -3094,7 +3095,7 @@ class phemex extends Exchange {
             $request['baseQtyEV'] = $finalQty;
         } elseif ($amount !== null) {
             if ($isStableSettled) {
-                $request['orderQtyRq'] = $this->amount_to_precision($market['symbol'], $amount);
+                $request['orderQtyRq'] = $this->amount_to_precision($precisionSymbol, $amount);
             } else {
                 $request['baseQtyEV'] = $this->to_ev($amount, $market);
             }

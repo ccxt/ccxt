@@ -924,7 +924,7 @@ class cryptomus extends Exchange {
         $result = $this->safe_list($response, 'result', array());
         $orders = array();
         for ($i = 0; $i < count($result); $i++) {
-            $orders[] = $this->parse_order($result[$i], $market);
+            $orders[] = $this->parse_order($this->safe_dict($result, $i, array()), $market);
         }
         return $orders;
     }

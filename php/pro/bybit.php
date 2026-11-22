@@ -2245,7 +2245,7 @@ class bybit extends \ccxt\async\bybit {
         $rawOrders = $this->safe_list($message, 'data', array());
         $symbols = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $parsed = $this->parse_order($rawOrders[$i]);
+            $parsed = $this->parse_order($this->safe_dict($rawOrders, $i, array()));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

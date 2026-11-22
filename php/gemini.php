@@ -1020,6 +1020,7 @@ class gemini extends Exchange {
     }
 
     public function fetch_ticker_v1_and_v2(string $symbol, $params = array()): array {
+        $this->load_markets();
         $tickerPromiseA = $this->fetch_ticker_v1($symbol, $params);
         $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
         list($tickerA, $tickerB) = array( $tickerPromiseA, $tickerPromiseB );

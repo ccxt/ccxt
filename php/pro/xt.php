@@ -185,15 +185,13 @@ class xt extends \ccxt\async\xt {
         $bids = $orderbook['bids'];
         $asks = $orderbook['asks'];
         for ($i = 0; $i < count($obBids); $i++) {
-            $bid = $this->safe_list($obBids, $i);
-            $price = $this->safe_number($bid, 0);
-            $quantity = $this->safe_number($bid, 1);
+            $price = $this->safe_number($obBids[$i], 0);
+            $quantity = $this->safe_number($obBids[$i], 1);
             $bids->store($price, $quantity);
         }
         for ($i = 0; $i < count($obAsks); $i++) {
-            $ask = $this->safe_list($obAsks, $i);
-            $price = $this->safe_number($ask, 0);
-            $quantity = $this->safe_number($ask, 1);
+            $price = $this->safe_number($obAsks[$i], 0);
+            $quantity = $this->safe_number($obAsks[$i], 1);
             $asks->store($price, $quantity);
         }
         // this.handleBidAsks (storedBids, bids);
@@ -1338,18 +1336,16 @@ class xt extends \ccxt\async\xt {
             if ($obAsks !== null) {
                 $asks = $orderbook['asks'];
                 for ($i = 0; $i < count($obAsks); $i++) {
-                    $ask = $this->safe_list($obAsks, $i);
-                    $price = $this->safe_number($ask, 0);
-                    $quantity = $this->safe_number($ask, 1);
+                    $price = $this->safe_number($obAsks[$i], 0);
+                    $quantity = $this->safe_number($obAsks[$i], 1);
                     $asks->store($price, $quantity);
                 }
             }
             if ($obBids !== null) {
                 $bids = $orderbook['bids'];
                 for ($i = 0; $i < count($obBids); $i++) {
-                    $bid = $this->safe_list($obBids, $i);
-                    $price = $this->safe_number($bid, 0);
-                    $quantity = $this->safe_number($bid, 1);
+                    $price = $this->safe_number($obBids[$i], 0);
+                    $quantity = $this->safe_number($obBids[$i], 1);
                     $bids->store($price, $quantity);
                 }
             }

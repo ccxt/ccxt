@@ -799,8 +799,7 @@ class apex extends \ccxt\async\apex {
         $trades = $this->myTrades;
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
-            $rawTrade = $this->safe_dict($lists, $i, array());
-            $parsed = $this->parse_ws_trade($rawTrade);
+            $parsed = $this->parse_ws_trade($this->safe_dict($lists, $i, array()));
             $symbol = $this->safe_string($parsed, 'symbol');
             $symbols[$symbol] = true;
             $trades->append($parsed);
@@ -934,8 +933,7 @@ class apex extends \ccxt\async\apex {
         $cache = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($lists); $i++) {
-            $rawPosition = $this->safe_dict($lists, $i, array());
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($this->safe_dict($lists, $i, array()));
             $side = $this->safe_string($position, 'side');
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

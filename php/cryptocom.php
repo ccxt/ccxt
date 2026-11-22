@@ -3283,7 +3283,7 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'data', array());
-        return $this->parse_position($this->safe_dict($data, 0), $market);
+        return $this->parse_position($this->safe_dict($data, 0, array()), $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): array {
@@ -3455,6 +3455,7 @@ class cryptocom extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'instrument_name' => $market['id'],
             'type' => 'MARKET',
@@ -3465,7 +3466,7 @@ class cryptocom extends Exchange {
             $request['type'] = $type;
         }
         if ($price !== null) {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $response = $this->v1PrivatePostPrivateClosePosition($this->extend($request, $params));
         //
@@ -3634,7 +3635,7 @@ class cryptocom extends Exchange {
             $payload = $path . $nonce . $this->apiKey . $strSortKey . $nonce;
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
             $paramsKeysLength = count($paramsKeys);
-            $requestBody = $this->json(array(
+            $jsonBody = $this->json(array(
                 'id' => $nonce,
                 'method' => $path,
                 'params' => $params,
@@ -3650,8 +3651,9 @@ class cryptocom extends Exchange {
             if ($paramsKeysLength === 0) {
                 $paramsString = '{}';
                 $arrayString = '[]';
-                $requestBody = str_replace($arrayString, $paramsString, $requestBody);
+                $jsonBody = str_replace($arrayString, $paramsString, $jsonBody);
             }
+            $requestBody = $jsonBody;
             $requestHeaders = array(
                 'Content-Type' => 'application/json',
             );

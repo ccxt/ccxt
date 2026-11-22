@@ -7173,7 +7173,7 @@ class htx extends Exchange {
         $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            if ($market['linear']) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 100);
             }
             return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'current_page', 'page_index', 1, 50);
@@ -7739,9 +7739,11 @@ class htx extends Exchange {
                     } else {
                         $bodyRequest = $query;
                     }
-                    $signedBody = $this->json($bodyRequest);
-                    if (!$isArrayParams && (strlen($signedBody) === 2)) {
+                    $bodyJson = $this->json($bodyRequest);
+                    if (!$isArrayParams && (strlen($bodyJson) === 2)) {
                         $signedBody = '{}';
+                    } else {
+                        $signedBody = $bodyJson;
                     }
                     $signedHeaders = array(
                         'Content-Type' => 'application/json',
@@ -9566,7 +9568,7 @@ class htx extends Exchange {
                     $result[] = $this->extend($parsedSettlement, $timestampDetails);
                 }
             } else {
-                $result[] = $this->parse_settlement($settlements[$i], $market);
+                $result[] = $this->parse_settlement($settlement, $market);
             }
         }
         return $result;

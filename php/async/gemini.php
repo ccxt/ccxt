@@ -1071,6 +1071,7 @@ class gemini extends Exchange {
     }
 
     private function do_fetch_ticker_v1_and_v2(string $symbol, $params = array()) {
+        Async\await($this->load_markets());
         $tickerPromiseA = $this->fetch_ticker_v1($symbol, $params);
         $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
         list($tickerA, $tickerB) = Async\await(Promise\all(array( $tickerPromiseA, $tickerPromiseB )));

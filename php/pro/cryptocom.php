@@ -1196,7 +1196,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $messageHash = $this->safe_string($message, 'subscription');
         $data = $this->safe_list($message, 'data', array());
-        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
+        $positionBalances = $this->safe_list($this->safe_dict($data, 0), 'position_balances', array());
         $this->balance['info'] = $data;
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $this->safe_dict($positionBalances, $i);

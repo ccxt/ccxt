@@ -4081,7 +4081,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $positionsArray = $this->to_array($positions);
         $result = array();
         for ($i = 0; $i < count($positionsArray); $i++) {
-            $position = $this->extend($this->parse_position($positionsArray[$i]), $params);
+            $position = $this->extend($this->parse_position($this->safe_dict($positionsArray, $i, array())), $params);
             $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);

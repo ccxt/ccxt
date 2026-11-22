@@ -2597,7 +2597,11 @@ class interactivebrokers extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $maxLimit = $this->safe_integer($this->safe_dict($this->options, 'fetchOHLCV', array()), 'limit', 1000);
+        $maxLimit = 1000;
+        $configuredLimit = $this->safe_integer($this->safe_dict($this->options, 'fetchOHLCV', array()), 'limit');
+        if ($configuredLimit !== null) {
+            $maxLimit = $configuredLimit;
+        }
         $requestLimit = $maxLimit;
         if ($limit !== null) {
             $requestLimit = min($limit, $maxLimit);
@@ -2612,7 +2616,11 @@ class interactivebrokers extends Exchange {
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             $request['startTime'] = $this->ibkr_format_time($since - $duration * 1000);
             $request['direction'] = '1'; // forward from startTime, by default startTime is the end of the range
-            $requestLimit = min($requestLimit + 1, $maxLimit);
+            if ($limit !== null) {
+                if ($limit < $maxLimit) {
+                    $requestLimit = $limit + 1;
+                }
+            }
         }
         $request['period'] = $this->ibkr_period($duration, $requestLimit);
         $response = Async\await($this->webapiGetV1ApiIserverMarketdataHistory($this->extend($request, $params)));
@@ -3072,8 +3080,12 @@ class interactivebrokers extends Exchange {
         }
         $request['cOID'] = $clientOrderId;
         $query = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty' ));
-        $orderTicket = $this->extend($request, $query); // typed local, so the go transpiler returns a dict
-        return $orderTicket;
+        $queryKeys = is_array($query) ? array_keys($query) : array();
+        for ($i = 0; $i < count($queryKeys); $i++) {
+            $key = $queryKeys[$i];
+            $request[$key] = $query[$key];
+        }
+        return $request;
     }
 
     public function ibkr_handle_order_replies(mixed $response, string $methodName): PromiseInterface {
@@ -4002,7 +4014,7 @@ class interactivebrokers extends Exchange {
         $positions = (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) ? $response : array();
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $position = $this->parse_position($positions[$i], $market);
+            $position = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
             if (Precise::string_gt($this->safe_string($position, 'contracts', '0'), '0')) {
                 $result[] = $position;
             }
@@ -4086,29 +4098,45 @@ class interactivebrokers extends Exchange {
         );
     }
 
-    public function ibkr_implode_path(string $path, array $params): array {
+    public function ibkr_implode_path(string $path, array $params): string {
         /**
          * replaces the ':name' $path parameters of the webapi endpoints with the matching values of $params
          * @ignore
          * @param {string} $path the endpoint $path, e.g. 'v1/api/iserver/account/:accountId/orders'
          * @param {array} $params the request $params, the $path $params are read from here
-         * @return {Array} the $imploded $path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the $path $params
+         * @return {string} the $imploded $path, e.g. 'v1/api/iserver/account/U1234567/orders'
          */
         $segments = explode('/', $path);
-        $pathParams = array();
         $imploded = array();
         for ($i = 0; $i < count($segments); $i++) {
             $segment = $segments[$i];
             if (str_starts_with($segment, ':')) {
                 $name = mb_substr($segment, 1);
-                $pathParams[] = $name;
                 $value = $this->safe_string($params, $name, $segment);
                 $imploded[] = $value;
             } else {
                 $imploded[] = $segment;
             }
         }
-        return array( implode('/', $imploded), $pathParams );
+        return implode('/', $imploded);
+    }
+
+    public function ibkr_path_params(string $path): array {
+        /**
+         * the names of the ':name' $path parameters of a webapi endpoint
+         * @ignore
+         * @param {string} $path the endpoint $path, e.g. 'v1/api/iserver/account/:accountId/orders'
+         * @return {string[]} the names of the $path params, e.g. array( 'accountId' )
+         */
+        $segments = explode('/', $path);
+        $pathParams = array();
+        for ($i = 0; $i < count($segments); $i++) {
+            $segment = $segments[$i];
+            if (str_starts_with($segment, ':')) {
+                $pathParams[] = mb_substr($segment, 1);
+            }
+        }
+        return $pathParams;
     }
 
     public function ibkr_gateway_base_url(string $baseUrl, string $gatewayUrl): string {
@@ -4168,11 +4196,12 @@ class interactivebrokers extends Exchange {
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
-        list($implodedPath, $pathParams) = $this->ibkr_implode_path($path, $params);
+        $implodedPath = $this->ibkr_implode_path($path, $params);
         $apiBase = $api[0];
-        $baseUrl = $this->urls['api'][$apiBase] . $implodedPath;
+        $apiUrl = $this->safe_string($this->urls['api'], $apiBase, '');
+        $baseUrl = $apiUrl . $implodedPath;
         $url = $baseUrl;
-        $query = $this->omit($params, $pathParams);
+        $query = $this->omit($params, $this->ibkr_path_params($path));
         $hasQuery = count($query) > 0;
         $isGetOrDelete = ($method === 'GET') || ($method === 'DELETE');
         $requestBody = null;
@@ -4181,7 +4210,7 @@ class interactivebrokers extends Exchange {
         if ($this->ibkr_is_gateway_request($path)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             $gatewayUrl = $this->safe_string($this->options, 'gatewayUrl');
-            $url = $this->ibkr_gateway_base_url($this->urls['api'][$apiBase], $gatewayUrl) . $implodedPath;
+            $url = $this->ibkr_gateway_base_url($apiUrl, $gatewayUrl) . $implodedPath;
             if ($isGetOrDelete) {
                 if ($hasQuery) {
                     $url .= '?' . $this->urlencode($query);

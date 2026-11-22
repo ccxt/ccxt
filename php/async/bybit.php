@@ -7089,9 +7089,10 @@ class bybit extends Exchange {
             $rawPosition = $positions[$i];
             if ((is_array($rawPosition) && array_key_exists('data' ?? '', $rawPosition)) && (is_array($rawPosition) && array_key_exists('is_valid' ?? '', $rawPosition))) {
                 // futures only
-                $rawPosition = $this->safe_dict($rawPosition, 'data');
+                $results[] = $this->parse_position($this->safe_dict($rawPosition, 'data', array()));
+            } else {
+                $results[] = $this->parse_position($this->safe_dict($positions, $i, array()));
             }
-            $results[] = $this->parse_position($rawPosition);
         }
         return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized);
     }
@@ -9372,24 +9373,23 @@ class bybit extends Exchange {
         //  ]
         //
         $tiers = array();
+        $minNotional = $this->parse_number('0');
         for ($i = 0; $i < count($info); $i++) {
             $tier = $this->safe_dict($info, $i);
             $marketId = $this->safe_string($tier, 'symbol');
             $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
-            $minNotional = $this->parse_number('0');
-            if ($i !== 0) {
-                $minNotional = $this->safe_number($info[$i - 1], 'riskLimitValue');
-            }
+            $tierMaxNotional = $this->safe_number($tier, 'riskLimitValue');
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'id'),
                 'symbol' => $this->safe_symbol($marketId, $marketResolved),
                 'currency' => $marketResolved['settle'],
                 'minNotional' => $minNotional,
-                'maxNotional' => $this->safe_number($tier, 'riskLimitValue'),
+                'maxNotional' => $tierMaxNotional,
                 'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMargin'),
                 'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
                 'info' => $tier,
             );
+            $minNotional = $tierMaxNotional;
         }
         return $tiers;
     }

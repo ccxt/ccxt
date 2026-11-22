@@ -1086,12 +1086,11 @@ class hashkey extends Exchange {
             }
         }
         $tradingFees = $this->safe_dict($this->fees, 'trading');
-        $fees = null;
+        $feeKey = 'swap';
         if ($isSpot) {
-            $fees = $this->safe_dict($tradingFees, 'spot');
-        } else {
-            $fees = $this->safe_dict($tradingFees, 'swap');
+            $feeKey = 'spot';
         }
+        $fees = $this->safe_dict($tradingFees, $feeKey);
         return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,

@@ -1617,8 +1617,7 @@ class hitbtc extends Exchange {
         $addressTo = $address;
         $tag = $this->safe_string($native, 'payment_id');
         $tagTo = $tag;
-        $sender = $this->safe_list($native, 'senders');
-        $addressFrom = $this->safe_string($sender, 0);
+        $addressFrom = $this->safe_string($this->safe_list($native, 'senders', array()), 0);
         $amount = $this->safe_number($native, 'amount');
         $subType = $this->safe_string($transaction, 'subtype');
         $internal = $subType === 'OFFCHAIN';
@@ -2037,18 +2036,18 @@ class hitbtc extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an $order made by the user
+         * fetches information on an order made by the user
          *
          * @see https://api.hitbtc.com/#spot-orders-history
          * @see https://api.hitbtc.com/#futures-orders-history
          * @see https://api.hitbtc.com/#margin-orders-history
          *
-         * @param {string} $id $order $id
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
-         * @param {bool} [$params->margin] true for fetching a margin $order
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @param {bool} [$params->margin] true for fetching a margin order
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2095,8 +2094,7 @@ class hitbtc extends Exchange {
         //       }
         //     ]
         //
-        $order = $this->safe_dict($response, 0, array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->safe_dict($response, 0, array()), $market);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

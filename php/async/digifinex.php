@@ -2224,13 +2224,13 @@ class digifinex extends Exchange {
         /**
          * cancel multiple $orders for multiple $symbols
          *
-         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-$order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchcancel
          *
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, all $orders must be of the same $market type (spot or swap), example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
+         * @param {CancellationRequest[]} $orders each order should contain the parameters required by cancelOrder namely $id and $symbol, all $orders must be of the same $market type (spot or swap), example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint, not forwarded for swap markets (the $request body is an array)
          * @param {string} [$params->type] 'spot' or 'margin' for spot markets, defaults to 'spot'
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2240,12 +2240,11 @@ class digifinex extends Exchange {
         $symbolsById = array();
         $marketType = null;
         for ($i = 0; $i < count($orders); $i++) {
-            $order = $orders[$i];
-            $id = $this->safe_string($order, 'id');
+            $id = $this->safe_string($orders[$i], 'id');
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires an id for each order');
             }
-            $symbol = $this->safe_string($order, 'symbol');
+            $symbol = $this->safe_string($orders[$i], 'symbol');
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrdersForSymbols() requires a symbol for each order');
             }
@@ -3598,9 +3597,9 @@ class digifinex extends Exchange {
         $data = $this->safe_list($response, 'list', array());
         $result = null;
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            if ($this->safe_string($entry, 'currency') === $code) {
-                $result = $entry;
+            $entryCurrency = $this->safe_string($data[$i], 'currency', '');
+            if ($entryCurrency === $code) {
+                $result = $data[$i];
             }
         }
         $currency = $this->currency($code);
@@ -4042,7 +4041,7 @@ class digifinex extends Exchange {
         $positions = $this->safe_list($response, $positionRequest, array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($positions[$i], $market);
+            $result[] = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
@@ -4143,7 +4142,7 @@ class digifinex extends Exchange {
             $dataRequest = 'data';
         }
         $data = $this->safe_list($response, $dataRequest, array());
-        $position = $this->parse_position($data[0], $market);
+        $position = $this->parse_position($this->safe_dict($data, 0, array()), $market);
         if ($marketType === 'swap') {
             return $position;
         } else {

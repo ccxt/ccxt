@@ -1741,7 +1741,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = $this->privateGetV3HistoryOrders($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
@@ -1813,7 +1816,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = $this->privateGetV3Fills($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
@@ -1854,7 +1860,10 @@ class apex extends Exchange {
         if ($endTimeExclusive !== null) {
             $request['endTimeExclusive'] = $endTimeExclusive;
         }
-        $paramsOmitted = ($endTimeExclusive !== null) ? $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' )) : $params;
+        $paramsOmitted = $this->omit($params, array());
+        if ($endTimeExclusive !== null) {
+            $paramsOmitted = $this->omit($params, array( 'endTime', 'endTimeExclusive', 'until' ));
+        }
         $response = $this->privateGetV3Funding($this->extend($request, $paramsOmitted));
         $data = $this->safe_dict($response, 'data', array());
         $fundingValues = $this->safe_list($data, 'fundingValues', array());

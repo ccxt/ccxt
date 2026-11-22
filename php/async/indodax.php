@@ -674,10 +674,9 @@ class indodax extends Exchange {
         $parsedTickers = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $rawTicker = $tickers[$key];
             $marketId = str_replace('_', '', $key);
             $market = $this->safe_market($marketId);
-            $parsed = $this->parse_ticker($rawTicker, $market);
+            $parsed = $this->parse_ticker($this->safe_dict($tickers, $key, array()), $market);
             $parsedTickers[$marketId] = $parsed;
         }
         return $this->filter_by_array_tickers($parsedTickers, 'symbol', $symbols);

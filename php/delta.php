@@ -2052,10 +2052,11 @@ class delta extends Exchange {
         $this->load_markets();
         $orderType = $type . '_order';
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $request = array(
             'product_id' => $market['numericId'],
             // 'limit_price': this.priceToPrecision (market['symbol'], price),
-            'size' => $this->amount_to_precision($market['symbol'], $amount),
+            'size' => $this->amount_to_precision($precisionSymbol, $amount),
             'side' => $side,
             'order_type' => $orderType,
             // 'client_order_id': 'string',
@@ -2064,7 +2065,7 @@ class delta extends Exchange {
             // 'reduce_only': 'false', // 'true',
         );
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
+            $request['limit_price'] = $this->price_to_precision($precisionSymbol, $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));

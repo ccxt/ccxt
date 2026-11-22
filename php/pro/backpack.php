@@ -145,9 +145,7 @@ class backpack extends \ccxt\async\backpack {
             if (($symbols === null) && ($stock || ($explicitSource === 'External') || ($channel !== null)) && ($market['stock'] !== true)) {
                 continue;
             }
-            $marketSelection = $this->handleStockParams($methodName, $query, $market);
-            $marketStock = $this->safe_bool($marketSelection, 0, false);
-            $marketParams = $this->safe_dict($marketSelection, 1, array());
+            list($marketStock, $marketParams) = $this->handleStockParams($methodName, $query, $market);
             $isRfq = $this->safe_string($market['info'], 'marketType') === 'RFQ';
             $source = $explicitSource;
             if ($source === null) {

@@ -1701,7 +1701,7 @@ class coinbaseexchange extends Exchange {
         } else {
             $request['client_oid'] = $clientOrderId;
         }
-        $paramsOmitted = ($clientOrderId !== null) ? $this->omit($params, array( 'clientOrderId', 'client_oid' )) : $params;
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1915,7 +1915,7 @@ class coinbaseexchange extends Exchange {
         if ($until !== null) {
             $request['end_date'] = $this->iso8601($until);
         }
-        $paramsUntil = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
+        $paramsUntil = $this->omit($params, array( 'until' ));
         $response = $this->privateGetAccountsIdLedger($this->extend($request, $paramsUntil));
         $entries = $this->to_array($response);
         $entriesWithCurrency = array();

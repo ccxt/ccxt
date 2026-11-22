@@ -3574,11 +3574,10 @@ class aster extends Exchange {
         $notionalStringAbs = Precise::string_abs($notionalString);
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
-            $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($leverageBracket[$i], 0))) {
                 break;
             }
-            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
+            $maintenanceMarginPercentageString = $this->safe_string($leverageBracket[$i], 1);
         }
         $notional = $this->parse_number($notionalStringAbs);
         $contractsAbs = Precise::string_abs($this->safe_string($position, 'positionAmt'));
@@ -3879,11 +3878,10 @@ class aster extends Exchange {
         $leverageBracket = $this->safe_list($leverageBrackets, $symbol, array());
         $maintenanceMarginPercentageString = null;
         for ($i = 0; $i < count($leverageBracket); $i++) {
-            $bracket = $leverageBracket[$i];
-            if (Precise::string_lt($notionalStringAbs, $this->safe_string($bracket, 0))) {
+            if (Precise::string_lt($notionalStringAbs, $this->safe_string($leverageBracket[$i], 0))) {
                 break;
             }
-            $maintenanceMarginPercentageString = $this->safe_string($bracket, 1);
+            $maintenanceMarginPercentageString = $this->safe_string($leverageBracket[$i], 1);
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedProfit');

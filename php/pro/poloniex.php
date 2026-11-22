@@ -282,6 +282,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
         Async\await($this->authenticate());
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $uppercaseType = strtoupper($type);
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' createOrderWs() side is required');
@@ -319,7 +320,7 @@ class poloniex extends \ccxt\async\poloniex {
             }
             $request['amount'] = $quoteAmount;
         } else {
-            $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['quantity'] = $this->amount_to_precision($precisionSymbol, $amount);
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }

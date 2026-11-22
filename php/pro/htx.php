@@ -1859,8 +1859,7 @@ class htx extends \ccxt\async\htx {
         $positionsByMarginMode = array();
         $timestamp = $this->safe_integer($message, 'ts');
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);
             $marginMode = $this->safe_string_lower($position, 'marginMode', $defaultMarginMode);

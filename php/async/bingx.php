@@ -6222,6 +6222,7 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        $precisionSymbol = $this->safe_string($market, 'symbol', '');
         $positionSide = $this->safe_string($params, 'positionSide');
         if (($market['inverse'] === true) && ($positionSide === null)) {
             throw new ArgumentsRequired($this->id . ' setMargin() requires a positionSide parameter for Coin-M markets');
@@ -6230,7 +6231,7 @@ class bingx extends Exchange {
         if ($market['inverse'] === true) {
             $amountString = $this->currency_to_precision($market['settle'], $amount);
         } else {
-            $amountString = $this->amount_to_precision($market['symbol'], $amount);
+            $amountString = $this->amount_to_precision($precisionSymbol, $amount);
         }
         $request = array(
             'symbol' => $market['id'],

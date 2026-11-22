@@ -1022,7 +1022,8 @@ class bullish extends Exchange {
          * @param {string} [$params->tradingAccountId] the trading account id to fetch trades for
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -1509,7 +1510,8 @@ class bullish extends Exchange {
          * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $paginate = $this->safe_bool($params, 'paginate', false);
         if ($paginate) {
@@ -1722,7 +1724,8 @@ class bullish extends Exchange {
          * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $market = null;
         if ($symbol !== null) {
@@ -1783,7 +1786,8 @@ class bullish extends Exchange {
          * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $market = $this->market($symbol);
         $request = array(
@@ -1844,7 +1848,8 @@ class bullish extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $market = $this->market($symbol);
         $request = array(
@@ -1887,7 +1892,8 @@ class bullish extends Exchange {
          * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
@@ -1922,7 +1928,8 @@ class bullish extends Exchange {
          * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2080,7 +2087,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $request = array();
         list($requestUntil, $paramsUntil) = $this->handle_until_option('createdAtDatetime[lte]', $request, $params);
         $until = $this->safe_integer($requestUntil, 'createdAtDatetime[lte]');
@@ -2149,7 +2157,8 @@ class bullish extends Exchange {
          * @param {string} $params->network network for withdraw (mandatory)
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         // todo check this method properly
         $currency = $this->currency($code);
         $request = array(
@@ -2304,7 +2313,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $response = $this->privateGetV1AccountsTradingAccounts($params);
         //
         //     [
@@ -2408,7 +2418,8 @@ class bullish extends Exchange {
          * @param {string} [$params->network] $network for deposit address
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -2480,7 +2491,8 @@ class bullish extends Exchange {
          * @param {string} [$params->code] unified $currency $code, default is null
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2552,7 +2564,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $request = array(
             'tradingAccountId' => $tradingAccountId,
@@ -2661,7 +2674,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
@@ -2721,7 +2735,8 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         // todo check this method properly
         $currency = $this->currency($code);
         $request = array(
@@ -2815,7 +2830,8 @@ class bullish extends Exchange {
          * @param {string} $params->tradingAccountId the trading account id
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
          */
-        array( $this->load_markets(), $this->handle_token() );
+        $this->load_markets();
+        $this->handle_token();
         $tradingAccountId = $this->load_account($params);
         $currency = $this->currency($code);
         $request = array(

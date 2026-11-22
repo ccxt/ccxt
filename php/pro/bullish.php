@@ -504,7 +504,7 @@ class bullish extends \ccxt\async\bullish {
             $orders = $this->orders;
             $symbols = array();
             for ($i = 0; $i < count($rawOrders); $i++) {
-                $parsedOrder = $this->parse_order($rawOrders[$i]);
+                $parsedOrder = $this->parse_order($this->safe_dict($rawOrders, $i, array()));
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
                 if ($symbol !== null) {
@@ -803,7 +803,7 @@ class bullish extends \ccxt\async\bullish {
         $positions = $this->positions;
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $position = $this->parse_position($rawPositions[$i]);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
             $positions->append($position);
             $newPositions[] = $position;
         }

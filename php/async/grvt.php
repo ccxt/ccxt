@@ -605,7 +605,8 @@ class grvt extends Exchange {
         if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        $results = Async\await(Promise\all(array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() )));
+        Async\await($this->load_account_infos());
+        $results = Async\await(Promise\all(array( $this->privateTradingPostFullV1GetAuthorizedBuilders() )));
         //
         // {
         //     "results": [{

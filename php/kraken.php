@@ -1142,7 +1142,7 @@ class kraken extends Exchange {
             $id = $ids[$i];
             $market = $this->safe_market($id);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $ticker = $tickers[$id];
+            $ticker = $this->safe_dict($tickers, $id, array());
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);

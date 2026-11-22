@@ -883,18 +883,13 @@ class grvt extends \ccxt\async\grvt {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
-        $data = $this->safe_dict($message, 'feed');
-        $position = $this->parse_ws_position($data);
+        $data = $this->safe_dict($message, 'feed', array());
+        $position = $this->parse_position($data);
         $this->positions->append($position);
         $newPositions = array();
         $newPositions[] = $position;
         $client->resolve($newPositions, 'positions::' . $this->safe_string($position, 'symbol', ''));
         $client->resolve($newPositions, 'positions');
-    }
-
-    public function parse_ws_position(mixed $position, ?array $market = null): array {
-        // same as REST api
-        return $this->parse_position($position, $market);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
