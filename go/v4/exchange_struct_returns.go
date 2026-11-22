@@ -1381,6 +1381,18 @@ func StringSliceToList(s []string) []any {
 	return out
 }
 
+// AnyMatrixToList boxes a [][]any as the []any of rows every list reader of a map member assumes.
+func AnyMatrixToList(rows [][]any) []any {
+	if rows == nil {
+		return nil
+	}
+	out := make([]any, len(rows))
+	for i, row := range rows {
+		out[i] = row
+	}
+	return out
+}
+
 // dynamicLists maps each list-of-struct channel element onto the []any of maps the untyped (TS-shaped) base code reads.
 var dynamicLists = map[reflect.Type]func(any) any{
 	reflect.TypeOf([]Trade(nil)):                func(v any) any { return TradesToList(v.([]Trade)) },
