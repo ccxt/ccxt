@@ -89,21 +89,22 @@ public partial class interactivebrokers : ccxt.interactivebrokers
     {
         await this.authenticate();
         bool? useGateway = this.safeBool(this.options, "useGateway", false);
-        object url = null;
+        string? url = null;
+        string wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         if ((useGateway == true))
         {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            string replacedUrl = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null)).Replace("wss://", (string)"https://");
+            string replacedUrl = wsUrl.Replace("wss://", (string)"https://");
             object restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
             url = ((string)restUrl).Replace("https://", (string)"wss://");
-            url = ((string)url).Replace("http://", (string)"ws://");
+            url = url.Replace("http://", (string)"ws://");
         } else
         {
             // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-            url = add(add((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "?oauth_token="), this.apiKey);
+            url = ((wsUrl + "?oauth_token=") + this.apiKey);
         }
-        if (!((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
+        if (!((this.clients != null && url != null && this.clients.ContainsKey(url))))
         {
             Dictionary<string, object> response = await this.webapiPostV1ApiTickle();
             //
@@ -122,7 +123,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 } },
             };
             this.extendExchangeOptions(defaultOptions);
-            object originalHeaders = getValue(getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"), "headers");
+            object originalHeaders = getValue((this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null), "headers");
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             string? userAgent = this.safeString(this.options, "wsUserAgent", "ClientPortalGW/1");
@@ -137,10 +138,10 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 { "Cookie", cookie },
                 { "User-Agent", userAgent },
             });
-            ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = headers;
+            ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = headers;
             // instantiate client
             object newClient = this.client(url);
-            ((IDictionary<string,object>)getValue((this.options != null && this.options.ContainsKey("ws") ? this.options["ws"] : null), "options"))["headers"] = originalHeaders;
+            ((IDictionary<string,object>)(this.optionsWs != null && this.optionsWs.ContainsKey("options") ? this.optionsWs["options"] : null))["headers"] = originalHeaders;
             Int64? tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
             this.delay(tickleInterval,  this.ibkrKeepAliveSession, new object[] { newClient});
         }
@@ -465,11 +466,11 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true
      */
-    public async virtual Task<object> ibkrUnWatchMarketData(string topic, object symbols = null, object parameters = null)
+    public async virtual Task<object> ibkrUnWatchMarketData(string topic, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        IList<object> marketSymbols = this.marketSymbols(this.toArray(symbols), null, false);
+        IList<object> marketSymbols = this.marketSymbols(symbols, null, false);
         object url = await this.ibkrConnect();
         var client = this.client(url);
         List<object> subHashes = new List<object>() {};
@@ -594,9 +595,9 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 this.ohlcvs[(string)unifiedSymbol] = new Dictionary<string, object>() {};
             }
             Int64? ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            if (!(inOp((this.ohlcvs != null && unifiedSymbol != null && this.ohlcvs.ContainsKey(unifiedSymbol) ? this.ohlcvs[unifiedSymbol] : null), timeframeVar)))
+            if (!((this.ohlcvs != null && unifiedSymbol != null && this.ohlcvs.TryGetValue(unifiedSymbol, out var ohlcvsRow1) && ohlcvsRow1 != null && timeframeVar != null && ohlcvsRow1.ContainsKey(timeframeVar))))
             {
-                ((IDictionary<string,object>)(this.ohlcvs != null && unifiedSymbol != null && this.ohlcvs.ContainsKey(unifiedSymbol) ? this.ohlcvs[unifiedSymbol] : null))[timeframeVar] = new ArrayCacheByTimestamp(ohlcvLimit);
+                (this.ohlcvs != null && unifiedSymbol != null && this.ohlcvs.ContainsKey(unifiedSymbol) ? this.ohlcvs[unifiedSymbol] : null)[timeframeVar] = new ArrayCacheByTimestamp(ohlcvLimit);
             }
             IDictionary<string, object> options = this.safeDict(this.options, "watchOHLCV", new Dictionary<string, object>() {});
             int duration = this.parseTimeframe(timeframeVar);
@@ -743,8 +744,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         }
         List<object> sorted = this.sortBy(bars, 0);
         Int64? ohlcvLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-        ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(ohlcvLimit);
-        ccxt.pro.ArrayCacheByTimestamp cache = ((ccxt.pro.ArrayCacheByTimestamp)getValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
+        (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null)[timeframe] = new ArrayCacheByTimestamp(ohlcvLimit);
+        ccxt.pro.ArrayCacheByTimestamp cache = ((ccxt.pro.ArrayCacheByTimestamp)(this.ohlcvs != null && symbol != null && this.ohlcvs.TryGetValue(symbol, out var ohlcvsRow2) && ohlcvsRow2 != null && timeframe != null && ohlcvsRow2.TryGetValue(timeframe, out var ohlcvsValue2) ? ohlcvsValue2 : null));
         for (int i = 0; i < (sorted?.Count ?? 0); i++)
         {
             cache.append(sorted[i]);
@@ -1442,10 +1443,10 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 Dictionary<string, object> snapshotRequest = new Dictionary<string, object>() {
                     { "accountId", accountId },
                 };
-                object snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(this.extend(query, snapshotRequest)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(this.extend(query, snapshotRequest)));
                 // typed copy: the statically typed ports keep this.balance as a dictionary
-                Dictionary<string, object> snapshotBalance = this.extend(new Dictionary<string, object>() {}, snapshot);
-                this.balance = snapshotBalance;
+                Dictionary<string, object> emptyBalance = new Dictionary<string, object>() {};
+                this.balance = this.extend(emptyBalance, snapshot);
             }
         }
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel

@@ -12,7 +12,7 @@ public partial class interactivebrokers : Exchange
             { "name", "Interactive Brokers" },
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
-            { "rateLimit", ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(100, 1.2) },
+            { "rateLimit", multiply(100, 1.2) },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -1092,7 +1092,7 @@ public partial class interactivebrokers : Exchange
             return false;
         }
         Int64? checkInterval = this.safeInteger(this.options, "gatewayAuthCheckInterval", 120000);
-        return isLessThan(this.milliseconds(), this.sum(authenticatedTimestamp, checkInterval));
+        return (this.milliseconds() < this.sum(authenticatedTimestamp, checkInterval));
     }
 
     /**
@@ -1187,7 +1187,7 @@ public partial class interactivebrokers : Exchange
         Int64? retries = this.safeInteger(this.options, "gatewayReauthenticateRetries", 5);
         Int64? retryDelay = this.safeInteger(this.options, "gatewayReauthenticateDelay", 1000);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        for (int i = 0; (i < retries); i++)
+        for (int i = 0; i < retries; i++)
         {
             await this.sleep(retryDelay);
             response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
@@ -1251,7 +1251,7 @@ public partial class interactivebrokers : Exchange
             return false;
         }
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp", this.milliseconds());
-        object wait = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.sum(lostTimestamp, regainDelay), this.milliseconds());
+        object wait = subtract(this.sum(lostTimestamp, regainDelay), this.milliseconds());
         if (isLessThanOrEqual(wait, 0))
         {
             wait = regainDelay;
@@ -1417,7 +1417,7 @@ public partial class interactivebrokers : Exchange
             return true;
         }
         Int64? refreshMargin = this.safeInteger(this.options, "liveSessionTokenRefreshMargin", 60000);
-        return isLessThan(this.sum(this.milliseconds(), refreshMargin), expiration);
+        return (this.sum(this.milliseconds(), refreshMargin) < expiration);
     }
 
     /**
@@ -1525,7 +1525,7 @@ public partial class interactivebrokers : Exchange
         Dictionary<string, object> balanceResponse = new Dictionary<string, object>() {
             { "ledger", response },
         };
-        Int64? index = 1;
+        Int64 index = 1;
         if (isTrue(withPositions))
         {
             balanceResponse["positions"] = this.safeList(results, index);
@@ -1844,7 +1844,12 @@ public partial class interactivebrokers : Exchange
         while (isLessThan(offset, numDetails))
         {
             object end = mathMin(this.sum(offset, chunkSize), numDetails);
-            List<object> chunk = ((List<object>)this.arraySlice(detailIds, offset, end));
+            List<object> chunk = new List<object>() {};
+            for (object k = offset; isLessThan(k, end); postFixIncrement(ref k))
+            {
+                string? detailId = this.safeString(detailIds, k, "");
+                chunk.Add(detailId);
+            }
             Dictionary<string, object> secdefRequest = new Dictionary<string, object>() {
                 { "conids", String.Join(",", chunk.ToArray()) },
             };
@@ -2082,7 +2087,7 @@ public partial class interactivebrokers : Exchange
         List<object> detailMarkets = new List<object>() {};
         for (int i = 0; i < (details?.Count ?? 0); i++)
         {
-            object detail = details[i];
+            IDictionary<string, object> detail = ((IDictionary<string, object>)details[i]);
             string? venue = this.safeString(detail, "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
@@ -2150,7 +2155,7 @@ public partial class interactivebrokers : Exchange
         {
             for (int j = 0; j < (detailMarkets?.Count ?? 0); j++)
             {
-                object detail = detailMarkets[j];
+                IDictionary<string, object> detail = ((IDictionary<string, object>)detailMarkets[j]);
                 if (isEqual(this.safeString(detail, "listingExchange"), cfdExchanges[i]))
                 {
                     result.Add(detail);
@@ -2315,7 +2320,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> opts = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(opts, "endpointRetries", 3);
         object retryDelay = this.safeInteger(opts, "retryDelay", 1000);
-        for (int i = 0; (i < retries); i++)
+        for (int i = 0; i < retries; i++)
         {
             bool isLastRetry = ((i >= (retries - 1)));
             object data = null;
@@ -2654,7 +2659,7 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         var fieldsqueryVariable = this.handleOptionAndParams(parameters, "fetchTickers", "fields");
         var fields = ((IList<object>) fieldsqueryVariable)[0];
         var query = ((IList<object>) fieldsqueryVariable)[1];
@@ -2710,14 +2715,14 @@ public partial class interactivebrokers : Exchange
             { "fields", fields },
         };
         object response = new List<object>() {};
-        for (int i = 0; (i <= retries); i++)
+        for (int i = 0; i <= retries; i++)
         {
             response = ((object)await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters)));
             if (this.ibkrSnapshotReady(response, readyFields))
             {
                 break;
             }
-            if ((i < retries))
+            if (i < retries)
             {
                 await this.sleep(retryDelay);
             }
@@ -2775,7 +2780,7 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? fields = this.safeString(parameters, "fields", "84,85,86,88");
         Dictionary<string, object> query = this.omit(parameters, "fields");
         object response = await this.ibkrFetchSnapshot(symbolsNormalized, fields, query, new List<object>() {"84", "86"});
@@ -2850,7 +2855,7 @@ public partial class interactivebrokers : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
+        IList<object> symbolsNormalized = this.marketSymbols(symbols);
         object response = await this.ibkrFetchSnapshot(symbolsNormalized, "7635", parameters, new List<object>() {"7635"});
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
@@ -2893,7 +2898,7 @@ public partial class interactivebrokers : Exchange
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(response, symbolsNormalized));
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(this.toArray(response), symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)
@@ -3536,7 +3541,7 @@ public partial class interactivebrokers : Exchange
         bool? autoConfirm = this.safeBool(options, "autoConfirmOrderReplies", true);
         Int64? maxReplies = this.safeInteger(options, "maxReplies", 10);
         object current = response;
-        for (int i = 0; (i <= maxReplies); i++)
+        for (int i = 0; i <= maxReplies; i++)
         {
             if (!((current is IList<object>) || (current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -3976,7 +3981,7 @@ public partial class interactivebrokers : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual string? parseOrderType(object orderType)
+    public virtual string? parseOrderType(string? orderType)
     {
         if ((orderType == null))
         {
@@ -3998,10 +4003,10 @@ public partial class interactivebrokers : Exchange
             { "TRAILING_STOP_LIMIT", "limit" },
             { "MIDPRICE", "limit" },
         };
-        return this.safeString(types, ((string)orderType).ToUpper(), orderType);
+        return this.safeString(types, orderType.ToUpper(), orderType);
     }
 
-    public virtual string? parseOrderTimeInForce(object timeInForce)
+    public virtual string? parseOrderTimeInForce(string? timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "DAY", "Day" },
@@ -4197,7 +4202,7 @@ public partial class interactivebrokers : Exchange
         object days = this.safeInteger(options, "transactionsDays", 90);
         if ((since != null))
         {
-            object daysPassed = divide((((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(this.milliseconds(), since)), 86400000);
+            object daysPassed = divide((subtract(this.milliseconds(), since)), 86400000);
             days = mathMax(1, this.parseToInt(Math.Ceiling(Convert.ToDouble(daysPassed))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4237,14 +4242,14 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.FromTradeList(this.parseTrades(transactions, market, since, limit));
     }
 
-    public virtual object parseTransactionDate(object date)
+    public virtual object parseTransactionDate(string? date)
     {
         // "Mon Dec 11 00:00:00 EST 2023" -> 2023-12-11T00:00:00-05:00
         if ((date == null))
         {
             return null;
         }
-        List<object> parts = ((string)date).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = date.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         int partsLength = parts.Count;
         if (partsLength < 6)
         {
@@ -4278,7 +4283,7 @@ public partial class interactivebrokers : Exchange
         string? dayPart = ((string)(parts != null && 2 < parts.Count ? parts[2] : null));
         string day = (dayPart as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0"));
         string? offset = this.safeString(offsets, (parts != null && 4 < parts.Count ? parts[4] : null), "+00:00");
-        return this.parse8601(add(add(add(add(add(add(add((parts != null && 5 < parts.Count ? parts[5] : null), "-"), month), "-"), day), "T"), (parts != null && 3 < parts.Count ? parts[3] : null)), offset));
+        return this.parse8601(((object)((parts != null && 5 < parts.Count ? parts[5] : null) == null ? null : (parts != null && 5 < parts.Count ? parts[5] : null) + "-" + month + "-" + day + "T" + (string)(object)((parts != null && 3 < parts.Count ? parts[3] : null)) + offset)));
     }
 
     public override ccxt.Trade parseTrade(object trade, IDictionary<string, object> market = null)
@@ -4421,7 +4426,7 @@ public partial class interactivebrokers : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, this.toArray(symbols)));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, symbols));
     }
 
     /**
@@ -4748,7 +4753,7 @@ public partial class interactivebrokers : Exchange
                 requestBody = this.json(query);
             }
             string? auth = this.ibkrBaseString(method, baseUrl, signingParams);
-            string signature = this.hmac(this.encode(auth), this.base64ToBinary(liveSessionToken), sha256, "base64");
+            string signature = this.hmac(auth, this.base64ToBinary(liveSessionToken), sha256, "base64");
             oauthParams["oauth_signature"] = this.ibkrEncrypt(signature);
             requestHeaders = new Dictionary<string, object>() {
                 { "Authorization", this.ibkrAuthHeader(oauthParams) },
@@ -4803,7 +4808,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "queryAccountsFirst", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(options, "retries", 3);
         Int64? retryDelay = this.safeInteger(options, "retryDelay", 1000);
-        for (int i = 0; (i <= retries); i++)
+        for (int i = 0; i <= retries; i++)
         {
             try
             {
@@ -4812,7 +4817,7 @@ public partial class interactivebrokers : Exchange
             {
                 string? message = ((string)this.exceptionMessage(e, false));
                 bool mustQueryAccounts = (message?.IndexOf("query /accounts first", StringComparison.Ordinal) ?? -1) >= 0;
-                if (isAccountsPath || !mustQueryAccounts || ((i == retries)))
+                if (isAccountsPath || !mustQueryAccounts || (isEqual(i, retries)))
                 {
                     throw e;
                 }
@@ -4849,7 +4854,7 @@ public partial class interactivebrokers : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             string? statusCode = this.safeString(response, "statusCode");
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), statusCode, feedback);
+            this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
