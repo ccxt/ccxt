@@ -3239,8 +3239,8 @@ export default class polymarket extends Exchange {
         }
         const url = this.urls['api']['ws'];
         const orderbook: WsOrderBook = await this.watch (url, messageHash, subscribeMsg, subscribeHash);
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
+        const bids = this.safeList (orderbook, 'bids', []);
+        const asks = this.safeList (orderbook, 'asks', []);
         let bestBid: Num = undefined;
         let bestBidVolume: Num = undefined;
         let bidsLength = 0;
