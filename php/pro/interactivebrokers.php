@@ -102,16 +102,17 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         Async\await($this->authenticate());
         $useGateway = $this->safe_bool($this->options, 'useGateway', false);
         $url = null;
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws', '');
         if ($useGateway) {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             $gatewayUrl = $this->safe_string($this->options, 'gatewayUrl');
-            $replacedUrl = str_replace('wss://', 'https://', $this->urls['api']['ws']);
+            $replacedUrl = str_replace('wss://', 'https://', $wsUrl);
             $restUrl = $this->ibkrGatewayBaseUrl($replacedUrl, $gatewayUrl);
             $url = str_replace('https://', 'wss://', $restUrl);
             $url = str_replace('http://', 'ws://', $url);
         } else {
             // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-            $url = $this->urls['api']['ws'] . '?oauth_token=' . $this->apiKey;
+            $url = $wsUrl . '?oauth_token=' . $this->apiKey;
         }
         if (!(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             $response = Async\await($this->webapiPostV1ApiTickle());
@@ -1318,8 +1319,8 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
                 );
                 $snapshot = Async\await($this->fetch_balance($this->extend($query, $snapshotRequest)));
                 // typed copy: the statically typed ports keep this.balance as a dictionary
-                $snapshotBalance = $this->extend(array(), $snapshot);
-                $this->balance = $snapshotBalance;
+                $emptyBalance = array();
+                $this->balance = $this->extend($emptyBalance, $snapshot);
             }
         }
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel

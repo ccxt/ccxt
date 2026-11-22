@@ -1425,7 +1425,11 @@ class interactivebrokers extends Exchange {
         $offset = 0;
         while ($offset < $numDetails) {
             $end = min($this->sum($offset, $chunkSize), $numDetails);
-            $chunk = $this->array_slice($detailIds, $offset, $end);
+            $chunk = array();
+            for ($k = $offset; $k < $end; $k++) {
+                $detailId = $this->safe_string($detailIds, $k, '');
+                $chunk[] = $detailId;
+            }
             $secdefRequest = array(
                 'conids' => implode(',', $chunk),
             );
@@ -2423,7 +2427,7 @@ class interactivebrokers extends Exchange {
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return $this->parse_open_interests($response, $symbolsNormalized);
+        return $this->parse_open_interests($this->to_array($response), $symbolsNormalized);
     }
 
     public function parse_open_interest(?array $interest, ?array $market = null): array {
