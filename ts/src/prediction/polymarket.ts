@@ -1754,7 +1754,8 @@ export default class polymarket extends Exchange {
         }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
-            wantedIds[outcomeObj['outcomeId']] = true;
+            const outcomeId: string = this.safeString (outcomeObj, 'outcomeId', '');
+            wantedIds[outcomeId] = true;
         }
         const result: PredictionPosition[] = [];
         for (let i = 0; i < parsed.length; i++) {
