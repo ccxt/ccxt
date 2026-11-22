@@ -3053,8 +3053,8 @@ export default class htx extends Exchange {
         };
         const priceType = this.safeString2 (paramsPaginate, 'priceType', 'price');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'priceType', 'price' ]);
-        const [ untilParam, paramsUntil ] = this.handleParamInteger (paramsOmitted, 'until');
-        const until = this.safeInteger (paramsOmitted, 'until', untilParam);
+        const until = this.safeInteger (paramsOmitted, 'until');
+        const paramsUntil = this.omit (paramsOmitted, 'until');
         let untilSeconds: Int = undefined;
         if (until !== undefined) {
             untilSeconds = this.parseToInt (until / 1000);
