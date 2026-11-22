@@ -1224,7 +1224,7 @@ export default class whitebit extends Exchange {
         const currencyKeys = Object.keys (currenciesData);
         for (let i = 0; i < currencyKeys.length; i++) {
             const code = currencyKeys[i];
-            const currency = currenciesData[code];
+            const currency = this.safeDict (currenciesData, code);
             if (currency === undefined) {
                 // Skip invalid currency silently
                 continue;
