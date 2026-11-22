@@ -2474,7 +2474,7 @@ export default class kraken extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result', []);
+        const result = this.safeDict (response, 'result', {});
         if (!(id in result)) {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id);
         }
