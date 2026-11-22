@@ -1172,6 +1172,39 @@
                 ]
             }
         ],
+        "unWatchOHLCV": [
+            {
+                "description": "candle unsubscribe acknowledged for a symbol with no cached candles",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT",
+                    "1m"
+                ],
+                "url": "wss://ws.okx.com:443/ws/v5/business",
+                "messages": [
+                    {
+                        "event": "unsubscribe",
+                        "arg": {
+                            "channel": "candle1m",
+                            "instId": "BTC-USDT"
+                        },
+                        "connId": "5d603a89"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "op": "unsubscribe",
+                        "args": [
+                            {
+                                "channel": "candle1m",
+                                "instId": "BTC-USDT"
+                            }
+                        ]
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
         "watchTrades": [
             {
                 "description": "linear swap trades",
