@@ -1192,7 +1192,7 @@ export default class bitstamp extends Exchange {
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if (marketResolved === undefined) {
+        if (this.safeString (marketResolved, 'id') === undefined) {
             marketResolved = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
@@ -2428,7 +2428,7 @@ export default class bitstamp extends Exchange {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (market === undefined) {
+            if (this.safeString (market, 'id') === undefined) {
                 market = this.getMarketFromTrade (item);
             }
             const direction = (this.safeString (parsedTrade, 'side') === 'buy') ? 'in' : 'out';
