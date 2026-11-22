@@ -933,9 +933,9 @@ export default class polymarket extends Exchange {
      */
     override async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        let paginate = false;
         let paramsOmitted: Dict = params;
-        [ paginate, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchOHLCV', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsOmitted, 'fetchOHLCV', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsOmitted, 1000) as OHLCV[];
         }
@@ -1090,9 +1090,9 @@ export default class polymarket extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let paginate = false;
         let paramsOmitted: Dict = params;
-        [ paginate, paramsOmitted ] = this.handleOptionAndParams (paramsOmitted, 'fetchFundingRateHistory', 'paginate');
+        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (paramsOmitted, 'fetchFundingRateHistory', 'paginate', false);
+        paramsOmitted = paramsPaginate;
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '1h', paramsOmitted, 100) as FundingRateHistory[];
         }
