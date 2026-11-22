@@ -497,7 +497,7 @@ export default class deribit extends deribitRest {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, paramsOmitted);
-        const trades = await this.watch (url, channel, request, channel, request);
+        const trades: ArrayCache = await this.watch (url, channel, request, channel, request);
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
     }
 
