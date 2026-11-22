@@ -2433,7 +2433,7 @@ export default class kraken extends Exchange {
         let query = params;
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
-            query = this.omit (params, [ 'userref', 'clientOrderId' ]);
+            query = this.omit (query, [ 'userref', 'clientOrderId' ]);
         }
         const response = await this.privatePostQueryOrders (this.extend (request, query));
         //

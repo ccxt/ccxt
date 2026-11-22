@@ -6240,7 +6240,7 @@ export default class gate extends Exchange {
         const isMarginTransfer = (fromId === 'margin') || (toId === 'margin');
         let query = params;
         if (isMarginTransfer) {
-            query = this.omit (params, 'symbol');
+            query = this.omit (query, 'symbol');
         }
         const response = await this.privateWalletPostTransfers (this.extend (request, query));
         //

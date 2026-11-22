@@ -1334,8 +1334,9 @@ export default class upbit extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const paramsOrdType = (customType === 'best') ? this.omit (params, [ 'ordType', 'ord_type' ]) : params;
+        let paramsOrdType: Dict = params;
         if (customType === 'best') {
+            paramsOrdType = this.omit (paramsOrdType, [ 'ordType', 'ord_type' ]);
             request['ord_type'] = 'best';
             if (side === 'buy') {
                 const orderPrice = this.calcOrderPrice (symbol, amount, price, paramsOrdType);
