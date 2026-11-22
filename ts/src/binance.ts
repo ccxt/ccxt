@@ -4749,7 +4749,8 @@ export default class binance extends Exchange {
         };
         let response: Dict | undefined = undefined;
         if (this.safeBool (market, 'option', false)) {
-            response = await this.eapiPublicGetTicker (this.extend (request, params));
+            const optionResponse = await this.eapiPublicGetTicker (this.extend (request, params));
+            response = this.safeDict (optionResponse, 0, {});
         } else if (this.safeBool (market, 'linear', false)) {
             response = await this.fapiPublicGetTicker24hr (this.extend (request, params));
         } else if (this.safeBool (market, 'inverse', false)) {
@@ -4767,10 +4768,6 @@ export default class binance extends Exchange {
                     response = await this.publicGetTicker24hr (this.extend (request, paramsOmitted));
                 }
             }
-        }
-        if (Array.isArray (response)) {
-            const firstTicker = this.safeDict (response, 0, {});
-            return this.parseTicker (firstTicker, market);
         }
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchTicker() returned empty response');
