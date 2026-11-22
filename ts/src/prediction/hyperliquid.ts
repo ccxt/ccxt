@@ -2108,8 +2108,9 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress === undefined) {
             data += '00';
         } else {
+            const vaultHex: string = vaultAddress.toLowerCase ();
             data += '01';
-            data += vaultAddress;
+            data += vaultHex;
         }
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }

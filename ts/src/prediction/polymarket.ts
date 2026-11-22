@@ -1288,8 +1288,11 @@ export default class polymarket extends Exchange {
                 endS = (endBound < nowS) ? endBound : nowS;
             }
         } else {
-            const barCount = (limit !== undefined) ? limit : 100;
-            startS = this.parseToInt (nowS - (barCount * fidelityMin * 60));
+            if (limit !== undefined) {
+                startS = this.parseToInt (nowS - (limit * fidelityMin * 60));
+            } else {
+                startS = this.parseToInt (nowS - (100 * fidelityMin * 60));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
