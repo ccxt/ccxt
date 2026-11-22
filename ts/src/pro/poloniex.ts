@@ -1046,7 +1046,7 @@ export default class poloniex extends poloniexRest {
                         previousOrder['trades'] = [];
                     }
                     previousOrder['trades'].push (trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                    previousOrder['lastTradeTimestamp'] = this.safeInteger (trade, 'timestamp');
                     let totalCost: Str = '0';
                     let totalAmount: Str = '0';
                     const previousOrderTrades: Dict[] = this.safeList (previousOrder, 'trades', []);
