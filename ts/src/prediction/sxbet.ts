@@ -2235,7 +2235,7 @@ export default class sxbet extends Exchange {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn (this.pong, client, msg);
+            this.spawn (this.pong, client);
             return;
         }
         const requestIdString = this.safeString (msg, 'id');

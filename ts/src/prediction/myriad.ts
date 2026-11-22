@@ -3253,7 +3253,7 @@ export default class myriad extends Exchange {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
-            this.spawn (this.pong, client, msg);
+            this.spawn (this.pong, client);
             return;
         }
         const connectReply = this.safeDict (msg, 'connect');
