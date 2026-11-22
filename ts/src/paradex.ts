@@ -1810,10 +1810,12 @@ export default class paradex extends Exchange {
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
         const signature = this.starknetSign (msg, account['privateKey']);
-        params['signature'] = signature;
-        params['account'] = this.safeString (account, 'address');
-        params['public_key'] = this.safeString (account, 'publicKey');
-        const response = await this.privatePostOnboarding (params);
+        const request: Dict = {
+            'signature': signature,
+            'account': this.safeString (account, 'address'),
+            'public_key': this.safeString (account, 'publicKey'),
+        };
+        const response = await this.privatePostOnboarding (this.extend (params, request));
         return response;
     }
 
@@ -1851,11 +1853,13 @@ export default class paradex extends Exchange {
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, this.safeString (account, 'address'));
         const signature = this.starknetSign (msg, account['privateKey']);
-        params['signature'] = signature;
-        params['account'] = this.safeString (account, 'address');
-        params['timestamp'] = req['timestamp'];
-        params['expiration'] = req['expiration'];
-        const response = await this.privatePostAuth (params);
+        const request: Dict = {
+            'signature': signature,
+            'account': this.safeString (account, 'address'),
+            'timestamp': now,
+            'expiration': expires,
+        };
+        const response = await this.privatePostAuth (this.extend (params, request));
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
