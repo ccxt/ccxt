@@ -1132,12 +1132,13 @@ export default class kraken extends Exchange {
         const request: Dict = {};
         const symbolsNormalized = this.marketSymbols (symbols);
         if (symbolsNormalized !== undefined) {
-            const marketIds: Str[] = [];
+            const marketIds: string[] = [];
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 if (this.safeBool (market, 'active', false)) {
-                    marketIds.push (market['id']);
+                    const marketId: string = this.safeString (market, 'id', '');
+                    marketIds.push (marketId);
                 }
             }
             request['pair'] = marketIds.join (',');

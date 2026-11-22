@@ -13453,7 +13453,12 @@ export default class binance extends Exchange {
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;
                     if (orderidlistLength > 0) {
-                        query = query + '&' + 'orderidlist=%5B' + orderidlist.join ('%2C') + '%5D';
+                        const orderIdStrings: string[] = [];
+                        for (let i = 0; i < orderidlistLength; i++) {
+                            const orderIdString: string = this.safeString (orderidlist, i, '');
+                            orderIdStrings.push (orderIdString);
+                        }
+                        query = query + '&' + 'orderidlist=%5B' + orderIdStrings.join ('%2C') + '%5D';
                     }
                     if (origclientorderidlistLength > 0) {
                         // wrap clientOrderids around ""
