@@ -3961,7 +3961,9 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        const marketType = ('result' in order) || ('positionSide' in order) ? 'contract' : 'spot';
+        const resultId = this.safeString (order, 'result');
+        const orderPositionSide = this.safeString (order, 'positionSide');
+        const marketType = (resultId !== undefined) || (orderPositionSide !== undefined) ? 'contract' : 'spot';
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeSymbol (marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2 (order, 'time', 'createdTime');
