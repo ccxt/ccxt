@@ -2848,8 +2848,10 @@ export default class paradex extends Exchange {
         const data = this.safeList (response, 'results', []) as List;
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         const matching: List = [];
+        const marketId: string = this.safeString (market, 'id', '');
         for (let i = 0; i < data.length; i++) {
-            if (this.safeString (data[i], 'market') === market['id']) {
+            const rowMarketId: string = this.safeString (data[i], 'market', '');
+            if (rowMarketId === marketId) {
                 matching.push (data[i]);
             }
         }
