@@ -141,19 +141,6 @@ func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
 	return listValueToTypedSlice(defaultValue)
 }
 
-// SafeListTypedDefault mirrors SafeList's admit-set for a local declared []any: the member when
-// IsArray admits it, the caller's default otherwise, handed back as a typed slice exactly like
-// SafeListTyped. The printer emits it for a local whose default is a non-empty array literal.
-func SafeListTypedDefault(m any, key any, defaultValue any) []any {
-	value := SafeValue(m, key, defaultValue)
-	switch derefScalar(value).(type) {
-	case []any, [][]any, IOrderBookSide, []map[string]any, ListCache, []string, []bool, []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:
-	default:
-		value = defaultValue
-	}
-	return listValueToTypedSlice(value)
-}
-
 // listValueToTypedSlice converts the array kinds IsArray admits ([]any, *[]any, IOrderBookSide,
 // IArrayCache and every other slice reflect finds) into a []any of the same length and elements,
 // exactly as SafeListTyped does.

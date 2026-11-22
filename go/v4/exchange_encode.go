@@ -186,11 +186,6 @@ func (e *BaseExchange) BinaryConcat(parts ...any) []byte {
 	return result
 }
 
-func (e *BaseExchange) numberToBE(n, padding any) string {
-	// return n.(string) // stub
-	return ""
-}
-
 func BinaryToHex(buff []byte) string {
 	return strings.ToLower(hex.EncodeToString(buff))
 }

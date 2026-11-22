@@ -80,7 +80,7 @@ func typedMarketsTask(symbol string) <-chan AsyncResult[[]MarketInterface] {
 }
 
 // bingx/hyperliquid/kucoin shape: promiseAll over typed `<-chan AsyncResult[[]MarketInterface]`
-// cores, then SafeListTypedDefault / SafeList + ArrayConcat over the result list.
+// cores, then SafeListSlice / SafeList + ArrayConcat over the result list.
 func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
 	e := &BaseExchange{}
 	r := <-promiseAll([]any{typedMarketsTask("BTC/USDT"), typedMarketsTask("ETH/USDT")})
@@ -88,7 +88,7 @@ func TestPromiseAllTypedMarketListsConcat(t *testing.T) {
 		t.Fatal(r.Err)
 	}
 	promises := ListTyped(r.Value)
-	first := SafeListTypedDefault(promises, 0, []any{})    // bingx form
+	first := e.SafeListSlice(promises, 0, []any{})        // bingx form
 	second := ArrayTyped(e.SafeList(promises, 1, []any{})) // hyperliquid / kucoin form
 	all := e.ArrayConcat(first, second)
 	if len(all) != 2 {
