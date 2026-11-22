@@ -2226,14 +2226,15 @@ export default class okx extends okxRest {
                 this.triggerOrders = new ArrayCacheBySymbolById (limit);
             }
             const stored = (channel === 'orders-algo') ? this.triggerOrders : this.orders;
-            const marketIds: List = [];
+            const marketIds: string[] = [];
             const parsed = this.parseOrders (orders);
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
                 const symbol = this.safeString (order, 'symbol', '');
                 const market = this.market (symbol);
-                marketIds.push (market['id']);
+                const marketId: string = this.safeString (market, 'id', '');
+                marketIds.push (marketId);
             }
             client.resolve (stored, channel);
             for (let i = 0; i < marketIds.length; i++) {
