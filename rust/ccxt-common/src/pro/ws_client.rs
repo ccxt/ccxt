@@ -386,6 +386,10 @@ impl ClientState {
             }
             for h in &hs {
                 if let Some(v) = T::take_from(&mut c.resolved, &mut c.resolved_ohlcv, h) {
+                    // the other hashes of this watch settled too (TS race): drop them
+                    for other in &hs {
+                        let _ = T::take_from(&mut c.resolved, &mut c.resolved_ohlcv, other);
+                    }
                     return Some(Ok(v));
                 }
             }
@@ -1478,6 +1482,27 @@ mod tests {
         assert_eq!(client.take_settled(&["pending2".to_string()]), None);
         assert!(!client.has_pending_futures());
 
+        drop_client(url);
+    }
+
+    // One frame settling two hashes of a multi-hash watch: the read returns one,
+    // and the next read waits for a new frame instead of returning the other.
+    #[test]
+    fn take_settled_drops_other_hashes_of_the_same_watch() {
+        let url = "ws://multi-hash-take.test";
+        mock_setup(url);
+        let client = get_client(url).expect("mock client");
+        let hashes = vec!["orders:BTC".to_string(), "orders:ETH".to_string()];
+        client.note_futures(&hashes);
+        client.resolve("orders:BTC", Value::Int(1));
+        client.resolve("orders:ETH", Value::Int(1));
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(1))));
+        assert_eq!(client.take_settled(&hashes), None);
+        // a hash outside the watch keeps its value
+        client.resolve("orders:XRP", Value::Int(2));
+        client.resolve("orders:BTC", Value::Int(3));
+        assert_eq!(client.take_settled(&hashes), Some(Ok(Value::Int(3))));
+        assert_eq!(client.take_settled(&["orders:XRP".to_string()]), Some(Ok(Value::Int(2))));
         drop_client(url);
     }
 

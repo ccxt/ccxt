@@ -114,7 +114,7 @@ func InjectWsMessage(exchange ccxt.ICoreExchange, url any, message any) {
 			panic(r)
 		}
 	}()
-	client.OnMessageCallback(client, message)
+	client.DispatchMessage(client, message)
 }
 
 func GetWsSentMessages(exchange ccxt.ICoreExchange, url any) []any {

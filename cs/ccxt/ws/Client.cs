@@ -483,6 +483,48 @@ public partial class BaseExchange
             return future;
         }
 
+        // settles made while this thread runs a frame handler wait until the handler returns
+        // (js resolves on a microtask): a waiter woken by the first of several hashes must not
+        // re-watch and pick up a sibling future the same frame is about to settle
+        [ThreadStatic]
+        private static List<Action> deferredSettles;
+
+        private static void settle(Action settleAction)
+        {
+            if (deferredSettles != null)
+            {
+                deferredSettles.Add(settleAction);
+            }
+            else
+            {
+                settleAction();
+            }
+        }
+
+        /// <summary>Runs the frame handler; futures it settles complete after it returns.</summary>
+        public void dispatchMessage(object message)
+        {
+            if (deferredSettles != null)
+            {
+                this.handleMessage(this, message);
+                return;
+            }
+            var queue = new List<Action>();
+            deferredSettles = queue;
+            try
+            {
+                this.handleMessage(this, message);
+            }
+            finally
+            {
+                deferredSettles = null;
+                foreach (var settleAction in queue)
+                {
+                    settleAction();
+                }
+            }
+        }
+
         public Future reusableFuture(object messageHash)
         {
             return this.future(messageHash);  // only used in go
@@ -511,7 +553,7 @@ public partial class BaseExchange
             });
             if (future != null)
             {
-                future.resolve(content);
+                settle(() => future.resolve(content));
             }
         }
 
@@ -535,7 +577,7 @@ public partial class BaseExchange
                 });
                 if (future != null)
                 {
-                    future.reject(content);
+                    settle(() => future.reject(content));
                 }
             }
             else
@@ -546,10 +588,13 @@ public partial class BaseExchange
                     this.futuresState.Clear();
                     return drained;
                 });
-                foreach (var future in settled)
+                settle(() =>
                 {
-                    future.reject(content);
-                }
+                    foreach (var future in settled)
+                    {
+                        future.reject(content);
+                    }
+                });
             }
         }
 
@@ -565,10 +610,13 @@ public partial class BaseExchange
                 this.subscriptionsState.Clear();
                 return drained;
             });
-            foreach (var future in settled)
+            settle(() =>
             {
-                future.reject(error);
-            }
+                foreach (var future in settled)
+                {
+                    future.reject(error);
+                }
+            });
         }
 
         // mirrors js Client.onError: set the error marker, reset, notify the
@@ -899,7 +947,7 @@ public partial class BaseExchange
                 {
                 }
             }
-            this.handleMessage(this, deserializedMessages);
+            this.dispatchMessage(deserializedMessages);
         }
 
         // private void TryHandleBinaryMessage(string message)
@@ -952,7 +1000,7 @@ public partial class BaseExchange
                         if (!this.decompressBinary)
                         {
                             this.markAlive(); // this arm bypasses TryHandleMessage, raw-binary frames are liveness too
-                            this.handleMessage(this, msgBinary);
+                            this.dispatchMessage(msgBinary);
                             continue;
                         }
 

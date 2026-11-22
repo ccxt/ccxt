@@ -119,7 +119,7 @@ func (this *Client) Resolve(data any, subHash any) any {
 
 	// the store takes the future out before it is resolved here, so a second
 	// message for the same hash finds no consumer and cannot deliver twice
-	if reply := this.storeCall(storeTake, hash, nil); reply.ok {
+	if reply := this.storeCall(storeSettle, hash, func(f *Future) { f.Resolve(data) }); reply.ok {
 		reply.value.(*Future).Resolve(data)
 	}
 	return data
@@ -145,14 +145,16 @@ func (this *Client) NewFuture(messageHash any) *Future {
 // Reject rejects specific future or all
 func (this *Client) Reject(err any, messageHash ...any) {
 	if len(messageHash) == 0 {
-		for _, future := range this.storeCall(storeTakeAll, "", nil).value.([]any) {
+		for _, future := range this.storeCall(storeSettleAll, "", func(f *Future) { rejectFuture(f, err) }).value.([]any) {
 			rejectFuture(future, err)
 		}
 		return
 	}
 	hash := derefScalar(messageHash[0]).(string)
-	if reply := this.storeCall(storeTake, hash, nil); reply.ok {
-		rejectFuture(reply.value, err)
+	if reply := this.storeCall(storeSettle, hash, func(f *Future) { rejectFuture(f, err) }); reply.ok || reply.count > 0 {
+		if reply.ok {
+			rejectFuture(reply.value, err)
+		}
 		return
 	}
 	// ts parity: an error arriving while no consumer future exists is retained
@@ -493,11 +495,11 @@ func (this *Client) OnMessage(messageEvent any) {
 		// this.Log(time.Now(), "onMessage", JSON.stringify(message, null, 4))
 	}
 	if messageIsBinary && !this.DecompressBinary {
-		this.OnMessageCallback(this, messageBytes)
+		this.DispatchMessage(this, messageBytes)
 	} else if parsedMessage != nil {
-		this.OnMessageCallback(this, parsedMessage)
+		this.DispatchMessage(this, parsedMessage)
 	} else {
-		this.OnMessageCallback(this, messageStr)
+		this.DispatchMessage(this, messageStr)
 
 	}
 }
@@ -788,6 +790,22 @@ func (this *Client) PendingFutureCount() int {
 	return this.storeCall(storePending, "", nil).count
 }
 
+// DispatchMessage runs the frame handler; futures it settles complete after it returns
+// (js resolves on a microtask), so a waiter woken by one hash cannot re-watch and take
+// a sibling future the same frame is about to settle.
+func (this *Client) DispatchMessage(client any, message any) {
+	if !this.storeCall(storeDispatchBegin, "", nil).ok {
+		this.OnMessageCallback(client, message)
+		return
+	}
+	defer func() {
+		for _, settle := range this.storeCall(storeDispatchEnd, "", nil).value.([]func()) {
+			settle()
+		}
+	}()
+	this.OnMessageCallback(client, message)
+}
+
 type wsMessageHandler interface {
 	HandleMessage(client *Client, msg any)
 }
@@ -805,14 +823,16 @@ type storeKind int
 
 const (
 	storeNewFuture storeKind = iota
-	storeTake
-	storeTakeAll
 	storeRetain
 	storePeek
 	storeRejections
 	storePending
 	storePongGet
 	storePongSet
+	storeSettle
+	storeSettleAll
+	storeDispatchBegin
+	storeDispatchEnd
 )
 
 type storeOp struct {
@@ -860,6 +880,9 @@ func (this *clientStore) own() {
 	this.initial = nil
 	rejections := map[string]any{}
 	var lastPong any
+	// while a frame handler runs, settles are queued here and handed back when it ends
+	dispatching := false
+	var deferred []func()
 	for op := range this.req {
 		switch op.kind {
 		case storeNewFuture:
@@ -877,21 +900,6 @@ func (this *clientStore) own() {
 				this.publish(futures)
 			}
 			op.reply <- storeReply{value: futures[op.hash]}
-		case storeTake:
-			future, ok := futures[op.hash]
-			if ok {
-				delete(futures, op.hash)
-				this.publish(futures)
-			}
-			op.reply <- storeReply{value: future, ok: ok}
-		case storeTakeAll:
-			pending := make([]any, 0, len(futures))
-			for hash, future := range futures {
-				pending = append(pending, future)
-				delete(futures, hash)
-			}
-			this.publish(futures)
-			op.reply <- storeReply{value: pending}
 		case storeRetain:
 			rejections[op.hash] = op.value
 			op.reply <- storeReply{}
@@ -911,6 +919,46 @@ func (this *clientStore) own() {
 		case storePongSet:
 			lastPong = op.value
 			op.reply <- storeReply{}
+		case storeSettle:
+			// take the future; inside a handler queue its settle instead (count 1)
+			future, ok := futures[op.hash]
+			if ok {
+				delete(futures, op.hash)
+				this.publish(futures)
+				if dispatching {
+					settle := op.value.(func(*Future))
+					deferred = append(deferred, func() { settle(future) })
+					op.reply <- storeReply{count: 1}
+					continue
+				}
+			}
+			op.reply <- storeReply{value: future, ok: ok}
+		case storeSettleAll:
+			pending := make([]any, 0, len(futures))
+			for hash, future := range futures {
+				pending = append(pending, future)
+				delete(futures, hash)
+			}
+			this.publish(futures)
+			if dispatching {
+				settle := op.value.(func(*Future))
+				for _, future := range pending {
+					taken := future.(*Future)
+					deferred = append(deferred, func() { settle(taken) })
+				}
+				pending = pending[:0]
+			}
+			op.reply <- storeReply{value: pending}
+		case storeDispatchBegin:
+			// a nested dispatch joins the outer one
+			began := !dispatching
+			dispatching = true
+			op.reply <- storeReply{ok: began}
+		case storeDispatchEnd:
+			queued := deferred
+			deferred = nil
+			dispatching = false
+			op.reply <- storeReply{value: queued}
 		}
 	}
 }
