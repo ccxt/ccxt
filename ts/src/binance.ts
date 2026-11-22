@@ -7224,30 +7224,31 @@ export default class binance extends Exchange {
         if (method !== 'POST') {
             return params;
         }
+        const generated: Dict = {};
         if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             const clientOrderId = this.safeString2 (params, 'clientOrderId', 'newClientOrderId');
             if (clientOrderId === undefined) {
-                params[clientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+                generated[clientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
             }
         } else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             const clientAlgoId = this.safeString (params, 'clientAlgoId');
             if (clientAlgoId === undefined) {
-                params['clientAlgoId'] = this.generateClientOrderId (undefined, api, path);
+                generated['clientAlgoId'] = this.generateClientOrderId (undefined, api, path);
             }
         } else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             const newClientStrategyId = this.safeString (params, 'newClientStrategyId');
             if (newClientStrategyId === undefined) {
-                params['newClientStrategyId'] = this.generateClientOrderId (undefined, api, path);
+                generated['newClientStrategyId'] = this.generateClientOrderId (undefined, api, path);
             }
         } else if (path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             const equityClientOrderId = this.safeString (params, 'clientOrderId');
             if (equityClientOrderId === undefined) {
-                params['clientOrderId'] = this.generateClientOrderId (undefined, api, path);
+                generated['clientOrderId'] = this.generateClientOrderId (undefined, api, path);
             }
         } else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
             // the order list endpoints take a listClientOrderId and one client order id per leg
@@ -7263,7 +7264,7 @@ export default class binance extends Exchange {
                 const currentClientOrderIdKey = clientOrderIdKeys[i];
                 const currentClientOrderId = this.safeString (params, currentClientOrderIdKey);
                 if (currentClientOrderId === undefined) {
-                    params[currentClientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
+                    generated[currentClientOrderIdKey] = this.generateClientOrderId (undefined, api, path);
                 }
             }
         } else if (path === 'batchOrders') {
@@ -7283,7 +7284,8 @@ export default class binance extends Exchange {
                 params['batchOrders'] = checkedBatchOrders;
             }
         }
-        return params;
+        const withIds: Dict = this.extend (params, generated);
+        return withIds;
     }
 
     /**

@@ -1268,8 +1268,8 @@ export default class paradex extends paradexRest {
                 },
             };
         } else {
-            request = this.subscribeRequest (channel);
-            request['params']['markets'] = missing;
+            const subscribeParams: Dict = { 'channel': channel, 'markets': missing };
+            request = this.extend (this.subscribeRequest (channel), { 'params': subscribeParams });
             subscribeHashes.push (scopedHash);
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
