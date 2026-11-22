@@ -2151,6 +2151,13 @@ function goChan3ConsumerEdits (content: string, masked: string, table: Map<strin
                 if (commaOk && !nilable) {
                     throw new Error ('GOCHAN3: comma-ok assertion of ' + m[1] + ' on a value type ' + type);
                 }
+                // `x, _ := r.Value.(T)` on a typed channel is the plain typed declaration
+                // (`xRecv` holders stay: later passes read their `, r.Value != nil` shape)
+                const discarded = commaOk ? /(\w+), _ := $/.exec (before) : null;
+                if ((discarded !== null) && !discarded[1].endsWith ('Recv')) {
+                    edits.push ({ 'start': at - discarded[0].length, 'end': end + assert[0].length, 'text': 'var ' + discarded[1] + ' ' + assert[1] + ' = ' + name + '.Value' });
+                    continue;
+                }
                 edits.push ({ 'start': end, 'end': end + assert[0].length, 'text': commaOk ? (', ' + name + '.Value != nil') : '' });
                 continue;
             }
