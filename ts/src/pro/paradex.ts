@@ -1251,7 +1251,7 @@ export default class paradex extends paradexRest {
             subscribeHashes.push (subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
                 missing.push (marketId);
-                missingHashes.push (messageHashes[i]);
+                missingHashes.push (this.safeString (messageHashes, i, ''));
             }
         }
         const missingLength = missing.length;
