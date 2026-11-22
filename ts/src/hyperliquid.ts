@@ -4023,7 +4023,7 @@ export default class hyperliquid extends Exchange {
         const data: Dict[] = this.safeList (response, 'assetPositions', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePosition (data[i]));
+            result.push (this.parsePosition (this.safeDict (data, i, {})));
         }
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }

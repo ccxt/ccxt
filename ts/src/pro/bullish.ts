@@ -764,7 +764,7 @@ export default class bullish extends bullishRest {
         const positions = this.positions;
         const newPositions: List = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const position = this.parsePosition (rawPositions[i]);
+            const position = this.parsePosition (this.safeDict (rawPositions, i, {}));
             positions.append (position);
             newPositions.push (position);
         }

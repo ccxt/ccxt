@@ -6897,12 +6897,13 @@ export default class bybit extends Exchange {
         const positions = this.addPaginationCursorToResult (response);
         const results: List = [];
         for (let i = 0; i < positions.length; i++) {
-            let rawPosition = positions[i];
+            const rawPosition = positions[i];
             if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
                 // futures only
-                rawPosition = this.safeDict (rawPosition, 'data');
+                results.push (this.parsePosition (this.safeDict (rawPosition, 'data', {})));
+            } else {
+                results.push (this.parsePosition (this.safeDict (positions, i, {})));
             }
-            results.push (this.parsePosition (rawPosition));
         }
         return this.filterByArrayPositions (results, 'symbol', symbolsNormalized);
     }

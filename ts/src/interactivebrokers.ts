@@ -3831,7 +3831,7 @@ export default class interactivebrokers extends Exchange {
         const positions = Array.isArray (response) ? response : [];
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
-            const position = this.parsePosition (positions[i], market);
+            const position = this.parsePosition (this.safeDict (positions, i, {}), market);
             if (Precise.stringGt (this.safeString (position, 'contracts', '0'), '0')) {
                 result.push (position);
             }

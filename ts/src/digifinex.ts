@@ -3888,7 +3888,7 @@ export default class digifinex extends Exchange {
         const positions: Dict[] = this.safeList (response, positionRequest, []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i], market));
+            result.push (this.parsePosition (this.safeDict (positions, i, {}), market));
         }
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);
     }
@@ -3985,7 +3985,7 @@ export default class digifinex extends Exchange {
             dataRequest = 'data';
         }
         const data: Dict[] = this.safeList (response, dataRequest, []);
-        const position = this.parsePosition (data[0], market);
+        const position = this.parsePosition (this.safeDict (data, 0, {}), market);
         if (marketType === 'swap') {
             return position;
         } else {

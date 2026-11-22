@@ -6541,7 +6541,7 @@ export class BaseExchange {
         const positionsArray: Dict[] = this.toArray (positions);
         const result: Position[] = [];
         for (let i = 0; i < positionsArray.length; i++) {
-            const position = this.extend (this.parsePosition (positionsArray[i]), params);
+            const position = this.extend (this.parsePosition (this.safeDict (positionsArray, i, {})), params);
             result.push (position);
         }
         return this.filterByArrayPositions (result, 'symbol', symbolsNormalized);

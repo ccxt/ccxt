@@ -6429,7 +6429,7 @@ export default class okx extends Exchange {
         const positions = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < positions.length; i++) {
-            result.push (this.parsePosition (positions[i]));
+            result.push (this.parsePosition (this.safeDict (positions, i, {})));
         }
         return this.filterByArrayPositions (result, 'symbol', this.marketSymbols (symbols));
     }

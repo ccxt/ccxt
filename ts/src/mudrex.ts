@@ -1048,10 +1048,9 @@ export default class mudrex extends Exchange {
         const rows: Dict[] = this.toArray (data);
         const outPos: Position[] = [];
         for (let i = 0; i < rows.length; i++) {
-            const p = rows[i];
-            const symRaw = this.safeString (p, 'symbol');
+            const symRaw = this.safeString (rows[i], 'symbol');
             const m = this.safeMarket (symRaw);
-            const pos = this.parsePosition (p, m);
+            const pos = this.parsePosition (this.safeDict (rows, i, {}), m);
             outPos.push (pos);
         }
         return this.filterByArrayPositions (outPos, 'symbol', symbols);

@@ -9232,7 +9232,7 @@ export default class bitget extends Exchange {
         }
         const result: List = [];
         for (let i = 0; i < position.length; i++) {
-            const parsedPosition = this.parsePosition (position[i], market);
+            const parsedPosition = this.parsePosition (this.safeDict (position, i, {}), market);
             result.push (parsedPosition);
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols);

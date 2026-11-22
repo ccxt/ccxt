@@ -10582,7 +10582,7 @@ export default class kucoin extends Exchange {
         const uta = await this.isUTAEnabled ();
         const [ utaOption, paramsUta ] = this.handleOptionBoolAndParams (params, 'fetchPosition', 'uta', uta);
         let response: Dict;
-        let position: NullableDict = undefined;
+        let position: Dict = {};
         if (utaOption) {
             request['accountMode'] = 'unified';
             response = await this.utaPrivateGetAccountModePositionOpenList (this.extend (request, paramsUta));
@@ -10658,7 +10658,7 @@ export default class kucoin extends Exchange {
             //        }
             //    }
             //
-            position = this.safeDict (response, 'data', {}) as Dict;
+            position = this.safeDict (response, 'data', {});
         }
         return this.parsePosition (position, market);
     }
