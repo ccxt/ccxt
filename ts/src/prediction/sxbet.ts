@@ -496,7 +496,8 @@ export default class sxbet extends Exchange {
             const evMarketsLength = evMarkets.length;
             for (let j = 0; j < evMarketsLength; j++) {
                 const m = evMarkets[j];
-                this.markets[m['market']] = m;
+                const marketKey: string = this.safeString (m, 'market', '');
+                this.markets[marketKey] = m;
             }
             result.push (event);
         }
