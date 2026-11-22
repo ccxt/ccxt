@@ -2758,7 +2758,7 @@ export default class phemex extends Exchange {
         } else {
             request['clOrdID'] = clientOrderId;
         }
-        const paramsOmitted: Dict = (clientOrderId !== undefined) ? this.omit (params, [ 'clOrdID', 'clientOrderId' ]) : params;
+        const paramsOmitted: Dict = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         const triggerPrice = this.safeStringN (paramsOmitted, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
             if (isStableSettled) {
