@@ -1474,7 +1474,6 @@ export default class krakenfutures extends krakenfuturesRest {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        let updatedBalance = undefined;
         if (holding !== undefined) {
             const holdingKeys = Object.keys (holding);                  // cashAccount
             this.balance['cash'] = this.safeDict (this.balance, 'cash', {});
@@ -1495,7 +1494,6 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             this.balance['cash'] = this.pruneStaleBalanceKeys (cashBalance, holdingCodes);
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
-            updatedBalance = this.balance['cash'];
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys (futures);                  // marginAccount
@@ -1525,9 +1523,6 @@ export default class krakenfutures extends krakenfuturesRest {
             this.balance['margin'] = this.pruneStaleBalanceKeys (marginBalance, futuresSymbols);
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
             client.resolve (this.balance['margin'], messageHash + ':futures');
-            if (updatedBalance === undefined) {
-                updatedBalance = this.balance['margin'];
-            }
         }
         if (flexFutures !== undefined) {
             const flexFutureCurrencies = this.safeDict (flexFutures, 'currencies', {});
@@ -1554,16 +1549,17 @@ export default class krakenfutures extends krakenfuturesRest {
             this.balance['flex'] = this.pruneStaleBalanceKeys (flexBalance, flexCodes);
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
             client.resolve (this.balance['flex'], messageHash + ':flex_futures');
-            if (updatedBalance === undefined) {
-                updatedBalance = this.balance['flex'];
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if (updatedBalance !== undefined) {
-            client.resolve (updatedBalance, messageHash);
+        if (holding !== undefined) {
+            client.resolve (this.balance['cash'], messageHash);
+        } else if (futures !== undefined) {
+            client.resolve (this.balance['margin'], messageHash);
+        } else if (flexFutures !== undefined) {
+            client.resolve (this.balance['flex'], messageHash);
         }
     }
 
