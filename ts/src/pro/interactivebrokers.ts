@@ -4,7 +4,7 @@
 import interactivebrokersRest from '../interactivebrokers.js';
 import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Num, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -754,8 +754,16 @@ export default class interactivebrokers extends interactivebrokersRest {
             if (candle === undefined) {
                 stored.append ([ candleTimestamp, price, price, price, price, size ]);
             } else {
-                const high = Math.max (candle[2], price);
-                const low = Math.min (candle[3], price);
+                let high: Num = price;
+                const prevHigh = this.safeNumber (candle, 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low: Num = price;
+                const prevLow = this.safeNumber (candle, 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
                 const volume = this.sum (candle[5], size);
                 stored.append ([ candleTimestamp, candle[1], high, low, price, volume ]);
             }
