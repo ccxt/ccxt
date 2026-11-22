@@ -9533,7 +9533,7 @@ export default class binance extends Exchange {
         const rows = this.safeInteger (response, 'total', 0);
         const data: List = [];
         for (let i = 0; i < rows; i++) {
-            const logs: Dict[] = this.safeList (results[i], 'userAssetDribbletDetails', []);
+            const logs: Dict[] = this.safeList (this.safeDict (results, i), 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 data.push (this.extend (logs[j], { 'isDustTrade': true }));
             }

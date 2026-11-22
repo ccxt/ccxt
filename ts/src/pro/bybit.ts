@@ -1329,7 +1329,10 @@ export default class bybit extends bybitRest {
         let takerOrMaker: Str = undefined;
         const m = this.safeValue (trade, 'm');
         if (side === undefined) {
-            side = (m === true) ? 'buy' : 'sell';
+            side = 'sell';
+            if (m === true) {
+                side = 'buy';
+            }
         } else {
             // spot private
             takerOrMaker = m;

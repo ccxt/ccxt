@@ -3270,8 +3270,8 @@ export default class grvt extends Exchange {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.hash (ethEncodedMessage, keccak, 'hex'), privateKeyWithoutZero, secp256k1, undefined);
-        request['signature'] = {
-            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero) : signerAddress,
+        const signatureEntry: Dict = {
+            'signer': undefined,
             'r': this.formatSignatureRS (signature['r']),
             's': this.formatSignatureRS (signature['s']),
             'v': this.sum (27, signature['v']),
@@ -3279,6 +3279,12 @@ export default class grvt extends Exchange {
             'nonce': requestSignature['nonce'],
             'chain_id': requestSignature['chain_id'],
         };
+        if (signerAddress === undefined) {
+            signatureEntry['signer'] = this.ethGetAddressFromPrivateKey ('0x' + privateKeyWithoutZero);
+        } else {
+            signatureEntry['signer'] = signerAddress;
+        }
+        request['signature'] = signatureEntry;
         return request;
     }
 
