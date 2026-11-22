@@ -2409,7 +2409,7 @@ export default class polymarket extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const row = this.safeDict (response, i, {});
             const rowId = this.safeString (row, 'instrument_id');
-            if (rowId === market['id']) {
+            if (rowId === this.safeString (market, 'id')) {
                 return this.parseLeverage (row, market);
             }
         }
