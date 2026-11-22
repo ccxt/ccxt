@@ -25,7 +25,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     
     'getTifFromRawOrderType', 
     'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
-    'marketOutcomeToSymbol', 'outcomeSearchQuery', 'padHex',
+    'marketOutcomeToSymbol', 'outcomeSearchQuery',
     'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
     'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
     'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
@@ -38,7 +38,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType',
     'parseUnits', 'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
     'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'pow',
-    'priceToPrecision', 'scaleNumber', 'shortenSlug',
+    'priceToPrecision', 'scaleNumber',
     'symbol', 
     'tokenIdToSymbol', 'typeToTradeType', 'walletAddressOrUndefined',
     // extended/gate/lighter/nado string producers
@@ -11989,8 +11989,7 @@ function javaOmitSourceIsMap (printer, source, depth) {
                 return false;
             }
         }
-        const outer = parent?.parent;
-        if (parent !== undefined && ts.isArrayLiteralExpression (parent) && outer !== undefined && ts.isBinaryExpression (outer) && outer.left === parent) {
+        if (parent !== undefined && ts.isArrayLiteralExpression (parent)) {
             return false; // destructuring target
         }
     }
@@ -15173,9 +15172,6 @@ function pairReturnElementProven (printer, node, element) {
     }
     if (value.kind === ts.SyntaxKind.TrueKeyword || value.kind === ts.SyntaxKind.FalseKeyword) {
         return element === 'Boolean' || element === 'Object';
-    }
-    if (pairSameType (element, PAIR_MAP) && javaOmitMapCall (printer, value) !== undefined) {
-        return true; // omit of a Map binds the Map overload: a fresh Map, or null
     }
     if (!ts.isIdentifier (value)) {
         return false;
@@ -18733,7 +18729,7 @@ function javaStringUseHazard (call) {
         && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'omitZero') {
         return true;
     }
-    return !plusUsesAreSafe (call) && !javaPlusRightIsTsString (call);
+    return !plusUsesAreSafe (call) && !javaPlusRightIsTsString (call) && !plusChainStartsWithStringLiteral (call);
 }
 
 // `<call> + s` where s is a literal or a local the TS declaration types `string` (an annotation, a literal,
@@ -18772,6 +18768,20 @@ function javaTsStringOperand (node, scope, depth) {
         return declaration.type.kind === ts.SyntaxKind.StringKeyword;
     }
     return javaTsStringOperand (unwrapParens (declaration.initializer), scope, depth + 1);
+}
+
+// the call sits inside a `+` chain whose leftmost operand is a string literal: every level is a String concat (JLS 15.18.1)
+function plusChainStartsWithStringLiteral (call) {
+    let top = call;
+    while (top.parent !== undefined && (ts.isParenthesizedExpression (top.parent)
+        || (ts.isBinaryExpression (top.parent) && top.parent.operatorToken.kind === ts.SyntaxKind.PlusToken))) {
+        top = top.parent;
+    }
+    let left = unwrapParens (top);
+    while (left !== undefined && ts.isBinaryExpression (left) && left.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        left = unwrapParens (left.left);
+    }
+    return top !== call && left !== undefined && isProvablyStringOperand (left);
 }
 
 // some other ts/src class that extends this file's class (transitively) declares the same method name
@@ -19007,6 +19017,35 @@ function javaStringLocalReturn (printer, node) {
             }
         }
         return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// `j.toUpperCase ()` / `j.toLowerCase ()` where `j` is a single const local seeded by `xs.join (<literal>)` on a TS
+// `string[]`: a non-null String (String.join never returns null), proven order-free from the declarations
+function javaStringCaseOfJoinLocal (printer, node) {
+    try {
+        if (node === undefined || !ts.isCallExpression (node) || node.arguments.length !== 0 || !ts.isPropertyAccessExpression (node.expression)
+            || ![ 'toUpperCase', 'toLowerCase' ].includes (node.expression.name.text) || !ts.isIdentifier (node.expression.expression)) {
+            return false;
+        }
+        const checker = printer.getChecker ();
+        const declarations = checker.getSymbolAtLocation (node.expression.expression)?.declarations ?? [];
+        const declaration = declarations[0]?.resolve?.() ?? declarations[0];
+        if (declarations.length !== 1 || !ts.isVariableDeclaration (declaration) || !(ts.getCombinedNodeFlags (declaration) & ts.NodeFlags.Const)) {
+            return false;
+        }
+        const init = unwrapParens (declaration.initializer);
+        if (init === undefined || !ts.isCallExpression (init) || !ts.isPropertyAccessExpression (init.expression) || init.expression.name.text !== 'join'
+            || init.arguments.length !== 1 || !ts.isStringLiteral (init.arguments[0]) || !ts.isIdentifier (init.expression.expression)) {
+            return false;
+        }
+        const listDecls = checker.getSymbolAtLocation (init.expression.expression)?.declarations ?? [];
+        const list = listDecls[0]?.resolve?.() ?? listDecls[0];
+        return listDecls.length === 1 && ts.isVariableDeclaration (list) && list.type !== undefined && ts.isArrayTypeNode (list.type)
+            && list.type.elementType.kind === ts.SyntaxKind.StringKeyword
+            && String (printer.printNode (init, 0)).startsWith ('String.join(');
     } catch (e) {
         return false;
     }
@@ -19262,12 +19301,15 @@ export function installJavaBaseProducerLocals (transpiler) {
             type = printer.javaIsPrintedMethod (node) && !printer.isAsyncFunction (node)
                 && printer.javaNativeReturnTypeTarget (node) === 'String'
                 && printer.getMethodOverride (node) === undefined
-                && !javaRedeclaredByDescendant (node) && !javaNumericCallHazard (node, 'stringHazards')
+                && !javaRedeclaredByDescendant (node)
+                && (!javaNumericCallHazard (node, 'stringHazards') || printer.javaEveryReturn (node.body, (r) => r.expression !== undefined
+                    && javaStringCaseOfJoinLocal (printer, printer.javaUnwrapReturnExpression (r.expression))))
                 && printer.javaReturnSitesPrintType (node, 'String') ? 'String' : undefined;
             // a proof that read locals published while printing depends on which file the worker printed first:
             // the base printer and the venue workers must agree, so only an order-free proof counts
             if (printer.javaReturnTypeUsedDeclaredLocals && !printer.javaEveryReturn (node.body, (r) => r.expression !== undefined
-                && javaStringLocalReturn (printer, printer.javaUnwrapReturnExpression (r.expression)))) {
+                && (javaStringLocalReturn (printer, printer.javaUnwrapReturnExpression (r.expression))
+                    || javaStringCaseOfJoinLocal (printer, printer.javaUnwrapReturnExpression (r.expression))))) {
                 type = undefined;
             }
         } catch (e) {
@@ -19373,9 +19415,6 @@ function javaPrimitiveKind (ctx, text, nn) {
     if (/^-?\d+\.\d+$/.test (e)) return 'double';
     if (/^(?:\w+\.)?this\.microseconds\(\)$/.test (e)) return 'long';
     if (/^(?:\w+\.)?this\.(?:milliseconds|seconds)\(\)$/.test (e)) return 'long';
-    // a Long parameter read through its long literal default is never null
-    const defaulted = /^java\.util\.Objects\.requireNonNullElse\(([A-Za-z_]\w*), \d{1,15}L\)$/.exec (e);
-    if (defaulted !== null && ctx.declType (defaulted[1]) === 'Long') return 'long';
     // String.length() / List.size() are primitive ints; a null-guarded `x == null ? 0 : x.length()` too
     const recv = '(?:\\(\\([\\w.<>?, ]+\\)[A-Za-z_]\\w*\\)|[A-Za-z_]\\w*)';
     if (new RegExp (`^${recv}\\.(?:size|length)\\(\\)$`).test (e)) return 'int';
