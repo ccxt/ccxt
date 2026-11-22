@@ -1339,15 +1339,18 @@ export default class polymarket extends Exchange {
             if (!(bucketKey in buckets)) {
                 buckets[bucketKey] = [ snappedMs, price, price, price, price, vol ];
             } else {
-                const candle = this.safeList (buckets, bucketKey, []);
-                candle[2] = Math.max (candle[2], price); // high
-                candle[3] = Math.min (candle[3], price); // low
-                candle[4] = price;                                  // close (last tick wins)
+                const prevVol = this.safeNumber (buckets[bucketKey], 5);
+                let candleVol: Num = prevVol;
                 if (vol !== undefined) {
-                    const prevVol = candle[5];
-                    candle[5] = (prevVol === undefined) ? vol : this.sum (prevVol, vol); // volume
+                    if (prevVol === undefined) {
+                        candleVol = vol;
+                    } else {
+                        candleVol = this.sum (prevVol, vol);
+                    }
                 }
-                buckets[bucketKey] = candle; // reassign after mutation, php arrays are value types
+                const open = this.safeNumber (buckets[bucketKey], 1);
+                // close is the last tick
+                buckets[bucketKey] = [ snappedMs, open, Math.max (this.safeNumber (buckets[bucketKey], 2) as number, price), Math.min (this.safeNumber (buckets[bucketKey], 3) as number, price), price, candleVol ];
             }
         }
         const bucketKeys = Object.keys (buckets);
