@@ -1747,7 +1747,10 @@ export default class apex extends Exchange {
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        let paramsOmitted: Dict = this.omit (params, []);
+        if (endTimeExclusive !== undefined) {
+            paramsOmitted = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
+        }
         const response = await this.privateGetV3HistoryOrders (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const orders: Dict[] = this.safeList (data, 'orders', []);
@@ -1819,7 +1822,10 @@ export default class apex extends Exchange {
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        let paramsOmitted: Dict = this.omit (params, []);
+        if (endTimeExclusive !== undefined) {
+            paramsOmitted = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
+        }
         const response = await this.privateGetV3Fills (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const orders: Dict[] = this.safeList (data, 'orders', []);
@@ -1860,7 +1866,10 @@ export default class apex extends Exchange {
         if (endTimeExclusive !== undefined) {
             request['endTimeExclusive'] = endTimeExclusive;
         }
-        const paramsOmitted = (endTimeExclusive !== undefined) ? this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]) : params;
+        let paramsOmitted: Dict = this.omit (params, []);
+        if (endTimeExclusive !== undefined) {
+            paramsOmitted = this.omit (params, [ 'endTime', 'endTimeExclusive', 'until' ]);
+        }
         const response = await this.privateGetV3Funding (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data', {});
         const fundingValues: Dict[] = this.safeList (data, 'fundingValues', []);
