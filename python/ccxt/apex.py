@@ -1322,7 +1322,7 @@ class apex(Exchange, ImplicitAPI):
         fees = self.safe_dict(self.fees, 'swap', {})
         taker = self.safe_string(fees, 'taker', '0.0005')
         maker = self.safe_string(fees, 'maker', '0.0002')
-        pricePrecision = market['precision']['price']
+        pricePrecision = self.safe_number(market['precision'], 'price')
         limitFee = self.decimal_to_precision(Precise.string_add(Precise.string_mul(Precise.string_mul(orderPrice, orderSize), taker), self.number_to_string(pricePrecision)), TRUNCATE, pricePrecision, self.precisionMode, self.paddingMode)
         timeNow = self.milliseconds()
         triggerPrice = self.safe_string(params, 'triggerPrice')

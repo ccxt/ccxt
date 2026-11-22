@@ -650,8 +650,8 @@ class poloniex(ccxt.async_support.poloniex):
                 self.balance[key] = response[key]
         if not ('info' in self.balance):
             self.balance['info'] = response['info']
-            self.balance['timestamp'] = response['timestamp']
-            self.balance['datetime'] = response['datetime']
+            self.balance['timestamp'] = self.safe_integer(response, 'timestamp')
+            self.balance['datetime'] = self.safe_string(response, 'datetime')
         self.balance = self.safe_balance(self.balance)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -962,7 +962,7 @@ class poloniex(ccxt.async_support.poloniex):
                     if previousOrder['trades'] is None:
                         previousOrder['trades'] = []
                     previousOrder['trades'].append(trade)
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp']
+                    previousOrder['lastTradeTimestamp'] = self.safe_integer(trade, 'timestamp')
                     totalCost = '0'
                     totalAmount = '0'
                     previousOrderTrades = self.safe_list(previousOrder, 'trades', [])
@@ -992,7 +992,7 @@ class poloniex(ccxt.async_support.poloniex):
                             'currency': self.safe_string(trade['fee'], 'currency'),
                         }
                     if (self.safe_string(previousOrder['fee'], 'cost') is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
-                        stringOrderCost = self.number_to_string(previousOrder['fee']['cost'])
+                        stringOrderCost = self.safe_string(previousOrder['fee'], 'cost')
                         stringTradeCost = self.number_to_string(self.safe_number(trade['fee'], 'cost'))
                         previousOrder['fee']['cost'] = Precise.string_add(stringOrderCost, stringTradeCost)
                     rawState = self.safe_string(order, 'state')

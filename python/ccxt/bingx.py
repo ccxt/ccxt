@@ -4325,12 +4325,14 @@ class bingx(Exchange, ImplicitAPI):
         }
         clientOrderIds = self.safe_list(params, 'clientOrderIds')
         paramsOmitted = self.omit(params, 'clientOrderIds')
+        idsCount = len(ids)
         idsToParse = ids
         areClientOrderIds = (clientOrderIds is not None)
         if areClientOrderIds:
+            idsCount = len(clientOrderIds)
             idsToParse = clientOrderIds
         parsedIds = []
-        for i in range(0, len(idsToParse)):
+        for i in range(0, idsCount):
             id = self.safe_string(idsToParse, i, '')
             stringId = str(id)
             parsedIds.append(stringId)

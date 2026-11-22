@@ -7106,12 +7106,12 @@ class BaseExchange(object):
             triggerDirection = 'descending'
         return [triggerDirection, paramsOmitted]
 
-    def handle_trigger_and_params(self, params: object):
+    def handle_trigger_and_params(self, params: dict):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         paramsOmitted = self.omit(params, ['trigger', 'stop']) if (isTrigger is True) else params
         return [isTrigger, paramsOmitted]
 
-    def is_trigger_order(self, params: object):
+    def is_trigger_order(self, params: dict):
         # for backwards compatibility
         return self.handle_trigger_and_params(params)
 

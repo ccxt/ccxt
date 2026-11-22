@@ -1100,15 +1100,15 @@ class paradex(Exchange, ImplicitAPI):
         if since is not None:
             requestUntil['start_at'] = since
             # the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            windowEnd = self.sum(self.parse_to_int(since), windowLength - 1)
-            endAt = self.safe_integer(requestUntil, 'end_at', windowEnd)
-            if not hasEnd or (endAt > windowEnd):
-                requestUntil['end_at'] = windowEnd
+            barWindowEnd = self.sum(self.parse_to_int(since), windowLength - 1)
+            clampedEndAt = self.safe_integer(requestUntil, 'end_at', barWindowEnd)
+            if not hasEnd or (clampedEndAt > barWindowEnd):
+                requestUntil['end_at'] = barWindowEnd
         else:
             endAtRaw = self.safe_integer(requestUntil, 'end_at', self.milliseconds())
             endAt = self.parse_to_int(endAtRaw)
             requestUntil['end_at'] = endAt
-            requestUntil['start_at'] = endAt - windowLength + 1
+            requestUntil['start_at'] = endAt - (windowLength - 1)
         response = self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
@@ -2673,8 +2673,10 @@ class paradex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'results', [])
         # unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         matching = []
+        marketId = self.safe_string(market, 'id', '')
         for i in range(0, len(data)):
-            if self.safe_string(data[i], 'market') == market['id']:
+            rowMarketId = self.safe_string(data[i], 'market', '')
+            if rowMarketId == marketId:
                 matching.append(data[i])
         positions = self.parse_positions(matching, [market['symbol']])
         return self.safe_dict(positions, 0, {})
@@ -2910,13 +2912,11 @@ class paradex(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'results', [])
         # the cursor pagination reads the next page cursor from the parsed entries
         next = self.safe_string(response, 'next')
-        for i in range(0, len(rows)):
-            rows[i]['next'] = next
         deposits = []
         for i in range(0, len(rows)):
-            row = rows[i]
-            if allKinds or (self.safe_string(row, 'kind') == 'DEPOSIT'):
-                deposits.append(row)
+            if allKinds or (self.safe_string(rows[i], 'kind') == 'DEPOSIT'):
+                withCursor = self.extend(rows[i], {'next': next})
+                deposits.append(withCursor)
         return self.parse_transactions(deposits, None, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -2975,13 +2975,11 @@ class paradex(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'results', [])
         # the cursor pagination reads the next page cursor from the parsed entries
         next = self.safe_string(response, 'next')
-        for i in range(0, len(rows)):
-            rows[i]['next'] = next
         deposits = []
         for i in range(0, len(rows)):
-            row = rows[i]
-            if allKinds or (self.safe_string(row, 'kind') == 'WITHDRAWAL'):
-                deposits.append(row)
+            if allKinds or (self.safe_string(rows[i], 'kind') == 'WITHDRAWAL'):
+                withCursor = self.extend(rows[i], {'next': next})
+                deposits.append(withCursor)
         return self.parse_transactions(deposits, None, since, limit)
 
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
@@ -3557,7 +3555,8 @@ class paradex(Exchange, ImplicitAPI):
                 # options left out by options.fetchMarkets.types are rebuilt from their id
                 market = self.safe_market(marketId)
                 if market['option'] is True:
-                    result[market['symbol']] = self.parse_option(entry, None, market)
+                    optionSymbol = self.safe_string(market, 'symbol', '')
+                    result[optionSymbol] = self.parse_option(entry, None, market)
         return result
 
     def parse_option(self, chain: dict, currency: Currency = None, market: Market = None) -> Option:
@@ -3744,10 +3743,10 @@ class paradex(Exchange, ImplicitAPI):
             requestUntil['start_at'] = since
             # a page holds the newest rows of its range, so a range wider than one page would return the latest
             # rows and skip since, the range is cut to one page of rows from since
-            windowEnd = self.sum(self.parse_to_int(since), pageSize * rowSpacing)
-            endAt = self.safe_integer(requestUntil, 'end_at', windowEnd)
-            if (self.safe_integer(requestUntil, 'end_at') is None) or (endAt > windowEnd):
-                requestUntil['end_at'] = windowEnd
+            pageWindowEnd = self.sum(self.parse_to_int(since), pageSize * rowSpacing)
+            pageEndAt = self.safe_integer(requestUntil, 'end_at', pageWindowEnd)
+            if (self.safe_integer(requestUntil, 'end_at') is None) or (pageEndAt > pageWindowEnd):
+                requestUntil['end_at'] = pageWindowEnd
         response = self.publicGetFundingData(self.extend(requestUntil, paramsUntil))
         #
         # {

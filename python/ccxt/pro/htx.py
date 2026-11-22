@@ -2523,15 +2523,15 @@ class htx(ccxt.async_support.htx):
             if data is not None:
                 contractCode = self.safe_string(message, 'contract_code')
                 market = self.safe_market(contractCode) if (contractCode is not None) else None
-                if isinstance(data, list):
-                    dataList = self.safe_list(message, 'data', [])
-                    for i in range(0, len(dataList)):
-                        parsed = self.parse_ws_trade(dataList[i], market)
-                        symbol = self.safe_string(parsed, 'symbol')
-                        if symbol is not None:
-                            cachedTrades.append(parsed)
-                else:
-                    parsed = self.parse_ws_trade(data, market)
+                dataList = self.safe_list(message, 'data', [])
+                for i in range(0, len(dataList)):
+                    parsed = self.parse_ws_trade(dataList[i], market)
+                    symbol = self.safe_string(parsed, 'symbol')
+                    if symbol is not None:
+                        cachedTrades.append(parsed)
+                dataDict = self.safe_dict(message, 'data')
+                if dataDict is not None:
+                    parsed = self.parse_ws_trade(dataDict, market)
                     symbol = self.safe_string(parsed, 'symbol')
                     if symbol is not None:
                         cachedTrades.append(parsed)

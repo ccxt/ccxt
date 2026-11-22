@@ -1151,7 +1151,7 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
         """
-        return await self.add_margin(symbol, -amount, params)
+        return await self.add_margin(symbol, self.parse_number(Precise.string_neg(self.number_to_string(amount))), params)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """

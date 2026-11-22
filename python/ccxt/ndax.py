@@ -985,10 +985,7 @@ class ndax(Exchange, ImplicitAPI):
         #         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade: dict | list, market: Market = None) -> Trade:
         #

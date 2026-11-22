@@ -260,10 +260,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                     page = self.sum(page, 1)
                     request['page'] = page
                     response = await self.limitlessPublicGetMarketsActive(self.extend(request, rest))
-                    responseRows = []
-                    if isinstance(response, list):
-                        responseRows = response
-                    page_markets = self.safe_list(response, 'data', responseRows)
+                    page_markets = self.safe_list(response, 'data', [])
                     pageMarketsLength = len(page_markets)
                     if pageMarketsLength == 0:
                         break

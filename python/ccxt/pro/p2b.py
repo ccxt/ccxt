@@ -133,7 +133,7 @@ class p2b(ccxt.async_support.p2b):
         nameOption, paramsName = self.handle_option_string_and_params(params, 'watchTicker', 'name', name)
         market = self.market(symbol)
         self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
-        tickerSubs = self.options['tickerSubs']
+        tickerSubs = self.safe_dict(self.options, 'tickerSubs', {})
         request = list(tickerSubs.keys())
         return await self.subscribe(nameOption + '.subscribe', nameOption + '::' + self.safe_string(market, 'symbol', ''), request, paramsName)
 

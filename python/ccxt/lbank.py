@@ -1546,7 +1546,7 @@ class lbank(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result

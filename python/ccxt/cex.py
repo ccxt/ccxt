@@ -1182,7 +1182,7 @@ class cex(Exchange, ImplicitAPI):
         if currency1 is not None and currency2 is not None:
             marketId = currency1 + '-' + currency2
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = {}
         feeAmount = self.safe_number(order, 'feeAmount')

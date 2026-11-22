@@ -4155,7 +4155,8 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             if amount is None:
                 raise ArgumentsRequired(self.id + ' requires an amount argument')
-            if amount < 1:
+            amountInt = self.parse_to_int(amount)
+            if amountInt < 1:
                 raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
             sizeString = self.amount_to_precision(symbol, amount)
             if sizeString is not None:
@@ -7338,15 +7339,17 @@ class kucoin(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
         amount = self.safe_string(transaction, 'amount')
-        txid = self.safe_string(transaction, 'walletTxId')
-        if txid is not None:
-            txidParts = txid.split('@')
+        walletTxId = self.safe_string(transaction, 'walletTxId')
+        txid = None
+        if walletTxId is not None:
+            txidParts = walletTxId.split('@')
             numTxidParts = len(txidParts)
             if numTxidParts > 1:
+                txidAddress = txidParts[1]
                 if address is None:
-                    if len(txidParts[1]) > 1:
-                        address = txidParts[1]
-            txid = txidParts[0]
+                    if len(txidAddress) > 1:
+                        address = txidAddress
+            txid = self.safe_string(txidParts, 0)
         type = 'deposit'
         if txid is None:
             type = 'withdrawal'

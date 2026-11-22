@@ -980,7 +980,7 @@ class luno(Exchange, ImplicitAPI):
         for i in range(0, len(ids)):
             id = ids[i]
             market = self.safe_market(id)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)

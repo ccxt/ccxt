@@ -309,7 +309,8 @@ class coinspot(Exchange, ImplicitAPI):
                     if code is not None:
                         result[code] = account
         else:
-            currencyIdsMap = list(balances.keys())
+            balancesDict = self.safe_dict_2(response, 'balance', 'balances', {})
+            currencyIdsMap = list(balancesDict.keys())
             for i in range(0, len(currencyIdsMap)):
                 currencyId = currencyIdsMap[i]
                 code = self.safe_currency_code(currencyId)

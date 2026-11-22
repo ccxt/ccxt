@@ -302,7 +302,7 @@ class binance(ccxt.async_support.binance):
     def get_stock_ws_url(self, streamType: Str = 'market') -> str:
         urlsApi = self.safe_dict(self.urls, 'api', {})
         wsUrls = self.safe_dict(urlsApi, 'ws', {})
-        baseUrl = wsUrls['stock']
+        baseUrl = self.safe_string(wsUrls, 'stock', '')
         if streamType == 'combined':
             return baseUrl.replace('/ws', '/stream')
         return baseUrl
@@ -912,8 +912,8 @@ class binance(ccxt.async_support.binance):
             'method': self.handle_fetch_order_book,
         }
         snapshot = await self.watch(url, messageHash, message, messageHash, subscription)
-        snapshot['symbol'] = market['symbol']
-        orderbook = self.order_book(snapshot)
+        symbolEntry = {'symbol': market['symbol']}
+        orderbook = self.order_book(self.extend(snapshot, symbolEntry))
         return orderbook
 
     def handle_fetch_order_book(self, client: Client, message: dict):
@@ -1538,7 +1538,7 @@ class binance(ccxt.async_support.binance):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trade::' + symbol
         trade = self.parse_ws_trade(message, market)
         tradesArray = self.safe_value(self.trades, symbol)
@@ -1829,7 +1829,7 @@ class binance(ccxt.async_support.binance):
         if isSpot:
             marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         # coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         inverse = self.safe_bool(market, 'inverse')
         volumeKey = 'q' if (inverse is True) else 'v'
@@ -2594,6 +2594,7 @@ class binance(ccxt.async_support.binance):
         else:
             unifiedPrefix = 'ticker'
         channelName = None
+        batchMessageHash = ''
         resolvedMessageHashes = []
         rawTickers = []
         newTickers = {}
@@ -2624,7 +2625,7 @@ class binance(ccxt.async_support.binance):
             if tickerMarketById is not None:
                 tickerMarketType = self.safe_string(tickerMarketById, 'type')
             parsedTicker = self.parse_ws_ticker(ticker, tickerMarketType)
-            symbol = parsedTicker['symbol']
+            symbol = self.safe_string(parsedTicker, 'symbol')
             if symbol is not None:
                 newTickers[symbol] = parsedTicker
             if isBidAsk:
@@ -2633,13 +2634,14 @@ class binance(ccxt.async_support.binance):
             else:
                 if symbol is not None:
                     self.tickers[symbol] = parsedTicker
-            messageHash = unifiedPrefix + ':' + channelName + '@' + symbol
-            resolvedMessageHashes.append(messageHash)
-            client.resolve(parsedTicker, messageHash)
+            batchMessageHash = unifiedPrefix + 's:' + channelName
+            if symbol is not None:
+                messageHash = unifiedPrefix + ':' + channelName + '@' + symbol
+                resolvedMessageHashes.append(messageHash)
+                client.resolve(parsedTicker, messageHash)
         # resolve batch endpoint
         length = len(resolvedMessageHashes)
         if length > 0:
-            batchMessageHash = unifiedPrefix + 's:' + channelName
             client.resolve(newTickers, batchMessageHash)
 
     def sign_params(self, params: dict = {}):
@@ -4589,9 +4591,9 @@ class binance(ccxt.async_support.binance):
                 'info': rate,
             })
             self.tickers[symbol] = parsed
-            tickers[symbol] = parsed
             priceSymbol = self.safe_string(parsed, 'symbol', '')
             client.resolve(parsed, 'stock:price:' + priceSymbol)
+            tickers[priceSymbol] = parsed
         client.resolve(tickers, 'stock:price')
 
     def handle_stock_quote(self, client: Client, message: dict):

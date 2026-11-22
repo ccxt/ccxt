@@ -394,9 +394,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             if baseName in spotCurrencyMapping:
                 unifiedBaseName = self.safe_string(spotCurrencyMapping, baseName)
                 quote = self.safe_string(symbolParts, 1)
-                newSymbol = self.safe_currency_code(unifiedBaseName) + '/' + quote
-                if newSymbol in self.markets:
-                    return self.markets[newSymbol]
+                unifiedBase = self.safe_currency_code(unifiedBaseName)
+                if (unifiedBase is not None) and (quote is not None):
+                    newSymbol = unifiedBase + '/' + quote
+                    if newSymbol in self.markets:
+                        return self.markets[newSymbol]
         return super(hyperliquid, self).market(symbol)
 
     async def fetch_status(self, params: dict = {}) -> Status:
@@ -2085,7 +2087,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'randomize')
         vaultAddressOption, paramsVault = self.handle_option_string_and_params(paramsOmitted, 'createOrder', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddressOption)
-        durationMins = int(math.floor(duration / 1000 / 60))  # convert from ms to minutes
+        durationMins = int(math.floor(self.parse_to_int(duration)) / 1000 / 60)  # convert from ms to minutes
         orderObj = {
             'a': self.parse_to_int(market['baseId']),
             'b': isBuy,

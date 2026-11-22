@@ -4815,7 +4815,7 @@ class mexc(Exchange, ImplicitAPI):
             rawNetwork = self.safe_string(params, 'network')
         if code is not None:
             currency = self.currency(code)
-            currencyId = currency['id']
+            currencyId = self.safe_string(currency, 'id', '')
             request['coin'] = currencyId
             # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             # due to that I'm applying the network parameter directly so the user can control it on its side

@@ -1410,7 +1410,7 @@ class delta(Exchange, ImplicitAPI):
                 # these instruments are excluded from the unified markets, see fetchMarkets
                 continue
             ticker = self.parse_ticker(rawTicker)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)

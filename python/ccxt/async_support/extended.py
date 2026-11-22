@@ -820,7 +820,7 @@ class extended(Exchange, ImplicitAPI):
             market = self.safe_market(marketId)
             stats = self.safe_dict(marketData, 'marketStats', {})
             ticker = self.parse_ticker(stats, market)
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)

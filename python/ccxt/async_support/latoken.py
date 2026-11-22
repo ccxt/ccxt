@@ -833,9 +833,10 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         marketResolved = market
         if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-            if (self.markets is not None) and (symbol in self.markets):
-                marketResolved = self.market(symbol)
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                marketResolved = self.market(knownSymbol)
+            symbol = knownSymbol
         last = self.safe_string(ticker, 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
         # during venue incidents a deleted level leaks a signed aggregate into the
@@ -1003,9 +1004,10 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         marketResolved = market
         if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-            if (self.markets is not None) and (symbol in self.markets):
-                marketResolved = self.market(symbol)
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                marketResolved = self.market(knownSymbol)
+            symbol = knownSymbol
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
         feeCost = self.safe_string(trade, 'fee')
@@ -1264,9 +1266,12 @@ class latoken(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = None
+        symbolKnown = False
         if (base is not None) and (quote is not None):
-            symbol = base + '/' + quote
-        symbolKnown = (symbol is not None) and (self.markets is not None) and (symbol in self.markets)
+            knownSymbol = base + '/' + quote
+            if (self.markets is not None) and (knownSymbol in self.markets):
+                symbolKnown = True
+            symbol = knownSymbol
         marketResolved = market
         if symbolKnown:
             marketResolved = self.market(symbol)

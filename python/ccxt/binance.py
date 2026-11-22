@@ -3457,7 +3457,8 @@ class binance(Exchange, ImplicitAPI):
         for i in range(0, len(results)):
             res = self.safe_value(results, i)
             if (fetchMargins) and isinstance(res, list):
-                keysList = list(self.index_by(res, 'symbol').keys())
+                resBySymbol = self.index_by(res, 'symbol')
+                keysList = list(resBySymbol.keys())
                 length = len(self.options['crossMarginPairsData'])
                 # first one is the cross-margin promise
                 if length == 0:
@@ -6935,28 +6936,27 @@ class binance(Exchange, ImplicitAPI):
         """
         if method != 'POST':
             return params
-        generated = {}
         if (path == 'order') or (path == 'sor/order') or (path == 'order/cancelReplace') or (path == 'um/order') or (path == 'cm/order') or (path == 'margin/order'):
             # the eapi order endpoint takes clientOrderId instead of newClientOrderId
             clientOrderIdKey = 'clientOrderId' if (api == 'eapiPrivate') else 'newClientOrderId'
             clientOrderId = self.safe_string_2(params, 'clientOrderId', 'newClientOrderId')
             if clientOrderId is None:
-                generated[clientOrderIdKey] = self.generate_client_order_id(None, api, path)
+                params[clientOrderIdKey] = self.generate_client_order_id(None, api, path)
         elif (path == 'algoOrder') or (path == 'um/algo/order'):
             # the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             clientAlgoId = self.safe_string(params, 'clientAlgoId')
             if clientAlgoId is None:
-                generated['clientAlgoId'] = self.generate_client_order_id(None, api, path)
+                params['clientAlgoId'] = self.generate_client_order_id(None, api, path)
         elif (path == 'cm/conditional/order') or (path == 'um/conditional/order'):
             # the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             newClientStrategyId = self.safe_string(params, 'newClientStrategyId')
             if newClientStrategyId is None:
-                generated['newClientStrategyId'] = self.generate_client_order_id(None, api, path)
+                params['newClientStrategyId'] = self.generate_client_order_id(None, api, path)
         elif path == 'equity/order/place':
             # the equity order endpoint takes clientOrderId instead of newClientOrderId
             equityClientOrderId = self.safe_string(params, 'clientOrderId')
             if equityClientOrderId is None:
-                generated['clientOrderId'] = self.generate_client_order_id(None, api, path)
+                params['clientOrderId'] = self.generate_client_order_id(None, api, path)
         elif (path == 'order/oco') or (path == 'margin/order/oco') or (path == 'orderList/oco') or (path == 'orderList/oto') or (path == 'orderList/otoco') or (path == 'orderList/opo') or (path == 'orderList/opoco'):
             # the order list endpoints take a listClientOrderId and one client order id per leg
             clientOrderIdKeys = ['listClientOrderId', 'limitClientOrderId', 'stopClientOrderId']
@@ -6970,7 +6970,7 @@ class binance(Exchange, ImplicitAPI):
                 currentClientOrderIdKey = clientOrderIdKeys[i]
                 currentClientOrderId = self.safe_string(params, currentClientOrderIdKey)
                 if currentClientOrderId is None:
-                    generated[currentClientOrderIdKey] = self.generate_client_order_id(None, api, path)
+                    params[currentClientOrderIdKey] = self.generate_client_order_id(None, api, path)
         elif path == 'batchOrders':
             # the batch legs take the same client order id fields as the single order endpoints
             if (api == 'fapiPrivate') or (api == 'dapiPrivate') or (api == 'eapiPrivate'):
@@ -6984,8 +6984,7 @@ class binance(Exchange, ImplicitAPI):
                         batchOrder[batchClientOrderIdKey] = self.generate_client_order_id(None, api, path)
                     checkedBatchOrders.append(batchOrder)
                 params['batchOrders'] = checkedBatchOrders
-        withIds = self.extend(params, generated)
-        return withIds
+        return params
 
     def is_conditional_order(self, params: dict = {}) -> bool:
         """
@@ -9025,8 +9024,10 @@ class binance(Exchange, ImplicitAPI):
         earnedCurrency = bnb['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
         tradedCurrencyIsQuote = False
-        if (self.markets is not None) and (applicantSymbol in self.markets):
-            tradedCurrencyIsQuote = True
+        if (self.markets is not None) and (earnedCurrency is not None) and (tradedCurrency is not None):
+            knownSymbol = earnedCurrency + '/' + tradedCurrency
+            if knownSymbol in self.markets:
+                tradedCurrencyIsQuote = True
         feeCostString = self.safe_string(trade, 'serviceChargeAmount')
         fee = {
             'currency': earnedCurrency,
@@ -13553,7 +13554,7 @@ class binance(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if self.safe_bool(market, 'option', False):
             optionResponse = self.eapiPublicGetOpenInterest(self.extend(request, params))
-            symbolValue = market['symbol']
+            symbolValue = self.safe_string(market, 'symbol', '')
             result = self.parse_open_interests_history(optionResponse, market)
             for i in range(0, len(result)):
                 item = self.safe_dict(result, i)

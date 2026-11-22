@@ -860,7 +860,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         tokenIds = []
         for i in range(0, len(outcomeSymbols)):
-            outcomeSymbol = outcomeSymbols[i]
+            outcomeSymbol = self.safe_string(outcomeSymbols, i, '')
             # only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             # see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             # maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -895,8 +895,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 startIndex = self.sum(startIndex, chunkSize)
             self.populate_outcomes()
         for i in range(0, len(outcomeSymbols)):
-            if not self.has_outcome(outcomeSymbols[i]):
-                await self.fetch_outcome(outcomeSymbols[i])
+            pendingSymbol = self.safe_string(outcomeSymbols, i, '')
+            if not self.has_outcome(pendingSymbol):
+                await self.fetch_outcome(pendingSymbol)
         return self.outcomes
 
     async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
@@ -1250,8 +1251,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
                     else:
                         candleVol = self.sum(prevVol, vol)
                 open = self.safe_number(buckets[bucketKey], 1)
+                high = price
+                prevHigh = self.safe_number(buckets[bucketKey], 2)
+                if (prevHigh is not None) and (price is not None) and (prevHigh > price):
+                    high = prevHigh
+                low = price
+                prevLow = self.safe_number(buckets[bucketKey], 3)
+                if (prevLow is not None) and (price is not None) and (price > prevLow):
+                    low = prevLow
                 # close is the last tick
-                buckets[bucketKey] = [snappedMs, open, max(self.safe_number(buckets[bucketKey], 2), price), min(self.safe_number(buckets[bucketKey], 3), price), price, candleVol]
+                buckets[bucketKey] = [snappedMs, open, high, low, price, candleVol]
         bucketKeys = list(buckets.keys())
         unsortedCandles = []
         for i in range(0, len(bucketKeys)):
@@ -1604,7 +1613,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
-            wantedIds[outcomeObj['outcomeId']] = True
+            outcomeId = self.safe_string(outcomeObj, 'outcomeId', '')
+            wantedIds[outcomeId] = True
         result = []
         for i in range(0, len(parsed)):
             position = parsed[i]

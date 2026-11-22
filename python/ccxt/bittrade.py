@@ -458,8 +458,10 @@ class bittrade(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' markets not loaded')
         result = {}
         for i in range(0, len(symbolsResolved)):
-            symbol = symbolsResolved[i]
-            result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
+            symbol = self.safe_string(symbolsResolved, i)
+            limits = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
+            if symbol is not None:
+                result[symbol] = limits
         return result
 
     def fetch_trading_limits_by_id(self, id: Str, params: dict = {}) -> dict:

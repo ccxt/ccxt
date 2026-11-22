@@ -1226,14 +1226,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.traderPrivateDeleteV2Orders(params)
-        if isinstance(response, list):
-            return self.parse_orders(response)
-        else:
-            return [
-                self.safe_order({
-                    'info': response,
-                }),
-            ]
+        return self.parse_orders(response)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """

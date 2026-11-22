@@ -543,7 +543,7 @@ class coincheck(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, '_')
         baseId = self.safe_string(marketResolved, 'baseId')
         quoteId = self.safe_string(marketResolved, 'quoteId')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         takerOrMaker = None
         amountString = None
         costString = None

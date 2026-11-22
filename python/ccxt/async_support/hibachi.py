@@ -541,7 +541,7 @@ class hibachi(Exchange, ImplicitAPI):
         #      }
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         id = self.safe_string(trade, 'id')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'quantity')

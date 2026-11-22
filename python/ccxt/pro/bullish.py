@@ -644,8 +644,8 @@ class bullish(ccxt.async_support.bullish):
             account['total'] = self.safe_string(data, 'availableQuantity')
             account['used'] = self.safe_string(data, 'lockedQuantity')
             code = self.safe_currency_code(assetId)
-            self.balance[tradingAccountId]['info'] = message
             deltaBalance = self.safe_dict(self.balance, tradingAccountId, {})
+            deltaBalance['info'] = message
             if (tradingAccountId is not None) and (code is not None):
                 deltaBalance[code] = account
             self.balance[tradingAccountId] = self.safe_balance(deltaBalance)
@@ -674,7 +674,6 @@ class bullish(ccxt.async_support.bullish):
         symbolsNormalized = symbols
         if hasSymbols:
             symbolsNormalized = self.market_symbols(symbols)
-        if hasSymbols and (symbolsNormalized is not None):
             messageHash += '::' + ','.join(symbolsNormalized)
         request = {
             'topic': 'derivativesPositionsV2',

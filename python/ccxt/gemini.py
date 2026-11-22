@@ -710,7 +710,7 @@ class gemini(Exchange, ImplicitAPI):
         brokenPairs = self.safe_list(self.options, 'brokenPairs', [])
         marketIds = []
         allMarketIds = []
-        if isinstance(marketIdsRaw, list):
+        if marketIdsRaw is not None:
             allMarketIds = marketIdsRaw
         for i in range(0, len(allMarketIds)):
             if not self.in_array(allMarketIds[i], brokenPairs):
@@ -1921,7 +1921,7 @@ class gemini(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        codeValue = currency['code']
+        codeValue = self.safe_string(currency, 'code', '')
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddresses() requires a network parameter')
@@ -2053,10 +2053,7 @@ class gemini(Exchange, ImplicitAPI):
         #         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """

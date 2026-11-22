@@ -616,7 +616,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         previousTrades = self.safe_list(previousOrder, 'trades', [])
                         previousTrades.append(trade)
                         previousOrder['trades'] = previousTrades
-                        previousOrder['lastTradeTimestamp'] = trade['timestamp']
+                        previousOrder['lastTradeTimestamp'] = self.safe_integer(trade, 'timestamp')
                         totalCost = '0'
                         totalAmount = '0'
                         for i in range(0, len(previousTrades)):
@@ -632,10 +632,11 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                             if self.safe_string(previousOrder, 'amount') is not None:
                                 previousOrder['remaining'] = self.parse_number(Precise.string_sub(self.safe_string(previousOrder, 'amount'), self.safe_string(previousOrder, 'filled')))
                         if self.safe_dict(previousOrder, 'fee') is None:
-                            previousOrder['fee'] = {
+                            newFee = {
                                 'cost': 0,
                                 'currency': self.safe_string(trade['fee'], 'currency'),
                             }
+                            previousOrder['fee'] = newFee
                         previousOrderFee = self.safe_dict(previousOrder, 'fee', {})
                         if (self.safe_number(previousOrderFee, 'cost') is not None) and (self.safe_number(trade['fee'], 'cost') is not None):
                             previousOrderFee['cost'] = self.parse_number(Precise.string_add(self.safe_string(previousOrderFee, 'cost'), self.safe_string(trade['fee'], 'cost')))

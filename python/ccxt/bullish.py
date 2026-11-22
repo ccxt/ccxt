@@ -2186,20 +2186,19 @@ class bullish(Exchange, ImplicitAPI):
 
     def load_account(self, params: dict = {}) -> Str:
         tradingAccountIdOption, paramsTradingAccountId = self.handle_option_string_and_params(params, 'loadAccount', 'tradingAccountId')
-        if tradingAccountIdOption is not None:
-            self.options['tradingAccountId'] = tradingAccountIdOption
+        tradingAccountId = tradingAccountIdOption
+        if tradingAccountId is None:
+            response = self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+            accounts = self.to_array(response)
+            for i in range(0, len(accounts)):
+                account = self.safe_dict(accounts, i)
+                name = self.safe_string(account, 'tradingAccountName')
+                if name == 'Primary Account':
+                    tradingAccountId = self.safe_string(account, 'tradingAccountId')
+                    break
+        if tradingAccountId is not None:
+            self.options['tradingAccountId'] = tradingAccountId
             return self.safe_string(self.options, 'tradingAccountId')
-        response = self.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-        accounts = self.to_array(response)
-        for i in range(0, len(accounts)):
-            account = self.safe_dict(accounts, i)
-            name = self.safe_string(account, 'tradingAccountName')
-            if name == 'Primary Account':
-                primaryAccountId = self.safe_string(account, 'tradingAccountId')
-                if primaryAccountId is not None:
-                    self.options['tradingAccountId'] = primaryAccountId
-                    return self.safe_string(self.options, 'tradingAccountId')
-                break
         raise ArgumentsRequired(self.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account')
 
     def fetch_accounts(self, params: dict = {}) -> list[Account]:

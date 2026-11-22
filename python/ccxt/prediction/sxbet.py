@@ -2147,7 +2147,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return refreshed
         held = self.safe_string(self.safe_dict(self.options, 'wsBookVersions', {}), marketHash, '')
         # versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if (held != '') and (version <= held):
+        if (held != '') and ((version == '') or Precise.string_le(version, held)):
             return refreshed
         self.set_ws_option('wsBookVersions', marketHash, version)
         watchedBooks = self.safe_dict(self.options, 'wsWatchedBooks', {})

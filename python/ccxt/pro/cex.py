@@ -141,8 +141,8 @@ class cex(ccxt.async_support.cex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        currentSymbol = self.safe_string(self.options['watchTrades'], 'symbol')
-        if currentSymbol is not None and currentSymbol != symbol:
+        currentSymbol = self.safe_string(self.options['watchTrades'], 'symbol', '')
+        if currentSymbol != '' and currentSymbol != symbol:
             raise ArgumentsRequired(self.id + ' : self exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance')
         watchTradesDict = self.extend({}, self.safe_dict(self.options, 'watchTrades', {}))
         watchTradesDict['symbol'] = symbol
@@ -469,7 +469,7 @@ class cex(ccxt.async_support.cex):
         await self.authenticate(params)
         url = self.safe_string(self.urls['api'], 'ws', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orders:' + symbolValue
         message = {
             'e': 'open-orders',

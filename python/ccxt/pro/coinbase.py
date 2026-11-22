@@ -986,7 +986,7 @@ class coinbase(ccxt.async_support.coinbase):
         events = self.safe_list(message, 'events', [])
         firstEvent = self.safe_dict(events, 0, {})
         isUnsub = ('subscriptions' in firstEvent)
-        subKeys = list(firstEvent['subscriptions'].keys())
+        subKeys = list(self.safe_dict(firstEvent, 'subscriptions', {}).keys())
         subKeysLength = len(subKeys)
         if isUnsub and subKeysLength == 0:
             unSubObject = self.safe_dict(self.options, 'unSubscription', {})

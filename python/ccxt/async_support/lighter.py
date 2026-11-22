@@ -1428,7 +1428,7 @@ class lighter(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'market_id')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         last = self.safe_string(ticker, 'last_trade_price')
         high = self.safe_string(ticker, 'daily_price_high')
         low = self.safe_string(ticker, 'daily_price_low')
@@ -2986,7 +2986,7 @@ class lighter(Exchange, ImplicitAPI):
         nonce = await self.fetch_nonce(accountIndex, apiKeyIndex, paramsAccountIndex)
         signRaw = {
             'market_index': self.parse_to_int(market['id']),
-            'initial_margin_fraction': self.parse_to_int(10000 / leverage),
+            'initial_margin_fraction': self.parse_to_int(10000 / self.parse_to_int(leverage)),
             'margin_mode': 0 if (marginMode == 'cross') else 1,  # 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,

@@ -8873,7 +8873,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market, None, 'contract')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_n(position, ['cTime', 'ctime', 'createdTime'])
         marginMode = self.safe_string(position, 'marginMode')
         collateral = None
@@ -9568,7 +9568,8 @@ class bitget(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
-        if amount > 0:
+        amountString = self.number_to_string(amount)
+        if Precise.string_gt(amountString, '0'):
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
         holdSide = self.safe_string(params, 'holdSide')
         if holdSide is None:

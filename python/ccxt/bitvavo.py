@@ -2006,7 +2006,7 @@ class bitvavo(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(order, 'created')
         marketId = self.safe_string(order, 'market')
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
@@ -2588,6 +2588,7 @@ class bitvavo(Exchange, ImplicitAPI):
         return None
 
     def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: dict, config: dict = {}):
-        if ('noMarket' in config) and not ('market' in params):
+        marketId = self.safe_string(params, 'market')
+        if ('noMarket' in config) and (marketId is None):
             return config['noMarket']
         return self.safe_integer(config, 'cost', 1)

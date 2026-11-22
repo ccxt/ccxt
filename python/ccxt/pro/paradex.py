@@ -625,7 +625,7 @@ class paradex(ccxt.async_support.paradex):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         parsedTrade = self.parse_trade(data)
-        symbol = parsedTrade['symbol']
+        symbol = self.safe_string(parsedTrade, 'symbol')
         messageHash = self.safe_string(params, 'channel')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -644,7 +644,8 @@ class paradex(ccxt.async_support.paradex):
                 caches[symbol] = liquidations
                 self.options['liquidationsBySymbol'] = caches
             liquidations.append(liquidation)
-            client.resolve(liquidations, 'liquidations:' + symbol)
+            if symbol is not None:
+                client.resolve(liquidations, 'liquidations:' + symbol)
         # an SBE frame names its market but not the subscription it was sent for,
         # so the trades.ALL subscription is resolved from the per-market channel too
         isSbe = self.safe_bool(message, 'sbe', False)
@@ -1021,7 +1022,7 @@ class paradex(ccxt.async_support.paradex):
         for i in range(0, symbolsLength):
             symbol = (symbolsNormalized)[i]
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id', '')
             marketIds.append(marketId)
             subscribeHashes.append(channel + '.' + marketId)
             subMessageHashes.append(channel + '.' + symbol)
@@ -1101,7 +1102,7 @@ class paradex(ccxt.async_support.paradex):
         # messageHashes[i] is the hash the summaries of symbols[i] resolve
         for i in range(0, len(symbols)):
             market = self.market(symbols[i])
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id', '')
             subscribeHash = channel + '.' + marketId
             subscribeHashes.append(subscribeHash)
             if not (subscribeHash in client.subscriptions):
@@ -1245,9 +1246,10 @@ class paradex(ccxt.async_support.paradex):
         params = self.safe_dict(message, 'params', {})
         data = self.safe_dict(params, 'data', {})
         bidAsk = self.parse_ws_bid_ask(data)
-        symbol = bidAsk['symbol']
+        symbol = self.safe_string(bidAsk, 'symbol')
         self.bidsasks[symbol] = bidAsk
-        client.resolve(bidAsk, 'bidask:' + symbol)
+        if symbol is not None:
+            client.resolve(bidAsk, 'bidask:' + symbol)
         # an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, 'bidask')
 
@@ -1443,8 +1445,9 @@ class paradex(ccxt.async_support.paradex):
         if symbolsLength == 0:
             messageHashes.append(channel)
         else:
-            for i in range(0, symbolsLength):
-                messageHashes.append(channel + ':' + (symbolsNormalized)[i])
+            if symbolsNormalized is not None:
+                for i in range(0, symbolsLength):
+                    messageHashes.append(channel + ':' + symbolsNormalized[i])
         request = self.subscribe_request(channel)
         subscription = {
             'id': request['id'],
@@ -1485,7 +1488,7 @@ class paradex(ccxt.async_support.paradex):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         position = self.parse_position(data)
-        symbol = position['symbol']
+        symbol = self.safe_string(position, 'symbol')
         newPositions = []
         # one position per market, so a fill through zero flips its side: the cache keys by
         # symbol and side, and the opposite side it still holds is flattened here
@@ -1506,7 +1509,8 @@ class paradex(ccxt.async_support.paradex):
         cache.append(position)
         newPositions.append(position)
         client.resolve(newPositions, 'positions')
-        client.resolve(newPositions, 'positions:' + symbol)
+        if symbol is not None:
+            client.resolve(newPositions, 'positions:' + symbol)
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """

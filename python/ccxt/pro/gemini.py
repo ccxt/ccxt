@@ -532,7 +532,8 @@ class gemini(ccxt.async_support.gemini):
             messageHash = itemHashName + ':' + symbol
             messageHashes.append(messageHash)
             market = self.market(symbol)
-            marketIds.append(market['id'])
+            marketId = self.safe_string(market, 'id', '')
+            marketIds.append(marketId)
         queryStr = ','.join(marketIds)
         wsUrl = self.safe_string(self.urls['api'], 'ws')
         if wsUrl is None:

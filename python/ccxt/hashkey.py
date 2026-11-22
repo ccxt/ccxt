@@ -1684,7 +1684,7 @@ class hashkey(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 's')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         last = self.safe_string(ticker, 'c')
         baseVolume = self.safe_string(ticker, 'v')
         contractSizeValue = self.safe_string(marketResolved, 'contractSize')
@@ -3859,7 +3859,7 @@ class hashkey(Exchange, ImplicitAPI):
     def parse_position(self, position: dict, market: Market = None) -> Position:
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_position({
             'symbol': symbol,
             'id': None,

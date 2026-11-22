@@ -722,8 +722,8 @@ class toobit(ccxt.async_support.toobit):
             type = 'contract'
         if not (type in self.balance):
             self.balance[type] = {}
-        self.balance[type]['info'] = self.safe_list(message, 'B', [])
         typeBalance = self.safe_dict(self.balance, type, {})
+        typeBalance['info'] = self.safe_list(message, 'B', [])
         typeBalance['timestamp'] = timestamp
         typeBalance['datetime'] = self.iso8601(timestamp)
         for i in range(0, len(data)):

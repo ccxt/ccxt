@@ -1778,8 +1778,10 @@ class binance(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary with url, method, body and headers
         """
         apiGroup = api[0]
-        baseUrls = self.urls['api']
-        baseUrl = self.safe_string(baseUrls, apiGroup, baseUrls['sapi'])
+        baseUrls = self.safe_dict(self.urls, 'api', {})
+        baseUrl = self.safe_string(baseUrls, apiGroup, '')
+        if baseUrl == '':
+            baseUrl = self.safe_string(baseUrls, 'sapi', '')
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         self.check_required_credentials()

@@ -4195,7 +4195,8 @@ class gate(Exchange, ImplicitAPI):
                 type = 'deposit' if Precise.string_gt(amountString, '0') else 'withdrawal'
                 amountString = Precise.string_abs(amountString)
             else:
-                type = self.parse_transaction_type(id[0])
+                idPrefix = id[0:1]
+                type = self.parse_transaction_type(idPrefix)
         feeCostString = self.safe_string_2(transaction, 'fee', 'fee_amount')
         if type == 'withdrawal':
             amountString = Precise.string_sub(amountString, feeCostString)
@@ -5154,7 +5155,7 @@ class gate(Exchange, ImplicitAPI):
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
         if contract:
             contractRequest, contractParams = self.prepare_request(market, type, query)
-            contractOrder = self.extend(contractRequest, {'order_id': str(orderId)})
+            contractOrder = self.extend(contractRequest, {'order_id': orderId})
             return [contractOrder, contractParams]
         request, requestParams = self.spot_order_prepare_request(market, trigger, query)
         spotOrder = self.extend(request, {'order_id': orderId})

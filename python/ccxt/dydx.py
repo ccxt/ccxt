@@ -1311,12 +1311,14 @@ class dydx(Exchange, ImplicitAPI):
         conditionalType = 0
         conditionalOrderTriggerSubticks = '0'
         orderFlag = None
+        isShortTerm = False
         timeInForceNumber = None
         if timeInForce == 'FOK':
             raise InvalidOrder(self.id + ' timeInForce fok has been deprecated')
         if orderType == 'MARKET':
             # short-term
             orderFlag = 0
+            isShortTerm = True
             clientMetadata = 1  # STOP_MARKET / TAKE_PROFIT_MARKET
             if timeInForce is not None:
                 # default is ioc
@@ -1325,12 +1327,14 @@ class dydx(Exchange, ImplicitAPI):
             if timeInForce == 'GTT':
                 # long-term
                 orderFlag = 64
+                isShortTerm = False
                 if postOnly:
                     timeInForceNumber = 2
                 else:
                     timeInForceNumber = 0
             else:
                 orderFlag = 0
+                isShortTerm = True
                 if timeInForce == 'IOC':
                     timeInForceNumber = 1
                 else:
@@ -1338,6 +1342,7 @@ class dydx(Exchange, ImplicitAPI):
         if isConditional:
             # conditional
             orderFlag = 32
+            isShortTerm = False
             if stopLossPrice is not None:
                 conditionalType = 1
                 conditionalOrderTriggerSubticks = self.price_to_precision(symbol, stopLossPrice)
@@ -1351,7 +1356,7 @@ class dydx(Exchange, ImplicitAPI):
         goodTillBlockTimeInSeconds = 2592000
         # default is 30 days
         goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds = self.handle_option_integer_and_params(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds)
-        if orderFlag == 0:
+        if isShortTerm:
             if goodTillBlock is None:
                 # short term order
                 if latestBlockHeight is None:

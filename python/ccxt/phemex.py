@@ -3627,7 +3627,7 @@ class phemex(Exchange, ImplicitAPI):
         txid = self.safe_string(transaction, 'txHash')
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
-        code = currencyResolved['code']
+        code = self.safe_string(currencyResolved, 'code')
         networkId = self.safe_string(transaction, 'chainName')
         timestamp = self.safe_integer_n(transaction, ['createdAt', 'submitedAt', 'submittedAt'])
         type = self.safe_string_lower(transaction, 'type')
@@ -4508,12 +4508,12 @@ class phemex(Exchange, ImplicitAPI):
             privateHeaders['x-phemex-request-expiry'] = expiryString
             payload = ''
             if method == 'POST':
+                payload = self.json(params)
                 isOrderPlacement = (path == 'g-orders') or (path == 'spot/orders') or (path == 'orders')
                 if isOrderPlacement:
                     if self.safe_string(params, 'clOrdID') is None:
                         id = self.safe_string(self.options, 'brokerId', 'CCXT123456')
-                        params['clOrdID'] = id + self.uuid16()
-                payload = self.json(params)
+                        payload = self.json(self.extend(params, {'clOrdID': id + self.uuid16()}))
                 requestBody = payload
                 privateHeaders['Content-Type'] = 'application/json'
             auth = requestPath + queryString + expiryString + payload

@@ -2225,7 +2225,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         "externalSources": []
         #     }
         #
-        outcomeId = self.safe_string(market['info'], 'outcomeId') if (market is not None and market is not None) else None
+        outcomeId = self.safe_string(self.safe_dict(market, 'info'), 'outcomeId')
         outcomes = self.safe_list(raw, 'outcomes', [])
         price = None
         change = None
@@ -2243,7 +2243,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 if (priceValue is not None) and (changeValue is not None):
                     previousCloseValue = priceValue - changeValue
                     previousClose = previousCloseValue
-                    if previousCloseValue != 0:
+                    if priceValue != changeValue:
                         percentage = changeValue / previousCloseValue * 100
                 break
         return self.safe_prediction_ticker({
@@ -2785,7 +2785,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 tagQueries = []
                 for i in range(0, requestedTagsLength):
                     # tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    tagSlug = requestedTags[i]
+                    tagSlug = self.safe_string(requestedTags, i, '')
                     tagQueries.append(tagSlug.replace('-', ' '))
                 # run both searches in parallel; some events are only discoverable from questions,
                 # while market search is still the primary source for market-level data
@@ -2939,7 +2939,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         linesLength = len(lines)
         for i in range(0, linesLength):
             line = lines[i]
-            if len(line) > 0:
+            if line != '':
                 parsed = json.loads(line)
                 self.handle_centrifugo_frame(client, parsed)
 

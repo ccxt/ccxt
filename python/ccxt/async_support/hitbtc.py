@@ -1798,7 +1798,7 @@ class hitbtc(Exchange, ImplicitAPI):
         result = {}
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(self.safe_dict(response, i, {}))
-            symbol = fee['symbol']
+            symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee
         return result
@@ -3488,7 +3488,8 @@ class hitbtc(Exchange, ImplicitAPI):
         maxLeverage = self.safe_integer(limits['leverage'], 'max', 50)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
-        if (leverage < 1) or (leverage > maxLeverage):
+        leverageValue = self.parse_to_int(leverage)
+        if (leverageValue < 1) or (leverageValue > maxLeverage):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
         request = {
             'symbol': market['id'],

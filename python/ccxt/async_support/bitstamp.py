@@ -2283,7 +2283,8 @@ class bitstamp(Exchange, ImplicitAPI):
         if type == 'trade':
             parsedTrade = self.parse_trade(item)
             market = None
-            keys = list(item.keys())
+            itemDict = self.extend({}, item)
+            keys = list(itemDict.keys())
             for i in range(0, len(keys)):
                 currentKey = keys[i]
                 if currentKey.find('_') >= 0:

@@ -1710,9 +1710,15 @@ class bitso(Exchange, ImplicitAPI):
                 withdrawFee = self.parse_number(withdrawalResponse[currencyId])
                 resultValue = self.safe_dict(result, code)
                 if resultValue is None:
-                    result[code] = self.deposit_withdraw_fee({})
-                result[code]['withdraw']['fee'] = withdrawFee
-                result[code]['info'][code] = withdrawFee
+                    newInfo = {}
+                    newInfo[code] = self.parse_number(withdrawalResponse[currencyId])
+                    result[code] = self.extend(self.deposit_withdraw_fee(newInfo), {'withdraw': {'fee': withdrawFee, 'percentage': None}})
+                else:
+                    infoUpdate = {}
+                    infoUpdate[code] = self.parse_number(withdrawalResponse[currencyId])
+                    withdraw = self.extend(self.safe_dict(resultValue, 'withdraw', {}), {'fee': withdrawFee})
+                    info = self.extend(self.safe_dict(resultValue, 'info', {}), infoUpdate)
+                    result[code] = self.extend(resultValue, {'withdraw': withdraw, 'info': info})
         return result
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

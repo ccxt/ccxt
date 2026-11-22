@@ -1901,6 +1901,8 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'lever', '1')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
+        if contract:
+            maxSpotCost = None
         leverageAboveOne = Precise.string_gt(maxLeverage, '1')
         quoteEqualSettle = (quoteId == settleId)
         baseEqualSettle = (baseId == settleId)
@@ -1951,7 +1953,7 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'cost': {
                     'min': None,
-                    'max': None if contract else maxSpotCost,
+                    'max': maxSpotCost,
                 },
             },
             'info': market,
@@ -5424,7 +5426,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        hasTag = (tagWithdrawTag is not None) and (len(tagWithdrawTag) > 0)
+        hasTag = (tagWithdrawTag is not None) and (tagWithdrawTag != '')
         addressWithTag = address
         if hasTag:
             addressWithTag = address + ':' + tagWithdrawTag
@@ -6536,9 +6538,10 @@ class okx(Exchange, ImplicitAPI):
                         entry = params[i]
                         clientOrderId = self.safe_string(entry, 'clOrdId')
                         if clientOrderId is None:
-                            entry['clOrdId'] = brokerId + self.uuid16()
-                            entry['tag'] = brokerId
-                            params[i] = entry
+                            taggedEntry = self.extend({}, entry)
+                            taggedEntry['clOrdId'] = brokerId + self.uuid16()
+                            taggedEntry['tag'] = brokerId
+                            params[i] = taggedEntry
                 else:
                     clientOrderId = self.safe_string(params, 'clOrdId')
                     if clientOrderId is None:

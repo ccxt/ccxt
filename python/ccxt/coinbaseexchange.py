@@ -1825,9 +1825,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         paramsUntil = self.omit(params, ['until']) if (until is not None) else params
         response = self.privateGetAccountsIdLedger(self.extend(request, paramsUntil))
         entries = self.to_array(response)
+        entriesWithCurrency = []
         for i in range(0, len(entries)):
-            entries[i]['currency'] = code
-        return self.parse_ledger(entries, currency, since, limit)
+            entriesWithCurrency.append(self.extend(entries[i], {'currency': code}))
+        return self.parse_ledger(entriesWithCurrency, currency, since, limit)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """

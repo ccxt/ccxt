@@ -1455,7 +1455,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
                 messageHashes = self.safe_list(subscription, 'messageHashes', [])
                 for j in range(0, len(subMessageHashes)):
-                    self.clean_unsubscription(client, subMessageHashes[j], messageHashes[j])
+                    self.clean_unsubscription(client, subMessageHashes[j], self.safe_string(messageHashes, j))
                 self.clean_cache(subscription)
                 return
 

@@ -1174,7 +1174,9 @@ class onetrading(ccxt.async_support.onetrading):
         keys = list(timeframesResolved.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if self.safe_string(timeframesResolved[key], 'unit') == unit and self.safe_string(timeframesResolved[key], 'period') == period:
+            rowUnit = self.safe_string(timeframesResolved[key], 'unit')
+            rowPeriod = self.safe_string(timeframesResolved[key], 'period')
+            if rowUnit == unit and rowPeriod == period:
                 return key
         return None
 

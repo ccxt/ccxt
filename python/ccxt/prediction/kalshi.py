@@ -554,13 +554,14 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeLabels = ['YES', 'NO']
         outcomes = []
         resolvedOutcome = None
+        resultText = self.safe_string_lower(raw, 'result', '')
         for oi in range(0, len(outcomeLabels)):
             label = outcomeLabels[oi]
             outcomeHandle = self.slug_to_outcome_symbol(eventTicker, subtitleOrTicker, label)
             winnerRaw = None
             settleFractionRaw = None
             if resolved and (result is not None) and (result != ''):
-                winnerRaw = (label.lower() == result)
+                winnerRaw = (label.lower() == resultText)
                 settleFractionRaw = 1 if (winnerRaw) else 0
                 if winnerRaw:
                     resolvedOutcome = outcomeHandle

@@ -684,7 +684,7 @@ class mercado(Exchange, ImplicitAPI):
         filled = self.safe_string(order, 'executed_quantity')
         lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         rawTrades = self.safe_list(order, 'operations', [])
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         return self.safe_order({
             'info': order,
             'id': id,

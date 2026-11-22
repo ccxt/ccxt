@@ -437,8 +437,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             # e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             expParts = expiry.split('-')
             expPartsLength = len(expParts)
-            if expPartsLength >= 1 and len(expParts[0]) == 8:
-                ymd = expParts[0]
+            ymd = expParts[0]
+            if expPartsLength >= 1 and len(ymd) == 8:
                 hm = '0000'
                 if expPartsLength >= 2:
                     hm = expParts[1]
@@ -500,7 +500,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         marketRow = self.safe_market_structure({
             'id': outcomeKey,
             'market': parentSymbol,
-            'base': parentSymbol.split('/')[0],
+            'base': self.safe_string(parentSymbol.split('/'), 0),
             'quote': quoteCurrency,
             'settle': None,
             'baseId': outcomeKey,
@@ -1776,8 +1776,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         if (expiryRaw is not None) and (expiryRaw != ''):
             parts = expiryRaw.split('-')
             partsLength = len(parts)
-            if partsLength >= 1 and len(parts[0]) == 8:
-                ymd = parts[0]
+            ymd = parts[0]
+            if partsLength >= 1 and len(ymd) == 8:
                 hm = '0000'
                 if partsLength >= 2:
                     hm = parts[1]

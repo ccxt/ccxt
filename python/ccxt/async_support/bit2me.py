@@ -1116,13 +1116,12 @@ class bit2me(Exchange, ImplicitAPI):
         elif isMarketOrder:
             if triggerPrice is not None:
                 raise InvalidOrder(self.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order')
-            quoteAmount = None
             if cost is not None:
-                quoteAmount = cost
+                request['amount'] = self.cost_to_precision(symbol, cost)
+                request['amountInQuote'] = True
             elif (side == 'buy') and (price is not None):
                 # the unified convention for market buy orders, the cost to spend is amount * price
                 quoteAmount = Precise.string_mul(self.number_to_string(amount), self.number_to_string(price))
-            if quoteAmount is not None:
                 request['amount'] = self.cost_to_precision(symbol, quoteAmount)
                 request['amountInQuote'] = True
             else:

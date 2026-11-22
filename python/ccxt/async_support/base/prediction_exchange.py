@@ -689,8 +689,6 @@ class PredictionExchange(BaseExchange):
         letters = 'abcdefghijklmnopqrstuvwxyz'
         for i in range(0, len(rawWords)):
             word = rawWords[i]
-            # inline .length so the php transpiler emits strlen() — the standalone
-            # `const n = str.length;` statement form wrongly becomes count() (array)
             if len(word) == 0:
                 continue
             wordHasLetters = False

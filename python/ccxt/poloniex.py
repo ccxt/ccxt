@@ -776,10 +776,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         ]
         #     ]
         #
-        candles = []
-        if isinstance(response, list):
-            candles = response
-        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def load_markets(self, reload=False, params: dict = {}):
         markets = super(poloniex, self).load_markets(reload, params)
@@ -3809,7 +3806,7 @@ class poloniex(Exchange, ImplicitAPI):
         apiName = api[0]
         isArray = isinstance(params, list)
         if method == 'GET' and ('symbol' in params):
-            params['symbol'] = self.encode_uri_component(params['symbol'])  # handle symbols like 索拉拉/USDT'
+            params['symbol'] = self.encode_uri_component(self.safe_string(params, 'symbol'))  # handle symbols like 索拉拉/USDT'
         query = self.omit(params, self.extract_params(path))
         implodedPath = self.implode_params(path, params)
         url = self.safe_string(self.urls['api'], 'spot', '') + '/' + implodedPath

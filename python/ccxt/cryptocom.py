@@ -1910,7 +1910,8 @@ class cryptocom(Exchange, ImplicitAPI):
             address = addressParts[0]
             rawTag = addressParts[1]
             splitted = rawTag.split('=')
-            return [address, splitted[1]]
+            tag = self.safe_string(splitted, 1)
+            return [address, tag]
         return [addressString, None]
 
     def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

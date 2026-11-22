@@ -1427,7 +1427,7 @@ class deribit(Exchange, ImplicitAPI):
         tickers = {}
         for i in range(0, len(result)):
             ticker = self.parse_ticker(result[i])
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)

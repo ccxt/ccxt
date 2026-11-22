@@ -1535,7 +1535,7 @@ class htx(Exchange, ImplicitAPI):
 
     def cost_to_precision(self, symbol: Str, cost: object) -> str:
         market = self.market(symbol)
-        return self.decimal_to_precision(cost, TRUNCATE, market['precision']['cost'], self.precisionMode)
+        return self.decimal_to_precision(cost, TRUNCATE, self.safe_value(market['precision'], 'cost'), self.precisionMode)
 
     async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -1891,8 +1891,9 @@ class htx(Exchange, ImplicitAPI):
         if not ('futureMarketIdsForSymbols' in self.options):
             self.options['futureMarketIdsForSymbols'] = {}
         futureMarketIdsForSymbols = self.safe_dict(self.options, 'futureMarketIdsForSymbols', {})
-        if symbolOrMarketId in futureMarketIdsForSymbols:
-            return futureMarketIdsForSymbols[symbolOrMarketId]
+        knownSymbol = self.safe_string(futureMarketIdsForSymbols, symbolOrMarketId, '')
+        if knownSymbol != '':
+            return knownSymbol
         futureMarkets = self.filter_by(self.markets, 'future', True)
         futuresCharsMaps = {
             'this_week': 'CW',
@@ -7310,11 +7311,13 @@ class htx(Exchange, ImplicitAPI):
         if marketType == 'swap':
             if self.safe_bool(market, 'linear', False):
                 marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchFundingHistory', paramsUntil, 'cross')
-                request['margin_mode'] = marginMode
-                request['contract_code'] = market['id']
+                linearRequest = {
+                    'margin_mode': marginMode,
+                    'contract_code': market['id'],
+                }
                 if limit is not None:
-                    request['limit'] = limit
-                response = await self.contractPrivateGetV5AccountBills(self.extend(request, paramsMarginMode))
+                    linearRequest['limit'] = limit
+                response = await self.contractPrivateGetV5AccountBills(self.extend(self.extend(request, linearRequest), paramsMarginMode))
                 #
                 #     {
                 #         "code": 200,

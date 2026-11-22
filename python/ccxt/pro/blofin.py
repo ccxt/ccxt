@@ -646,7 +646,7 @@ class blofin(ccxt.async_support.blofin):
         # resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for i in range(0, len(symbols)):
             if channelName is not None:
-                client.resolve(orders, channelName + ':' + symbols[i])
+                client.resolve(orders, channelName + ':' + self.safe_string(symbols, i, ''))
             client.resolve(orders, channelName)
 
     def parse_ws_order(self, order: dict, market: Market = None) -> Order:

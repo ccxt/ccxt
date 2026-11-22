@@ -493,7 +493,7 @@ class btcturk(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 'pair')
         marketResolved = self.safe_market(marketId, market)
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
         open = self.safe_string(ticker, 'open')

@@ -2368,17 +2368,17 @@ class kraken(Exchange, ImplicitAPI):
         batches = []
         batch = []
         for i in range(0, numTradeIds):
-            batch.append(tradeIds[i])
+            tradeId = self.safe_string(tradeIds, i, '')
+            batch.append(tradeId)
             batchLength = len(batch)
             if batchLength >= batchSize:
-                batches.append(batch)
+                ','.join(batches.append(batch))
                 batch = []
-        batches.append(batch)
+        ','.join(batches.append(batch))
         result = []
         for j in range(0, len(batches)):
-            requestIds = batches[j]
             request = {
-                'txid': ','.join(requestIds),
+                'txid': batches[j],
             }
             response = await self.privatePostQueryTrades(request)
             #
@@ -2402,7 +2402,7 @@ class kraken(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            rawTrades = self.safe_value(response, 'result')
+            rawTrades = self.safe_dict(response, 'result', {})
             ids = list(rawTrades.keys())
             rawTradesWithIds = {}
             for i in range(0, len(ids)):
@@ -3544,27 +3544,26 @@ class kraken(Exchange, ImplicitAPI):
         if response is None:
             return None
         if self.safe_string(body, 0) == '{':
-            if not isinstance(response, str):
-                message = self.id + ' ' + body
-                errors = self.safe_list(response, 'error')
-                if errors is not None:
-                    numErrors = len(errors)
-                    if numErrors > 0:
-                        for i in range(0, numErrors):
-                            error = errors[i]
+            message = self.id + ' ' + body
+            errors = self.safe_list(response, 'error')
+            if errors is not None:
+                numErrors = len(errors)
+                if numErrors > 0:
+                    for i in range(0, numErrors):
+                        error = errors[i]
+                        self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
+                        self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
+                    raise ExchangeError(message)
+            # handleCreateOrdersErrors:
+            result = self.safe_dict(response, 'result')
+            if result is not None:
+                if 'orders' in result:
+                    orders = self.safe_list(result, 'orders', [])
+                    for i in range(0, len(orders)):
+                        order = self.safe_dict(orders, i)
+                        error = self.safe_string(order, 'error')
+                        if error is not None:
                             self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
                             self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
-                        raise ExchangeError(message)
-                # handleCreateOrdersErrors:
-                result = self.safe_dict(response, 'result')
-                if result is not None:
-                    if 'orders' in result:
-                        orders = self.safe_list(result, 'orders', [])
-                        for i in range(0, len(orders)):
-                            order = self.safe_dict(orders, i)
-                            error = self.safe_string(order, 'error')
-                            if error is not None:
-                                self.throw_exactly_matched_exception(self.exceptions['exact'], error, message)
-                                self.throw_broadly_matched_exception(self.exceptions['broad'], error, message)
-                                raise ExchangeError(message)
+                            raise ExchangeError(message)
         return None

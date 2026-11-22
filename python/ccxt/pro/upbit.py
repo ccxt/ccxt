@@ -209,11 +209,11 @@ class upbit(ccxt.async_support.upbit):
         #   "acc_trade_volume_24h": 118.38798416,
         #   "stream_type": "SNAPSHOT" }
         ticker = self.parse_ticker(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.tickers[symbol] = ticker
-        messageHash = 'ticker:' + symbol
-        client.resolve(ticker, messageHash)
+            messageHash = 'ticker:' + symbol
+            client.resolve(ticker, messageHash)
 
     def handle_order_book(self, client: Client, message: dict):
         # { type: "orderbook",

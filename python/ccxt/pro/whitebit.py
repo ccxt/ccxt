@@ -415,7 +415,7 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'myTrades:' + symbolValue
         method = 'deals_subscribe'
         trades = await self.watch_multiple_subscription(messageHash, method, symbolValue, True, params)
@@ -537,7 +537,7 @@ class whitebit(ccxt.async_support.whitebit):
             await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'orders:' + symbolValue
         method = 'ordersPending_subscribe'
         trades = await self.watch_multiple_subscription(messageHash, method, symbolValue, False, params)
