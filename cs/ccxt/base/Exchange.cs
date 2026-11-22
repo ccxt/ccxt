@@ -642,17 +642,18 @@ public partial class BaseExchange
         return "";
     }
 
-    public List<string> unique(object obj)
+    // every path hands back distinct strings, boxed so list consumers bind without a re-box
+    public List<object> unique(object obj)
     {
         if (obj is List<string> stringList)
         {
-            return stringList.Distinct().ToList();
+            return stringList.Distinct().Select(x => (object)x).ToList();
         }
         if (obj is List<object> objectList)
         {
-             return objectList.Select(x => x.ToString()).Distinct().ToList();
+             return objectList.Select(x => x.ToString()).Distinct().Select(x => (object)x).ToList();
         }
-        return new List<string>();
+        return new List<object>();
     }
 
     public int parseTimeframe(object timeframe2)
