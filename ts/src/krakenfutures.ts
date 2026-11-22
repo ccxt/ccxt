@@ -2442,15 +2442,18 @@ export default class krakenfutures extends Exchange {
         }
         let cost: Str = undefined;
         if ((filled !== undefined) && (marketResolved !== undefined)) {
-            let whichPrice: Str = price;
+            const isLinear = this.safeBool (marketResolved, 'linear', false);
             if (average !== undefined) {
-                whichPrice = average;
-            }
-            if (whichPrice !== undefined) {
-                if (this.safeBool (marketResolved, 'linear', false)) {
-                    cost = Precise.stringMul (filled, whichPrice); // in quote
+                if (isLinear) {
+                    cost = Precise.stringMul (filled, average); // in quote
                 } else {
-                    cost = Precise.stringDiv (filled, whichPrice); // in base
+                    cost = Precise.stringDiv (filled, average); // in base
+                }
+            } else if (price !== undefined) {
+                if (isLinear) {
+                    cost = Precise.stringMul (filled, price); // in quote
+                } else {
+                    cost = Precise.stringDiv (filled, price); // in base
                 }
             }
         }
