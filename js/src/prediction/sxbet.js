@@ -260,7 +260,8 @@ export default class sxbet extends Exchange {
             }
             paginationKey = this.safeString(result, 'nextKey');
             page = page + 1;
-            const collectedLength = this.parseToInt(rawMarkets.length);
+            const rawMarketsCount = rawMarkets.length;
+            const collectedLength = this.parseToInt(rawMarketsCount);
             if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }

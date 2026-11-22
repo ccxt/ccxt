@@ -523,8 +523,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             if (this.safeString(position, 'side') === undefined) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
                 position['side'] = 'long';
-                const shortPosition = this.clone(position);
-                shortPosition['side'] = 'short';
+                const shortPosition = this.extend(position, { 'side': 'short' });
                 this.positions.append(shortPosition);
             }
             this.positions.append(position);
@@ -1230,7 +1229,12 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const isGrouped = channelPartsLength === 5;
         if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
-            this.orderbooks[symbol] = isGrouped ? this.orderBook({}, limit) : this.countedOrderBook({}, limit);
+            if (isGrouped) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
+            }
+            else {
+                this.orderbooks[symbol] = this.countedOrderBook({}, limit);
+            }
         }
         const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger(orderbook, 'nonce');

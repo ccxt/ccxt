@@ -791,7 +791,7 @@ export default class blofin extends Exchange {
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'last');
         const open = this.safeString(ticker, 'open24h');
         const spot = this.safeBool(marketResolved, 'spot', false);
@@ -933,7 +933,7 @@ export default class blofin extends Exchange {
         const id = this.safeString(trade, 'tradeId');
         const marketId = this.safeString(trade, 'instId');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(trade, 'ts');
         const price = this.safeString2(trade, 'price', 'fillPrice');
         const amount = this.safeString2(trade, 'size', 'fillSize');

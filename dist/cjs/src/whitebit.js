@@ -1636,7 +1636,7 @@ class whitebit extends whitebit$1["default"] {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
             const ticker = this.parseTicker(this.safeValue(response, marketId), market);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             result[symbol] = ticker;
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
@@ -1847,7 +1847,7 @@ class whitebit extends whitebit$1["default"] {
         const amount = this.safeString2(trade, 'amount', 'quote_volume');
         const id = this.safeString2(trade, 'id', 'tradeID');
         const side = this.safeString2(trade, 'type', 'side');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const role = this.safeInteger(trade, 'role');
         let takerOrMaker = undefined;
         if (role !== undefined) {
@@ -2352,7 +2352,8 @@ class whitebit extends whitebit$1["default"] {
         // Sort by timestamp (most recent first)
         const sortedOrders = this.sortBy(allOrders, 'timestamp', true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (limit !== undefined && sortedOrders.length > limit) {
+        const sortedOrdersLength = sortedOrders.length;
+        if (limit !== undefined && sortedOrdersLength > limit) {
             return this.arraySlice(sortedOrders, 0, limit);
         }
         return sortedOrders;
@@ -2639,7 +2640,7 @@ class whitebit extends whitebit$1["default"] {
         //
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeString(order, 'side');
         const filled = this.safeString(order, 'dealStock');
         let remaining = this.safeString(order, 'left');

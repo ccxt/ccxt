@@ -316,7 +316,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(entry, 'coin');
         const marketId = this.coinToMarketId(coin);
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const rawData = this.safeList(entry, 'levels', []);
         const data = {
             'bids': this.safeList(rawData, 0, []),
@@ -635,7 +635,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 const name = keys[i];
                 const marketId = this.coinToMarketId(name);
                 const market = this.safeMarket(marketId, undefined, undefined, 'swap');
-                const symbol = market['symbol'];
+                const symbol = this.safeString(market, 'symbol', '');
                 const ticker = this.parseWsTicker({
                     'price': this.safeNumber(mids, name),
                 }, market);
@@ -677,7 +677,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(data, 'coin');
         const marketId = this.coinToMarketId(coin);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const ctx = this.safeDict(data, 'ctx', {});
         const ticker = this.parseWsTicker(ctx, market);
         this.tickers[symbol] = ticker;
@@ -734,7 +734,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade(rawTrade);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol', '');
             symbols[symbol] = true;
             trades.append(parsed);
         }
@@ -890,7 +890,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const coin = this.safeString(first, 'coin');
         const marketId = this.coinToMarketId(coin);
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);

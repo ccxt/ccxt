@@ -2670,7 +2670,7 @@ export default class okx extends Exchange {
         //         "0" // candlestick state
         //     ]
         //
-        const type = this.handleMarketTypeAndParams('fetchOHLCV', market, undefined)[0];
+        const [type] = this.handleMarketTypeAndParams('fetchOHLCV', market, undefined);
         const volumeIndex = (type === 'spot') ? 5 : 6;
         return [
             this.safeInteger(ohlcv, 0),

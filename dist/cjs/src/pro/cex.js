@@ -371,7 +371,7 @@ class cex extends cex$1["default"] {
         //
         const data = this.safeDict(message, 'data', {});
         const ticker = this.parseWsTicker(data);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         if (symbol === undefined) {
             return;
         }

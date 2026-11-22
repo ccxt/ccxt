@@ -3241,8 +3241,8 @@ class grvt extends grvt$1["default"] {
         const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         const signature = crypto.ecdsa(this.hash(ethEncodedMessage, sha3_js.keccak_256, 'hex'), privateKeyWithoutZero, secp256k1_js.secp256k1, undefined);
-        request['signature'] = {
-            'signer': (signerAddress === undefined) ? this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero) : signerAddress,
+        const signatureEntry = {
+            'signer': undefined,
             'r': this.formatSignatureRS(signature['r']),
             's': this.formatSignatureRS(signature['s']),
             'v': this.sum(27, signature['v']),
@@ -3250,6 +3250,13 @@ class grvt extends grvt$1["default"] {
             'nonce': requestSignature['nonce'],
             'chain_id': requestSignature['chain_id'],
         };
+        if (signerAddress === undefined) {
+            signatureEntry['signer'] = this.ethGetAddressFromPrivateKey('0x' + privateKeyWithoutZero);
+        }
+        else {
+            signatureEntry['signer'] = signerAddress;
+        }
+        request['signature'] = signatureEntry;
         return request;
     }
     formatSignatureRS(value) {

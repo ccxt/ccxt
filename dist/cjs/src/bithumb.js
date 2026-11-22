@@ -461,7 +461,7 @@ class bithumb extends bithumb$1["default"] {
                 if (marketId !== undefined) {
                     const parts = marketId.split('-');
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = parts[1];
+                    baseId = this.safeString(parts, 1);
                     quoteId = parts[0];
                     base = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);

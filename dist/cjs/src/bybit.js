@@ -3355,7 +3355,7 @@ class bybit extends bybit$1["default"] {
             marketType = this.safeString(market, 'type');
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const amountString = this.safeStringN(trade, ['execQty', 'orderQty', 'size']);
         const priceString = this.safeStringN(trade, ['execPrice', 'orderPrice', 'price']);
         const costString = this.safeString(trade, 'execValue');
@@ -4083,7 +4083,7 @@ class bybit extends bybit$1["default"] {
             marketType = isContract ? 'contract' : 'spot';
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger2(order, 'createdTime', 'createdAt');
         const marketUnit = this.safeString(order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -8264,7 +8264,7 @@ class bybit extends bybit$1["default"] {
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -9034,7 +9034,7 @@ class bybit extends bybit$1["default"] {
                 entry[j]['id'] = id;
             }
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             tiers[symbol] = this.parseMarketLeverageTiers(this.sortBy(entry, 'id'), market);
         }
         return tiers;

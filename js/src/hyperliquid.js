@@ -594,7 +594,8 @@ export default class hyperliquid extends Exchange {
             const dex = this.safeDict(fetchDexes, i, {});
             const secondPart = i * 10000 - 10000;
             const offset = this.sum(110000, secondPart);
-            perpDexesOffset[this.safeString(dex, 'name', '')] = offset;
+            const dexKey = this.safeString(dex, 'name', '');
+            perpDexesOffset[dexKey] = offset;
         }
         let fetchDexesList = [];
         const options = this.safeDict(this.options, 'fetchMarkets', {});
@@ -2399,7 +2400,7 @@ export default class hyperliquid extends Exchange {
             const price = this.safeString(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
-            orderParams['slippage'] = slippage;
+            orderParams = this.extend(orderParams, { 'slippage': slippage });
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
             const hasStopLoss = (stopLoss !== undefined);
@@ -2793,7 +2794,7 @@ export default class hyperliquid extends Exchange {
         };
         const cancelAction = {
             'type': 'scheduleCancel',
-            'time': nonce + timeout,
+            'time': nonce + this.parseToInt(timeout),
         };
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'cancelAllOrdersAfter', 'vaultAddress', 'subAccountAddress');
@@ -3526,7 +3527,7 @@ export default class hyperliquid extends Exchange {
         else {
             marketResolved = this.safeMarket(marketId, market);
         }
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(entry, 'timestamp');
         const status = this.safeString2(order, 'status', 'ccxtStatus');
         const orderOmitted = this.omit(order, ['ccxtStatus']);
@@ -3702,7 +3703,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString(trade, 'coin');
         const marketId = this.coinToMarketId(coin);
         const marketResolved = this.safeMarket(marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'tid');
         let side = this.safeString(trade, 'side');
         if (side !== undefined) {
@@ -3823,7 +3824,7 @@ export default class hyperliquid extends Exchange {
         const timestamp = this.safeInteger(liquidation, 'time');
         const marketId = this.coinToMarketId(this.safeString(liquidation, 'coin'));
         let marketResolved = this.safeMarket(marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         // swap ids are asset indexes, so the market is looked up by symbol
         if ((symbol !== undefined) && (this.markets !== undefined) && (symbol in this.markets)) {
             marketResolved = this.market(symbol);
@@ -3991,7 +3992,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString(entry, 'coin');
         const marketId = this.coinToMarketId(coin);
         const marketResolved = this.safeMarket(marketId);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const leverage = this.safeDict(entry, 'leverage', {});
         const marginMode = this.safeString(leverage, 'type');
         const isIsolated = (marginMode === 'isolated');

@@ -607,6 +607,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -622,7 +623,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend(subscribe, params);
@@ -652,6 +653,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -667,7 +669,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
             ],
         };
         const request = this.deepExtend(subscribe, params);
@@ -694,6 +696,7 @@ export default class phemex extends phemexRest {
         }
         const market = this.market(symbol);
         const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId();
         const isSwap = market['swap'];
@@ -709,7 +712,7 @@ export default class phemex extends phemexRest {
             'method': method,
             'id': requestId,
             'params': [
-                market['id'],
+                marketId,
                 this.safeInteger(this.timeframes, timeframe),
             ],
         };
@@ -752,8 +755,10 @@ export default class phemex extends phemexRest {
     async unWatchTrades(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name = 'trade';
         if (isUsdtSwap) {
             name = 'trade_p';
@@ -762,7 +767,7 @@ export default class phemex extends phemexRest {
             'topic': 'trades',
             'symbols': [symbolValue],
         };
-        return await this.unSubscribePublic(name + '.unsubscribe', 'trade:' + symbolValue, [market['id']], subscription, params);
+        return await this.unSubscribePublic(name + '.unsubscribe', 'trade:' + symbolValue, [marketId], subscription, params);
     }
     /**
      * @method
@@ -779,8 +784,10 @@ export default class phemex extends phemexRest {
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const marketId = this.safeString(market, 'id', '');
+        const isSwap = market['swap'];
+        const isUsdtSwap = (isSwap === true) && (market['settle'] === 'USDT');
         let name = 'kline';
         if (isUsdtSwap) {
             name = 'kline_p';
@@ -790,7 +797,7 @@ export default class phemex extends phemexRest {
             'symbolsAndTimeframes': [[symbolValue, timeframe]],
         };
         // phemex drops only the given interval when it is sent along with the symbol
-        const marketParams = [market['id'], this.safeInteger(this.timeframes, timeframe)];
+        const marketParams = [marketId, this.safeInteger(this.timeframes, timeframe)];
         return await this.unSubscribePublic(name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params);
     }
     handleUnSubscription(client, message) {

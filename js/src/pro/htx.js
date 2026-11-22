@@ -1583,7 +1583,7 @@ export default class htx extends htxRest {
         //
         const marketResolved = this.safeMarket(undefined, market);
         const marketValue = marketResolved;
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const tradeId = this.safeString(trade, 'tradeId');
         const price = this.safeString(trade, 'tradePrice');
         const amount = this.safeString(trade, 'tradeVolume');
@@ -1594,7 +1594,7 @@ export default class htx extends htxRest {
         if (type !== undefined) {
             const typeParts = type.split('-');
             side = typeParts[0];
-            type = typeParts[1];
+            type = this.safeString(typeParts, 1);
         }
         const aggressor = this.safeBool(trade, 'aggressor');
         let takerOrMaker = undefined;
@@ -1676,8 +1676,11 @@ export default class htx extends htxRest {
         }
         if (isV5Linear) {
             let v5Market = undefined;
-            if ((symbolsNormalized !== undefined) && (symbolsNormalized.length === 1)) {
-                v5Market = market;
+            if (symbolsNormalized !== undefined) {
+                const symbolsNormalizedLength = symbolsNormalized.length;
+                if (symbolsNormalizedLength === 1) {
+                    v5Market = market;
+                }
             }
             const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash('positions', v5Market, paramsRequest);
             channel = this.safeString(channelAndMessageHashAndParams, 0);

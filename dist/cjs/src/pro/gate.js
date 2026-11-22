@@ -1119,7 +1119,7 @@ class gate extends gate$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const marketId = this.safeString(market, 'id', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket(market);
@@ -1321,7 +1321,7 @@ class gate extends gate$1["default"] {
         for (let i = 0; i < parsed.length; i++) {
             const trade = parsed[i];
             cachedTrades.append(trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString(trade, 'symbol');
             if (symbol !== undefined) {
                 marketIds[symbol] = true;
             }
@@ -1665,7 +1665,7 @@ class gate extends gate$1["default"] {
         if (symbol !== undefined) {
             const marketResolved = this.market(symbol);
             market = marketResolved;
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
         let type = undefined;
         let query = undefined;
@@ -2081,7 +2081,8 @@ class gate extends gate$1["default"] {
                             marketType = parsedChannel[0];
                         }
                         const symbol = this.safeSymbol(payload[i], undefined, '_', marketType);
-                        const messageHashSymbol = parsedChannel[1] + ':' + symbol;
+                        const channelName = this.safeString(parsedChannel, 1, '');
+                        const messageHashSymbol = channelName + ':' + symbol;
                         if ((messageHashSymbol !== undefined) && (messageHashSymbol in client.subscriptions)) {
                             delete client.subscriptions[messageHashSymbol];
                         }

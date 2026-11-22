@@ -1875,7 +1875,7 @@ class xt extends xt$1["default"] {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -1970,7 +1970,7 @@ class xt extends xt$1["default"] {
             }
             const marketInner = this.safeMarket(marketId, market, '_', marketType);
             const ticker = this.parseTicker(rawTicker, marketInner);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
@@ -2030,7 +2030,7 @@ class xt extends xt$1["default"] {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         const marketResolved = this.safeMarket(marketId, market, '_', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 't');
         const open = this.safeString(ticker, 'o');
         // spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -5291,7 +5291,8 @@ class xt extends xt$1["default"] {
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            breakBySymbolSide[this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '')] = breakEntry;
+            const breakKey = this.safeString(breakEntry, 'symbol', '') + '_' + this.safeString(breakEntry, 'positionSide', '');
+            breakBySymbolSide[breakKey] = breakEntry;
         }
         return breakBySymbolSide;
     }

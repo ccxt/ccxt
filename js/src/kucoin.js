@@ -2236,7 +2236,7 @@ export default class kucoin extends Exchange {
      * @returns {any} ignore
      */
     async loadMigrationStatus(force = false) {
-        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
+        if (!('hf' in this.options) || (this.safeBool(this.options, 'hf') === undefined) || force) {
             const result = await this.privateGetHfAccountsOpened();
             this.options['hf'] = this.safeBool(result, 'data');
         }
@@ -4209,7 +4209,7 @@ export default class kucoin extends Exchange {
             }
             else if (marginMode === 'cross') {
                 const marginModes = this.safeDict(this.options, 'marginModes', {});
-                request['tradeType'] = marginModes[marginMode];
+                request['tradeType'] = this.safeString(marginModes, marginMode);
             }
         }
         else if (isMarginOrder) {
@@ -5362,7 +5362,7 @@ export default class kucoin extends Exchange {
         }
         if (marginMode !== undefined) {
             const marginModes = this.safeDict(this.options, 'marginModes', {});
-            request['tradeType'] = marginModes[marginMode];
+            request['tradeType'] = this.safeString(marginModes, marginMode);
             if (marginMode === 'isolated' && (trigger)) {
                 throw new BadRequest(this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }

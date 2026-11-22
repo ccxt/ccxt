@@ -938,7 +938,7 @@ class paradex extends paradex$1["default"] {
             if ((storedNonce === undefined) || (nonce === undefined) || (nonce <= storedNonce)) {
                 return;
             }
-            if (nonce !== this.sum(storedNonce, 1)) {
+            if (nonce !== storedNonce + 1) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored['nonce'] = undefined;
                 this.spawn(this.resubscribeOrderBook, client, deltasChannel, messageHash);
@@ -1236,8 +1236,8 @@ class paradex extends paradex$1["default"] {
             };
         }
         else {
-            request = this.subscribeRequest(channel);
-            request['params']['markets'] = missing;
+            const subscribeParams = { 'channel': channel, 'markets': missing };
+            request = this.extend(this.subscribeRequest(channel), { 'params': subscribeParams });
             subscribeHashes.push(scopedHash);
         }
         // a failed request is forgotten with every market it carried, the next watch sends them again, and
@@ -1774,7 +1774,7 @@ class paradex extends paradex$1["default"] {
         const data = this.safeDict(params, 'data', {});
         const marketId = this.safeString(data, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const channel = this.safeString(params, 'channel');
         const ticker = this.parseTicker(data, market);
         this.tickers[symbol] = ticker;

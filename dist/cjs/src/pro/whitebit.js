@@ -77,9 +77,9 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeInteger(this.options['timeframes'], timeframe);
-        const marketId = market['id'];
+        const marketId = this.safeString(market, 'id');
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -118,7 +118,7 @@ class whitebit extends whitebit$1["default"] {
             const data = params[i];
             const marketId = this.safeString(data, 7);
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV(data, market);
             if (!(symbol in this.ohlcvs)) {
@@ -254,7 +254,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbolValue;
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -315,7 +315,7 @@ class whitebit extends whitebit$1["default"] {
         const tickers = this.safeList(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const rawTicker = this.safeDict(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
         const ticker = this.parseTicker(rawTicker, market);
@@ -357,7 +357,7 @@ class whitebit extends whitebit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trades' + ':' + symbolValue;
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -396,7 +396,7 @@ class whitebit extends whitebit$1["default"] {
         const params = this.safeList(message, 'params', []);
         const marketId = this.safeString(params, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -661,7 +661,7 @@ class whitebit extends whitebit$1["default"] {
         }
         const timestamp = this.safeTimestamp(order, 'ctime');
         const lastTradeTimestamp = this.safeTimestamp(order, 'mtime');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const rawSide = this.safeInteger(order, 'side');
         let side = 'buy';
         if (rawSide === 1) {
@@ -893,7 +893,7 @@ class whitebit extends whitebit$1["default"] {
         if (client === undefined) {
             const subscription = {};
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             if (marketId !== undefined) {
                 subscription[marketId] = true;
             }
@@ -913,7 +913,7 @@ class whitebit extends whitebit$1["default"] {
             const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id');
             const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
                 if (marketId !== undefined) {

@@ -2498,7 +2498,7 @@ class bingx extends bingx$1["default"] {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = market['type'];
+            type = this.safeString(market, 'type');
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, type);
         const symbol = this.safeString(marketResolved, 'symbol');
@@ -6572,7 +6572,7 @@ class bingx extends bingx$1["default"] {
         return this.parseTransaction(data);
     }
     parseParams(params) {
-        const copied = this.clone(params);
+        const copied = this.extend({}, params);
         const sortedParams = this.keysort(params);
         const rawKeys = Object.keys(sortedParams);
         const rawKeysLength = rawKeys.length;

@@ -3087,9 +3087,6 @@ export default class bitfinex extends Exchange {
                 throw new ExchangeError(this.id + ' ' + body);
             }
         }
-        else if (response === '') {
-            throw new ExchangeError(this.id + ' returned empty response');
-        }
         if (code === 429) {
             throw new RateLimitExceeded(this.id + ' ' + body);
         }

@@ -3219,7 +3219,7 @@ class binance extends binance$1["default"] {
             if (parsed === undefined) {
                 throw new errors.ExchangeError(this.id + ' parseCurrenciesCustom() could not resolve parsed');
             }
-            const code = parsed['code'];
+            const code = this.safeString(parsed, 'code', '');
             if (parsed === undefined) {
                 throw new errors.ExchangeError(this.id + ' parseCurrenciesCustom() could not resolve parsed');
             }
@@ -4218,11 +4218,11 @@ class binance extends binance$1["default"] {
             const paramSymbols = this.safeList(paramsSubType, 'symbols');
             query = this.omit(query, 'symbols');
             if (paramSymbols !== undefined) {
-                let symbols = '';
                 if (Array.isArray(paramSymbols)) {
+                    let symbols = '';
                     const mid = this.marketId(this.safeString(paramSymbols, 0));
                     if (mid !== undefined) {
-                        symbols = mid;
+                        symbols += mid;
                     }
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const id = this.marketId(this.safeString(paramSymbols, i));
@@ -4230,11 +4230,11 @@ class binance extends binance$1["default"] {
                             symbols += ',' + id;
                         }
                     }
+                    request['symbols'] = symbols;
                 }
                 else {
-                    symbols = paramSymbols;
+                    request['symbols'] = paramSymbols;
                 }
-                request['symbols'] = symbols;
             }
             response = await this.sapiGetMarginIsolatedAccount(this.extend(request, query));
         }
@@ -7316,33 +7316,34 @@ class binance extends binance$1["default"] {
         if (method !== 'POST') {
             return params;
         }
+        const generated = {};
         if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
             if (clientOrderId === undefined) {
-                params[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                generated[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             const clientAlgoId = this.safeString(params, 'clientAlgoId');
             if (clientAlgoId === undefined) {
-                params['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
+                generated['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             const newClientStrategyId = this.safeString(params, 'newClientStrategyId');
             if (newClientStrategyId === undefined) {
-                params['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
+                generated['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if (path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             const equityClientOrderId = this.safeString(params, 'clientOrderId');
             if (equityClientOrderId === undefined) {
-                params['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
+                generated['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
@@ -7361,7 +7362,7 @@ class binance extends binance$1["default"] {
                 const currentClientOrderIdKey = clientOrderIdKeys[i];
                 const currentClientOrderId = this.safeString(params, currentClientOrderIdKey);
                 if (currentClientOrderId === undefined) {
-                    params[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                    generated[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
                 }
             }
         }
@@ -7382,7 +7383,8 @@ class binance extends binance$1["default"] {
                 params['batchOrders'] = checkedBatchOrders;
             }
         }
-        return params;
+        const withIds = this.extend(params, generated);
+        return withIds;
     }
     /**
      * @method
@@ -9745,7 +9747,7 @@ class binance extends binance$1["default"] {
         const rows = this.safeInteger(response, 'total', 0);
         const data = [];
         for (let i = 0; i < rows; i++) {
-            const logs = this.safeList(results[i], 'userAssetDribbletDetails', []);
+            const logs = this.safeList(this.safeDict(results, i), 'userAssetDribbletDetails', []);
             for (let j = 0; j < logs.length; j++) {
                 data.push(this.extend(logs[j], { 'isDustTrade': true }));
             }
@@ -11066,7 +11068,7 @@ class binance extends binance$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const type = market['type'];
+        const type = this.safeString(market, 'type', '');
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTradingFee', market, params);
         const [isPortfolioMargin, paramsPapi] = this.handleOptionBoolAndParams2(paramsSubType, 'fetchTradingFee', 'papi', 'portfolioMargin', false);
         const isLinear = this.isLinear(type, subType);
@@ -13703,7 +13705,12 @@ class binance extends binance$1["default"] {
                     const orderidlistLength = orderidlist.length;
                     const origclientorderidlistLength = origclientorderidlist.length;
                     if (orderidlistLength > 0) {
-                        query = query + '&' + 'orderidlist=%5B' + orderidlist.join('%2C') + '%5D';
+                        const orderIdStrings = [];
+                        for (let i = 0; i < orderidlistLength; i++) {
+                            const orderIdString = this.safeString(orderidlist, i, '');
+                            orderIdStrings.push(orderIdString);
+                        }
+                        query = query + '&' + 'orderidlist=%5B' + orderIdStrings.join('%2C') + '%5D';
                     }
                     if (origclientorderidlistLength > 0) {
                         // wrap clientOrderids around ""
@@ -13914,7 +13921,8 @@ class binance extends binance$1["default"] {
             const byLimit = this.safeList(config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit !== undefined && limit <= this.safeInteger(entry, 0, 0)) {
+                const entryLimit = this.safeInteger(entry, 0, 0);
+                if (limit !== undefined && limit <= entryLimit) {
                     return this.safeInteger(entry, 1);
                 }
             }

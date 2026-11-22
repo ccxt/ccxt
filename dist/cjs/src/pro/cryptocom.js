@@ -410,7 +410,7 @@ class cryptocom extends cryptocom$1["default"] {
         const marketId = this.safeString(message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);

@@ -265,7 +265,7 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         const inverseUrl = this.safeString(this.urls['api']['ws'], 'inverse');
@@ -375,7 +375,7 @@ export default class bingx extends bingxRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         let url = undefined;
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchTrades', market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('watchTrades', market, paramsMarketType, 'linear');
@@ -526,7 +526,7 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         let trades;
         if (this.safeDict(message, 'data') === undefined) {
@@ -713,7 +713,7 @@ export default class bingx extends bingxRest {
             marketType = 'swap';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
             // const limit = [ 5, 10, 20, 50, 100 ]
@@ -866,7 +866,7 @@ export default class bingx extends bingxRest {
             const data = this.safeDict(message, 'data', {});
             candles = [this.safeDict(data, 'K', {})];
         }
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         const timeframeParts = dataType.split('_');
         const rawTimeframe = this.safeString(timeframeParts, 1);

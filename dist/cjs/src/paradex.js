@@ -1075,7 +1075,7 @@ class paradex extends paradex$1["default"] {
         const result = {};
         for (let i = 0; i < loadedFees.length; i++) {
             const fee = this.parseTradingFee(loadedFees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString(fee, 'symbol');
             result[symbol] = fee;
         }
         return result;
@@ -1231,7 +1231,7 @@ class paradex extends paradex$1["default"] {
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
-                return this.market(symbols[0])['id'];
+                return this.safeString(this.market(symbols[0]), 'id', '');
             }
         }
         return 'ALL';
@@ -1336,7 +1336,7 @@ class paradex extends paradex$1["default"] {
         const last = this.safeString(ticker, 'last_traded_price');
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(ticker, 'created_at');
         return this.safeTicker({
             'symbol': symbol,
@@ -1701,7 +1701,7 @@ class paradex extends paradex$1["default"] {
         const timestamp = this.safeInteger(interest, 'created_at');
         const marketId = this.safeString(interest, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         return this.safeOpenInterest({
             'symbol': symbol,
             'openInterestAmount': this.safeString(interest, 'open_interest'),
@@ -1875,7 +1875,7 @@ class paradex extends paradex$1["default"] {
         }
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -2619,8 +2619,7 @@ class paradex extends paradex$1["default"] {
         const paginationCursor = this.safeString(response, 'next');
         const ordersLength = orders.length;
         if ((paginationCursor !== undefined) && (ordersLength > 0)) {
-            const first = orders[0];
-            first['next'] = paginationCursor;
+            const first = this.extend(orders[0], { 'next': paginationCursor });
             orders[0] = first;
         }
         return this.parseOrders(orders, market, since, limit);
@@ -2900,7 +2899,7 @@ class paradex extends paradex$1["default"] {
         //
         const marketId = this.safeString(position, 'market');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeStringLower(position, 'side');
         // side carries the direction, the unified contracts is a magnitude whether or not size is signed
         const quantity = Precise["default"].stringAbs(this.safeString(position, 'size'));
@@ -3628,7 +3627,7 @@ class paradex extends paradex$1["default"] {
         //
         const marketId = this.safeString(greeks, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'option');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(greeks, 'created_at');
         const greeksData = this.safeDict(greeks, 'greeks', {});
         return {
@@ -3944,7 +3943,7 @@ class paradex extends paradex$1["default"] {
             requestUntil['start_at'] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            const windowEnd = this.sum(since, pageSize * rowSpacing);
+            const windowEnd = this.sum(this.parseToInt(since), pageSize * rowSpacing);
             const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
             if ((this.safeInteger(requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
                 requestUntil['end_at'] = windowEnd;

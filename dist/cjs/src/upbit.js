@@ -1327,8 +1327,9 @@ class upbit extends upbit$1["default"] {
         else {
             throw new errors.InvalidOrder(this.id + ' createOrder() supports only limit or market types in the type argument.');
         }
-        const paramsOrdType = (customType === 'best') ? this.omit(params, ['ordType', 'ord_type']) : params;
+        let paramsOrdType = params;
         if (customType === 'best') {
+            paramsOrdType = this.omit(paramsOrdType, ['ordType', 'ord_type']);
             request['ord_type'] = 'best';
             if (side === 'buy') {
                 const orderPrice = this.calcOrderPrice(symbol, amount, price, paramsOrdType);

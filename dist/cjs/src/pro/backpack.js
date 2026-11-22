@@ -177,7 +177,7 @@ class backpack extends backpack$1["default"] {
             else if ((this.safeString(market, 'executionModel') === 'rfq') && (market['stock'] !== true)) {
                 throw new errors.NotSupported(this.id + ' ' + methodName + '() RFQ venue tickers are only mapped for stock data');
             }
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = kind + ':' + symbol + '@' + topic;
             const subscriptionKey = 'marketData:' + topic;
             let subscriptions = this.safeDict(client.subscriptions, subscriptionKey, {});
@@ -432,7 +432,7 @@ class backpack extends backpack$1["default"] {
         //
         const ticker = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -517,7 +517,7 @@ class backpack extends backpack$1["default"] {
     handleStockTicker(client, message) {
         const data = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -597,7 +597,7 @@ class backpack extends backpack$1["default"] {
         //     }
         const data = this.safeDict(message, 'data', {});
         const stream = this.safeString(message, 'stream', '');
-        const subscriptions = this.safeDict(client.subscriptions, 'marketData:' + stream, {});
+        const subscriptions = this.extend({}, this.safeDict(client.subscriptions, 'marketData:' + stream, {}));
         const hashes = Object.keys(subscriptions);
         const hashesLength = hashes.length;
         for (let i = 0; i < hashesLength; i++) {
@@ -790,7 +790,7 @@ class backpack extends backpack$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const stream = this.safeString(message, 'stream', '');
         const parts = stream.split('.');
         const timeframe = this.safeString(parts, 1, '');
@@ -961,7 +961,7 @@ class backpack extends backpack$1["default"] {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             const stored = new Cache.ArrayCache(limit);
@@ -1506,7 +1506,7 @@ class backpack extends backpack$1["default"] {
         const status = this.parseWsOrderStatus(this.safeString(order, 'X'), market);
         const marketId = this.safeString(order, 's');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const type = this.safeStringLower(order, 'o');
         const timeInForce = this.safeString(order, 'f');
         const side = this.parseWsOrderSide(this.safeString(order, 'S'));

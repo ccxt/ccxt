@@ -2128,6 +2128,7 @@ export default class myriad extends Exchange {
         // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
         const compositeId = this.safeString(raw, 'networkId', '') + ':' + this.safeString(raw, 'id', '');
+        const compositeBaseId = this.safeString(raw, 'networkId', '') + ':' + this.safeString(raw, 'id', '');
         return {
             'id': compositeId,
             'market': marketSymbol,
@@ -2136,7 +2137,7 @@ export default class myriad extends Exchange {
             'base': slug,
             'quote': quoteCurrency,
             'settle': undefined,
-            'baseId': networkId + ':' + marketId,
+            'baseId': compositeBaseId,
             'quoteId': quoteCurrency,
             'settleId': undefined,
             'type': 'prediction',
@@ -2406,7 +2407,8 @@ export default class myriad extends Exchange {
         let percentage = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict(outcomes, i);
-            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString(o, 'outcomeId', this.safeString(o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const priceValue = this.safeNumber(o, 'price');
                 const changeValue = this.safeNumber(o, 'priceChange24h');
                 price = priceValue;
@@ -2565,7 +2567,8 @@ export default class myriad extends Exchange {
         let ask = undefined;
         for (let i = 0; i < outcomes.length; i++) {
             const o = this.safeDict(outcomes, i);
-            if (this.safeString(o, 'outcomeId', this.safeString(o, 'id')) === outcomeId) {
+            const entryOutcomeId = this.safeString(o, 'outcomeId', this.safeString(o, 'id'));
+            if (entryOutcomeId === outcomeId) {
                 const price = this.safeNumber(o, 'price');
                 if (price !== undefined) {
                     if (price > 0.001) {
@@ -3512,12 +3515,12 @@ export default class myriad extends Exchange {
         const seenChannels = {};
         const resolvedSymbols = [];
         for (let i = 0; i < symbolsLength; i++) {
-            const outcomeObj = this.outcome(outcomes[i]);
+            const outcomeObj = this.outcome(this.safeString(outcomes, i, ''));
             const info = this.safeDict(outcomeObj, 'info', {});
             const networkId = this.safeString(info, 'networkId', '');
             const marketId = this.safeString(info, 'marketId', '');
             const channel = 'prices:' + networkId + ':' + marketId;
-            resolvedSymbols.push(this.safeOutcomeSymbol(outcomes[i], outcomeObj));
+            resolvedSymbols.push(this.safeOutcomeSymbol(this.safeString(outcomes, i, ''), outcomeObj));
             if (!(channel in seenChannels)) {
                 seenChannels[channel] = true;
                 const requestId = this.requestId(url);

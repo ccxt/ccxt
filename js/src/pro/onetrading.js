@@ -1373,7 +1373,9 @@ export default class onetrading extends onetradingRest {
             subscription[marketId] = true;
         }
         request['type'] = type;
-        request['channels'][0]['instrument_codes'] = Object.keys(subscription);
+        const instrumentCodes = Object.keys(subscription);
+        const channel = this.extend(this.safeDict(this.safeList(request, 'channels', []), 0, {}), { 'instrument_codes': instrumentCodes });
+        request['channels'] = [channel];
         return await this.watch(url, messageHash, this.deepExtend(request, params), subscriptionHash, subscription);
     }
     async authenticate(params = {}) {

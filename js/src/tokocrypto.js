@@ -1493,13 +1493,6 @@ export default class tokocrypto extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response = undefined;
-        if (this.isNativeMarket(market)) {
-            response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
-        }
-        else {
-            response = await this.binanceGetKlines(this.extend(request, paramsOmitted));
-        }
         //
         // binanceGetKlines
         //
@@ -1534,10 +1527,8 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         let data = [];
-        if (Array.isArray(response)) {
-            data = response;
-        }
-        else {
+        if (this.isNativeMarket(market)) {
+            const response = await this.publicGetOpenV1MarketKlines(this.extend(request, paramsOmitted));
             const dataList = this.safeList(response, 'data');
             if (dataList !== undefined) {
                 data = dataList;
@@ -1546,6 +1537,9 @@ export default class tokocrypto extends Exchange {
                 const dataDict = this.safeDict(response, 'data', {});
                 data = this.safeList(dataDict, 'list', []);
             }
+        }
+        else {
+            data = await this.binanceGetKlines(this.extend(request, paramsOmitted));
         }
         return this.parseOHLCVs(data, market, timeframe, since, limitValue);
     }

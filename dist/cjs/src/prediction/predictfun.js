@@ -356,7 +356,8 @@ class predictfun extends predictfun$1["default"] {
         else {
             const request = {};
             const tags = this.safeList(paramsValue, 'tags', []);
-            if (tags.length > 0) {
+            const tagsLength = tags.length;
+            if (tagsLength > 0) {
                 request['tagIds'] = tags.join(',');
             }
             postOmitKeys.push('limit');

@@ -253,7 +253,7 @@ export default class bitfinex extends bitfinexRest {
         const marketId = this.safeString(keyParts, 2, '');
         const market = this.safeMarket(marketId);
         const timeframe = this.findTimeframe(interval);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = channel + ':' + interval + ':' + marketId;
         this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
@@ -372,7 +372,7 @@ export default class bitfinex extends bitfinexRest {
         const name = 'myTrade';
         const data = this.safeList(message, 2);
         const trade = this.parseWsTrade({ 'result': data });
-        const symbol = trade['symbol'];
+        const symbol = this.safeString(trade, 'symbol');
         const market = this.market(symbol);
         const marketId = this.safeString(market, 'id', '');
         const messageHash = name + ':' + marketId;

@@ -562,7 +562,7 @@ class bitrue extends bitrue$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (market['swap'] !== true) {
             throw new errors.NotSupported(this.id + ' unWatchTrades is only supported for swap markets');
         }
@@ -714,7 +714,7 @@ class bitrue extends bitrue$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         if (market['swap'] !== true) {
             throw new errors.NotSupported(this.id + ' unWatchOHLCV is only supported for swap markets');
         }

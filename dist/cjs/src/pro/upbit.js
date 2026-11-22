@@ -295,7 +295,7 @@ class upbit extends upbit$1["default"] {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade(message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString(trade, 'symbol');
         if (symbol === undefined) {
             return;
         }

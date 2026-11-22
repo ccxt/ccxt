@@ -833,7 +833,7 @@ export default class okx extends okxRest {
             messageHashes.push(messageHash);
         }
         const market = this.getMarketFromSymbols(symbolsNormalized);
-        const marketType = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params)[0];
+        const [marketType] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         let type = marketType;
         if (marketType === 'spot') {
@@ -1586,7 +1586,7 @@ export default class okx extends okxRest {
         const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const depths = {
             'bbo-tbt': 1,
             'books': 400,
@@ -2193,7 +2193,8 @@ export default class okx extends okxRest {
                 stored.append(order);
                 const symbol = this.safeString(order, 'symbol', '');
                 const market = this.market(symbol);
-                marketIds.push(market['id']);
+                const marketId = this.safeString(market, 'id', '');
+                marketIds.push(marketId);
             }
             client.resolve(stored, channel);
             for (let i = 0; i < marketIds.length; i++) {

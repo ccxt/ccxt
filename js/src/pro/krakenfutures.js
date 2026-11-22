@@ -814,7 +814,8 @@ export default class krakenfutures extends krakenfuturesRest {
                 if ((previousFee['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
                     const stringOrderCost = this.numberToString(previousFee['cost']);
                     const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
-                    previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousFee['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
+                    previousOrder['fee'] = previousFee;
                 }
                 // update the newUpdates count
                 orders.append(this.safeOrder(previousOrder));

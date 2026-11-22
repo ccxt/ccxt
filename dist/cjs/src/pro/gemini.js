@@ -173,7 +173,7 @@ class gemini extends gemini$1["default"] {
         //     }
         //
         const trade = this.parseWsTrade(message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString(trade, 'symbol');
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
@@ -183,7 +183,7 @@ class gemini extends gemini$1["default"] {
             }
         }
         stored.append(trade);
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + this.safeString(trade, 'symbol', '');
         client.resolve(stored, messageHash);
     }
     handleTrades(client, message) {

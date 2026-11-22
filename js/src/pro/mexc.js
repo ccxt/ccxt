@@ -610,7 +610,8 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv = undefined;
         if (this.safeBool(market, 'spot', false)) {
-            const spotChannel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
+            const spotTimeframeId = this.safeString(timeframes, timeframe, '');
+            const spotChannel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + spotTimeframeId;
             ohlcv = await this.watchSpotPublic(spotChannel, messageHash, params);
         }
         else {
@@ -1913,7 +1914,8 @@ export default class mexc extends mexcRest {
         let url = undefined;
         if (this.safeBool(market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
-            const channel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + timeframeId;
+            const spotTimeframeId = this.safeString(timeframes, timeframe, '');
+            const channel = 'spot@public.kline.v3.api.pb@' + this.safeString(market, 'id', '') + '@' + spotTimeframeId;
             params['unsubscribed'] = true;
             this.spawn(this.watchSpotPublic, channel, messageHash, params);
         }

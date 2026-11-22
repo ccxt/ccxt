@@ -1189,7 +1189,7 @@ export default class apex extends Exchange {
         const clientOrderId = this.safeString(order, 'clientId');
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const price = this.safeString(order, 'price');
         const amount = this.safeString(order, 'size');
         const orderType = this.safeString(order, 'type');
@@ -1459,7 +1459,8 @@ export default class apex extends Exchange {
         const subAccountId = this.safeString(spotAccount, 'defaultSubAccountId', '0');
         const subAccounts = this.safeList(spotAccount, 'subAccounts', []);
         let nonce = '0';
-        if (subAccounts.length > 0) {
+        const subAccountsLength = subAccounts.length;
+        if (subAccountsLength > 0) {
             nonce = this.safeString(subAccounts[0], 'nonce', '0');
         }
         const finalNonce = nonce; // java req
@@ -1930,7 +1931,7 @@ export default class apex extends Exchange {
         // }
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const side = this.safeStringLower(position, 'side');
         const quantity = this.safeString(position, 'size');
         const timestamp = this.safeInteger(position, 'updatedTime');

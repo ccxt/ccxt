@@ -1300,7 +1300,10 @@ export default class bybit extends bybitRest {
         let takerOrMaker = undefined;
         const m = this.safeValue(trade, 'm');
         if (side === undefined) {
-            side = (m === true) ? 'buy' : 'sell';
+            side = 'sell';
+            if (m === true) {
+                side = 'buy';
+            }
         }
         else {
             // spot private
@@ -2430,7 +2433,7 @@ export default class bybit extends bybitRest {
             for (let i = 0; i < messageHashesLength; i++) {
                 const messageHash = messageHashes[i];
                 if (!(messageHash in client.subscriptions)) {
-                    newTopics.push(topics[i]);
+                    newTopics.push(this.safeString(topics, i, ''));
                 }
             }
         }

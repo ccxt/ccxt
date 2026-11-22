@@ -834,7 +834,7 @@ class kucoin extends kucoin$1["default"] {
         const topic = this.safeString(ticker, 'topic');
         if (topic.indexOf('contractMarket') < 0) {
             const parts = topic.split(':');
-            const marketId = parts[1];
+            const marketId = this.safeString(parts, 1);
             const marketResolved = this.safeMarket(marketId, market);
             const symbol = this.safeString(marketResolved, 'symbol');
             const data = this.safeDict(ticker, 'data', {});
@@ -2269,7 +2269,7 @@ class kucoin extends kucoin$1["default"] {
             // derives cost from the order price otherwise, which is wrong for
             // orders filled at better prices, so the accumulated values win on
             // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-            if (order['average'] !== undefined) {
+            if (this.safeNumber(order, 'average') !== undefined) {
                 parsed['average'] = this.safeNumber(order, 'average');
                 parsed['cost'] = this.safeNumber(order, 'cost');
             }
@@ -2571,7 +2571,7 @@ class kucoin extends kucoin$1["default"] {
         }
         const order = this.safeString(trade, 'orderId');
         const timestamp = this.safeIntegerProduct2(trade, 'ts', 'time', 0.000001);
-        const feeCurrency = marketResolved['quote'];
+        const feeCurrency = this.safeString(marketResolved, 'quote');
         const feeRate = this.safeString(trade, 'feeRate');
         const feeCost = this.safeString(trade, 'fee');
         return this.safeTrade({

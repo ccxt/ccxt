@@ -379,7 +379,7 @@ class bithumb extends bithumb$1["default"] {
         const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orderbook' + ':' + symbolValue;
         let request = {
             'type': 'orderbookdepth',
@@ -552,7 +552,7 @@ class bithumb extends bithumb$1["default"] {
         const wsUrls = this.safeDict(this.safeDict(this.urls, 'api', {}), 'ws', {});
         const url = isGenerationTwo ? this.safeString(wsUrls, 'publicGen2', '') : this.safeString(wsUrls, 'public', '');
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         let request = {
             'type': 'transaction',

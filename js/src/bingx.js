@@ -2499,7 +2499,7 @@ export default class bingx extends Exchange {
             type = 'spot';
         }
         if (market !== undefined) {
-            type = market['type'];
+            type = this.safeString(market, 'type');
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, type);
         const symbol = this.safeString(marketResolved, 'symbol');
@@ -6573,7 +6573,7 @@ export default class bingx extends Exchange {
         return this.parseTransaction(data);
     }
     parseParams(params) {
-        const copied = this.clone(params);
+        const copied = this.extend({}, params);
         const sortedParams = this.keysort(params);
         const rawKeys = Object.keys(sortedParams);
         const rawKeysLength = rawKeys.length;

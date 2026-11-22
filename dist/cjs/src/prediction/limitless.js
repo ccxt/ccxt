@@ -3093,7 +3093,8 @@ class limitless extends limitless$1["default"] {
         }
         const wanted = [];
         for (let i = 0; i < tags.length; i++) {
-            wanted.push(tags[i].toLowerCase());
+            const tag = this.safeString(tags, i, '');
+            wanted.push(tag.toLowerCase());
         }
         const categoryIds = [];
         const categoriesLength = categories.length;

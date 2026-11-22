@@ -3086,9 +3086,6 @@ class bitfinex extends bitfinex$1["default"] {
                 throw new errors.ExchangeError(this.id + ' ' + body);
             }
         }
-        else if (response === '') {
-            throw new errors.ExchangeError(this.id + ' returned empty response');
-        }
         if (code === 429) {
             throw new errors.RateLimitExceeded(this.id + ' ' + body);
         }

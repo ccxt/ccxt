@@ -484,7 +484,7 @@ class independentreserve extends independentreserve$1["default"] {
             defaultMarketId = baseId + '/' + quoteId;
         }
         const marketResolved = this.safeMarket(defaultMarketId, market, '/');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const last = this.safeString(ticker, 'LastPrice');
         return this.safeTicker({
             'symbol': symbol,

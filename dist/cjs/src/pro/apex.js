@@ -725,7 +725,7 @@ class apex extends apex$1["default"] {
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = this.safeDict(lists, i, {});
             const parsed = this.parseWsTrade(rawTrade);
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             symbols[symbol] = true;
             trades.append(parsed);
         }
@@ -777,7 +777,7 @@ class apex extends apex$1["default"] {
         const symbols = {};
         for (let i = 0; i < lists.length; i++) {
             const parsed = this.parseOrder(this.safeDict(lists, i, {}));
-            const symbol = parsed['symbol'];
+            const symbol = this.safeString(parsed, 'symbol');
             symbols[symbol] = true;
             orders.append(parsed);
         }

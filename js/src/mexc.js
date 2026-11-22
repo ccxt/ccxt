@@ -5751,7 +5751,7 @@ export default class mexc extends Exchange {
         }
         let paramsOmitted = params;
         if (isIsolatedMargin) {
-            paramsOmitted = this.omit(params, 'symbol');
+            paramsOmitted = this.omit(paramsOmitted, 'symbol');
         }
         const response = await this.spotPrivatePostCapitalTransfer(this.extend(request, paramsOmitted));
         //

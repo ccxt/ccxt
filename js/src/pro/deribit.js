@@ -859,7 +859,7 @@ export default class deribit extends deribitRest {
         const marketId = this.safeString(parts, 2);
         const rawTimeframe = this.safeString(parts, 3);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const wsOptions = this.safeDict(this.options, 'ws', {});
         const timeframes = this.safeDict(wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);

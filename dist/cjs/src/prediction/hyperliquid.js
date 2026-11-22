@@ -1720,13 +1720,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         // recentTrades returns the coin's most recent public trades (newest first)
         const response = await this.publicPostInfo(this.extend(request, params));
-        let trades = [];
-        if (Array.isArray(response)) {
-            trades = response;
-        }
-        else if (typeof response !== 'string') {
-            trades = this.toArray(response);
-        }
+        const trades = this.infoList(response);
         return this.parsePredictionTrades(trades, outcomeObj, since, limit);
     }
     /**
@@ -1768,13 +1762,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             request['endTime'] = until;
         }
         const response = await this.publicPostInfo(this.extend(request, paramsOmitted));
-        let fills = [];
-        if (Array.isArray(response)) {
-            fills = response;
-        }
-        else if (typeof response !== 'string') {
-            fills = this.toArray(response);
-        }
+        const fills = this.infoList(response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         const parsedTrades = this.parsePredictionTrades(fills, undefined);
@@ -2265,7 +2253,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('byType' in config) && ('type' in params)) {
+        if ('byType' in config) {
             const type = this.safeString(params, 'type');
             const byType = config['byType'];
             if (type !== undefined) {

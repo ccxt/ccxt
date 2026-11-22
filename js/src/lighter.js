@@ -969,7 +969,8 @@ export default class lighter extends Exchange {
             // a group whose legs differ ("OrderExpiry is invalid"), so resolve the default once for all legs
             const groupOrderExpiry = this.sum(this.milliseconds(), 2419200000); // 28 days
             for (let i = 0; i < totalOrderRequests; i++) {
-                if (this.safeInteger(orderRequests[i], 'order_expiry') === -1) {
+                const legExpiry = this.safeInteger(orderRequests[i], 'order_expiry', 0);
+                if (legExpiry === -1) {
                     orderRequests[i]['order_expiry'] = groupOrderExpiry;
                 }
             }

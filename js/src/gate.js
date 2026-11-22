@@ -4723,7 +4723,8 @@ export default class gate extends Exchange {
             }
         }
         let priceResolved = price;
-        if (isMarketOrder && (contract === true)) {
+        const zeroPrice = isMarketOrder && (contract === true);
+        if (zeroPrice) {
             priceResolved = 0;
         }
         let contractAmount = 0;
@@ -4766,7 +4767,7 @@ export default class gate extends Exchange {
                     request['price'] = '0'; // set to 0 for market orders
                 }
                 else {
-                    request['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision(symbol, priceResolved);
+                    request['price'] = zeroPrice ? '0' : this.priceToPrecision(symbol, priceResolved);
                 }
                 if (reduceOnly !== undefined) {
                     request['reduce_only'] = reduceOnly;
@@ -4872,7 +4873,7 @@ export default class gate extends Exchange {
                     initial['price'] = '0';
                 }
                 else {
-                    initial['price'] = (priceResolved === 0) ? '0' : this.priceToPrecision(symbol, priceResolved);
+                    initial['price'] = zeroPrice ? '0' : this.priceToPrecision(symbol, priceResolved);
                 }
                 if (reduceOnly !== undefined) {
                     initial['reduce_only'] = reduceOnly;
@@ -6275,7 +6276,7 @@ export default class gate extends Exchange {
         const isMarginTransfer = (fromId === 'margin') || (toId === 'margin');
         let query = params;
         if (isMarginTransfer) {
-            query = this.omit(params, 'symbol');
+            query = this.omit(query, 'symbol');
         }
         const response = await this.privateWalletPostTransfers(this.extend(request, query));
         //

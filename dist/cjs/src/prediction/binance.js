@@ -455,7 +455,7 @@ class binance extends binance$1["default"] {
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
-                'query': queries[qi],
+                'query': this.safeString(queries, qi),
             };
             request['topK'] = limitResolved;
             const response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
@@ -984,7 +984,8 @@ class binance extends binance$1["default"] {
             const outcome = this.safeStringUpper(order, 'outcome');
             const market = this.safeMarket(marketId);
             const marketName = this.safeString(market, 'market', marketId);
-            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
+            const outcomeKey = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         const side = this.safeStringLower(order, 'side');
         const timestamp = this.safeInteger(order, 'createTime');
@@ -1507,7 +1508,8 @@ class binance extends binance$1["default"] {
             const outcome = this.safeStringUpper(trade, 'outcome');
             const market = this.safeMarket(marketId);
             const marketName = this.safeString(market, 'market', marketId);
-            outcomeObjResolved = this.safeOutcome(marketName + ':' + outcome);
+            const outcomeKey = marketName + ':' + outcome;
+            outcomeObjResolved = this.safeOutcome(outcomeKey);
         }
         const timestamp = this.safeInteger(trade, 'createTime');
         const filled = this.safeString(trade, 'filledShareQty');

@@ -1013,7 +1013,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         }
         let paramsTriggerPrice = params;
         if (triggerPriceIsRequired) {
-            paramsTriggerPrice = this.omit(params, 'triggerPrice');
+            paramsTriggerPrice = this.omit(paramsTriggerPrice, 'triggerPrice');
         }
         const paramsOmitted = this.omit(paramsTriggerPrice, 'clientOrderId');
         const response = await this.privatePostOrders(this.extend(request, paramsOmitted));

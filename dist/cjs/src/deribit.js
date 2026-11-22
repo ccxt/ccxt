@@ -2291,7 +2291,7 @@ class deribit extends deribit$1["default"] {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         let paramsOmitted = params;
         if (isTrailingAmountOrder) {
-            paramsOmitted = this.omit(params, 'trigger_offset');
+            paramsOmitted = this.omit(paramsOmitted, 'trigger_offset');
         }
         if (isTrailingAmountOrder) {
             request['trigger_offset'] = this.parseToNumeric(trailingAmount);

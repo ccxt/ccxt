@@ -1063,7 +1063,7 @@ export default class hitbtc extends Exchange {
         }
         let paramsOmitted = params;
         if ((network !== undefined) && (code === 'USDT')) {
-            paramsOmitted = this.omit(params, 'network');
+            paramsOmitted = this.omit(paramsOmitted, 'network');
         }
         const response = await this.privatePostWalletCryptoAddress(this.extend(request, paramsOmitted));
         //
@@ -1106,7 +1106,7 @@ export default class hitbtc extends Exchange {
         }
         let paramsOmitted = params;
         if ((network !== undefined) && (code === 'USDT')) {
-            paramsOmitted = this.omit(params, 'network');
+            paramsOmitted = this.omit(paramsOmitted, 'network');
         }
         const response = await this.privateGetWalletCryptoAddress(this.extend(request, paramsOmitted));
         //

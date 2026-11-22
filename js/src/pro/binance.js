@@ -1695,7 +1695,7 @@ export default class binance extends binanceRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const [stock, paramsStock] = this.handleOptionBoolAndParams(params, 'watchOHLCV', 'stock', false);
         if (stock === true) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
@@ -1922,7 +1922,7 @@ export default class binance extends binanceRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         params['callerMethodName'] = 'watchOHLCV';
         return await this.unWatchOHLCVForSymbols([[symbolValue, timeframe]], params);
     }
@@ -4046,11 +4046,11 @@ export default class binance extends binanceRest {
             payload = this.editContractOrderRequest(id, symbol, type, side, amount, price, params);
         }
         const [returnRateLimits, paramsReturnRateLimits] = this.handleOptionBoolAndParams(params, 'editOrderWs', 'returnRateLimits', false);
-        payload['returnRateLimits'] = returnRateLimits;
+        const payloadWithLimits = this.extend(payload, { 'returnRateLimits': returnRateLimits });
         const message = {
             'id': messageHash,
             'method': (isSwap) ? 'order.modify' : 'order.cancelReplace',
-            'params': this.signParams(this.extend(payload, paramsReturnRateLimits)),
+            'params': this.signParams(this.extend(payloadWithLimits, paramsReturnRateLimits)),
         };
         const subscription = {
             'method': this.handleEditOrderWs,
@@ -5015,7 +5015,8 @@ export default class binance extends binanceRest {
             });
             this.tickers[symbol] = parsed;
             tickers[symbol] = parsed;
-            client.resolve(parsed, 'stock:price:' + symbol);
+            const priceSymbol = this.safeString(parsed, 'symbol', '');
+            client.resolve(parsed, 'stock:price:' + priceSymbol);
         }
         client.resolve(tickers, 'stock:price');
     }
@@ -5037,7 +5038,8 @@ export default class binance extends binanceRest {
             'info': message,
         });
         this.bidsasks[symbol] = parsed;
-        client.resolve(parsed, 'stock:quote:' + symbol);
+        const quoteSymbol = this.safeString(parsed, 'symbol', '');
+        client.resolve(parsed, 'stock:quote:' + quoteSymbol);
     }
     handleOptionsOrderUpdate(client, message) {
         //
@@ -5086,7 +5088,8 @@ export default class binance extends binanceRest {
             }
             const absQty = Precise.stringAbs(rawQty);
             let executionType = 'NEW';
-            if (fills.length > 0) {
+            const fillsLength = fills.length;
+            if (fillsLength > 0) {
                 executionType = 'TRADE';
             }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect

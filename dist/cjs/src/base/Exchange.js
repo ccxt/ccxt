@@ -572,7 +572,8 @@ class BaseExchange {
         if (this.fetchHistoryCacheSize <= 0) {
             return;
         }
-        if (this.fetchHistoryCache.length >= this.fetchHistoryCacheSize) {
+        const fetchHistoryCacheLength = this.fetchHistoryCache.length;
+        if (fetchHistoryCacheLength >= this.fetchHistoryCacheSize) {
             this.fetchHistoryCache.shift();
         }
         this.fetchHistoryCache.push(data);
@@ -794,7 +795,8 @@ class BaseExchange {
         }
         else {
             const cachedProxyUrls = Object.keys(this.proxyDictionaries);
-            if (cachedProxyUrls.length >= this.proxyDictionariesMaxSize) {
+            const cachedProxyUrlsLength = cachedProxyUrls.length;
+            if (cachedProxyUrlsLength >= this.proxyDictionariesMaxSize) {
                 const oldestProxyUrl = cachedProxyUrls[0]; // js objects preserve string-key insertion order
                 const oldestEntry = this.proxyDictionaries[oldestProxyUrl];
                 delete this.proxyDictionaries[oldestProxyUrl];
@@ -1564,7 +1566,8 @@ class BaseExchange {
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)
-        if ((subscribeHashes === undefined) || (missingSubscriptions.length > 0)) {
+        const missingSubscriptionsLength = missingSubscriptions.length;
+        if ((subscribeHashes === undefined) || (missingSubscriptionsLength > 0)) {
             connected.then(() => {
                 const options = this.safeValue(this.options, 'ws');
                 const cost = this.safeValue(options, 'cost', 1);
@@ -1800,7 +1803,8 @@ class BaseExchange {
     }
     starknetEncodeStructuredData(domain, messageTypes, messageData, address) {
         const types = Object.keys(messageTypes);
-        if (types.length > 1) {
+        const typesLength = types.length;
+        if (typesLength > 1) {
             throw new errors.NotSupported(this.id + ' starknetEncodeStructuredData only support single type');
         }
         const request = {

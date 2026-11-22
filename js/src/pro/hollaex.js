@@ -372,7 +372,8 @@ export default class hollaex extends hollaexRest {
             rawOrders = [dataDict];
         }
         // usually the first message is an empty array
-        if (rawOrders.length === 0) {
+        const rawOrdersLength = rawOrders.length;
+        if (rawOrdersLength === 0) {
             return;
         }
         if (this.orders === undefined) {

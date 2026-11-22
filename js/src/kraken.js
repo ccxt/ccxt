@@ -1126,7 +1126,8 @@ export default class kraken extends Exchange {
                 const symbol = symbolsNormalized[i];
                 const market = this.market(symbol);
                 if (this.safeBool(market, 'active', false)) {
-                    marketIds.push(market['id']);
+                    const marketId = this.safeString(market, 'id', '');
+                    marketIds.push(marketId);
                 }
             }
             request['pair'] = marketIds.join(',');
@@ -1138,7 +1139,7 @@ export default class kraken extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }
@@ -1569,7 +1570,7 @@ export default class kraken extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const id = market['id'];
+        const id = this.safeString(market, 'id');
         const request = {
             'pair': id,
         };
@@ -2425,7 +2426,7 @@ export default class kraken extends Exchange {
         let query = params;
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
-            query = this.omit(params, ['userref', 'clientOrderId']);
+            query = this.omit(query, ['userref', 'clientOrderId']);
         }
         const response = await this.privatePostQueryOrders(this.extend(request, query));
         //
@@ -2512,7 +2513,8 @@ export default class kraken extends Exchange {
         let batch = [];
         for (let i = 0; i < numTradeIds; i++) {
             batch.push(tradeIds[i]);
-            if (batch.length >= batchSize) {
+            const batchLength = batch.length;
+            if (batchLength >= batchSize) {
                 batches.push(batch);
                 batch = [];
             }
@@ -3430,7 +3432,7 @@ export default class kraken extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         const tag = this.safeString(depositAddress, 'tag');
         const currencyResolved = this.safeCurrency(undefined, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString(currencyResolved, 'code');
         this.checkAddress(address);
         return {
             'info': depositAddress,

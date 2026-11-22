@@ -2309,7 +2309,7 @@ export default class bitget extends Exchange {
             }
             const parsedMarket = this.parseMarket(market);
             if ((parsedMarket !== undefined) && this.safeBool(parsedMarket, 'spot', false)) {
-                const marketId = parsedMarket['id'];
+                const marketId = this.safeString(parsedMarket, 'id', '');
                 const instrument = this.safeDict(spotInstruments, marketId);
                 if (instrument !== undefined) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument

@@ -995,7 +995,7 @@ class pacifica extends pacifica$1["default"] {
             const setting = settings[i];
             const marketId = this.safeString(setting, 'symbol');
             const market = this.safeMarket(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;

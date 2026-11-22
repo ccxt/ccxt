@@ -337,8 +337,9 @@ class bullish extends bullish$1["default"] {
         };
         const parsed = this.parseOrderBook(snapshot, symbol, timestamp);
         const sequenceNumberRange = this.safeList(data, 'sequenceNumberRange', []);
-        if (sequenceNumberRange.length > 0) {
-            const lastIndex = sequenceNumberRange.length - 1;
+        const sequenceNumberRangeLength = sequenceNumberRange.length;
+        if (sequenceNumberRangeLength > 0) {
+            const lastIndex = sequenceNumberRangeLength - 1;
             parsed['nonce'] = this.safeInteger(sequenceNumberRange, lastIndex);
         }
         orderbook.reset(parsed);

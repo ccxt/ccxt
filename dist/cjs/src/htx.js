@@ -3080,7 +3080,7 @@ class htx extends htx$1["default"] {
             untilSeconds = this.parseToInt(until / 1000);
         }
         const isContract = (market['contract'] === true);
-        const marketType = market['type'];
+        const marketType = this.safeString(market, 'type', '');
         const contractLimit = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
         if (isContract) {
@@ -3445,7 +3445,8 @@ class htx extends htx$1["default"] {
         if (networkId === undefined) {
             return undefined;
         }
-        const keys = Object.keys(this.options['networkNamesByChainIds']);
+        const namesByChainIds = this.safeDict(this.options, 'networkNamesByChainIds', {});
+        const keys = Object.keys(namesByChainIds);
         const keysLength = keys.length;
         if (keysLength === 0) {
             throw new errors.ExchangeError(this.id + ' networkIdToCode() - markets need to be loaded at first');
@@ -3460,7 +3461,8 @@ class htx extends htx$1["default"] {
         if (currencyCode === undefined) {
             return super.networkCodeToId(networkCode);
         }
-        const keys = Object.keys(this.options['networkChainIdsByNames']);
+        const chainIdsByNames = this.safeDict(this.options, 'networkChainIdsByNames', {});
+        const keys = Object.keys(chainIdsByNames);
         const keysLength = keys.length;
         if (keysLength === 0) {
             throw new errors.ExchangeError(this.id + ' networkCodeToId() - markets need to be loaded at first');

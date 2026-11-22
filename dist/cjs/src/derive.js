@@ -3589,9 +3589,10 @@ class derive extends derive$1["default"] {
             if (Precise["default"].stringGt(used, totalUsdc)) {
                 used = totalUsdc;
             }
-            usdcAccount['used'] = used;
-            usdcAccount['free'] = Precise["default"].stringSub(totalUsdc, used);
-            result['USDC'] = usdcAccount;
+            result['USDC'] = this.extend(usdcAccount, {
+                'used': used,
+                'free': Precise["default"].stringSub(totalUsdc, used),
+            });
         }
         return this.safeBalance(result);
     }

@@ -112,7 +112,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -173,7 +173,7 @@ class bitopro extends bitopro$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         const rawData = this.safeList(message, 'data', []);
         const trades = this.parseTrades(rawData, market);
@@ -395,7 +395,7 @@ class bitopro extends bitopro$1["default"] {
         }
         // market-ids are lowercase in REST API and uppercase in WS API
         const market = this.safeMarket(marketId, undefined, '_');
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const event = this.safeString(message, 'event');
         const result = this.parseTicker(message, market);
         result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
