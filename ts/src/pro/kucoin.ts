@@ -850,7 +850,7 @@ export default class kucoin extends kucoinRest {
         const topic = this.safeString (ticker, 'topic');
         if ((topic as string).indexOf ('contractMarket') < 0) {
             const parts = (topic as string).split (':');
-            const marketId = parts[1];
+            const marketId = this.safeString (parts, 1);
             const marketResolved = this.safeMarket (marketId, market);
             const symbol = this.safeString (marketResolved, 'symbol');
             const data = this.safeDict (ticker, 'data', {});

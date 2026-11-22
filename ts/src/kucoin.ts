@@ -4197,7 +4197,7 @@ export default class kucoin extends Exchange {
                 throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
             } else if (marginMode === 'cross') {
                 const marginModes: Dict = this.safeDict (this.options, 'marginModes', {});
-                request['tradeType'] = marginModes[marginMode];
+                request['tradeType'] = this.safeString (marginModes, marginMode);
             }
         } else if (isMarginOrder) {
             if (marginMode === 'isolated') {
@@ -5330,7 +5330,7 @@ export default class kucoin extends Exchange {
         }
         if (marginMode !== undefined) {
             const marginModes: Dict = this.safeDict (this.options, 'marginModes', {});
-            request['tradeType'] = marginModes[marginMode];
+            request['tradeType'] = this.safeString (marginModes, marginMode);
             if (marginMode === 'isolated' && (trigger)) {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
