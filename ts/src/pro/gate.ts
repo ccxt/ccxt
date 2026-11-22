@@ -2520,11 +2520,8 @@ export default class gate extends gateRest {
             }
         }
         const idArray = [ this.uid ];
-        const payloadWithUid = (payload === undefined) ? idArray : this.arrayConcat (idArray, payload);
-        let payloadValue = payload;
-        if (requiresUid) {
-            payloadValue = payloadWithUid;
-        }
+        const noPayload = (payload === undefined);
+        const payloadWithUid = noPayload ? idArray : this.arrayConcat (idArray, payload);
         const time = this.seconds ();
         const event = 'subscribe';
         const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
@@ -2542,8 +2539,10 @@ export default class gate extends gateRest {
             'event': event,
             'auth': auth,
         };
-        if (payloadValue !== undefined) {
-            request['payload'] = payloadValue;
+        if (requiresUid) {
+            request['payload'] = payloadWithUid;
+        } else if (!noPayload) {
+            request['payload'] = payload;
         }
         const client = this.client (url);
         if (!(messageHash in client.subscriptions)) {
