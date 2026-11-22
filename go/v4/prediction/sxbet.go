@@ -3399,7 +3399,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 		client.(ccxt.ClientInterface).Resolve(this.Orderbooks[sym], messageHash)
 	}
 
-	r3 := <-future.(<-chan ccxt.AsyncResult[any])
+	r3 := <-future.(*ccxt.Future).Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -3555,7 +3555,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 		client.(ccxt.ClientInterface).Resolve(this.SafeDict(this.SafeDict(this.Options, "wsTickers", map[string]any{}), sym), messageHash)
 	}
 
-	r3 := <-future.(<-chan ccxt.AsyncResult[any])
+	r3 := <-future.(*ccxt.Future).Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}

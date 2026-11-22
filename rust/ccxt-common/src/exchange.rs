@@ -144,6 +144,8 @@ fn now_ms() -> i64 {
 
 pub struct Internals {
     pub http_client:    Option<reqwest::Client>,
+    /// `validateServerSsl` the cached `http_client` was built with, so a later flip rebuilds it.
+    pub http_client_validates_ssl: bool,
     pub describe_cb:    Option<DescribeCallback>,
     pub last_rest_ts:   i64,
     pub headers:        HashMap<String, String>,
@@ -296,6 +298,7 @@ impl Default for Internals {
     fn default() -> Self {
         Self {
             http_client:      None,
+            http_client_validates_ssl: true,
             describe_cb:      None,
             last_rest_ts:     0,
             headers:          HashMap::new(),
@@ -353,6 +356,8 @@ pub struct Exchange {
     pub userConfig:             Value,
     pub verbose:                Value,
     pub isSandboxModeEnabled:   Value,
+    /// `false` disables tls certificate and hostname verification for REST and WS.
+    pub validateServerSsl:      Value,
 
     // proxy
     pub proxy:               Value,
@@ -699,6 +704,7 @@ impl Exchange {
             userConfig:           Value::Null,
             verbose:              Value::Bool(false),
             isSandboxModeEnabled: Value::Bool(false),
+            validateServerSsl:    Value::Bool(true),
 
             proxy:               Value::Null,
             proxyUrl:            Value::Null,
@@ -952,6 +958,7 @@ impl Exchange {
         if let Some(v) = safe_string(cfg, "wssProxy",      None) { self.wssProxy      = Value::Str(v.into()); }
         if let Some(b) = crate::value::safe_bool(cfg, "verbose",         None) { self.verbose         = Value::Bool(b); }
         if let Some(b) = crate::value::safe_bool(cfg, "enableRateLimit", None) { self.enableRateLimit = Value::Bool(b); }
+        if let Some(b) = crate::value::safe_bool(cfg, "validateServerSsl", None) { self.validateServerSsl = Value::Bool(b); }
         // Pre-populated state (mirrors CCXT TS Exchange constructor):
         // markets/currencies/options arrive ready to use from offline
         // tests, the CLI, or library users seeding state. `setMarkets`
@@ -1003,6 +1010,10 @@ impl Exchange {
     // ── http client ─────────────────────────────────────────────────────────
 
     fn http_client(&mut self) -> &reqwest::Client {
+        let validates_ssl = self.validates_server_ssl();
+        if self.internals.http_client_validates_ssl != validates_ssl {
+            self.internals.http_client = None;
+        }
         if self.internals.http_client.is_none() {
             let mut b = reqwest::Client::builder()
                 .timeout(std::time::Duration::from_millis(self.timeout_ms()))
@@ -1052,7 +1063,12 @@ impl Exchange {
                 }
             }
             for p in proxies { b = b.proxy(p); }
+            if !validates_ssl {
+                // with rustls this also skips the hostname check
+                b = b.danger_accept_invalid_certs(true);
+            }
             self.internals.http_client = Some(b.build().expect("reqwest client"));
+            self.internals.http_client_validates_ssl = validates_ssl;
         }
         self.internals.http_client.as_ref().unwrap()
     }
@@ -1087,6 +1103,18 @@ impl Exchange {
     /// Whether request/response logging is on.
     pub fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
+    }
+
+    pub fn validates_server_ssl(&self) -> bool {
+        !matches!(self.validateServerSsl, Value::Bool(false))
+    }
+
+    /// enables or disables server ssl certificate validation for REST and WS connections;
+    /// the cached http client is rebuilt on the next request when the value changes
+    pub fn set_validate_server_ssl(&mut self, validate: Value) {
+        // transpiled callers pass a Value (see set_sandbox_mode); anything but an
+        // explicit false keeps validation on, matching validates_server_ssl above
+        self.validateServerSsl = Value::Bool(!matches!(validate, Value::Bool(false)));
     }
 
     // Setup accessors, reached on every exchange through its `Deref<Target = Exchange>`.
@@ -1470,7 +1498,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             }).collect(),
             _ => Vec::new(),
         };
-        let client = match crate::pro::ws_client::ensure_client_with_headers(&url, &__ws_headers, __ws_proxy, __decompress_binary).await {
+        let client = match crate::pro::ws_client::ensure_client_with_options(&url, &__ws_headers, __ws_proxy, __decompress_binary, self.validates_server_ssl()).await {
             Ok(c) => c,
             Err(e) => panic!("{}", e),
         };

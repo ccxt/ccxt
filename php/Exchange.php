@@ -428,6 +428,7 @@ class BaseExchange {
         'hyperliquid',
         'independentreserve',
         'indodax',
+        'interactivebrokers',
         'kraken',
         'krakenfutures',
         'kucoin',
@@ -1243,6 +1244,18 @@ class BaseExchange {
     }
 
     public static function int_to_base16($integer) {
+        // BN::toString(16) pads to an even length, strip it to match number.toString(16)
+        if ($integer instanceof BN) {
+            $hex = ltrim($integer->toString(16), '0'); // e.g. mod_pow results, 2048-bit values do not fit an int
+            return ($hex === '') ? '0' : $hex;
+        }
+        if (is_string($integer) && !is_numeric($integer)) {
+            return dechex($integer); // keeps the previous TypeError for non-numeric input
+        }
+        if (is_string($integer) && (strlen(ltrim($integer, '-')) > 18)) {
+            $hex = ltrim((new BN($integer, 10))->toString(16), '0'); // decimal strings above PHP_INT_MAX
+            return ($hex === '') ? '0' : $hex;
+        }
         return dechex($integer);
     }
 
@@ -1408,6 +1421,11 @@ class BaseExchange {
         return $token . '.' . static::urlencode_base64($signature);
     }
 
+    public function init_file_system() {
+        // file io is synchronous in php, nothing to load before the first read_file call
+        return null;
+    }
+
     public function get_temp_dir(): string {
         $tmp = realpath(sys_get_temp_dir()) ?: '';
         return str_ends_with($tmp, DIRECTORY_SEPARATOR) ? $tmp : $tmp . DIRECTORY_SEPARATOR;
@@ -1422,7 +1440,7 @@ class BaseExchange {
                 return;
             }
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath);
+        throw new \RuntimeException('invalid file path: ' . $filePath . ', allowed extensions are: ' . implode(' | ', $exts));
     }
 
     public function read_file(string $filePath) {
@@ -1488,6 +1506,16 @@ class BaseExchange {
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
         return \base64_encode($signature);
+    }
+
+    public static function decrypt_private_key($encryptionPrivKey, $encryptionSecret) {
+        // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+        // same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+        $decrypted = null;
+        if (!\openssl_private_decrypt(\base64_decode($encryptionSecret), $decrypted, $encryptionPrivKey, \OPENSSL_PKCS1_PADDING)) {
+            throw new ExchangeError('decrypt_private_key() failed: ' . \openssl_error_string());
+        }
+        return $decrypted;
     }
 
     public static function mgf1($seed, $maskLen, $alg = 'sha256') {
@@ -2152,11 +2180,11 @@ class BaseExchange {
         }
 
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        if (!$this->validateClientSsl) {
+        if (!$this->validateClientSsl || !$this->validateServerSsl) {
             curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
         }
         if (!$this->validateServerSsl) {
-            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 0);
         }
 
         curl_setopt($this->curl, CURLOPT_ENCODING, '');
@@ -2334,6 +2362,11 @@ class BaseExchange {
 
     public function precision_from_string($str) {
         return static::precisionFromString($str);
+    }
+
+    // enables or disables server ssl certificate validation for REST and WS connections
+    public function set_validate_server_ssl(bool $validate) {
+        $this->validateServerSsl = $validate;
     }
 
     public function __call($function, $params) {
@@ -2945,6 +2978,83 @@ class BaseExchange {
         return $dict;
     }
 
+    public function read_dh_param($path) {
+        // reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+        $pem = $this->read_file($path);
+        $der = base64_decode(preg_replace('/-----[^-]+-----|\s/', '', $pem));
+        $derLength = strlen($der);
+        $pos = 0;
+        $readByte = function () use ($der, $derLength, &$pos) {
+            if ($pos >= $derLength) {
+                throw new ExchangeError($this->id . ' read_dh_param() unexpected end of the DH_param file');
+            }
+            return ord($der[$pos++]);
+        };
+        $readLen = function () use ($readByte) {
+            $len = $readByte();
+            if ($len & 0x80) {
+                $n = $len & 0x7f;
+                $len = 0;
+                for ($i = 0; $i < $n; $i++) {
+                    $len = ($len << 8) | $readByte();
+                }
+            }
+            return $len;
+        };
+        $readInt = function () use ($der, $readByte, $readLen, &$pos) {
+            if ($readByte() !== 0x02) {
+                throw new ExchangeError($this->id . ' read_dh_param() expected INTEGER while reading DH_param file');
+            }
+            $len = $readLen();
+            $hex = bin2hex(substr($der, $pos, $len));
+            $pos += $len;
+            return (substr($hex, 0, 2) === '00') ? substr($hex, 2) : $hex; // strip sign byte
+        };
+        if ($readByte() !== 0x30) {
+            throw new ExchangeError($this->id . ' read_dh_param() expected SEQUENCE while reading DH_param file');
+        }
+        $readLen();
+        $prime = $readInt();
+        $readInt(); // generator
+        return $prime;
+    }
+
+    public function mod_pow($base, $exponent, $modulus) {
+        // accepts BN instances, integers, decimal strings or 0x-prefixed hex strings, returns a BN
+        $toBn = function ($value) {
+            if ($value instanceof BN) {
+                return $value;
+            }
+            if (is_string($value) && (str_starts_with($value, '0x') || str_starts_with($value, '0X'))) {
+                return new BN(substr($value, 2), 16);
+            }
+            return new BN(strval($value), 10);
+        };
+        $b = $toBn($base);
+        $e = $toBn($exponent);
+        $m = $toBn($modulus);
+        return new BN($b->bi->powMod($e->bi, $m->bi));
+    }
+
+    public function big_to_bytes($value) {
+        // big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        if ($value instanceof BN) {
+            $hex = $value->toString(16);
+        } elseif (is_string($value) && (str_starts_with($value, '0x') || str_starts_with($value, '0X'))) {
+            $hex = ltrim(substr($value, 2), '0');
+            $hex = ($hex === '') ? '0' : $hex;
+        } else {
+            $hex = (new BN(strval($value), 10))->toString(16);
+        }
+        if ((strlen($hex) % 2) === 1) {
+            $hex = '0' . $hex;
+        }
+        if (hexdec($hex[0]) >= 8) {
+            $hex = '00' . $hex; // prepend the sign byte
+        }
+        return hex2bin($hex);
+    }
+
     public function check_option_string($methodName, $optionName, $value) {
         // the statically typed ports throw on a present non-string value; here it passes through unchanged
         return $value;
@@ -2979,6 +3089,8 @@ class BaseExchange {
     }
 
     public function close($cleanInstanceData = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        $this->before_close();
         // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->curl !== null) {
@@ -3481,6 +3593,12 @@ class BaseExchange {
         $this->myTrades = null;
         $this->positions = null;
         $this->positionsByType = array();
+    }
+
+    public function before_close(): mixed {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
     }
 
     public function safe_bool_n(mixed $dictionaryOrList, array $keys, ?bool $defaultValue = null) {

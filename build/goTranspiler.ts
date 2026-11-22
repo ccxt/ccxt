@@ -11969,7 +11969,7 @@ function goProvenReturnFamilies (): any[] {
         { 'names': [ 'Describe' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': [ 'Extend', 'DeepExtend' ] },
         { 'names': lists, 'type': '[]any', 'paramWrap': 'this.ToArray', 'calls': lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]) },
         { 'names': maps, 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]) },
-        { 'names': [ 'CreateOrderRequest' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': builders, 'receivers': 'Deepcoin|Hashkey' },
+        { 'names': [ 'CreateOrderRequest' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': builders, 'receivers': 'Deepcoin|Hashkey|Interactivebrokers' },
     ];
 }
 
@@ -12372,6 +12372,11 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goTypedLenNative (content) : content;  // list locals typed only by the late passes
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
+    if (path.endsWith ('.go')) {
+        // a `future` local holding client.reusableFuture () is a *Future, but its await is printed as a
+        // channel receive when the awaited value is returned as is (e.g. a balance or an order book)
+        content = content.replace (/(\br\d+) := <-future\.\(<-chan ccxt\.AsyncResult\[any\]\)/g, '$1 := <-future.(*ccxt.Future).Await()');
+    }
     overwriteFile (path, content);
 }
 
@@ -13216,8 +13221,10 @@ class NewTranspiler {
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
             [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
-            // a discarded `await future` is received straight inside PanicOnError
-            [/PanicOnError\(\(?<-future\.\(<-chan any\)\)?\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
+            // a discarded `await future` is received straight inside PanicOnError. The optional
+            // parens around the receive must pair up: an unpaired `\)?` swallowed the closing
+            // paren of an enclosing call, e.g. AsArrayCache(PanicOnError(<-future...)) lost its `)`
+            [/PanicOnError\((?:\(<-future\.\(<-chan any\)\)|<-future\.\(<-chan any\))\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],

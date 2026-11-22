@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"net/url"
 	"sort"
 	"strings"
@@ -288,6 +289,14 @@ func (e *BaseExchange) IntToBase16(number any) string {
 		return fmt.Sprintf("%x", uint64(v))
 	case uint64:
 		return fmt.Sprintf("%x", v)
+	case *big.Int:
+		return v.Text(16)
+	case string:
+		// decimal string of a big integer, e.g. the result of ModPow
+		if n, ok := new(big.Int).SetString(v, 10); ok {
+			return n.Text(16)
+		}
+		return ""
 	default:
 		return "" // return empty string for unsupported types
 	}

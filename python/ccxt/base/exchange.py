@@ -491,6 +491,10 @@ class BaseExchange(object):
         except Exception:
             return False
 
+    def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def get_temp_dir(self):
         tmp = os.path.realpath(tempfile.gettempdir())
         return tmp if tmp.endswith(os.sep) else tmp + os.sep
@@ -500,7 +504,7 @@ class BaseExchange(object):
         exts = ['ccxtfile', 'pem', 'wasm']
         if any(sanitized.endswith('.' + ext) for ext in exts):
             return
-        raise ValueError(f'invalid file path: {file_path}')
+        raise ValueError(f'invalid file path: {file_path}, allowed extensions are: ' + ' | '.join(exts))
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
@@ -539,6 +543,10 @@ class BaseExchange(object):
     # json_parser.loads with no wrapper frame; subclass `def on_json_response(self, ...)`
     # overrides still take precedence through normal MRO lookup
     on_json_response = staticmethod(json_parser.loads)
+
+    def set_validate_server_ssl(self, validate):
+        """enables or disables server ssl certificate validation for REST and WS connections"""
+        self.validateServerSsl = validate
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1554,6 +1562,13 @@ class BaseExchange(object):
         return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), pad, algorithm))
 
     @staticmethod
+    def decrypt_private_key(encryption_priv_key, encryption_secret):
+        # RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+        # same as node's crypto.privateDecrypt({ key, padding: RSA_PKCS1_PADDING }, base64.decode(secret))
+        priv_key = load_pem_private_key(Exchange.encode(encryption_priv_key), None, backends.default_backend())
+        return priv_key.decrypt(base64.b64decode(encryption_secret), padding.PKCS1v15())
+
+    @staticmethod
     def eth_abi_encode(types, args):
         from ccxt.static_dependencies import ethabi
         return ethabi.encode(types, args)
@@ -2172,6 +2187,59 @@ class BaseExchange(object):
     def convert_to_safe_dictionary(self, dictionary):
         return dictionary
 
+    def read_dh_param(self, path):
+        # reads a PEM-encoded DH parameters file (DER SEQUENCE { INTEGER prime, INTEGER generator }) and returns the prime as a hex string
+        pem = self.read_file(path)
+        if pem is None:
+            raise ExchangeError(self.id + ' readDhParam() could not read the DH_param file: ' + str(path))
+        der = base64.b64decode(re.sub(r'-----[^-]+-----|\s', '', pem))
+        pos = 0
+
+        def read_byte():
+            nonlocal pos
+            if pos >= len(der):
+                raise ExchangeError(self.id + ' readDhParam() unexpected end of the DH_param file')
+            byte = der[pos]
+            pos += 1
+            return byte
+
+        def read_len():
+            length = read_byte()
+            if length & 0x80:
+                n = length & 0x7f
+                length = 0
+                for _ in range(n):
+                    length = (length << 8) | read_byte()
+            return length
+
+        def read_int():
+            nonlocal pos
+            if read_byte() != 0x02:
+                raise ExchangeError(self.id + ' readDhParam() expected INTEGER while reading DH_param file')
+            length = read_len()
+            hex_value = der[pos:pos + length].hex()
+            pos += length
+            return hex_value[2:] if hex_value.startswith('00') else hex_value  # strip sign byte
+
+        if read_byte() != 0x30:
+            raise ExchangeError(self.id + ' readDhParam() expected SEQUENCE while reading DH_param file')
+        read_len()
+        prime = read_int()
+        read_int()  # generator
+        return prime
+
+    def mod_pow(self, base, exponent, modulus):
+        return pow(self.convert_to_big_int(base), self.convert_to_big_int(exponent), self.convert_to_big_int(modulus))
+
+    def big_to_bytes(self, value):
+        # big-endian two's complement bytes, same as java's BigInteger.toByteArray () expected by IBKR
+        hex_value = format(self.convert_to_big_int(value), 'x')
+        if (len(hex_value) % 2) == 1:
+            hex_value = '0' + hex_value
+        if int(hex_value[0], 16) >= 8:
+            hex_value = '00' + hex_value  # prepend the sign byte
+        return bytes.fromhex(hex_value)
+
     def check_option_string(self, methodName, optionName, value):
         # the statically typed ports throw on a present non-string value; here it passes through unchanged
         return value
@@ -2195,6 +2263,8 @@ class BaseExchange(object):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
     def close(self, clean_instance_data=False):
+        # a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        self.before_close()
         # ##### language-specific cleanup of REST resources #####
         # [REST]
         if clean_instance_data:
@@ -3133,6 +3203,11 @@ class BaseExchange(object):
         self.myTrades = None
         self.positions = None
         self.positionsByType = {}
+
+    def before_close(self) -> object:
+        # called first by close (), a derived exchange overrides it to stop its own background loops
+        # (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return None
 
     def safe_bool_n(self, dictionaryOrList: object, keys: list[NullableIndexType], defaultValue: Bool = None):
         """

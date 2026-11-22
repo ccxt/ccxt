@@ -1867,7 +1867,7 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     // / IDictionary / an admitted name's own `market`, fixed point over both lists; body uses are dict uses).
     'CreateSpotOrder', 'CreateSwapOrder', 'checkContractMarket', 'createOrderRequest',
     'createPublicRequest', 'createSpotOrderRequest', 'customHandleDelta', 'customHandleDeltas',
-    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'findOutcomeInMarket',
+    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'fetchMyTradesFromTransactions', 'findOutcomeInMarket',
     'futuresRequestId', 'getBybitType', 'getDexFromHip3Symbol', 'getGen2MarketId', 'getInstType',
     'getMarketIdByType', 'getMarketType', 'getOrderChannelAndMessageHash',
     'getProductGroupFromMarket', 'getTypeByMarket', 'getUrlByMarket',
