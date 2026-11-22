@@ -50,6 +50,7 @@
     "ts/src/htx.ts": 40,
     "ts/src/hyperliquid.ts": 2,
     "ts/src/independentreserve.ts": 1,
+    "ts/src/interactivebrokers.ts": 7,
     "ts/src/kraken.ts": 2,
     "ts/src/krakenfutures.ts": 3,
     "ts/src/kucoin.ts": 41,

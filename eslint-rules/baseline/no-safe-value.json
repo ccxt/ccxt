@@ -82,6 +82,7 @@
     "ts/src/pro/htx.ts": 9,
     "ts/src/pro/hyperliquid.ts": 1,
     "ts/src/pro/independentreserve.ts": 2,
+    "ts/src/pro/interactivebrokers.ts": 3,
     "ts/src/pro/kraken.ts": 7,
     "ts/src/pro/krakenfutures.ts": 5,
     "ts/src/pro/kucoin.ts": 7,
