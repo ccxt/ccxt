@@ -830,7 +830,7 @@ export default class bingx extends Exchange {
      */
     fetchTradingFee(symbol: string, params?: Dict): Promise<TradingFeeInterface>;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
-    customEncode(params: Dict): Str;
+    customEncode(params: Dict): string;
     /**
      * @method
      * @name bingx#fetchMarketLeverageTiers

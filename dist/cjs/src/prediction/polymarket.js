@@ -1174,7 +1174,7 @@ class polymarket extends polymarket$1["default"] {
         const timestamp = this.safeInteger(bookData, 'timestamp');
         let quoteVolume = undefined;
         if (market !== undefined) {
-            quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
+            quoteVolume = this.safeNumber2(this.safeDict(market, 'info'), 'volume24hr', 'volume');
         }
         return this.safePredictionTicker({
             'outcome': outcome,

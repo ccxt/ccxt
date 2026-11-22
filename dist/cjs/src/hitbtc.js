@@ -3714,7 +3714,8 @@ class hitbtc extends hitbtc$1["default"] {
         if (market['type'] !== 'swap') {
             throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        if ((leverage < 1) || (leverage > maxLeverage)) {
+        const leverageNum = this.parseNumber(leverage);
+        if ((leverageNum < 1) || (leverageNum > maxLeverage)) {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString() + ' for ' + symbol);
         }
         const request = {

@@ -2686,7 +2686,7 @@ class bitstamp extends bitstamp$1["default"] {
             request['account_currency'] = currency['id'];
             response = await this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag));
         }
-        return this.parseTransaction(response, currency);
+        return this.parseTransaction(this.extend({}, response), currency);
     }
     /**
      * @method

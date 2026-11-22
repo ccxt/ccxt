@@ -1058,8 +1058,8 @@ export default class coinbaseinternational extends Exchange {
         }
         const tickers = {};
         for (let i = 0; i < symbolsResolved.length; i++) {
-            const symbol = this.safeString(symbolsResolved, i);
-            if (symbol === undefined) {
+            const symbol = this.safeString(symbolsResolved, i, '');
+            if (symbol === '') {
                 continue;
             }
             const ticker = await this.fetchTicker(symbol, paramsResolved);

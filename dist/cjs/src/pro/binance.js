@@ -1251,7 +1251,7 @@ class binance extends binance$1["default"] {
         if (messageHashes !== undefined) {
             for (let j = 0; j < messageHashes.length; j++) {
                 const unsubHash = messageHashes[j];
-                const subHash = subMessageHashes[j];
+                const subHash = this.safeString(subMessageHashes, j, '');
                 this.cleanUnsubscription(client, subHash, unsubHash);
             }
         }

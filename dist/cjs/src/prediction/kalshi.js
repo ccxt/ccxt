@@ -413,7 +413,8 @@ class kalshi extends kalshi$1["default"] {
             if (outcomeSymbol.indexOf(':') >= 0) {
                 continue;
             }
-            let baseTicker = outcomeSymbol;
+            const tickerText = this.safeString(outcomeSymbols, i, '');
+            let baseTicker = tickerText;
             if (outcomeSymbol.endsWith('-NO')) {
                 baseTicker = outcomeSymbol.slice(0, -3);
             }

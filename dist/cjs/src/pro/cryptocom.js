@@ -262,7 +262,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const data = this.safeDict(this.safeList(message, 'data'), 0);
         const timestamp = this.safeInteger(data, 't');
         if (!(symbol in this.orderbooks)) {
@@ -1464,7 +1464,7 @@ class cryptocom extends cryptocom$1["default"] {
                 if (messageHashes !== undefined) {
                     for (let j = 0; j < messageHashes.length; j++) {
                         const unsubHash = messageHashes[j];
-                        const subHash = subMessageHashes[j];
+                        const subHash = this.safeString(subMessageHashes, j, '');
                         this.cleanUnsubscription(client, subHash, unsubHash);
                     }
                 }

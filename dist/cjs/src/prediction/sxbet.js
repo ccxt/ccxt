@@ -2720,8 +2720,11 @@ class sxbet extends sxbet$1["default"] {
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new errors.AuthenticationError(this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sxbet']);
+        let baseUrl = this.safeString(this.urls['api'], 'sxbet', '');
+        const groupUrl = this.safeString(this.urls['api'], apiGroup);
+        if (groupUrl !== undefined) {
+            baseUrl = groupUrl;
+        }
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const existingHeaders = {};

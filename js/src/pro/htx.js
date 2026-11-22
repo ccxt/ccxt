@@ -733,7 +733,6 @@ export default class htx extends htxRest {
         const symbol = this.safeString(market, 'symbol', '');
         const orderbook = this.orderbooks[symbol];
         const tick = this.safeDict(message, 'tick', {});
-        const seqNum = this.safeInteger(tick, 'seqNum');
         const prevSeqNum = this.safeInteger(tick, 'prevSeqNum');
         const event = this.safeString(tick, 'event');
         const version = this.safeInteger(tick, 'version');
@@ -758,7 +757,11 @@ export default class htx extends htxRest {
             const bids = this.safeList(tick, 'bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
-            orderbook['nonce'] = (spotConditon) ? seqNum : version;
+            let nonceKey = 'version';
+            if (spotConditon) {
+                nonceKey = 'seqNum';
+            }
+            orderbook['nonce'] = this.safeInteger(tick, nonceKey);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }

@@ -1297,17 +1297,19 @@ class phemex extends phemex$1["default"] {
         //        ...
         //    ]
         //
+        // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         let trades = [];
         const parsedOrders = [];
-        if (('closed' in message) || ('fills' in message) || ('open' in message)) {
-            const closed = this.safeList(message, 'closed', []);
-            const open = this.safeList(message, 'open', []);
+        const ordersDict = this.safeDict2(message, 'orders', 'orders_p', {});
+        if (('closed' in ordersDict) || ('fills' in ordersDict) || ('open' in ordersDict)) {
+            const closed = this.safeList(ordersDict, 'closed', []);
+            const open = this.safeList(ordersDict, 'open', []);
             const orders = this.arrayConcat(open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeList(message, 'fills', []);
+            trades = this.safeList(ordersDict, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
                 const parsedOrder = this.parseOrder(rawOrder);
@@ -1315,12 +1317,13 @@ class phemex extends phemex$1["default"] {
             }
         }
         else {
-            const messageLength = message.length;
-            if (messageLength === 0) {
+            const updates = this.safeList(message, 'orders_p', []);
+            const updatesLength = updates.length;
+            if (updatesLength === 0) {
                 return;
             }
-            for (let i = 0; i < messageLength; i++) {
-                const update = message[i];
+            for (let i = 0; i < updatesLength; i++) {
+                const update = updates[i];
                 const action = this.safeString(update, 'action');
                 if ((action !== undefined) && (action !== 'Cancel')) {
                     // order + trade info together
@@ -1658,8 +1661,7 @@ class phemex extends phemex$1["default"] {
             return;
         }
         if (('orders' in message) || ('orders_p' in message)) {
-            const orders = this.safeDict2(message, 'orders', 'orders_p', {});
-            this.handleOrders(client, orders);
+            this.handleOrders(client, message);
         }
         if (('accounts' in message) || ('accounts_p' in message) || ('wallets' in message)) {
             let type = 'spot';

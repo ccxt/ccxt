@@ -463,7 +463,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         // a delta without bid/ask fields (e.g. only the mark price 7635) does not change the best bid and ask,
         // and nothing is emitted to watchBidsAsks until a bid or an ask has been received
         const hasBidAsk = ('84' in message) || ('85' in message) || ('86' in message) || ('88' in message);
-        const hasQuote = (ticker['bid'] !== undefined) || (ticker['ask'] !== undefined);
+        const hasQuote = (this.safeString(ticker, 'bid') !== undefined) || (this.safeString(ticker, 'ask') !== undefined);
         if (hasBidAsk && hasQuote) {
             const bidAsk = this.safeTicker({
                 'symbol': symbol,
@@ -581,7 +581,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         //
         const topic = this.safeString(message, 'topic', '');
         const parts = topic.split('+');
-        const marketId = this.safeString(parts, 1);
+        const marketId = this.safeString(parts, 1, '');
         const serverId = this.safeString(message, 'serverId');
         if (serverId !== undefined) {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
@@ -772,7 +772,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol = this.safeString(market, 'symbol', '');
         const [accountId, query] = await this.loadAccountId(params);
         const bookExchange = this.safeString(query, 'exchange');
         const url = await this.ibkrConnect();
@@ -801,7 +801,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
     async unWatchOrderBook(symbol, params = {}) {
         await this.loadMarkets();
         const market = this.market(symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol = this.safeString(market, 'symbol', '');
         const [accountId, query] = await this.loadAccountId(params);
         const url = await this.ibkrConnect();
         const client = this.client(url);
@@ -1059,7 +1059,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             }
             const parsed = this.parseOrder(merged);
             orders.append(parsed);
-            const orderSymbol = parsed['symbol'];
+            const orderSymbol = this.safeString(parsed, 'symbol');
             if (orderSymbol !== undefined) {
                 symbols[orderSymbol] = true;
             }
@@ -1185,7 +1185,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         for (let i = 0; i < args.length; i++) {
             const rawTrade = args[i];
             const trade = this.parseTrade(rawTrade);
-            const tradeTimestamp = trade['timestamp'];
+            const tradeTimestamp = this.safeInteger(trade, 'timestamp');
             if ((threshold !== undefined) && (tradeTimestamp !== undefined) && (tradeTimestamp < threshold)) {
                 continue;
             }
@@ -1200,7 +1200,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
                 }
             }
             trades.append(trade);
-            const tradeSymbol = trade['symbol'];
+            const tradeSymbol = this.safeString(trade, 'symbol', '');
             symbols[tradeSymbol] = true;
         }
         const keys = Object.keys(symbols);

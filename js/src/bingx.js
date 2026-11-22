@@ -7269,10 +7269,15 @@ export default class bingx extends Exchange {
         const rawKeys = Object.keys(sortedParams);
         const rawKeysLength = rawKeys.length;
         let adjustedValue = undefined;
-        let result = undefined;
+        let result = '';
         for (let i = 0; i < rawKeysLength; i++) {
             const key = rawKeys[i];
             let value = sortedParams[key];
+            let pair = this.safeString(sortedParams, key, '');
+            const flag = this.safeBool(sortedParams, key);
+            if (flag !== undefined) {
+                pair = flag ? 'true' : 'false';
+            }
             if (Array.isArray(value)) {
                 let arrStr = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -7298,12 +7303,13 @@ export default class bingx extends Exchange {
                 }
                 adjustedValue = '[' + arrStr + ']';
                 value = adjustedValue;
+                pair = '[' + arrStr + ']';
             }
             if (i === 0) {
-                result = key + '=' + value;
+                result = key + '=' + pair;
             }
             else {
-                result += '&' + key + '=' + value;
+                result += '&' + key + '=' + pair;
             }
         }
         return result;

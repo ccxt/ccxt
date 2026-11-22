@@ -3391,7 +3391,8 @@ export default class poloniex extends Exchange {
         //
         const depositWithdrawFees = {};
         const codesValue = this.marketCodes(codes);
-        const responseKeys = Object.keys(response);
+        const feesById = this.extend({}, response);
+        const responseKeys = Object.keys(feesById);
         for (let i = 0; i < responseKeys.length; i++) {
             const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode(currencyId);
@@ -3410,12 +3411,13 @@ export default class poloniex extends Exchange {
                         const networkInfo = this.safeDict(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
+                        const withdrawObject = { 'fee': withdrawFee, 'percentage': undefined };
+                        if (withdrawFee !== undefined) {
+                            withdrawObject['percentage'] = false;
+                        }
                         if (networkCode !== undefined) {
                             networkObject[networkCode] = {
-                                'withdraw': {
-                                    'fee': withdrawFee,
-                                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                                },
+                                'withdraw': withdrawObject,
                                 'deposit': {
                                     'fee': undefined,
                                     'percentage': undefined,

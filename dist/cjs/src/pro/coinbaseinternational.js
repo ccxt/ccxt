@@ -522,9 +522,11 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             const position = positions[i];
             if (this.safeString(position, 'side') === undefined) {
                 // flat (direction: zero) position, the cache is keyed by side so reset both sides
-                position['side'] = 'long';
                 const shortPosition = this.extend(position, { 'side': 'short' });
                 this.positions.append(shortPosition);
+                const longPosition = this.extend(position, { 'side': 'long' });
+                this.positions.append(longPosition);
+                continue;
             }
             this.positions.append(position);
         }
@@ -1435,14 +1437,15 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const client = this.client(url);
         const messageHash = 'authenticated';
         let future = this.safeValue(client.subscriptions, messageHash);
-        if (future !== undefined) {
+        let subscribed = (future !== undefined);
+        if (subscribed) {
             const refreshAt = this.safeInteger(this.options, 'wsAuthRefreshAt');
             if ((refreshAt !== undefined) && (this.milliseconds() >= refreshAt) && !(messageHash in client.futures)) {
                 delete client.subscriptions[messageHash];
-                future = undefined;
+                subscribed = false;
             }
         }
-        if (future === undefined) {
+        if (!subscribed) {
             this.checkRequiredCredentials();
             const requestId = this.requestId();
             this.options['wsAuthRequestId'] = requestId;

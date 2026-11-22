@@ -1659,11 +1659,9 @@ class kucoin extends kucoin$1["default"] {
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook();
             }
-            else {
-                const orderbook = this.orderbooks[symbol];
-                orderbook.reset();
-            }
-            this.orderbooks[symbol]['symbol'] = symbol;
+            const storedBook = this.orderbooks[symbol];
+            storedBook.reset();
+            storedBook['symbol'] = this.safeSymbol(marketId, undefined, '-');
         }
         else {
             if (!(symbol in this.orderbooks)) {

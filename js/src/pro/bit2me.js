@@ -169,7 +169,7 @@ export default class bit2me extends bit2meRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const data = this.safeDict(message, 'data', {});
         const trade = this.parseWsTrade(data, market);
         if (!(symbol in this.trades)) {

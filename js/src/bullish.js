@@ -1591,7 +1591,7 @@ export default class bullish extends Exchange {
             until = untilParam;
         }
         const sinceFromUntil = (since === undefined) && (untilParam !== undefined);
-        const paramsResult = sinceFromUntil ? this.omit(params, 'until') : params;
+        const timeParams = {};
         if ((since !== undefined) || (untilParam !== undefined)) {
             const timeDelta = 7 * 24 * 60 * 60 * 1000; // 7 days
             let sinceResolved = since;
@@ -1608,9 +1608,11 @@ export default class bullish extends Exchange {
                     until = this.sum(since, timeDelta);
                 }
             }
-            paramsResult[sinceKey] = this.iso8601(sinceResolved);
-            paramsResult[untilKey] = this.iso8601(until);
+            timeParams[sinceKey] = this.iso8601(sinceResolved);
+            timeParams[untilKey] = this.iso8601(until);
         }
+        const merged = this.extend(params, timeParams);
+        const paramsResult = sinceFromUntil ? this.omit(merged, 'until') : merged;
         return paramsResult;
     }
     getClosestLimit(limit) {

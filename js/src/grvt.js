@@ -2223,8 +2223,8 @@ export default class grvt extends Exchange {
             const sizeDec = this.safeString(sizeParts, 1, '');
             const sizeDecLength = sizeDec.length + 0; // php tr
             const sizeDigits = this.parseToInt(size.replace('.', ''));
-            let denominator = Math.pow(10, sizeDecLength);
-            const sizeInteger = sizeDigits * sizeMultiplier / denominator;
+            const sizeDenominator = Math.pow(10, sizeDecLength);
+            const sizeInteger = sizeDigits * sizeMultiplier / sizeDenominator;
             const legOrder = {
                 'assetID': this.safeString(market['info'], 'instrument_hash'),
                 'contractSize': this.parseToInt(sizeInteger),
@@ -2237,8 +2237,8 @@ export default class grvt extends Exchange {
                 const limitDec = this.safeString(limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
                 const priceDigits = this.parseToInt(price.replace('.', ''));
-                denominator = Math.pow(10, limitDecLength);
-                const priceInteger = priceDigits * priceMultiplier / denominator;
+                const priceDenominator = Math.pow(10, limitDecLength);
+                const priceInteger = priceDigits * priceMultiplier / priceDenominator;
                 legOrder['limitPrice'] = this.parseToInt(priceInteger);
             }
             else {

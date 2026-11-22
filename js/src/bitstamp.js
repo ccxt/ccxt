@@ -2688,7 +2688,7 @@ export default class bitstamp extends Exchange {
             request['account_currency'] = currency['id'];
             response = await this.privatePostWithdrawalOpen(this.extend(request, paramsWithdrawTag));
         }
-        return this.parseTransaction(response, currency);
+        return this.parseTransaction(this.extend({}, response), currency);
     }
     /**
      * @method

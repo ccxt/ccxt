@@ -3428,7 +3428,7 @@ export default class woo extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolResolved = (symbol !== undefined) ? this.market(symbol)['symbol'] : undefined;
+        const symbolResolved = (symbol !== undefined) ? this.safeString(this.market(symbol), 'symbol') : undefined;
         const currency = this.currency(code);
         const request = {
             'token': currency['id'], // interest token that you want to repay

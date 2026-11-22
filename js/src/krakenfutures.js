@@ -1478,8 +1478,8 @@ export default class krakenfutures extends Exchange {
             const marketId = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const extendedParams = this.extend(orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             if (!('order_tag' in extendedParams)) {
@@ -2438,16 +2438,21 @@ export default class krakenfutures extends Exchange {
         }
         let cost = undefined;
         if ((filled !== undefined) && (marketResolved !== undefined)) {
-            let whichPrice = price;
+            const isLinear = this.safeBool(marketResolved, 'linear', false);
             if (average !== undefined) {
-                whichPrice = average;
-            }
-            if (whichPrice !== undefined) {
-                if (this.safeBool(marketResolved, 'linear', false)) {
-                    cost = Precise.stringMul(filled, whichPrice); // in quote
+                if (isLinear) {
+                    cost = Precise.stringMul(filled, average); // in quote
                 }
                 else {
-                    cost = Precise.stringDiv(filled, whichPrice); // in base
+                    cost = Precise.stringDiv(filled, average); // in base
+                }
+            }
+            else if (price !== undefined) {
+                if (isLinear) {
+                    cost = Precise.stringMul(filled, price); // in quote
+                }
+                else {
+                    cost = Precise.stringDiv(filled, price); // in base
                 }
             }
         }

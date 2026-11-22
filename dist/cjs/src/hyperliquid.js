@@ -1863,11 +1863,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         return this.signUserSignedAction(messageTypes, message);
     }
-    async setRef() {
-        if (this.safeBool(this.options, 'refSet', false)) {
+    async setRef(alreadySet = false) {
+        if (alreadySet) {
             return true;
         }
-        this.options['refSet'] = true;
         const action = {
             'type': 'setReferrer',
             'code': this.safeString(this.options, 'ref', 'CCXT1'),
@@ -1925,7 +1924,18 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     async initializeClient() {
         try {
-            await Promise.all([this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled('fetchBalance', undefined, false, {})]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+            // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
+            const refSet = this.safeBool(this.options, 'refSet', false);
+            this.options['refSet'] = true;
+            const feeApproved = await this.handleBuilderFeeApproval();
+            if (feeApproved) {
+                this.options['approvedBuilderFee'] = true;
+            }
+            else {
+                this.options['builderFee'] = false; // disable builder fee if an error occurs
+            }
+            await this.setRef(refSet);
+            await Promise.all([this.isUnifiedEnabled('fetchBalance', undefined, false, {})]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         }
         catch (e) {
             return false;
@@ -1947,10 +1957,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                 maxFeeRate = '0%';
             }
             await this.approveBuilderFee(builder, maxFeeRate);
-            this.options['approvedBuilderFee'] = true;
         }
         catch (e) {
-            this.options['builderFee'] = false; // disable builder fee if an error occurs
+            return false;
         }
         return true;
     }

@@ -1482,9 +1482,7 @@ class bybit extends bybit$1["default"] {
         const paginationCursor = this.safeString2(result, 'nextPageCursor', 'cursor');
         const dataLength = data.length;
         if ((paginationCursor !== undefined) && (dataLength > 0)) {
-            const first = data[0];
-            first['nextPageCursor'] = paginationCursor;
-            data[0] = first;
+            data[0] = this.extend(data[0], { 'nextPageCursor': paginationCursor });
         }
         return data;
     }

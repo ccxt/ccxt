@@ -196,7 +196,7 @@ export default class hyperliquid extends Exchange {
     buildUserDexAbstractionSig(message: Dict): Dict;
     buildUserAbstractionSig(message: Dict): Dict;
     buildApproveBuilderFeeSig(message: Dict): Dict;
-    setRef(): Promise<boolean>;
+    setRef(alreadySet?: boolean): Promise<boolean>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<Dict>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;

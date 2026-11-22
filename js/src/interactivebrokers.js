@@ -672,7 +672,8 @@ export default class interactivebrokers extends Exchange {
         const dhResponse = this.safeString(response, 'diffie_hellman_response', '');
         const sharedSecret = this.modPow(this.convertToBigInt('0x' + dhResponse), dhRandom, dhPrime);
         const liveSessionToken = this.hmac(this.base16ToBinary(accessTokenSecretHex), this.bigToBytes(sharedSecret), sha1, 'base64');
-        const check = this.hmac(this.encode(this.options['consumer_key']), this.base64ToBinary(liveSessionToken), sha1, 'hex');
+        const consumerKey = this.safeString(this.options, 'consumer_key', '');
+        const check = this.hmac(this.encode(consumerKey), this.base64ToBinary(liveSessionToken), sha1, 'hex');
         if (check !== this.safeString(response, 'live_session_token_signature')) {
             throw new AuthenticationError(this.id + ' signIn() live session token validation failed');
         }
@@ -788,7 +789,8 @@ export default class interactivebrokers extends Exchange {
             }
             const regainTimestamp = this.sum(lostTimestamp, regainDelay);
             if (this.milliseconds() < regainTimestamp) {
-                throw new AuthenticationError(this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + this.iso8601(regainTimestamp) + ' (options.autoRegainSession), ' + this.json(response));
+                const regainDatetime = this.iso8601(regainTimestamp);
+                throw new AuthenticationError(this.id + ' the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ' + regainDatetime + ' (options.autoRegainSession), ' + this.json(response));
             }
             response = await this.ibkrGatewayRegainSession(params);
             authenticated = this.safeBool(response, 'authenticated', false);
@@ -796,7 +798,8 @@ export default class interactivebrokers extends Exchange {
                 // try again options.autoRegainSession seconds later
                 this.options['gatewaySessionLostTimestamp'] = this.milliseconds();
                 this.ibkrGatewayScheduleRegain();
-                throw new AuthenticationError(this.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + this.iso8601(this.sum(this.milliseconds(), regainDelay)) + ' (options.autoRegainSession), ' + this.json(response));
+                const retryDatetime = this.iso8601(this.sum(this.milliseconds(), regainDelay));
+                throw new AuthenticationError(this.id + ' failed to take back the brokerage session of the client portal gateway, retrying at ' + retryDatetime + ' (options.autoRegainSession), ' + this.json(response));
             }
         }
         this.options['gatewaySessionLostTimestamp'] = undefined;
@@ -1655,7 +1658,7 @@ export default class interactivebrokers extends Exchange {
         const promises = [];
         for (let i = 0; i < cfdExchanges.length; i++) {
             const request = {
-                'exchange': cfdExchanges[i],
+                'exchange': this.safeString(cfdExchanges, i, ''),
                 'assetClass': 'CFD',
             };
             promises.push(this.marketsEndpointCall(request, 'webapiGetV1ApiTrsrvAllConids', []));
@@ -1707,7 +1710,7 @@ export default class interactivebrokers extends Exchange {
         const searchPromises = [];
         for (let i = 0; i < bondSymbols.length; i++) {
             const searchRequest = {
-                'symbol': bondSymbols[i],
+                'symbol': this.safeString(bondSymbols, i, ''),
                 'secType': 'BOND',
             };
             searchPromises.push(this.marketsEndpointCall(this.extend(searchRequest, params), 'webapiPostV1ApiIserverSecdefSearch', []));
@@ -1818,7 +1821,7 @@ export default class interactivebrokers extends Exchange {
         const exchangesDict = this.safeDict(options, 'exchanges', {});
         const stockExchanges = this.safeList(exchangesDict, 'STK', []);
         for (let j = 0; j < stockExchanges.length; j++) {
-            const exchange = stockExchanges[j];
+            const exchange = this.safeString(stockExchanges, j, '');
             const stockRequest = {
                 'exchange': exchange,
                 'assetClass': 'STK',
@@ -2430,11 +2433,7 @@ export default class interactivebrokers extends Exchange {
             multiplier = '1000000000';
         }
         if (multiplier !== undefined) {
-            const scaled = Precise.stringMul(result.slice(0, result.length - 1), multiplier);
-            if (scaled === undefined) {
-                return undefined;
-            }
-            result = scaled;
+            return Precise.stringMul(result.slice(0, result.length - 1), multiplier);
         }
         if (result === '') {
             return undefined;
@@ -3486,8 +3485,10 @@ export default class interactivebrokers extends Exchange {
         }
         const options = this.safeDict(this.options, 'fetchMyTrades', {});
         let defaultMethod = 'privateGetIserverAccountTrades';
-        if (market !== undefined) {
-            const assetClass = this.safeString(market['info'], 'assetClass');
+        if (symbol !== undefined) {
+            const symbolMarket = this.market(symbol);
+            const symbolInfo = this.safeDict(symbolMarket, 'info');
+            const assetClass = this.safeString(symbolInfo, 'assetClass');
             if (assetClass === 'CRYPTO') {
                 defaultMethod = 'privatePostPaTransactions';
             }
@@ -3556,7 +3557,7 @@ export default class interactivebrokers extends Exchange {
         }
         const request = {
             'acctIds': [accountId],
-            'conids': [this.parseToInt(market['id'])], // only one conid at a time is supported
+            'conids': [this.parseToInt(this.safeString(market, 'id'))], // only one conid at a time is supported
             'currency': currency,
             'days': days,
         };
@@ -4092,7 +4093,7 @@ export default class interactivebrokers extends Exchange {
             catch (e) {
                 const message = this.exceptionMessage(e, false);
                 const mustQueryAccounts = message.indexOf('query /accounts first') >= 0;
-                if (isAccountsPath || !mustQueryAccounts || (i === retries)) {
+                if (isAccountsPath || !mustQueryAccounts || (i >= retries)) {
                     throw e;
                 }
                 this.options['serviceAccountsLoaded'] = false;

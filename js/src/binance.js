@@ -13401,8 +13401,7 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
-        const first = this.safeDict(response, 0, response);
-        return this.parseLedgerEntry(first, currency);
+        return this.parseLedgerEntry(this.safeDict(response, 0, {}), currency);
     }
     /**
      * @method
@@ -13850,20 +13849,19 @@ export default class binance extends Exchange {
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         const success = this.safeBool(response, 'success', true);
-        let parsedMessage = undefined;
+        let responseParsed = response;
         if (!success) {
             const messageNew = this.safeString(response, 'msg');
             if (messageNew !== undefined) {
                 try {
-                    parsedMessage = JSON.parse(messageNew);
+                    responseParsed = JSON.parse(messageNew);
                 }
                 catch (e) {
                     // do nothing
-                    parsedMessage = undefined;
+                    responseParsed = response;
                 }
             }
         }
-        const responseParsed = (parsedMessage !== undefined) ? parsedMessage : response;
         const message = this.safeString(responseParsed, 'msg');
         if (message !== undefined) {
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, 'exact'), message, this.id + ' ' + message);

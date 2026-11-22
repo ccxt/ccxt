@@ -99,7 +99,7 @@ export default class alpaca extends alpacaRest {
         //    ]
         //
         const ticker = this.parseTicker(message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString(ticker, 'symbol');
         const tickerSymbol = this.safeString(ticker, 'symbol', '');
         const messageHash = 'ticker:' + tickerSymbol;
         if (symbol !== undefined) {

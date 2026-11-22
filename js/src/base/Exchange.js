@@ -5959,15 +5959,8 @@ export class BaseExchange {
         let result = [];
         const arrayData = this.toArray(data);
         for (let i = 0; i < arrayData.length; i++) {
-            const itemOrItems = this.parseLedgerEntry(arrayData[i], currency);
-            if (Array.isArray(itemOrItems)) {
-                for (let j = 0; j < itemOrItems.length; j++) {
-                    result.push(this.extend(itemOrItems[j], params));
-                }
-            }
-            else {
-                result.push(this.extend(itemOrItems, params));
-            }
+            const entry = this.parseLedgerEntry(this.safeDict(arrayData, i, {}), currency);
+            result.push(this.extend(entry, params));
         }
         result = this.sortBy(result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;

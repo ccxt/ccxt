@@ -1783,10 +1783,12 @@ class paradex extends paradex$1["default"] {
         };
         const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
-        params['signature'] = signature;
-        params['account'] = this.safeString(account, 'address');
-        params['public_key'] = this.safeString(account, 'publicKey');
-        const response = await this.privatePostOnboarding(params);
+        const request = {
+            'signature': signature,
+            'account': this.safeString(account, 'address'),
+            'public_key': this.safeString(account, 'publicKey'),
+        };
+        const response = await this.privatePostOnboarding(this.extend(params, request));
         return response;
     }
     async authenticateRest(params = {}) {
@@ -1823,11 +1825,13 @@ class paradex extends paradex$1["default"] {
         };
         const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
-        params['signature'] = signature;
-        params['account'] = this.safeString(account, 'address');
-        params['timestamp'] = req['timestamp'];
-        params['expiration'] = req['expiration'];
-        const response = await this.privatePostAuth(params);
+        const request = {
+            'signature': signature,
+            'account': this.safeString(account, 'address'),
+            'timestamp': now,
+            'expiration': expires,
+        };
+        const response = await this.privatePostAuth(this.extend(params, request));
         //
         // {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -3916,7 +3920,12 @@ class paradex extends paradex$1["default"] {
             // end_at is set to as many full pages from since as the calls allow, so the rows begin at since
             const [paginationCalls, paramsCalls] = this.handleOptionIntegerAndParams(paramsPaginate, 'fetchFundingRateHistory', 'paginationCalls', 10);
             const until = this.safeInteger(paramsCalls, 'until');
-            let endAt = Math.min(this.milliseconds(), this.sum(since, paginationCalls * 5000 * rowSpacing));
+            const pageSpan = this.parseToInt(paginationCalls * 5000 * rowSpacing);
+            const sinceEnd = this.sum(since, pageSpan);
+            let endAt = this.milliseconds();
+            if (sinceEnd < endAt) {
+                endAt = sinceEnd;
+            }
             if (until !== undefined) {
                 endAt = until;
             }

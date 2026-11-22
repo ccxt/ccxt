@@ -147,7 +147,7 @@ export default class phemex extends phemexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
-    handleOrders(client: Client, message: any): void;
+    handleOrders(client: Client, message: Dict): void;
     parseWSSwapOrder(order: Dict, market?: Market): Order;
     handleMessage(client: Client, message: Dict): void;
     handleAuthenticate(client: Client, message: Dict): void;

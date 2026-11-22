@@ -982,7 +982,7 @@ class toobit extends toobit$1["default"] {
         if (isContract) {
             symbol = base + '/' + quote + ':' + settle;
         }
-        return this.safeMarketStructure({
+        const result = {
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -999,8 +999,8 @@ class toobit extends toobit$1["default"] {
             'option': false,
             'active': active,
             'contract': isContract,
-            'linear': isContract ? (inverse !== true) : undefined,
-            'inverse': isContract ? inverse : undefined,
+            'linear': undefined,
+            'inverse': undefined,
             'contractSize': this.safeNumber(market, 'contractMultiplier'),
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1030,7 +1030,12 @@ class toobit extends toobit$1["default"] {
             },
             'created': undefined,
             'info': market,
-        });
+        };
+        if (isContract) {
+            result['linear'] = (inverse !== true);
+            result['inverse'] = inverse;
+        }
+        return this.safeMarketStructure(result);
     }
     /**
      * @method

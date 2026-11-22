@@ -506,7 +506,7 @@ class derive extends derive$1["default"] {
         //
         //
         const params = this.safeDict(message, 'params');
-        const data = this.safeDict(params, 'data', {});
+        const data = this.safeList(params, 'data', []);
         const topic = this.safeString(params, 'channel', '');
         const parsedTopic = topic.split('.');
         const marketId = this.safeString(parsedTopic, 1);
