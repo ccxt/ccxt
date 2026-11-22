@@ -2957,8 +2957,12 @@ export default class interactivebrokers extends Exchange {
         }
         request['cOID'] = clientOrderId;
         const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty' ]);
-        const orderTicket: Dict = this.extend (request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        const queryKeys = Object.keys (query);
+        for (let i = 0; i < queryKeys.length; i++) {
+            const key = queryKeys[i];
+            request[key] = query[key];
+        }
+        return request;
     }
 
     /**
