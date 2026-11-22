@@ -1385,7 +1385,11 @@ export default class interactivebrokers extends Exchange {
         let offset = 0;
         while (offset < numDetails) {
             const end = Math.min(this.sum(offset, chunkSize), numDetails);
-            const chunk = this.arraySlice(detailIds, offset, end);
+            const chunk = [];
+            for (let k = offset; k < end; k++) {
+                const detailId = this.safeString(detailIds, k, '');
+                chunk.push(detailId);
+            }
             const secdefRequest = {
                 'conids': chunk.join(','),
             };
@@ -2331,7 +2335,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return this.parseOpenInterests(response, symbolsNormalized);
+        return this.parseOpenInterests(this.toArray(response), symbolsNormalized);
     }
     parseOpenInterest(interest, market = undefined) {
         const marketId = this.safeString(interest, 'conid');

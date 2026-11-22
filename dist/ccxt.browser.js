@@ -194550,7 +194550,7 @@ __webpack_require__.d(__webpack_exports__, {
 "use strict";
 /* import */ var crypto__rspack_import_0 = __webpack_require__(178);
 /* import */ var crypto__rspack_import_0_default = /*#__PURE__*/__webpack_require__.n(crypto__rspack_import_0);
-/* import */ var _scure_base__rspack_import_1 = __webpack_require__(7116);
+/* import */ var _scure_base__rspack_import_1 = __webpack_require__(9581);
 /*  ------------------------------------------------------------------------ */ 
 
 /*  ------------------------------------------------------------------------ */ function decryptPrivateKey(encryptionPrivKey, encryptionSecret) {
@@ -410029,8 +410029,8 @@ __webpack_require__.d(__webpack_exports__, {
 /* import */ var _base_errors_js__rspack_import_2 = __webpack_require__(1453);
 /* import */ var _base_Precise_js__rspack_import_4 = __webpack_require__(7749);
 /* import */ var _base_functions_rsa_js__rspack_import_5 = __webpack_require__(8748);
-/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4721);
-/* import */ var _noble_hashes_legacy_js__rspack_import_3 = __webpack_require__(8858);
+/* import */ var _noble_hashes_sha2_js__rspack_import_6 = __webpack_require__(4006);
+/* import */ var _noble_hashes_legacy_js__rspack_import_3 = __webpack_require__(1337);
 //  ---------------------------------------------------------------------------
 
 
@@ -411815,7 +411815,11 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
         let offset = 0;
         while(offset < numDetails){
             const end = Math.min(this.sum(offset, chunkSize), numDetails);
-            const chunk = this.arraySlice(detailIds, offset, end);
+            const chunk = [];
+            for(let k = offset; k < end; k++){
+                const detailId = this.safeString(detailIds, k, '');
+                chunk.push(detailId);
+            }
             const secdefRequest = {
                 'conids': chunk.join(',')
             };
@@ -412757,7 +412761,7 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return this.parseOpenInterests(response, symbolsNormalized);
+        return this.parseOpenInterests(this.toArray(response), symbolsNormalized);
     }
     parseOpenInterest(interest, market = undefined) {
         const marketId = this.safeString(interest, 'conid');
@@ -589450,16 +589454,17 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
         await this.authenticate();
         const useGateway = this.safeBool(this.options, 'useGateway', false);
         let url = undefined;
+        const wsUrl = this.safeString(this.urls['api'], 'ws', '');
         if (useGateway) {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             const gatewayUrl = this.safeString(this.options, 'gatewayUrl');
-            const replacedUrl = this.urls['api']['ws'].replace('wss://', 'https://');
+            const replacedUrl = wsUrl.replace('wss://', 'https://');
             const restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
             url = restUrl.replace('https://', 'wss://');
             url = url.replace('http://', 'ws://');
         } else {
             // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-            url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
+            url = wsUrl + '?oauth_token=' + this.apiKey;
         }
         if (!(url in this.clients)) {
             const response = await this.webapiPostV1ApiTickle();
@@ -590620,8 +590625,8 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
                 };
                 const snapshot = await this.fetchBalance(this.extend(query, snapshotRequest));
                 // typed copy: the statically typed ports keep this.balance as a dictionary
-                const snapshotBalance = this.extend({}, snapshot);
-                this.balance = snapshotBalance;
+                const emptyBalance = {};
+                this.balance = this.extend(emptyBalance, snapshot);
             }
         }
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
