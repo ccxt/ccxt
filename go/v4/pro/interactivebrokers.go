@@ -1913,8 +1913,8 @@ func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]an
 	for i := 0; i < len(args); i++ {
 		var rawTrade any = args[i]
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
-		var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
-		if (threshold != nil) && (tradeTimestamp != nil) && (threshold != nil && *tradeTimestamp < *threshold) {
+		var tradeTimestamp any = trade["timestamp"]
+		if (threshold != nil) && (!ccxt.IsEqual(tradeTimestamp, nil)) && (ccxt.IsLessThan(tradeTimestamp, threshold)) {
 			continue
 		}
 		if skipDuplicates != nil && *skipDuplicates {
