@@ -3208,9 +3208,10 @@ export default class lighter extends Exchange {
         const signer = await this.loadAccount (this.safeInteger (this.options, 'chainId'), this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const market = this.market (symbol);
         const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, paramsAccountIndex);
+        const leverageNum: number = this.parseNumber (leverage);
         const signRaw: Dict = {
             'market_index': this.parseToInt (market['id']),
-            'initial_margin_fraction': this.parseToInt (10000 / leverage),
+            'initial_margin_fraction': this.parseToInt (10000 / leverageNum),
             'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
