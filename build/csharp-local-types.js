@@ -7435,7 +7435,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
                         // ral-84c8 R3: `x = this.safeString (o, k, '<literal>')` into a `string` local whose own
                         // initializer is such a call too: the reader hands back the value or the non-null default
-                        const nonNullDefaultWrite = (csharpType === 'string') && ((nonNullStringDefaultCall (csharp, declaration.initializer, context)
+                        const nonNullDefaultWrite = (csharpType === 'string') && (((nonNullStringDefaultCall (csharp, declaration.initializer, context) || isStringLiteralInit (declaration))
                             && nonNullStringDefaultCall (csharp, parent.right, context))
                             // ral-87c4 R3: the uninitialised `let x: string;` whose every write is such a call
                             || definiteStringDefaultWrites87c4 (csharp, scope, declaration, varName, context));

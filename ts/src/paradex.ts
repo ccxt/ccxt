@@ -850,7 +850,7 @@ export default class paradex extends Exchange {
         //
         const parts = symbol.split ('-');
         const partsLength = parts.length;
-        let base: Str = undefined;
+        let base = '';
         let quote = '';
         let settle: Str = undefined;
         let expiryDate: Str = undefined;
@@ -862,7 +862,7 @@ export default class paradex extends Exchange {
             }
             const pair = parts[0];
             const pairParts = pair.split ('/');
-            base = this.safeString (pairParts, 0);
+            base = this.safeString (pairParts, 0, '');
             const quoteAndSettle = this.safeString (pairParts, 1, '');
             const quoteParts = quoteAndSettle.split (':');
             quote = this.safeString (quoteParts, 0, '');
@@ -874,7 +874,7 @@ export default class paradex extends Exchange {
             if (partsLength !== 5) {
                 throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
             }
-            base = this.safeString (parts, 0);
+            base = this.safeString (parts, 0, '');
             quote = this.safeString (parts, 1, '');
             settle = 'USDC'; // every option on the venue settles in USDC
             expiryDate = this.convertMarketIdExpireDate (this.safeString (parts, 2));

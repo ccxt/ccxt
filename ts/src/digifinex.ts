@@ -4490,8 +4490,10 @@ export default class digifinex extends Exchange {
                         };
                     }
                 } else {
-                    depositWithdrawFee['withdraw'] = withdrawResult;
-                    depositWithdrawFee['deposit'] = depositResult;
+                    depositWithdrawFees[code] = this.extend (depositWithdrawFee, {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    });
                 }
             }
         }
