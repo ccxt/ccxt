@@ -897,13 +897,6 @@ impl Exchange {
         }
     }
 
-    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
-    pub fn safe_number2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
-        match self.safe_string2(obj, k1, k2, &[]) {
-            Value::Str(s) => s.parse::<f64>().ok(),
-            _ => None,
-        }
-    }
 
     #[inline]
     pub fn safe_bool_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
@@ -965,8 +958,6 @@ impl Exchange {
     /// default's container (`_t`/`_or`: the empty one; `_o`: `None`), exactly what the boxed reader's `.into_*()` answered.
     pub fn safe_dict2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::Dict> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Dict(m) = r(k1) { Some(m) } else if let Value::Dict(m) = r(k2) { Some(m) } else { None } }
     pub fn safe_dict2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::Dict { self.safe_dict2_o(obj, k1, k2).unwrap_or_default() }
-    pub fn safe_dict2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::Dict> { match (self.safe_dict2_o(obj, k1, k2), d) { (Some(m), _) | (None, Value::Dict(m)) => Some(m), _ => None } }
-    pub fn safe_dict2_or(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> crate::value::Dict { self.safe_dict2_or_o(obj, k1, k2, d).unwrap_or_default() }
     pub fn safe_list2_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> Option<crate::value::List> { let r = |k: Value| obj.read(&Value::Str(key_str(&k).into())); if let Value::Arr(a) = r(k1) { Some(a) } else if let Value::Arr(a) = r(k2) { Some(a) } else { None } }
     pub fn safe_list2_t(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value) -> crate::value::List { self.safe_list2_o(obj, k1, k2).unwrap_or_default() }
     pub fn safe_list2_or_o(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, d: Value) -> Option<crate::value::List> { match (self.safe_list2_o(obj, k1, k2), d) { (Some(a), _) | (None, Value::Arr(a)) => Some(a), _ => None } }
@@ -1926,16 +1917,7 @@ impl Exchange {
         arg_default(optional_args)
     }
 
-    /// `safe_integer2` without the box (no default): first key yielding an integer.
-    pub fn safe_integer2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
-        self.safe_integer(&obj, k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
-    }
 
-    /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
-    pub fn safe_integer_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, _optional_args: &[Value]) -> Option<i64> {
-        let Value::Arr(ks) = keys else { return None };
-        ks.iter().find_map(|k| self.safe_integer(&obj, k.clone(), &[]).as_i64())
-    }
 
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
     /// to i64. Used to convert seconds → milliseconds for timestamps.
@@ -2708,9 +2690,6 @@ impl Exchange {
             }
         }
         Value::Null
-    }
-    pub fn is_binary_message_var(&self, v: Value, _optional_args: &[Value]) -> Value {
-        Value::Bool(is_byte_array(&v))
     }
     /// `ymd(timestamp, infix='')` — like `yyyymmdd` but the infix
     /// defaults to empty (TS `functions/time.ts`).

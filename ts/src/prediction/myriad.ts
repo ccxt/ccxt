@@ -3051,7 +3051,7 @@ export default class myriad extends Exchange {
                 const tagQueries: string[] = [];
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    const tagSlug = requestedTags[i];
+                    const tagSlug: string = this.safeString (requestedTags, i, '');
                     tagQueries.push (tagSlug.replaceAll ('-', ' '));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,

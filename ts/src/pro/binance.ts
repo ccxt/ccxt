@@ -319,7 +319,7 @@ export default class binance extends binanceRest {
     getStockWsUrl (streamType: Str = 'market'): string {
         const urlsApi: Dict = this.safeDict (this.urls, 'api', {});
         const wsUrls: Dict = this.safeDict (urlsApi, 'ws', {});
-        const baseUrl = wsUrls['stock'];
+        const baseUrl: string = this.safeString (wsUrls, 'stock', '');
         if (streamType === 'combined') {
             return baseUrl.replace ('/ws', '/stream');
         }

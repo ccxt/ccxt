@@ -1695,19 +1695,6 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         async move { self.ws_run::<Value>(url_s, hashes, message, sub_hashes, subscription).await }
     }
 
-    /// `watch_multiple` for a watcher whose handler resolves with `client.resolve_ohlcv`.
-    fn watch_multiple_ohlcv<'a>(
-        &mut self,
-        url: impl Into<Option<&'a str>>,
-        message_hashes: impl WsHashList,
-        message: impl Into<Value>,
-        subscribe_hashes: impl WsHashList,
-        subscription: impl Into<Value>,
-    ) -> impl ::std::future::Future<Output = crate::pro::cache::OhlcvTick> + Send {
-        let (url_s, hashes, message) = (url.into().unwrap_or("null").to_string(), message_hashes.ws_hashes(), message.into());
-        let (sub_hashes, subscription) = (subscribe_hashes.ws_hashes(), subscription.into());
-        async move { self.ws_run::<crate::pro::cache::OhlcvTick>(url_s, hashes, message, sub_hashes, subscription).await }
-    }
 
     fn fetch_typed(
         &mut self,
@@ -2068,9 +2055,6 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     }
     fn super_market(&self, symbol: Value) -> Value {
         crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
-    }
-    fn super_amount_to_precision(&self, symbol: Option<&str>, amount: Value) -> Option<String> {
-        <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
     }
     fn super_handle_margin_mode_and_params(&self, method_name: Value, params: Value, default_value: Value) -> (Value, crate::value::Dict) {
         <Self as crate::exchange_generated::ExchangeBase>::handle_margin_mode_and_params(self, method_name, &[&params, &default_value])
