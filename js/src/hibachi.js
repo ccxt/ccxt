@@ -542,7 +542,7 @@ export default class hibachi extends Exchange {
         //      }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const id = this.safeString(trade, 'id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');

@@ -1463,7 +1463,7 @@ class deribit extends deribit$1["default"] {
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker(result[i]);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }

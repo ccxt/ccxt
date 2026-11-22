@@ -4587,13 +4587,15 @@ class bingx extends bingx$1["default"] {
         };
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
         const paramsOmitted = this.omit(params, 'clientOrderIds');
+        let idsCount = ids.length;
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
         if (areClientOrderIds) {
+            idsCount = clientOrderIds.length;
             idsToParse = clientOrderIds;
         }
         const parsedIds = [];
-        for (let i = 0; i < idsToParse.length; i++) {
+        for (let i = 0; i < idsCount; i++) {
             const id = this.safeString(idsToParse, i, '');
             const stringId = id.toString();
             parsedIds.push(stringId);

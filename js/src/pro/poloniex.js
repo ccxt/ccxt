@@ -696,8 +696,8 @@ export default class poloniex extends poloniexRest {
         }
         if (!('info' in this.balance)) {
             this.balance['info'] = response['info'];
-            this.balance['timestamp'] = response['timestamp'];
-            this.balance['datetime'] = response['datetime'];
+            this.balance['timestamp'] = this.safeInteger(response, 'timestamp');
+            this.balance['datetime'] = this.safeString(response, 'datetime');
         }
         this.balance = this.safeBalance(this.balance);
         // don't remove the future from the .futures cache
@@ -1022,7 +1022,7 @@ export default class poloniex extends poloniexRest {
                         previousOrder['trades'] = [];
                     }
                     previousOrder['trades'].push(trade);
-                    previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                    previousOrder['lastTradeTimestamp'] = this.safeInteger(trade, 'timestamp');
                     let totalCost = '0';
                     let totalAmount = '0';
                     const previousOrderTrades = this.safeList(previousOrder, 'trades', []);
@@ -1057,7 +1057,7 @@ export default class poloniex extends poloniexRest {
                         };
                     }
                     if ((this.safeString(previousOrder['fee'], 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
-                        const stringOrderCost = this.numberToString(previousOrder['fee']['cost']);
+                        const stringOrderCost = this.safeString(previousOrder['fee'], 'cost');
                         const stringTradeCost = this.numberToString(this.safeNumber(trade['fee'], 'cost'));
                         previousOrder['fee']['cost'] = Precise.stringAdd(stringOrderCost, stringTradeCost);
                     }

@@ -768,11 +768,7 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -3966,7 +3962,7 @@ export default class poloniex extends Exchange {
         const apiName = api[0];
         const isArray = Array.isArray(params);
         if (method === 'GET' && ('symbol' in params)) {
-            params['symbol'] = this.encodeURIComponent(params['symbol']); // handle symbols like 索拉拉/USDT'
+            params['symbol'] = this.encodeURIComponent(this.safeString(params, 'symbol')); // handle symbols like 索拉拉/USDT'
         }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);

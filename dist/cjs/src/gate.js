@@ -4406,7 +4406,8 @@ class gate extends gate$1["default"] {
                 amountString = Precise["default"].stringAbs(amountString);
             }
             else {
-                type = this.parseTransactionType(id[0]);
+                const idPrefix = id.slice(0, 1);
+                type = this.parseTransactionType(idPrefix);
             }
         }
         const feeCostString = this.safeString2(transaction, 'fee', 'fee_amount');
@@ -5488,7 +5489,7 @@ class gate extends gate$1["default"] {
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
         if (contract) {
             const [contractRequest, contractParams] = this.prepareRequest(market, type, query);
-            const contractOrder = this.extend(contractRequest, { 'order_id': orderId.toString() });
+            const contractOrder = this.extend(contractRequest, { 'order_id': orderId });
             return [contractOrder, contractParams];
         }
         const [request, requestParams] = this.spotOrderPrepareRequest(market, trigger, query);

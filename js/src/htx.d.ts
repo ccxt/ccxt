@@ -77,7 +77,7 @@ export default class htx extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: Dict): Promise<Market[]>;
-    tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
+    tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): string;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method

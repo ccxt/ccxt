@@ -2258,23 +2258,22 @@ export default class bullish extends Exchange {
     }
     async loadAccount(params = {}) {
         const [tradingAccountIdOption, paramsTradingAccountId] = this.handleOptionStringAndParams(params, 'loadAccount', 'tradingAccountId');
-        if (tradingAccountIdOption !== undefined) {
-            this.options['tradingAccountId'] = tradingAccountIdOption;
-            return this.safeString(this.options, 'tradingAccountId');
-        }
-        const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
-        const accounts = this.toArray(response);
-        for (let i = 0; i < accounts.length; i++) {
-            const account = this.safeDict(accounts, i);
-            const name = this.safeString(account, 'tradingAccountName');
-            if (name === 'Primary Account') {
-                const primaryAccountId = this.safeString(account, 'tradingAccountId');
-                if (primaryAccountId !== undefined) {
-                    this.options['tradingAccountId'] = primaryAccountId;
-                    return this.safeString(this.options, 'tradingAccountId');
+        let tradingAccountId = tradingAccountIdOption;
+        if (tradingAccountId === undefined) {
+            const response = await this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId);
+            const accounts = this.toArray(response);
+            for (let i = 0; i < accounts.length; i++) {
+                const account = this.safeDict(accounts, i);
+                const name = this.safeString(account, 'tradingAccountName');
+                if (name === 'Primary Account') {
+                    tradingAccountId = this.safeString(account, 'tradingAccountId');
+                    break;
                 }
-                break;
             }
+        }
+        if (tradingAccountId !== undefined) {
+            this.options['tradingAccountId'] = tradingAccountId;
+            return this.safeString(this.options, 'tradingAccountId');
         }
         throw new ArgumentsRequired(this.id + ' loadAccount() requires a tradingAccountId parameter in options["tradingAccountId"] or params["tradingAccountId"], fetchAccounts() was not able to find the Primary account');
     }

@@ -2393,7 +2393,7 @@ class myriad extends myriad$1["default"] {
         //         "externalSources": []
         //     }
         //
-        const outcomeId = (market !== undefined && market !== null) ? this.safeString(market['info'], 'outcomeId') : undefined;
+        const outcomeId = this.safeString(this.safeDict(market, 'info'), 'outcomeId');
         const outcomes = this.safeList(raw, 'outcomes', []);
         let price = undefined;
         let change = undefined;
@@ -2411,7 +2411,7 @@ class myriad extends myriad$1["default"] {
                 if ((priceValue !== undefined) && (changeValue !== undefined)) {
                     const previousCloseValue = priceValue - changeValue;
                     previousClose = previousCloseValue;
-                    if (previousCloseValue !== 0) {
+                    if (priceValue !== changeValue) {
                         percentage = changeValue / previousCloseValue * 100;
                     }
                 }
@@ -3002,7 +3002,7 @@ class myriad extends myriad$1["default"] {
                 const tagQueries = [];
                 for (let i = 0; i < requestedTagsLength; i++) {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    const tagSlug = requestedTags[i];
+                    const tagSlug = this.safeString(requestedTags, i, '');
                     tagQueries.push(tagSlug.replaceAll('-', ' '));
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -3177,7 +3177,7 @@ class myriad extends myriad$1["default"] {
         const linesLength = lines.length;
         for (let i = 0; i < linesLength; i++) {
             const line = lines[i];
-            if (line.length > 0) {
+            if (line !== '') {
                 const parsed = JSON.parse(line);
                 this.handleCentrifugoFrame(client, parsed);
             }

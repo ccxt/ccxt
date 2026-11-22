@@ -2510,19 +2510,19 @@ class kraken extends kraken$1["default"] {
         const batches = [];
         let batch = [];
         for (let i = 0; i < numTradeIds; i++) {
-            batch.push(tradeIds[i]);
+            const tradeId = this.safeString(tradeIds, i, '');
+            batch.push(tradeId);
             const batchLength = batch.length;
             if (batchLength >= batchSize) {
-                batches.push(batch);
+                batches.push(batch.join(','));
                 batch = [];
             }
         }
-        batches.push(batch);
+        batches.push(batch.join(','));
         let result = [];
         for (let j = 0; j < batches.length; j++) {
-            const requestIds = batches[j];
             const request = {
-                'txid': requestIds.join(','),
+                'txid': batches[j],
             };
             const response = await this.privatePostQueryTrades(request);
             //
@@ -2546,7 +2546,7 @@ class kraken extends kraken$1["default"] {
             //         }
             //     }
             //
-            const rawTrades = this.safeValue(response, 'result');
+            const rawTrades = this.safeDict(response, 'result', {});
             const ids = Object.keys(rawTrades);
             const rawTradesWithIds = {};
             for (let i = 0; i < ids.length; i++) {
@@ -3766,33 +3766,31 @@ class kraken extends kraken$1["default"] {
             return undefined;
         }
         if (this.safeString(body, 0) === '{') {
-            if (typeof response !== 'string') {
-                const message = this.id + ' ' + body;
-                const errors$1 = this.safeList(response, 'error');
-                if (errors$1 !== undefined) {
-                    const numErrors = errors$1.length;
-                    if (numErrors > 0) {
-                        for (let i = 0; i < numErrors; i++) {
-                            const error = errors$1[i];
+            const message = this.id + ' ' + body;
+            const errors$1 = this.safeList(response, 'error');
+            if (errors$1 !== undefined) {
+                const numErrors = errors$1.length;
+                if (numErrors > 0) {
+                    for (let i = 0; i < numErrors; i++) {
+                        const error = errors$1[i];
+                        this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
+                        this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
+                    }
+                    throw new errors.ExchangeError(message);
+                }
+            }
+            // handleCreateOrdersErrors:
+            const result = this.safeDict(response, 'result');
+            if (result !== undefined) {
+                if ('orders' in result) {
+                    const orders = this.safeList(result, 'orders', []);
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = this.safeDict(orders, i);
+                        const error = this.safeString(order, 'error');
+                        if (error !== undefined) {
                             this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
-                        }
-                        throw new errors.ExchangeError(message);
-                    }
-                }
-                // handleCreateOrdersErrors:
-                const result = this.safeDict(response, 'result');
-                if (result !== undefined) {
-                    if ('orders' in result) {
-                        const orders = this.safeList(result, 'orders', []);
-                        for (let i = 0; i < orders.length; i++) {
-                            const order = this.safeDict(orders, i);
-                            const error = this.safeString(order, 'error');
-                            if (error !== undefined) {
-                                this.throwExactlyMatchedException(this.exceptions['exact'], error, message);
-                                this.throwBroadlyMatchedException(this.exceptions['broad'], error, message);
-                                throw new errors.ExchangeError(message);
-                            }
+                            throw new errors.ExchangeError(message);
                         }
                     }
                 }

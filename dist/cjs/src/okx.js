@@ -1902,7 +1902,10 @@ class okx extends okx$1["default"] {
         const fees = this.safeDict2(this.fees, feesType, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
-        const maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        let maxSpotCost = this.safeNumber(market, 'maxMktSz');
+        if (contract) {
+            maxSpotCost = undefined;
+        }
         const leverageAboveOne = Precise["default"].stringGt(maxLeverage, '1');
         const quoteEqualSettle = (quoteId === settleId);
         const baseEqualSettle = (baseId === settleId);
@@ -1953,7 +1956,7 @@ class okx extends okx$1["default"] {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': contract ? undefined : maxSpotCost,
+                    'max': maxSpotCost,
                 },
             },
             'info': market,
@@ -5742,7 +5745,7 @@ class okx extends okx$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag.length > 0);
+        const hasTag = (tagWithdrawTag !== undefined) && (tagWithdrawTag !== '');
         let addressWithTag = address;
         if (hasTag) {
             addressWithTag = address + ':' + tagWithdrawTag;
@@ -6929,9 +6932,10 @@ class okx extends okx$1["default"] {
                         const entry = params[i];
                         const clientOrderId = this.safeString(entry, 'clOrdId');
                         if (clientOrderId === undefined) {
-                            entry['clOrdId'] = brokerId + this.uuid16();
-                            entry['tag'] = brokerId;
-                            params[i] = entry;
+                            const taggedEntry = this.extend({}, entry);
+                            taggedEntry['clOrdId'] = brokerId + this.uuid16();
+                            taggedEntry['tag'] = brokerId;
+                            params[i] = taggedEntry;
                         }
                     }
                 }

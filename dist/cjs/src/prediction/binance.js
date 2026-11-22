@@ -1897,8 +1897,11 @@ class binance extends binance$1["default"] {
      */
     sign(path, api = ['sapi'], method = 'GET', params = {}) {
         const apiGroup = api[0];
-        const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sapi']);
+        const baseUrls = this.safeDict(this.urls, 'api', {});
+        let baseUrl = this.safeString(baseUrls, apiGroup, '');
+        if (baseUrl === '') {
+            baseUrl = this.safeString(baseUrls, 'sapi', '');
+        }
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         this.checkRequiredCredentials();

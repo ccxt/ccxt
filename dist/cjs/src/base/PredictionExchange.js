@@ -807,8 +807,6 @@ class PredictionExchange extends Exchange.BaseExchange {
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         for (let i = 0; i < rawWords.length; i++) {
             const word = rawWords[i];
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if (word.length === 0) {
                 continue;
             }

@@ -718,7 +718,7 @@ export default class gemini extends Exchange {
         const brokenPairs = this.safeList(this.options, 'brokenPairs', []);
         const marketIds = [];
         let allMarketIds = [];
-        if (Array.isArray(marketIdsRaw)) {
+        if (marketIdsRaw !== undefined) {
             allMarketIds = marketIdsRaw;
         }
         for (let i = 0; i < allMarketIds.length; i++) {
@@ -2017,7 +2017,7 @@ export default class gemini extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        const codeValue = currency['code'];
+        const codeValue = this.safeString(currency, 'code', '');
         const [networkCode, paramsNetworkCode] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddresses() requires a network parameter');
@@ -2161,11 +2161,7 @@ export default class gemini extends Exchange {
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        let candles = [];
-        if (Array.isArray(response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs(candles, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
     /**
      * @method

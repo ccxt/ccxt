@@ -678,7 +678,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         const previousTrades = this.safeList(previousOrder, 'trades', []);
                         previousTrades.push(trade);
                         previousOrder['trades'] = previousTrades;
-                        previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                        previousOrder['lastTradeTimestamp'] = this.safeInteger(trade, 'timestamp');
                         let totalCost = '0';
                         let totalAmount = '0';
                         for (let i = 0; i < previousTrades.length; i++) {
@@ -698,10 +698,11 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                             }
                         }
                         if (this.safeDict(previousOrder, 'fee') === undefined) {
-                            previousOrder['fee'] = {
+                            const newFee = {
                                 'cost': 0,
                                 'currency': this.safeString(trade['fee'], 'currency'),
                             };
+                            previousOrder['fee'] = newFee;
                         }
                         const previousOrderFee = this.safeDict(previousOrder, 'fee', {});
                         if ((this.safeNumber(previousOrderFee, 'cost') !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {

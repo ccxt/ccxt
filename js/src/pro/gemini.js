@@ -571,7 +571,8 @@ export default class gemini extends geminiRest {
             const messageHash = itemHashName + ':' + symbol;
             messageHashes.push(messageHash);
             const market = this.market(symbol);
-            marketIds.push(market['id']);
+            const marketId = this.safeString(market, 'id', '');
+            marketIds.push(marketId);
         }
         const queryStr = marketIds.join(',');
         const wsUrl = this.safeString(this.urls['api'], 'ws');

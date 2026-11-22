@@ -981,8 +981,8 @@ export declare class BaseExchange {
     parseLongShortRatioHistory(response: Dict[], market?: Market, since?: Int, limit?: Int): LongShortRatio[];
     handleTriggerPricesAndParams(symbol: any, params: Dict, omitParams?: boolean): [Str, Str, Str, Dict];
     handleTriggerDirectionAndParams(params: Dict, exchangeSpecificKey?: Str, allowEmpty?: Bool): [Str, Dict];
-    handleTriggerAndParams(params: any): [Bool, Dict];
-    isTriggerOrder(params: any): [Bool, Dict];
+    handleTriggerAndParams(params: Dict): [Bool, Dict];
+    isTriggerOrder(params: Dict): [Bool, Dict];
     isPostOnly(isMarketOrder: boolean, exchangeSpecificParam: Bool, params?: Dict): boolean;
     handlePostOnly(isMarketOrder: boolean, exchangeSpecificPostOnlyOption: boolean, params?: Dict): [boolean, Dict];
     fetchLastPrices(symbols?: Strings, params?: Dict): Promise<LastPrices>;

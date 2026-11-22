@@ -1263,16 +1263,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.traderPrivateDeleteV2Orders(params);
-        if (Array.isArray(response)) {
-            return this.parseOrders(response);
-        }
-        else {
-            return [
-                this.safeOrder({
-                    'info': response,
-                }),
-            ];
-        }
+        return this.parseOrders(response);
     }
     /**
      * @method

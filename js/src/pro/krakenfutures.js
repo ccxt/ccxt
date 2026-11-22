@@ -783,7 +783,7 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['trades'] = [];
                 }
                 previousOrder['trades'].push(trade);
-                previousOrder['lastTradeTimestamp'] = trade['timestamp'];
+                previousOrder['lastTradeTimestamp'] = this.safeInteger(trade, 'timestamp');
                 let totalCost = '0';
                 let totalAmount = '0';
                 const trades = this.safeList(previousOrder, 'trades', []);
@@ -1455,11 +1455,11 @@ export default class krakenfutures extends krakenfuturesRest {
         if (holding !== undefined) {
             const holdingKeys = Object.keys(holding); // cashAccount
             this.balance['cash'] = this.safeDict(this.balance, 'cash', {});
-            this.balance['cash']['info'] = message;
-            this.balance['cash']['timestamp'] = timestamp;
-            this.balance['cash']['datetime'] = this.iso8601(timestamp);
-            const holdingCodes = {};
             const cashBalance = this.safeDict(this.balance, 'cash', {});
+            cashBalance['info'] = message;
+            cashBalance['timestamp'] = timestamp;
+            cashBalance['datetime'] = this.iso8601(timestamp);
+            const holdingCodes = {};
             for (let i = 0; i < holdingKeys.length; i++) {
                 const key = holdingKeys[i];
                 const code = this.safeCurrencyCode(key);
@@ -1477,11 +1477,11 @@ export default class krakenfutures extends krakenfuturesRest {
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
             this.balance['margin'] = this.safeDict(this.balance, 'margin', {});
-            this.balance['margin']['info'] = message;
-            this.balance['margin']['timestamp'] = timestamp;
-            this.balance['margin']['datetime'] = this.iso8601(timestamp);
-            const futuresSymbols = {};
             const marginBalance = this.safeDict(this.balance, 'margin', {});
+            marginBalance['info'] = message;
+            marginBalance['timestamp'] = timestamp;
+            marginBalance['datetime'] = this.iso8601(timestamp);
+            const futuresSymbols = {};
             for (let i = 0; i < futuresKeys.length; i++) {
                 const key = futuresKeys[i];
                 const symbol = this.safeSymbol(key);
@@ -1510,11 +1510,11 @@ export default class krakenfutures extends krakenfuturesRest {
             const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
             this.balance['flex'] = this.safeDict(this.balance, 'flex', {});
-            this.balance['flex']['info'] = message;
-            this.balance['flex']['timestamp'] = timestamp;
-            this.balance['flex']['datetime'] = this.iso8601(timestamp);
-            const flexCodes = {};
             const flexBalance = this.safeDict(this.balance, 'flex', {});
+            flexBalance['info'] = message;
+            flexBalance['timestamp'] = timestamp;
+            flexBalance['datetime'] = this.iso8601(timestamp);
+            const flexCodes = {};
             for (let i = 0; i < flexFuturesKeys.length; i++) {
                 const key = flexFuturesKeys[i];
                 const flexFuture = this.safeDict(flexFutureCurrencies, key);

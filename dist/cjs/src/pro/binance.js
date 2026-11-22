@@ -309,7 +309,7 @@ class binance extends binance$1["default"] {
     getStockWsUrl(streamType = 'market') {
         const urlsApi = this.safeDict(this.urls, 'api', {});
         const wsUrls = this.safeDict(urlsApi, 'ws', {});
-        const baseUrl = wsUrls['stock'];
+        const baseUrl = this.safeString(wsUrls, 'stock', '');
         if (streamType === 'combined') {
             return baseUrl.replace('/ws', '/stream');
         }
@@ -957,8 +957,8 @@ class binance extends binance$1["default"] {
             'method': this.handleFetchOrderBook,
         };
         const snapshot = await this.watch(url, messageHash, message, messageHash, subscription);
-        snapshot['symbol'] = market['symbol'];
-        const orderbook = this.orderBook(snapshot);
+        const symbolEntry = { 'symbol': market['symbol'] };
+        const orderbook = this.orderBook(this.extend(snapshot, symbolEntry));
         return orderbook;
     }
     handleFetchOrderBook(client, message) {
@@ -1658,7 +1658,7 @@ class binance extends binance$1["default"] {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         const trade = this.parseWsTrade(message, market);
         let tradesArray = this.safeValue(this.trades, symbol);
@@ -1975,7 +1975,7 @@ class binance extends binance$1["default"] {
             marketType = 'spot';
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         const inverse = this.safeBool(market, 'inverse');
         const volumeKey = (inverse === true) ? 'q' : 'v';
@@ -2817,6 +2817,7 @@ class binance extends binance$1["default"] {
             unifiedPrefix = 'ticker';
         }
         let channelName = undefined;
+        let batchMessageHash = '';
         const resolvedMessageHashes = [];
         let rawTickers = [];
         const newTickers = {};
@@ -2853,7 +2854,7 @@ class binance extends binance$1["default"] {
                 tickerMarketType = this.safeString(tickerMarketById, 'type');
             }
             const parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
-            const symbol = parsedTicker['symbol'];
+            const symbol = this.safeString(parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 newTickers[symbol] = parsedTicker;
             }
@@ -2867,14 +2868,16 @@ class binance extends binance$1["default"] {
                     this.tickers[symbol] = parsedTicker;
                 }
             }
-            const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
-            resolvedMessageHashes.push(messageHash);
-            client.resolve(parsedTicker, messageHash);
+            batchMessageHash = unifiedPrefix + 's:' + channelName;
+            if (symbol !== undefined) {
+                const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
+                resolvedMessageHashes.push(messageHash);
+                client.resolve(parsedTicker, messageHash);
+            }
         }
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            const batchMessageHash = unifiedPrefix + 's:' + channelName;
             client.resolve(newTickers, batchMessageHash);
         }
     }
@@ -5013,9 +5016,9 @@ class binance extends binance$1["default"] {
                 'info': rate,
             });
             this.tickers[symbol] = parsed;
-            tickers[symbol] = parsed;
             const priceSymbol = this.safeString(parsed, 'symbol', '');
             client.resolve(parsed, 'stock:price:' + priceSymbol);
+            tickers[priceSymbol] = parsed;
         }
         client.resolve(tickers, 'stock:price');
     }

@@ -989,7 +989,7 @@ class luno extends luno$1["default"] {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket(id);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const ticker = tickers[id];
             result[symbol] = this.parseTicker(ticker, market);
         }

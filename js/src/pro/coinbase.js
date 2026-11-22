@@ -1047,7 +1047,7 @@ export default class coinbase extends coinbaseRest {
         const events = this.safeList(message, 'events', []);
         const firstEvent = this.safeDict(events, 0, {});
         const isUnsub = ('subscriptions' in firstEvent);
-        const subKeys = Object.keys(firstEvent['subscriptions']);
+        const subKeys = Object.keys(this.safeDict(firstEvent, 'subscriptions', {}));
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict(this.options, 'unSubscription', {});

@@ -135,7 +135,7 @@ export default class p2b extends p2bRest {
         const [nameOption, paramsName] = this.handleOptionStringAndParams(params, 'watchTicker', 'name', name);
         const market = this.market(symbol);
         this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
-        const tickerSubs = this.options['tickerSubs'];
+        const tickerSubs = this.safeDict(this.options, 'tickerSubs', {});
         const request = Object.keys(tickerSubs);
         return await this.subscribe(nameOption + '.subscribe', nameOption + '::' + this.safeString(market, 'symbol', ''), request, paramsName);
     }

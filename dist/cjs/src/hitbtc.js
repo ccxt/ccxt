@@ -1851,7 +1851,7 @@ class hitbtc extends hitbtc$1["default"] {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee(this.safeDict(response, i, {}));
-            const symbol = fee['symbol'];
+            const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -3714,7 +3714,8 @@ class hitbtc extends hitbtc$1["default"] {
         if (market['type'] !== 'swap') {
             throw new errors.BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        if ((leverage < 1) || (leverage > maxLeverage)) {
+        const leverageValue = this.parseToInt(leverage);
+        if ((leverageValue < 1) || (leverageValue > maxLeverage)) {
             throw new errors.BadRequest(this.id + ' setLeverage() leverage should be between 1 and ' + maxLeverage.toString() + ' for ' + symbol);
         }
         const request = {

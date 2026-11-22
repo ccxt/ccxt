@@ -4334,7 +4334,8 @@ class kucoin extends kucoin$1["default"] {
             if (amount === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' requires an amount argument');
             }
-            if (amount < 1) {
+            const amountInt = this.parseToInt(amount);
+            if (amountInt < 1) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() minimum contract order amount is 1');
             }
             const sizeString = this.amountToPrecision(symbol, amount);
@@ -7859,18 +7860,20 @@ class kucoin extends kucoin$1["default"] {
         const code = this.safeCurrencyCode(currencyId, currency);
         let address = this.safeString(transaction, 'address');
         const amount = this.safeString(transaction, 'amount');
-        let txid = this.safeString(transaction, 'walletTxId');
-        if (txid !== undefined) {
-            const txidParts = txid.split('@');
+        const walletTxId = this.safeString(transaction, 'walletTxId');
+        let txid = undefined;
+        if (walletTxId !== undefined) {
+            const txidParts = walletTxId.split('@');
             const numTxidParts = txidParts.length;
             if (numTxidParts > 1) {
+                const txidAddress = txidParts[1];
                 if (address === undefined) {
-                    if (txidParts[1].length > 1) {
-                        address = txidParts[1];
+                    if (txidAddress.length > 1) {
+                        address = txidAddress;
                     }
                 }
             }
-            txid = txidParts[0];
+            txid = this.safeString(txidParts, 0);
         }
         let type = 'deposit';
         if (txid === undefined) {

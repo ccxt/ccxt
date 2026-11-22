@@ -358,7 +358,12 @@ class predictfun extends predictfun$1["default"] {
             const tags = this.safeList(paramsValue, 'tags', []);
             const tagsLength = tags.length;
             if (tagsLength > 0) {
-                request['tagIds'] = tags.join(',');
+                const tagIds = [];
+                for (let i = 0; i < tagsLength; i++) {
+                    const tagId = this.safeString(tags, i, '');
+                    tagIds.push(tagId);
+                }
+                request['tagIds'] = tagIds.join(',');
             }
             postOmitKeys.push('limit');
             const paramsCategories = this.omit(paramsValue, ['limit', 'tags']);

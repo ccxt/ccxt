@@ -2738,18 +2738,17 @@ class htx extends htx$1["default"] {
             if (data !== undefined) {
                 const contractCode = this.safeString(message, 'contract_code');
                 const market = (contractCode !== undefined) ? this.safeMarket(contractCode) : undefined;
-                if (Array.isArray(data)) {
-                    const dataList = this.safeList(message, 'data', []);
-                    for (let i = 0; i < dataList.length; i++) {
-                        const parsed = this.parseWsTrade(dataList[i], market);
-                        const symbol = this.safeString(parsed, 'symbol');
-                        if (symbol !== undefined) {
-                            cachedTrades.append(parsed);
-                        }
+                const dataList = this.safeList(message, 'data', []);
+                for (let i = 0; i < dataList.length; i++) {
+                    const parsed = this.parseWsTrade(dataList[i], market);
+                    const symbol = this.safeString(parsed, 'symbol');
+                    if (symbol !== undefined) {
+                        cachedTrades.append(parsed);
                     }
                 }
-                else {
-                    const parsed = this.parseWsTrade(data, market);
+                const dataDict = this.safeDict(message, 'data');
+                if (dataDict !== undefined) {
+                    const parsed = this.parseWsTrade(dataDict, market);
                     const symbol = this.safeString(parsed, 'symbol');
                     if (symbol !== undefined) {
                         cachedTrades.append(parsed);

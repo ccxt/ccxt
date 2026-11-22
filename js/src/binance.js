@@ -3500,7 +3500,8 @@ export default class binance extends Exchange {
         for (let i = 0; i < results.length; i++) {
             const res = this.safeValue(results, i);
             if ((fetchMargins) && Array.isArray(res)) {
-                const keysList = Object.keys(this.indexBy(res, 'symbol'));
+                const resBySymbol = this.indexBy(res, 'symbol');
+                const keysList = Object.keys(resBySymbol);
                 const length = this.options['crossMarginPairsData'].length;
                 // first one is the cross-margin promise
                 if (length === 0) {
@@ -7321,34 +7322,33 @@ export default class binance extends Exchange {
         if (method !== 'POST') {
             return params;
         }
-        const generated = {};
         if ((path === 'order') || (path === 'sor/order') || (path === 'order/cancelReplace') || (path === 'um/order') || (path === 'cm/order') || (path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             const clientOrderIdKey = (api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             const clientOrderId = this.safeString2(params, 'clientOrderId', 'newClientOrderId');
             if (clientOrderId === undefined) {
-                generated[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                params[clientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'algoOrder') || (path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             const clientAlgoId = this.safeString(params, 'clientAlgoId');
             if (clientAlgoId === undefined) {
-                generated['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
+                params['clientAlgoId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'cm/conditional/order') || (path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             const newClientStrategyId = this.safeString(params, 'newClientStrategyId');
             if (newClientStrategyId === undefined) {
-                generated['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
+                params['newClientStrategyId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if (path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             const equityClientOrderId = this.safeString(params, 'clientOrderId');
             if (equityClientOrderId === undefined) {
-                generated['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
+                params['clientOrderId'] = this.generateClientOrderId(undefined, api, path);
             }
         }
         else if ((path === 'order/oco') || (path === 'margin/order/oco') || (path === 'orderList/oco') || (path === 'orderList/oto') || (path === 'orderList/otoco') || (path === 'orderList/opo') || (path === 'orderList/opoco')) {
@@ -7367,7 +7367,7 @@ export default class binance extends Exchange {
                 const currentClientOrderIdKey = clientOrderIdKeys[i];
                 const currentClientOrderId = this.safeString(params, currentClientOrderIdKey);
                 if (currentClientOrderId === undefined) {
-                    generated[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
+                    params[currentClientOrderIdKey] = this.generateClientOrderId(undefined, api, path);
                 }
             }
         }
@@ -7388,8 +7388,7 @@ export default class binance extends Exchange {
                 params['batchOrders'] = checkedBatchOrders;
             }
         }
-        const withIds = this.extend(params, generated);
-        return withIds;
+        return params;
     }
     /**
      * @method
@@ -9780,8 +9779,11 @@ export default class binance extends Exchange {
         const earnedCurrency = bnb['code'];
         const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
-        if ((this.markets !== undefined) && (applicantSymbol in this.markets)) {
-            tradedCurrencyIsQuote = true;
+        if ((this.markets !== undefined) && (earnedCurrency !== undefined) && (tradedCurrency !== undefined)) {
+            const knownSymbol = earnedCurrency + '/' + tradedCurrency;
+            if (knownSymbol in this.markets) {
+                tradedCurrencyIsQuote = true;
+            }
         }
         const feeCostString = this.safeString(trade, 'serviceChargeAmount');
         const fee = {
@@ -14773,7 +14775,7 @@ export default class binance extends Exchange {
         }
         if (this.safeBool(market, 'option', false)) {
             const optionResponse = await this.eapiPublicGetOpenInterest(this.extend(request, params));
-            const symbolValue = market['symbol'];
+            const symbolValue = this.safeString(market, 'symbol', '');
             const result = this.parseOpenInterestsHistory(optionResponse, market);
             for (let i = 0; i < result.length; i++) {
                 const item = this.safeDict(result, i);

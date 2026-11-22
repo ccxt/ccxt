@@ -1352,7 +1352,7 @@ class apex extends apex$1["default"] {
         const fees = this.safeDict(this.fees, 'swap', {});
         const taker = this.safeString(fees, 'taker', '0.0005');
         const maker = this.safeString(fees, 'maker', '0.0002');
-        const pricePrecision = market['precision']['price'];
+        const pricePrecision = this.safeNumber(market['precision'], 'price');
         const limitFee = this.decimalToPrecision(Precise["default"].stringAdd(Precise["default"].stringMul(Precise["default"].stringMul(orderPrice, orderSize), taker), this.numberToString(pricePrecision)), number.TRUNCATE, pricePrecision, this.precisionMode, this.paddingMode);
         const timeNow = this.milliseconds();
         let triggerPrice = this.safeString(params, 'triggerPrice');

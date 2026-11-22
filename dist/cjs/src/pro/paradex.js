@@ -688,7 +688,7 @@ class paradex extends paradex$1["default"] {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
         const parsedTrade = this.parseTrade(data);
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString(parsedTrade, 'symbol');
         const messageHash = this.safeString(params, 'channel');
         let stored = this.safeValue(this.trades, symbol);
         if (stored === undefined) {
@@ -709,7 +709,9 @@ class paradex extends paradex$1["default"] {
                 this.options['liquidationsBySymbol'] = caches;
             }
             liquidations.append(liquidation);
-            client.resolve(liquidations, 'liquidations:' + symbol);
+            if (symbol !== undefined) {
+                client.resolve(liquidations, 'liquidations:' + symbol);
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1123,7 +1125,7 @@ class paradex extends paradex$1["default"] {
         for (let i = 0; i < symbolsLength; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market(symbol);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             marketIds.push(marketId);
             subscribeHashes.push(channel + '.' + marketId);
             subMessageHashes.push(channel + '.' + symbol);
@@ -1211,7 +1213,7 @@ class paradex extends paradex$1["default"] {
         // messageHashes[i] is the hash the summaries of symbols[i] resolve
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market(symbols[i]);
-            const marketId = market['id'];
+            const marketId = this.safeString(market, 'id', '');
             const subscribeHash = channel + '.' + marketId;
             subscribeHashes.push(subscribeHash);
             if (!(subscribeHash in client.subscriptions)) {
@@ -1371,9 +1373,11 @@ class paradex extends paradex$1["default"] {
         const params = this.safeDict(message, 'params', {});
         const data = this.safeDict(params, 'data', {});
         const bidAsk = this.parseWsBidAsk(data);
-        const symbol = bidAsk['symbol'];
+        const symbol = this.safeString(bidAsk, 'symbol');
         this.bidsasks[symbol] = bidAsk;
-        client.resolve(bidAsk, 'bidask:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve(bidAsk, 'bidask:' + symbol);
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, 'bidask');
     }
@@ -1582,8 +1586,10 @@ class paradex extends paradex$1["default"] {
             messageHashes.push(channel);
         }
         else {
-            for (let i = 0; i < symbolsLength; i++) {
-                messageHashes.push(channel + ':' + symbolsNormalized[i]);
+            if (symbolsNormalized !== undefined) {
+                for (let i = 0; i < symbolsLength; i++) {
+                    messageHashes.push(channel + ':' + symbolsNormalized[i]);
+                }
             }
         }
         const request = this.subscribeRequest(channel);
@@ -1628,7 +1634,7 @@ class paradex extends paradex$1["default"] {
         }
         const cache = this.positions;
         const position = this.parsePosition(data);
-        const symbol = position['symbol'];
+        const symbol = this.safeString(position, 'symbol');
         const newPositions = [];
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -1651,7 +1657,9 @@ class paradex extends paradex$1["default"] {
         cache.append(position);
         newPositions.push(position);
         client.resolve(newPositions, 'positions');
-        client.resolve(newPositions, 'positions:' + symbol);
+        if (symbol !== undefined) {
+            client.resolve(newPositions, 'positions:' + symbol);
+        }
     }
     /**
      * @method

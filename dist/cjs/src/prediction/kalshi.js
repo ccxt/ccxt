@@ -598,13 +598,14 @@ class kalshi extends kalshi$1["default"] {
         const outcomeLabels = ['YES', 'NO'];
         const outcomes = [];
         let resolvedOutcome = undefined;
+        const resultText = this.safeStringLower(raw, 'result', '');
         for (let oi = 0; oi < outcomeLabels.length; oi++) {
             const label = outcomeLabels[oi];
             const outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
             let winnerRaw = undefined;
             let settleFractionRaw = undefined;
             if (resolved && (result !== undefined) && (result !== '')) {
-                winnerRaw = (label.toLowerCase() === result);
+                winnerRaw = (label.toLowerCase() === resultText);
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
                 if (winnerRaw) {
                     resolvedOutcome = outcomeHandle;

@@ -2090,7 +2090,7 @@ export default class bitvavo extends Exchange {
         const timestamp = this.safeInteger(order, 'created');
         const marketId = this.safeString(order, 'market');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const side = this.safeString(order, 'side');
         const type = this.safeString(order, 'orderType');
@@ -2712,7 +2712,8 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
-        if (('noMarket' in config) && !('market' in params)) {
+        const marketId = this.safeString(params, 'market');
+        if (('noMarket' in config) && (marketId === undefined)) {
             return config['noMarket'];
         }
         return this.safeInteger(config, 'cost', 1);

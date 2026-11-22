@@ -683,8 +683,8 @@ class bullish extends bullish$1["default"] {
             account['total'] = this.safeString(data, 'availableQuantity');
             account['used'] = this.safeString(data, 'lockedQuantity');
             const code = this.safeCurrencyCode(assetId);
-            this.balance[tradingAccountId]['info'] = message;
             const deltaBalance = this.safeDict(this.balance, tradingAccountId, {});
+            deltaBalance['info'] = message;
             if ((tradingAccountId !== undefined) && (code !== undefined)) {
                 deltaBalance[code] = account;
             }
@@ -716,8 +716,6 @@ class bullish extends bullish$1["default"] {
         let symbolsNormalized = symbols;
         if (hasSymbols) {
             symbolsNormalized = this.marketSymbols(symbols);
-        }
-        if (hasSymbols && (symbolsNormalized !== undefined)) {
             messageHash += '::' + symbolsNormalized.join(',');
         }
         const request = {

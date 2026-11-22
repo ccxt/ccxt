@@ -1344,6 +1344,7 @@ class dydx extends dydx$1["default"] {
         let conditionalType = 0;
         let conditionalOrderTriggerSubticks = '0';
         let orderFlag = undefined;
+        let isShortTerm = false;
         let timeInForceNumber = undefined;
         if (timeInForce === 'FOK') {
             throw new errors.InvalidOrder(this.id + ' timeInForce fok has been deprecated');
@@ -1351,6 +1352,7 @@ class dydx extends dydx$1["default"] {
         if (orderType === 'MARKET') {
             // short-term
             orderFlag = 0;
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce !== undefined) {
                 // default is ioc
@@ -1361,6 +1363,7 @@ class dydx extends dydx$1["default"] {
             if (timeInForce === 'GTT') {
                 // long-term
                 orderFlag = 64;
+                isShortTerm = false;
                 if (postOnly) {
                     timeInForceNumber = 2;
                 }
@@ -1370,6 +1373,7 @@ class dydx extends dydx$1["default"] {
             }
             else {
                 orderFlag = 0;
+                isShortTerm = true;
                 if (timeInForce === 'IOC') {
                     timeInForceNumber = 1;
                 }
@@ -1381,6 +1385,7 @@ class dydx extends dydx$1["default"] {
         if (isConditional) {
             // conditional
             orderFlag = 32;
+            isShortTerm = false;
             if (stopLossPrice !== undefined) {
                 conditionalType = 1;
                 conditionalOrderTriggerSubticks = this.priceToPrecision(symbol, stopLossPrice);
@@ -1397,7 +1402,7 @@ class dydx extends dydx$1["default"] {
         const goodTillBlockTimeInSeconds = 2592000;
         // default is 30 days
         const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
-        if (orderFlag === 0) {
+        if (isShortTerm) {
             if (goodTillBlock === undefined) {
                 // short term order
                 if (latestBlockHeight === undefined) {

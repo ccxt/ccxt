@@ -1520,7 +1520,7 @@ export default class lighter extends Exchange {
         //
         const marketId = this.safeString(ticker, 'market_id');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const last = this.safeString(ticker, 'last_trade_price');
         const high = this.safeString(ticker, 'daily_price_high');
         const low = this.safeString(ticker, 'daily_price_low');
@@ -3169,7 +3169,7 @@ export default class lighter extends Exchange {
         const nonce = await this.fetchNonce(accountIndex, apiKeyIndex, paramsAccountIndex);
         const signRaw = {
             'market_index': this.parseToInt(market['id']),
-            'initial_margin_fraction': this.parseToInt(10000 / leverage),
+            'initial_margin_fraction': this.parseToInt(10000 / this.parseToInt(leverage)),
             'margin_mode': (marginMode === 'cross') ? 0 : 1, // 0: CROSS, 1: ISOLATED
             'nonce': nonce,
             'api_key_index': apiKeyIndex,

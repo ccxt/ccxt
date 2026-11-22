@@ -1130,15 +1130,13 @@ class bit2me extends bit2me$1["default"] {
             if (triggerPrice !== undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
             }
-            let quoteAmount = undefined;
             if (cost !== undefined) {
-                quoteAmount = cost;
+                request['amount'] = this.costToPrecision(symbol, cost);
+                request['amountInQuote'] = true;
             }
             else if ((side === 'buy') && (price !== undefined)) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price));
-            }
-            if (quoteAmount !== undefined) {
+                const quoteAmount = Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price));
                 request['amount'] = this.costToPrecision(symbol, quoteAmount);
                 request['amountInQuote'] = true;
             }

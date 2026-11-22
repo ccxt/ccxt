@@ -1242,7 +1242,7 @@ class mudrex extends mudrex$1["default"] {
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
     async reduceMargin(symbol, amount, params = {}) {
-        return await this.addMargin(symbol, -amount, params);
+        return await this.addMargin(symbol, this.parseNumber(Precise["default"].stringNeg(this.numberToString(amount))), params);
     }
     /**
      * @method

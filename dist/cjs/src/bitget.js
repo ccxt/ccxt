@@ -9515,7 +9515,7 @@ class bitget extends bitget$1["default"] {
         //
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeIntegerN(position, ['cTime', 'ctime', 'createdTime']);
         let marginMode = this.safeString(position, 'marginMode');
         let collateral = undefined;
@@ -10259,7 +10259,8 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
-        if (amount > 0) {
+        const amountString = this.numberToString(amount);
+        if (Precise["default"].stringGt(amountString, '0')) {
             throw new errors.BadRequest(this.id + ' reduceMargin() amount parameter must be a negative value');
         }
         const holdSide = this.safeString(params, 'holdSide');

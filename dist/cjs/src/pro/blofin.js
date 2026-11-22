@@ -688,7 +688,7 @@ class blofin extends blofin$1["default"] {
         // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for (let i = 0; i < symbols.length; i++) {
             if (channelName !== undefined) {
-                client.resolve(orders, channelName + ':' + symbols[i]);
+                client.resolve(orders, channelName + ':' + this.safeString(symbols, i, ''));
             }
             client.resolve(orders, channelName);
         }

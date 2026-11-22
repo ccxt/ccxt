@@ -823,7 +823,7 @@ class extended extends extended$1["default"] {
             const market = this.safeMarket(marketId);
             const stats = this.safeDict(marketData, 'marketStats', {});
             const ticker = this.parseTicker(stats, market);
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString(ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }

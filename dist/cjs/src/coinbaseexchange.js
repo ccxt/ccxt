@@ -1912,10 +1912,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const paramsUntil = (until !== undefined) ? this.omit(params, ['until']) : params;
         const response = await this.privateGetAccountsIdLedger(this.extend(request, paramsUntil));
         const entries = this.toArray(response);
+        const entriesWithCurrency = [];
         for (let i = 0; i < entries.length; i++) {
-            entries[i]['currency'] = code;
+            entriesWithCurrency.push(this.extend(entries[i], { 'currency': code }));
         }
-        return this.parseLedger(entries, currency, since, limit);
+        return this.parseLedger(entriesWithCurrency, currency, since, limit);
     }
     /**
      * @method

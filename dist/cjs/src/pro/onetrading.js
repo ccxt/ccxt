@@ -1219,7 +1219,9 @@ class onetrading extends onetrading$1["default"] {
         const keys = Object.keys(timeframesResolved);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (this.safeString(timeframesResolved[key], 'unit') === unit && this.safeString(timeframesResolved[key], 'period') === period) {
+            const rowUnit = this.safeString(timeframesResolved[key], 'unit');
+            const rowPeriod = this.safeString(timeframesResolved[key], 'period');
+            if (rowUnit === unit && rowPeriod === period) {
                 return key;
             }
         }

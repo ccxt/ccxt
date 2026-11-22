@@ -1218,7 +1218,7 @@ export default class cex extends Exchange {
             marketId = currency1 + '-' + currency2;
         }
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol');
         const status = this.parseOrderStatus(this.safeString(order, 'status'));
         const fee = {};
         const feeAmount = this.safeNumber(order, 'feeAmount');

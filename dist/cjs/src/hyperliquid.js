@@ -384,9 +384,12 @@ class hyperliquid extends hyperliquid$1["default"] {
             if (baseName in spotCurrencyMapping) {
                 const unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 const quote = this.safeString(symbolParts, 1);
-                const newSymbol = this.safeCurrencyCode(unifiedBaseName) + '/' + quote;
-                if (newSymbol in this.markets) {
-                    return this.markets[newSymbol];
+                const unifiedBase = this.safeCurrencyCode(unifiedBaseName);
+                if ((unifiedBase !== undefined) && (quote !== undefined)) {
+                    const newSymbol = unifiedBase + '/' + quote;
+                    if (newSymbol in this.markets) {
+                        return this.markets[newSymbol];
+                    }
                 }
             }
         }
@@ -2176,7 +2179,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const paramsOmitted = this.omit(params, 'randomize');
         const [vaultAddressOption, paramsVault] = this.handleOptionStringAndParams(paramsOmitted, 'createOrder', 'vaultAddress');
         const vaultAddress = this.formatVaultAddress(vaultAddressOption);
-        const durationMins = Math.floor(duration / 1000 / 60); // convert from ms to minutes
+        const durationMins = Math.floor(this.parseToInt(duration) / 1000 / 60); // convert from ms to minutes
         const orderObj = {
             'a': this.parseToInt(market['baseId']),
             'b': isBuy,

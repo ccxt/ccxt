@@ -450,8 +450,11 @@ export default class bittrade extends Exchange {
         }
         const result = {};
         for (let i = 0; i < symbolsResolved.length; i++) {
-            const symbol = symbolsResolved[i];
-            result[symbol] = await this.fetchTradingLimitsById(this.marketId(symbol), params);
+            const symbol = this.safeString(symbolsResolved, i);
+            const limits = await this.fetchTradingLimitsById(this.marketId(symbol), params);
+            if (symbol !== undefined) {
+                result[symbol] = limits;
+            }
         }
         return result;
     }

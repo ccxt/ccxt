@@ -137,8 +137,8 @@ export default class cex extends cexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        const currentSymbol = this.safeString(this.options['watchTrades'], 'symbol');
-        if (currentSymbol !== undefined && currentSymbol !== symbol) {
+        const currentSymbol = this.safeString(this.options['watchTrades'], 'symbol', '');
+        if (currentSymbol !== '' && currentSymbol !== symbol) {
             throw new ArgumentsRequired(this.id + ' : this exchange only supports watching trades for one symbol per instance. You should either set .options["watchTrades"]["symbol"] to new symbol, or create a new instance');
         }
         const watchTradesDict = this.extend({}, this.safeDict(this.options, 'watchTrades', {}));
@@ -490,7 +490,7 @@ export default class cex extends cexRest {
         await this.authenticate(params);
         const url = this.safeString(this.urls['api'], 'ws', '');
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const messageHash = 'orders:' + symbolValue;
         const message = {
             'e': 'open-orders',

@@ -1533,7 +1533,7 @@ class htx extends htx$1["default"] {
     }
     costToPrecision(symbol, cost) {
         const market = this.market(symbol);
-        return this.decimalToPrecision(cost, number.TRUNCATE, market['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision(cost, number.TRUNCATE, this.safeValue(market['precision'], 'cost'), this.precisionMode);
     }
     /**
      * @method
@@ -1930,8 +1930,9 @@ class htx extends htx$1["default"] {
             this.options['futureMarketIdsForSymbols'] = {};
         }
         const futureMarketIdsForSymbols = this.safeDict(this.options, 'futureMarketIdsForSymbols', {});
-        if (symbolOrMarketId in futureMarketIdsForSymbols) {
-            return futureMarketIdsForSymbols[symbolOrMarketId];
+        const knownSymbol = this.safeString(futureMarketIdsForSymbols, symbolOrMarketId, '');
+        if (knownSymbol !== '') {
+            return knownSymbol;
         }
         const futureMarkets = this.filterBy(this.markets, 'future', true);
         const futuresCharsMaps = {
@@ -8014,12 +8015,14 @@ class htx extends htx$1["default"] {
         if (marketType === 'swap') {
             if (this.safeBool(market, 'linear', false)) {
                 const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchFundingHistory', paramsUntil, 'cross');
-                request['margin_mode'] = marginMode;
-                request['contract_code'] = market['id'];
+                const linearRequest = {
+                    'margin_mode': marginMode,
+                    'contract_code': market['id'],
+                };
                 if (limit !== undefined) {
-                    request['limit'] = limit;
+                    linearRequest['limit'] = limit;
                 }
-                response = await this.contractPrivateGetV5AccountBills(this.extend(request, paramsMarginMode));
+                response = await this.contractPrivateGetV5AccountBills(this.extend(this.extend(request, linearRequest), paramsMarginMode));
                 //
                 //     {
                 //         "code": 200,

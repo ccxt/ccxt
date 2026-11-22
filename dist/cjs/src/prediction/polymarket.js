@@ -917,7 +917,7 @@ class polymarket extends polymarket$1["default"] {
     async fetchOutcomes(outcomeSymbols) {
         const tokenIds = [];
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            const outcomeSymbol = outcomeSymbols[i];
+            const outcomeSymbol = this.safeString(outcomeSymbols, i, '');
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -961,8 +961,9 @@ class polymarket extends polymarket$1["default"] {
             this.populateOutcomes();
         }
         for (let i = 0; i < outcomeSymbols.length; i++) {
-            if (!this.hasOutcome(outcomeSymbols[i])) {
-                await this.fetchOutcome(outcomeSymbols[i]);
+            const pendingSymbol = this.safeString(outcomeSymbols, i, '');
+            if (!this.hasOutcome(pendingSymbol)) {
+                await this.fetchOutcome(pendingSymbol);
             }
         }
         return this.outcomes;
@@ -1343,8 +1344,18 @@ class polymarket extends polymarket$1["default"] {
                     }
                 }
                 const open = this.safeNumber(buckets[bucketKey], 1);
+                let high = price;
+                const prevHigh = this.safeNumber(buckets[bucketKey], 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low = price;
+                const prevLow = this.safeNumber(buckets[bucketKey], 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
                 // close is the last tick
-                buckets[bucketKey] = [snappedMs, open, Math.max(this.safeNumber(buckets[bucketKey], 2), price), Math.min(this.safeNumber(buckets[bucketKey], 3), price), price, candleVol];
+                buckets[bucketKey] = [snappedMs, open, high, low, price, candleVol];
             }
         }
         const bucketKeys = Object.keys(buckets);
@@ -1725,7 +1736,8 @@ class polymarket extends polymarket$1["default"] {
         }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
-            wantedIds[outcomeObj['outcomeId']] = true;
+            const outcomeId = this.safeString(outcomeObj, 'outcomeId', '');
+            wantedIds[outcomeId] = true;
         }
         const result = [];
         for (let i = 0; i < parsed.length; i++) {

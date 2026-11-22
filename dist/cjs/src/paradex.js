@@ -1124,17 +1124,17 @@ class paradex extends paradex$1["default"] {
         if (since !== undefined) {
             requestUntil['start_at'] = since;
             // the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-            const windowEnd = this.sum(this.parseToInt(since), windowLength - 1);
-            const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
-            if (!hasEnd || (endAt > windowEnd)) {
-                requestUntil['end_at'] = windowEnd;
+            const barWindowEnd = this.sum(this.parseToInt(since), windowLength - 1);
+            const clampedEndAt = this.safeInteger(requestUntil, 'end_at', barWindowEnd);
+            if (!hasEnd || (clampedEndAt > barWindowEnd)) {
+                requestUntil['end_at'] = barWindowEnd;
             }
         }
         else {
             const endAtRaw = this.safeInteger(requestUntil, 'end_at', this.milliseconds());
             const endAt = this.parseToInt(endAtRaw);
             requestUntil['end_at'] = endAt;
-            requestUntil['start_at'] = endAt - windowLength + 1;
+            requestUntil['start_at'] = endAt - (windowLength - 1);
         }
         const response = await this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted));
         //
@@ -2809,8 +2809,10 @@ class paradex extends paradex$1["default"] {
         const data = this.safeList(response, 'results', []);
         // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
         const matching = [];
+        const marketId = this.safeString(market, 'id', '');
         for (let i = 0; i < data.length; i++) {
-            if (this.safeString(data[i], 'market') === market['id']) {
+            const rowMarketId = this.safeString(data[i], 'market', '');
+            if (rowMarketId === marketId) {
                 matching.push(data[i]);
             }
         }
@@ -3059,14 +3061,11 @@ class paradex extends paradex$1["default"] {
         const rows = this.safeList(response, 'results', []);
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString(response, 'next');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
-        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (allKinds || (this.safeString(row, 'kind') === 'DEPOSIT')) {
-                deposits.push(row);
+            if (allKinds || (this.safeString(rows[i], 'kind') === 'DEPOSIT')) {
+                const withCursor = this.extend(rows[i], { 'next': next });
+                deposits.push(withCursor);
             }
         }
         return this.parseTransactions(deposits, undefined, since, limit);
@@ -3131,14 +3130,11 @@ class paradex extends paradex$1["default"] {
         const rows = this.safeList(response, 'results', []);
         // the cursor pagination reads the next page cursor from the parsed entries
         const next = this.safeString(response, 'next');
-        for (let i = 0; i < rows.length; i++) {
-            rows[i]['next'] = next;
-        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            if (allKinds || (this.safeString(row, 'kind') === 'WITHDRAWAL')) {
-                deposits.push(row);
+            if (allKinds || (this.safeString(rows[i], 'kind') === 'WITHDRAWAL')) {
+                const withCursor = this.extend(rows[i], { 'next': next });
+                deposits.push(withCursor);
             }
         }
         return this.parseTransactions(deposits, undefined, since, limit);
@@ -3738,7 +3734,8 @@ class paradex extends paradex$1["default"] {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 const market = this.safeMarket(marketId);
                 if (market['option'] === true) {
-                    result[market['symbol']] = this.parseOption(entry, undefined, market);
+                    const optionSymbol = this.safeString(market, 'symbol', '');
+                    result[optionSymbol] = this.parseOption(entry, undefined, market);
                 }
             }
         }
@@ -3943,10 +3940,10 @@ class paradex extends paradex$1["default"] {
             requestUntil['start_at'] = since;
             // a page holds the newest rows of its range, so a range wider than one page would return the latest
             // rows and skip since, the range is cut to one page of rows from since
-            const windowEnd = this.sum(this.parseToInt(since), pageSize * rowSpacing);
-            const endAt = this.safeInteger(requestUntil, 'end_at', windowEnd);
-            if ((this.safeInteger(requestUntil, 'end_at') === undefined) || (endAt > windowEnd)) {
-                requestUntil['end_at'] = windowEnd;
+            const pageWindowEnd = this.sum(this.parseToInt(since), pageSize * rowSpacing);
+            const pageEndAt = this.safeInteger(requestUntil, 'end_at', pageWindowEnd);
+            if ((this.safeInteger(requestUntil, 'end_at') === undefined) || (pageEndAt > pageWindowEnd)) {
+                requestUntil['end_at'] = pageWindowEnd;
             }
         }
         const response = await this.publicGetFundingData(this.extend(requestUntil, paramsUntil));
