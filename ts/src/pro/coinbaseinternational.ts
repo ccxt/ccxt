@@ -439,7 +439,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (dataList !== undefined) {
             orders = this.parseOrders (dataList) as Order[];
         } else {
-            const data = this.safeValue (params, 'data', {});
+            const data = this.safeDict (params, 'data', {});
             orders = [ this.parseOrder (data) ];
         }
         const ordersLength = orders.length;
