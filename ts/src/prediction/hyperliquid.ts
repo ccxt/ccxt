@@ -2103,7 +2103,7 @@ export default class hyperliquid extends Exchange {
     actionHash (action: Dict, vaultAddress: Str, nonce: number): any {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
-        let data = dataHex;
+        let data: string = dataHex;
         data += '00000' + this.intToBase16 (nonce);
         if (vaultAddress === undefined) {
             data += '00';

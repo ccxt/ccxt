@@ -1350,8 +1350,18 @@ export default class polymarket extends Exchange {
                     }
                 }
                 const open = this.safeNumber (buckets[bucketKey], 1);
+                let high: Num = price;
+                const prevHigh = this.safeNumber (buckets[bucketKey], 2);
+                if ((prevHigh !== undefined) && (price !== undefined) && (prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let low: Num = price;
+                const prevLow = this.safeNumber (buckets[bucketKey], 3);
+                if ((prevLow !== undefined) && (price !== undefined) && (price > prevLow)) {
+                    low = prevLow;
+                }
                 // close is the last tick
-                buckets[bucketKey] = [ snappedMs, open, Math.max (this.safeNumber (buckets[bucketKey], 2) as number, price), Math.min (this.safeNumber (buckets[bucketKey], 3) as number, price), price, candleVol ];
+                buckets[bucketKey] = [ snappedMs, open, high, low, price, candleVol ];
             }
         }
         const bucketKeys = Object.keys (buckets);

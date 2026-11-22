@@ -10115,7 +10115,8 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     override async reduceMargin (symbol: string, amount: number, params: Dict = {}): Promise<MarginModification> {
-        if (amount > 0) {
+        const amountString = this.numberToString (amount);
+        if (Precise.stringGt (amountString, '0')) {
             throw new BadRequest (this.id + ' reduceMargin() amount parameter must be a negative value');
         }
         const holdSide = this.safeString (params, 'holdSide');
