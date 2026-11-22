@@ -1626,8 +1626,10 @@ export default class paradex extends paradexRest {
         if (symbolsLength === 0) {
             messageHashes.push (channel);
         } else {
-            for (let i = 0; i < symbolsLength; i++) {
-                messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
+            if (symbolsNormalized !== undefined) {
+                for (let i = 0; i < symbolsLength; i++) {
+                    messageHashes.push (channel + ':' + symbolsNormalized[i]);
+                }
             }
         }
         const request: Dict = this.subscribeRequest (channel);
