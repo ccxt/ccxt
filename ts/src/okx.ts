@@ -5375,7 +5375,7 @@ export default class okx extends Exchange {
             currency = this.currency (code);
             request['ccy'] = currency['id'];
         }
-        const requestUntil = this.handleUntilOption ('end', request, paramsMarginMode)[0];
+        const [ requestUntil ] = this.handleUntilOption ('end', request, paramsMarginMode);
         let response: Dict;
         if (method === 'privateGetAccountBillsArchive') {
             response = await this.privateGetAccountBillsArchive (this.extend (requestUntil, query));
