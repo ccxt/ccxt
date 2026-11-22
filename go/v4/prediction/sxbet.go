@@ -421,27 +421,17 @@ func (this *Sxbet) ParseSxbetMarket(raw any) map[string]any {
 	if outcomeTwoName != nil {
 		outcomeLabels[1] = *outcomeTwoName
 	}
-	var outcomeIds []any = []any{nil, *marketHash + "-2"}
-	if marketHash != nil {
-		outcomeIds[0] = *marketHash
-	}
 	var outcomes []any = []any{}
 	for oi := 0; oi < len(outcomeLabels); oi++ {
 		var label *string = ccxt.SafeStringPtr(outcomeLabels[oi])
 		var outcomeHandle string = this.SlugToOutcomeSymbol(eventSlug, marketSlug, label)
+		var outcomeSuffix string = ""
+		if oi > 0 {
+			outcomeSuffix = "-2"
+		}
 		outcomes = append(outcomes, map[string]any{
-			"id": func() any {
-				if oi >= 0 && oi < len(outcomeIds) {
-					return outcomeIds[oi]
-				}
-				return nil
-			}(),
-			"outcomeId": func() any {
-				if oi >= 0 && oi < len(outcomeIds) {
-					return outcomeIds[oi]
-				}
-				return nil
-			}(),
+			"id":             *marketHash + outcomeSuffix,
+			"outcomeId":      *marketHash + outcomeSuffix,
 			"outcome":        outcomeHandle,
 			"market":         marketSymbol,
 			"label":          label,
@@ -631,9 +621,9 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 			grouped[*sportXeventId] = []any{}
 			order = append(order, *sportXeventId)
 		}
-		var retRes48412, _ = grouped[*sportXeventId].([]any)
-		retRes48412 = append(retRes48412, raw)
-		grouped[*sportXeventId] = retRes48412
+		var retRes48712, _ = grouped[*sportXeventId].([]any)
+		retRes48712 = append(retRes48712, raw)
+		grouped[*sportXeventId] = retRes48712
 	}
 	if this.Markets == nil {
 		this.Markets = map[string]any{}
@@ -647,7 +637,8 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 		var evMarketsLength int = len(evMarkets)
 		for j := 0; j < evMarketsLength; j++ {
 			var m any = evMarkets[j]
-			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
+			var marketKey string = *this.SafeString(m, "market", "")
+			this.AddMarketsEntry(marketKey, m)
 		}
 		result = append(result, event)
 	}
@@ -788,7 +779,7 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 	} else {
 		eventSlug = this.ShortenSlug(fixtureId)
 	}
-	var literal61915 map[string]any = map[string]any{
+	var literal62315 map[string]any = map[string]any{
 		"id":                fixtureId,
 		"slug":              fixtureId,
 		"event":             eventSlug,
@@ -811,12 +802,12 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 		"info":              rawMarkets,
 	}
 	if title != nil {
-		literal61915["title"] = *title
+		literal62315["title"] = *title
 	}
 	if leagueLabel != nil {
-		literal61915["category"] = *leagueLabel
+		literal62315["category"] = *leagueLabel
 	}
-	return literal61915
+	return literal62315
 }
 
 /**
@@ -1055,7 +1046,7 @@ func (this *Sxbet) approveBody(ch chan ccxt.AsyncResult[map[string]any], optiona
 		panic(r3.Err)
 	}
 	var obv3 map[string]any = r3.Value
-	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
+	var activeAsset, _ = obv3["activeAsset"].(map[string]any)
 	var chainId *int64 = this.SafeInteger(obv3, "chainId")
 	var usdcAddress *string = this.SafeString(activeAsset, "baseToken")
 	// the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
@@ -1245,8 +1236,12 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 		panic(r1.Err)
 	}
 	var obv3 map[string]any = r1.Value
-	var domain map[string]any = this.SafeDictMap(obv3, "domain", map[string]any{})
-	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
+	var domain map[string]any
+	domain, _ = obv3["domain"].(map[string]any)
+	if domain == nil {
+		domain = map[string]any{}
+	}
+	var activeAsset, _ = obv3["activeAsset"].(map[string]any)
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
 	var oddsLadderStepSize *string = this.NumberToString(this.SafeInteger(obv3, "oddsLadderStepSize", 125))
 	var roundedProbability string = this.RoundOddsToLadder(probability, *oddsLadderStepSize)
@@ -1876,11 +1871,11 @@ func (this *Sxbet) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes136315 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes136315 == nil {
+	var retRes136715 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes136715 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136315)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136715)}
 	}
 	return nil
 }
@@ -2181,7 +2176,7 @@ func (this *Sxbet) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 		panic(r.Err)
 	}
 	var obv3 map[string]any = r.Value
-	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
+	var activeAsset, _ = obv3["activeAsset"].(map[string]any)
 	var usdcAddress *string = this.SafeStringLower(activeAsset, "baseToken", "")
 
 	responseReply := <-this.SxbetPrivateGetUserBalanceV3(params)
@@ -2347,7 +2342,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	var totalStake *string = this.SafeString(raw, "totalStake", "0")
 	var pnl *string = this.SafeString(raw, "pnl")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "betTime"))
-	var literal166544 map[string]any = map[string]any{
+	var literal166944 map[string]any = map[string]any{
 		"outcome":             this.SafeString(outcomeObj, "outcome"),
 		"outcomeId":           this.SafeString(outcomeObj, "outcomeId", outcomeId),
 		"label":               this.SafeString(outcomeObj, "label"),
@@ -2363,11 +2358,11 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		"info":                raw,
 	}
 	if pnl != nil {
-		literal166544["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
+		literal166944["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
 	} else {
-		literal166544["realizedPnl"] = nil
+		literal166944["realizedPnl"] = nil
 	}
-	return this.SafePredictionPosition(literal166544)
+	return this.SafePredictionPosition(literal166944)
 }
 
 /**
@@ -2517,7 +2512,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 			return 0
 		}()
 	}
-	var literal178315 map[string]any = map[string]any{
+	var literal178715 map[string]any = map[string]any{
 		"info":      trade,
 		"id":        this.SafeString(trade, "tradeId"),
 		"timestamp": timestamp,
@@ -2535,9 +2530,9 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		"pnl":       this.ParseNumber(pnl),
 	}
 	if resultLabel != nil {
-		literal178315["result"] = *resultLabel
+		literal178715["result"] = *resultLabel
 	}
-	return literal178315
+	return literal178715
 }
 
 /**
@@ -3248,7 +3243,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 	var keys []string = ccxt.ObjectKeys(msg)
 	var keysLength int = len(keys)
 	if keysLength == 0 {
-		this.Spawn(this.PongAsync, client, msg)
+		this.Spawn(this.PongAsync, client)
 		return
 	}
 	var requestIdString *string = this.SafeString(msg, "id")

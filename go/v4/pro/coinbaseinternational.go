@@ -277,7 +277,7 @@ func (this *Coinbaseinternational) unSubscribeBody(ch chan ccxt.AsyncResult[bool
 		"jsonrpc": "2.0",
 		"method":  method,
 		"params": map[string]any{
-			"channels": channels,
+			"channels": ccxt.StringSliceToList(channels),
 		},
 		"id": this.RequestId(),
 	}
@@ -627,7 +627,11 @@ func (this *Coinbaseinternational) HandleOrders(client any, message map[string]a
 	if dataList != nil {
 		orders = this.ParseOrders(dataList)
 	} else {
-		var data any = this.SafeValue(params, "data", map[string]any{})
+		var data map[string]any
+		data, _ = params["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		orders = []any{ccxt.OrderToMap(this.ParseOrder(data))}
 	}
 	var ordersLength int = len(orders)
@@ -780,7 +784,7 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
 		var position any = positions[i]
-		if ccxt.IsEqual(ccxt.GetValue(position, "side"), nil) {
+		if this.SafeString(position, "side") == nil {
 			// flat (direction: zero) position, the cache is keyed by side so reset both sides
 			ccxt.AddElementToObject(position, "side", "long")
 			var shortPosition any = this.Clone(position)

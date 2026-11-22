@@ -909,7 +909,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	// the endpoint has no type filter, so unwanted kinds are dropped before the costly parse
 	var assetKinds map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(types); i++ {
-		var marketType any = GetValue(types, i)
+		var marketType string = *this.SafeString(types, i, "")
 		if marketType == "swap" {
 			assetKinds["PERP"] = true
 		} else if marketType == "spot" {
@@ -918,7 +918,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			assetKinds["OPTION"] = true
 			assetKinds["PERP_OPTION"] = true
 		} else {
-			panic(BadRequest(Add(this.Id+" fetchMarkets() types must be any of swap, spot and option, got ", marketType)))
+			panic(BadRequest(this.Id + " fetchMarkets() types must be any of swap, spot and option, got " + marketType))
 		}
 	}
 	var wanted []any = []any{}
@@ -1171,11 +1171,11 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 	//
 	var parts []string = Split(symbol, "-")
 	var partsLength int = len(parts)
-	var base *string = nil
+	var base string = ""
 	var quote string = ""
 	var settle *string = nil
 	var expiryDate *string = nil
-	var strike any = nil
+	var strike string = ""
 	var optionType string = ""
 	if GetIndexOf(symbol, "/") > -1 {
 		if partsLength != 4 {
@@ -1186,23 +1186,19 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 			pair = &parts[0]
 		}
 		var pairParts []string = strings.Split(*pair, "/")
-		base = this.SafeString(pairParts, 0)
+		base = *this.SafeString(pairParts, 0, "")
 		var quoteAndSettle string = *this.SafeString(pairParts, 1, "")
 		var quoteParts []string = strings.Split(quoteAndSettle, ":")
 		quote = *this.SafeString(quoteParts, 0, "")
 		settle = this.SafeString(quoteParts, 1, quote)
 		expiryDate = this.SafeString(parts, 1)
-		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
-			strike = *derefPtr
-		} else {
-			strike = nil
-		}
+		strike = *this.SafeString(parts, 2, "")
 		optionType = *this.SafeString(parts, 3, "")
 	} else {
 		if partsLength != 5 {
 			panic(BadSymbol(Add(this.Id+" does not have market symbol ", symbol)))
 		}
-		base = this.SafeString(parts, 0)
+		base = *this.SafeString(parts, 0, "")
 		quote = *this.SafeString(parts, 1, "")
 		settleStr := "USDC"
 		settle = &settleStr // every option on the venue settles in USDC
@@ -1226,17 +1222,16 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 	if (timestamp != nil) && ((*timestamp + 86400000) <= this.Milliseconds()) {
 		active = false
 	}
-	var strikeInId string = ""
-	if !IsEqual(strike, nil) {
-		strikeInId = Replace(strike, ".", "_")
-	}
-	var ternaryStr92326 string = "put"
+	var strikeInId string = strings.Replace(strike, ".", "_", 1)
+	var idTail string = "-" + strikeInId + "-" + optionType
+	var symbolTail string = "-" + strike + "-" + optionType
+	var ternaryStr92226 string = "put"
 	if optionType == "C" {
-		ternaryStr92326 = "call"
+		ternaryStr92226 = "call"
 	}
 	return map[string]any{
-		"id":             Add(Add(Add(Add(Add(Add(Add(Add(base, "-"), quote), "-"), idDate), "-"), strikeInId), "-"), optionType),
-		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiryDate), "-"), strike), "-"), optionType),
+		"id":             Add(Add(base+"-"+quote+"-", idDate), idTail),
+		"symbol":         Add(Add(base+"/"+quote+":"+*settle+"-", expiryDate), symbolTail),
 		"base":           base,
 		"quote":          quote,
 		"settle":         settle,
@@ -1257,7 +1252,7 @@ func (this *Paradex) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType":     ternaryStr92326,
+		"optionType":     ternaryStr92226,
 		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
@@ -1532,11 +1527,11 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes110919 []any = r1.Value
-		if retRes110919 == nil {
+		var retRes110819 []any = r1.Value
+		if retRes110819 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes110919)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes110819)}
 		}
 		return nil
 	}
@@ -1556,7 +1551,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		}
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
-	var hasEnd bool = (InOp(requestUntil, "end_at"))
+	var hasEnd bool = (this.SafeInteger(requestUntil, "end_at") != nil)
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
 	// exchange has undocumented limit slightly above, but 1000 is reliable limit
 	var limitResolved int64
@@ -2013,7 +2008,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
 		intervalStr := *hours + "h"
 		interval = &intervalStr
 	}
-	var literal145815 map[string]any = map[string]any{
+	var literal145715 map[string]any = map[string]any{
 		"info":                     contract,
 		"markPrice":                this.SafeNumber(contract, "mark_price"),
 		"indexPrice":               this.SafeNumber(contract, "underlying_price"),
@@ -2033,11 +2028,11 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) Funding
 		"interval":                 interval,
 	}
 	if funds {
-		literal145815["symbol"] = marketResolved["symbol"]
+		literal145715["symbol"] = marketResolved["symbol"]
 	} else {
-		literal145815["symbol"] = nil
+		literal145715["symbol"] = nil
 	}
-	return FundingRateFromMap(literal145815)
+	return FundingRateFromMap(literal145715)
 }
 
 /**
@@ -2154,11 +2149,11 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes154519 []any = r1.Value
-		if retRes154519 == nil {
+		var retRes154419 []any = r1.Value
+		if retRes154419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes154419)}
 		}
 		return nil
 	}
@@ -2198,14 +2193,14 @@ func (this *Paradex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	//
 	var trades []any
 	trades, _ = response["results"].([]any)
-	if trades == nil {
-		trades = []any{}
-	}
+	var tagged []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
+		tagged = append(tagged, this.Extend(trades[i], map[string]any{
+			"next": this.SafeString(response, "next"),
+		}))
 	}
 
-	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tagged, market, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -2526,7 +2521,7 @@ func (this *Paradex) onboardingBody(ch chan AsyncResult[map[string]any], optiona
 		}},
 	}
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, this.SafeString(account, "address"))
-	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
+	var signature any = this.StarknetSign(msg, account["privateKey"])
 	params["signature"] = signature
 	params["account"] = this.SafeString(account, "address")
 	params["public_key"] = this.SafeString(account, "publicKey")
@@ -2603,7 +2598,7 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 		}},
 	}
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, req, this.SafeString(account, "address"))
-	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
+	var signature any = this.StarknetSign(msg, account["privateKey"])
 	params["signature"] = signature
 	params["account"] = this.SafeString(account, "address")
 	params["timestamp"] = req["timestamp"]
@@ -2931,22 +2926,21 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 		panic(ExchangeError(this.Id + " signOrderRequest() missing orderType"))
 	}
 	var isMarket bool = (strings.Index(*orderType, "MARKET") >= 0)
-	var ternaryStr213320 string = "2"
+	var orderPrice any = "0"
+	if !isMarket {
+		orderPrice = this.ScaleNumber(this.SafeString(request, "price"))
+	}
+	var ternaryStr213720 string = "2"
 	if this.SafeString(request, "side") != nil && *this.SafeString(request, "side") == "BUY" {
-		ternaryStr213320 = "1"
+		ternaryStr213720 = "1"
 	}
 	var orderReq map[string]any = map[string]any{
 		"timestamp": now,
 		"market":    this.StringToBase16(this.SafeString(request, "market")),
-		"side":      ternaryStr213320,
+		"side":      ternaryStr213720,
 		"orderType": this.StringToBase16(this.SafeString(request, "type")),
 		"size":      this.ScaleNumber(this.SafeString(request, "size")),
-		"price": func() any {
-			if isMarket {
-				return "0"
-			}
-			return this.ScaleNumber(this.SafeString(request, "price"))
-		}(),
+		"price":     orderPrice,
 	}
 	var orderFields []any = []any{map[string]any{
 		"name": "timestamp",
@@ -2989,7 +2983,7 @@ func (this *Paradex) signOrderRequestBody(ch chan AsyncResult[map[string]any], r
 	}
 	var domain map[string]any = r1.Value
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, orderReq, this.SafeString(account, "address"))
-	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
+	var signature any = this.StarknetSign(msg, account["privateKey"])
 	var signedRequest map[string]any = this.Extend(request, map[string]any{
 		"signature":           signature,
 		"signature_timestamp": orderReq["timestamp"],
@@ -3423,7 +3417,7 @@ func (this *Paradex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	}
 	var request map[string]any = map[string]any{}
 	if hasOrderIds {
-		request["order_ids"] = ids
+		request["order_ids"] = StringSliceToList(ids)
 	}
 	if hasClientOrderIds {
 		request["client_order_ids"] = clientOrderIds
@@ -3686,11 +3680,11 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes259719 []any = r2.Value
-		if retRes259719 == nil {
+		var retRes260119 []any = r2.Value
+		if retRes260119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes259719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes260119)}
 		}
 		return nil
 	}
@@ -3747,11 +3741,12 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	//     ]
 	//   }
 	//
-	var orders any = this.SafeList(response, "results", []any{})
+	var orders []any
+	orders, _ = response["results"].([]any)
 	var paginationCursor *string = this.SafeString(response, "next")
-	var ordersLength int = GetArrayLength(orders)
+	var ordersLength int = len(orders)
 	if (paginationCursor != nil) && (ordersLength > 0) {
-		var first any = GetValue(orders, 0)
+		var first any = orders[0]
 		AddElementToObject(first, "next", paginationCursor)
 		AddElementToObject(orders, 0, first)
 	}
@@ -3974,11 +3969,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes278119 []any = r2.Value
-		if retRes278119 == nil {
+		var retRes278519 []any = r2.Value
+		if retRes278519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278519)}
 		}
 		return nil
 	}
@@ -4026,14 +4021,14 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 	//
 	var trades []any
 	trades, _ = response["results"].([]any)
-	if trades == nil {
-		trades = []any{}
-	}
+	var tagged []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		AddElementToObject(trades[i], "next", this.SafeString(response, "next"))
+		tagged = append(tagged, this.Extend(trades[i], map[string]any{
+			"next": this.SafeString(response, "next"),
+		}))
 	}
 
-	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
+	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(tagged, market, since, limit))}
 	return nil
 }
 
@@ -4633,11 +4628,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes320619 []any = r2.Value
-		if retRes320619 == nil {
+		var retRes321119 []any = r2.Value
+		if retRes321119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320619)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321119)}
 		}
 		return nil
 	}
@@ -4682,22 +4677,16 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 	//
 	var rows []any
 	rows, _ = response["results"].([]any)
-	if rows == nil {
-		rows = []any{}
-	}
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
+	var tagged []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		if row, ok := rows[i].(map[string]any); ok && (row != nil) {
-			if next != nil {
-				row["next"] = *next
-			} else {
-				row["next"] = nil
-			}
-		}
+		tagged = append(tagged, this.Extend(rows[i], map[string]any{
+			"next": next,
+		}))
 	}
 
-	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(rows, currency, since, limit))}
+	ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(this.ParseTransfers(tagged, currency, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {
@@ -5594,11 +5583,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388019 []any = r2.Value
-		if retRes388019 == nil {
+		var retRes388619 []any = r2.Value
+		if retRes388619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388019)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
 		}
 		return nil
 	}
@@ -5640,22 +5629,16 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 	//
 	var results []any
 	results, _ = response["results"].([]any)
-	if results == nil {
-		results = []any{}
-	}
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
+	var tagged []any = []any{}
 	for i := 0; i < len(results); i++ {
-		if row, ok := results[i].(map[string]any); ok && (row != nil) {
-			if next != nil {
-				row["next"] = *next
-			} else {
-				row["next"] = nil
-			}
-		}
+		tagged = append(tagged, this.Extend(results[i], map[string]any{
+			"next": next,
+		}))
 	}
 
-	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(results, market, since, limit))}
+	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseIncomes(tagged, market, since, limit))}
 	return nil
 }
 func (this *Paradex) ParseIncome(income any, optionalArgs ...any) map[string]any {
@@ -5770,7 +5753,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		// rows and skip since, the range is cut to one page of rows from since
 		var windowEnd any = this.Sum(since, pageSize*int64(rowSpacing))
 		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
-		if !(InOp(requestUntil, "end_at")) || (IsGreaterThan(endAt, windowEnd)) {
+		if (this.SafeInteger(requestUntil, "end_at") == nil) || (IsGreaterThan(endAt, windowEnd)) {
 			AddElementToObject(requestUntil, "end_at", windowEnd)
 		}
 	}

@@ -938,7 +938,7 @@ func (this *Cryptocom) HandleTicker(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var ticker any = data[i]
 		var parsed map[string]any = this.ParseWsTicker(ticker, market)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(parsed)
 		}

@@ -1003,8 +1003,9 @@ func (this *Htx) HandleOrderBookMessage(client any, message any) {
 			panic(ccxt.ChecksumError(this.Id + " " + this.OrderbookChecksumMessage(&symbol)))
 		}
 	}
-	var spotConditon bool = (market.Spot == true) && (ccxt.IsEqual(prevSeqNum, this.SafeInteger(orderbook, "nonce")))
-	var nonSpotCondition bool = (market.Contract == true) && (version != nil) && (ccxt.IsEqual(*version-1, this.SafeInteger(orderbook, "nonce")))
+	var currentNonce *int64 = this.SafeInteger(orderbook, "nonce")
+	var spotConditon bool = (market.Spot == true) && (prevSeqNum == currentNonce || (prevSeqNum != nil && currentNonce != nil && *prevSeqNum == *currentNonce))
+	var nonSpotCondition bool = (market.Contract == true) && (version != nil) && (currentNonce != nil && *currentNonce == *version-1)
 	if (spotConditon) || (nonSpotCondition) {
 		var asks []any = this.SafeListSlice(tick, "asks", []any{})
 		var bids []any = this.SafeListSlice(tick, "bids", []any{})
@@ -1910,7 +1911,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		side = this.SafeString2(order, "direction", "side")
 	}
 	var cost *string = this.SafeString2(order, "orderValue", "trade_turnover")
-	var literal153531 map[string]any = map[string]any{
+	var literal153631 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1938,9 +1939,9 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
 	}
 	if typeVar != nil {
-		literal153531["type"] = *typeVar
+		literal153631["type"] = *typeVar
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal153531, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal153631, marketResolved))
 }
 func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade
@@ -2276,13 +2277,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		if marginMode != nil {
 			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		}
-		retRes181212 := func() any {
+		retRes181312 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181212, position)
+		ccxt.AppendToArray(&retRes181312, position)
 		cache.Append(position)
 	}
 	var marginModes []string = nil
@@ -2626,8 +2627,8 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 		}
 		var first, _ = data[0].(map[string]any)
 		var splitTopic []string = strings.Split(*topic, ".")
-		var messageHash *string = this.SafeString(splitTopic, 0)
-		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, ccxt.Add(messageHash, ".*"))
+		var messageHash string = *this.SafeString(splitTopic, 0, "")
+		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash, messageHash+".*")
 		if subscription == nil {
 			// if subscription not found means that we subscribed to a specific currency/symbol
 			// and we use the first data entry to find it
@@ -2638,10 +2639,7 @@ func (this *Htx) HandleBalance(client any, message map[string]any) {
 			if currencyId == nil {
 				return
 			}
-			if messageHash != nil {
-				messageHashValue := *messageHash + "." + strings.ToLower(*currencyId)
-				messageHash = &messageHashValue
-			}
+			messageHash += "." + strings.ToLower(*currencyId)
 			subscription = this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), messageHash)
 		}
 		var subType *string = this.SafeString(subscription, "subType")
@@ -3459,7 +3457,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal286231 map[string]any = map[string]any{
+	var literal286331 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3475,9 +3473,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal286231["type"] = *typeVar
+		literal286331["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal286231, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal286331, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

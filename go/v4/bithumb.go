@@ -1212,12 +1212,10 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		var promises []any = []any{}
 		// the exchange rejects more than 200 market ids per request
 		var maxMarketIdsOption *int64 = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200)
-		var maxMarketIdsPerRequest int64 = this.ParseToInt(func() any {
-			if (maxMarketIdsOption == nil) || (*maxMarketIdsOption < 1) {
-				return 200
-			}
-			return maxMarketIdsOption
-		}())
+		var maxMarketIdsPerRequest int64 = 200
+		if (maxMarketIdsOption != nil) && (*maxMarketIdsOption >= 1) {
+			maxMarketIdsPerRequest = this.ParseToInt(maxMarketIdsOption)
+		}
 		var marketIdsChunk []any = []any{}
 		for i := 0; i < marketIdsLength; i++ {
 			marketIdsChunk = append(marketIdsChunk, marketIds[i])
@@ -1284,7 +1282,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			if IsArray(response) {
 				tickers = ArrayTyped(response)
 			} else if this.IsDictionary(response) {
-				if (InOp(response, "market")) || (InOp(response, "trade_date")) || (InOp(response, "trade_timestamp")) {
+				if (this.SafeString(response, "market") != nil) || (this.SafeString(response, "trade_date") != nil) || (this.SafeString(response, "trade_timestamp") != nil) {
 					tickers = []any{response}
 				} else {
 					var ids []string = ObjectKeys(response)
@@ -1373,15 +1371,16 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 			}
 			for j := 0; j < len(currencyIds); j++ {
 				var currencyId string = currencyIds[j]
-				var ticker any = data[currencyId]
+				var ticker map[string]any = this.Extend(map[string]any{}, data[currencyId])
 				var base *string = this.SafeCurrencyCode(currencyId)
 				if base == nil {
 					continue
 				}
 				var symbol string = *base + "/" + quote
 				var market map[string]any = this.SafeMarket(symbol)
-				AddElementToObject(ticker, "date", timestamp)
-				result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
+				result[symbol] = TickerToMap(this.ParseTicker(this.Extend(ticker, map[string]any{
+					"date": timestamp,
+				}), market))
 			}
 		}
 	}
@@ -1592,11 +1591,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes133123 []any = r1.Value
-			if retRes133123 == nil {
+			var retRes133323 []any = r1.Value
+			if retRes133323 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133123)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
 			}
 			return nil
 		}
@@ -2023,7 +2022,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a side"))
 		}
 		var amount any = this.SafeValue(rawOrder, "amount")
-		var price any = this.SafeValue(rawOrder, "price")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var orderRequest map[string]any = this.CreateOrderRequest(*symbol, *typeVar, *side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -2792,7 +2791,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		timeInForce = &timeInForceStr
 		postOnly = true
 	}
-	var literal229131 map[string]any = map[string]any{
+	var literal229331 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2816,9 +2815,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             rawTrades,
 	}
 	if symbol != nil {
-		literal229131["symbol"] = *symbol
+		literal229331["symbol"] = *symbol
 	}
-	return this.SafeOrder(literal229131, marketResolved)
+	return this.SafeOrder(literal229331, marketResolved)
 }
 
 /**
@@ -2872,12 +2871,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var response map[string]any = nil
 	if generation == 2 {
 		var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-		var ternaryStr2343115 string = "wait"
+		var ternaryStr2345115 string = "wait"
 		if twap != nil && *twap {
-			ternaryStr2343115 = "progress"
+			ternaryStr2345115 = "progress"
 		}
 		r1 := <-this.FetchOrdersAsync(symbol, since, limit, this.Extend(paramsGeneration, map[string]any{
-			"state": ternaryStr2343115,
+			"state": ternaryStr2345115,
 		}))
 		if r1.Err != nil {
 			panic(r1.Err)
@@ -3302,7 +3301,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	if clientOrderIds != nil {
 		request["client_order_ids"] = clientOrderIds
 	} else {
-		request["order_ids"] = ids
+		request["order_ids"] = StringSliceToList(ids)
 	}
 
 	r1 := <-this.PrivatePostV2OrdersCancel(this.Extend(request, paramsRequest))
@@ -4296,16 +4295,16 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var literal341015 map[string]any = map[string]any{
+	var literal341215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal341015["body"] = *requestBody
+		literal341215["body"] = *requestBody
 	}
-	return literal341015
+	return literal341215
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

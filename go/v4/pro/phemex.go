@@ -357,9 +357,9 @@ func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	var usePerpetualApi bool = (this.SafeString(paramsMarketType, "settle") != nil && *this.SafeString(paramsMarketType, "settle") == "USDT")
-	var messageHash any = "perpetual:balance"
-	if !usePerpetualApi {
-		messageHash = ccxt.Add(typeVar, ":balance")
+	var messageHash string = "perpetual:balance"
+	if !usePerpetualApi && (typeVar != nil) {
+		messageHash = *typeVar + ":balance"
 	}
 
 	r1 := <-this.SubscribePrivateAsync(typeVar, messageHash, paramsMarketType)
@@ -585,7 +585,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = &market.Symbol
+	var symbolValue string = market.Symbol
 	var isSwap bool = market.Swap
 	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "spot_market24h"
@@ -599,7 +599,7 @@ func (this *Phemex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var subscriptionHash string = name + ".subscribe"
-	var messageHash string = "ticker:" + *symbolValue
+	var messageHash string = "ticker:" + symbolValue
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
 		"id":     requestId,
@@ -728,7 +728,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
@@ -738,7 +738,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	if isUsdtSwap {
 		name = "trade_p"
 	}
-	var messageHash string = "trade:" + *symbolValue
+	var messageHash string = "trade:" + symbolValue
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -794,7 +794,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
@@ -804,7 +804,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	if isUsdtSwap {
 		name = "orderbook_p"
 	}
-	var messageHash string = "orderbook:" + *symbolValue
+	var messageHash string = "orderbook:" + symbolValue
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -861,7 +861,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
 	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
@@ -871,7 +871,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	if isUsdtSwap {
 		name = "kline_p"
 	}
-	var messageHash string = "kline:" + timeframe + ":" + *symbolValue
+	var messageHash string = "kline:" + timeframe + ":" + symbolValue
 	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
@@ -1206,7 +1206,7 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		}
 	}
 	var market map[string]any = nil
-	var messageHash any = "trades:"
+	var messageHash string = "trades:"
 	var symbolResolved *string
 	if symbol != nil {
 		symbolResolvedValue := this.Symbol(symbol)
@@ -1230,8 +1230,8 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 		var settle *string = this.SafeString(paramsType, "settle")
 		if settle != nil && *settle == "USDT" {
 			messageHash = "trades:perpetual"
-		} else {
-			messageHash = ccxt.Add("trades:", typeVar)
+		} else if typeVar != nil {
+			messageHash = "trades:" + *typeVar
 		}
 	}
 
@@ -1423,7 +1423,7 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "orders:"
+	var messageHash string = "orders:"
 	var market map[string]any = nil
 	var symbolResolved *string
 	if symbol != nil {
@@ -1448,8 +1448,8 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	if symbol == nil {
 		if isUSDTSettled {
 			messageHash = "orders:perpetual"
-		} else {
-			messageHash = ccxt.Add("orders:", typeVar)
+		} else if typeVar != nil {
+			messageHash = "orders:" + *typeVar
 		}
 	}
 
@@ -2047,12 +2047,12 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Phemex) SubscribePrivateAsync(typeVar *string, messageHash any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Phemex) SubscribePrivateAsync(typeVar *string, messageHash string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, typeVar, messageHash, optionalArgs...)
 	return ch
 }
-func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar *string, messageHash any, optionalArgs ...any) any {
+func (this *Phemex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], typeVar *string, messageHash string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

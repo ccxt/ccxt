@@ -1106,7 +1106,11 @@ func (this *Deribit) HandleOrders(client any, message map[string]any) {
 	if dataList != nil {
 		orders = this.ParseOrders(dataList)
 	} else {
-		var data any = this.SafeValue(params, "data", map[string]any{})
+		var data map[string]any
+		data, _ = params["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 		orders = []any{order}
 	}

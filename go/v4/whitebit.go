@@ -4562,39 +4562,36 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var currencyId *string = this.SafeString(transaction, "ticker")
 	var status *string = this.SafeString(transaction, "status")
 	var method *string = this.SafeString(transaction, "method")
-	var ternaryStr324720 string = "withdrawal"
+	var addressFrom *string = nil
+	var addressTo *string = nil
 	if method != nil && *method == "1" {
-		ternaryStr324720 = "deposit"
+		addressFrom = address
+	} else if method != nil && *method == "2" {
+		addressTo = address
+	}
+	var ternaryStr325420 string = "withdrawal"
+	if method != nil && *method == "1" {
+		ternaryStr325420 = "deposit"
 	}
 	return TransactionFromMap(map[string]any{
-		"id":        this.SafeString(transaction, "uniqueId"),
-		"txid":      this.SafeString(transaction, "transactionId"),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
-		"network":   this.NetworkIdToCode(this.SafeString(transaction, "network"), this.SafeCurrencyCode(currencyId, currencyResolved)),
-		"addressFrom": func() any {
-			if method != nil && *method == "1" {
-				return address
-			}
-			return nil
-		}(),
-		"address": address,
-		"addressTo": func() any {
-			if method != nil && *method == "2" {
-				return address
-			}
-			return nil
-		}(),
-		"amount":   this.SafeNumber(transaction, "amount"),
-		"type":     ternaryStr324720,
-		"currency": this.SafeCurrencyCode(currencyId, currencyResolved),
-		"status":   this.ParseTransactionStatus(status),
-		"updated":  nil,
-		"tagFrom":  nil,
-		"tag":      this.SafeString(transaction, "memo"),
-		"tagTo":    nil,
-		"comment":  this.SafeString(transaction, "description"),
-		"internal": nil,
+		"id":          this.SafeString(transaction, "uniqueId"),
+		"txid":        this.SafeString(transaction, "transactionId"),
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network"), this.SafeCurrencyCode(currencyId, currencyResolved)),
+		"addressFrom": addressFrom,
+		"address":     address,
+		"addressTo":   addressTo,
+		"amount":      this.SafeNumber(transaction, "amount"),
+		"type":        ternaryStr325420,
+		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
+		"status":      this.ParseTransactionStatus(status),
+		"updated":     nil,
+		"tagFrom":     nil,
+		"tag":         this.SafeString(transaction, "memo"),
+		"tagTo":       nil,
+		"comment":     this.SafeString(transaction, "description"),
+		"internal":    nil,
 		"fee": map[string]any{
 			"cost":     this.SafeNumber(transaction, "fee"),
 			"currency": this.SafeCurrencyCode(currencyId, currencyResolved),
@@ -5962,11 +5959,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes425119 []any = r.Value
-		if retRes425119 == nil {
+		var retRes425819 []any = r.Value
+		if retRes425819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425819)}
 		}
 		return nil
 	}
@@ -6077,17 +6074,17 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var literal434015 map[string]any = map[string]any{
+	var literal434715 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if isPrivate {
-		literal434015["headers"] = privateHeaders
+		literal434715["headers"] = privateHeaders
 	} else {
-		literal434015["headers"] = publicHeaders
+		literal434715["headers"] = publicHeaders
 	}
-	return literal434015
+	return literal434715
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {

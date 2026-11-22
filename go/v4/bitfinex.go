@@ -2382,16 +2382,10 @@ func (this *Bitfinex) CreateOrderRequest(symbol *string, typeVar *string, side *
 	 * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
 	 */
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var amountString any
-	if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
-		amountString = *derefPtr
+	var amountString *string = this.AmountToPrecision(symbol, amount)
+	if side == nil || *side != "buy" {
+		amountString = Precise.StringNeg(amountString)
 	}
-	amountString = func() any {
-		if side != nil && *side == "buy" {
-			return amountString
-		}
-		return Precise.StringNeg(amountString)
-	}()
 	var request map[string]any = map[string]any{
 		"symbol": nil,
 		"amount": amountString,
@@ -3140,11 +3134,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes226819 []any = r1.Value
-		if retRes226819 == nil {
+		var retRes227019 []any = r1.Value
+		if retRes227019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes226819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes227019)}
 		}
 		return nil
 	}
@@ -4150,9 +4144,9 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 	var meta *string = this.SafeString(positionList, 19)
 	var tradePrice *string = this.SafeString(meta, "trade_price")
 	var tradeAmount *string = this.SafeString(meta, "trade_amount")
-	var ternaryStr304020 string = "short"
+	var ternaryStr304220 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr304020 = "long"
+		ternaryStr304220 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        positionList,
@@ -4168,7 +4162,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 		"contractSize":                nil,
 		"markPrice":                   nil,
 		"lastPrice":                   nil,
-		"side":                        ternaryStr304020,
+		"side":                        ternaryStr304220,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -4425,11 +4419,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321919 []any = r1.Value
-		if retRes321919 == nil {
+		var retRes322119 []any = r1.Value
+		if retRes322119 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes321919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes322119)}
 		}
 		return nil
 	}
@@ -4608,11 +4602,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333619 []any = r1.Value
-		if retRes333619 == nil {
+		var retRes333819 []any = r1.Value
+		if retRes333819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333819)}
 		}
 		return nil
 	}
@@ -4970,11 +4964,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361419 []any = r1.Value
-		if retRes361419 == nil {
+		var retRes361619 []any = r1.Value
+		if retRes361619 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361419)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361619)}
 		}
 		return nil
 	}
@@ -5149,11 +5143,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375219 []any = r1.Value
-		if retRes375219 == nil {
+		var retRes375419 []any = r1.Value
+		if retRes375419 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375219)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375419)}
 		}
 		return nil
 	}
@@ -5473,16 +5467,10 @@ func (this *Bitfinex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"id": this.ParseToNumeric(id),
 	}
 	if amount != nil {
-		var amountString any
-		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
-			amountString = *derefPtr
+		var amountString *string = this.AmountToPrecision(symbol, amount)
+		if side != "buy" {
+			amountString = Precise.StringNeg(amountString)
 		}
-		amountString = func() any {
-			if side == "buy" {
-				return amountString
-			}
-			return Precise.StringNeg(amountString)
-		}()
 		request["amount"] = amountString
 	}
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")

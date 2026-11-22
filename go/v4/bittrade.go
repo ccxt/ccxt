@@ -2567,7 +2567,7 @@ func (this *Bittrade) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderIds", "client-order-ids"})
 	var request map[string]any = map[string]any{}
 	if clientOrderIds == nil {
-		request["order-ids"] = ids
+		request["order-ids"] = StringSliceToList(ids)
 	} else {
 		request["client-order-ids"] = clientOrderIds
 	}
@@ -3048,7 +3048,8 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string
 	if network != nil {
 		// possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
 		if network != nil && *network == "erc20" {
-			request["chain"] = currency["id"].(string) + *network
+			var currencyId string = *this.SafeString(currency, "id", "")
+			request["chain"] = currencyId + *network
 		} else {
 			request["chain"] = *network + currency["id"].(string)
 		}

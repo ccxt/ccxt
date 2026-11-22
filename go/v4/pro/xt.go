@@ -1288,10 +1288,8 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) map[string
 		var timestamp *int64 = this.SafeInteger(data, "t")
 		fundingRate["timestamp"] = timestamp
 		fundingRate["datetime"] = this.Iso8601(timestamp)
-		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
-		if symbol != nil {
-			this.FundingRates[*symbol] = fundingRate
-		}
+		var symbol string = *this.SafeString(fundingRate, "symbol", "")
+		this.FundingRates[symbol] = fundingRate
 		var event *string = this.SafeString(message, "event")
 		if event != nil {
 			var messageHash string = *event + "::contract"
@@ -1645,20 +1643,18 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) map[string]any {
 			tradeType = "spot"
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
-		if symbol != nil && this.Ohlcvs[*symbol] == nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
+		if this.Ohlcvs[symbol] == nil {
+			this.Ohlcvs[symbol] = map[string]any{}
 		}
 		var stored ccxt.WsArrayCache
-		if symbol != nil {
-			stored, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
-		}
+		stored, _ = this.Ohlcvs[symbol][timeframe].(ccxt.WsArrayCache)
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
-			if symbol != nil && this.Ohlcvs[*symbol] != nil {
-				this.Ohlcvs[*symbol][timeframe] = stored
+			if this.Ohlcvs[symbol] != nil {
+				this.Ohlcvs[symbol][timeframe] = stored
 			}
 		}
 		stored.Append(parsed)
@@ -1711,18 +1707,13 @@ func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
 			tradeType = "spot"
 		}
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, tradeType))
-		var symbol *string
-		if market.Symbol != "" {
-			symbol = &market.Symbol
-		}
+		var symbol string = market.Symbol
 		var event *string = this.SafeString(message, "event")
-		var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+		var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 		if tradesArray == nil {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(tradesLimit)
-			if symbol != nil {
-				this.Trades[*symbol] = tradesArray
-			}
+			this.Trades[symbol] = tradesArray
 		}
 		tradesArray.Append(trade)
 		if event != nil {
@@ -1806,20 +1797,15 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if _, ok := data["fu"]; (data != nil) && ok {
 			tradeType = "contract"
 		}
-		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, nil, tradeType))
-		var symbol *string
-		if market.Symbol != "" {
-			symbol = &market.Symbol
-		}
+		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
+		var symbol *string = this.SafeString(market, "symbol", "")
 		var obAsks []any = ccxt.SafeListTyped(data, "a")
 		var obBids []any = ccxt.SafeListTyped(data, "b")
 		var messageHash string = event + "::" + tradeType
-		if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
+		if !(this.Orderbooks[*symbol] != nil) {
 			var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
-			if symbol != nil {
-				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-			}
+			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
 		}
 		var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")

@@ -523,7 +523,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 	var request map[string]any = map[string]any{
 		"method": "cancel_order",
 		"params": map[string]any{
-			"order_id": ids,
+			"order_id": ccxt.StringSliceToList(ids),
 			"token":    token,
 		},
 		"req_id": requestId,
@@ -1126,7 +1126,7 @@ func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"method": "unsubscribe",
 		"params": map[string]any{
 			"channel": "trade",
-			"symbol":  symbolsNormalized,
+			"symbol":  ccxt.StringSliceToList(symbolsNormalized),
 		},
 		"req_id": this.RequestId(),
 	}
@@ -1968,8 +1968,8 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 		symbol = this.SafeString(market, "symbol")
 	}
 	var fee map[string]any = nil
-	if ccxt.InOp(trade, "fees") {
-		var fees []any = ccxt.SafeListTyped(trade, "fees")
+	var fees []any = ccxt.SafeListTyped(trade, "fees")
+	if fees != nil {
 		var firstFee map[string]any
 		if 0 < len(fees) {
 			firstFee, _ = fees[0].(map[string]any)
@@ -2246,7 +2246,7 @@ func (this *Kraken) watchMultiHelperBody(ch chan ccxt.AsyncResult[any], unifiedN
 		"method": "subscribe",
 		"params": map[string]any{
 			"channel": channelName,
-			"symbol":  symbolsNormalized,
+			"symbol":  ccxt.StringSliceToList(symbolsNormalized),
 		},
 		"req_id": this.RequestId(),
 	}

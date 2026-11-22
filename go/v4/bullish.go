@@ -1029,13 +1029,9 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		} else {
 			margin = nil
 		}
-	} else {
+	} else if settle != nil {
 		contractSize = this.SafeNumber(market, "contractMultiplier")
-		if settle != nil {
-			symbol = *base + "/" + *quote + ":" + *settle
-		} else {
-			symbol = nil
-		}
+		symbol = *base + "/" + *quote + ":" + *settle
 		linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 		inverse = !(linear == true)
 		if typeVar != nil && *typeVar == "swap" {
@@ -1050,19 +1046,16 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 				datePartPart = str[2:]
 			}
 			var dateYmd string = datePartPart
-			if settle != nil {
-				symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd
-			} else {
-				symbol = nil
-			}
+			symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd
 			if typeVar != nil && *typeVar == "future" {
 				future = true
 			} else if typeVar != nil && *typeVar == "option" {
 				option = true
 				optionType = this.SafeStringLower(market, "optionType")
 				strike = this.ParseToNumeric(this.SafeString(market, "optionStrikePrice"))
-				if symbolPiece, symbolPiece2 := this.NumberToString(strike), this.SafeString(idParts, 4); symbolPiece != nil && symbolPiece2 != nil && settle != nil {
-					symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd + "-" + *symbolPiece + "-" + *symbolPiece2
+				var optionSide string = *this.SafeString(idParts, 4, "")
+				if symbolPiece := this.NumberToString(strike); symbolPiece != nil {
+					symbol = *base + "/" + *quote + ":" + *settle + "-" + dateYmd + "-" + *symbolPiece + "-" + optionSide
 				} else {
 					symbol = nil
 				}
@@ -1070,7 +1063,7 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		}
 	}
 	var tradingFees, _ = this.Fees["trading"].(map[string]any)
-	var literal85241 map[string]any = map[string]any{
+	var literal85341 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1125,12 +1118,12 @@ func (this *Bullish) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if expiryDatetime != nil {
-		literal85241["expiryDatetime"] = *expiryDatetime
+		literal85341["expiryDatetime"] = *expiryDatetime
 	}
 	if optionType != nil {
-		literal85241["optionType"] = *optionType
+		literal85341["optionType"] = *optionType
 	}
-	return this.SafeMarketStructure(literal85241)
+	return this.SafeMarketStructure(literal85341)
 }
 func (this *Bullish) ParseMarketType(optionalArgs ...any) *string {
 	var typeVar *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1257,11 +1250,11 @@ func (this *Bullish) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes98219 []any = r1.Value
-		if retRes98219 == nil {
+		var retRes98319 []any = r1.Value
+		if retRes98319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes98219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes98319)}
 		}
 		return nil
 	}
@@ -1367,11 +1360,11 @@ func (this *Bullish) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			var retRes104523 []any = r2.Value
-			if retRes104523 == nil {
+			var retRes104623 []any = r2.Value
+			if retRes104623 == nil {
 				ch <- AsyncResult[[]Trade]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes104523)}
+				ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes104623)}
 			}
 			return nil
 		}
@@ -1457,11 +1450,11 @@ func (this *Bullish) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes109815 []any = TradesToList(r1.Value)
-	if retRes109815 == nil {
+	var retRes109915 []any = TradesToList(r1.Value)
+	if retRes109915 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes109815)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes109915)}
 	}
 	return nil
 }
@@ -1765,12 +1758,12 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 					if r.Err != nil {
 						panic(r.Err)
 					}
-					var retRes133127 []any = OHLCVsToList(r.Value)
-					if retRes133127 == nil {
+					var retRes133227 []any = OHLCVsToList(r.Value)
+					if retRes133227 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes133127}
+						ch <- AsyncResult[[]any]{Value: retRes133227}
 						chSent = true
 					}
 					return nil
@@ -1780,12 +1773,12 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 					if r1.Err != nil {
 						panic(r1.Err)
 					}
-					var retRes133327 []any = FundingRateHistoriesToList(r1.Value)
-					if retRes133327 == nil {
+					var retRes133427 []any = FundingRateHistoriesToList(r1.Value)
+					if retRes133427 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes133327}
+						ch <- AsyncResult[[]any]{Value: retRes133427}
 						chSent = true
 					}
 					return nil
@@ -1798,12 +1791,12 @@ func (this *Bullish) safeDeterministicCallBody(ch chan AsyncResult[[]any], metho
 					if r2.Err != nil {
 						panic(r2.Err)
 					}
-					var retRes133827 []any = TradesToList(r2.Value)
-					if retRes133827 == nil {
+					var retRes133927 []any = TradesToList(r2.Value)
+					if retRes133927 == nil {
 						ch <- AsyncResult[[]any]{Value: nil}
 						chSent = true
 					} else {
-						ch <- AsyncResult[[]any]{Value: retRes133827}
+						ch <- AsyncResult[[]any]{Value: retRes133927}
 						chSent = true
 					}
 					return nil
@@ -1867,11 +1860,11 @@ func (this *Bullish) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes137519 []any = r1.Value
-		if retRes137519 == nil {
+		var retRes137619 []any = r1.Value
+		if retRes137619 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes137519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes137619)}
 		}
 		return nil
 	}
@@ -1979,11 +1972,11 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes145419 []any = r1.Value
-		if retRes145419 == nil {
+		var retRes145519 []any = r1.Value
+		if retRes145519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes145419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes145519)}
 		}
 		return nil
 	}
@@ -2087,11 +2080,11 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes152019 []any = r2.Value
-		if retRes152019 == nil {
+		var retRes152119 []any = r2.Value
+		if retRes152119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes152019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes152119)}
 		}
 		return nil
 	}
@@ -2287,11 +2280,11 @@ func (this *Bullish) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes165115 []any = OrdersToList(r.Value)
-	if retRes165115 == nil {
+	var retRes165215 []any = OrdersToList(r.Value)
+	if retRes165215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes165115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes165215)}
 	}
 	return nil
 }
@@ -2333,11 +2326,11 @@ func (this *Bullish) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes167115 []any = OrdersToList(r.Value)
-	if retRes167115 == nil {
+	var retRes167215 []any = OrdersToList(r.Value)
+	if retRes167215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes167115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes167215)}
 	}
 	return nil
 }
@@ -2379,11 +2372,11 @@ func (this *Bullish) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes169115 []any = OrdersToList(r.Value)
-	if retRes169115 == nil {
+	var retRes169215 []any = OrdersToList(r.Value)
+	if retRes169215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes169115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes169215)}
 	}
 	return nil
 }
@@ -2425,11 +2418,11 @@ func (this *Bullish) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Orde
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes171115 []any = OrdersToList(r.Value)
-	if retRes171115 == nil {
+	var retRes171215 []any = OrdersToList(r.Value)
+	if retRes171215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes171115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes171215)}
 	}
 	return nil
 }
@@ -3760,11 +3753,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes267219 []any = r2.Value
-		if retRes267219 == nil {
+		var retRes267319 []any = r2.Value
+		if retRes267319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267219)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267319)}
 		}
 		return nil
 	}
@@ -4236,16 +4229,16 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var literal305115 map[string]any = map[string]any{
+	var literal305215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal305115["body"] = *requestBody
+		literal305215["body"] = *requestBody
 	}
-	return literal305115
+	return literal305215
 }
 
 /**

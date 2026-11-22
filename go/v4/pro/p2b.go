@@ -350,7 +350,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",
-		"params": marketIds,
+		"params": ccxt.StringSliceToList(marketIds),
 		"id":     this.Milliseconds(),
 	}
 	var query map[string]any = this.Extend(subscribe, params)

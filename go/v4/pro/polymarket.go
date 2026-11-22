@@ -954,7 +954,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	credentials := r.Value
+	credentials, _ := r.Value.(map[string]any)
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"

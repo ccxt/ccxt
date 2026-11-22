@@ -695,13 +695,11 @@ func (this *Bitfinex) HandleTrades(client any, message []any, subscription map[s
 	var marketId string = *this.SafeString(subscription, "symbol", "")
 	var market map[string]any = this.SafeMarket(marketId)
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
 	var messageLength int = len(message)
 	if messageLength == 2 {
@@ -952,7 +950,7 @@ func (this *Bitfinex) ParseWsTicker(ticker []any, optionalArgs ...any) map[strin
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var last *string = this.SafeString(ticker, 6)
 	var change *string = this.SafeString(ticker, 4)
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{

@@ -1333,7 +1333,7 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 	var messageHash string = "myTrades"
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var trade map[string]any = this.ParseWsTrade(message, market)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1342,7 +1342,7 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 	var trades ccxt.WsArrayCache = this.MyTrades
 	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
+	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 

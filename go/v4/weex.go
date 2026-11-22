@@ -3511,9 +3511,9 @@ func (this *Weex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		}
 	} else if ids != nil {
 		if isSpot {
-			request["orderIds"] = ids
+			request["orderIds"] = StringSliceToList(ids)
 		} else {
-			request["orderIdList"] = ids
+			request["orderIdList"] = StringSliceToList(ids)
 		}
 	} else {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires an ids argument or clientOrderIds parameter"))

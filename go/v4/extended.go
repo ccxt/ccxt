@@ -3337,7 +3337,7 @@ func (this *Extended) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
 		var marketIds []string = this.MarketIds(symbols)
-		request["market"] = marketIds
+		request["market"] = StringSliceToList(marketIds)
 	}
 
 	r1 := <-this.V1PrivateGetUserPositions(this.Extend(request, params))
@@ -3453,9 +3453,6 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		panic(r.Err)
 	}
 	var symbolsList any = symbols
-	if IsString(symbols) {
-		symbolsList = []any{symbols}
-	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchPositionsHistory", "paginate", false)
 	if paginate {
 
@@ -3463,18 +3460,18 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes239119 []any = r1.Value
-		if retRes239119 == nil {
+		var retRes238819 []any = r1.Value
+		if retRes238819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes239119)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes238819)}
 		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
 	if symbolsList != nil {
 		var marketIds []string = this.MarketIds(symbolsList)
-		request["market"] = marketIds
+		request["market"] = StringSliceToList(marketIds)
 	}
 
 	r2 := <-this.V1PrivateGetUserPositionsHistory(this.Extend(request, paramsPaginate))
@@ -4326,7 +4323,7 @@ func (this *Extended) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	if hasOrderIds {
 		var idsLength int = len(ids)
 		if idsLength > 0 {
-			request["orderIds"] = ids
+			request["orderIds"] = StringSliceToList(ids)
 		}
 	}
 	if (clientOrderIds == nil) && (clientOrderId != nil) {
@@ -4653,11 +4650,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323419 []any = r1.Value
-		if retRes323419 == nil {
+		var retRes323119 []any = r1.Value
+		if retRes323119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes323419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes323119)}
 		}
 		return nil
 	}
@@ -5047,16 +5044,16 @@ func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
-	var literal361815 map[string]any = map[string]any{
+	var literal361515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal361815["body"] = *requestBody
+		literal361515["body"] = *requestBody
 	}
-	return literal361815
+	return literal361515
 }
 
 func NewExtended(userConfig map[string]any) *Extended {

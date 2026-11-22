@@ -2356,7 +2356,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
 		"event":     nil,
 		"result":    marketResult,
 		"won":       won,
-		"amount": amountValue,
+		"amount":    amountValue,
 		"price": func() int {
 			if won {
 				return 1

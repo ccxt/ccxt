@@ -2016,7 +2016,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var amount *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString(trade, "history_id")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil && *side == "open_long" {
@@ -3058,7 +3058,7 @@ func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -3654,7 +3654,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var marketId *string = this.SafeString2(order, "symbol", "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side *string = this.SafeString(order, "side", "d")

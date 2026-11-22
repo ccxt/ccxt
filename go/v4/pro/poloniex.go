@@ -505,7 +505,7 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 		panic(r1.Err)
 	}
 	var request map[string]any = map[string]any{
-		"orderIds": ids,
+		"orderIds": ccxt.StringSliceToList(ids),
 	}
 
 	r2 := <-this.TradeRequestAsync("cancelOrders", this.Extend(request, params))
@@ -837,7 +837,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
 		"channel": []any{name},
-		"symbols": marketIds,
+		"symbols": ccxt.StringSliceToList(marketIds),
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 	var messageHashes []string = []string{}

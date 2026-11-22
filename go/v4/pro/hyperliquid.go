@@ -399,16 +399,15 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderB
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "orderbook:" + symbolValue
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "l2Book",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -461,17 +460,16 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sy
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	var nonce int64 = this.IncrementingNonce()
 	var id *string = this.NumberToString(nonce)
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"id":     id,
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "l2Book",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -579,16 +577,15 @@ func (this *Hyperliquid) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	// server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
 	var messageHash string = "ticker:" + symbolValue
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 
@@ -636,16 +633,15 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbo
 	var subMessageHash string = "ticker:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 
@@ -1325,16 +1321,15 @@ func (this *Hyperliquid) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "trade:" + symbolValue
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
 			"type": "trades",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -1389,16 +1384,15 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbo
 	var subMessageHash string = "trade:" + symbolValue
 	var messageHash string = "unsubscribe:" + subMessageHash
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
 			"type": "trades",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"coin": wireCoin,
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
@@ -1510,7 +1504,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) map[string
 	var coin *string = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var marketResolved map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString(trade, "tid")
 	var side *string = this.SafeString(trade, "side")
 	if side != nil {
@@ -1581,16 +1575,15 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], 
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "subscribe",
 		"subscription": map[string]any{
-			"type": "candle",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"type":     "candle",
+			"coin":     wireCoin,
 			"interval": timeframe,
 		},
 	}
@@ -1648,16 +1641,15 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol
 	var market map[string]any = this.Market(symbol)
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
+	var wireCoin string = *this.SafeString(market, "id", "")
+	if *this.SafeBool(market, "swap", false) {
+		wireCoin = *this.SafeString(market, "baseName", "")
+	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{
-			"type": "candle",
-			"coin": func() any {
-				if *this.SafeBool(market, "swap", false) {
-					return market["baseName"]
-				}
-				return market["id"]
-			}(),
+			"type":     "candle",
+			"coin":     wireCoin,
 			"interval": timeframe,
 		},
 	}

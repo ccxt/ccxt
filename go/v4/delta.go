@@ -1324,7 +1324,7 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "close")
 	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
 	// turnover_symbol names the currency turnover is denominated in, and on
@@ -2299,7 +2299,7 @@ func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "product_symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
 	var sizeString *string = this.SafeString(position, "size")
 	var side *string = nil

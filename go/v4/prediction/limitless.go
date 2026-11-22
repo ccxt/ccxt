@@ -676,9 +676,9 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 		marketTypeValue = "binary"
 	}
 	return map[string]any{
-		"id":     slug,
-		"market": marketSymbol,
-		"marketType": marketTypeValue,
+		"id":              slug,
+		"market":          marketSymbol,
+		"marketType":      marketTypeValue,
 		"executionModel":  "clob",
 		"collateral":      "USDC",
 		"base":            slug,
@@ -3154,7 +3154,7 @@ func (this *Limitless) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		}
 	}
 	var request map[string]any = map[string]any{
-		"orderIds": ids,
+		"orderIds": ccxt.StringSliceToList(ids),
 	}
 
 	r1 := <-this.LimitlessPrivatePostOrdersCancelBatch(this.Extend(request, params))

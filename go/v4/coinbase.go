@@ -4729,7 +4729,7 @@ func (this *Coinbase) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
-		"order_ids": ids,
+		"order_ids": StringSliceToList(ids),
 	}
 
 	r1 := <-this.V3PrivatePostBrokerageOrdersBatchCancel(this.Extend(request, params))
@@ -5055,12 +5055,15 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	//         "cursor": ""
 	//     }
 	//
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	var ordersLength int = len(orders)
 	var cursor *string = this.SafeString(response, "cursor")
-	if (cursor != nil) && (cursor == nil || *cursor != "") {
-		AddElementToObject(orders, 0, this.Extend(this.SafeDict(orders, 0, map[string]any{}), map[string]any{
+	if (ordersLength > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
+		var lastIndex int64 = int64(ordersLength) - 1
+		orders[lastIndex] = this.Extend(this.SafeDict(orders, lastIndex, map[string]any{}), map[string]any{
 			"cursor": cursor,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limit))}
@@ -5167,12 +5170,15 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], stat
 	//         "cursor": ""
 	//     }
 	//
-	var orders any = this.SafeList(response, "orders", []any{})
+	var orders []any
+	orders, _ = response["orders"].([]any)
+	var ordersLength int = len(orders)
 	var cursor *string = this.SafeString(response, "cursor")
-	if (cursor != nil) && (cursor == nil || *cursor != "") {
-		AddElementToObject(orders, 0, this.Extend(this.SafeDict(orders, 0, map[string]any{}), map[string]any{
+	if (ordersLength > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
+		var lastIndex int64 = int64(ordersLength) - 1
+		orders[lastIndex] = this.Extend(this.SafeDict(orders, lastIndex, map[string]any{}), map[string]any{
 			"cursor": cursor,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market, since, limitResolved))}
@@ -5222,11 +5228,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes391719 []any = r1.Value
-		if retRes391719 == nil {
+		var retRes392119 []any = r1.Value
+		if retRes392119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes392119)}
 		}
 		return nil
 	}
@@ -5235,11 +5241,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes391915 []any = OrdersToList(r2.Value)
-	if retRes391915 == nil {
+	var retRes392315 []any = OrdersToList(r2.Value)
+	if retRes392315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes392315)}
 	}
 	return nil
 }
@@ -5287,11 +5293,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes394119 []any = r1.Value
-		if retRes394119 == nil {
+		var retRes394519 []any = r1.Value
+		if retRes394519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394519)}
 		}
 		return nil
 	}
@@ -5300,11 +5306,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes394315 []any = OrdersToList(r2.Value)
-	if retRes394315 == nil {
+	var retRes394715 []any = OrdersToList(r2.Value)
+	if retRes394715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394715)}
 	}
 	return nil
 }
@@ -5341,11 +5347,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes395815 []any = OrdersToList(r.Value)
-	if retRes395815 == nil {
+	var retRes396215 []any = OrdersToList(r.Value)
+	if retRes396215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes395815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes396215)}
 	}
 	return nil
 }
@@ -5401,11 +5407,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes398819 []any = r1.Value
-		if retRes398819 == nil {
+		var retRes399219 []any = r1.Value
+		if retRes399219 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes398819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes399219)}
 		}
 		return nil
 	}
@@ -5636,11 +5642,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes414519 []any = r1.Value
-		if retRes414519 == nil {
+		var retRes414919 []any = r1.Value
+		if retRes414919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes414519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes414919)}
 		}
 		return nil
 	}
@@ -5697,12 +5703,15 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	//         "cursor": ""
 	//     }
 	//
-	var trades any = this.SafeList(response, "fills", []any{})
+	var trades []any
+	trades, _ = response["fills"].([]any)
+	var tradesLength int = len(trades)
 	var cursor *string = this.SafeString(response, "cursor")
-	if (cursor != nil) && (cursor == nil || *cursor != "") {
-		AddElementToObject(trades, 0, this.Extend(this.SafeDict(trades, 0, map[string]any{}), map[string]any{
+	if (tradesLength > 0) && (cursor != nil) && (cursor == nil || *cursor != "") {
+		var lastIndex int64 = int64(tradesLength) - 1
+		trades[lastIndex] = this.Extend(this.SafeDict(trades, lastIndex, map[string]any{}), map[string]any{
 			"cursor": cursor,
-		}))
+		})
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -7174,7 +7183,7 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData map[string]any) []any 
 	spotPositions, _ = breakdown["spot_positions"].([]any)
 	var parsedPositions []any = []any{}
 	for i := 0; i < len(spotPositions); i++ {
-		var position map[string]any = MapTyped(spotPositions[i])
+		var position, _ = spotPositions[i].(map[string]any)
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
 		var availableBalanceStr string = *this.SafeString(position, "available_to_trade_fiat", "0")
 		var availableBalance *float64 = this.ParseNumber(availableBalanceStr)

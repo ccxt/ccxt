@@ -3426,7 +3426,8 @@ func (this *Hitbtc) CreateOrderRequest(market map[string]any, marketType *string
 	}
 	if reduceOnly != nil {
 		if (resolvedMarketType == nil || *resolvedMarketType != "swap") && (resolvedMarketType == nil || *resolvedMarketType != "margin") {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduce_only for ", market["type"]), " orders, reduce_only orders are supported for swap and margin markets only")))
+			var marketTypeString string = *this.SafeString(market, "type", "")
+			panic(InvalidOrder(this.Id + " createOrder() does not support reduce_only for " + marketTypeString + " orders, reduce_only orders are supported for swap and margin markets only"))
 		}
 	}
 	if reduceOnly != nil && *reduceOnly == true {
@@ -4041,11 +4042,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297719 []any = r1.Value
-		if retRes297719 == nil {
+		var retRes297819 []any = r1.Value
+		if retRes297819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297819)}
 		}
 		return nil
 	}
@@ -5341,17 +5342,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394215 map[string]any = map[string]any{
+	var literal394315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394215["body"] = nil
+		literal394315["body"] = nil
 	} else {
-		literal394215["body"] = bodyString
+		literal394315["body"] = bodyString
 	}
-	return literal394215
+	return literal394315
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

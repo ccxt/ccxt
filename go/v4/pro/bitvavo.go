@@ -567,7 +567,7 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 		"markets": marketIds,
 	}}
 	var subscriptionArgs map[string]any = map[string]any{
-		"symbols": symbolsNormalized,
+		"symbols": ccxt.StringSliceToList(symbolsNormalized),
 	}
 
 	r1 := <-this.UnWatchChannelsAsync("trades", channels, subMessageHashes, subscriptionArgs, params)
@@ -1030,7 +1030,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	// delta messages, so the shared subscription only carries the common fields
 	var subscription map[string]any = map[string]any{
 		"name":    name,
-		"symbols": symbolsNormalized,
+		"symbols": ccxt.StringSliceToList(symbolsNormalized),
 		"limit":   limit,
 		"params":  params,
 	}
@@ -1114,7 +1114,7 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 		"markets": marketIds,
 	}}
 	var subscriptionArgs map[string]any = map[string]any{
-		"symbols": symbolsNormalized,
+		"symbols": ccxt.StringSliceToList(symbolsNormalized),
 	}
 
 	r1 := <-this.UnWatchChannelsAsync("orderbook", channels, subMessageHashes, subscriptionArgs, params)
@@ -1366,7 +1366,7 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan ccxt.AsyncResult[bool], topic s
 	}
 	var subscription map[string]any = this.Extend(map[string]any{
 		"topic":            topic,
-		"subMessageHashes": subMessageHashes,
+		"subMessageHashes": ccxt.StringSliceToList(subMessageHashes),
 		"unsubHashes":      unsubHashes,
 	}, subscriptionArgs)
 	var message map[string]any = this.Extend(request, params)

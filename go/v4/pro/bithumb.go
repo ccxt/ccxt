@@ -417,8 +417,9 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) map[string]a
 	_ = market
 	var code *string = this.SafeString(ticker, "code")
 	if code != nil {
-		ccxt.AddElementToObject(ticker, "market", this.SafeString(ticker, "market", code))
-		return ccxt.TickerToMap(this.ParseTicker(ticker, market))
+		return ccxt.TickerToMap(this.ParseTicker(this.Extend(ticker, map[string]any{
+			"market": this.SafeString(ticker, "market", code),
+		}), market))
 	}
 	var date *string = this.SafeString(ticker, "date", "")
 	var time *string = this.SafeString(ticker, "time", "")
@@ -899,9 +900,9 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		timestamp = &timestampValue
 	}
 	var sideId *string = this.SafeString(trade, "buySellGb")
-	var ternaryStr71720 string = "sell"
+	var ternaryStr71620 string = "sell"
 	if sideId != nil && *sideId == "1" {
-		ternaryStr71720 = "buy"
+		ternaryStr71620 = "buy"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           nil,
@@ -911,7 +912,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"symbol":       this.SafeSymbol(marketId, market, "_"),
 		"order":        nil,
 		"type":         nil,
-		"side":         ternaryStr71720,
+		"side":         ternaryStr71620,
 		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "contPrice"),
 		"amount":       this.SafeString(trade, "contQty"),

@@ -185,7 +185,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], channel
 	var subscription map[string]any = map[string]any{
 		"subHash": subHash,
 		"topic":   topic,
-		"symbols": symbols,
+		"symbols": ccxt.StringSliceToList(symbols),
 	}
 
 	r := <-this.Watch(url, unsubHash, this.Extend(request, params), unsubHash, subscription)

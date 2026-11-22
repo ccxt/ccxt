@@ -2721,7 +2721,7 @@ func (this *BaseExchange) SafeOrder(order map[string]any, optionalArgs ...any) O
 				cost = &costStr
 			}
 			for i := 0; i < len(trades); i++ {
-				var trade map[string]any = MapTyped(trades[i])
+				var trade, _ = trades[i].(map[string]any)
 				if i == 0 {
 					// move properties that are defined in trades up into the order
 					if parseSymbol {

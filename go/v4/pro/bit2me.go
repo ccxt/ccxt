@@ -914,7 +914,7 @@ func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 	}
 	var request map[string]any = map[string]any{
 		"event":    "cancel-orders",
-		"ordersId": ids,
+		"ordersId": ccxt.StringSliceToList(ids),
 	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var messageHash string = "canceled-orders"
@@ -1166,11 +1166,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 	if event != nil && *event == "added-order" {
 		// the error carries no client order id, reject every order of the symbol still waiting for a response
 		var marketId *string = this.SafeString(message, "symbol")
-		var pending map[string]any
-		pending, _ = this.Options["pendingWsOrders"].(map[string]any)
-		if pending == nil {
-			pending = map[string]any{}
-		}
+		var pending, _ = this.Options["pendingWsOrders"].(map[string]any)
 		var clientOrderIds []string = nil
 		if pending != nil {
 			clientOrderIds = make([]string, 0, len(pending))
@@ -1180,7 +1176,8 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 		}
 		for i := 0; i < len(clientOrderIds); i++ {
 			var clientOrderId string = clientOrderIds[i]
-			if ccxt.IsEqual(pending[clientOrderId], marketId) {
+			var pendingMarketId *string = this.SafeString(pending, clientOrderId)
+			if pendingMarketId == marketId || (pendingMarketId != nil && marketId != nil && *pendingMarketId == *marketId) {
 				this.SettleRequest(client, "added-order:"+clientOrderId, nil, exception)
 				this.Options["pendingWsOrders"] = this.Omit(this.Options["pendingWsOrders"], clientOrderId)
 			}

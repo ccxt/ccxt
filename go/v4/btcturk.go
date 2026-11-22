@@ -957,7 +957,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		} else {
 			limitCount = min(*limit, 11000)
 		}
-		var limitSeconds int64 = this.ParseToInt(seconds * (limitCount - 1))
+		var limitSeconds int64 = seconds * (limitCount - 1)
 		if since != nil {
 			var sinceSeconds int64 = this.ParseToInt(float64(*since) / 1000)
 			var to int64 = sinceSeconds + limitSeconds

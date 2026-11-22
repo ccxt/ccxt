@@ -1261,7 +1261,7 @@ func (this *Bit2me) ParseBalanceList(response []any) map[string]any {
 		"info": response,
 	}
 	for i := 0; i < len(response); i++ {
-		var wallet map[string]any = MapTyped(response[i])
+		var wallet, _ = response[i].(map[string]any)
 		var currencyId *string = this.SafeString(wallet, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

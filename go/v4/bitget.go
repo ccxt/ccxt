@@ -14382,21 +14382,21 @@ func (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) OpenInt
 	}
 	if len(data) > 0 {
 		return this.SafeOpenInterest(map[string]any{
-			"symbol": this.SafeSymbol(marketId, market, nil, "contract"),
+			"symbol":             this.SafeSymbol(marketId, market, nil, "contract"),
 			"openInterestAmount": this.SafeNumber2(data[0], "size", "openInterest"),
-			"openInterestValue": nil,
-			"timestamp":         timestamp,
-			"datetime":          this.Iso8601(timestamp),
-			"info":              interest,
+			"openInterestValue":  nil,
+			"timestamp":          timestamp,
+			"datetime":           this.Iso8601(timestamp),
+			"info":               interest,
 		}, market)
 	} else {
 		return this.SafeOpenInterest(map[string]any{
-			"symbol": this.SafeSymbol(marketId, market, nil, "contract"),
+			"symbol":             this.SafeSymbol(marketId, market, nil, "contract"),
 			"openInterestAmount": this.SafeNumber2(nil, "size", "openInterest"),
-			"openInterestValue": nil,
-			"timestamp":         timestamp,
-			"datetime":          this.Iso8601(timestamp),
-			"info":              interest,
+			"openInterestValue":  nil,
+			"timestamp":          timestamp,
+			"datetime":           this.Iso8601(timestamp),
+			"info":               interest,
 		}, market)
 	}
 }

@@ -2079,7 +2079,7 @@ func (this *Backpack) HandleOrder(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var event string = *this.SafeString(data, "e", "")
 	var parsed any = nil
 	if (strings.Index(event, "rfq") == 0) || (strings.Index(event, "quote") == 0) {
@@ -2095,7 +2095,7 @@ func (this *Backpack) HandleOrder(client any, message map[string]any) {
 	}
 	orders.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbolSpecificMessageHash string = messageHash + ":" + *symbol
+	var symbolSpecificMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 
@@ -2615,10 +2615,7 @@ func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...a
 	var id *string = this.SafeString(position, "i")
 	var marketId *string = this.SafeString(position, "s")
 	var marketResolved ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, market))
-	var symbol *string
-	if marketResolved.Symbol != "" {
-		symbol = &marketResolved.Symbol
-	}
+	var symbol string = marketResolved.Symbol
 	var notional *string = this.SafeString(position, "n")
 	var liquidationPrice *string = this.SafeString(position, "l")
 	var entryPrice *string = this.SafeString(position, "b")

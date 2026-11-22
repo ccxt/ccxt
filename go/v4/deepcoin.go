@@ -3377,7 +3377,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		}
 	}
 	var request map[string]any = map[string]any{
-		"OrderSysIDs": ids,
+		"OrderSysIDs": StringSliceToList(ids),
 	}
 
 	r1 := <-this.PrivatePostDeepcoinTradeBatchCancelOrder(this.Extend(request, params))

@@ -3160,7 +3160,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []map[string]any, optionalAr
 		var rawOrder map[string]any = orders[i]
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market MarketInterface = MarketInterfaceFromMap(this.Market(marketId))
-		var symbol *string = &market.Symbol
+		var symbol string = market.Symbol
 		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
 		var side *string = this.SafeStringUpper(rawOrder, "side")
 		var amount *string = this.SafeString(rawOrder, "amount")
@@ -3173,7 +3173,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []map[string]any, optionalAr
 		var hasStopLoss bool = (stopLoss != nil)
 		var hasTakeProfit bool = (takeProfit != nil)
 		orderParams = this.Omit(orderParams, []any{"stopLoss", "takeProfit"})
-		var mainOrderObj map[string]any = this.CreateOrderRequest(*symbol, typeVar, side, amount, price, orderParams)
+		var mainOrderObj map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		if hasStopLoss || hasTakeProfit {
 			// grouping opposed orders for sl/tp
 			var stopLossOrderTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
@@ -3204,7 +3204,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []map[string]any, optionalAr
 			}
 			if hasTakeProfit {
 				triggerOrderSideStr := triggerOrderSide
-				var orderObj map[string]any = this.CreateOrderRequest(*symbol, takeProfitOrderType, &triggerOrderSideStr, amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				var orderObj map[string]any = this.CreateOrderRequest(symbol, takeProfitOrderType, &triggerOrderSideStr, amount, takeProfitOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"takeProfitPrice": takeProfitOrderTriggerPrice,
 					"reduceOnly":      true,
 				}))
@@ -3212,7 +3212,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders []map[string]any, optionalAr
 			}
 			if hasStopLoss {
 				triggerOrderSideStr2 := triggerOrderSide
-				var orderObj map[string]any = this.CreateOrderRequest(*symbol, stopLossOrderType, &triggerOrderSideStr2, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
+				var orderObj map[string]any = this.CreateOrderRequest(symbol, stopLossOrderType, &triggerOrderSideStr2, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"stopLossPrice": stopLossOrderTriggerPrice,
 					"reduceOnly":    true,
 				}))
@@ -3779,7 +3779,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders []map[string]any, optionalArgs
 		var id *string = this.SafeString(rawOrder, "id")
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market map[string]any = this.Market(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var typeVar *string = this.SafeStringUpper(rawOrder, "type")
 		var isMarket bool = (typeVar != nil && *typeVar == "MARKET")
 		var side *string = this.SafeStringUpper(rawOrder, "side")

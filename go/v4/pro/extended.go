@@ -574,7 +574,7 @@ func (this *Extended) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash, map[string]any{
-		"symbols": symbolsNormalized,
+		"symbols": ccxt.StringSliceToList(symbolsNormalized),
 		"limit":   limit,
 	})
 	if r1.Err != nil {

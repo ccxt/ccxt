@@ -1474,7 +1474,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		initialQuote := r1.Value
+		initialQuote, _ := r1.Value.(map[string]any)
 		var initialPrice *string = this.SafeString(initialQuote, "price")
 		if !(*this.SafeBool(initialQuote, "available", false)) || (initialPrice == nil) {
 			panic(InvalidOrder(this.Id + " fetchConvertQuote() stock indicative quote unavailable: " + *this.SafeString(initialQuote, "reason", "priceUnavailable")))
@@ -3556,7 +3556,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol *strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		indicative := r1.Value
+		indicative, _ := r1.Value.(map[string]any)
 		var indicativePrice *string = this.SafeString(indicative, "price")
 		if !(*this.SafeBool(indicative, "available", false)) || (indicativePrice == nil) {
 			panic(InvalidOrder(this.Id + " createOrder() stock indicative quote unavailable: " + *this.SafeString(indicative, "reason", "priceUnavailable")))
@@ -3564,7 +3564,7 @@ func (this *Backpack) createRfqOrderBody(ch chan AsyncResult[any], symbol *strin
 		if (typeVar == "market") && (limitPrice == nil) {
 			limitPrice = indicativePrice
 		}
-		var quantityFilter map[string]any = SafeMapTyped(indicative, "quantityFilter")
+		var quantityFilter, _ = indicative["quantityFilter"].(map[string]any)
 		var stepSize *string = this.SafeString(quantityFilter, "stepSize")
 		var minimum *string = this.SafeString(quantityFilter, "minQuantity")
 		var maximum *string = this.SafeString(quantityFilter, "maxQuantity")

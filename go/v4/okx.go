@@ -3417,7 +3417,7 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp *int64 = this.SafeInteger(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-", marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(marketResolved, "spot", false)
@@ -3787,7 +3787,7 @@ func (this *Okx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = this.SafeString(trade, "tradeId")
 	var marketId *string = this.SafeString(trade, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var price *string = this.SafeString2(trade, "fillPx", "px")
 	var amount *string = this.SafeString2(trade, "fillSz", "sz")
@@ -4740,7 +4740,7 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side string, 
 	}
 	var spot *bool = this.SafeBool(market, "spot", false)
 	var contract *bool = this.SafeBool(market, "contract")
-	var triggerPrice any = this.SafeValueN(params, []any{"triggerPrice", "stopPrice", "triggerPx"})
+	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerPx"})
 	var timeInForce string = *this.SafeString(params, "timeInForce", "GTC")
 	// const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
 	var tpOrdPx *float64 = this.SafeNumber(params, "tpOrdPx", price)
@@ -4904,14 +4904,14 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side string, 
 	} else if hasStopLoss || hasTakeProfit {
 		var attachAlgoOrd map[string]any = map[string]any{}
 		if hasStopLoss {
-			var stopLossTriggerPrice any = this.SafeValueN(stopLoss, []any{"triggerPrice", "stopPrice", "slTriggerPx"})
+			var stopLossTriggerPrice *string = this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "slTriggerPx"})
 			if stopLossTriggerPrice == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order"))
 			}
 			var slTriggerPx *string = this.PriceToPrecision(symbol, stopLossTriggerPrice)
 			var slOrder map[string]any = map[string]any{}
 			slOrder["slTriggerPx"] = slTriggerPx
-			var stopLossLimitPrice any = this.SafeValueN(stopLoss, []any{"price", "stopLossPrice", "slOrdPx"})
+			var stopLossLimitPrice *string = this.SafeStringN(stopLoss, []any{"price", "stopLossPrice", "slOrdPx"})
 			var stopLossOrderType *string = this.SafeString(stopLoss, "type")
 			if stopLossOrderType != nil {
 				var stopLossLimitOrderType bool = (stopLossOrderType != nil && *stopLossOrderType == "limit")
@@ -4942,13 +4942,13 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side string, 
 			attachAlgoOrd = this.Extend(attachAlgoOrd, slOrder)
 		}
 		if hasTakeProfit {
-			var takeProfitTriggerPrice any = this.SafeValueN(takeProfit, []any{"triggerPrice", "stopPrice", "tpTriggerPx"})
+			var takeProfitTriggerPrice *string = this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "tpTriggerPx"})
 			if takeProfitTriggerPrice == nil {
 				panic(InvalidOrder(this.Id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order"))
 			}
 			var tpOrder map[string]any = map[string]any{}
 			tpOrder["tpTriggerPx"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
-			var takeProfitLimitPrice any = this.SafeValueN(takeProfit, []any{"price", "takeProfitPrice", "tpOrdPx"})
+			var takeProfitLimitPrice *string = this.SafeStringN(takeProfit, []any{"price", "takeProfitPrice", "tpOrdPx"})
 			var takeProfitOrderType *string = this.SafeString2(takeProfit, "type", "tpOrdKind")
 			if takeProfitOrderType != nil {
 				var takeProfitLimitOrderType bool = (takeProfitOrderType != nil && *takeProfitOrderType == "limit")
@@ -7636,7 +7636,7 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) De
 	}
 	var currencyId *string = this.SafeString(depositAddress, "ccy")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var code *string = SafeStringPtr(currencyResolved["code"])
+	var code *string = this.SafeString(currencyResolved, "code")
 	var chain *string = this.SafeString(depositAddress, "chain")
 	var networks map[string]any = this.SafeDictMap(currencyResolved, "networks", map[string]any{})
 	var networksById map[string]any = this.IndexBy(networks, "id")
@@ -7881,7 +7881,7 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		var networkUpper string = strings.ToUpper(*network)
 		var networkKey *string = this.SafeString(this.NetworkAliases, networkUpper, networkUpper)
 		network = this.SafeString(networks, networkKey, network) // resolve aliases to the unified key
-		request["chain"] = currency["id"].(string) + "-" + *network
+		request["chain"] = *this.SafeString(currency, "id", "") + "-" + *network
 	}
 	var omitKeys []any = []any{"fee"}
 	if network != nil {
@@ -8893,7 +8893,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var pos *string = this.SafeString(position, "pos") // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side *string = this.SafeString2(position, "posSide", "direction")
@@ -8906,7 +8906,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
 			var parsedCurrency *string = this.SafeCurrencyCode(posCcy)
 			if parsedCurrency != nil {
 				var sideStr string
-				if IsEqual(marketResolved["base"], parsedCurrency) {
+				if this.SafeString(marketResolved, "base") == parsedCurrency || (this.SafeString(marketResolved, "base") != nil && parsedCurrency != nil && *this.SafeString(marketResolved, "base") == *parsedCurrency) {
 					sideStr = "long"
 				} else {
 					sideStr = "short"
@@ -12488,7 +12488,7 @@ func (this *Okx) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], co
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
-		"uly":      currency["code"].(string) + "-USD",
+		"uly":      *this.SafeString(currency, "code", "") + "-USD",
 		"instType": "OPTION",
 	}
 

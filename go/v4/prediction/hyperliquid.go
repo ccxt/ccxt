@@ -1838,7 +1838,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(statuses); i++ {
-		var status any = statuses[i]
+		var status, _ = statuses[i].(map[string]any)
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
 			if messagePiece := this.SafeString(requestIds, i, this.SafeString(requestIds, 0)); messagePiece != nil {
@@ -1847,14 +1847,14 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 			}
 			panic(ccxt.OrderNotFound(nil))
 		}
-		var success bool = (ccxt.IsEqual(status, "success")) || (this.SafeString(status, "status") != nil && *this.SafeString(status, "status") == "success")
+		var success bool = (this.SafeString(statuses, i) != nil && *this.SafeString(statuses, i) == "success") || (this.SafeString(status, "status") != nil && *this.SafeString(status, "status") == "success")
 		if !success {
-			panic(ccxt.ExchangeError(this.Id + " cancelOrders() received an unexpected status: " + this.Json(status)))
+			panic(ccxt.ExchangeError(this.Id + " cancelOrders() received an unexpected status: " + this.Json(statuses[i])))
 		}
 		var requestId *string = this.SafeString(requestIds, i, this.SafeString(requestIds, 0))
 		var order map[string]any = map[string]any{
 			"id":        requestId,
-			"info":      status,
+			"info":      statuses[i],
 			"status":    "canceled",
 			"outcome":   outcomeSymbol,
 			"outcomeId": this.SafeString(outcomeObj, "id"),

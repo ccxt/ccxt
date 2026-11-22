@@ -81,7 +81,7 @@ func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "trades:" + *this.SafeString(market, "symbol", "")
-	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var marketId *string = this.SafeString(market, "id")
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTrades() marketId is required"))
 	}
@@ -510,7 +510,7 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
-	var marketId *string = ccxt.SafeStringPtr(market["id"])
+	var marketId *string = this.SafeString(market, "id")
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() marketId is required"))
 	}

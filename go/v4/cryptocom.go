@@ -1232,7 +1232,7 @@ func (this *Cryptocom) FetchTickersAsync(optionalArgs ...any) <-chan AsyncResult
 func (this *Cryptocom) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -1246,20 +1246,12 @@ func (this *Cryptocom) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], 
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var symbol any = nil
-		if IsArray(symbols) {
-			var symbolsLength int = GetArrayLength(symbols)
-			if symbolsLength > 1 {
-				panic(BadRequest(this.Id + " fetchTickers() symbols argument cannot contain more than 1 symbol"))
-			}
-			if derefPtr := this.SafeString(symbols, 0); derefPtr != nil {
-				symbol = *derefPtr
-			} else {
-				symbol = nil
-			}
-		} else {
-			symbol = symbols
+		var symbol *string = nil
+		var symbolsLength int = len(symbols)
+		if symbolsLength > 1 {
+			panic(BadRequest(this.Id + " fetchTickers() symbols argument cannot contain more than 1 symbol"))
 		}
+		symbol = this.SafeString(symbols, 0)
 		market = this.Market(symbol)
 		request["instrument_name"] = market["id"]
 	}
@@ -1386,11 +1378,11 @@ func (this *Cryptocom) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes97519 []any = r1.Value
-		if retRes97519 == nil {
+		var retRes97119 []any = r1.Value
+		if retRes97119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes97519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes97119)}
 		}
 		return nil
 	}
@@ -1508,11 +1500,11 @@ func (this *Cryptocom) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes105819 []any = r1.Value
-		if retRes105819 == nil {
+		var retRes105419 []any = r1.Value
+		if retRes105419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes105819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes105419)}
 		}
 		return nil
 	}
@@ -1612,11 +1604,11 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes112119 []any = r1.Value
-		if retRes112119 == nil {
+		var retRes111719 []any = r1.Value
+		if retRes111719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes112119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes111719)}
 		}
 		return nil
 	}
@@ -2800,11 +2792,11 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes196019 []any = r1.Value
-		if retRes196019 == nil {
+		var retRes195619 []any = r1.Value
+		if retRes195619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes196019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes195619)}
 		}
 		return nil
 	}
@@ -3318,7 +3310,7 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "i")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var last *string = this.SafeString(ticker, "a")
-	var literal233132 map[string]any = map[string]any{
+	var literal232732 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -3340,11 +3332,11 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if marketResolved["quote"] == "USD" {
-		literal233132["quoteVolume"] = this.SafeString(ticker, "vv")
+		literal232732["quoteVolume"] = this.SafeString(ticker, "vv")
 	} else {
-		literal233132["quoteVolume"] = nil
+		literal232732["quoteVolume"] = nil
 	}
-	return this.SafeTicker(literal233132, marketResolved)
+	return this.SafeTicker(literal232732, marketResolved)
 }
 func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -3610,7 +3602,7 @@ func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) Tr
 	var typeVar string
 	var rawStatus *string = this.SafeString(transaction, "status")
 	var status *string = nil
-	if this.SafeString(transaction, "client_wid") != nil {
+	if InOp(transaction, "client_wid") {
 		typeVar = "withdrawal"
 		status = this.ParseWithdrawalStatus(rawStatus)
 	} else {
@@ -4352,11 +4344,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes319319 []any = r1.Value
-		if retRes319319 == nil {
+		var retRes318919 []any = r1.Value
+		if retRes318919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes318919)}
 		}
 		return nil
 	}
@@ -4521,16 +4513,12 @@ func (this *Cryptocom) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
 		var symbol any = nil
-		if true {
-			var symbolsLength int = len(symbolsNormalized)
-			if symbolsLength > 1 {
-				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
-			}
-			if symbolsLength == 1 {
-				symbol = symbolsNormalized[0]
-			}
-		} else {
-			symbol = symbolsNormalized
+		var symbolsLength int = len(symbolsNormalized)
+		if symbolsLength > 1 {
+			panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
+		}
+		if symbolsLength == 1 {
+			symbol = symbolsNormalized[0]
 		}
 		market = this.Market(symbol)
 		request["instrument_name"] = market["id"]
@@ -4598,9 +4586,9 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
-	var ternaryStr338820 string = "short"
+	var ternaryStr338020 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr338820 = "long"
+		ternaryStr338020 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4609,7 +4597,7 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"hedged":                      nil,
-		"side":                        ternaryStr338820,
+		"side":                        ternaryStr338020,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(amount)),
 		"contractSize":                marketResolved["contractSize"],
 		"entryPrice":                  nil,
@@ -4651,7 +4639,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 		paramsKeys = this.Sort(objectKeys)
 	}
 	for i := 0; i < GetArrayLength(paramsKeys); i++ {
-		var key *string = this.SafeString(paramsKeys, i, "")
+		var key string = *this.SafeString(paramsKeys, i, "")
 		returnString = Add(returnString, key)
 		var value any = GetValue(object, key)
 		if value == "undefined" {

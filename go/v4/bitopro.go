@@ -1612,7 +1612,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	var id *string = market.UppercaseId
 	var request map[string]any = map[string]any{}
 	if id != nil {
-		request[*id] = ids
+		request[*id] = StringSliceToList(ids)
 	}
 
 	r1 := <-this.PrivatePutOrders(this.Extend(request, params))

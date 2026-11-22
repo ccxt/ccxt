@@ -111,8 +111,8 @@ func (this *Bitopro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "ORDER_BOOK" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "ORDER_BOOK" + ":" + symbolValue
 	var marketIdValue *string = this.SafeString(market, "id", "")
 	var endPart any = nil
 	if limit == nil {
@@ -209,8 +209,8 @@ func (this *Bitopro) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "TRADE" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "TRADE" + ":" + symbolValue
 
 	r1 := <-this.WatchPublicAsync("trades", messageHash, market["id"])
 	if r1.Err != nil {
@@ -307,8 +307,8 @@ func (this *Bitopro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	var messageHash string = "USER_TRADE"
 	if symbol != nil {
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-		var symbolValue *string = &market.Symbol
-		messageHash = messageHash + ":" + *symbolValue
+		var symbolValue string = market.Symbol
+		messageHash = messageHash + ":" + symbolValue
 	}
 	var wsUrl *string = this.SafeString(this.Urls["ws"], "private")
 	if wsUrl == nil {
@@ -491,8 +491,8 @@ func (this *Bitopro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "TICKER" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "TICKER" + ":" + symbolValue
 
 	r1 := <-this.WatchPublicAsync("tickers", messageHash, market["id"])
 	if r1.Err != nil {

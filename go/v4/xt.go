@@ -5169,7 +5169,7 @@ func (this *Xt) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, opt
 		}
 	}
 	var request map[string]any = map[string]any{
-		"orderIds": ids,
+		"orderIds": StringSliceToList(ids),
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -5329,8 +5329,10 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
+	var resultId *string = this.SafeString(order, "result")
+	var orderPositionSide *string = this.SafeString(order, "positionSide")
 	var marketType string
-	if (InOp(order, "result")) || (InOp(order, "positionSide")) {
+	if (resultId != nil) || (orderPositionSide != nil) {
 		marketType = "contract"
 	} else {
 		marketType = "spot"
@@ -5390,7 +5392,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 		}
 	}
-	var literal400631 map[string]any = map[string]any{
+	var literal400831 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeStringN(order, []any{"orderId", "result", "cancelId", "entrustId", "profitId", "trackId"}),
 		"clientOrderId":       this.SafeString2(order, "clientOrderId", "clientModifyId"),
@@ -5420,9 +5422,9 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades": nil,
 	}
 	if remaining != nil {
-		literal400631["remaining"] = *remaining
+		literal400831["remaining"] = *remaining
 	}
-	return this.SafeOrder(literal400631, marketResolved)
+	return this.SafeOrder(literal400831, marketResolved)
 }
 func (this *Xt) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
@@ -6537,11 +6539,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes482319 []any = r1.Value
-		if retRes482319 == nil {
+		var retRes482519 []any = r1.Value
+		if retRes482519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482519)}
 		}
 		return nil
 	}

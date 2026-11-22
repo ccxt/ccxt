@@ -1065,7 +1065,7 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash s
 	var options, _ = this.Options["watchBalance"].(map[string]any)
 	var snapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
 	if snapshot != nil && *snapshot {
-		var messageHash string = typeVar + ":" + "fetchBalanceSnapshot"
+		var messageHash string = typeVar + ":fetchBalanceSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, typeVar)

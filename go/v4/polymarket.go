@@ -1228,11 +1228,9 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var paginate bool = false
 	var paramsOmitted map[string]any = params
-	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchOHLCV", "paginate"))
-	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = paginateparamsOmittedVariable[1].(map[string]any)
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "paginate", false)
+	paramsOmitted = paramsPaginate
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsOmitted, 1000)
@@ -1479,11 +1477,9 @@ func (this *Polymarket) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundin
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var paginate bool = false
 	var paramsOmitted map[string]any = params
-	paginateparamsOmittedVariable := TupleSlice(this.HandleOptionAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate"))
-	paginate = GetValueBool(paginateparamsOmittedVariable, 0, false)
-	paramsOmitted = paginateparamsOmittedVariable[1].(map[string]any)
+	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsOmitted, "fetchFundingRateHistory", "paginate", false)
+	paramsOmitted = paramsPaginate
 	if paginate {
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "1h", paramsOmitted, 100)
@@ -3515,7 +3511,7 @@ func (this *Polymarket) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol 
 			row = map[string]any{}
 		}
 		var rowId *string = this.SafeString(row, "instrument_id")
-		if IsEqual(rowId, market["id"]) {
+		if rowId == this.SafeString(market, "id") || (rowId != nil && this.SafeString(market, "id") != nil && *rowId == *this.SafeString(market, "id")) {
 
 			ch <- AsyncResult[Leverage]{Value: this.ParseLeverage(row, market)}
 			return nil
@@ -4015,7 +4011,7 @@ func (this *Polymarket) signPerpsOpBody(ch chan AsyncResult[map[string]any], sig
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	credentials := r.Value
+	credentials, _ := r.Value.(map[string]any)
 	var packed []uint8 = this.Packb(signable)
 	var dataHash string = this.HashMessage(packed)
 	var ts int64 = this.Milliseconds()

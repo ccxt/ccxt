@@ -334,7 +334,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan ccxt.AsyncResult[bool], to
 		"subMessageHashes": watchMessageHashes,
 		"topic":            topic,
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 	}
 	this.Options["unSubscription"] = subscription
 

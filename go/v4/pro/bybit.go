@@ -3511,13 +3511,13 @@ func (this *Bybit) unWatchTopicsBody(ch chan ccxt.AsyncResult[bool], url string,
 	var request map[string]any = map[string]any{
 		"op":     "unsubscribe",
 		"req_id": reqId,
-		"args":   topics,
+		"args":   ccxt.StringSliceToList(topics),
 	}
 	var subscription map[string]any = map[string]any{
 		"id":               reqId,
 		"topic":            topic,
-		"messageHashes":    messageHashes,
-		"subMessageHashes": subMessageHashes,
+		"messageHashes":    ccxt.StringSliceToList(messageHashes),
+		"subMessageHashes": ccxt.StringSliceToList(subMessageHashes),
 		"symbols":          symbols,
 	}
 	var message map[string]any = this.Extend(request, params)

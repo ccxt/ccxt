@@ -1830,7 +1830,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 			cost = &costStr
 		}
 		for i := 0; i < tradesLength; i++ {
-			var trade map[string]any = MapTyped(trades[i])
+			var trade, _ = trades[i].(map[string]any)
 			var tradeAmount *string = this.SafeString(trade, "amount")
 			if tradeAmount != nil {
 				filled = Precise.StringAdd(filled, tradeAmount)
@@ -2349,7 +2349,7 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 	var h string = this.Remove0xPrefix(hexValue)
 	var total int = len(h)
 	for i := 0; i < total; i++ {
-		if h[i : i+1] == "0" {
+		if h[i:i+1] == "0" {
 			continue
 		}
 		return this.PadHexToEven(h[i:])

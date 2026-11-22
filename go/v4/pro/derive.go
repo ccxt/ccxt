@@ -1563,7 +1563,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		if account != nil {
 			account["used"] = nil
 		}
-		ccxt.AddElementToObject(subBalance, code, account)
+		subBalance[*code] = account
 		updated = true
 	}
 	if updated {

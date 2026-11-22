@@ -407,7 +407,7 @@ func (this *Weex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArg
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 		"messageHashes":    unSubHashes,
 		"subMessageHashes": subHashes,
 		"topic":            topic,
@@ -721,7 +721,7 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 		"messageHashes":    unSubHashes,
 		"subMessageHashes": subHashes,
 		"topic":            "trades",
@@ -1386,7 +1386,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 		"messageHashes":    unSubHashes,
 		"subMessageHashes": subHashes,
 		"topic":            "orderbook",
@@ -1584,7 +1584,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 		"messageHashes":    unSubHashes,
 		"subMessageHashes": subHashes,
 		"topic":            "bidsasks",

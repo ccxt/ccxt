@@ -2904,7 +2904,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		}
 		ids = append(ids, *id)
 		symbols = append(symbols, market["symbol"])
-		AddElementToObject(symbolsById, id, market["symbol"])
+		symbolsById[*id] = market["symbol"]
 	}
 	if marketType != nil && *marketType == "swap" {
 		var numIds int = len(ids)
@@ -2913,12 +2913,7 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		}
 		var ordersRequests []any = []any{}
 		for i := 0; i < len(ids); i++ {
-			var market map[string]any = this.Market(func() any {
-				if i >= 0 && i < len(symbols) {
-					return symbols[i]
-				}
-				return nil
-			}())
+			var market map[string]any = this.Market(this.SafeString(symbols, i))
 			var marketId *string = this.SafeString(market, "id")
 			var orderId string = ids[i]
 			ordersRequests = append(ordersRequests, map[string]any{
@@ -2958,14 +2953,9 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 				status = "failed"
 			}
 			result = append(result, OrderToMap(this.SafeOrder(map[string]any{
-				"info": orderId,
-				"id":   orderId,
-				"symbol": func() any {
-					if i >= 0 && i < len(symbols) {
-						return DerefScalar(symbols[i])
-					}
-					return nil
-				}(),
+				"info":   orderId,
+				"id":     orderId,
+				"symbol": this.SafeString(symbols, i),
 				"status": status,
 			})))
 		}
@@ -5989,8 +5979,10 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 					})
 				}
 			} else {
-				AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
-				AddElementToObject(depositWithdrawFee, "deposit", depositResult)
+				depositWithdrawFees[*code] = this.Extend(depositWithdrawFee, map[string]any{
+					"withdraw": withdrawResult,
+					"deposit":  depositResult,
+				})
 			}
 		}
 	}
@@ -6143,14 +6135,14 @@ func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) ma
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
-	var ternaryStr458920 string = "reduce"
+	var ternaryStr459120 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		ternaryStr458920 = "add"
+		ternaryStr459120 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "swap"),
-		"type":       ternaryStr458920,
+		"type":       ternaryStr459120,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,

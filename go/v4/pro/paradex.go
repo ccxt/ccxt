@@ -702,12 +702,12 @@ func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
 func (this *Paradex) CleanUnsubscribed(client any, unsubHash string, subscription map[string]any) {
 	var subscribeHashes []any = ccxt.SafeListTyped(subscription, "subscribeHashes")
 	for j := 0; j < len(subscribeHashes); j++ {
-		var subscribeHash any = subscribeHashes[j]
+		var subscribeHash string = *this.SafeString(subscribeHashes, j, "")
 		if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
 			client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 		}
 		// a market moved to the deltas feed goes back to the snapshots on its next watch
-		var requestedHash any = ccxt.Add(subscribeHash, ":requested")
+		var requestedHash string = subscribeHash + ":requested"
 		if client.(ccxt.ClientInterface).SubscriptionHas(requestedHash) {
 			client.(ccxt.ClientInterface).SubscriptionDel(requestedHash)
 		}
@@ -1628,8 +1628,9 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			// a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
 			var subscribeHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 			for i := 0; i < len(subscribeHashes); i++ {
-				if (subscribeHashes[i] == scopedHash) || (strings.Index(subscribeHashes[i], channel+".") == 0) {
-					client.(ccxt.ClientInterface).SubscriptionDel(subscribeHashes[i])
+				var subscribeHash string = subscribeHashes[i]
+				if (subscribeHash == scopedHash) || (strings.Index(subscribeHash, channel+".") == 0) {
+					client.(ccxt.ClientInterface).SubscriptionDel(subscribeHash)
 				}
 			}
 			var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
@@ -1755,7 +1756,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 		}
 		this.CleanCache(map[string]any{
 			"topic":   "ticker",
-			"symbols": tickerSymbols,
+			"symbols": ccxt.StringSliceToList(tickerSymbols),
 		})
 
 		ch <- ccxt.AsyncResult[bool]{Value: true}
@@ -1765,7 +1766,8 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	var othersRemain bool = false
 	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
-		if (strings.Index(keys[i], channel+".") == 0) && !this.InArray(keys[i], subscribeHashes) {
+		var key string = keys[i]
+		if (strings.Index(key, channel+".") == 0) && !this.InArray(key, subscribeHashes) {
 			othersRemain = true
 		}
 	}
@@ -1776,7 +1778,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 			"subscribeHashes":  []any{channel, scopedHash},
 			"subMessageHashes": []any{channel},
 			"prefix":           true,
-			"symbols":          tickerSymbols,
+			"symbols":          ccxt.StringSliceToList(tickerSymbols),
 		}
 		var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
 
@@ -1812,7 +1814,7 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 		"topic":            "ticker",
 		"subscribeHashes":  subscribeHashes,
 		"subMessageHashes": subMessageHashes,
-		"symbols":          tickerSymbols,
+		"symbols":          ccxt.StringSliceToList(tickerSymbols),
 	}
 	var unsubHash string = "unsubscribe:" + channel + ":" + ccxt.Join(marketIds, ",")
 
@@ -1927,7 +1929,7 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	// a failed request is forgotten with every market it carried, the next watch sends them again, and
 	// it rejects the watchers of those markets only
 	var subscription map[string]any = map[string]any{
-		"id":            ccxt.GetValue(request, "id"),
+		"id":            this.SafeInteger(request, "id"),
 		"messageHashes": missingHashes,
 	}
 
@@ -3286,15 +3288,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		return nil
 	}
 	var isSnapshot bool = (pkgType == 0)
-	var ternaryStr228527 string = "d"
+	var ternaryStr228727 string = "d"
 	if isSnapshot {
-		ternaryStr228527 = "s"
+		ternaryStr228727 = "s"
 	}
 	var result map[string]any = map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     ternaryStr228527,
+		"update_type":     ternaryStr228727,
 		"inserts":         []any{},
 		"updates":         []any{},
 		"deletes":         []any{},

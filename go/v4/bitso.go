@@ -2731,7 +2731,7 @@ func (this *Bitso) HandleErrors(code int64, reason string, url string, method st
 	if response == nil {
 		return nil // fallback to default error handler
 	}
-	if InOp(response, "success") {
+	if this.SafeBool(response, "success") != nil {
 		//
 		//     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
 		//

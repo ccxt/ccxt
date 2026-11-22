@@ -1174,7 +1174,7 @@ func (this *Nado) cancelOrdersRequestBody(ch chan AsyncResult[map[string]any], i
 	var tx map[string]any = map[string]any{
 		"sender":     sender,
 		"productIds": productIds,
-		"digests":    ids,
+		"digests":    StringSliceToList(ids),
 		"nonce":      nonce,
 	}
 
@@ -2402,44 +2402,29 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		var priceIncrement any = this.ParseX18(this.SafeString(market, "price_increment_x18"))
 		var amountIncrement any = this.ParseX18(this.SafeString(market, "size_increment"))
 		var minCost any = this.ParseX18(this.SafeString(market, "min_size"))
-		markets = append(markets, this.SafeMarketStructure(map[string]any{
-			"id":          id,
-			"lowercaseId": nil,
-			"symbol":      symbol,
-			"base":        base,
-			"quote":       quote,
-			"settle":      settle,
-			"baseId":      baseId,
-			"quoteId":     quoteId,
-			"settleId":    settleId,
-			"type":        typeVar,
-			"spot":        (typeVar != nil && *typeVar == "spot"),
-			"margin":      nil,
-			"swap":        contract,
-			"future":      false,
-			"option":      false,
-			"active":      active,
-			"contract":    contract,
-			"linear": func() any {
-				if contract {
-					return true
-				}
-				return nil
-			}(),
-			"inverse": func() any {
-				if contract {
-					return false
-				}
-				return nil
-			}(),
-			"taker": this.ParseX18(this.SafeString(market, "taker_fee_rate_x18")),
-			"maker": this.ParseX18(this.SafeString(market, "maker_fee_rate_x18")),
-			"contractSize": func() any {
-				if contract {
-					return 1
-				}
-				return nil
-			}(),
+		var marketEntry map[string]any = map[string]any{
+			"id":             id,
+			"lowercaseId":    nil,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           (typeVar != nil && *typeVar == "spot"),
+			"margin":         nil,
+			"swap":           contract,
+			"future":         false,
+			"option":         false,
+			"active":         active,
+			"contract":       contract,
+			"linear":         nil,
+			"inverse":        nil,
+			"taker":          this.ParseX18(this.SafeString(market, "taker_fee_rate_x18")),
+			"maker":          this.ParseX18(this.SafeString(market, "maker_fee_rate_x18")),
+			"contractSize":   nil,
 			"expiry":         nil,
 			"expiryDatetime": nil,
 			"strike":         nil,
@@ -2473,7 +2458,13 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 				"v2Pair":    pair,
 				"v2Asset":   asset,
 			}),
-		}))
+		}
+		if contract {
+			marketEntry["linear"] = true
+			marketEntry["inverse"] = false
+			marketEntry["contractSize"] = 1
+		}
+		markets = append(markets, this.SafeMarketStructure(marketEntry))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(markets)}
@@ -3923,7 +3914,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		price = this.ParseX18(this.SafeString(rawOrder, "priceX18"))
 	}
-	var literal300031 map[string]any = map[string]any{
+	var literal300631 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  nil,
 		"clientOrderId":       nil,
@@ -3949,18 +3940,18 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}
 	if id != nil {
-		literal300031["id"] = *id
+		literal300631["id"] = *id
 	}
 	if timeInForce != nil {
-		literal300031["timeInForce"] = *timeInForce
+		literal300631["timeInForce"] = *timeInForce
 	}
 	if average != nil {
-		literal300031["average"] = *average
+		literal300631["average"] = *average
 	}
 	if status != nil {
-		literal300031["status"] = *status
+		literal300631["status"] = *status
 	}
-	return this.SafeOrder(literal300031, marketResolved)
+	return this.SafeOrder(literal300631, marketResolved)
 }
 func (this *Nado) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{

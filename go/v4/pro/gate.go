@@ -3368,9 +3368,9 @@ func (this *Gate) unSubscribePublicMultipleBody(ch chan ccxt.AsyncResult[bool], 
 		"id":               strconv.FormatInt(requestId, 10),
 		"topic":            topic,
 		"unsubscribe":      true,
-		"messageHashes":    messageHashes,
-		"subMessageHashes": subMessageHashes,
-		"symbols":          symbols,
+		"messageHashes":    ccxt.StringSliceToList(messageHashes),
+		"subMessageHashes": ccxt.StringSliceToList(subMessageHashes),
+		"symbols":          ccxt.StringSliceToList(symbols),
 	}
 	var message map[string]any = this.Extend(request, params)
 

@@ -796,7 +796,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	var marketIds []string = this.MarketIds(symbolsNormalized)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{
-			"symbols": marketIds,
+			"symbols": ccxt.StringSliceToList(marketIds),
 		},
 	}
 

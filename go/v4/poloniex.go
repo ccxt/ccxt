@@ -3147,7 +3147,7 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		request["symbol"] = market["id"]
 		// the api ignores clOrdIds when ordIds are also present
 		if idsLength > 0 {
-			request["ordIds"] = ids
+			request["ordIds"] = StringSliceToList(ids)
 		} else if clientOrderIds != nil {
 			request["clOrdIds"] = clientOrderIds
 		}
@@ -3177,7 +3177,7 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 		return nil
 	}
 	if idsLength > 0 {
-		request["orderIds"] = ids
+		request["orderIds"] = StringSliceToList(ids)
 	}
 	if clientOrderIds != nil {
 		request["clientOrderIds"] = clientOrderIds

@@ -1774,7 +1774,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 		}
 		outcomeObj = this.Outcome(outcome)
 		var market map[string]any = this.Market(this.SafeString(outcomeObj, "market"))
-		request["marketTopicId"] = ccxt.GetValue(market["info"], "marketTopicId")
+		request["marketTopicId"] = this.SafeString(market["info"], "marketTopicId")
 	}
 
 	r1 := <-this.FetchWalletAsync("fetchOrders", params)

@@ -1929,7 +1929,7 @@ func (this *Kucoin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"subMessageHashes": subscriptionHashes,
 		"topic":            "trades",
 		"unsubscribe":      true,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 	}
 
 	r2 := <-this.UnSubscribeMultipleAsync(url, messageHashes, topic, messageHashes, params, subscription)
@@ -2384,7 +2384,7 @@ func (this *Kucoin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	if (method == "/market/level2") || (method == "/contractMarket/level2") {
 		subscription = map[string]any{
 			"method":  this.HandleOrderBookSubscription,
-			"symbols": symbolsNormalized,
+			"symbols": ccxt.StringSliceToList(symbolsNormalized),
 			"limit":   limit,
 		}
 	}
@@ -2476,7 +2476,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 	subscriptionHashes = append(subscriptionHashes, topic)
 	var subscription map[string]any = map[string]any{
 		"messageHashes":    messageHashes,
-		"symbols":          symbolsNormalized,
+		"symbols":          ccxt.StringSliceToList(symbolsNormalized),
 		"unsubscribe":      true,
 		"topic":            "orderbook",
 		"subMessageHashes": subscriptionHashes,

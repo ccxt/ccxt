@@ -3725,7 +3725,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan AsyncResult[[]any], metho
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	var typesList []any = this.SafeListSlice(map[string]any{
-		"types": historyTypes,
+		"types": StringSliceToList(historyTypes),
 	}, "types", []any{})
 
 	r := <-this.LoadMarketsAsync()

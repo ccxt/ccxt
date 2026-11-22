@@ -1870,12 +1870,14 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var orderId *string = nil
 	var fee map[string]any = nil
 	var symbol *string = nil
-	var isOrderTrade bool = (!IsArray(trade)) && (!IsString(trade)) && (this.SafeString(trade, "ordertxid") != nil)
+	var tradeIsList bool = IsArray(trade)
+	var tradeIsString bool = IsString(trade)
+	var isOrderTrade bool = (!tradeIsList) && (!tradeIsString) && (this.SafeString(trade, "ordertxid") != nil)
 	var marketResolved any = market
 	if isOrderTrade {
 		marketResolved = this.ResolveMarketByAltnameOrId(this.SafeString(trade, "pair"), market)
 	}
-	if IsArray(trade) {
+	if tradeIsList {
 		timestamp = this.SafeTimestamp(trade, 2)
 		var sideStr string
 		if this.SafeString(trade, 3) != nil && *this.SafeString(trade, 3) == "s" {
@@ -1901,7 +1903,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 				id = nil
 			}
 		}
-	} else if IsString(trade) {
+	} else if tradeIsString {
 		id = trade
 	} else if isOrderTrade {
 		orderId = this.SafeString(trade, "ordertxid")
@@ -1957,7 +1959,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		timestamp = this.Parse8601(datetime)
 	}
-	var literal155131 map[string]any = map[string]any{
+	var literal155331 map[string]any = map[string]any{
 		"id":           id,
 		"order":        nil,
 		"info":         trade,
@@ -1973,21 +1975,21 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if orderId != nil {
-		literal155131["order"] = *orderId
+		literal155331["order"] = *orderId
 	}
 	if datetime != nil {
-		literal155131["datetime"] = *datetime
+		literal155331["datetime"] = *datetime
 	}
 	if symbol != nil {
-		literal155131["symbol"] = *symbol
+		literal155331["symbol"] = *symbol
 	}
 	if price != nil {
-		literal155131["price"] = *price
+		literal155331["price"] = *price
 	}
 	if amount != nil {
-		literal155131["amount"] = *amount
+		literal155331["amount"] = *amount
 	}
-	return this.SafeTrade(literal155131, marketResolved)
+	return this.SafeTrade(literal155331, marketResolved)
 }
 
 /**
@@ -2773,7 +2775,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	if amendId != nil {
 		isPostOnly = nil
 	}
-	var literal217631 map[string]any = map[string]any{
+	var literal217831 map[string]any = map[string]any{
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
 		"info":                orderOmitted,
@@ -2801,24 +2803,24 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              trades,
 	}
 	if symbol != nil {
-		literal217631["symbol"] = *symbol
+		literal217831["symbol"] = *symbol
 	}
 	if side != nil {
-		literal217631["side"] = *side
+		literal217831["side"] = *side
 	}
 	if takeProfitPrice != nil {
-		literal217631["takeProfitPrice"] = *takeProfitPrice
+		literal217831["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal217631["stopLossPrice"] = *stopLossPrice
+		literal217831["stopLossPrice"] = *stopLossPrice
 	}
 	if cost != nil {
-		literal217631["cost"] = *cost
+		literal217831["cost"] = *cost
 	}
 	if amount != nil {
-		literal217631["amount"] = *amount
+		literal217831["amount"] = *amount
 	}
-	return this.SafeOrder(literal217631, marketResolved)
+	return this.SafeOrder(literal217831, marketResolved)
 }
 func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string, request map[string]any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3588,7 +3590,7 @@ func (this *Kraken) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
-		"orders": ids,
+		"orders": StringSliceToList(ids),
 	}
 
 	r := <-this.PrivatePostCancelOrderBatch(this.Extend(request, params))
@@ -4297,11 +4299,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323619 []any = r1.Value
-		if retRes323619 == nil {
+		var retRes323819 []any = r1.Value
+		if retRes323819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes323619)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes323819)}
 		}
 		return nil
 	}

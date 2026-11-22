@@ -2812,7 +2812,7 @@ func (this *Predictfun) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	}
 	var request map[string]any = map[string]any{
 		"data": map[string]any{
-			"hashes": ids,
+			"hashes": ccxt.StringSliceToList(ids),
 		},
 	}
 	// this only pulls the orders off the book, it does not cancel them on chain

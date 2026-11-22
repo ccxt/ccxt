@@ -1941,7 +1941,7 @@ func (this *Cex) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids 
 	}
 	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var data map[string]any = this.Extend(map[string]any{
-		"cancel-orders": ids,
+		"cancel-orders": ccxt.StringSliceToList(ids),
 	}, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var request map[string]any = map[string]any{

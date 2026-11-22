@@ -589,13 +589,11 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 			continue
 		}
 		var m map[string]any = this.SafeMarket(sym)
-		var symbol *string = SafeStringPtr(m["symbol"])
+		var symbol string = *this.SafeString(m, "symbol", "")
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
-		if symbol != nil {
-			resultTickers[*symbol] = TickerToMap(this.ParseTicker(t, m))
-		}
+		resultTickers[symbol] = TickerToMap(this.ParseTicker(t, m))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(resultTickers, "symbol", symbols))}
@@ -606,7 +604,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(ms, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1235,7 +1233,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
-	var sym *string = SafeStringPtr(marketResolved["symbol"])
+	var sym string = *this.SafeString(marketResolved, "symbol", "")
 	var literal86031 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  oid,
@@ -1812,7 +1810,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		}
 		var numCandidates int = len(candidates)
 		if numCandidates > 0 {
-			var found map[string]any = MapTyped(candidates[0])
+			var found, _ = candidates[0].(map[string]any)
 			positionId = this.SafeString(found, "id")
 		}
 	}
@@ -1902,7 +1900,7 @@ func (this *Mudrex) addMarginBody(ch chan AsyncResult[MarginModification], symbo
 		var matches []any = this.FilterBy(positions, "symbol", symbol)
 		var numMatches int = len(matches)
 		if numMatches > 0 {
-			var found map[string]any = MapTyped(matches[0])
+			var found, _ = matches[0].(map[string]any)
 			positionId = this.SafeString(found, "id")
 		}
 	}
@@ -2103,7 +2101,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var ms *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(ms, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
 	var side *string = this.SafeStringLower(trade, "order_type")

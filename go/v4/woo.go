@@ -6376,7 +6376,7 @@ func (this *Woo) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 }
 func (this *Woo) DefaultNetworkCodeForCurrency(code any) *string {
 	var currencyItem map[string]any = this.Currency(code)
-	var networks map[string]any = MapTyped(currencyItem["networks"])
+	var networks, _ = currencyItem["networks"].(map[string]any)
 	var networkKeys []string = nil
 	if networks != nil {
 		networkKeys = make([]string, 0, len(networks))

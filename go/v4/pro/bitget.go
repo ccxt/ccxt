@@ -1467,12 +1467,11 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Tr
 		if uta {
 			symbolOrInstId = "symbol"
 		}
-		args[topicOrChannel] = func() string {
-			if uta {
-				return "publicTrade"
-			}
-			return "trade"
-		}()
+		var tradeTopic string = "trade"
+		if uta {
+			tradeTopic = "publicTrade"
+		}
+		args[topicOrChannel] = tradeTopic
 		args[symbolOrInstId] = market["id"]
 		topics = append(topics, args)
 		messageHashes = append(messageHashes, "trade:"+symbol)
@@ -2139,7 +2138,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	isTriggerparamsTriggerVariable := this.IsTriggerOrder(params)
 	isTrigger := ccxt.GetValue(isTriggerparamsTriggerVariable, 0)
 	paramsTrigger := ccxt.GetValue(isTriggerparamsTriggerVariable, 1)
-	var messageHash any = "order"
+	var messageHash string = "order"
 	if isTrigger == true {
 		messageHash = "triggerOrder"
 	}
@@ -2154,7 +2153,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			marketId = nil
 		}
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), marketSymbol)
+		messageHash = messageHash + ":" + marketSymbol
 	}
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false)
 	var productType *string = this.SafeString(paramsUta, "productType")
@@ -2164,13 +2163,15 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		marketId = "default"
 	}
 	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (symbolResolved == nil) {
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), subType)
+		if subType != nil {
+			messageHash = messageHash + ":" + *subType
+		}
 	} else if productType != nil && *productType == "USDT-FUTURES" {
-		messageHash = ccxt.Add(messageHash, ":linear")
+		messageHash = messageHash + ":linear"
 	} else if productType != nil && *productType == "COIN-FUTURES" {
-		messageHash = ccxt.Add(messageHash, ":inverse")
+		messageHash = messageHash + ":inverse"
 	} else if productType != nil && *productType == "USDC-FUTURES" {
-		messageHash = ccxt.Add(messageHash, ":usdcfutures") // non unified channel
+		messageHash = messageHash + ":usdcfutures" // non unified channel
 	}
 	var useSpotInstType bool = ((symbol == nil) && (typeVar != nil && *typeVar == "spot"))
 	var instType any = "SPOT"
@@ -2184,7 +2185,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		}
 	}
 	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
-		var resolvedSymbol *string = symbolResolved
+		var resolvedSymbol string = *this.SafeString(market, "symbol", "")
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), resolvedSymbol)
 	}
 	if isTrigger == true {
@@ -2202,8 +2203,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsInstType)
 	if marginMode != nil {
 		instType = "MARGIN"
-		var marginModeValue *string = marginMode
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), marginModeValue)
+		messageHash = messageHash + ":" + *marginMode
 		if marginMode != nil && *marginMode == "isolated" {
 			channel = "orders-isolated"
 		} else {
@@ -2585,7 +2585,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	var marketId *string = this.SafeString2(order, "instId", "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(order, "cTime", "createdTime")
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var rawStatus *string = this.SafeString2(order, "status", "orderStatus")
 	var orderFee []any = ccxt.SafeListTyped(order, "feeDetail")
 	var fee map[string]any
@@ -2663,7 +2663,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
-	var literal219631 map[string]any = map[string]any{
+	var literal220131 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 this.SafeString(order, "orderId"),
@@ -2687,18 +2687,18 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		"trades":             nil,
 	}
 	if totalAmount != nil {
-		literal219631["amount"] = *totalAmount
+		literal220131["amount"] = *totalAmount
 	}
 	if cost != nil {
-		literal219631["cost"] = *cost
+		literal220131["cost"] = *cost
 	}
 	if filledAmount != nil {
-		literal219631["filled"] = *filledAmount
+		literal220131["filled"] = *filledAmount
 	}
 	if remaining != nil {
-		literal219631["remaining"] = *remaining
+		literal220131["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal219631, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal220131, marketResolved))
 }
 func (this *Bitget) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -3743,13 +3743,11 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string
 	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "unsubscribe:orderbook:" + *this.SafeString(market, "symbol", "")
-	var subMessageHash string = "orderbook:" + *symbol
-	if symbol != nil && this.Orderbooks[*symbol] != nil {
-		if symbol != nil {
-			delete(this.Orderbooks, *symbol)
-		}
+	var subMessageHash string = "orderbook:" + symbol
+	if this.Orderbooks[symbol] != nil {
+		delete(this.Orderbooks, symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
@@ -3757,7 +3755,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string
 	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
-	error := ccxt.UnsubscribeError(this.Id + " orderbook " + *symbol)
+	error := ccxt.UnsubscribeError(this.Id + " orderbook " + symbol)
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
@@ -3805,15 +3803,11 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]an
 	}
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var market map[string]any = this.SafeMarket(instId, nil, nil, typeVar)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "unsubscribe:ticker:" + *this.SafeString(market, "symbol", "")
-	var subMessageHash string = "ticker:" + *symbol
-	if symbol != nil {
-		if _, ok := this.Tickers[*symbol]; ok {
-			if symbol != nil {
-				delete(this.Tickers, *symbol)
-			}
-		}
+	var subMessageHash string = "ticker:" + symbol
+	if _, ok := this.Tickers[symbol]; ok {
+		delete(this.Tickers, symbol)
 	}
 	if client.(ccxt.ClientInterface).SubscriptionHas(subMessageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(subMessageHash)
@@ -3821,7 +3815,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]an
 	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 		client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 	}
-	error := ccxt.UnsubscribeError(this.Id + " ticker " + *symbol)
+	error := ccxt.UnsubscribeError(this.Id + " ticker " + symbol)
 	if client.(ccxt.ClientInterface).FutureHas(subMessageHash) {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}

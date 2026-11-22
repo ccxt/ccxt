@@ -645,14 +645,14 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncRes
 	var url *string = this.UrlsApiStrings["ws"]
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
-		"product_ids": marketIds,
+		"product_ids": ccxt.StringSliceToList(marketIds),
 		"channels":    []any{name},
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 	var subscription map[string]any = map[string]any{
 		"messageHash": name,
-		"symbols":     symbolsNormalized,
-		"marketIds":   marketIds,
+		"symbols":     ccxt.StringSliceToList(symbolsNormalized),
+		"marketIds":   ccxt.StringSliceToList(marketIds),
 		"limit":       limit,
 	}
 

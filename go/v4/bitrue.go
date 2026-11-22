@@ -2108,8 +2108,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) Trade {
 		side = &sideStr2 // this is a true side
 	}
 	var fee map[string]any = nil
-	var commission *string = this.SafeString(trade, "commission")
-	if commission != nil {
+	if InOp(trade, "commission") {
 		fee = map[string]any{
 			"cost":     this.SafeString2(trade, "commission", "fee"),
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "commissionAssert")),
@@ -3504,10 +3503,10 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var txid *string = this.SafeString(transaction, "txid")
 	var timestamp *int64 = this.SafeInteger(transaction, "createdAt")
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
-	var payAmount *string = this.SafeString(transaction, "payAmount")
-	var ctime *string = this.SafeString(transaction, "ctime")
+	var payAmount bool = (InOp(transaction, "payAmount"))
+	var ctime bool = (InOp(transaction, "ctime"))
 	var typeVar string = "deposit"
-	if (payAmount != nil) || (ctime != nil) {
+	if payAmount || ctime {
 		typeVar = "withdrawal"
 	}
 	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
@@ -3751,7 +3750,7 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		toAccount = this.SafeString(accountSplit, 1)
 	}
 	var timestamp *int64 = this.SafeInteger(transfer, "ctime")
-	var literal305915 map[string]any = map[string]any{
+	var literal305815 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -3763,12 +3762,12 @@ func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      "ok",
 	}
 	if fromAccount != nil {
-		literal305915["fromAccount"] = *fromAccount
+		literal305815["fromAccount"] = *fromAccount
 	}
 	if toAccount != nil {
-		literal305915["toAccount"] = *toAccount
+		literal305815["toAccount"] = *toAccount
 	}
-	return TransferEntryFromMap(literal305915)
+	return TransferEntryFromMap(literal305815)
 }
 
 /**

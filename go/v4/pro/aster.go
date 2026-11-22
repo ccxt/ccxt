@@ -220,7 +220,11 @@ func (this *Aster) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	var methodNamePtr *string = nil
 	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchTickers")
 	methodName := *methodNamePtr
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -296,7 +300,11 @@ func (this *Aster) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalAr
 	var methodNamePtr *string = nil
 	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchTickers")
 	methodName := *methodNamePtr
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -447,7 +455,11 @@ func (this *Aster) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	var methodNamePtr *string = nil
 	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "watchMarkPrices")
 	methodName := *methodNamePtr
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -528,7 +540,11 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	var methodNamePtr *string = nil
 	methodNamePtr, paramsCallerMethodName := this.HandleParamString(params, "callerMethodName", "unWatchMarkPrices")
 	methodName := *methodNamePtr
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -688,7 +704,11 @@ func (this *Aster) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -761,7 +781,11 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	if (symbolsNormalized == nil) || (len(symbolsNormalized) == 0) {
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	if (symbolsNormalized == nil) || (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchBidsAsks() requires a non-empty array of symbols"))
 	}
 	var firstMarket map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
@@ -1254,7 +1278,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		}
 	}
 	var typeVar *string = this.SafeStringLower(trade, "o")
-	var literal88531 map[string]any = map[string]any{
+	var literal90931 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1270,9 +1294,9 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if amount != nil {
-		literal88531["amount"] = *amount
+		literal90931["amount"] = *amount
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal88531))
+	return ccxt.TradeToMap(this.SafeTrade(literal90931))
 }
 
 /**

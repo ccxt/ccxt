@@ -1348,7 +1348,8 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 			}
 			var chunk []any = []any{}
 			for i := int(startIndex); int64(i) < endIndex; i++ {
-				chunk = append(chunk, ccxt.GetValue(tokenIds, i))
+				var chunkId string = *this.SafeString(tokenIds, i, "")
+				chunk = append(chunk, chunkId)
 			}
 			// gamma matches repeated clob_token_ids params — comma-joined ids are rejected
 			// with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1914,20 +1915,18 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 		if _, ok := buckets[bucketKey]; !ok {
 			buckets[bucketKey] = []any{snappedMs, price, price, price, price, vol}
 		} else {
-			var candle any = this.SafeList(buckets, bucketKey, []any{})
-			ccxt.AddElementToObject(candle, 2, ccxt.MathMax(ccxt.GetValue(candle, 2), price)) // high
-			ccxt.AddElementToObject(candle, 3, ccxt.MathMin(ccxt.GetValue(candle, 3), price)) // low
-			ccxt.AddElementToObject(candle, 4, price)                                         // close (last tick wins)
+			var prevVol *float64 = this.SafeNumber(buckets[bucketKey], 5)
+			var candleVol any = prevVol
 			if vol != nil {
-				var prevVol any = ccxt.GetValue(candle, 5)
-				ccxt.AddElementToObject(candle, 5, func() any {
-					if prevVol == nil {
-						return vol
-					}
-					return this.Sum(prevVol, vol)
-				}()) // volume
+				if prevVol == nil {
+					candleVol = vol
+				} else {
+					candleVol = this.Sum(prevVol, vol)
+				}
 			}
-			buckets[bucketKey] = candle // reassign after mutation, php arrays are value types
+			var open *float64 = this.SafeNumber(buckets[bucketKey], 1)
+			// close is the last tick
+			buckets[bucketKey] = []any{snappedMs, open, ccxt.MathMax(this.SafeNumber(buckets[bucketKey], 2), price), ccxt.MathMin(this.SafeNumber(buckets[bucketKey], 3), price), price, candleVol}
 		}
 	}
 	var bucketKeys []string = nil
@@ -2029,12 +2028,12 @@ func (this *Polymarket) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], o
 	//     OK
 	//
 	var ok bool = (response == "OK") || (response == "ok")
-	var ternaryStr140922 string = "maintenance"
+	var ternaryStr141322 string = "maintenance"
 	if ok {
-		ternaryStr140922 = "ok"
+		ternaryStr141322 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr140922,
+		"status":  ternaryStr141322,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2425,7 +2424,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 			"rate":     this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")),
 		}
 	}
-	var literal163941 map[string]any = map[string]any{
+	var literal164341 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -2444,12 +2443,12 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		"fee":          fee,
 	}
 	if side != nil {
-		literal163941["side"] = *side
+		literal164341["side"] = *side
 	}
 	if takerOrMaker != nil {
-		literal163941["takerOrMaker"] = *takerOrMaker
+		literal164341["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafePredictionTrade(literal163941, mkt)
+	return this.SafePredictionTrade(literal164341, mkt)
 }
 
 /**
@@ -3015,18 +3014,8 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		for i := 0; i < len(response); i++ {
 			// request echo first so the response's real orderID/status win on overlap
 			var rawItem any = ccxt.GetValue(response, i)
-			var enriched map[string]any = this.Extend(func() any {
-				if i >= 0 && i < len(requests) {
-					return requests[i]
-				}
-				return nil
-			}(), rawItem)
-			var parsedItem map[string]any = this.ParsePredictionOrder(enriched, func() any {
-				if i >= 0 && i < len(outcomes) {
-					return outcomes[i]
-				}
-				return nil
-			}())
+			var enriched map[string]any = this.Extend(this.SafeDict(requests, i), rawItem)
+			var parsedItem map[string]any = this.ParsePredictionOrder(enriched, this.SafeDict(outcomes, i))
 			parsedItem["info"] = rawItem // keep info the raw exchange response
 			result = append(result, parsedItem)
 		}
@@ -3903,7 +3892,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
-	var literal264728 map[string]any = map[string]any{
+	var literal265128 map[string]any = map[string]any{
 		"id":                    this.SafeString(rawEvent, "id"),
 		"slug":                  slug,
 		"title":                 this.SafeString(rawEvent, "title"),
@@ -3924,11 +3913,11 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if (slug != nil) && (slug == nil || *slug != "") {
-		literal264728["event"] = this.ShortenSlug(slug)
+		literal265128["event"] = this.ShortenSlug(slug)
 	} else {
-		literal264728["event"] = nil
+		literal265128["event"] = nil
 	}
-	return this.Extend(literal264728)
+	return this.Extend(literal265128)
 }
 
 /**
@@ -4104,16 +4093,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	var literal283715 map[string]any = map[string]any{
+	var literal284115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal283715["body"] = *bodyValue
+		literal284115["body"] = *bodyValue
 	}
-	return literal283715
+	return literal284115
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
@@ -4376,9 +4365,10 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan ccxt.AsyncResult[bool]) a
 	} else {
 		apiKey = this.SafeString(this.Options, "l2ApiKey")
 	}
-	var secret any = nil
+	var secret *string
 	if this.Secret != "" {
-		secret = this.Secret
+		secretValue := this.Secret
+		secret = &secretValue
 	} else {
 		secret = this.SafeString(this.Options, "l2Secret")
 	}
@@ -4389,7 +4379,7 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan ccxt.AsyncResult[bool]) a
 	} else {
 		passphrase = this.SafeString(this.Options, "l2Passphrase")
 	}
-	var hasL2 bool = (apiKey != nil) && (!ccxt.IsEqual(secret, nil)) && (passphrase != nil)
+	var hasL2 bool = (apiKey != nil) && (secret != nil) && (passphrase != nil)
 	if hasL2 {
 
 		return nil

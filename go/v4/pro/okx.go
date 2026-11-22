@@ -640,7 +640,7 @@ func (this *Okx) HandleFundingRate(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawfr, _ = data[i].(map[string]any)
 		var fundingRate map[string]any = ccxt.FundingRateToMap(this.ParseFundingRate(rawfr))
-		var symbol *string = ccxt.SafeStringPtr(fundingRate["symbol"])
+		var symbol *string = this.SafeString(fundingRate, "symbol")
 		if symbol != nil {
 			this.FundingRates[*symbol] = fundingRate
 		}
@@ -676,11 +676,12 @@ func (this *Okx) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 		}
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchTicker", "channel", "tickers")
-	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var symbolValue *string = &market.Symbol
 
-	r1 := <-this.WatchTickersAsync([]any{symbolValue}, paramsChannel)
+	r1 := <-this.WatchTickersAsync([]any{symbolValue}, this.Extend(paramsChannel, map[string]any{
+		"channel": channel,
+	}))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -794,11 +795,12 @@ func (this *Okx) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 		}
 	}
 	channel, paramsChannel := this.HandleOptionStringAndParams(params, "watchMarkPrice", "channel", "mark-price")
-	ccxt.AddElementToObject(paramsChannel, "channel", channel)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var symbolValue *string = &market.Symbol
 
-	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, paramsChannel)
+	r1 := <-this.WatchMarkPricesAsync([]any{symbolValue}, this.Extend(paramsChannel, map[string]any{
+		"channel": channel,
+	}))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2646,9 +2648,9 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
-	var ternaryStr187928 string = "maker"
+	var ternaryStr187728 string = "maker"
 	if isTaker {
-		ternaryStr187928 = "taker"
+		ternaryStr187728 = "taker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         info,
@@ -2658,7 +2660,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 		"id":           this.SafeString(info, "tradeId"),
 		"order":        this.SafeString(order, "id"),
 		"type":         this.SafeString(order, "type"),
-		"takerOrMaker": ternaryStr187928,
+		"takerOrMaker": ternaryStr187728,
 		"side":         this.SafeString(order, "side"),
 		"price":        this.SafeNumber(info, "fillPx"),
 		"amount":       this.SafeNumber(info, "fillSz"),
@@ -2949,8 +2951,9 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 		var contracts *float64 = this.SafeNumber(position, "contracts")
 		if (contracts != nil && *contracts == 0) && (this.SafeString(rawPosition, "posSide") != nil && *this.SafeString(rawPosition, "posSide") == "net") {
 			position["side"] = "long"
-			var shortPosition any = this.Clone(position)
-			ccxt.AddElementToObject(shortPosition, "side", "short")
+			var shortPosition map[string]any = this.Extend(this.Clone(position), map[string]any{
+				"side": "short",
+			})
 			cache.Append(shortPosition)
 			newPositions = append(newPositions, shortPosition)
 		}

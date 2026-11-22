@@ -1639,7 +1639,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if limit != nil {
 		request["limit"] = *limit
 	}
-	var response any = []any{}
+	var candles []any = []any{}
 	if endpoint != nil && *endpoint == "index" {
 		request["symbol"] = this.SafeString(market["info"], "indexToken") // index klines take the index id instead of the market id
 
@@ -1647,27 +1647,29 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		var indexResponse map[string]any = r1.Value
+		candles, _ = indexResponse["data"].([]any)
+		if candles == nil {
+			candles = []any{}
+		}
 	} else if endpoint != nil && *endpoint == "mark" {
 
 		r2 := <-this.CommonGetQuoteV1MarkPriceKlines(this.Extend(request, paramsPrice))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		var markResponse map[string]any = r2.Value
+		candles, _ = markResponse["data"].([]any)
+		if candles == nil {
+			candles = []any{}
+		}
 	} else {
 
-		r3 := <-this.CommonGetQuoteV1Klines(this.Extend(request, paramsPrice))
-		if r3.Err != nil {
-			panic(r3.Err)
+		candlesRecv := <-this.CommonGetQuoteV1Klines(this.Extend(request, paramsPrice))
+		if candlesRecv.Err != nil {
+			panic(candlesRecv.Err)
 		}
-		response = r3.Raw
-	}
-	var candles []any = []any{}
-	if IsArray(response) {
-		candles = ArrayTyped(response)
-	} else {
-		candles = ArrayTyped(this.SafeList(response, "data", []any{}))
+		candles = candlesRecv.Value
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
@@ -2099,11 +2101,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes166319 []any = r1.Value
-		if retRes166319 == nil {
+		var retRes165919 []any = r1.Value
+		if retRes165919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166319)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165919)}
 		}
 		return nil
 	}
@@ -3436,11 +3438,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277515 []any = TransactionsToList(r.Value)
-	if retRes277515 == nil {
+	var retRes277115 []any = TransactionsToList(r.Value)
+	if retRes277115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277115)}
 	}
 	return nil
 }
@@ -3477,11 +3479,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes279015 []any = TransactionsToList(r.Value)
-	if retRes279015 == nil {
+	var retRes278615 []any = TransactionsToList(r.Value)
+	if retRes278615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278615)}
 	}
 	return nil
 }
@@ -3623,7 +3625,9 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var tagFrom *string = this.SafeString(transaction, "fromAddressTag")
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
-	var isWithdraw bool = (InOp(transaction, "arriveQuantity")) || (InOp(transaction, "success"))
+	var arriveQuantity *string = this.SafeString(transaction, "arriveQuantity")
+	var success *bool = this.SafeBool(transaction, "success")
+	var isWithdraw bool = (arriveQuantity != nil) || (success != nil)
 	var typeVar string
 	if isWithdraw {
 		typeVar = "withdrawal"

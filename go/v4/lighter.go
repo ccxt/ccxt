@@ -3569,12 +3569,12 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	}
 	signer := r1.Value
 	var currency map[string]any = this.Currency(code)
-	var currencyCode *string = SafeStringPtr(currency["code"])
-	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
+	var currencyCode string = *this.SafeString(currency, "code", "")
+	if (currencyCode != "USDC") && (currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
 	}
 	var amountDecimals string
-	if currencyCode != nil && *currencyCode == "USDC" {
+	if currencyCode == "USDC" {
 		amountDecimals = "6"
 	} else {
 		amountDecimals = "8"
@@ -4150,12 +4150,12 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	}
 	signer := r1.Value
 	var currency map[string]any = this.Currency(code)
-	var currencyCode *string = SafeStringPtr(currency["code"])
-	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
+	var currencyCode string = *this.SafeString(currency, "code", "")
+	if (currencyCode != "USDC") && (currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " withdraw() only supports USDC and ETH transfers"))
 	}
 	var amountDecimals string
-	if currencyCode != nil && *currencyCode == "USDC" {
+	if currencyCode == "USDC" {
 		amountDecimals = "6"
 	} else {
 		amountDecimals = "8"
