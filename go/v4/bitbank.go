@@ -872,7 +872,11 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if 0 < len(candlestick) {
 		first, _ = candlestick[0].(map[string]any)
 	}
-	var ohlcv []any = this.SafeListSlice(first, "ohlcv", []any{})
+	var ohlcv []any
+	ohlcv, _ = first["ohlcv"].([]any)
+	if ohlcv == nil {
+		ohlcv = []any{}
+	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlcv, market, timeframe, sinceResolved, limitResolved))}
 	return nil

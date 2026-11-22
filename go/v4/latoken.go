@@ -1075,13 +1075,15 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var quoteId *string = this.SafeString(ticker, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
-		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
-			marketResolved = this.Market(symbol)
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			marketResolved = this.Market(knownSymbol)
 		}
+		symbolStr := knownSymbol
+		symbol = &symbolStr
 	}
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
@@ -1095,8 +1097,8 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	if (askVolume != nil) && Precise.StringLt(askVolume, "0") {
 		askVolume = nil
 	}
-	return this.SafeTicker(map[string]any{
-		"symbol":        symbol,
+	var literal87032 map[string]any = map[string]any{
+		"symbol":        nil,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
 		"low":           nil,
@@ -1116,7 +1118,11 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"baseVolume":    this.SafeString(ticker, "amount24h"),
 		"quoteVolume":   this.SafeString(ticker, "volume24h"),
 		"info":          ticker,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal87032["symbol"] = *symbol
+	}
+	return this.SafeTicker(literal87032, marketResolved)
 }
 
 /**
@@ -1312,13 +1318,15 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var symbol any = nil
+	var symbol *string = nil
 	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
-		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
-			marketResolved = this.Market(symbol)
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			marketResolved = this.Market(knownSymbol)
 		}
+		symbolStr := knownSymbol
+		symbol = &symbolStr
 	}
 	var id *string = this.SafeString(trade, "id")
 	var orderId *string = this.SafeString(trade, "order")
@@ -1330,11 +1338,11 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": quote,
 		}
 	}
-	return this.SafeTrade(map[string]any{
+	var literal105031 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       symbol,
+		"symbol":       nil,
 		"id":           id,
 		"order":        orderId,
 		"type":         typeVar,
@@ -1344,7 +1352,11 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"amount":       amountString,
 		"cost":         costString,
 		"fee":          fee,
-	}, marketResolved)
+	}
+	if symbol != nil {
+		literal105031["symbol"] = *symbol
+	}
+	return this.SafeTrade(literal105031, marketResolved)
 }
 
 /**
@@ -1701,10 +1713,14 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
+	var symbolKnown bool = false
 	if (base != nil) && (quote != nil) {
-		symbol = *base + "/" + *quote
+		var knownSymbol string = *base + "/" + *quote
+		if _, ok := this.Markets[knownSymbol]; (this.Markets != nil) && ok {
+			symbolKnown = true
+		}
+		symbol = knownSymbol
 	}
-	var symbolKnown bool = (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol))
 	var marketResolved map[string]any = market
 	if symbolKnown {
 		marketResolved = this.Market(symbol)
@@ -1734,7 +1750,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "condition"))
-	var literal134531 map[string]any = map[string]any{
+	var literal135131 map[string]any = map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
 		"info":               order,
@@ -1758,9 +1774,9 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             nil,
 	}
 	if side != nil {
-		literal134531["side"] = *side
+		literal135131["side"] = *side
 	}
-	return this.SafeOrder(literal134531, marketResolved)
+	return this.SafeOrder(literal135131, marketResolved)
 }
 
 /**
@@ -2706,16 +2722,16 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestString
-	var literal203815 map[string]any = map[string]any{
+	var literal204415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal203815["body"] = *requestBody
+		literal204415["body"] = *requestBody
 	}
-	return literal203815
+	return literal204415
 }
 func (this *Latoken) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

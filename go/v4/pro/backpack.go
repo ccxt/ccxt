@@ -257,7 +257,10 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		var symbol string = *this.SafeString(market, "symbol", "")
 		var messageHash string = kind + ":" + symbol + "@" + topic
 		var subscriptionKey string = "marketData:" + topic
-		var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
+		var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionKey)
+		if subscriptions == nil {
+			subscriptions = map[string]any{}
+		}
 		if unwatch == true {
 			subscriptions = this.OmitDict(subscriptions, messageHash)
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)

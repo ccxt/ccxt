@@ -1473,7 +1473,9 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	var keys []string = ccxt.ObjectKeys(timeframesResolved)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if ccxt.IsEqual(this.SafeString(ccxt.GetValue(timeframesResolved, key), "unit"), unit) && ccxt.IsEqual(this.SafeString(ccxt.GetValue(timeframesResolved, key), "period"), period) {
+		var rowUnit *string = this.SafeString(ccxt.GetValue(timeframesResolved, key), "unit")
+		var rowPeriod *string = this.SafeString(ccxt.GetValue(timeframesResolved, key), "period")
+		if (rowUnit == unit || (rowUnit != nil && unit != nil && *rowUnit == *unit)) && (rowPeriod == period || (rowPeriod != nil && period != nil && *rowPeriod == *period)) {
 			return &key
 		}
 	}

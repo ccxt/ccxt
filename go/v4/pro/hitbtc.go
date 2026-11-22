@@ -2142,12 +2142,7 @@ func (this *Hitbtc) HandleUnSubscription(client any, message map[string]any) {
 			var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 			var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 			for j := 0; j < len(subMessageHashes); j++ {
-				this.CleanUnsubscription(ccxt.AsClient(client), ccxt.DerefScalar(subMessageHashes[j]), func() any {
-					if j >= 0 && j < len(messageHashes) {
-						return messageHashes[j]
-					}
-					return nil
-				}())
+				this.CleanUnsubscription(ccxt.AsClient(client), ccxt.DerefScalar(subMessageHashes[j]), this.SafeString(messageHashes, j))
 			}
 			this.CleanCache(subscription)
 			return

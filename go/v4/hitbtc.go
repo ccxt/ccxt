@@ -2412,7 +2412,7 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.SafeDict(response, i, map[string]any{})))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -5039,7 +5039,8 @@ func (this *Hitbtc) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
-	if (leverage < 1) || (leverage > maxLeverage) {
+	var leverageValue int64 = this.ParseToInt(leverage)
+	if (leverageValue < 1) || (leverageValue > maxLeverage) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and " + strconv.FormatInt(maxLeverage, 10) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -5342,17 +5343,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394315 map[string]any = map[string]any{
+	var literal394415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394315["body"] = nil
+		literal394415["body"] = nil
 	} else {
-		literal394315["body"] = bodyString
+		literal394415["body"] = bodyString
 	}
-	return literal394315
+	return literal394415
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

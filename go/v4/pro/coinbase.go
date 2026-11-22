@@ -657,7 +657,8 @@ func (this *Coinbase) HandleTickers(client any, message map[string]any) {
 	var newTickers []any = []any{}
 	for i := 0; i < len(events); i++ {
 		var tickersObj, _ = events[i].(map[string]any)
-		var tickers []any = ccxt.SafeListTyped(tickersObj, "tickers")
+		var tickers []any
+		tickers, _ = tickersObj["tickers"].([]any)
 		for j := 0; j < len(tickers); j++ {
 			var ticker any = tickers[j]
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
@@ -1525,7 +1526,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	_, has1 := firstEvent["subscriptions"]
 	var isUnsub bool = has1
-	var subKeys []string = ccxt.ObjectKeys(firstEvent["subscriptions"])
+	var subKeys []string = ccxt.ObjectKeys(this.SafeDict(firstEvent, "subscriptions", map[string]any{}))
 	var subKeysLength int = len(subKeys)
 	if isUnsub && (subKeysLength == 0) {
 		var unSubObject map[string]any

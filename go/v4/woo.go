@@ -1648,7 +1648,11 @@ func (this *Woo) ParseCurrency(rawCurrency any) map[string]any {
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(keys); j++ {
 		var networkId string = keys[j]
-		var tokenEntry map[string]any = this.SafeDictMap(tokensByNetworkId, networkId, map[string]any{})
+		var tokenEntry map[string]any
+		tokenEntry, _ = tokensByNetworkId[networkId].(map[string]any)
+		if tokenEntry == nil {
+			tokenEntry = map[string]any{}
+		}
 		var networkEntry map[string]any = this.SafeDictMap(chainsByNetworkId, networkId, map[string]any{})
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var specialNetworkId *string = this.SafeString(tokenEntry, "token")
@@ -1984,7 +1988,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		var cost *string = this.SafeStringN(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided bool = (price != nil)
 		if (*this.SafeBool(market, "spot", false)) && (isPriceProvided || (cost != nil)) {
-			var quoteAmount any = nil
+			var quoteAmount *string = nil
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {

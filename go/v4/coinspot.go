@@ -618,7 +618,14 @@ func (this *Coinspot) ParseBalance(response map[string]any) map[string]any {
 			}
 		}
 	} else {
-		var currencyIdsMap []string = ObjectKeys(balances)
+		var balancesDict map[string]any = SafeDict2Typed(response, "balance", "balances")
+		var currencyIdsMap []string = nil
+		if balancesDict != nil {
+			currencyIdsMap = make([]string, 0, len(balancesDict))
+			for objectKey := range balancesDict {
+				currencyIdsMap = append(currencyIdsMap, objectKey)
+			}
+		}
 		for i := 0; i < len(currencyIdsMap); i++ {
 			var currencyId string = currencyIdsMap[i]
 			var code *string = this.SafeCurrencyCode(currencyId)

@@ -767,7 +767,11 @@ func (this *Bitteam) ParseCurrency(currency any) map[string]any {
 	var maxWithdraw *string = this.SafeString(txLimits, "maxWithdraw")
 	var minDeposit *string = this.SafeString(txLimits, "minDeposit")
 	var fee any = nil
-	var withdrawCommissionFixed map[string]any = this.SafeDictMap(txLimits, "withdrawCommissionFixed", map[string]any{})
+	var withdrawCommissionFixed map[string]any
+	withdrawCommissionFixed, _ = txLimits["withdrawCommissionFixed"].(map[string]any)
+	if withdrawCommissionFixed == nil {
+		withdrawCommissionFixed = map[string]any{}
+	}
 	var feesByNetworkId map[string]any = map[string]any{}
 	var blockChain string = *this.SafeString(currency, "blockChain", "")
 	// if only one blockChain
@@ -2697,7 +2701,11 @@ func (this *Bitteam) ParseBalance(response map[string]any) map[string]any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
+	var result map[string]any
+	result, _ = response["result"].(map[string]any)
+	if result == nil {
+		result = map[string]any{}
+	}
 	var balanceByCurrencies map[string]any = this.OmitDict(result, []any{"free", "used", "total"})
 	var rawCurrencyIds []string = nil
 	if balanceByCurrencies != nil {

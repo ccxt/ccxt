@@ -3163,9 +3163,9 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		positionSide = "SHORT"
 	}
 	request["positionSide"] = positionSide
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var hasTakeProfit bool = (takeProfit != nil)
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
 	var hasStopLoss bool = (stopLoss != nil)
 	// the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
 	if hasTakeProfit && (this.SafeNumber(takeProfit, "price") != nil) {

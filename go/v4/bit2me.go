@@ -1440,14 +1440,12 @@ func (this *Bit2me) CreateOrderRequest(symbol string, typeVar string, side strin
 		if triggerPrice != nil {
 			panic(InvalidOrder(this.Id + " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order"))
 		}
-		var quoteAmount any = nil
 		if cost != nil {
-			quoteAmount = cost
+			request["amount"] = this.CostToPrecision(symbol, cost)
+			request["amountInQuote"] = true
 		} else if (side == "buy") && (price != nil) {
 			// the unified convention for market buy orders, the cost to spend is amount * price
-			quoteAmount = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
-		}
-		if !IsEqual(quoteAmount, nil) {
+			var quoteAmount *string = Precise.StringMul(this.NumberToString(amount), this.NumberToString(price))
 			request["amount"] = this.CostToPrecision(symbol, quoteAmount)
 			request["amountInQuote"] = true
 		} else {
@@ -1849,11 +1847,11 @@ func (this *Bit2me) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140315 []any = OrdersToList(r.Value)
-	if retRes140315 == nil {
+	var retRes140115 []any = OrdersToList(r.Value)
+	if retRes140115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140115)}
 	}
 	return nil
 }
@@ -1894,11 +1892,11 @@ func (this *Bit2me) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142215 []any = OrdersToList(r.Value)
-	if retRes142215 == nil {
+	var retRes142015 []any = OrdersToList(r.Value)
+	if retRes142015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142015)}
 	}
 	return nil
 }
@@ -1939,11 +1937,11 @@ func (this *Bit2me) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes144115 []any = OrdersToList(r.Value)
-	if retRes144115 == nil {
+	var retRes143915 []any = OrdersToList(r.Value)
+	if retRes143915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes144115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes143915)}
 	}
 	return nil
 }
@@ -1984,11 +1982,11 @@ func (this *Bit2me) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes146015 []any = OrdersToList(r.Value)
-	if retRes146015 == nil {
+	var retRes145815 []any = OrdersToList(r.Value)
+	if retRes145815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes146015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes145815)}
 	}
 	return nil
 }
@@ -2472,7 +2470,7 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		statusStr := "ok"
 		status = &statusStr
 	}
-	var literal181015 map[string]any = map[string]any{
+	var literal180815 map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   timestamp,
@@ -2484,12 +2482,12 @@ func (this *Bit2me) ParseTransfer(transfer any, optionalArgs ...any) TransferEnt
 		"status":      nil,
 	}
 	if id != nil {
-		literal181015["id"] = *id
+		literal180815["id"] = *id
 	}
 	if status != nil {
-		literal181015["status"] = *status
+		literal180815["status"] = *status
 	}
-	return TransferEntryFromMap(literal181015)
+	return TransferEntryFromMap(literal180815)
 }
 func (this *Bit2me) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

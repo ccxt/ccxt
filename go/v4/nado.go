@@ -763,7 +763,11 @@ func (this *Nado) editOrderBody(ch chan AsyncResult[Order], id string, symbol st
 	//     }
 	//
 	var cancelAndPlace, _ = request["cancel_and_place"].(map[string]any)
-	var placeOrder map[string]any = this.SafeDictMap(cancelAndPlace, "place_order", map[string]any{})
+	var placeOrder map[string]any
+	placeOrder, _ = cancelAndPlace["place_order"].(map[string]any)
+	if placeOrder == nil {
+		placeOrder = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"place_order": placeOrder,

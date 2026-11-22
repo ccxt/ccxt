@@ -1413,7 +1413,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 			var element map[string]any = SafeMapTyped(elements, index)
 			var event, _ = element["event"].(map[string]any)
 			var executionContainer, _ = event["Execution"].(map[string]any)
-			var rawTrade map[string]any = this.SafeDictMap(executionContainer, "execution", map[string]any{})
+			var rawTrade map[string]any
+			rawTrade, _ = executionContainer["execution"].(map[string]any)
+			if rawTrade == nil {
+				rawTrade = map[string]any{}
+			}
 			rawTrades = append(rawTrades, rawTrade)
 		}
 	} else {
@@ -1851,7 +1855,11 @@ func (this *Krakenfutures) createOrdersBody(ch chan AsyncResult[[]Order], orders
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		if _, ok := extendedParams["order_tag"]; !ok {
 			// order tag is mandatory so we will generate one if not provided
@@ -2177,7 +2185,11 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan AsyncResult[[]Order], opt
 		if 0 < len(orderEvents) {
 			orderEvent, _ = orderEvents[0].(map[string]any)
 		}
-		var order map[string]any = this.SafeDictMap(orderEvent, "order", map[string]any{})
+		var order map[string]any
+		order, _ = orderEvent["order"].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		orders = append(orders, order)
 	}
 

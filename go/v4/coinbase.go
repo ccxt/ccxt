@@ -2210,8 +2210,13 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	//         "coinbase_pro_fees": 0
 	//     }
 	//
-	var feeTier map[string]any = this.SafeDictMap(fees, "fee_tier", map[string]any{})
-	var data []any = SafeListTyped(spot, "products")
+	var feeTier map[string]any
+	feeTier, _ = fees["fee_tier"].(map[string]any)
+	if feeTier == nil {
+		feeTier = map[string]any{}
+	}
+	var data []any
+	data, _ = spot["products"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
 		var spotMarket map[string]any = this.ParseSpotMarket(data[i], feeTier)
@@ -4344,7 +4349,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 			panic(NotSupported(this.Id + " createOrder() only stop limit orders are supported"))
 		}
 		if (*this.SafeBool(market, "spot", false)) && (side == "buy") {
-			var total any = nil
+			var total *string = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 			paramsMarketBuy = this.Omit(paramsRequiresPrice, "cost")

@@ -1806,7 +1806,7 @@ func (this *Hollaex) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		"type":   typeVar,
 	}
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
-	var meta map[string]any = SafeMapTyped(params, "meta")
+	var meta, _ = params["meta"].(map[string]any)
 	var exchangeSpecificParam *bool = this.SafeBool(meta, "post_only", false)
 	var isMarketOrder bool = (typeVar == "market")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)

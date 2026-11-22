@@ -3625,7 +3625,7 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 		}
 		request["positionSide"] = requestType
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var triggerPrice *float64 = this.SafeNumber2(paramsOmitted4, "triggerPrice", "stopPrice")
 	var stopLoss *float64 = this.SafeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice")
 	var takeProfit *float64 = this.SafeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice")
@@ -3673,14 +3673,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			response = r1.Raw
+			response = r1.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r2 := <-this.PrivateInversePostFutureTradeV1EntrustCreateTrack(this.Extend(request, paramsOmitted3))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Raw
+			response = r2.Value
 		}
 	} else if isTrigger {
 		if timeInForce == nil {
@@ -3703,14 +3703,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
+			response = r3.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r4 := <-this.PrivateInversePostFutureTradeV1EntrustCreatePlan(this.Extend(request, paramsOmitted2))
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			response = r4.Raw
+			response = r4.Value
 		}
 	} else if isStopLoss || isTakeProfit {
 		if isStopLoss {
@@ -3725,14 +3725,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
-			response = r5.Raw
+			response = r5.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r6 := <-this.PrivateInversePostFutureTradeV1EntrustCreateProfit(this.Extend(request, paramsOmitted))
 			if r6.Err != nil {
 				panic(r6.Err)
 			}
-			response = r6.Raw
+			response = r6.Value
 		}
 	} else {
 		request["orderSide"] = strings.ToUpper(side)
@@ -3743,14 +3743,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r7.Err != nil {
 				panic(r7.Err)
 			}
-			response = r7.Raw
+			response = r7.Value
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r8 := <-this.PrivateInversePostFutureTradeV1OrderCreate(this.Extend(request, paramsOmitted4))
 			if r8.Err != nil {
 				panic(r8.Err)
 			}
-			response = r8.Raw
+			response = r8.Value
 		}
 	}
 

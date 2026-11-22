@@ -3208,36 +3208,33 @@ func (this *Bullish) loadAccountBody(ch chan AsyncResult[*string], optionalArgs 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	tradingAccountIdOption, paramsTradingAccountId := this.HandleOptionStringAndParams(params, "loadAccount", "tradingAccountId")
-	if tradingAccountIdOption != nil {
-		this.Options["tradingAccountId"] = tradingAccountIdOption
+	var tradingAccountId *string = tradingAccountIdOption
+	if tradingAccountId == nil {
+
+		responseRecv := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
+		}
+		var response []any = responseRecv.Value
+		var accounts []any = this.ToArray(response)
+		for i := 0; i < len(accounts); i++ {
+			var account, _ = accounts[i].(map[string]any)
+			var name *string = this.SafeString(account, "tradingAccountName")
+			if name != nil && *name == "Primary Account" {
+				tradingAccountId = this.SafeString(account, "tradingAccountId")
+				break
+			}
+		}
+	}
+	if tradingAccountId != nil {
+		if tradingAccountId != nil {
+			this.Options["tradingAccountId"] = *tradingAccountId
+		} else {
+			this.Options["tradingAccountId"] = nil
+		}
 
 		ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
 		return nil
-	}
-
-	responseRecv := <-this.PrivateGetV1AccountsTradingAccounts(paramsTradingAccountId)
-	if responseRecv.Err != nil {
-		panic(responseRecv.Err)
-	}
-	var response []any = responseRecv.Value
-	var accounts []any = this.ToArray(response)
-	for i := 0; i < len(accounts); i++ {
-		var account, _ = accounts[i].(map[string]any)
-		var name *string = this.SafeString(account, "tradingAccountName")
-		if name != nil && *name == "Primary Account" {
-			var primaryAccountId *string = this.SafeString(account, "tradingAccountId")
-			if primaryAccountId != nil {
-				if primaryAccountId != nil {
-					this.Options["tradingAccountId"] = *primaryAccountId
-				} else {
-					this.Options["tradingAccountId"] = nil
-				}
-
-				ch <- AsyncResult[*string]{Value: this.SafeString(this.Options, "tradingAccountId")}
-				return nil
-			}
-			break
-		}
 	}
 	panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 }
@@ -3753,11 +3750,11 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes267319 []any = r2.Value
-		if retRes267319 == nil {
+		var retRes267219 []any = r2.Value
+		if retRes267219 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes267219)}
 		}
 		return nil
 	}
@@ -4229,16 +4226,16 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query
 		}
 	}
-	var literal305215 map[string]any = map[string]any{
+	var literal305115 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal305215["body"] = *requestBody
+		literal305115["body"] = *requestBody
 	}
-	return literal305215
+	return literal305115
 }
 
 /**

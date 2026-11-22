@@ -2584,8 +2584,8 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 		request["symbol"] = *market.Id
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var algoType *string = this.SafeString(params, "algoType")
@@ -2730,8 +2730,8 @@ func (this *Woofipro) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CreateOrderRequest(&symbol, &typeVar, &side, amount, price, params)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (stopLoss != nil) || (takeProfit != nil) || (paramsChildOrders != nil)
 	var response map[string]any = nil
@@ -2797,7 +2797,11 @@ func (this *Woofipro) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss, _ = orderParams["stopLoss"].(map[string]any)
 		var takeProfit, _ = orderParams["takeProfit"].(map[string]any)

@@ -187,8 +187,8 @@ func (this *Cex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol 
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
-	var currentSymbol *string = this.SafeString(this.Options["watchTrades"], "symbol")
-	if (currentSymbol != nil) && !ccxt.IsEqual(currentSymbol, symbol) {
+	var currentSymbol string = *this.SafeString(this.Options["watchTrades"], "symbol", "")
+	if (currentSymbol != "") && (currentSymbol != symbol) {
 		panic(ccxt.ArgumentsRequired(this.Id + " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance"))
 	}
 	var watchTradesDict map[string]any = this.Extend(map[string]any{}, this.SafeDict(this.Options, "watchTrades", map[string]any{}))
@@ -685,8 +685,8 @@ func (this *Cex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	}
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "orders:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orders:" + symbolValue
 	var message map[string]any = map[string]any{
 		"e": "open-orders",
 		"data": map[string]any{

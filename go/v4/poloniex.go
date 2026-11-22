@@ -970,6 +970,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
+
 	//
 	//     [
 	//         [
@@ -990,12 +991,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	//         ]
 	//     ]
 	//
-	var candles []any = []any{}
-	if response != nil {
-		candles = ArrayTyped(response)
-	}
-
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limit))}
 	return nil
 }
 func (this *Poloniex) LoadMarketsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
@@ -2028,11 +2024,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159019 []any = r1.Value
-		if retRes159019 == nil {
+		var retRes158619 []any = r1.Value
+		if retRes158619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes159019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158619)}
 		}
 		return nil
 	}
@@ -2743,7 +2739,11 @@ func (this *Poloniex) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 		var side *string = SafeStringPtr(rawOrder["side"])
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		// the request body is a bare list, so there is no room for common params - extend each order with them instead
 		var extendedParams any = this.Extend(orderParams, params)
 		var request map[string]any = map[string]any{
@@ -2870,7 +2870,7 @@ func (this *Poloniex) OrderRequest(symbol string, typeVar string, side string, a
 	result["type"] = upperCaseType
 	if isMarket {
 		if side == "buy" {
-			var quoteAmount any = nil
+			var quoteAmount *string = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, queryOmitted = this.HandleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(queryOmitted, "cost")
@@ -5395,7 +5395,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) map[string]any {
 	var apiName string = api[0]
 	var isArray bool = IsArray(params)
 	if (method == "GET") && (InOp(params, "symbol")) {
-		AddElementToObject(params, "symbol", this.EncodeURIComponent(GetValue(params, "symbol"))) // handle symbols like 索拉拉/USDT'
+		AddElementToObject(params, "symbol", this.EncodeURIComponent(this.SafeString(params, "symbol"))) // handle symbols like 索拉拉/USDT'
 	}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var implodedPath string = this.ImplodeParams(path, params)

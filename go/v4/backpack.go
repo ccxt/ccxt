@@ -1743,7 +1743,7 @@ func (this *Backpack) StockDataRequest(methodName string, params any, optionalAr
 	}
 	var request map[string]any = this.Extend(map[string]any{}, query)
 	var source *string = this.SafeString(query, "source")
-	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var marketInfo, _ = market["info"].(map[string]any)
 	var isRfq bool = (market != nil) && (this.SafeString(marketInfo, "marketType") != nil && *this.SafeString(marketInfo, "marketType") == "RFQ")
 	if source == nil {
 		var sourceStr string
@@ -3698,7 +3698,11 @@ func (this *Backpack) createOrdersBody(ch chan AsyncResult[[]Order], orders []ma
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var baseParams map[string]any = map[string]any{}
 		if stock || !(*this.SafeBool2(params, "stock", "defaultStock", true)) {
 			baseParams["stock"] = stock

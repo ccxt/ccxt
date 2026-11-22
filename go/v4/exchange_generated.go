@@ -2202,7 +2202,11 @@ func (this *BaseExchange) SafeLedgerEntry(entry map[string]any, optionalArgs ...
 		AddElementToObject(fee, "cost", this.SafeNumber(fee, "cost"))
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
-	var info map[string]any = this.SafeDictMap(entry, "info", map[string]any{})
+	var info map[string]any
+	info, _ = entry["info"].(map[string]any)
+	if info == nil {
+		info = map[string]any{}
+	}
 	return LedgerEntryFromMap(map[string]any{
 		"id":               this.SafeString(entry, "id"),
 		"timestamp":        timestamp,
@@ -3425,7 +3429,7 @@ func (this *BaseExchange) SafeTicker(ticker map[string]any, optionalArgs ...any)
 		if (average == nil) && (close != nil) {
 			var precision int = 18
 			if (market != nil) && this.IsTickPrecision() {
-				var marketPrecision map[string]any = SafeMapTyped(market, "precision")
+				var marketPrecision, _ = market["precision"].(map[string]any)
 				var precisionPrice *string = this.SafeString(marketPrecision, "price")
 				if precisionPrice != nil {
 					precision = this.PrecisionFromString(precisionPrice)
@@ -6694,13 +6698,14 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	}
 	return false
 }
-func (this *BaseExchange) CostToPrecision(symbol any, cost any) any {
+func (this *BaseExchange) CostToPrecision(symbol any, cost any) *string {
 	if IsEqual(cost, nil) {
 		return nil
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	return this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
+	retStr := this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
+	return &retStr
 }
 func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
@@ -6736,13 +6741,14 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) *string {
 	}
 	return &result
 }
-func (this *BaseExchange) FeeToPrecision(symbol any, fee any) any {
+func (this *BaseExchange) FeeToPrecision(symbol any, fee any) *string {
 	if IsEqual(fee, nil) {
 		return nil
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	return this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
+	retStr := this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
+	return &retStr
 }
 func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) *string {
 	var networkCode *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7229,17 +7235,17 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params map[string]any,
 	}
 	return triggerDirection, paramsOmitted
 }
-func (this *BaseExchange) HandleTriggerAndParams(params any) any {
+func (this *BaseExchange) HandleTriggerAndParams(params map[string]any) (*bool, map[string]any) {
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted any
+	var paramsOmitted map[string]any
 	if isTrigger != nil && *isTrigger == true {
-		paramsOmitted = this.Omit(params, []any{"trigger", "stop"})
+		paramsOmitted = this.OmitDict(params, []any{"trigger", "stop"})
 	} else {
 		paramsOmitted = params
 	}
-	return []any{isTrigger, paramsOmitted}
+	return isTrigger, paramsOmitted
 }
-func (this *BaseExchange) IsTriggerOrder(params any) any {
+func (this *BaseExchange) IsTriggerOrder(params map[string]any) (*bool, map[string]any) {
 	// for backwards compatibility
 	return this.HandleTriggerAndParams(params)
 }

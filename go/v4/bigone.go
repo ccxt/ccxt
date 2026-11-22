@@ -755,7 +755,8 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//        ...
 	//    ]
 	//
-	var markets []any = SafeListTyped(response, "data")
+	var markets []any
+	markets, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = markets[i]
@@ -1316,8 +1317,16 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks map[string]any) any {
 func (this *Bigone) ParseContractOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) map[string]any {
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	var responseBids map[string]any = this.SafeDictMap(orderbook, "bids", map[string]any{})
-	var responseAsks map[string]any = this.SafeDictMap(orderbook, "asks", map[string]any{})
+	var responseBids map[string]any
+	responseBids, _ = orderbook["bids"].(map[string]any)
+	if responseBids == nil {
+		responseBids = map[string]any{}
+	}
+	var responseAsks map[string]any
+	responseAsks, _ = orderbook["asks"].(map[string]any)
+	if responseAsks == nil {
+		responseAsks = map[string]any{}
+	}
 	var bids any = this.ParseContractBidsAsks(responseBids)
 	var asks any = this.ParseContractBidsAsks(responseAsks)
 	return map[string]any{

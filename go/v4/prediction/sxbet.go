@@ -3426,7 +3426,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	}
 	var held *string = this.SafeString(this.SafeDict(this.Options, "wsBookVersions", map[string]any{}), marketHash, "")
 	// versions are fixed-width numeric strings - replace only on a strictly newer publication
-	if (held == nil || *held != "") && (ccxt.IsLessThanOrEqual(version, held)) {
+	if (held == nil || *held != "") && ((version != nil && *version == "") || ccxt.Precise.StringLe(version, held)) {
 		return refreshed
 	}
 	this.SetWsOption("wsBookVersions", *marketHash, version)

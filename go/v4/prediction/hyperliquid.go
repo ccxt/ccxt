@@ -531,8 +531,8 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
 		// e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
 		var expParts []string = strings.Split(*expiry, "-")
 		var expPartsLength int = len(expParts)
-		if (expPartsLength >= 1) && (ccxt.GetLength(expParts[0]) == 8) {
-			var ymd *string = &expParts[0]
+		var ymd *string = &expParts[0]
+		if (expPartsLength >= 1) && (len(*ymd) == 8) {
 			var hm string = "0000"
 			if expPartsLength >= 2 {
 				hm = expParts[1]
@@ -610,7 +610,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo map[string]any, outcomeK
 	var marketRow map[string]any = this.SafeMarketStructure(map[string]any{
 		"id":             outcomeKey,
 		"market":         parentSymbol,
-		"base":           ccxt.GetValue(ccxt.Split(parentSymbol, "/"), 0),
+		"base":           this.SafeString(ccxt.Split(parentSymbol, "/"), 0),
 		"quote":          quoteCurrency,
 		"settle":         nil,
 		"baseId":         outcomeKey,
@@ -2603,8 +2603,8 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	if (expiryRaw != nil) && (expiryRaw == nil || *expiryRaw != "") {
 		var parts []string = strings.Split(*expiryRaw, "-")
 		var partsLength int = len(parts)
-		if (partsLength >= 1) && (ccxt.GetLength(parts[0]) == 8) {
-			var ymd *string = &parts[0]
+		var ymd *string = &parts[0]
+		if (partsLength >= 1) && (len(*ymd) == 8) {
 			var hm string = "0000"
 			if partsLength >= 2 {
 				hm = parts[1]

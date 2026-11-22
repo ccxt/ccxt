@@ -1397,6 +1397,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
+
 	//
 	//     [
 	//         [1607299260000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299200000],
@@ -1404,12 +1405,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	//         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
 	//     ]
 	//
-	var candles []any = []any{}
-	if response != nil {
-		candles = ArrayTyped(response)
-	}
-
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limit))}
 	return nil
 }
 func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) Trade {
@@ -1571,7 +1567,7 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var literal117731 map[string]any = map[string]any{
+	var literal117331 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"symbol":       symbol,
@@ -1587,30 +1583,30 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal117731["id"] = *id
+		literal117331["id"] = *id
 	}
 	if orderId != nil {
-		literal117731["order"] = *orderId
+		literal117331["order"] = *orderId
 	}
 	if typeVar != nil {
-		literal117731["type"] = *typeVar
+		literal117331["type"] = *typeVar
 	}
 	if side != nil {
-		literal117731["side"] = *side
+		literal117331["side"] = *side
 	}
 	if takerOrMaker != nil {
-		literal117731["takerOrMaker"] = *takerOrMaker
+		literal117331["takerOrMaker"] = *takerOrMaker
 	}
 	if priceString != nil {
-		literal117731["price"] = *priceString
+		literal117331["price"] = *priceString
 	}
 	if amountString != nil {
-		literal117731["amount"] = *amountString
+		literal117331["amount"] = *amountString
 	}
 	if costString != nil {
-		literal117731["cost"] = *costString
+		literal117331["cost"] = *costString
 	}
-	return this.SafeTrade(literal117731, market)
+	return this.SafeTrade(literal117331, market)
 }
 
 /**

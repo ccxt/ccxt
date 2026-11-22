@@ -2600,7 +2600,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	// sizing rules are strict on both sides, verified live
 	var needsQuoteSize bool = (isMarketOrder || (typeValue == "TRAILING")) && (upperSide == "BUY")
 	if needsQuoteSize {
-		var quoteAmount any = nil
+		var quoteAmount *string = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *string = this.SafeString(query, "cost")

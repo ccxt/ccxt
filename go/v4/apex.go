@@ -1794,7 +1794,7 @@ func (this *Apex) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 	var fees, _ = this.Fees["swap"].(map[string]any)
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
-	var pricePrecision any = GetValue(market["precision"], "price")
+	var pricePrecision *float64 = this.SafeNumber(market["precision"], "price")
 	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(pricePrecision)), TRUNCATE, pricePrecision, this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")

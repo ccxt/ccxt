@@ -605,11 +605,11 @@ func (this *Whitebit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 		panic(r1.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = &market.Symbol
-	var messageHash string = "myTrades:" + *symbolValue
+	var symbolValue string = market.Symbol
+	var messageHash string = "myTrades:" + symbolValue
 	var method string = "deals_subscribe"
 
-	r2 := <-this.WatchMultipleSubscriptionAsync(messageHash, method, symbolValue, true, params)
+	r2 := <-this.WatchMultipleSubscriptionAsync(messageHash, method, &symbolValue, true, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -782,11 +782,11 @@ func (this *Whitebit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		panic(r1.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = &market.Symbol
-	var messageHash string = "orders:" + *symbolValue
+	var symbolValue string = market.Symbol
+	var messageHash string = "orders:" + symbolValue
 	var method string = "ordersPending_subscribe"
 
-	r2 := <-this.WatchMultipleSubscriptionAsync(messageHash, method, symbolValue, false, params)
+	r2 := <-this.WatchMultipleSubscriptionAsync(messageHash, method, &symbolValue, false, params)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

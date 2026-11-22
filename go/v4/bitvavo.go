@@ -2806,7 +2806,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.SafeInteger(order, "created")
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
@@ -3648,7 +3648,8 @@ func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method 
 func (this *Bitvavo) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["noMarket"]; ok && !(InOp(params, "market")) {
+	var marketId *string = this.SafeString(params, "market")
+	if _, ok := config["noMarket"]; ok && (marketId == nil) {
 		return config["noMarket"]
 	}
 	return this.SafeInteger(config, "cost", 1)

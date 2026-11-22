@@ -3352,7 +3352,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 			panic(r.Err)
 		}
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var market any = nil
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	if marketType != nil && *marketType == "spot" {
@@ -3372,7 +3372,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	}
 	//
 	// {
@@ -3391,7 +3391,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Toobit) ParseTradingFee(data any, optionalArgs ...any) TradingFeeInterface {
+func (this *Toobit) ParseTradingFee(data map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "symbol")

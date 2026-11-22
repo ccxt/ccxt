@@ -670,10 +670,11 @@ func (this *Kraken) Describe() map[string]any {
 		},
 	})
 }
-func (this *Kraken) FeeToPrecision(symbol any, fee any) any {
+func (this *Kraken) FeeToPrecision(symbol any, fee any) *string {
 	var market map[string]any = this.Market(symbol)
 	var marketPrecision, _ = market["precision"].(map[string]any)
-	return this.DecimalToPrecision(fee, TRUNCATE, marketPrecision["amount"], this.PrecisionMode)
+	retStr := this.DecimalToPrecision(fee, TRUNCATE, marketPrecision["amount"], this.PrecisionMode)
+	return &retStr
 }
 
 /**
@@ -2356,7 +2357,11 @@ func (this *Kraken) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var parsedAmount *string = this.AmountToPrecision(market["symbol"], amount)
 		var req map[string]any = map[string]any{
 			"type":      side,
@@ -3249,21 +3254,21 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	var numTradeIds int = len(tradeIds)
 	// full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
 	var batches []any = []any{}
-	var batch []any = []any{}
+	var batch []string = []string{}
 	for i := 0; i < numTradeIds; i++ {
-		batch = append(batch, DerefScalar(tradeIds[i]))
+		var tradeId string = *this.SafeString(tradeIds, i, "")
+		batch = append(batch, tradeId)
 		var batchLength int = len(batch)
 		if int64(batchLength) >= batchSize {
-			batches = append(batches, batch)
-			batch = []any{}
+			batches = append(batches, strings.Join(batch, ","))
+			batch = []string{}
 		}
 	}
-	batches = append(batches, batch)
+	batches = append(batches, strings.Join(batch, ","))
 	var result []any = []any{}
 	for j := 0; j < len(batches); j++ {
-		var requestIds any = batches[j]
 		var request map[string]any = map[string]any{
-			"txid": Join(requestIds, ","),
+			"txid": DerefScalar(batches[j]),
 		}
 
 		r1 := <-this.PrivatePostQueryTrades(request)
@@ -3292,12 +3297,18 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 		//         }
 		//     }
 		//
-		var rawTrades any = this.SafeValue(response, "result")
-		var ids []string = ObjectKeys(rawTrades)
+		var rawTrades, _ = response["result"].(map[string]any)
+		var ids []string = nil
+		if rawTrades != nil {
+			ids = make([]string, 0, len(rawTrades))
+			for objectKey := range rawTrades {
+				ids = append(ids, objectKey)
+			}
+		}
 		var rawTradesWithIds map[string]any = map[string]any{}
 		for i := 0; i < len(ids); i++ {
 			var rawTradeId string = ids[i]
-			var rawTradeWithId map[string]any = this.Extend(map[string]any{}, GetValue(rawTrades, rawTradeId))
+			var rawTradeWithId map[string]any = this.Extend(map[string]any{}, rawTrades[rawTradeId])
 			rawTradeWithId["id"] = rawTradeId
 			rawTradesWithIds[rawTradeId] = rawTradeWithId
 		}
@@ -5063,33 +5074,31 @@ func (this *Kraken) HandleErrors(code int64, reason string, url string, method s
 		return nil
 	}
 	if this.SafeString(body, 0) != nil && *this.SafeString(body, 0) == "{" {
-		if !IsString(response) {
-			var message string = this.Id + " " + body
-			var errors []any = SafeListTyped(response, "error")
-			if errors != nil {
-				var numErrors int = len(errors)
-				if numErrors > 0 {
-					for i := 0; i < numErrors; i++ {
-						var error any = DerefScalar(errors[i])
+		var message string = this.Id + " " + body
+		var errors []any = SafeListTyped(response, "error")
+		if errors != nil {
+			var numErrors int = len(errors)
+			if numErrors > 0 {
+				for i := 0; i < numErrors; i++ {
+					var error any = DerefScalar(errors[i])
+					this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)
+					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, message)
+				}
+				panic(ExchangeError(message))
+			}
+		}
+		// handleCreateOrdersErrors:
+		var result map[string]any = SafeMapTyped(response, "result")
+		if result != nil {
+			if _, ok := result["orders"]; ok {
+				var orders []any = SafeListTyped(result, "orders")
+				for i := 0; i < len(orders); i++ {
+					var order, _ = orders[i].(map[string]any)
+					var error *string = this.SafeString(order, "error")
+					if error != nil {
 						this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)
 						this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, message)
-					}
-					panic(ExchangeError(message))
-				}
-			}
-			// handleCreateOrdersErrors:
-			var result map[string]any = SafeMapTyped(response, "result")
-			if result != nil {
-				if _, ok := result["orders"]; ok {
-					var orders []any = SafeListTyped(result, "orders")
-					for i := 0; i < len(orders); i++ {
-						var order, _ = orders[i].(map[string]any)
-						var error *string = this.SafeString(order, "error")
-						if error != nil {
-							this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)
-							this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, message)
-							panic(ExchangeError(message))
-						}
+						panic(ExchangeError(message))
 					}
 				}
 			}

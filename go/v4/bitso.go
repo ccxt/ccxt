@@ -2445,10 +2445,34 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 			var withdrawFee *float64 = this.ParseNumber(withdrawalResponse[currencyId])
 			var resultValue map[string]any = SafeMapTyped(result, code)
 			if resultValue == nil {
-				result[*code] = this.DepositWithdrawFee(map[string]any{})
+				var newInfo map[string]any = map[string]any{}
+				if ptrValue := this.ParseNumber(withdrawalResponse[currencyId]); ptrValue != nil {
+					newInfo[*code] = *ptrValue
+				} else {
+					newInfo[*code] = nil
+				}
+				result[*code] = this.Extend(this.DepositWithdrawFee(newInfo), map[string]any{
+					"withdraw": map[string]any{
+						"fee":        withdrawFee,
+						"percentage": nil,
+					},
+				})
+			} else {
+				var infoUpdate map[string]any = map[string]any{}
+				if ptrValue := this.ParseNumber(withdrawalResponse[currencyId]); ptrValue != nil {
+					infoUpdate[*code] = *ptrValue
+				} else {
+					infoUpdate[*code] = nil
+				}
+				var withdraw map[string]any = this.Extend(this.SafeDict(resultValue, "withdraw", map[string]any{}), map[string]any{
+					"fee": withdrawFee,
+				})
+				var info map[string]any = this.Extend(this.SafeDict(resultValue, "info", map[string]any{}), infoUpdate)
+				result[*code] = this.Extend(resultValue, map[string]any{
+					"withdraw": withdraw,
+					"info":     info,
+				})
 			}
-			AddElementToObject(GetValue(result[*code], "withdraw"), "fee", withdrawFee)
-			AddElementToObject(GetValue(result[*code], "info"), code, withdrawFee)
 		}
 	}
 	return result
@@ -2630,9 +2654,9 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 	} else {
 		networkCodeUpper = nil
 	}
-	var ternaryStr194120 string = "withdrawal"
+	var ternaryStr194720 string = "withdrawal"
 	if withdrawId == nil {
-		ternaryStr194120 = "deposit"
+		ternaryStr194720 = "deposit"
 	}
 	var addressValue *string
 	if withdrawalAddress != nil {
@@ -2650,7 +2674,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) Transa
 		"address":     addressValue,
 		"addressTo":   withdrawalAddress,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr194120,
+		"type":        ternaryStr194720,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -2716,16 +2740,16 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) map[string]any {
 			"Authorization": "Bitso " + auth,
 		}
 	}
-	var literal200415 map[string]any = map[string]any{
+	var literal201015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal200415["body"] = *requestBody
+		literal201015["body"] = *requestBody
 	}
-	return literal200415
+	return literal201015
 }
 func (this *Bitso) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

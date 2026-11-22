@@ -695,7 +695,11 @@ func (this *Cex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 		panic(r1.Err)
 	}
 	var response map[string]any = StructResultMap(r1.Value, TickerMapToMap)
-	var ticker map[string]any = this.SafeDictMap(response, symbol, map[string]any{})
+	var ticker map[string]any
+	ticker, _ = response[symbol].(map[string]any)
+	if ticker == nil {
+		ticker = map[string]any{}
+	}
 
 	ch <- AsyncResult[Ticker]{Value: TickerFromMap(ticker)}
 	return nil
@@ -1691,7 +1695,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) Order {
 		marketId = &marketIdStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
 	var feeAmount *float64 = this.SafeNumber(order, "feeAmount")

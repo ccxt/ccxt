@@ -1009,7 +1009,13 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 					var previousTrades any = this.SafeList(previousOrder, "trades", []any{})
 					ccxt.AppendToArray(&previousTrades, trade)
 					ccxt.AddElementToObject(previousOrder, "trades", previousTrades)
-					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
+					if previousOrder != nil {
+						if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
+							previousOrder["lastTradeTimestamp"] = *ptrValue
+						} else {
+							previousOrder["lastTradeTimestamp"] = nil
+						}
+					}
 					var totalCost string = "0"
 					var totalAmount string = "0"
 					for i := 0; i < ccxt.GetArrayLength(previousTrades); i++ {
@@ -1053,10 +1059,13 @@ func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
 						}
 					}
 					if this.SafeDictMap(previousOrder, "fee") == nil {
-						ccxt.AddElementToObject(previousOrder, "fee", map[string]any{
+						var newFee map[string]any = map[string]any{
 							"cost":     0,
 							"currency": this.SafeString(trade["fee"], "currency"),
-						})
+						}
+						if previousOrder != nil {
+							previousOrder["fee"] = newFee
+						}
 					}
 					var previousOrderFee map[string]any = this.SafeDictMap(previousOrder, "fee", map[string]any{})
 					if (this.SafeNumber(previousOrderFee, "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {

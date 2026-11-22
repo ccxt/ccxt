@@ -1025,10 +1025,8 @@ func (this *Toobit) HandleBalance(client any, message map[string]any) {
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
-		entry["info"] = this.SafeList(message, "B", []any{})
-	}
 	var typeBalance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	typeBalance["info"] = this.SafeList(message, "B", []any{})
 	if timestamp != nil {
 		typeBalance["timestamp"] = *timestamp
 	} else {

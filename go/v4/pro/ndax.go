@@ -97,7 +97,11 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	return nil
 }
 func (this *Ndax) HandleTicker(client any, message map[string]any) {
-	var payload map[string]any = this.SafeDictMap(message, "o", map[string]any{})
+	var payload map[string]any
+	payload, _ = message["o"].(map[string]any)
+	if payload == nil {
+		payload = map[string]any{}
+	}
 	//
 	//     {
 	//         "OMSId": 1,

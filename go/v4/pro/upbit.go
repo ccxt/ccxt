@@ -389,16 +389,12 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 	//   "acc_trade_volume_24h": 118.38798416,
 	//   "stream_type": "SNAPSHOT" }
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(message))
-	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
+		var messageHash string = "ticker:" + *symbol
+		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
-	var messageHash *string = nil
-	if symbol != nil {
-		messageHashValue := "ticker:" + *symbol
-		messageHash = &messageHashValue
-	}
-	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	// { type: "orderbook",

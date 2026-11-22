@@ -389,7 +389,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 	var isMarketBuy bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY")
 	var paramsOmitted map[string]any = params
 	if isMarketBuy {
-		var quoteAmount any = nil
+		var quoteAmount *string = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 		paramsOmitted = this.OmitDict(paramsRequiresPrice, "cost")
@@ -1220,8 +1220,16 @@ func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	if _, ok := this.Balance["info"]; !ok {
 		this.Balance["info"] = ccxt.GetValue(response, "info")
-		this.Balance["timestamp"] = ccxt.GetValue(response, "timestamp")
-		this.Balance["datetime"] = ccxt.GetValue(response, "datetime")
+		if ptrValue := this.SafeInteger(response, "timestamp"); ptrValue != nil {
+			this.Balance["timestamp"] = *ptrValue
+		} else {
+			this.Balance["timestamp"] = nil
+		}
+		if ptrValue := this.SafeString(response, "datetime"); ptrValue != nil {
+			this.Balance["datetime"] = *ptrValue
+		} else {
+			this.Balance["datetime"] = nil
+		}
 	}
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	// don't remove the future from the .futures cache
@@ -1569,7 +1577,13 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 				retRes104720 := previousOrder["trades"]
 				ccxt.AppendToArray(&retRes104720, trade)
 				ccxt.AddElementToObject(previousOrder, "trades", retRes104720)
-				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
+				if previousOrder != nil {
+					if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
+						previousOrder["lastTradeTimestamp"] = *ptrValue
+					} else {
+						previousOrder["lastTradeTimestamp"] = nil
+					}
+				}
 				totalCostLit75 := "0"
 				var totalCost *string = &totalCostLit75
 				totalAmountLit76 := "0"
@@ -1632,7 +1646,7 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 					}
 				}
 				if (this.SafeString(previousOrder["fee"], "cost") != nil) && (this.SafeNumber(trade["fee"], "cost") != nil) {
-					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(previousOrder["fee"], "cost"))
+					var stringOrderCost *string = this.SafeString(previousOrder["fee"], "cost")
 					var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
 					ccxt.AddElementToObject(previousOrder["fee"], "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 				}
@@ -1851,8 +1865,16 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
-		var asks []any = this.SafeListSlice(item, "asks", []any{})
-		var bids []any = this.SafeListSlice(item, "bids", []any{})
+		var asks []any
+		asks, _ = item["asks"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = item["bids"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		if snapshot || update {
 			var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 			if snapshot && (orderbook == nil) {
@@ -1873,7 +1895,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			}
 			if bids != nil {
 				for j := 0; j < len(bids); j++ {
-					var bid []any = ccxt.SafeListTyped(bids, j)
+					var bid, _ = bids[j].([]any)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
 					var bidsSide ccxt.IOrderBookSide = orderbook.GetBids()
@@ -1882,7 +1904,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			}
 			if asks != nil {
 				for j := 0; j < len(asks); j++ {
-					var ask []any = ccxt.SafeListTyped(asks, j)
+					var ask, _ = asks[j].([]any)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
 					var asksSide ccxt.IOrderBookSide = orderbook.GetAsks()

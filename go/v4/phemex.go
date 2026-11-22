@@ -3301,8 +3301,8 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"ordType": typeValue,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
 	var marketSettle *string = this.SafeString(market, "settle")
@@ -3368,7 +3368,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 					panic(ArgumentsRequired(this.Id + " createOrder() " + *qtyType + " requires a price argument or a cost parameter"))
 				}
 			}
-			var costString any = this.CostToPrecision(symbol, cost)
+			var costString *string = this.CostToPrecision(symbol, cost)
 			request["quoteQtyEv"] = this.ToEv(costString, market)
 		} else {
 			var amountString *string = this.AmountToPrecision(symbol, amount)
@@ -4849,7 +4849,7 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var txid *string = this.SafeString(transaction, "txHash")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
-	var code *string = SafeStringPtr(currencyResolved["code"])
+	var code *string = this.SafeString(currencyResolved, "code")
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar *string = this.SafeStringLower(transaction, "type")
@@ -6048,14 +6048,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 		privateHeaders["x-phemex-request-expiry"] = expiryString
 		var payload string = ""
 		if method == "POST" {
+			payload = this.Json(params)
 			var isOrderPlacement bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders")
 			if isOrderPlacement {
 				if this.SafeString(params, "clOrdID") == nil {
 					var id string = *this.SafeString(this.Options, "brokerId", "CCXT123456")
-					AddElementToObject(params, "clOrdID", id+this.Uuid16())
+					payload = this.Json(this.Extend(params, map[string]any{
+						"clOrdID": id + this.Uuid16(),
+					}))
 				}
 			}
-			payload = this.Json(params)
 			requestBodyStr := payload
 			requestBody = &requestBodyStr
 			privateHeaders["Content-Type"] = "application/json"

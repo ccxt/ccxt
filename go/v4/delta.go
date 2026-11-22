@@ -1705,7 +1705,7 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 			continue
 		}
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i]))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}

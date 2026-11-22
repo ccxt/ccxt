@@ -1659,7 +1659,11 @@ func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 	var createMarketBuyOrderRequiresPrice *bool = this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		quoteAmount = this.CostToPrecision(symbol, cost)
+		if derefPtr := this.CostToPrecision(symbol, cost); derefPtr != nil {
+			quoteAmount = *derefPtr
+		} else {
+			quoteAmount = nil
+		}
 	} else if createMarketBuyOrderRequiresPrice != nil && *createMarketBuyOrderRequiresPrice {
 		if (price == nil) || (amount == nil) {
 			panic(InvalidOrder(this.Id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
@@ -1667,12 +1671,20 @@ func (this *Upbit) CalcOrderPrice(symbol string, optionalArgs ...any) any {
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
 		var costRequest *string = Precise.StringMul(amountString, priceString)
-		quoteAmount = this.CostToPrecision(symbol, costRequest)
+		if derefPtr := this.CostToPrecision(symbol, costRequest); derefPtr != nil {
+			quoteAmount = *derefPtr
+		} else {
+			quoteAmount = nil
+		}
 	} else {
 		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend."))
 		}
-		quoteAmount = this.CostToPrecision(symbol, amount)
+		if derefPtr := this.CostToPrecision(symbol, amount); derefPtr != nil {
+			quoteAmount = *derefPtr
+		} else {
+			quoteAmount = nil
+		}
 	}
 	if quoteAmount == nil {
 		panic(ArgumentsRequired(this.Id + " calcOrderPrice() could not determine quote amount"))

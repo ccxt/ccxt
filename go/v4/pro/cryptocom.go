@@ -207,7 +207,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccx
 	if (limit != nil) && (limit == nil || *limit != 0) {
 		limitResolved = *limit
 	}
-	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
+	var topicParams, _ = params["params"].(map[string]any)
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}
@@ -287,7 +287,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[b
 	var subMessageHashes []any = []any{}
 	var messageHashes []any = []any{}
 	var limit int64 = *this.SafeInteger(params, "limit", 50)
-	var topicParams map[string]any = ccxt.SafeMapTyped(params, "params")
+	var topicParams, _ = params["params"].(map[string]any)
 	if topicParams == nil {
 		params["params"] = map[string]any{}
 	}
@@ -1526,14 +1526,15 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 	if 0 < len(data) {
 		firstData, _ = data[0].(map[string]any)
 	}
-	var rawPositions []any = ccxt.SafeListTyped(firstData, "positions")
+	var rawPositions []any
+	rawPositions, _ = firstData["positions"].([]any)
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
+		var rawPosition, _ = rawPositions[i].(map[string]any)
 		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
 		newPositions = append(newPositions, position)
 		cache.Append(position)

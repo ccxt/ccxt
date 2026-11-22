@@ -482,7 +482,11 @@ func (this *Deepcoin) HandleTicker(client any, message map[string]any) {
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "d", map[string]any{})
+	var data map[string]any
+	data, _ = first["d"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -676,7 +680,11 @@ func (this *Deepcoin) HandleTrades(client any, message map[string]any) {
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "d", map[string]any{})
+	var data map[string]any
+	data, _ = first["d"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -904,7 +912,11 @@ func (this *Deepcoin) HandleOHLCV(client any, message map[string]any) {
 	if 0 < len(response) {
 		first, _ = response[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "d", map[string]any{})
+	var data map[string]any
+	data, _ = first["d"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1295,7 +1307,11 @@ func (this *Deepcoin) HandleMyTrade(client any, message map[string]any) {
 	if 0 < len(result) {
 		first, _ = result[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "data", map[string]any{})
+	var data map[string]any
+	data, _ = first["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1411,7 +1427,11 @@ func (this *Deepcoin) HandleOrder(client any, message map[string]any) {
 	if 0 < len(result) {
 		first, _ = result[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "data", map[string]any{})
+	var data map[string]any
+	data, _ = first["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -1602,7 +1622,11 @@ func (this *Deepcoin) HandlePosition(client any, message map[string]any) {
 	if 0 < len(result) {
 		first, _ = result[0].(map[string]any)
 	}
-	var data map[string]any = this.SafeDictMap(first, "data", map[string]any{})
+	var data map[string]any
+	data, _ = first["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "I")
 	var market map[string]any = this.SafeMarket(marketId, nil, "/")
 	var symbol *string = this.SafeSymbol(marketId, market)

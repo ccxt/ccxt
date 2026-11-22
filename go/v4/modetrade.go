@@ -2721,7 +2721,11 @@ func (this *Modetrade) createOrdersBody(ch chan AsyncResult[[]Order], orders []m
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var triggerPrice *string = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss, _ = orderParams["stopLoss"].(map[string]any)
 		var takeProfit, _ = orderParams["takeProfit"].(map[string]any)

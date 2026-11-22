@@ -1097,7 +1097,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			stats = map[string]any{}
 		}
 		var ticker map[string]any = TickerToMap(this.ParseTicker(stats, market))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			tickers[*symbol] = ticker
 		}
@@ -4049,7 +4049,11 @@ func (this *Extended) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		panic(r.Err)
 	}
 	var extendedOrderRequest map[string]any = r.Value
-	var request map[string]any = this.SafeDictMap(extendedOrderRequest, "request", map[string]any{})
+	var request map[string]any
+	request, _ = extendedOrderRequest["request"].(map[string]any)
+	if request == nil {
+		request = map[string]any{}
+	}
 
 	r1 := <-this.V1PrivatePostUserOrder(request)
 	if r1.Err != nil {
@@ -4169,7 +4173,11 @@ func (this *Extended) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		panic(r1.Err)
 	}
 	var extendedOrderRequest map[string]any = r1.Value
-	var request map[string]any = this.SafeDictMap(extendedOrderRequest, "request", map[string]any{})
+	var request map[string]any
+	request, _ = extendedOrderRequest["request"].(map[string]any)
+	if request == nil {
+		request = map[string]any{}
+	}
 
 	r2 := <-this.V1PrivatePostUserOrder(request)
 	if r2.Err != nil {

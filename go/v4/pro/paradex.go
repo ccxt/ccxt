@@ -1073,9 +1073,13 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) map[string]
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
-	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
+	var symbol *string = this.SafeString(parsedTrade, "symbol")
 	var messageHash *string = this.SafeString(params, "channel")
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
@@ -1104,8 +1108,6 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) map[string]
 		liquidations.(ccxt.Appender).Append(liquidation)
 		if symbol != nil {
 			client.(ccxt.ClientInterface).Resolve(liquidations, "liquidations:"+*symbol)
-		} else {
-			client.(ccxt.ClientInterface).Resolve(liquidations, nil)
 		}
 	}
 	// an SBE frame names its market but not the subscription it was sent for,
@@ -1737,10 +1739,13 @@ func (this *Paradex) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optional
 	var subMessageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var symbol *string = &symbolsNormalized[i]
-		var market map[string]any = this.Market(symbol)
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
 		marketIds = append(marketIds, marketId)
-		subscribeHashes = append(subscribeHashes, channel+"."+*marketId)
+		subscribeHashes = append(subscribeHashes, channel+"."+marketId)
 		subMessageHashes = append(subMessageHashes, channel+"."+*symbol)
 	}
 	var tickerSymbols []string
@@ -1892,8 +1897,8 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 	// messageHashes[i] is the hash the summaries of symbols[i] resolve
 	for i := 0; i < len(symbols); i++ {
 		var market map[string]any = this.Market(symbols[i])
-		var marketId *string = ccxt.SafeStringPtr(market["id"])
-		var subscribeHash string = channel + "." + *marketId
+		var marketId string = *this.SafeString(market, "id", "")
+		var subscribeHash string = channel + "." + marketId
 		subscribeHashes = append(subscribeHashes, subscribeHash)
 		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
 			missing = append(missing, marketId)
@@ -2163,16 +2168,18 @@ func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var bidAsk map[string]any = this.ParseWsBidAsk(data)
-	var symbol *string = ccxt.SafeStringPtr(bidAsk["symbol"])
+	var symbol *string = this.SafeString(bidAsk, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
 	}
 	if symbol != nil {
 		client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask:"+*symbol)
-	} else {
-		client.(ccxt.ClientInterface).Resolve(bidAsk, nil)
 	}
 	// an SBE frame does not tell bbo.ALL from the per-market channel
 	client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask")
@@ -2305,7 +2312,11 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	if this.Orders == nil {
@@ -2428,7 +2439,11 @@ func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
 	var symbol *string = this.SafeString(trade, "symbol")
 	if this.MyTrades == nil {
@@ -2495,8 +2510,10 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	if symbolsLength == 0 {
 		messageHashes = append(messageHashes, channel)
 	} else {
-		for i := 0; i < symbolsLength; i++ {
-			messageHashes = append(messageHashes, ccxt.Add(channel+":", symbolsNormalized[i]))
+		if symbolsNormalized != nil {
+			for i := 0; i < symbolsLength; i++ {
+				messageHashes = append(messageHashes, channel+":"+symbolsNormalized[i])
+			}
 		}
 	}
 	var request map[string]any = this.SubscribeRequest(channel)
@@ -2554,13 +2571,17 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
 	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
-	var symbol *string = ccxt.SafeStringPtr(position["symbol"])
+	var symbol *string = this.SafeString(position, "symbol")
 	var newPositions []any = []any{}
 	// one position per market, so a fill through zero flips its side: the cache keys by
 	// symbol and side, and the opposite side it still holds is flattened here
@@ -2585,8 +2606,6 @@ func (this *Paradex) HandlePositions(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 	if symbol != nil {
 		client.(ccxt.ClientInterface).Resolve(newPositions, "positions:"+*symbol)
-	} else {
-		client.(ccxt.ClientInterface).Resolve(newPositions, nil)
 	}
 }
 
@@ -2661,7 +2680,11 @@ func (this *Paradex) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	// merge the parsed update into the existing balance object instead of
 	// replacing it: a consumer awakened by an earlier message holds a
 	// reference to this.balance, and ccxt.Client.resolve is a no-op while
@@ -2731,7 +2754,11 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) map[string
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -2933,7 +2960,11 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var params, _ = message["params"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var data map[string]any
+	data, _ = params["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
@@ -3291,15 +3322,15 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 		return nil
 	}
 	var isSnapshot bool = (pkgType == 0)
-	var ternaryStr228727 string = "d"
+	var ternaryStr229527 string = "d"
 	if isSnapshot {
-		ternaryStr228727 = "s"
+		ternaryStr229527 = "s"
 	}
 	var result map[string]any = map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     ternaryStr228727,
+		"update_type":     ternaryStr229527,
 		"inserts":         []any{},
 		"updates":         []any{},
 		"deletes":         []any{},

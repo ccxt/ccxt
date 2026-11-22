@@ -1759,12 +1759,11 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 	}
 	userAddress, paramsValue := this.HandlePublicAddress("watchBalance", params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
-
-	r1 := <-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)
-	if r1.Err != nil {
-		panic(r1.Err)
+	unifiedResultPair := <-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)
+	if unifiedResultPair.Err != nil {
+		panic(unifiedResultPair.Err)
 	}
-	var unifiedResult []any = r1.Value
+	var unifiedResult []any = []any{unifiedResultPair.Value.V, unifiedResultPair.Value.P}
 	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0, false)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
@@ -1797,16 +1796,16 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 	// with watchPositions, so a pending unWatchPositions delays this watch
 	// too - its ack tears the shared stream down and sweeps both futures
 
-	r2 := <-this.WaitForPendingUnsubscribeAsync(url, topic)
+	r1 := <-this.WaitForPendingUnsubscribeAsync(url, topic)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+
+	r2 := <-this.Watch(url, messageHash, message, topic)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-
-	r3 := <-this.Watch(url, messageHash, message, topic)
-	if r3.Err != nil {
-		panic(r3.Err)
-	}
-	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
+	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
 
@@ -1838,12 +1837,11 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 	var url *string = this.UrlsApiSectionStrings["ws"]["public"]
 	userAddress, paramsValue := this.HandlePublicAddress("unWatchBalance", params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
-
-	r1 := <-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)
-	if r1.Err != nil {
-		panic(r1.Err)
+	unifiedResultPair := <-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)
+	if unifiedResultPair.Err != nil {
+		panic(unifiedResultPair.Err)
 	}
-	var unifiedResult []any = r1.Value
+	var unifiedResult []any = []any{unifiedResultPair.Value.V, unifiedResultPair.Value.P}
 	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0, false)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
@@ -1862,12 +1860,12 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 	}
 	var message map[string]any = this.Extend(request, paramsValue2)
 
-	r2 := <-this.Watch(url, messageHash, message, messageHash)
-	if r2.Err != nil {
-		panic(r2.Err)
+	r1 := <-this.Watch(url, messageHash, message, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
 	var resolved bool
-	switch resolvedBox := r2.Value.(type) {
+	switch resolvedBox := r1.Value.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

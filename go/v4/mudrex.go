@@ -1078,8 +1078,8 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
 	if takeProfit != nil {
 		request["is_takeprofit"] = true
 		request["takeprofit_price"] = this.PriceToPrecision(symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
@@ -1944,7 +1944,7 @@ func (this *Mudrex) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.AddMarginAsync(symbol, OpNeg(amount), params)
+	r := <-this.AddMarginAsync(symbol, this.ParseNumber(Precise.StringNeg(this.NumberToString(amount))), params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

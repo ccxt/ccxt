@@ -1428,7 +1428,11 @@ func (this *Myriad) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 		var side *string = this.SafeString(o, "side")
 		var amount *float64 = this.SafeNumber(o, "amount")
 		var price *float64 = this.SafeNumber(o, "price")
-		var orderParams map[string]any = this.SafeDictMap(o, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = o["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 
 		r1 := <-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, this.Extend(orderParams, params))
 		if r1.Err != nil {
@@ -1785,11 +1789,11 @@ func (this *Myriad) ClobOrderMessage(rawOrder map[string]any) map[string]any {
 func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var orderResponse map[string]any = ccxt.SafeMapTyped(params, "orderResponse")
+	var orderResponse, _ = params["orderResponse"].(map[string]any)
 	if orderResponse != nil {
 		return orderResponse
 	}
-	var rawOrder map[string]any = ccxt.SafeMapTyped(params, "rawOrder")
+	var rawOrder, _ = params["rawOrder"].(map[string]any)
 	if rawOrder != nil {
 		return map[string]any{
 			"orderHash": id,
@@ -1797,7 +1801,7 @@ func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) a
 			"networkId": this.SafeString2(params, "networkId", "network_id"),
 		}
 	}
-	var orderResponsesById map[string]any = ccxt.SafeMapTyped(params, "orderResponses")
+	var orderResponsesById, _ = params["orderResponses"].(map[string]any)
 	if orderResponsesById != nil {
 		var keyedResponse, _ = orderResponsesById[id].(map[string]any)
 		if keyedResponse != nil {
@@ -3465,12 +3469,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var outcomeId *string
-	if market != nil {
-		outcomeId = this.SafeString(market["info"], "outcomeId")
-	} else {
-		outcomeId = nil
-	}
+	var outcomeId *string = this.SafeString(this.SafeDict(market, "info"), "outcomeId")
 	var outcomes []any = ccxt.SafeListTyped(raw, "outcomes")
 	var price *float64 = nil
 	var change *float64 = nil
@@ -3480,7 +3479,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 	for i := 0; i < len(outcomes); i++ {
 		var o, _ = outcomes[i].(map[string]any)
 		var entryOutcomeId *string = this.SafeString(o, "outcomeId", this.SafeString(o, "id"))
-		if ccxt.IsEqual(entryOutcomeId, outcomeId) {
+		if entryOutcomeId == outcomeId || (entryOutcomeId != nil && outcomeId != nil && *entryOutcomeId == *outcomeId) {
 			var priceValue *float64 = this.SafeNumber(o, "price")
 			var changeValue *float64 = this.SafeNumber(o, "priceChange24h")
 			price = priceValue
@@ -3488,7 +3487,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[stri
 			if (priceValue != nil) && (changeValue != nil) {
 				var previousCloseValue any = (*priceValue - *changeValue)
 				previousClose = previousCloseValue
-				if !ccxt.IsEqual(previousCloseValue, 0) {
+				if priceValue != changeValue && (priceValue == nil || changeValue == nil || *priceValue != *changeValue) {
 					percentage = ccxt.Multiply(ccxt.Divide(changeValue, previousCloseValue), 100)
 				}
 			}
@@ -4247,8 +4246,8 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 			var tagQueries []string = []string{}
 			for i := 0; i < requestedTagsLength; i++ {
 				// tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-				var tagSlug any = requestedTags[i]
-				tagQueries = append(tagQueries, ccxt.Replace(tagSlug, "-", " "))
+				var tagSlug string = *this.SafeString(requestedTags, i, "")
+				tagQueries = append(tagQueries, strings.ReplaceAll(tagSlug, "-", " "))
 			}
 			// run both searches in parallel; some events are only discoverable from questions,
 			// while market search is still the primary source for market-level data
@@ -4528,7 +4527,7 @@ func (this *Myriad) HandleTextMessage(client any, message string) {
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
 		var line string = lines[i]
-		if len(line) > 0 {
+		if line != "" {
 			var parsed any = ccxt.JsonParse(line)
 			this.HandleCentrifugoFrame(client, parsed)
 		}
@@ -4562,7 +4561,11 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var pub, _ = push["pub"].(map[string]any)
-	var data map[string]any = this.SafeDictMap(pub, "data", map[string]any{})
+	var data map[string]any
+	data, _ = pub["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var parts []string = strings.Split(*channel, ":")
 	var channelType *string = this.SafeString(parts, 0)
 	if channelType != nil && *channelType == "orderbook" {

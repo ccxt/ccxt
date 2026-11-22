@@ -199,7 +199,7 @@ func (this *P2b) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol s
 	nameOption, paramsName := this.HandleOptionStringAndParams(params, "watchTicker", "name", name)
 	var market map[string]any = this.Market(symbol)
 	ccxt.AddElementToObject(this.Options["tickerSubs"], market["id"], true) // we need to re-subscribe to all tickers upon watching a new ticker
-	var tickerSubs map[string]any = ccxt.MapTyped(this.Options["tickerSubs"])
+	var tickerSubs, _ = this.Options["tickerSubs"].(map[string]any)
 	var request []string = nil
 	if tickerSubs != nil {
 		request = make([]string, 0, len(tickerSubs))
@@ -619,8 +619,10 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	if 1 < len(params) {
 		data, _ = params[1].(map[string]any)
 	}
-	var asks []any = ccxt.SafeListTyped(data, "asks")
-	var bids []any = ccxt.SafeListTyped(data, "bids")
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	var bids []any
+	bids, _ = data["bids"].([]any)
 	var marketId *string = this.SafeString(params, 2)
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol", "")
@@ -641,7 +643,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	}
 	if bids != nil {
 		for i := 0; i < len(bids); i++ {
-			var bid []any = ccxt.SafeListTyped(bids, i)
+			var bid, _ = bids[i].([]any)
 			var price *float64 = this.SafeNumber(bid, 0)
 			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide ccxt.IOrderBookSide = orderbook.GetBids()
@@ -650,7 +652,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	}
 	if asks != nil {
 		for i := 0; i < len(asks); i++ {
-			var ask []any = ccxt.SafeListTyped(asks, i)
+			var ask, _ = asks[i].([]any)
 			var price *float64 = this.SafeNumber(ask, 0)
 			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside ccxt.IOrderBookSide = orderbook.GetAsks()

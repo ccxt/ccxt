@@ -1740,22 +1740,14 @@ func (this *Alpaca) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 	}
 
-	r1 := <-this.TraderPrivateDeleteV2Orders(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.TraderPrivateDeleteV2Orders(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	response := r1.Raw
-	if IsArray(response) {
+	var response []any = responseRecv.Value
 
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
-		return nil
-	} else {
-
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
-			"info": response,
-		}))})}
-		return nil
-	}
+	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
+	return nil
 }
 
 /**
@@ -1956,11 +1948,11 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140715 []any = OrdersToList(r.Value)
-	if retRes140715 == nil {
+	var retRes139915 []any = OrdersToList(r.Value)
+	if retRes139915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes139915)}
 	}
 	return nil
 }
@@ -2002,11 +1994,11 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142715 []any = OrdersToList(r.Value)
-	if retRes142715 == nil {
+	var retRes141915 []any = OrdersToList(r.Value)
+	if retRes141915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141915)}
 	}
 	return nil
 }

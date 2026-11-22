@@ -1328,7 +1328,11 @@ func (this *Gate) HandleTickerAndBidAsk(objectName string, client any, message m
 	if resultList != nil {
 		results = resultList
 	} else {
-		var rawTicker map[string]any = this.SafeDictMap(message, "result", map[string]any{})
+		var rawTicker map[string]any
+		rawTicker, _ = message["result"].(map[string]any)
+		if rawTicker == nil {
+			rawTicker = map[string]any{}
+		}
 		results = []any{rawTicker}
 	}
 	var isTicker bool = (objectName == "ticker") // whether ticker or bid-ask

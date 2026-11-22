@@ -895,8 +895,16 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 	//         ]
 	//     }
 	//
-	var spotData []any = this.SafeListSlice(spotMarkets, "symbol_list", []any{})
-	var swapData []any = this.SafeListSlice(swapMarkets, "data", []any{})
+	var spotData []any
+	spotData, _ = spotMarkets["symbol_list"].([]any)
+	if spotData == nil {
+		spotData = []any{}
+	}
+	var swapData []any
+	swapData, _ = swapMarkets["data"].([]any)
+	if swapData == nil {
+		swapData = []any{}
+	}
 	var response []any = this.ArrayConcat(spotData, swapData)
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
@@ -2530,7 +2538,7 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
 		}
 		request["type"] = *side + suffix
 		// limit orders require the amount in the base currency, market orders require the amount in the quote currency
-		var quantity any = nil
+		var quantity *string = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuy bool = isMarketOrder && (side != nil && *side == "buy")
 		var keysToOmit []any = []any{"postOnly"}
@@ -2555,11 +2563,7 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
 				quantity = this.CostToPrecision(symbol, amount)
 			}
 		} else {
-			if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
-				quantity = *derefPtr
-			} else {
-				quantity = nil
-			}
+			quantity = this.AmountToPrecision(symbol, amount)
 		}
 		request["amount"] = quantity
 	}

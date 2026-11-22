@@ -5637,7 +5637,8 @@ func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, si
 		if IsEqual(amount, nil) {
 			panic(ArgumentsRequired(this.Id + " requires an amount argument"))
 		}
-		if IsLessThan(amount, 1) {
+		var amountInt int64 = this.ParseToInt(amount)
+		if amountInt < 1 {
 			panic(InvalidOrder(this.Id + " createOrder() minimum contract order amount is 1"))
 		}
 		var sizeString *string = this.AmountToPrecision(symbol, amount)
@@ -6199,11 +6200,11 @@ func (this *Kucoin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes474819 []any = OrdersToList(r1.Value)
-		if retRes474819 == nil {
+		var retRes474919 []any = OrdersToList(r1.Value)
+		if retRes474919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes474819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes474919)}
 		}
 		return nil
 	} else if isContract {
@@ -6212,11 +6213,11 @@ func (this *Kucoin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes475019 []any = OrdersToList(r2.Value)
-		if retRes475019 == nil {
+		var retRes475119 []any = OrdersToList(r2.Value)
+		if retRes475119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes475019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes475119)}
 		}
 		return nil
 	} else {
@@ -6276,7 +6277,11 @@ func (this *Kucoin) createSpotOrdersBody(ch chan AsyncResult[[]Order], orders []
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateSpotOrderRequest(*marketId, *typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -6389,7 +6394,11 @@ func (this *Kucoin) createContractOrdersBody(ch chan AsyncResult[[]Order], order
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateContractOrderRequest(*symbol, *typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -7034,11 +7043,11 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes528419 []any = OrdersToList(r2.Value)
-		if retRes528419 == nil {
+		var retRes528519 []any = OrdersToList(r2.Value)
+		if retRes528519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes528419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes528519)}
 		}
 		return nil
 	}
@@ -7053,11 +7062,11 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes529219 []any = OrdersToList(r3.Value)
-		if retRes529219 == nil {
+		var retRes529319 []any = OrdersToList(r3.Value)
+		if retRes529319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes529219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes529319)}
 		}
 		return nil
 	} else {
@@ -7066,11 +7075,11 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
-		var retRes529419 []any = OrdersToList(r4.Value)
-		if retRes529419 == nil {
+		var retRes529519 []any = OrdersToList(r4.Value)
+		if retRes529519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes529419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes529519)}
 		}
 		return nil
 	}
@@ -7423,11 +7432,11 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes550819 []any = OrdersToList(r2.Value)
-		if retRes550819 == nil {
+		var retRes550919 []any = OrdersToList(r2.Value)
+		if retRes550919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes550819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes550919)}
 		}
 		return nil
 	} else if this.InArray(marketType, []any{"spot", "margin"}) {
@@ -7436,11 +7445,11 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes551019 []any = OrdersToList(r3.Value)
-		if retRes551019 == nil {
+		var retRes551119 []any = OrdersToList(r3.Value)
+		if retRes551119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes551019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes551119)}
 		}
 		return nil
 	} else {
@@ -7449,11 +7458,11 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
-		var retRes551219 []any = OrdersToList(r4.Value)
-		if retRes551219 == nil {
+		var retRes551319 []any = OrdersToList(r4.Value)
+		if retRes551319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes551219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes551319)}
 		}
 		return nil
 	}
@@ -7684,11 +7693,11 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan AsyncResult[[]Order]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes569319 []any = r1.Value
-		if retRes569319 == nil {
+		var retRes569419 []any = r1.Value
+		if retRes569419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes569319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes569419)}
 		}
 		return nil
 	}
@@ -7844,11 +7853,11 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan AsyncResult[[]Order], sta
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes580719 []any = r1.Value
-		if retRes580719 == nil {
+		var retRes580819 []any = r1.Value
+		if retRes580819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes580719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes580819)}
 		}
 		return nil
 	}
@@ -8019,11 +8028,11 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes593419 []any = r1.Value
-		if retRes593419 == nil {
+		var retRes593519 []any = r1.Value
+		if retRes593519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes593419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes593519)}
 		}
 		return nil
 	}
@@ -8032,12 +8041,12 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	retRes593615Recv, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes593615 []any = retRes593615Recv
-	if retRes593615 == nil {
+	retRes593715Recv, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes593715 []any = retRes593715Recv
+	if retRes593715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes593615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes593715)}
 	}
 	return nil
 }
@@ -8099,11 +8108,11 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes597219 []any = r1.Value
-		if retRes597219 == nil {
+		var retRes597319 []any = r1.Value
+		if retRes597319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes597219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes597319)}
 		}
 		return nil
 	}
@@ -8112,12 +8121,12 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	retRes597415Recv, _ := OrdersToList(r2.Value), r2.Value != nil
-	var retRes597415 []any = retRes597415Recv
-	if retRes597415 == nil {
+	retRes597515Recv, _ := OrdersToList(r2.Value), r2.Value != nil
+	var retRes597515 []any = retRes597515Recv
+	if retRes597515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes597415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes597515)}
 	}
 	return nil
 }
@@ -9062,7 +9071,7 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any
 		"currency": this.SafeCurrencyCode(this.SafeString(order, "feeCurrency")),
 		"cost":     this.SafeString(order, "fee"),
 	}
-	var literal671331 map[string]any = map[string]any{
+	var literal671431 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOid"),
 		"symbol":              symbol,
@@ -9090,12 +9099,12 @@ func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any
 		"info":                order,
 	}
 	if amount != nil {
-		literal671331["amount"] = *amount
+		literal671431["amount"] = *amount
 	}
 	if cost != nil {
-		literal671331["cost"] = *cost
+		literal671431["cost"] = *cost
 	}
-	return OrderToMap(this.SafeOrder(literal671331, marketResolved))
+	return OrderToMap(this.SafeOrder(literal671431, marketResolved))
 }
 func (this *Kucoin) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -9166,12 +9175,12 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes679215Recv, _ := TradesToList(r.Value), r.Value != nil
-	var retRes679215 []any = retRes679215Recv
-	if retRes679215 == nil {
+	retRes679315Recv, _ := TradesToList(r.Value), r.Value != nil
+	var retRes679315 []any = retRes679315Recv
+	if retRes679315 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes679215)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes679315)}
 	}
 	return nil
 }
@@ -9238,11 +9247,11 @@ func (this *Kucoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes682619 []any = TradesToList(r2.Value)
-		if retRes682619 == nil {
+		var retRes682719 []any = TradesToList(r2.Value)
+		if retRes682719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes682619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes682719)}
 		}
 		return nil
 	}
@@ -9252,11 +9261,11 @@ func (this *Kucoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes682919 []any = TradesToList(r3.Value)
-		if retRes682919 == nil {
+		var retRes683019 []any = TradesToList(r3.Value)
+		if retRes683019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes682919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes683019)}
 		}
 		return nil
 	} else {
@@ -9265,11 +9274,11 @@ func (this *Kucoin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r4.Err != nil {
 			panic(r4.Err)
 		}
-		var retRes683119 []any = TradesToList(r4.Value)
-		if retRes683119 == nil {
+		var retRes683219 []any = TradesToList(r4.Value)
+		if retRes683219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes683119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes683219)}
 		}
 		return nil
 	}
@@ -9323,11 +9332,11 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes685919 []any = r1.Value
-		if retRes685919 == nil {
+		var retRes686019 []any = r1.Value
+		if retRes686019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes685919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes686019)}
 		}
 		return nil
 	}
@@ -9504,11 +9513,11 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan AsyncResult[[]Trade], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes698819 []any = r1.Value
-		if retRes698819 == nil {
+		var retRes698919 []any = r1.Value
+		if retRes698919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes698819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes698919)}
 		}
 		return nil
 	}
@@ -9625,11 +9634,11 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes707519 []any = r1.Value
-		if retRes707519 == nil {
+		var retRes707619 []any = r1.Value
+		if retRes707619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes707519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes707619)}
 		}
 		return nil
 	}
@@ -10485,26 +10494,22 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var address any
-	if derefPtr := this.SafeString(transaction, "address"); derefPtr != nil {
-		address = *derefPtr
-	}
+	var address *string = this.SafeString(transaction, "address")
 	var amount *string = this.SafeString(transaction, "amount")
-	var txid any
-	if derefPtr := this.SafeString(transaction, "walletTxId"); derefPtr != nil {
-		txid = *derefPtr
-	}
-	if txid != nil {
-		var txidParts []string = Split(txid, "@")
+	var walletTxId *string = this.SafeString(transaction, "walletTxId")
+	var txid *string = nil
+	if walletTxId != nil {
+		var txidParts []string = strings.Split(*walletTxId, "@")
 		var numTxidParts int = len(txidParts)
 		if numTxidParts > 1 {
+			var txidAddress *string = &txidParts[1]
 			if address == nil {
-				if len(txidParts[1]) > 1 {
-					address = txidParts[1]
+				if len(*txidAddress) > 1 {
+					address = txidAddress
 				}
 			}
 		}
-		txid = txidParts[0]
+		txid = this.SafeString(txidParts, 0)
 	}
 	var typeVar string = "deposit"
 	if txid == nil {
@@ -10640,11 +10645,11 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes790119 []any = TransactionsToList(r1.Value)
-		if retRes790119 == nil {
+		var retRes790419 []any = TransactionsToList(r1.Value)
+		if retRes790419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes790119)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes790419)}
 		}
 		return nil
 	}
@@ -10656,11 +10661,11 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes790619 []any = r2.Value
-		if retRes790619 == nil {
+		var retRes790919 []any = r2.Value
+		if retRes790919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes790619)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes790919)}
 		}
 		return nil
 	}
@@ -10895,11 +10900,11 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes806019 []any = TransactionsToList(r1.Value)
-		if retRes806019 == nil {
+		var retRes806319 []any = TransactionsToList(r1.Value)
+		if retRes806319 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes806019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes806319)}
 		}
 		return nil
 	}
@@ -10912,11 +10917,11 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes806619 []any = r2.Value
-		if retRes806619 == nil {
+		var retRes806919 []any = r2.Value
+		if retRes806919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes806619)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes806919)}
 		}
 		return nil
 	}
@@ -11302,8 +11307,16 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		var assets []any = SafeListTyped(data, "assets")
 		for i := 0; i < len(assets); i++ {
 			var entry, _ = assets[i].(map[string]any)
-			var base map[string]any = this.SafeDictMap(entry, "baseAsset", map[string]any{})
-			var quote map[string]any = this.SafeDictMap(entry, "quoteAsset", map[string]any{})
+			var base map[string]any
+			base, _ = entry["baseAsset"].(map[string]any)
+			if base == nil {
+				base = map[string]any{}
+			}
+			var quote map[string]any
+			quote, _ = entry["quoteAsset"].(map[string]any)
+			if quote == nil {
+				quote = map[string]any{}
+			}
 			var baseCode *string = this.SafeCurrencyCode(this.SafeString(base, "currency"))
 			var quoteCode *string = this.SafeCurrencyCode(this.SafeString(quote, "currency"))
 			if baseCode != nil {
@@ -12334,11 +12347,11 @@ func (this *Kucoin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes917619 []any = r2.Value
-		if retRes917619 == nil {
+		var retRes917919 []any = r2.Value
+		if retRes917919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes917619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes917919)}
 		}
 		return nil
 	}
@@ -13580,11 +13593,11 @@ func (this *Kucoin) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes1005523 map[string]any = StructResultMap(r1.Value, LeverageToMap)
-			if retRes1005523 == nil {
+			var retRes1005823 map[string]any = StructResultMap(r1.Value, LeverageToMap)
+			if retRes1005823 == nil {
 				ch <- AsyncResult[map[string]any]{Value: nil}
 			} else {
-				ch <- AsyncResult[map[string]any]{Value: retRes1005523}
+				ch <- AsyncResult[map[string]any]{Value: retRes1005823}
 			}
 			return nil
 		}
@@ -15177,7 +15190,7 @@ func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	var currencyId *string = this.SafeString(market, "settle")
 	var responseCode *string = this.SafeString(response, "code")
 
-	var literal1127815 map[string]any = map[string]any{
+	var literal1128115 map[string]any = map[string]any{
 		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"type":       "reduce",
@@ -15189,11 +15202,11 @@ func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 		"datetime":   nil,
 	}
 	if responseCode != nil && *responseCode == "200000" {
-		literal1127815["status"] = "ok"
+		literal1128115["status"] = "ok"
 	} else {
-		literal1127815["status"] = nil
+		literal1128115["status"] = nil
 	}
-	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(literal1127815)}
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(literal1128115)}
 	return nil
 }
 func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) map[string]any {
@@ -15796,9 +15809,9 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 			if _, ok := result[*symbol]; !ok {
 				result[*symbol] = []any{}
 			}
-			var retRes1170116, _ = result[*symbol].([]any)
-			retRes1170116 = append(retRes1170116, tier)
-			result[*symbol] = retRes1170116
+			var retRes1170416, _ = result[*symbol].([]any)
+			retRes1170416 = append(retRes1170416, tier)
+			result[*symbol] = retRes1170416
 		}
 	}
 
@@ -15960,11 +15973,11 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInter
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1181019 []any = r1.Value
-		if retRes1181019 == nil {
+		var retRes1181319 []any = r1.Value
+		if retRes1181319 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1181019)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1181319)}
 		}
 		return nil
 	}
@@ -16149,16 +16162,16 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		headersResult = headersSigned
 	}
-	var literal1195715 map[string]any = map[string]any{
+	var literal1196015 map[string]any = map[string]any{
 		"url":     *apiUrl + endpoint,
 		"method":  method,
 		"body":    nil,
 		"headers": headersResult,
 	}
 	if bodyJson != nil {
-		literal1195715["body"] = *bodyJson
+		literal1196015["body"] = *bodyJson
 	}
-	return literal1195715
+	return literal1196015
 }
 func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -16225,11 +16238,11 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1200119 []any = r1.Value
-		if retRes1200119 == nil {
+		var retRes1200419 []any = r1.Value
+		if retRes1200419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1200119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1200419)}
 		}
 		return nil
 	}

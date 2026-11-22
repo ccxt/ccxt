@@ -3541,7 +3541,11 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[st
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var marginMode *string = nil
 		marginMode, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
 		var orderRequest map[string]any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
@@ -6570,7 +6574,7 @@ func (this *Mexc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	}
 	if code != nil {
 		currency = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
+		var currencyId *string = this.SafeString(currency, "id", "")
 		request["coin"] = currencyId
 		// currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
 		// due to that I'm applying the network parameter directly so the user can control it on its side

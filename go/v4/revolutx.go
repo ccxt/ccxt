@@ -1359,8 +1359,8 @@ func (this *Revolutx) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
-	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss, _ = params["stopLoss"].(map[string]any)
+	var takeProfit, _ = params["takeProfit"].(map[string]any)
 	var hasStopLoss bool = (stopLossPrice != nil) || (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfitPrice != nil) || (takeProfit != nil)
 	var isTpsl bool = hasStopLoss || hasTakeProfit

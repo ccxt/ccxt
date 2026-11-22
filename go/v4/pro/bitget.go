@@ -2135,11 +2135,9 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	}
 	var market any = nil
 	var marketId any = nil
-	isTriggerparamsTriggerVariable := this.IsTriggerOrder(params)
-	isTrigger := ccxt.GetValue(isTriggerparamsTriggerVariable, 0)
-	paramsTrigger := ccxt.GetValue(isTriggerparamsTriggerVariable, 1)
+	isTrigger, paramsTrigger := this.IsTriggerOrder(params)
 	var messageHash string = "order"
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 		messageHash = "triggerOrder"
 	}
 	var subscriptionHash any = "order:trades"
@@ -2188,7 +2186,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		var resolvedSymbol string = *this.SafeString(market, "symbol", "")
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), resolvedSymbol)
 	}
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 		subscriptionHash = ccxt.Add(subscriptionHash, ":stop") // we don't want to re-use the same subscription hash for stop orders
 	}
 	// different from other streams here the 'rest' id is required for spot markets, contract markets require default here
@@ -2197,7 +2195,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 		instId = marketId
 	}
 	var channel string = "orders"
-	if isTrigger == true {
+	if isTrigger != nil && *isTrigger == true {
 		channel = "orders-algo"
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchOrders", paramsInstType)

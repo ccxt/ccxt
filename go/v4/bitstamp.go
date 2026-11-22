@@ -3577,7 +3577,14 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	if typeVar != nil && *typeVar == "trade" {
 		var parsedTrade map[string]any = TradeToMap(this.ParseTrade(item))
 		var market any = nil
-		var keys []string = ObjectKeys(item)
+		var itemDict map[string]any = this.Extend(map[string]any{}, item)
+		var keys []string = nil
+		if itemDict != nil {
+			keys = make([]string, 0, len(itemDict))
+			for objectKey := range itemDict {
+				keys = append(keys, objectKey)
+			}
+		}
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = keys[i]
 			if strings.Index(currentKey, "_") >= 0 {
@@ -4158,16 +4165,16 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = privateHeaders
 	}
-	var literal283815 map[string]any = map[string]any{
+	var literal283915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal283815["body"] = *requestBody
+		literal283915["body"] = *requestBody
 	}
-	return literal283815
+	return literal283915
 }
 func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

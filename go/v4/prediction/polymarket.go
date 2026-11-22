@@ -1322,14 +1322,14 @@ func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols any) <-chan ccxt.Async
 func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var tokenIds []any = []any{}
+	var tokenIds []string = []string{}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
-		var outcomeSymbol *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeSymbols, i))
+		var outcomeSymbol string = *this.SafeString(outcomeSymbols, i, "")
 		// only id-like symbols (no ':', no searchable words) belong in the by-id batch —
 		// see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
 		// maps that to `=== false`, while a literal `=== -1` passes through and never
 		// matches mb_strpos's false return
-		if (strings.Index(*outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
+		if (strings.Index(outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
 			tokenIds = append(tokenIds, outcomeSymbol)
 		}
 	}
@@ -1383,9 +1383,10 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 		this.PopulateOutcomes()
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
-		if !this.HasOutcome(ccxt.GetValue(outcomeSymbols, i)) {
+		var pendingSymbol string = *this.SafeString(outcomeSymbols, i, "")
+		if !this.HasOutcome(pendingSymbol) {
 
-			r1 := <-this.FetchOutcomeAsync(ccxt.GetValue(outcomeSymbols, i))
+			r1 := <-this.FetchOutcomeAsync(pendingSymbol)
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
@@ -1925,8 +1926,18 @@ func (this *Polymarket) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], o
 				}
 			}
 			var open *float64 = this.SafeNumber(buckets[bucketKey], 1)
+			var high *float64 = price
+			var prevHigh *float64 = this.SafeNumber(buckets[bucketKey], 2)
+			if (prevHigh != nil) && (price != nil) && (*prevHigh > *price) {
+				high = prevHigh
+			}
+			var low *float64 = price
+			var prevLow *float64 = this.SafeNumber(buckets[bucketKey], 3)
+			if (prevLow != nil) && (price != nil) && (*price > *prevLow) {
+				low = prevLow
+			}
 			// close is the last tick
-			buckets[bucketKey] = []any{snappedMs, open, ccxt.MathMax(this.SafeNumber(buckets[bucketKey], 2), price), ccxt.MathMin(this.SafeNumber(buckets[bucketKey], 3), price), price, candleVol}
+			buckets[bucketKey] = []any{snappedMs, open, high, low, price, candleVol}
 		}
 	}
 	var bucketKeys []string = nil
@@ -2028,12 +2039,12 @@ func (this *Polymarket) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], o
 	//     OK
 	//
 	var ok bool = (response == "OK") || (response == "ok")
-	var ternaryStr141322 string = "maintenance"
+	var ternaryStr142422 string = "maintenance"
 	if ok {
-		ternaryStr141322 = "ok"
+		ternaryStr142422 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr141322,
+		"status":  ternaryStr142422,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2424,7 +2435,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 			"rate":     this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")),
 		}
 	}
-	var literal164341 map[string]any = map[string]any{
+	var literal165441 map[string]any = map[string]any{
 		"id":           id,
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -2443,12 +2454,12 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		"fee":          fee,
 	}
 	if side != nil {
-		literal164341["side"] = *side
+		literal165441["side"] = *side
 	}
 	if takerOrMaker != nil {
-		literal164341["takerOrMaker"] = *takerOrMaker
+		literal165441["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafePredictionTrade(literal164341, mkt)
+	return this.SafePredictionTrade(literal165441, mkt)
 }
 
 /**
@@ -2582,7 +2593,8 @@ func (this *Polymarket) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	}
 	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
-		ccxt.AddElementToObject(wantedIds, outcomeObj["outcomeId"], true)
+		var outcomeId string = *this.SafeString(outcomeObj, "outcomeId", "")
+		wantedIds[outcomeId] = true
 	}
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
@@ -3892,7 +3904,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
-	var literal265128 map[string]any = map[string]any{
+	var literal266328 map[string]any = map[string]any{
 		"id":                    this.SafeString(rawEvent, "id"),
 		"slug":                  slug,
 		"title":                 this.SafeString(rawEvent, "title"),
@@ -3913,11 +3925,11 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if (slug != nil) && (slug == nil || *slug != "") {
-		literal265128["event"] = this.ShortenSlug(slug)
+		literal266328["event"] = this.ShortenSlug(slug)
 	} else {
-		literal265128["event"] = nil
+		literal266328["event"] = nil
 	}
-	return this.Extend(literal265128)
+	return this.Extend(literal266328)
 }
 
 /**
@@ -4093,16 +4105,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	var literal284115 map[string]any = map[string]any{
+	var literal285315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal284115["body"] = *bodyValue
+		literal285315["body"] = *bodyValue
 	}
-	return literal284115
+	return literal285315
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")

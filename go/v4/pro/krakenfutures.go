@@ -1149,7 +1149,13 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 			retRes80116 := previousOrder["trades"]
 			ccxt.AppendToArray(&retRes80116, trade)
 			ccxt.AddElementToObject(previousOrder, "trades", retRes80116)
-			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
+			if previousOrder != nil {
+				if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
+					previousOrder["lastTradeTimestamp"] = *ptrValue
+				} else {
+					previousOrder["lastTradeTimestamp"] = nil
+				}
+			}
 			totalCostLit106 := "0"
 			var totalCost *string = &totalCostLit106
 			totalAmountLit107 := "0"
@@ -1888,25 +1894,19 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			}
 		} // cashAccount
 		this.Balance["cash"] = this.SafeDict(this.Balance, "cash", map[string]any{})
-		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
-			entry["info"] = message
+		var cashBalance map[string]any = this.SafeDictMap(this.Balance, "cash", map[string]any{})
+		cashBalance["info"] = message
+		if timestamp != nil {
+			cashBalance["timestamp"] = *timestamp
+		} else {
+			cashBalance["timestamp"] = nil
 		}
-		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
-			if timestamp != nil {
-				entry["timestamp"] = *timestamp
-			} else {
-				entry["timestamp"] = nil
-			}
-		}
-		if entry, ok := this.Balance["cash"].(map[string]any); ok && (entry != nil) {
-			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-				entry["datetime"] = *ptrValue
-			} else {
-				entry["datetime"] = nil
-			}
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			cashBalance["datetime"] = *ptrValue
+		} else {
+			cashBalance["datetime"] = nil
 		}
 		var holdingCodes map[string]any = map[string]any{}
-		var cashBalance map[string]any = this.SafeDictMap(this.Balance, "cash", map[string]any{})
 		for i := 0; i < len(holdingKeys); i++ {
 			var key string = holdingKeys[i]
 			var code *string = this.SafeCurrencyCode(key)
@@ -1930,25 +1930,19 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			}
 		} // marginAccount
 		this.Balance["margin"] = this.SafeDict(this.Balance, "margin", map[string]any{})
-		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
-			entry["info"] = message
+		var marginBalance map[string]any = this.SafeDictMap(this.Balance, "margin", map[string]any{})
+		marginBalance["info"] = message
+		if timestamp != nil {
+			marginBalance["timestamp"] = *timestamp
+		} else {
+			marginBalance["timestamp"] = nil
 		}
-		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
-			if timestamp != nil {
-				entry["timestamp"] = *timestamp
-			} else {
-				entry["timestamp"] = nil
-			}
-		}
-		if entry, ok := this.Balance["margin"].(map[string]any); ok && (entry != nil) {
-			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-				entry["datetime"] = *ptrValue
-			} else {
-				entry["datetime"] = nil
-			}
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			marginBalance["datetime"] = *ptrValue
+		} else {
+			marginBalance["datetime"] = nil
 		}
 		var futuresSymbols map[string]any = map[string]any{}
-		var marginBalance map[string]any = this.SafeDictMap(this.Balance, "margin", map[string]any{})
 		for i := 0; i < len(futuresKeys); i++ {
 			var key string = futuresKeys[i]
 			var symbol *string = this.SafeSymbol(key)
@@ -1985,25 +1979,19 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			}
 		} // multi-collateral margin account
 		this.Balance["flex"] = this.SafeDict(this.Balance, "flex", map[string]any{})
-		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
-			entry["info"] = message
+		var flexBalance map[string]any = this.SafeDictMap(this.Balance, "flex", map[string]any{})
+		flexBalance["info"] = message
+		if timestamp != nil {
+			flexBalance["timestamp"] = *timestamp
+		} else {
+			flexBalance["timestamp"] = nil
 		}
-		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
-			if timestamp != nil {
-				entry["timestamp"] = *timestamp
-			} else {
-				entry["timestamp"] = nil
-			}
-		}
-		if entry, ok := this.Balance["flex"].(map[string]any); ok && (entry != nil) {
-			if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
-				entry["datetime"] = *ptrValue
-			} else {
-				entry["datetime"] = nil
-			}
+		if ptrValue := this.Iso8601(timestamp); ptrValue != nil {
+			flexBalance["datetime"] = *ptrValue
+		} else {
+			flexBalance["datetime"] = nil
 		}
 		var flexCodes map[string]any = map[string]any{}
-		var flexBalance map[string]any = this.SafeDictMap(this.Balance, "flex", map[string]any{})
 		for i := 0; i < len(flexFuturesKeys); i++ {
 			var key string = flexFuturesKeys[i]
 			var flexFuture, _ = flexFutureCurrencies[key].(map[string]any)

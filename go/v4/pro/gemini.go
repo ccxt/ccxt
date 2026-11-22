@@ -748,15 +748,19 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []string = []string{}
-	var marketIds []any = []any{}
+	var marketIds []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = this.Market(symbol)
-		marketIds = append(marketIds, market["id"])
+		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+		var marketId string = ""
+		if market.Id != nil {
+			marketId = *market.Id
+		}
+		marketIds = append(marketIds, marketId)
 	}
-	var queryStr string = ccxt.Join(marketIds, ",")
+	var queryStr string = strings.Join(marketIds, ",")
 	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " helperForWatchMultipleConstruct() has no websocket url"))

@@ -1999,7 +1999,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
 		var ticker map[string]any = TickerToMap(this.ParseTicker(result[i]))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			tickers[*symbol] = ticker
 		}

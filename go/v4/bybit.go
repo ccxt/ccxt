@@ -6197,7 +6197,11 @@ func (this *Bybit) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams, isUta)
 		delete(orderRequest, "category")
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -6476,7 +6480,11 @@ func (this *Bybit) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[str
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, orderParams)
 		delete(orderRequest, "category")
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -10307,7 +10315,8 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowRate]
 	if 0 < len(vipCoinList) {
 		firstVip, _ = vipCoinList[0].(map[string]any)
 	}
-	var coins []any = SafeListTyped(firstVip, "list")
+	var coins []any
+	coins, _ = firstVip["list"].([]any)
 	var coin map[string]any
 	if 0 < len(coins) {
 		coin, _ = coins[0].(map[string]any)

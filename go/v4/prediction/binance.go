@@ -2579,9 +2579,12 @@ func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
-	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
+	var baseUrls map[string]any = this.UrlsApi
+	var baseUrl string = *this.SafeString(baseUrls, apiGroup, "")
+	if baseUrl == "" {
+		baseUrl = *this.SafeString(baseUrls, "sapi", "")
+	}
+	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	this.CheckRequiredCredentials()
 	var extendedParams map[string]any = this.Extend(map[string]any{

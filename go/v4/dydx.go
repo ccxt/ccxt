@@ -1776,6 +1776,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	var conditionalType int = 0
 	var conditionalOrderTriggerSubticks any = "0"
 	var orderFlag any = nil
+	var isShortTerm bool = false
 	var timeInForceNumber any = nil
 	if timeInForce != nil && *timeInForce == "FOK" {
 		panic(InvalidOrder(this.Id + " timeInForce fok has been deprecated"))
@@ -1783,6 +1784,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	if orderType == "MARKET" {
 		// short-term
 		orderFlag = 0
+		isShortTerm = true
 		clientMetadata = 1 // STOP_MARKET / TAKE_PROFIT_MARKET
 		if timeInForce != nil {
 			// default is ioc
@@ -1792,6 +1794,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		if timeInForce != nil && *timeInForce == "GTT" {
 			// long-term
 			orderFlag = 64
+			isShortTerm = false
 			if postOnly {
 				timeInForceNumber = 2
 			} else {
@@ -1799,6 +1802,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 			}
 		} else {
 			orderFlag = 0
+			isShortTerm = true
 			if timeInForce != nil && *timeInForce == "IOC" {
 				timeInForceNumber = 1
 			} else {
@@ -1809,6 +1813,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 	if isConditional {
 		// conditional
 		orderFlag = 32
+		isShortTerm = false
 		if stopLossPrice != nil {
 			conditionalType = 1
 			if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
@@ -1837,7 +1842,7 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		goodTillBlockTimeInSecondsOption = p
 	}
 	paramsGoodTillBlockTimeInSeconds := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]
-	if IsEqual(orderFlag, 0) {
+	if isShortTerm {
 		if goodTillBlock == nil {
 			// short term order
 			if latestBlockHeight == nil {

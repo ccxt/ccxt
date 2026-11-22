@@ -1114,7 +1114,7 @@ func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "ts")
 	var marketId *string = this.SafeString(ticker, "instId")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var quoteVolume any

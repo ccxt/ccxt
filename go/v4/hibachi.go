@@ -637,7 +637,7 @@ func (this *Hibachi) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString(trade, "id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "quantity")
@@ -1236,7 +1236,11 @@ func (this *Hibachi) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateOrderRequest(nonce+int64(i), symbol, typeVar, side, amount, price, orderParams)
 		orderRequest["action"] = "place"
 		requestOrders = append(requestOrders, orderRequest)
@@ -1390,7 +1394,11 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.EditOrderRequest(nonce+int64(i), id, symbol, typeVar, side, amount, price, orderParams)
 		orderRequest["action"] = "modify"
 		requestOrders = append(requestOrders, orderRequest)

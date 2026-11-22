@@ -4824,7 +4824,11 @@ func (this *Bingx) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateOrderRequest(*marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -5674,13 +5678,15 @@ func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 	}
 	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
 	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderIds")
+	var idsCount int = len(ids)
 	var idsToParse any = ids
 	var areClientOrderIds bool = (clientOrderIds != nil)
 	if areClientOrderIds {
+		idsCount = len(clientOrderIds)
 		idsToParse = clientOrderIds
 	}
 	var parsedIds []any = []any{}
-	for i := 0; i < GetArrayLength(idsToParse); i++ {
+	for i := 0; i < idsCount; i++ {
 		var id string = *this.SafeString(idsToParse, i, "")
 		var stringId string = id
 		parsedIds = append(parsedIds, stringId)
@@ -5748,9 +5754,9 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
-	var ternaryStr467820 string = "CLOSE"
+	var ternaryStr468020 string = "CLOSE"
 	if isActive {
-		ternaryStr467820 = "ACTIVATE"
+		ternaryStr468020 = "ACTIVATE"
 	}
 	var timeOutValue int64
 	if isActive {
@@ -5759,7 +5765,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		timeOutValue = int64(0)
 	}
 	var request map[string]any = map[string]any{
-		"type":    ternaryStr467820,
+		"type":    ternaryStr468020,
 		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
@@ -6655,11 +6661,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553819 []any = r1.Value
-		if retRes553819 == nil {
+		var retRes554019 []any = r1.Value
+		if retRes554019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553819)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554019)}
 		}
 		return nil
 	}
@@ -7438,14 +7444,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var ternaryStr611020 string = "reduce"
+	var ternaryStr611220 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		ternaryStr611020 = "add"
+		ternaryStr611220 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       ternaryStr611020,
+		"type":       ternaryStr611220,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -8878,16 +8884,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal743815 map[string]any = map[string]any{
+	var literal744015 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal743815["body"] = *requestBody
+		literal744015["body"] = *requestBody
 	}
-	return literal743815
+	return literal744015
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

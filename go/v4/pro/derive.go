@@ -1017,7 +1017,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 						parsed["fees"] = fees
 					}
 				}
-				ccxt.AddElementToObject(parsed, "trades", this.SafeList(order, "trades"))
+				parsed["trades"] = this.SafeList(order, "trades")
 				parsed["timestamp"] = this.SafeInteger(order, "timestamp")
 				parsed["datetime"] = this.SafeString(order, "datetime")
 			}

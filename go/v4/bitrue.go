@@ -4051,7 +4051,7 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(NotSupported(this.Id + " setMargin only support swap markets"))
 	}
-	var response any = nil
+	var response map[string]any = nil
 	var request map[string]any = map[string]any{
 		"contractName": market["id"],
 		"amount":       this.ParseToNumeric(amount),
@@ -4062,14 +4062,14 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		response = r1.Raw
+		response = r1.Value
 	} else if *this.SafeBool(market, "inverse", false) {
 
 		r2 := <-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		response = r2.Value
 	}
 
 	//

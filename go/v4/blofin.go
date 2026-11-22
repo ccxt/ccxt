@@ -2449,7 +2449,11 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		ordersRequests = append(ordersRequests, orderRequest)
@@ -2927,7 +2931,7 @@ func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any
 	// prefer the exact chain id from the currencies registry when it is
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
-		var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+		var currencyNetworks, _ = currency["networks"].(map[string]any)
 		var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, unifiedCode)
 		var currencyNetworkId *string = this.SafeString(currencyNetwork, "id")
 		if currencyNetworkId != nil {

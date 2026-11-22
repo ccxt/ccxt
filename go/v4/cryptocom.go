@@ -912,7 +912,11 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], 
 	//    }
 	//
 	var resultData map[string]any = SafeMapTyped(response, "result")
-	var currencyMap map[string]any = this.SafeDictMap(resultData, "currency_map", map[string]any{})
+	var currencyMap map[string]any
+	currencyMap, _ = resultData["currency_map"].(map[string]any)
+	if currencyMap == nil {
+		currencyMap = map[string]any{}
+	}
 	var enhancedArray any = this.AddKeyInArrayItems(currencyMap, "_coin_id")
 
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(enhancedArray)}
@@ -2139,7 +2143,11 @@ func (this *Cryptocom) createOrdersBody(ch chan AsyncResult[[]Order], orders []m
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -2311,7 +2319,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 	var paramsMarketBuy map[string]any = params
 	if isMarketBuy {
 		// use createmarketBuy logic here
-		var quoteAmount any = nil
+		var quoteAmount *string = nil
 		createMarketBuyOrderRequiresPrice, paramsCreateMarketBuy := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber2(paramsCreateMarketBuy, "cost", "notional")
 		paramsMarketBuy = this.OmitDict(paramsCreateMarketBuy, "cost")
@@ -2868,12 +2876,8 @@ func (this *Cryptocom) ParseAddress(addressString *string) (*string, *string) {
 		var address *string = &addressParts[0]
 		var rawTag *string = &addressParts[1]
 		var splitted []string = strings.Split(*rawTag, "=")
-		return address, SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(splitted) {
-				return splitted[1]
-			}
-			return nil
-		}())
+		var tag *string = this.SafeString(splitted, 1)
+		return address, tag
 	}
 	return addressString, nil
 }
@@ -3310,7 +3314,7 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString(ticker, "i")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var last *string = this.SafeString(ticker, "a")
-	var literal232732 map[string]any = map[string]any{
+	var literal232832 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -3332,11 +3336,11 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if marketResolved["quote"] == "USD" {
-		literal232732["quoteVolume"] = this.SafeString(ticker, "vv")
+		literal232832["quoteVolume"] = this.SafeString(ticker, "vv")
 	} else {
-		literal232732["quoteVolume"] = nil
+		literal232832["quoteVolume"] = nil
 	}
-	return this.SafeTicker(literal232732, marketResolved)
+	return this.SafeTicker(literal232832, marketResolved)
 }
 func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	//
@@ -4344,11 +4348,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes318919 []any = r1.Value
-		if retRes318919 == nil {
+		var retRes319019 []any = r1.Value
+		if retRes319019 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes318919)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319019)}
 		}
 		return nil
 	}
@@ -4586,9 +4590,9 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
-	var ternaryStr338020 string = "short"
+	var ternaryStr338120 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr338020 = "long"
+		ternaryStr338120 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4597,7 +4601,7 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"hedged":                      nil,
-		"side":                        ternaryStr338020,
+		"side":                        ternaryStr338120,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(amount)),
 		"contractSize":                marketResolved["contractSize"],
 		"entryPrice":                  nil,

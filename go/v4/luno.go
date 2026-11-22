@@ -1305,11 +1305,9 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var ticker any = tickers[id]
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
-		}
+		result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}

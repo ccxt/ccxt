@@ -2097,7 +2097,7 @@ func (this *Lbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -2213,7 +2213,7 @@ func (this *Lbank) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		} else if side == "buy" {
 			request["type"] = side + "_" + "market"
-			var quoteAmount any = nil
+			var quoteAmount *string = nil
 			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, paramsRequest = this.HandleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequest, "cost")

@@ -978,8 +978,6 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 	var letters string = "abcdefghijklmnopqrstuvwxyz"
 	for i := 0; i < len(rawWords); i++ {
 		var word string = rawWords[i]
-		// inline .length so the php transpiler emits strlen() — the standalone
-		// `const n = str.length;` statement form wrongly becomes count() (array)
 		if len(word) == 0 {
 			continue
 		}

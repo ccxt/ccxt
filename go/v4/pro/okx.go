@@ -1223,14 +1223,22 @@ func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[s
 	var bid *string = this.SafeString(ticker, "bidPx")
 	var bidVolume *string = this.SafeString(ticker, "bidSz")
 	if ask == nil {
-		var asks []any = ccxt.SafeListTyped(ticker, "asks")
-		var firstAsk []any = ccxt.SafeListTyped(asks, 0)
+		var asks []any
+		asks, _ = ticker["asks"].([]any)
+		var firstAsk []any
+		if 0 < len(asks) {
+			firstAsk, _ = asks[0].([]any)
+		}
 		ask = this.SafeString(firstAsk, 0)
 		askVolume = this.SafeString(firstAsk, 1)
 	}
 	if bid == nil {
-		var bids []any = ccxt.SafeListTyped(ticker, "bids")
-		var firstBid []any = ccxt.SafeListTyped(bids, 0)
+		var bids []any
+		bids, _ = ticker["bids"].([]any)
+		var firstBid []any
+		if 0 < len(bids) {
+			firstBid, _ = bids[0].([]any)
+		}
 		bid = this.SafeString(firstBid, 0)
 		bidVolume = this.SafeString(firstBid, 1)
 	}

@@ -3322,17 +3322,17 @@ func (this *Htx) HandleMyTrade(client any, message map[string]any, optionalArgs 
 			} else {
 				market = nil
 			}
-			if ccxt.IsArray(data) {
-				var dataList []any = ccxt.SafeListTyped(message, "data")
-				for i := 0; i < len(dataList); i++ {
-					var parsed any = this.ParseWsTrade(dataList[i], market)
-					var symbol *string = this.SafeString(parsed, "symbol")
-					if symbol != nil {
-						cachedTrades.Append(parsed)
-					}
+			var dataList []any = ccxt.SafeListTyped(message, "data")
+			for i := 0; i < len(dataList); i++ {
+				var parsed any = this.ParseWsTrade(dataList[i], market)
+				var symbol *string = this.SafeString(parsed, "symbol")
+				if symbol != nil {
+					cachedTrades.Append(parsed)
 				}
-			} else {
-				var parsed any = this.ParseWsTrade(data, market)
+			}
+			var dataDict, _ = message["data"].(map[string]any)
+			if dataDict != nil {
+				var parsed any = this.ParseWsTrade(dataDict, market)
 				var symbol *string = this.SafeString(parsed, "symbol")
 				if symbol != nil {
 					cachedTrades.Append(parsed)

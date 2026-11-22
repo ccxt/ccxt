@@ -1032,11 +1032,11 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	marketIdsRawRecv := <-this.PublicGetV1Symbols(params)
-	if marketIdsRawRecv.Err != nil {
-		panic(marketIdsRawRecv.Err)
+	r := <-this.PublicGetV1Symbols(params)
+	if r.Err != nil {
+		panic(r.Err)
 	}
-	var marketIdsRaw []any = marketIdsRawRecv.Value
+	marketIdsRaw := r.Raw
 	//
 	//     [
 	//         "btcusd",
@@ -1067,11 +1067,11 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan AsyncResult[[]MarketInterfac
 			promises = append(promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
 		}
 
-		r := <-promiseAll(promises)
-		if r.Err != nil {
-			panic(r.Err)
+		r1 := <-promiseAll(promises)
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		var responses []any = r.Value
+		var responses []any = r1.Value
 		for i := 0; i < len(responses); i++ {
 			var parsed map[string]any = this.ParseMarket(responses[i])
 			if parsed != nil {
@@ -2799,7 +2799,7 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[s
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var codeValue *string = SafeStringPtr(currency["code"])
+	var codeValue string = *this.SafeString(currency, "code", "")
 	networkCode, paramsNetworkCode := this.HandleNetworkCodeAndParams(params)
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses() requires a network parameter"))
@@ -3010,6 +3010,7 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
+
 	//
 	//     [
 	//         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -3017,12 +3018,7 @@ func (this *Gemini) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	//         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
 	//     ]
 	//
-	var candles []any = []any{}
-	if response != nil {
-		candles = ArrayTyped(response)
-	}
-
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limit))}
 	return nil
 }
 

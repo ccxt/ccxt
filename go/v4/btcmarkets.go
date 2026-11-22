@@ -1549,23 +1549,20 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	_ = params
 	var market map[string]any = this.Market(symbol)
 	var currency *string = nil
-	var cost any = nil
+	var cost *string = nil
 	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
 		cost = this.CostToPrecision(symbol, Precise.StringMul(this.NumberToString(amount), this.NumberToString(price)))
 	} else {
 		currency = this.SafeString(market, "base")
-		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
-			cost = *derefPtr
-		} else {
-			cost = nil
-		}
+		cost = this.AmountToPrecision(symbol, amount)
 	}
 	var rate any = this.SafeValue(market, takerOrMaker)
 	var rateCost *string = Precise.StringMul(this.NumberToString(rate), cost)
-	var feeCost any = this.FeeToPrecision(symbol, rateCost)
+	var feeCost *string = this.FeeToPrecision(symbol, rateCost)
 	if feeCost == nil {
-		feeCost = "0"
+		feeCostValue := "0"
+		feeCost = &feeCostValue
 	}
 	var literal115715 map[string]any = map[string]any{
 		"type":     takerOrMaker,

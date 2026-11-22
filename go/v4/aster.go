@@ -2415,21 +2415,21 @@ func (this *Aster) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
-	var response any = nil
+	var response []any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		r1 := <-this.FapiPublicGetV3TickerBookTicker(paramsMarketType)
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.FapiPublicGetV3TickerBookTicker(paramsMarketType)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else if marketType != nil && *marketType == "spot" {
 
-		r2 := <-this.SapiPublicGetV3TickerBookTicker(paramsMarketType)
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.SapiPublicGetV3TickerBookTicker(paramsMarketType)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	//
@@ -3501,21 +3501,21 @@ func (this *Aster) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchOpenOrders", market, paramsMarketType)
-	var response any = nil
+	var response []any = nil
 	if this.IsLinear(*marketType, subType) {
 
-		r1 := <-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
-		if r1.Err != nil {
-			panic(r1.Err)
+		responseRecv := <-this.FapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r1.Raw
+		response = responseRecv.Value
 	} else if marketType != nil && *marketType == "spot" {
 
-		r2 := <-this.SapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.SapiPrivateGetV3OpenOrders(this.Extend(request, paramsSubType))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	}
 
 	//
@@ -3684,7 +3684,11 @@ func (this *Aster) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[s
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var orderRequest map[string]any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -5484,7 +5488,8 @@ func (this *Aster) loadLeverageBracketsBody(ch chan AsyncResult[map[string]any],
 			var entry, _ = entries[i].(map[string]any)
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
-			var brackets []any = SafeListTyped(entry, "brackets")
+			var brackets []any
+			brackets, _ = entry["brackets"].([]any)
 			var result []any = []any{}
 			for j := 0; j < len(brackets); j++ {
 				var bracket, _ = brackets[j].(map[string]any)

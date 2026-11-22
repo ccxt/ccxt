@@ -1697,7 +1697,11 @@ func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var marketId *string = this.SafeStringLower(data, "s")
 	if marketId != nil {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
@@ -2140,7 +2144,11 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	//        }
 	//    }
 	//
-	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)

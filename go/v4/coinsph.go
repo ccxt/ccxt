@@ -1891,7 +1891,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		if orderSide != nil && *orderSide == "SELL" {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
 		} else if orderSide != nil && *orderSide == "BUY" {
-			var quoteAmount any = nil
+			var quoteAmount *string = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty")
 			paramsQuote = this.OmitDict(paramsRequiresPrice, "cost")

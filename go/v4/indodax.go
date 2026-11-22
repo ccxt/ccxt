@@ -1357,7 +1357,7 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var baseId string = *this.SafeString(market, "baseId", "")
 	if typeVar == "market" {
 		if side == "buy" {
-			var quoteAmount any = nil
+			var quoteAmount *string = nil
 			var cost *float64 = this.SafeNumber(params, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)

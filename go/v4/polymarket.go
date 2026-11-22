@@ -1882,7 +1882,11 @@ func (this *Polymarket) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	var first map[string]any = SafeMapTyped(orders, 0)
 	var firstStatus *string = this.SafeString(first, "status")
 	if firstStatus != nil && *firstStatus == "rejected" {
-		var firstInfo map[string]any = this.SafeDictMap(first, "info", map[string]any{})
+		var firstInfo map[string]any
+		firstInfo, _ = first["info"].(map[string]any)
+		if firstInfo == nil {
+			firstInfo = map[string]any{}
+		}
 		var errorId *string = this.SafeString(firstInfo, "error")
 		var feedback string = this.Id + " createOrder() rejected: " + this.Json(firstInfo)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorId, feedback)
@@ -1932,7 +1936,11 @@ func (this *Polymarket) createOrdersBody(ch chan AsyncResult[[]Order], orders []
 		var side *string = this.SafeStringLower(rawOrder, "side")
 		var amount *string = this.SafeString(rawOrder, "amount")
 		var price *string = this.SafeString(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var request map[string]any = this.CreateOrderRequest(market, typeVar, side, amount, price, orderParams)
 		rows = append(rows, request["signable"])
 		entries = append(entries, request["entry"])

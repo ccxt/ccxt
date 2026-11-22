@@ -1564,16 +1564,16 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	if since != nil {
 		requestUntil["start_at"] = *since
 		// the venue rejects a range wider than its bar cap, so an until past the window is clamped to it
-		var windowEnd int64 = this.ParseToInt(since) + windowLength - 1
-		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
-		if !hasEnd || (endAt != nil && *endAt > windowEnd) {
-			requestUntil["end_at"] = windowEnd
+		var barWindowEnd int64 = this.ParseToInt(since) + windowLength - 1
+		var clampedEndAt *int64 = this.SafeInteger(requestUntil, "end_at", barWindowEnd)
+		if !hasEnd || (clampedEndAt != nil && *clampedEndAt > barWindowEnd) {
+			requestUntil["end_at"] = barWindowEnd
 		}
 	} else {
 		var endAtRaw *int64 = this.SafeInteger(requestUntil, "end_at", this.Milliseconds())
 		var endAt int64 = this.ParseToInt(endAtRaw)
 		requestUntil["end_at"] = endAt
-		AddElementToObject(requestUntil, "start_at", (endAt-windowLength)+1)
+		AddElementToObject(requestUntil, "start_at", endAt-(windowLength-1))
 	}
 
 	r2 := <-this.PublicGetMarketsKlines(this.Extend(requestUntil, paramsOmitted))
@@ -3241,7 +3241,11 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var extendedParams map[string]any = this.Extend(params, orderParams)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, extendedParams)
 
@@ -4064,7 +4068,7 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 			panic(r1.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
+	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 
 	r2 := <-this.PrivateGetPositions(params)
 	if r2.Err != nil {
@@ -4075,12 +4079,17 @@ func (this *Paradex) fetchPositionBody(ch chan AsyncResult[Position], symbol str
 	data, _ = response["results"].([]any)
 	// unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
 	var matching []any = []any{}
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	for i := 0; i < len(data); i++ {
-		if IsEqual(this.SafeString(data[i], "market"), market["id"]) {
+		var rowMarketId string = *this.SafeString(data[i], "market", "")
+		if rowMarketId == marketId {
 			matching = append(matching, data[i])
 		}
 	}
-	var positions []any = this.ParsePositions(matching, []any{market["symbol"]})
+	var positions []any = this.ParsePositions(matching, []any{market.Symbol})
 
 	ch <- AsyncResult[Position]{Value: PositionFromMap(this.SafeDictMap(positions, 0, map[string]any{}))}
 	return nil
@@ -4438,20 +4447,13 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 	rows, _ = response["results"].([]any)
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
-	for i := 0; i < len(rows); i++ {
-		if row, ok := rows[i].(map[string]any); ok && (row != nil) {
-			if next != nil {
-				row["next"] = *next
-			} else {
-				row["next"] = nil
-			}
-		}
-	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
-		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "DEPOSIT") {
-			deposits = append(deposits, row)
+		if (allKinds != nil && *allKinds) || (this.SafeString(rows[i], "kind") != nil && *this.SafeString(rows[i], "kind") == "DEPOSIT") {
+			var withCursor map[string]any = this.Extend(rows[i], map[string]any{
+				"next": next,
+			})
+			deposits = append(deposits, withCursor)
 		}
 	}
 
@@ -4560,20 +4562,13 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	rows, _ = response["results"].([]any)
 	// the cursor pagination reads the next page cursor from the parsed entries
 	var next *string = this.SafeString(response, "next")
-	for i := 0; i < len(rows); i++ {
-		if row, ok := rows[i].(map[string]any); ok && (row != nil) {
-			if next != nil {
-				row["next"] = *next
-			} else {
-				row["next"] = nil
-			}
-		}
-	}
 	var deposits []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var row any = rows[i]
-		if (allKinds != nil && *allKinds) || (this.SafeString(row, "kind") != nil && *this.SafeString(row, "kind") == "WITHDRAWAL") {
-			deposits = append(deposits, row)
+		if (allKinds != nil && *allKinds) || (this.SafeString(rows[i], "kind") != nil && *this.SafeString(rows[i], "kind") == "WITHDRAWAL") {
+			var withCursor map[string]any = this.Extend(rows[i], map[string]any{
+				"next": next,
+			})
+			deposits = append(deposits, withCursor)
 		}
 	}
 
@@ -4629,11 +4624,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes321019 []any = r2.Value
-		if retRes321019 == nil {
+		var retRes320619 []any = r2.Value
+		if retRes320619 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes320619)}
 		}
 		return nil
 	}
@@ -5466,7 +5461,8 @@ func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 			// options left out by options.fetchMarkets.types are rebuilt from their id
 			var market map[string]any = this.SafeMarket(marketId)
 			if market["option"] == true {
-				AddElementToObject(result, market["symbol"], OptionToMap(this.ParseOption(data[i], nil, market)))
+				var optionSymbol string = *this.SafeString(market, "symbol", "")
+				result[optionSymbol] = OptionToMap(this.ParseOption(data[i], nil, market))
 			}
 		}
 	}
@@ -5584,11 +5580,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388519 []any = r2.Value
-		if retRes388519 == nil {
+		var retRes388219 []any = r2.Value
+		if retRes388219 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388219)}
 		}
 		return nil
 	}
@@ -5752,10 +5748,10 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		requestUntil["start_at"] = *since
 		// a page holds the newest rows of its range, so a range wider than one page would return the latest
 		// rows and skip since, the range is cut to one page of rows from since
-		var windowEnd int64 = this.ParseToInt(since) + pageSize*int64(rowSpacing)
-		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
-		if (this.SafeInteger(requestUntil, "end_at") == nil) || ((endAt != nil) && *endAt > windowEnd) {
-			requestUntil["end_at"] = windowEnd
+		var pageWindowEnd int64 = this.ParseToInt(since) + pageSize*int64(rowSpacing)
+		var pageEndAt *int64 = this.SafeInteger(requestUntil, "end_at", pageWindowEnd)
+		if (this.SafeInteger(requestUntil, "end_at") == nil) || (pageEndAt != nil && *pageEndAt > pageWindowEnd) {
+			requestUntil["end_at"] = pageWindowEnd
 		}
 	}
 

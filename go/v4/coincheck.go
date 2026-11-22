@@ -773,7 +773,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
 	var baseId *string = this.SafeString(marketResolved, "baseId")
 	var quoteId *string = this.SafeString(marketResolved, "quoteId")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var takerOrMaker *string = nil
 	var amountString *string = nil
 	var costString *string = nil

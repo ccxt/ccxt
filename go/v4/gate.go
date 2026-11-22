@@ -6114,7 +6114,7 @@ func (this *Gate) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gate) ParseTransactionType(typeVar any) *string {
+func (this *Gate) ParseTransactionType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
 		"d": "deposit",
 		"w": "withdrawal",
@@ -6199,7 +6199,13 @@ func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) Transac
 			typeVar = &typeVarStr
 			amountString = Precise.StringAbs(amountString)
 		} else {
-			typeVar = this.ParseTransactionType(GetValue(id, 0))
+			var idPart string
+			if id != nil {
+				str := *id
+				idPart = str[0:min(1, len(str))]
+			}
+			var idPrefix string = idPart
+			typeVar = this.ParseTransactionType(&idPrefix)
 		}
 	}
 	var feeCostString *string = this.SafeString2(transaction, "fee", "fee_amount")
@@ -6457,7 +6463,11 @@ func (this *Gate) CreateOrdersRequest(orders []map[string]any, optionalArgs ...a
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
+		var orderParams map[string]any
+		orderParams, _ = rawOrder["params"].(map[string]any)
+		if orderParams == nil {
+			orderParams = map[string]any{}
+		}
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var triggerValue any = this.SafeValueN(orderParams, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
 		if triggerValue != nil {
@@ -6515,21 +6525,21 @@ func (this *Gate) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[st
 		}
 	}
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
-	var response any = nil
+	var response []any = nil
 	if market.Spot {
 
-		r2 := <-this.PrivateSpotPostBatchOrders(ordersRequests)
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateSpotPostBatchOrders(ordersRequests)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else if market.Swap {
 
-		r3 := <-this.PrivateFuturesPostSettleBatchOrders(ordersRequests)
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateFuturesPostSettleBatchOrders(ordersRequests)
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response))}
@@ -6672,7 +6682,7 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 				"side":          side,
 			}
 			if isMarketOrder && (side != nil && *side == "buy") {
-				var quoteAmount any = nil
+				var quoteAmount *string = nil
 				var createMarketBuyOrderRequiresPrice bool = true
 				createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 				var cost *float64 = this.SafeNumber(query, "cost")
@@ -7414,7 +7424,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 			clientOrderId = this.SafeString(triggerOrder, "text")
 		}
 	}
-	var literal543031 map[string]any = map[string]any{
+	var literal543131 map[string]any = map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
@@ -7438,16 +7448,16 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":               order,
 	}
 	if multipleFeeCurrencies {
-		literal543031["fee"] = nil
+		literal543131["fee"] = nil
 	} else {
-		literal543031["fee"] = this.SafeDict(fees, 0)
+		literal543131["fee"] = this.SafeDict(fees, 0)
 	}
 	if multipleFeeCurrencies {
-		literal543031["fees"] = fees
+		literal543131["fees"] = fees
 	} else {
-		literal543031["fees"] = []any{}
+		literal543131["fees"] = []any{}
 	}
-	return this.SafeOrder(literal543031, market)
+	return this.SafeOrder(literal543131, market)
 }
 func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7480,7 +7490,7 @@ func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]
 	if contract {
 		contractRequest, contractParams := this.PrepareRequest(market, typeVar, query)
 		var contractOrder map[string]any = this.Extend(contractRequest, map[string]any{
-			"order_id": ToString(orderId),
+			"order_id": orderId,
 		})
 		return contractOrder, contractParams
 	}
@@ -7643,11 +7653,11 @@ func (this *Gate) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes556215 []any = OrdersToList(r.Value)
-	if retRes556215 == nil {
+	var retRes556315 []any = OrdersToList(r.Value)
+	if retRes556315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes556215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes556315)}
 	}
 	return nil
 }
@@ -7711,12 +7721,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes559719 []any = r2.Value
+		var retRes559819 []any = r2.Value
 		// see https://github.com/ccxt/ccxt/issues/22825
-		if retRes559719 == nil {
+		if retRes559819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes559719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes559819)}
 		}
 		return nil
 	}
@@ -7739,11 +7749,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes560819 []any = OrdersToList(r3.Value)
-		if retRes560819 == nil {
+		var retRes560919 []any = OrdersToList(r3.Value)
+		if retRes560919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes560819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes560919)}
 		}
 		return nil
 	}
@@ -8367,11 +8377,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes605119 []any = OrdersToList(r2.Value)
-		if retRes605119 == nil {
+		var retRes605219 []any = OrdersToList(r2.Value)
+		if retRes605219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes605119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes605219)}
 		}
 		return nil
 	}
@@ -10256,11 +10266,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes743119 []any = r1.Value
-		if retRes743119 == nil {
+		var retRes743219 []any = r1.Value
+		if retRes743219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes743119)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes743219)}
 		}
 		return nil
 	}
@@ -10689,16 +10699,16 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes775419 []any = r1.Value
-		if retRes775419 == nil {
+		var retRes775519 []any = r1.Value
+		if retRes775519 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775519)}
 		}
 		return nil
 	}
 	var currency map[string]any = nil
-	var response any = nil
+	var response []any = nil
 	var request map[string]any = map[string]any{}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLedger", nil, paramsPaginate)
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
@@ -10729,39 +10739,39 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, paramsSettle)
 	if typeVar != nil && *typeVar == "spot" {
 
-		r2 := <-this.PrivateSpotGetAccountBook(this.Extend(requestUntil, paramsUntil))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateSpotGetAccountBook(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "margin" {
 
-		r3 := <-this.PrivateMarginGetAccountBook(this.Extend(requestUntil, paramsUntil))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateMarginGetAccountBook(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "swap" {
 
-		r4 := <-this.PrivateFuturesGetSettleAccountBook(this.Extend(requestUntil, paramsUntil))
-		if r4.Err != nil {
-			panic(r4.Err)
+		responseRecv := <-this.PrivateFuturesGetSettleAccountBook(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r4.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "future" {
 
-		r5 := <-this.PrivateDeliveryGetSettleAccountBook(this.Extend(requestUntil, paramsUntil))
-		if r5.Err != nil {
-			panic(r5.Err)
+		responseRecv := <-this.PrivateDeliveryGetSettleAccountBook(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r5.Raw
+		response = responseRecv.Value
 	} else if typeVar != nil && *typeVar == "option" {
 
-		r6 := <-this.PrivateOptionsGetAccountBook(this.Extend(requestUntil, paramsUntil))
-		if r6.Err != nil {
-			panic(r6.Err)
+		responseRecv := <-this.PrivateOptionsGetAccountBook(this.Extend(requestUntil, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r6.Raw
+		response = responseRecv.Value
 	}
 
 	//

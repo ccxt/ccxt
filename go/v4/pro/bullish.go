@@ -945,10 +945,8 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 		account["total"] = this.SafeString(data, "availableQuantity")
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
-		if entry, ok := this.Balance[*tradingAccountId].(map[string]any); ok && (entry != nil) {
-			entry["info"] = message
-		}
 		var deltaBalance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
+		deltaBalance["info"] = message
 		if (tradingAccountId != nil) && (code != nil) {
 			deltaBalance[*code] = account
 		}
@@ -1000,8 +998,6 @@ func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var symbolsNormalized any = symbols
 	if hasSymbols {
 		symbolsNormalized = this.MarketSymbols(symbols)
-	}
-	if hasSymbols && (!ccxt.IsEqual(symbolsNormalized, nil)) {
 		messageHash += "::" + ccxt.Join(symbolsNormalized, ",")
 	}
 	var request map[string]any = map[string]any{
@@ -1039,7 +1035,11 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	var messageType *string = this.SafeString(message, "type")
 	var rawPositions []any = []any{}
 	if messageType != nil && *messageType == "update" {
-		var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		rawPositions = append(rawPositions, data)
 	} else {
 		rawPositions = ccxt.ArrayTyped(this.SafeList(message, "data", []any{}))

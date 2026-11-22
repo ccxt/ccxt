@@ -2710,17 +2710,14 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	}
 	var response []any = responseRecv.Value
 	var entries []any = this.ToArray(response)
+	var entriesWithCurrency []any = []any{}
 	for i := 0; i < len(entries); i++ {
-		if row, ok := entries[i].(map[string]any); ok && (row != nil) {
-			if code != nil {
-				row["currency"] = *code
-			} else {
-				row["currency"] = nil
-			}
-		}
+		entriesWithCurrency = append(entriesWithCurrency, this.Extend(entries[i], map[string]any{
+			"currency": code,
+		}))
 	}
 
-	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entries, currency, since, limit))}
+	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(entriesWithCurrency, currency, since, limit))}
 	return nil
 }
 
@@ -2911,11 +2908,11 @@ func (this *Coinbaseexchange) fetchDepositsBody(ch chan AsyncResult[[]Transactio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes207015 []any = TransactionsToList(r.Value)
-	if retRes207015 == nil {
+	var retRes207115 []any = TransactionsToList(r.Value)
+	if retRes207115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes207015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes207115)}
 	}
 	return nil
 }
@@ -2955,11 +2952,11 @@ func (this *Coinbaseexchange) fetchWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes208615 []any = TransactionsToList(r.Value)
-	if retRes208615 == nil {
+	var retRes208715 []any = TransactionsToList(r.Value)
+	if retRes208715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes208615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes208715)}
 	}
 	return nil
 }
@@ -3193,16 +3190,16 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 			"Content-Type":         "application/json",
 		}
 	}
-	var literal227115 map[string]any = map[string]any{
+	var literal227215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal227115["body"] = *requestBody
+		literal227215["body"] = *requestBody
 	}
-	return literal227115
+	return literal227215
 }
 func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 400) || (code == 404) {

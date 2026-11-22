@@ -1102,7 +1102,7 @@ func (this *Blofin) HandleOrders(client any, message map[string]any) {
 	// resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
 	for i := 0; i < len(symbols); i++ {
 		if channelName != nil {
-			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(*channelName+":", ccxt.DerefScalar(symbols[i])))
+			client.(ccxt.ClientInterface).Resolve(orders, *channelName+":"+*this.SafeString(symbols, i, ""))
 		}
 		client.(ccxt.ClientInterface).Resolve(orders, channelName)
 	}

@@ -408,7 +408,8 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
 		var lastPageResponse map[string]any = ccxt.SafeMapTyped(responses, length-1)
-		var lastPageData []any = ccxt.SafeListTyped(lastPageResponse, "data")
+		var lastPageData []any
+		lastPageData, _ = lastPageResponse["data"].([]any)
 		var lastPageLength int = len(lastPageData)
 		var allRawLength int = len(allRaw)
 		if (pageSize == nil || int64(lastPageLength) >= *pageSize) && (maxMarkets != nil && int64(allRawLength) < *maxMarkets) {
@@ -420,12 +421,8 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 				if r3.Err != nil {
 					panic(r3.Err)
 				}
-				response := r3.Raw
-				var responseRows []any = []any{}
-				if ccxt.IsArray(response) {
-					responseRows = ccxt.ArrayTyped(response)
-				}
-				var page_markets []any = this.SafeListSlice(response, "data", responseRows)
+				var response map[string]any = r3.Value
+				var page_markets, _ = response["data"].([]any)
 				var pageMarketsLength int = len(page_markets)
 				if pageMarketsLength == 0 {
 					break
@@ -1995,11 +1992,11 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes158515 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes158515 == nil {
+	var retRes158115 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes158115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes158515)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes158115)}
 	}
 	return nil
 }
@@ -2047,11 +2044,11 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes160715 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes160715 == nil {
+	var retRes160315 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes160315 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes160715)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes160315)}
 	}
 	return nil
 }
@@ -3283,11 +3280,11 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes250319 []any = r1.Value
-		if retRes250319 == nil {
+		var retRes249919 []any = r1.Value
+		if retRes249919 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes250319)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249919)}
 		}
 		return nil
 	}

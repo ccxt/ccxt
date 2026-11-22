@@ -2182,7 +2182,7 @@ func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol string = *this.SafeString(marketResolved, "symbol", "")
 	var last *string = this.SafeString(ticker, "last_trade_price")
 	var high *string = this.SafeString(ticker, "daily_price_high")
 	var low *string = this.SafeString(ticker, "daily_price_low")
@@ -4660,7 +4660,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan AsyncResult[map[str
 	var nonce *int64 = &r2.Value
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(market["id"]),
-		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
+		"initial_margin_fraction": this.ParseToInt(Divide(10000, this.ParseToInt(leverage))),
 		"margin_mode": func() int {
 			if marginMode == "cross" {
 				return 0
