@@ -1263,11 +1263,11 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) Trade {
 		amountString = this.SafeString(trade, "base_volume")
 		costString = this.SafeString(trade, "quote_volume")
 	}
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode *string = SafeStringPtr(marketResolved["quote"])
+		var feeCurrencyCode *string = this.SafeString(marketResolved, "quote")
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,

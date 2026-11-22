@@ -1208,7 +1208,14 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 			if (!ccxt.IsEqual(previousFee["cost"], nil)) && (this.SafeNumber(trade["fee"], "cost") != nil) {
 				var stringOrderCost *string = this.NumberToString(previousFee["cost"])
 				var stringTradeCost *string = this.NumberToString(this.SafeNumber(trade["fee"], "cost"))
-				ccxt.AddElementToObject(previousOrder["fee"], "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
+				if ptrValue := ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost); ptrValue != nil {
+					previousFee["cost"] = *ptrValue
+				} else {
+					previousFee["cost"] = nil
+				}
+				if previousOrder != nil {
+					previousOrder["fee"] = previousFee
+				}
 			}
 			// update the newUpdates count
 			orders.Append(ccxt.OrderToMap(this.SafeOrder(previousOrder)))
@@ -1438,9 +1445,9 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 	var marketId *string = this.SafeString(unparsedOrder, "instrument")
 	var timestamp *string = this.SafeString(unparsedOrder, "time")
 	var direction *int64 = this.SafeInteger(unparsedOrder, "direction")
-	var ternaryStr105820 string = "sell"
+	var ternaryStr105920 string = "sell"
 	if direction != nil && *direction == 0 {
-		ternaryStr105820 = "buy"
+		ternaryStr105920 = "buy"
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1453,7 +1460,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 		"type":               this.SafeString(unparsedOrder, "type"),
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               ternaryStr105820,
+		"side":               ternaryStr105920,
 		"price":              this.SafeString(unparsedOrder, "limit_price"),
 		"stopPrice":          this.SafeString(unparsedOrder, "stop_price"),
 		"triggerPrice":       this.SafeString(unparsedOrder, "stop_price"),
@@ -2134,9 +2141,9 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isBuy *bool = this.SafeBool(trade, "buy", false)
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-	var ternaryStr167220 string = "sell"
+	var ternaryStr167320 string = "sell"
 	if isBuy != nil && *isBuy {
-		ternaryStr167220 = "buy"
+		ternaryStr167320 = "buy"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2146,7 +2153,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 		"symbol":       this.SafeString(marketResolved, "symbol"),
 		"order":        this.SafeString(trade, "order_id"),
 		"type":         this.SafeString(trade, "type"),
-		"side":         ternaryStr167220,
+		"side":         ternaryStr167320,
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),

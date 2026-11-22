@@ -1468,7 +1468,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) map[string]any 
 		var cv *string = this.SafeString(data, "cv")
 		var isSpot bool = (cv != nil)
 		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data))
-		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -1566,7 +1566,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 	for i := 0; i < len(data); i++ {
 		var tickerData, _ = data[i].(map[string]any)
 		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(tickerData))
-		var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -2147,7 +2147,7 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
 	var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(data))
-	var tradeSymbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
+	var tradeSymbol *string = this.SafeString(parsedTrade, "symbol")
 	if tradeSymbol == nil {
 		return
 	}

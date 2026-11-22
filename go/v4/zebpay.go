@@ -799,7 +799,7 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -1398,7 +1398,7 @@ func (this *Zebpay) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeInteger2(trade, "timestamp", "tradeTime")
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var side *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "amount", "quantity")
@@ -1968,7 +1968,7 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var typeVar *string = this.SafeString(order, "type")
 	var timestamp *float64 = this.SafeNumber(order, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)

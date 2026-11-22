@@ -1193,7 +1193,7 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	}
 	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.OmitDict(params, "network")
+		paramsOmitted = this.OmitDict(paramsOmitted, "network")
 	}
 
 	responseReply := <-this.PrivatePostWalletCryptoAddress(this.Extend(request, paramsOmitted))
@@ -1265,7 +1265,7 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	}
 	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.OmitDict(params, "network")
+		paramsOmitted = this.OmitDict(paramsOmitted, "network")
 	}
 
 	r1 := <-this.PrivateGetWalletCryptoAddress(this.Extend(request, paramsOmitted))

@@ -1330,6 +1330,7 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 		return
 	}
 	var marketIds []string = []string{}
+	var seenMarketIds map[string]any = map[string]any{}
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1346,7 +1347,8 @@ func (this *Coinbase) HandleOrder(client any, message map[string]any) {
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {
-				if !(ccxt.InOp(marketIds, marketId)) {
+				if _, ok := seenMarketIds[*marketId]; !ok {
+					seenMarketIds[*marketId] = true
 					marketIds = append(marketIds, *marketId)
 				}
 			}

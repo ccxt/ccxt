@@ -1690,13 +1690,13 @@ func (this *Gate) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var marketId string = *this.SafeString(market, "id", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".candlesticks"
-	var subMessageHash string = "candles:" + *interval + ":" + *symbolValue
-	var messageHash string = "unsubscribe:candles:" + *interval + ":" + *symbolValue
+	var subMessageHash string = "candles:" + *interval + ":" + symbolValue
+	var messageHash string = "unsubscribe:candles:" + *interval + ":" + symbolValue
 	var url string = this.GetUrlByMarket(market)
 	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
@@ -1955,7 +1955,11 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	//     ]
 	// }
 	//
-	var result []any = this.SafeListSlice(message, "result", []any{})
+	var result []any
+	result, _ = message["result"].([]any)
+	if result == nil {
+		result = []any{}
+	}
 	var tradesLength int = len(result)
 	if tradesLength == 0 {
 		return
@@ -1971,7 +1975,7 @@ func (this *Gate) HandleMyTrades(client any, message map[string]any) {
 	for i := 0; i < len(parsed); i++ {
 		var trade any = parsed[i]
 		cachedTrades.Append(trade)
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(trade, "symbol"))
+		var symbol *string = this.SafeString(trade, "symbol")
 		if symbol != nil {
 			marketIds[*symbol] = true
 		}
@@ -2033,7 +2037,7 @@ func (this *Gate) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 	})
 	// todo: add correct margin support
 	var channel string = channelType + ".balances"
-	var messageHash any = ccxt.Add(typeVar, ".balance")
+	var messageHash string = *typeVar + ".balance"
 
 	r1 := <-this.SubscribePrivateAsync(url, messageHash, nil, channel, paramsSubType, requiresUid)
 	if r1.Err != nil {
@@ -2443,11 +2447,11 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		}
 	}
 	var market map[string]any = nil
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var marketResolved map[string]any = this.Market(symbol)
 		market = marketResolved
-		symbolResolved = market["symbol"]
+		symbolResolved = this.SafeString(market, "symbol")
 	}
 	var typeVar any = nil
 	var query map[string]any = nil
@@ -2559,7 +2563,11 @@ func (this *Gate) HandleOrder(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var orders []any = this.SafeListSlice(message, "result", []any{})
+	var orders []any
+	orders, _ = message["result"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var channel string = *this.SafeString(message, "channel", "")
 	var isTrigger bool = (strings.Index(channel, "autoorders") >= 0) || (strings.Index(channel, "priceorders") >= 0)
 	var hashPrefix string = "orders"
@@ -2966,8 +2974,9 @@ func (this *Gate) HandleErrorMessage(client any, message map[string]any) bool {
 										marketType = parsedChannel[0]
 									}
 									var symbol *string = this.SafeSymbol(payload[i], nil, "_", marketType)
-									var messageHashSymbol any = ccxt.Add(ccxt.Add(parsedChannel[1], ":"), symbol)
-									if (messageHashSymbol != nil) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHashSymbol)) {
+									var channelName string = *this.SafeString(parsedChannel, 1, "")
+									var messageHashSymbol string = channelName + ":" + *symbol
+									if (true) && (client.(ccxt.ClientInterface).SubscriptionHas(messageHashSymbol)) {
 										client.(ccxt.ClientInterface).SubscriptionDel(messageHashSymbol)
 									}
 								}

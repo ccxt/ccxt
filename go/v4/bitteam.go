@@ -2559,7 +2559,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var marketId *string = this.SafeString(trade, "pair")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString2(trade, "id", "trade_id")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString2(trade, "quantity", "base_volume")

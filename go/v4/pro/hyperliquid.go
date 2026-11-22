@@ -523,7 +523,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = &market.Symbol
+	var symbol string = market.Symbol
 	var rawData, _ = entry["levels"].([]any)
 	var data map[string]any = map[string]any{
 		"bids": this.SafeList(rawData, 0, []any{}),
@@ -531,15 +531,13 @@ func (this *Hyperliquid) HandleOrderBook(client any, message map[string]any) {
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "time")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz")
-	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
+	if !(this.Orderbooks[symbol] != nil) {
 		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = ob
-		}
+		this.Orderbooks[symbol] = ob
 	}
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	orderbook.Reset(snapshot)
-	var messageHash string = "orderbook:" + *symbol
+	var messageHash string = "orderbook:" + symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -1102,13 +1100,11 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) boo
 			var name string = keys[i]
 			var marketId any = this.CoinToMarketId(&name)
 			var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
-			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+			var symbol string = *this.SafeString(market, "symbol", "")
 			var ticker map[string]any = this.ParseWsTicker(map[string]any{
 				"price": this.SafeNumber(mids, name),
 			}, market)
-			if symbol != nil {
-				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-			}
+			this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		}
 		var messageHash string = "tickers"
 		var dexMessage *string = this.SafeString(data, "dex")
@@ -1146,17 +1142,15 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any
 	var coin *string = this.SafeString(data, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var ctx map[string]any
 	ctx, _ = data["ctx"].(map[string]any)
 	if ctx == nil {
 		ctx = map[string]any{}
 	}
 	var ticker map[string]any = this.ParseWsTicker(ctx, market)
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	}
-	var messageHash string = "ticker:" + *symbol
+	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
+	var messageHash string = "ticker:" + symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return true
 }
@@ -1211,10 +1205,8 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var rawTrade, _ = data[i].(map[string]any)
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
-		if symbol != nil {
-			symbols[*symbol] = true
-		}
+		var symbol string = *this.SafeString(parsed, "symbol", "")
+		symbols[symbol] = true
 		trades.Append(parsed)
 	}
 	var keys []string = nil
@@ -1442,15 +1434,13 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = &market.Symbol
-	if !(symbol != nil && this.Trades[*symbol] != nil) {
+	var symbol string = market.Symbol
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
-	var trades ccxt.WsArrayCache = this.Trades[*symbol]
+	var trades ccxt.WsArrayCache = this.Trades[symbol]
 	for i := 0; i < len(entry); i++ {
 		var data, _ = entry[i].(map[string]any)
 		if data == nil {
@@ -1459,7 +1449,7 @@ func (this *Hyperliquid) HandleTrades(client any, message map[string]any) {
 		var trade map[string]any = this.ParseWsTrade(data)
 		trades.Append(trade)
 	}
-	var messageHash string = "trade:" + *symbol
+	var messageHash string = "trade:" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {

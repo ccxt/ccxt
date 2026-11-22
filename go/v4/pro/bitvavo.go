@@ -908,7 +908,7 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		})
 	}
 	var subscriptionArgs map[string]any = map[string]any{
-		"symbolsAndTimeframes": symbolsAndTimeframes,
+		"symbolsAndTimeframes": ccxt.AnyMatrixToList(symbolsAndTimeframes),
 	}
 
 	r1 := <-this.UnWatchChannelsAsync("ohlcv", channels, subMessageHashes, subscriptionArgs, params)
@@ -2335,7 +2335,11 @@ func (this *Bitvavo) HandleDeposits(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var response []any = this.SafeListSlice(message, "response", []any{})
+	var response []any
+	response, _ = message["response"].([]any)
+	if response == nil {
+		response = []any{}
+	}
 	var deposits []any = this.ParseTransactions(response, nil, nil, nil, map[string]any{
 		"type": "deposit",
 	})
@@ -2474,7 +2478,11 @@ func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response []any = this.SafeListSlice(message, "response", []any{})
+	var response []any
+	response, _ = message["response"].([]any)
+	if response == nil {
+		response = []any{}
+	}
 	var currencies map[string]any = this.ParseCurrencies(response)
 	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
 }
@@ -2549,7 +2557,11 @@ func (this *Bitvavo) HandleFetchBalance(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response []any = this.SafeListSlice(message, "response", []any{})
+	var response []any
+	response, _ = message["response"].([]any)
+	if response == nil {
+		response = []any{}
+	}
 	var balance map[string]any = this.ParseBalanceList(response)
 	client.(ccxt.ClientInterface).Resolve(balance, messageHash)
 }
@@ -2611,7 +2623,11 @@ func (this *Bitvavo) HandleMarkets(client any, message map[string]any) {
 	//        ]
 	//    }
 	//
-	var response []any = this.SafeListSlice(message, "response", []any{})
+	var response []any
+	response, _ = message["response"].([]any)
+	if response == nil {
+		response = []any{}
+	}
 	var markets []any = this.ParseMarkets(response)
 	var messageHash *string = this.SafeString(message, "requestId")
 	client.(ccxt.ClientInterface).Resolve(markets, messageHash)

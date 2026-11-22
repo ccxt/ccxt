@@ -1359,15 +1359,16 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			if *this.SafeBool(market, "active", false) {
-				marketIds = append(marketIds, market["id"])
+				var marketId string = *this.SafeString(market, "id", "")
+				marketIds = append(marketIds, marketId)
 			}
 		}
-		request["pair"] = Join(marketIds, ",")
+		request["pair"] = strings.Join(marketIds, ",")
 	}
 
 	r1 := <-this.PublicGetTicker(this.Extend(request, params))
@@ -1387,11 +1388,9 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var ticker any = tickers[id]
-		if symbol != nil {
-			result[*symbol] = TickerToMap(this.ParseTicker(ticker, market))
-		}
+		result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -1501,11 +1500,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122319 []any = r1.Value
-		if retRes122319 == nil {
+		var retRes122419 []any = r1.Value
+		if retRes122419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122419)}
 		}
 		return nil
 	}
@@ -1959,7 +1958,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		timestamp = this.Parse8601(datetime)
 	}
-	var literal155331 map[string]any = map[string]any{
+	var literal155431 map[string]any = map[string]any{
 		"id":           id,
 		"order":        nil,
 		"info":         trade,
@@ -1975,21 +1974,21 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if orderId != nil {
-		literal155331["order"] = *orderId
+		literal155431["order"] = *orderId
 	}
 	if datetime != nil {
-		literal155331["datetime"] = *datetime
+		literal155431["datetime"] = *datetime
 	}
 	if symbol != nil {
-		literal155331["symbol"] = *symbol
+		literal155431["symbol"] = *symbol
 	}
 	if price != nil {
-		literal155331["price"] = *price
+		literal155431["price"] = *price
 	}
 	if amount != nil {
-		literal155331["amount"] = *amount
+		literal155431["amount"] = *amount
 	}
-	return this.SafeTrade(literal155331, marketResolved)
+	return this.SafeTrade(literal155431, marketResolved)
 }
 
 /**
@@ -2025,7 +2024,7 @@ func (this *Kraken) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var id *string = SafeStringPtr(market["id"])
+	var id *string = this.SafeString(market, "id")
 	var request map[string]any = map[string]any{
 		"pair": id,
 	}
@@ -2775,7 +2774,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	if amendId != nil {
 		isPostOnly = nil
 	}
-	var literal217831 map[string]any = map[string]any{
+	var literal217931 map[string]any = map[string]any{
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
 		"info":                orderOmitted,
@@ -2803,24 +2802,24 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              trades,
 	}
 	if symbol != nil {
-		literal217831["symbol"] = *symbol
+		literal217931["symbol"] = *symbol
 	}
 	if side != nil {
-		literal217831["side"] = *side
+		literal217931["side"] = *side
 	}
 	if takeProfitPrice != nil {
-		literal217831["takeProfitPrice"] = *takeProfitPrice
+		literal217931["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal217831["stopLossPrice"] = *stopLossPrice
+		literal217931["stopLossPrice"] = *stopLossPrice
 	}
 	if cost != nil {
-		literal217831["cost"] = *cost
+		literal217931["cost"] = *cost
 	}
 	if amount != nil {
-		literal217831["amount"] = *amount
+		literal217931["amount"] = *amount
 	}
-	return this.SafeOrder(literal217831, marketResolved)
+	return this.SafeOrder(literal217931, marketResolved)
 }
 func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string, request map[string]any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -3133,7 +3132,7 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	var query map[string]any = params
 	if clientOrderId != nil {
 		request["userref"] = clientOrderId
-		query = this.OmitDict(params, []any{"userref", "clientOrderId"})
+		query = this.OmitDict(query, []any{"userref", "clientOrderId"})
 	}
 
 	r1 := <-this.PrivatePostQueryOrders(this.Extend(request, query))
@@ -3253,7 +3252,8 @@ func (this *Kraken) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string
 	var batch []any = []any{}
 	for i := 0; i < numTradeIds; i++ {
 		batch = append(batch, DerefScalar(tradeIds[i]))
-		if int64(len(batch)) >= batchSize {
+		var batchLength int = len(batch)
+		if int64(batchLength) >= batchSize {
 			batches = append(batches, batch)
 			batch = []any{}
 		}
@@ -4299,11 +4299,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323819 []any = r1.Value
-		if retRes323819 == nil {
+		var retRes324019 []any = r1.Value
+		if retRes324019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes323819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes324019)}
 		}
 		return nil
 	}

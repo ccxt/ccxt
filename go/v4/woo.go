@@ -4011,12 +4011,10 @@ func (this *Woo) GetCurrencyFromChaincode(networkizedCode string, optionalArgs .
 		var parts []string = strings.Split(networkizedCode, "_")
 		var partsLength int = len(parts)
 		var firstPart *string = this.SafeString(parts, 0)
-		var currencyId any
-		if derefPtr := this.SafeString(parts, 1, firstPart); derefPtr != nil {
-			currencyId = *derefPtr
-		}
+		var currencyId *string = this.SafeString(parts, 1, firstPart)
 		if partsLength > 2 {
-			currencyId = Add(currencyId, "_"+*this.SafeString(parts, 2, ""))
+			currencyIdStr := *this.SafeString(parts, 1, "") + "_" + *this.SafeString(parts, 2, "")
+			currencyId = &currencyIdStr
 		}
 		return this.SafeCurrency(currencyId)
 	}

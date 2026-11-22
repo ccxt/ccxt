@@ -666,7 +666,11 @@ func (this *Bit2me) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var data, _ = message["data"].(map[string]any)
-	var balances []any = this.SafeListSlice(data, "balance", []any{})
+	var balances []any
+	balances, _ = data["balance"].([]any)
+	if balances == nil {
+		balances = []any{}
+	}
 	this.Balance = this.ParseBalanceList(balances)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }

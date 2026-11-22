@@ -254,21 +254,17 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		} else if (this.SafeString(market, "executionModel") != nil && *this.SafeString(market, "executionModel") == "rfq") && (market["stock"] != true) {
 			panic(ccxt.NotSupported(this.Id + " " + methodName + "() RFQ venue tickers are only mapped for stock data"))
 		}
-		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var messageHash string = kind + ":" + *symbol + "@" + topic
+		var symbol string = *this.SafeString(market, "symbol", "")
+		var messageHash string = kind + ":" + symbol + "@" + topic
 		var subscriptionKey string = "marketData:" + topic
 		var subscriptions map[string]any = this.SafeDictMap(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), subscriptionKey, map[string]any{})
 		if unwatch == true {
 			subscriptions = this.OmitDict(subscriptions, messageHash)
 			this.CleanUnsubscription(ccxt.AsClient(client), messageHash, "unsubscribe:"+messageHash)
 			if bidAsk == true {
-				if symbol != nil {
-					delete(this.Bidsasks, *symbol)
-				}
+				delete(this.Bidsasks, symbol)
 			} else {
-				if symbol != nil {
-					delete(this.Tickers, *symbol)
-				}
+				delete(this.Tickers, symbol)
 			}
 		} else {
 			subscriptions[messageHash] = map[string]any{
@@ -634,7 +630,7 @@ func (this *Backpack) HandleTicker(client any, message map[string]any) {
 		ticker = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -736,7 +732,7 @@ func (this *Backpack) HandleStockTicker(client any, message map[string]any) bool
 		data = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -860,7 +856,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 		data = map[string]any{}
 	}
 	var stream string = *this.SafeString(message, "stream", "")
-	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("marketData:" + stream)
+	var subscriptions map[string]any = this.Extend(map[string]any{}, this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "marketData:"+stream, map[string]any{}))
 	var hashes []string = nil
 	if subscriptions != nil {
 		hashes = make([]string, 0, len(subscriptions))
@@ -1196,29 +1192,25 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(data, "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(marketId))
-	var symbol *string = &market.Symbol
+	var symbol string = market.Symbol
 	var stream string = *this.SafeString(message, "stream", "")
 	var parts []string = strings.Split(stream, ".")
 	var timeframe *string = this.SafeString(parts, 1, "")
-	if _, ok := this.Ohlcvs[*symbol]; !ok {
-		if symbol != nil {
-			this.Ohlcvs[*symbol] = map[string]any{}
-		}
+	if _, ok := this.Ohlcvs[symbol]; !ok {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	if _, ok := this.Ohlcvs[*symbol][*timeframe]; !ok {
+	if _, ok := this.Ohlcvs[symbol][*timeframe]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored := ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+		if this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var ohlcv ccxt.WsArrayCache
-	if symbol != nil {
-		ohlcv, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
-	}
+	ohlcv, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	var parsed any = this.ParseWsOHLCV(data)
 	ohlcv.Append(parsed)
-	var messageHash string = "candles:" + *symbol + ":" + *timeframe
+	var messageHash string = "candles:" + symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, ohlcv}, messageHash)
 }
 func (this *Backpack) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -1492,18 +1484,16 @@ func (this *Backpack) HandleTrades(client any, message map[string]any) {
 	}
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.Market(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if !(symbol != nil && this.Trades[*symbol] != nil) {
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if _, ok := this.Trades[symbol]; !ok {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
-	var cache ccxt.WsArrayCache = this.Trades[*symbol]
+	var cache ccxt.WsArrayCache = this.Trades[symbol]
 	var trade map[string]any = this.ParseWsTrade(data, market)
 	cache.Append(trade)
-	var messageHash string = "trades:" + *symbol
+	var messageHash string = "trades:" + symbol
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 	client.(ccxt.ClientInterface).Resolve(cache, "trades")
 }
@@ -2340,7 +2330,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "X"), market)
 	var marketId *string = this.SafeString(order, "s")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var typeVar *string = this.SafeStringLower(order, "o")
 	var timeInForce *string = this.SafeString(order, "f")
 	var side *string = this.ParseWsOrderSide(this.SafeString(order, "S"))

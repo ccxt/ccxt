@@ -1974,7 +1974,11 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "method")
-	var params []any = this.SafeListSlice(message, "params", []any{})
+	var params []any
+	params, _ = message["params"].([]any)
+	if params == nil {
+		params = []any{}
+	}
 	// merge the parsed update into the existing balance object instead of
 	// replacing it: a consumer awakened by an earlier message holds a
 	// reference to this.balance, and ccxt.Client.resolve is a no-op while

@@ -1471,7 +1471,7 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(loadedFees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(loadedFees[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -1702,13 +1702,13 @@ func (this *Paradex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
  * @param {string[]|undefined} symbols unified market symbols
  * @returns {string} the market id, or ALL
  */
-func (this *Paradex) SummaryMarketId(optionalArgs ...any) any {
+func (this *Paradex) SummaryMarketId(optionalArgs ...any) string {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			return this.Market(symbols[0])["id"]
+			return *this.SafeString(this.Market(symbols[0]), "id", "")
 		}
 	}
 	return "ALL"
@@ -1847,7 +1847,7 @@ func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var last *string = this.SafeString(ticker, "last_traded_price")
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "created_at")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -2369,7 +2369,7 @@ func (this *Paradex) ParseOpenInterest(interest any, optionalArgs ...any) OpenIn
 	var timestamp *int64 = this.SafeInteger(interest, "created_at")
 	var marketId *string = this.SafeString(interest, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
 		"openInterestAmount": this.SafeString(interest, "open_interest"),
@@ -2665,7 +2665,7 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -3746,8 +3746,9 @@ func (this *Paradex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	var paginationCursor *string = this.SafeString(response, "next")
 	var ordersLength int = len(orders)
 	if (paginationCursor != nil) && (ordersLength > 0) {
-		var first any = orders[0]
-		AddElementToObject(first, "next", paginationCursor)
+		var first map[string]any = this.Extend(orders[0], map[string]any{
+			"next": paginationCursor,
+		})
 		AddElementToObject(orders, 0, first)
 	}
 
@@ -3969,11 +3970,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes278519 []any = r2.Value
-		if retRes278519 == nil {
+		var retRes278419 []any = r2.Value
+		if retRes278419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes278419)}
 		}
 		return nil
 	}
@@ -4628,11 +4629,11 @@ func (this *Paradex) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes321119 []any = r2.Value
-		if retRes321119 == nil {
+		var retRes321019 []any = r2.Value
+		if retRes321019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes321019)}
 		}
 		return nil
 	}
@@ -5583,11 +5584,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388619 []any = r2.Value
-		if retRes388619 == nil {
+		var retRes388519 []any = r2.Value
+		if retRes388519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388519)}
 		}
 		return nil
 	}
@@ -5751,10 +5752,10 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		requestUntil["start_at"] = *since
 		// a page holds the newest rows of its range, so a range wider than one page would return the latest
 		// rows and skip since, the range is cut to one page of rows from since
-		var windowEnd any = this.Sum(since, pageSize*int64(rowSpacing))
+		var windowEnd int64 = this.ParseToInt(since) + pageSize*int64(rowSpacing)
 		var endAt *int64 = this.SafeInteger(requestUntil, "end_at", windowEnd)
-		if (this.SafeInteger(requestUntil, "end_at") == nil) || (IsGreaterThan(endAt, windowEnd)) {
-			AddElementToObject(requestUntil, "end_at", windowEnd)
+		if (this.SafeInteger(requestUntil, "end_at") == nil) || ((endAt != nil) && *endAt > windowEnd) {
+			requestUntil["end_at"] = windowEnd
 		}
 	}
 

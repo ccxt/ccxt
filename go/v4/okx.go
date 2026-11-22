@@ -3972,7 +3972,7 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var typeVar *string = SafeStringPtr(GetValue(TupleSlice(this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)), 0))
+	typeVar, _ := this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)
 	var volumeIndex int
 	if typeVar != nil && *typeVar == "spot" {
 		volumeIndex = 5

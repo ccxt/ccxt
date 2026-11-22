@@ -4517,7 +4517,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 		"symbol": market["id"],
 		"amount": amountValue,
 	}
-	var code *string = SafeStringPtr(market["quote"])
+	var code *string = this.SafeString(market, "quote")
 
 	r1 := <-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))
 	if r1.Err != nil {

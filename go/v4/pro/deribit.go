@@ -746,7 +746,11 @@ func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
 	//
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel", "")
-	var trades []any = this.SafeListSlice(params, "data", []any{})
+	var trades []any
+	trades, _ = params["data"].([]any)
+	if trades == nil {
+		trades = []any{}
+	}
 	var cachedTrades ccxt.WsArrayCache = this.MyTrades
 	if cachedTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -918,8 +922,16 @@ func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 	var storedOrderBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
-	var asks []any = this.SafeListSlice(data, "asks", []any{})
-	var bids []any = this.SafeListSlice(data, "bids", []any{})
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = data["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 	this.HandleDeltas(storedOrderBook.GetBids(), bids)
 	storedOrderBook.SetNonce(timestamp)
@@ -1249,7 +1261,7 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var wsOptions, _ = this.Options["ws"].(map[string]any)
 	var timeframes map[string]any
 	timeframes, _ = wsOptions["timeframes"].(map[string]any)
@@ -1257,18 +1269,18 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 		timeframes = map[string]any{}
 	}
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
-	if ccxt.IsEqual(this.SafeDict(this.Ohlcvs[*symbol], unifiedTimeframe), nil) {
+	if ccxt.IsEqual(this.SafeDict(this.Ohlcvs[symbol], unifiedTimeframe), nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
-		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && unifiedTimeframe != nil {
-		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
+	if unifiedTimeframe != nil {
+		stored, _ = this.Ohlcvs[symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	var ohlcv map[string]any
 	ohlcv, _ = params["data"].(map[string]any)
@@ -1278,11 +1290,11 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 	// data contains a single ccxt.OHLCV candle
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
 	stored.Append(parsed)
-	if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
-		this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
+	if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
+		this.Ohlcvs[symbol][*unifiedTimeframe] = stored
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash string = "chart.trades|" + *symbol + "|" + *this.SafeString(parts, 3, "")
+	var messageHash string = "chart.trades|" + symbol + "|" + *this.SafeString(parts, 3, "")
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *Deribit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {

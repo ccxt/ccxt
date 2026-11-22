@@ -4242,8 +4242,6 @@ func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(this.Id + " " + body))
 		}
-	} else if IsEqual(response, "") {
-		panic(ExchangeError(this.Id + " returned empty response"))
 	}
 	if code == 429 {
 		panic(RateLimitExceeded(this.Id + " " + body))
@@ -4419,11 +4417,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322119 []any = r1.Value
-		if retRes322119 == nil {
+		var retRes321919 []any = r1.Value
+		if retRes321919 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes322119)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes321919)}
 		}
 		return nil
 	}
@@ -4602,11 +4600,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333819 []any = r1.Value
-		if retRes333819 == nil {
+		var retRes333619 []any = r1.Value
+		if retRes333619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333619)}
 		}
 		return nil
 	}
@@ -4964,11 +4962,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361619 []any = r1.Value
-		if retRes361619 == nil {
+		var retRes361419 []any = r1.Value
+		if retRes361419 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361619)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361419)}
 		}
 		return nil
 	}
@@ -5143,11 +5141,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375419 []any = r1.Value
-		if retRes375419 == nil {
+		var retRes375219 []any = r1.Value
+		if retRes375219 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375419)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375219)}
 		}
 		return nil
 	}

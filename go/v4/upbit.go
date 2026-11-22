@@ -1767,13 +1767,9 @@ func (this *Upbit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	} else {
 		panic(InvalidOrder(this.Id + " createOrder() supports only limit or market types in the type argument."))
 	}
-	var paramsOrdType map[string]any
+	var paramsOrdType map[string]any = params
 	if customType != nil && *customType == "best" {
-		paramsOrdType = this.OmitDict(params, []any{"ordType", "ord_type"})
-	} else {
-		paramsOrdType = params
-	}
-	if customType != nil && *customType == "best" {
+		paramsOrdType = this.OmitDict(paramsOrdType, []any{"ordType", "ord_type"})
 		request["ord_type"] = "best"
 		if side == "buy" {
 			var orderPrice any = this.CalcOrderPrice(symbol, amount, price, paramsOrdType)
@@ -3275,17 +3271,17 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	var literal247915 map[string]any = map[string]any{
+	var literal248015 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if apiName == "private" {
-		literal247915["headers"] = headers
+		literal248015["headers"] = headers
 	} else {
-		literal247915["headers"] = nil
+		literal248015["headers"] = nil
 	}
-	return literal247915
+	return literal248015
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

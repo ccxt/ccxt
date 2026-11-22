@@ -727,13 +727,17 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
-	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = (market["settle"] == "USDT")
-	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
+	var isSwap bool = market.Swap
+	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
+	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = "trade"
 	if isUsdtSwap {
 		name = "trade_p"
@@ -743,7 +747,7 @@ func (this *Phemex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{market["id"]},
+		"params": []any{marketId},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -793,13 +797,17 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
-	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = (market["settle"] == "USDT")
-	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
+	var isSwap bool = market.Swap
+	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
+	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = "orderbook"
 	if isUsdtSwap {
 		name = "orderbook_p"
@@ -809,7 +817,7 @@ func (this *Phemex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{market["id"]},
+		"params": []any{marketId},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -860,13 +868,17 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
 	var url *string = this.UrlsApiStrings["ws"]
 	var requestId int64 = this.RequestId()
-	var isSwap *bool = ccxt.SafeBoolPtr(market["swap"])
-	var settleIsUSDT bool = (market["settle"] == "USDT")
-	var isUsdtSwap bool = (isSwap != nil && *isSwap == true) && settleIsUSDT
+	var isSwap bool = market.Swap
+	var settleIsUSDT bool = (market.Settle != nil && *market.Settle == "USDT")
+	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
 	var name string = "kline"
 	if isUsdtSwap {
 		name = "kline_p"
@@ -876,7 +888,7 @@ func (this *Phemex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
-		"params": []any{market["id"], this.SafeInteger(this.Timeframes, timeframe)},
+		"params": []any{marketId, this.SafeInteger(this.Timeframes, timeframe)},
 	}
 	var request map[string]any = this.DeepExtend(subscribe, params)
 
@@ -952,9 +964,14 @@ func (this *Phemex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var isUsdtSwap bool = (market["swap"] == true) && (market["settle"] == "USDT")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
+	var isSwap bool = market.Swap
+	var isUsdtSwap bool = (isSwap == true) && (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "trade"
 	if isUsdtSwap {
 		name = "trade_p"
@@ -964,7 +981,7 @@ func (this *Phemex) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 		"symbols": []any{symbolValue},
 	}
 
-	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "trade:"+*symbolValue, []any{market["id"]}, subscription, params)
+	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "trade:"+symbolValue, []any{marketId}, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1013,9 +1030,14 @@ func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var isUsdtSwap bool = (market["swap"] == true) && (market["settle"] == "USDT")
+	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var symbolValue string = market.Symbol
+	var marketId string = ""
+	if market.Id != nil {
+		marketId = *market.Id
+	}
+	var isSwap bool = market.Swap
+	var isUsdtSwap bool = (isSwap == true) && (market.Settle != nil && *market.Settle == "USDT")
 	var name string = "kline"
 	if isUsdtSwap {
 		name = "kline_p"
@@ -1025,9 +1047,9 @@ func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		"symbolsAndTimeframes": []any{[]any{symbolValue, timeframe}},
 	}
 	// phemex drops only the given interval when it is sent along with the symbol
-	var marketParams []any = []any{market["id"], this.SafeInteger(this.Timeframes, timeframe)}
+	var marketParams []any = []any{marketId, this.SafeInteger(this.Timeframes, timeframe)}
 
-	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "kline:"+timeframe+":"+*symbolValue, marketParams, subscription, params)
+	r1 := <-this.UnSubscribePublicAsync(name+".unsubscribe", "kline:"+timeframe+":"+symbolValue, marketParams, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

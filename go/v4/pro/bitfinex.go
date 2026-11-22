@@ -409,20 +409,20 @@ func (this *Bitfinex) HandleOHLCV(client any, message []any, subscription map[st
 	var marketId string = *this.SafeString(keyParts, 2, "")
 	var market map[string]any = this.SafeMarket(marketId)
 	var timeframe *string = this.FindTimeframe(interval)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = channel + ":" + *interval + ":" + marketId
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && timeframe != nil {
-		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
+	if timeframe != nil {
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var ohlcvsLength int = ccxt.GetArrayLength(ohlcvs)
@@ -641,7 +641,7 @@ func (this *Bitfinex) HandleMyTrade(client any, message []any, optionalArgs ...a
 	var trade map[string]any = this.ParseWsTrade(map[string]any{
 		"result": data,
 	})
-	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
+	var symbol *string = this.SafeString(trade, "symbol")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
 	var marketId string = ""
 	if market.Id != nil {

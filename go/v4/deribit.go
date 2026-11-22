@@ -3042,7 +3042,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
 	var paramsOmitted map[string]any = params
 	if isTrailingAmountOrder {
-		paramsOmitted = this.OmitDict(params, "trigger_offset")
+		paramsOmitted = this.OmitDict(paramsOmitted, "trigger_offset")
 	}
 	if isTrailingAmountOrder {
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)

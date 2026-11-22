@@ -2258,7 +2258,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(response, marketId), market))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -2554,7 +2554,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var amount *string = this.SafeString2(trade, "amount", "quote_volume")
 	var id *string = this.SafeString2(trade, "id", "tradeID")
 	var side *string = this.SafeString2(trade, "type", "side")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker *string = nil
 	if role != nil {
@@ -3321,7 +3321,8 @@ func (this *Whitebit) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	// Sort by timestamp (most recent first)
 	var sortedOrders []any = this.SortBy(allOrders, "timestamp", true)
 	// Apply limit if specified (since and symbol filtering already handled by individual methods)
-	if (limit != nil) && (int64(len(sortedOrders)) > *limit) {
+	var sortedOrdersLength int = len(sortedOrders)
+	if (limit != nil) && (int64(sortedOrdersLength) > *limit) {
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ArraySlice(sortedOrders, 0, limit))}
 		return nil
@@ -3740,7 +3741,7 @@ func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var side *string = this.SafeString(order, "side")
 	var filled *string = this.SafeString(order, "dealStock")
 	var remaining *string = this.SafeString(order, "left")
@@ -4569,9 +4570,9 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	} else if method != nil && *method == "2" {
 		addressTo = address
 	}
-	var ternaryStr325420 string = "withdrawal"
+	var ternaryStr325520 string = "withdrawal"
 	if method != nil && *method == "1" {
-		ternaryStr325420 = "deposit"
+		ternaryStr325520 = "deposit"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString(transaction, "uniqueId"),
@@ -4583,7 +4584,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		"address":     address,
 		"addressTo":   addressTo,
 		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        ternaryStr325420,
+		"type":        ternaryStr325520,
 		"currency":    this.SafeCurrencyCode(currencyId, currencyResolved),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,
@@ -5959,11 +5960,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes425819 []any = r.Value
-		if retRes425819 == nil {
+		var retRes425919 []any = r.Value
+		if retRes425919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes425919)}
 		}
 		return nil
 	}
@@ -6074,17 +6075,17 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var literal434715 map[string]any = map[string]any{
+	var literal434815 map[string]any = map[string]any{
 		"url":    url,
 		"method": method,
 		"body":   requestBody,
 	}
 	if isPrivate {
-		literal434715["headers"] = privateHeaders
+		literal434815["headers"] = privateHeaders
 	} else {
-		literal434715["headers"] = publicHeaders
+		literal434815["headers"] = publicHeaders
 	}
-	return literal434715
+	return literal434815
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if (code == 418) || (code == 429) {

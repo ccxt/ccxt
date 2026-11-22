@@ -1668,7 +1668,11 @@ func (this *Htx) HandleOrder(client any, message map[string]any) {
 	} else {
 		// contract branch
 		parsedOrder = this.ParseWsOrder(message, market)
-		var rawTrades []any = this.SafeListSlice(message, "trade", []any{})
+		var rawTrades []any
+		rawTrades, _ = message["trade"].([]any)
+		if rawTrades == nil {
+			rawTrades = []any{}
+		}
 		var tradesLength int = len(rawTrades)
 		if tradesLength > 0 {
 			var tradesObject map[string]any = map[string]any{
@@ -1968,26 +1972,18 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	_ = market
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var marketValue map[string]any = marketResolved
-	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var tradeId *string = this.SafeString(trade, "tradeId")
 	var price *string = this.SafeString(trade, "tradePrice")
 	var amount *string = this.SafeString(trade, "tradeVolume")
 	var order *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
-	var typeVar any
-	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
-		typeVar = *derefPtr
-	}
+	var typeVar *string = this.SafeString(trade, "type")
 	var side any = nil
 	if typeVar != nil {
-		var typeParts []string = ccxt.Split(typeVar, "-")
+		var typeParts []string = strings.Split(*typeVar, "-")
 		side = typeParts[0]
-		typeVar = func() any {
-			if 1 >= 0 && 1 < len(typeParts) {
-				return typeParts[1]
-			}
-			return nil
-		}()
+		typeVar = this.SafeString(typeParts, 1)
 	}
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
@@ -2113,8 +2109,11 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	}
 	if isV5Linear {
 		var v5Market any = nil
-		if (symbolsNormalized != nil) && (len(symbolsNormalized) == 1) {
-			v5Market = market
+		if symbolsNormalized != nil {
+			var symbolsNormalizedLength int = len(symbolsNormalized)
+			if symbolsNormalizedLength == 1 {
+				v5Market = market
+			}
 		}
 		var channelAndMessageHashAndParams []any = this.GetV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest)
 		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 0); derefPtr != nil {
@@ -2277,13 +2276,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		if marginMode != nil {
 			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		}
-		retRes181312 := func() any {
+		retRes181612 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181312, position)
+		ccxt.AppendToArray(&retRes181612, position)
 		cache.Append(position)
 	}
 	var marginModes []string = nil
@@ -3457,7 +3456,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal286331 map[string]any = map[string]any{
+	var literal286631 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3473,9 +3472,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal286331["type"] = *typeVar
+		literal286631["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal286331, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal286631, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

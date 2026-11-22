@@ -6603,7 +6603,8 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 		}
 	}
 	var priceResolved any = price
-	if isMarketOrder && (contract != nil && *contract == true) {
+	var zeroPrice bool = isMarketOrder && (contract != nil && *contract == true)
+	if zeroPrice {
 		priceResolved = 0
 	}
 	var contractAmount any = 0
@@ -6644,7 +6645,7 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 			if isMarketOrder {
 				request["price"] = "0" // set to 0 for market orders
 			} else {
-				if IsEqual(priceResolved, 0) {
+				if zeroPrice {
 					request["price"] = "0"
 				} else {
 					request["price"] = this.PriceToPrecision(symbol, priceResolved)
@@ -6739,7 +6740,7 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
 			if typeVar != nil && *typeVar == "market" {
 				initial["price"] = "0"
 			} else {
-				if IsEqual(priceResolved, 0) {
+				if zeroPrice {
 					initial["price"] = "0"
 				} else {
 					initial["price"] = this.PriceToPrecision(symbol, priceResolved)
@@ -7413,7 +7414,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 			clientOrderId = this.SafeString(triggerOrder, "text")
 		}
 	}
-	var literal542931 map[string]any = map[string]any{
+	var literal543031 map[string]any = map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      clientOrderId,
 		"timestamp":          timestamp,
@@ -7437,16 +7438,16 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":               order,
 	}
 	if multipleFeeCurrencies {
-		literal542931["fee"] = nil
+		literal543031["fee"] = nil
 	} else {
-		literal542931["fee"] = this.SafeDict(fees, 0)
+		literal543031["fee"] = this.SafeDict(fees, 0)
 	}
 	if multipleFeeCurrencies {
-		literal542931["fees"] = fees
+		literal543031["fees"] = fees
 	} else {
-		literal542931["fees"] = []any{}
+		literal543031["fees"] = []any{}
 	}
-	return this.SafeOrder(literal542931, market)
+	return this.SafeOrder(literal543031, market)
 }
 func (this *Gate) FetchOrderRequest(id string, optionalArgs ...any) (map[string]any, map[string]any) {
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -7642,11 +7643,11 @@ func (this *Gate) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes556115 []any = OrdersToList(r.Value)
-	if retRes556115 == nil {
+	var retRes556215 []any = OrdersToList(r.Value)
+	if retRes556215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes556115)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes556215)}
 	}
 	return nil
 }
@@ -7710,12 +7711,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes559619 []any = r2.Value
+		var retRes559719 []any = r2.Value
 		// see https://github.com/ccxt/ccxt/issues/22825
-		if retRes559619 == nil {
+		if retRes559719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes559619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes559719)}
 		}
 		return nil
 	}
@@ -7738,11 +7739,11 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		var retRes560719 []any = OrdersToList(r3.Value)
-		if retRes560719 == nil {
+		var retRes560819 []any = OrdersToList(r3.Value)
+		if retRes560819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes560719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes560819)}
 		}
 		return nil
 	}
@@ -8366,11 +8367,11 @@ func (this *Gate) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, o
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes605019 []any = OrdersToList(r2.Value)
-		if retRes605019 == nil {
+		var retRes605119 []any = OrdersToList(r2.Value)
+		if retRes605119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes605019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes605119)}
 		}
 		return nil
 	}
@@ -8675,7 +8676,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var isMarginTransfer bool = (fromId == "margin") || (toId == "margin")
 	var query map[string]any = params
 	if isMarginTransfer {
-		query = this.OmitDict(params, "symbol")
+		query = this.OmitDict(query, "symbol")
 	}
 
 	r1 := <-this.PrivateWalletPostTransfers(this.Extend(request, query))
@@ -10255,11 +10256,11 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInteres
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes743019 []any = r1.Value
-		if retRes743019 == nil {
+		var retRes743119 []any = r1.Value
+		if retRes743119 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes743019)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes743119)}
 		}
 		return nil
 	}
@@ -10688,11 +10689,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes775319 []any = r1.Value
-		if retRes775319 == nil {
+		var retRes775419 []any = r1.Value
+		if retRes775419 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775319)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775419)}
 		}
 		return nil
 	}

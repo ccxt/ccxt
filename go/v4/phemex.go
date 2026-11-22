@@ -1655,8 +1655,8 @@ func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	}
 	return this.ToEn(price, this.SafeInteger(market, "priceScale"))
 }
-func (this *Phemex) FromEn(en any, scale any) any {
-	if (IsEqual(en, nil)) || IsEqual(scale, nil) {
+func (this *Phemex) FromEn(en any, scale *int64) any {
+	if (IsEqual(en, nil)) || (scale == nil) {
 		return nil
 	}
 	precise := NewPrecise(en)

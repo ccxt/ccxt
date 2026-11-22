@@ -1290,7 +1290,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt
 		messageHashes = append(messageHashes, messageHash)
 	}
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var marketType *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)), 0))
+	marketType, _ := this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
 	var channel string = "liquidation-orders"
 	var typeVar *string = marketType
 	if marketType != nil && *marketType == "spot" {
@@ -2344,7 +2344,7 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]
 	var data, _ = message["data"].([]any)
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var depths map[string]any = map[string]any{
 		"bbo-tbt":        1,
 		"books":          400,
@@ -2355,8 +2355,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]
 	}
 	var limit *int64 = this.SafeInteger(depths, channel)
 	var messageHash any = nil
-	if channel != nil && symbol != nil {
-		messageHash = *channel + ":" + *symbol
+	if channel != nil {
+		messageHash = *channel + ":" + symbol
 	}
 	if action != nil && *action == "snapshot" {
 		for i := 0; i < len(data); i++ {
@@ -2364,12 +2364,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]
 			// reset the existing orderbook instead of replacing it: a consumer
 			// holds a reference to the old object and would never see updates
 			// after a re-subscription snapshot
-			if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-				if symbol != nil {
-					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-				}
+			if !(this.Orderbooks[symbol] != nil) {
+				this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
 			}
-			var snapshotBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+			var snapshotBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			var timestamp *int64 = this.SafeInteger(update, "ts")
 			// rows are [ price, amount, liquidatedOrders, numOrders ] - store
 			// price and amount only, matching handleDelta, so countOrIdKey
@@ -2383,8 +2381,8 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]
 			client.(ccxt.ClientInterface).Resolve(snapshotBook, messageHash)
 		}
 	} else if action != nil && *action == "update" {
-		if symbol != nil && this.Orderbooks[*symbol] != nil {
-			var updatedBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		if this.Orderbooks[symbol] != nil {
+			var updatedBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			for i := 0; i < len(data); i++ {
 				var update any = data[i]
 				this.HandleOrderBookMessage(client, update, updatedBook, messageHash, market)
@@ -2401,12 +2399,10 @@ func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]
 		// shared order-book cache when watchOrderBook subscribed to this
 		// channel+symbol (e.g. 'bbo-tbt:BTC/USDT' in client.(*ccxt.WSClient).Subscriptions)
 		if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
-			if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
-				if symbol != nil {
-					this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-				}
+			if !(this.Orderbooks[symbol] != nil) {
+				this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
 			}
-			var bboBook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+			var bboBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			for i := 0; i < len(data); i++ {
 				var update any = data[i]
 				var timestamp *int64 = this.SafeInteger(update, "ts")
@@ -3125,7 +3121,11 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 	this.HandleMyTrades(client, message)
 	var arg, _ = message["arg"].(map[string]any)
 	var channel *string = this.SafeString(arg, "channel")
-	var orders []any = this.SafeListSlice(message, "data", []any{})
+	var orders []any
+	orders, _ = message["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -3139,19 +3139,23 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		} else {
 			stored = this.Orders
 		}
-		var marketIds []any = []any{}
+		var marketIds []string = []string{}
 		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
 			stored.Append(order)
 			var symbol string = *this.SafeString(order, "symbol", "")
-			var market map[string]any = this.Market(symbol)
-			marketIds = append(marketIds, market["id"])
+			var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+			var marketId string = ""
+			if market.Id != nil {
+				marketId = *market.Id
+			}
+			marketIds = append(marketIds, marketId)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, channel)
 		for i := 0; i < len(marketIds); i++ {
 			if channel != nil {
-				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+":", ccxt.DerefScalar(marketIds[i])))
+				var messageHash string = *channel + ":" + marketIds[i]
 				client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 			}
 		}
@@ -3676,7 +3680,11 @@ func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
 func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {

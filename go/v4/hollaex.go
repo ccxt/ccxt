@@ -916,10 +916,8 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 		var ticker map[string]any = this.SafeDictMap(tickers, key, map[string]any{})
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var symbol *string = SafeStringPtr(market["symbol"])
-		if symbol != nil {
-			result[*symbol] = this.Extend(TickerToMap(this.ParseTicker(ticker, market)), params)
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		result[symbol] = this.Extend(TickerToMap(this.ParseTicker(ticker, market)), params)
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
 }
@@ -954,7 +952,7 @@ func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(ticker, "time", "timestamp"))
 	var close *string = this.SafeString(ticker, "close")
 	return this.SafeTicker(map[string]any{
@@ -1068,7 +1066,7 @@ func (this *Hollaex) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	var side *string = this.SafeString(trade, "side")

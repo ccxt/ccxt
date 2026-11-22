@@ -7411,7 +7411,7 @@ func (this *Mexc) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var paramsOmitted map[string]any = params
 	if isIsolatedMargin {
-		paramsOmitted = this.OmitDict(params, "symbol")
+		paramsOmitted = this.OmitDict(paramsOmitted, "symbol")
 	}
 
 	r1 := <-this.SpotPrivatePostCapitalTransfer(this.Extend(request, paramsOmitted))

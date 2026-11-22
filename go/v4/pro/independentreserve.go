@@ -298,8 +298,16 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 			"receivedSnapshot": true,
 		}))
 	} else {
-		var asks []any = this.SafeListSlice(orderBook, "Offers", []any{})
-		var bids []any = this.SafeListSlice(orderBook, "Bids", []any{})
+		var asks []any
+		asks, _ = orderBook["Offers"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = orderBook["Bids"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)

@@ -4760,22 +4760,17 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
 			}
 		}
 	}
-	var usdcAccount map[string]any = this.SafeDictMap(result, "USDC")
+	var usdcAccount, _ = result["USDC"].(map[string]any)
 	if usdcAccount != nil {
 		var totalUsdc *string = this.SafeString(usdcAccount, "total")
 		var used any = usedUsd
 		if Precise.StringGt(used, totalUsdc) {
 			used = totalUsdc
 		}
-		AddElementToObject(usdcAccount, "used", used)
-		if usdcAccount != nil {
-			if ptrValue := Precise.StringSub(totalUsdc, used); ptrValue != nil {
-				usdcAccount["free"] = *ptrValue
-			} else {
-				usdcAccount["free"] = nil
-			}
-		}
-		result["USDC"] = usdcAccount
+		result["USDC"] = this.Extend(usdcAccount, map[string]any{
+			"used": used,
+			"free": Precise.StringSub(totalUsdc, used),
+		})
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
@@ -5539,9 +5534,9 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	}
 	// withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
 	var addressTo *string = this.SafeString(transaction, "recipient")
-	var ternaryStr423220 string = "deposit"
+	var ternaryStr423320 string = "deposit"
 	if addressTo != nil {
-		ternaryStr423220 = "withdrawal"
+		ternaryStr423320 = "withdrawal"
 	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -5555,7 +5550,7 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) Trans
 		"tag":         nil,
 		"tagFrom":     nil,
 		"tagTo":       nil,
-		"type":        ternaryStr423220,
+		"type":        ternaryStr423320,
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"currency":    code,
 		"status":      this.ParseTransactionStatus(this.SafeString2(transaction, "batch_status", "tx_status")),

@@ -2196,7 +2196,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = &market.Symbol
+	var symbolValue string = market.Symbol
 	stock, paramsStock := this.HandleOptionBoolAndParams(params, "watchOHLCV", "stock", false)
 	if stock == true {
 		if (timeframe != "5m") && (timeframe != "1h") && (timeframe != "1d") && (timeframe != "1w") && (timeframe != "1M") {
@@ -2217,7 +2217,7 @@ func (this *Binance) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	var result map[string]any = ccxt.StructResultMap(r1.Value, ccxt.OHLCVForSymbolsMapToMap)
 
 	var resolved []any
-	switch resolvedBox := ccxt.GetValue(ccxt.GetValue(result, symbolValue), timeframe).(type) {
+	switch resolvedBox := ccxt.GetValue(result[symbolValue], timeframe).(type) {
 	case []any:
 		resolved = resolvedBox
 	case ccxt.IArrayCache:
@@ -2494,7 +2494,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		"unsubscribe":          true,
 		"id":                   strconv.FormatInt(requestId, 10),
 		"symbols":              symbols,
-		"symbolsAndTimeframes": symbolsAndTimeframes,
+		"symbolsAndTimeframes": ccxt.AnyMatrixToList(symbolsAndTimeframes),
 		"subMessageHashes":     subMessageHashes,
 		"messageHashes":        messageHashes,
 		"topic":                "ohlcv",
@@ -2556,7 +2556,7 @@ func (this *Binance) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
-	var symbolValue *string = &market.Symbol
+	var symbolValue string = market.Symbol
 	params["callerMethodName"] = "watchOHLCV"
 
 	r1 := <-this.UnWatchOHLCVForSymbolsAsync([][]any{[]any{symbolValue, timeframe}}, params)
@@ -5471,7 +5471,9 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 		payload = this.EditContractOrderRequest(&id, &symbol, &typeVar, &side, amount, price, params)
 	}
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "editOrderWs", "returnRateLimits", false)
-	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	var payloadWithLimits map[string]any = this.Extend(payload, map[string]any{
+		"returnRateLimits": returnRateLimits,
+	})
 	var ternaryStr407422 string = "order.cancelReplace"
 	if isSwap {
 		ternaryStr407422 = "order.modify"
@@ -5479,7 +5481,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	var message map[string]any = map[string]any{
 		"id":     messageHash,
 		"method": ternaryStr407422,
-		"params": this.SignParams(this.Extend(payload, paramsReturnRateLimits)),
+		"params": this.SignParams(this.Extend(payloadWithLimits, paramsReturnRateLimits)),
 	}
 	var subscription map[string]any = map[string]any{
 		"method": this.HandleEditOrderWs,
@@ -6669,7 +6671,8 @@ func (this *Binance) HandleStockPrice(client any, message map[string]any) {
 			this.Tickers[wsKey] = ccxt.TickerFromMap(parsed)
 		}
 		ccxt.AddElementToObject(tickers, symbol, parsed)
-		client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add("stock:price:", symbol))
+		var priceSymbol string = *this.SafeString(parsed, "symbol", "")
+		client.(ccxt.ClientInterface).Resolve(parsed, "stock:price:"+priceSymbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(tickers, "stock:price")
 }
@@ -6693,7 +6696,8 @@ func (this *Binance) HandleStockQuote(client any, message map[string]any) {
 	if wsKey, ok := symbol.(string); ok {
 		this.Bidsasks[wsKey] = ccxt.TickerFromMap(parsed)
 	}
-	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add("stock:quote:", symbol))
+	var quoteSymbol string = *this.SafeString(parsed, "symbol", "")
+	client.(ccxt.ClientInterface).Resolve(parsed, "stock:quote:"+quoteSymbol)
 }
 func (this *Binance) HandleOptionsOrderUpdate(client any, message map[string]any) {
 	//
@@ -6743,7 +6747,8 @@ func (this *Binance) HandleOptionsOrderUpdate(client any, message map[string]any
 		}
 		var absQty *string = ccxt.Precise.StringAbs(rawQty)
 		var executionType string = "NEW"
-		if len(fills) > 0 {
+		var fillsLength int = len(fills)
+		if fillsLength > 0 {
 			executionType = "TRADE"
 		}
 		// normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
@@ -7561,9 +7566,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes572732 := order["fees"]
-							ccxt.AppendToArray(&retRes572732, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes572732)
+							retRes573032 := order["fees"]
+							ccxt.AppendToArray(&retRes573032, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes573032)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

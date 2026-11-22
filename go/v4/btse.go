@@ -2568,14 +2568,14 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 	if clientOrderId != nil {
 		request["clOrderId"] = clientOrderId
 	}
-	var query any = this.Omit(params, "clientOrderId")
+	var query map[string]any = this.OmitDict(params, "clientOrderId")
 	var isMarketOrder bool = (typeValue == "MARKET")
 	var isLimitOrder bool = (typeValue == "LIMIT")
 	var postOnly any = false
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -2604,7 +2604,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 		var createMarketBuyOrderRequiresPrice bool = true
 		createMarketBuyOrderRequiresPrice, query = this.HandleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *string = this.SafeString(query, "cost")
-		query = this.Omit(query, "cost")
+		query = this.OmitDict(query, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2691,7 +2691,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPriceToSend)
 			var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
 			request["triggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
-			query = this.Omit(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
+			query = this.OmitDict(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
 		} else {
 			request["orderType"] = typeValue
 			if typeValue == "OCO" {
@@ -2708,7 +2708,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
 				request["stopLossTriggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
-				query = this.Omit(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
+				query = this.OmitDict(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
 			} else if typeValue == "PEG" {
 				// the required stealth and optional deviation params pass through
 				request["orderPrice"] = this.PriceToPrecision(symbol, price)
@@ -2724,7 +2724,7 @@ func (this *Btse) createSpotOrderBody(ch chan AsyncResult[Order], symbol string,
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "last")
 				request["triggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
-				query = this.Omit(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
+				query = this.OmitDict(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
 			}
 		}
 
@@ -2804,7 +2804,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	if clientOrderId != nil {
 		request["clOrderId"] = clientOrderId
 	}
-	var query any = this.Omit(params, "clientOrderId")
+	var query map[string]any = this.OmitDict(params, "clientOrderId")
 	// handle positionMode
 	var positionMode *string = this.SafeString(query, "positionMode")
 	// if positionMode is provided, we will get it from params and send it as is
@@ -2833,7 +2833,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 	// exchange-specific postOnly is the same as the unified one
 	var postOnlyqueryVariable []any = this.HandlePostOnly(isMarketOrder, postOnly, query)
 	postOnly = postOnlyqueryVariable[0]
-	query = postOnlyqueryVariable[1] // this will remove PO from params.timeInForce if present
+	query = postOnlyqueryVariable[1].(map[string]any) // this will remove PO from params.timeInForce if present
 	if postOnly == true {
 		request["postOnly"] = true
 	}
@@ -2854,8 +2854,8 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 		}
 	}
 	// here we handling with attached take profit and stop loss orders
-	var takeProfit map[string]any = SafeMapTyped(query, "takeProfit")
-	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
+	var takeProfit, _ = query["takeProfit"].(map[string]any)
+	var stopLoss, _ = query["stopLoss"].(map[string]any)
 	if (takeProfit != nil) || (stopLoss != nil) {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
@@ -2873,7 +2873,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*stopLossTriggerPriceType)
 			}
 		}
-		query = this.Omit(query, []any{"takeProfit", "stopLoss"})
+		query = this.OmitDict(query, []any{"takeProfit", "stopLoss"})
 	}
 	var response map[string]any = nil
 	if !isAlgoOrder {
@@ -2929,7 +2929,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 			if isLimitOrder {
 				request["orderPrice"] = this.PriceToPrecision(symbol, price)
 			}
-			query = this.Omit(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
+			query = this.OmitDict(query, []any{"triggerPrice", "takeProfitPrice", "stopLossPrice", "triggerPriceType"})
 		} else {
 			request["orderType"] = typeValue
 			if typeValue == "OCO" {
@@ -2946,7 +2946,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
 				request["stopLossTriggerType"] = this.EncodeTriggerPriceType(*triggerPriceType)
-				query = this.Omit(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
+				query = this.OmitDict(query, []any{"stopPrice", "triggerPrice", "triggerPriceType"})
 			} else if typeValue == "PEG" {
 				// the required deviation and stealth params pass through, the
 				// optional price argument becomes a worst-price bound
@@ -2965,7 +2965,7 @@ func (this *Btse) createContractOrderBody(ch chan AsyncResult[Order], symbol str
 				}
 				var triggerPriceType *string = this.SafeString(query, "triggerPriceType", "mark")
 				request["trailTriggerPriceType"] = this.EncodeTriggerPriceType(*triggerPriceType)
-				query = this.Omit(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
+				query = this.OmitDict(query, []any{"trailingAmount", "trailingPercent", "triggerPriceType"})
 			}
 		}
 

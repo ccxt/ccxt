@@ -473,8 +473,9 @@ func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
 	}
 	var parsed map[string]any = this.ParseOrderBook(snapshot, symbol, timestamp)
 	var sequenceNumberRange, _ = data["sequenceNumberRange"].([]any)
-	if len(sequenceNumberRange) > 0 {
-		var lastIndex int64 = int64(len(sequenceNumberRange)) - 1
+	var sequenceNumberRangeLength int = len(sequenceNumberRange)
+	if sequenceNumberRangeLength > 0 {
+		var lastIndex int64 = int64(sequenceNumberRangeLength) - 1
 		parsed["nonce"] = this.SafeInteger(sequenceNumberRange, lastIndex)
 	}
 	orderbook.Reset(parsed)
@@ -918,7 +919,11 @@ func (this *Bullish) HandleBalance(client any, message map[string]any) {
 	}
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "snapshot" {
-		var data []any = this.SafeListSlice(message, "data", []any{})
+		var data []any
+		data, _ = message["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 		var parsed map[string]any = this.ParseBalanceList(data)
 		var parsedKeys []string = nil
 		if parsed != nil {

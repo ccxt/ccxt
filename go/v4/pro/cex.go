@@ -511,7 +511,7 @@ func (this *Cex) HandleTicker(client any, message map[string]any) {
 		data = map[string]any{}
 	}
 	var ticker map[string]any = this.ParseWsTicker(data)
-	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol == nil {
 		return
 	}
@@ -1372,8 +1372,16 @@ func (this *Cex) HandleOrderBookUpdate(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
-	var asks []any = this.SafeListSlice(data, "asks", []any{})
-	var bids []any = this.SafeListSlice(data, "bids", []any{})
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = data["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(storedOrderBook.GetAsks(), asks)
 	this.HandleDeltas(storedOrderBook.GetBids(), bids)
 	storedOrderBook.SetTimestamp(timestamp)
@@ -1490,7 +1498,11 @@ func (this *Cex) HandleInitOHLCV(client any, message map[string]any) {
 	var symbol string = *base + "/" + *quote
 	var market map[string]any = this.SafeMarket(symbol)
 	var messageHash string = "ohlcv:" + symbol
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if _, ok := this.Ohlcvs[symbol]; !ok {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}

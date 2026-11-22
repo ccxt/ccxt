@@ -547,7 +547,11 @@ func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks")
 		orderbook.Reset(snapshot)
 	} else if typeVar == "ORDER_BOOK_UPDATE" {
-		var changes []any = this.SafeListSlice(message, "changes", []any{})
+		var changes []any
+		changes, _ = message["changes"].([]any)
+		if changes == nil {
+			changes = []any{}
+		}
 		this.HandleBookDeltas(orderbook, changes)
 	} else {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBook() did not recognize message type " + typeVar))
@@ -1636,7 +1640,11 @@ func (this *Onetrading) watchManyBody(ch chan ccxt.AsyncResult[any], messageHash
 		ccxt.AddElementToObject(subscription, marketId, true)
 	}
 	request["type"] = typeVar
-	ccxt.AddElementToObject(ccxt.GetValue(request["channels"], 0), "instrument_codes", ccxt.ObjectKeys(subscription))
+	var instrumentCodes []string = ccxt.ObjectKeys(subscription)
+	var channel map[string]any = this.Extend(this.SafeDict(this.SafeList(request, "channels", []any{}), 0, map[string]any{}), map[string]any{
+		"instrument_codes": ccxt.StringSliceToList(instrumentCodes),
+	})
+	request["channels"] = []any{channel}
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription)
 	if r.Err != nil {

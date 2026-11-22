@@ -4013,12 +4013,12 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.AsyncResult[[]map[
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-func (this *Limitless) FetchRawMarketsByTagsAsync(tags any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Limitless) FetchRawMarketsByTagsAsync(tags []any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchRawMarketsByTagsBody(ch, tags, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[string]any], tags any, optionalArgs ...any) any {
+func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[string]any], tags []any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4034,8 +4034,9 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.AsyncResult[[]map[
 		categories = ccxt.ArrayTyped(categoriesResponse)
 	}
 	var wanted []string = []string{}
-	for i := 0; i < ccxt.GetArrayLength(tags); i++ {
-		wanted = append(wanted, ccxt.ToLower(ccxt.GetValue(tags, i)))
+	for i := 0; i < len(tags); i++ {
+		var tag string = *this.SafeString(tags, i, "")
+		wanted = append(wanted, strings.ToLower(tag))
 	}
 	var categoryIds []string = []string{}
 	var categoriesLength int = len(categories)
@@ -4724,7 +4725,7 @@ func (this *Limitless) FetchRawActiveMarkets(options ...FetchRawActiveMarketsOpt
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-func (this *Limitless) FetchRawMarketsByTags(tags []string, options ...FetchRawMarketsByTagsOptions) ([]map[string]any, error) {
+func (this *Limitless) FetchRawMarketsByTags(tags []any, options ...FetchRawMarketsByTagsOptions) ([]map[string]any, error) {
 
 	opts := FetchRawMarketsByTagsOptionsStruct{}
 

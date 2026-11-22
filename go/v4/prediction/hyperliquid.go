@@ -2280,12 +2280,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		panic(r1.Err)
 	}
 	response := r1.Value
-	var trades []any = []any{}
-	if ccxt.IsArray(response) {
-		trades = ccxt.ArrayTyped(response)
-	} else if !ccxt.IsString(response) {
-		trades = this.ToArray(response)
-	}
+	var trades []any = this.InfoList(response)
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(trades, outcomeObj, since, limit))}
 	return nil
@@ -2359,12 +2354,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 		panic(r2.Err)
 	}
 	response := r2.Value
-	var fills []any = []any{}
-	if ccxt.IsArray(response) {
-		fills = ccxt.ArrayTyped(response)
-	} else if !ccxt.IsString(response) {
-		fills = this.ToArray(response)
-	}
+	var fills []any = this.InfoList(response)
 	// parse without an outcome fallback — fills span every market the wallet traded, so a
 	// requested-outcome fallback would mislabel fills whose market is no longer listed
 	var parsedTrades []any = this.ParsePredictionTrades(fills, nil)
@@ -2659,7 +2649,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 	} else {
 		endValue = firstExpiry
 	}
-	var literal203128 map[string]any = map[string]any{
+	var literal202128 map[string]any = map[string]any{
 		"id":               parentSymbol,
 		"slug":             parentSymbol,
 		"event":            parentSymbol,
@@ -2678,9 +2668,9 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) map[string]any {
 		"info":             raw,
 	}
 	if expiryDatetime != nil {
-		literal203128["endDatetime"] = *expiryDatetime
+		literal202128["endDatetime"] = *expiryDatetime
 	}
-	return this.Extend(literal203128)
+	return this.Extend(literal202128)
 }
 func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2831,12 +2821,12 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan ccxt.AsyncResult[map[stri
 	defer ccxt.ReturnPanicError(ch)
 	var nonce int64 = this.IncrementingNonce()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var ternaryStr218732 string = "Mainnet"
+	var ternaryStr217732 string = "Mainnet"
 	if isSandboxMode != nil && *isSandboxMode {
-		ternaryStr218732 = "Testnet"
+		ternaryStr217732 = "Testnet"
 	}
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": ternaryStr218732,
+		"hyperliquidChain": ternaryStr217732,
 		"maxFeeRate":       maxFeeRate,
 		"builder":          builder,
 		"nonce":            nonce,
@@ -2973,16 +2963,16 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var literal227615 map[string]any = map[string]any{
+	var literal226615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal227615["body"] = *bodyValue
+		literal226615["body"] = *bodyValue
 	}
-	return literal227615
+	return literal226615
 }
 func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
@@ -3014,7 +3004,7 @@ func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, met
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if _, ok := config["byType"]; ok && (ccxt.InOp(params, "type")) {
+	if _, ok := config["byType"]; ok {
 		var typeVar *string = this.SafeString(params, "type")
 		var byType any = config["byType"]
 		if typeVar != nil {

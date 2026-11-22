@@ -1231,13 +1231,11 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(tickers); i++ {
 		var marketId *string = this.SafeString(tickers[i], "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var symbol *string = SafeStringPtr(market["symbol"])
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], market))
 		ticker["timestamp"] = timestamp
 		ticker["datetime"] = this.Iso8601(timestamp)
-		if symbol != nil {
-			result[*symbol] = ticker
-		}
+		result[symbol] = ticker
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}

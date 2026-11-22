@@ -760,7 +760,11 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var trade map[string]any
 	if 0 < len(data) {
 		trade, _ = data[0].(map[string]any)

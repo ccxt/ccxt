@@ -325,7 +325,8 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.AsyncResult[[]map[strin
 		}
 		paginationKey = this.SafeString(result, "nextKey")
 		page = page + 1
-		var collectedLength int64 = this.ParseToInt(len(rawMarkets))
+		var rawMarketsCount int = len(rawMarkets)
+		var collectedLength int64 = this.ParseToInt(rawMarketsCount)
 		if (pageSize != nil && int64(pageMarketsLength) < *pageSize) || (int64(page) >= maxPages) || (paginationKey == nil) || ((collectCap != nil) && (collectedLength >= *collectCap)) {
 			break
 		}
@@ -621,9 +622,9 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 			grouped[*sportXeventId] = []any{}
 			order = append(order, *sportXeventId)
 		}
-		var retRes48712, _ = grouped[*sportXeventId].([]any)
-		retRes48712 = append(retRes48712, raw)
-		grouped[*sportXeventId] = retRes48712
+		var retRes48812, _ = grouped[*sportXeventId].([]any)
+		retRes48812 = append(retRes48812, raw)
+		grouped[*sportXeventId] = retRes48812
 	}
 	if this.Markets == nil {
 		this.Markets = map[string]any{}
@@ -779,7 +780,7 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 	} else {
 		eventSlug = this.ShortenSlug(fixtureId)
 	}
-	var literal62315 map[string]any = map[string]any{
+	var literal62415 map[string]any = map[string]any{
 		"id":                fixtureId,
 		"slug":              fixtureId,
 		"event":             eventSlug,
@@ -802,12 +803,12 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 		"info":              rawMarkets,
 	}
 	if title != nil {
-		literal62315["title"] = *title
+		literal62415["title"] = *title
 	}
 	if leagueLabel != nil {
-		literal62315["category"] = *leagueLabel
+		literal62415["category"] = *leagueLabel
 	}
-	return literal62315
+	return literal62415
 }
 
 /**
@@ -1871,11 +1872,11 @@ func (this *Sxbet) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes136715 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes136715 == nil {
+	var retRes136815 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes136815 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136715)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136815)}
 	}
 	return nil
 }
@@ -2342,7 +2343,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	var totalStake *string = this.SafeString(raw, "totalStake", "0")
 	var pnl *string = this.SafeString(raw, "pnl")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "betTime"))
-	var literal166944 map[string]any = map[string]any{
+	var literal167044 map[string]any = map[string]any{
 		"outcome":             this.SafeString(outcomeObj, "outcome"),
 		"outcomeId":           this.SafeString(outcomeObj, "outcomeId", outcomeId),
 		"label":               this.SafeString(outcomeObj, "label"),
@@ -2358,11 +2359,11 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		"info":                raw,
 	}
 	if pnl != nil {
-		literal166944["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
+		literal167044["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
 	} else {
-		literal166944["realizedPnl"] = nil
+		literal167044["realizedPnl"] = nil
 	}
-	return this.SafePredictionPosition(literal166944)
+	return this.SafePredictionPosition(literal167044)
 }
 
 /**
@@ -2512,7 +2513,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 			return 0
 		}()
 	}
-	var literal178715 map[string]any = map[string]any{
+	var literal178815 map[string]any = map[string]any{
 		"info":      trade,
 		"id":        this.SafeString(trade, "tradeId"),
 		"timestamp": timestamp,
@@ -2530,9 +2531,9 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		"pnl":       this.ParseNumber(pnl),
 	}
 	if resultLabel != nil {
-		literal178715["result"] = *resultLabel
+		literal178815["result"] = *resultLabel
 	}
-	return literal178715
+	return literal178815
 }
 
 /**

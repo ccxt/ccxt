@@ -2740,8 +2740,16 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	var asks []any = this.SafeListSlice(message, "asks", []any{})
-	var bids []any = this.SafeListSlice(message, "bids", []any{})
+	var asks []any
+	asks, _ = message["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = message["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")

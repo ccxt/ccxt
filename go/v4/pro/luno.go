@@ -304,7 +304,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 		}
 	}
 	if asks != nil {
-		var snapshot any = this.CustomParseOrderBook(message, *symbol, timestamp, "bids", "asks", "price", "volume", "id")
+		var snapshot map[string]any = this.CustomParseOrderBook(message, *symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		orderbook.Reset(snapshot)
 	} else {
 		this.HandleBookDelta(orderbook, message)
@@ -315,7 +315,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 	orderbook.SetNonce(nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) any {
+func (this *Luno) CustomParseOrderBook(orderbook map[string]any, symbol string, optionalArgs ...any) map[string]any {
 	var timestamp *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = timestamp
 	var bidsKey string = ccxt.GetArgString(optionalArgs, 1, "bids")
@@ -353,7 +353,7 @@ func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) []any
 	}
 	return result
 }
-func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
+func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) []any {
 	priceKey := ccxt.GetArg(optionalArgs, 0, "price")
 	_ = priceKey
 	amountKey := ccxt.GetArg(optionalArgs, 1, "volume")
@@ -433,7 +433,7 @@ func (this *Luno) HandleBookDelta(orderbook ccxt.OrderBookInterface, message any
 	}
 	var createUpdate map[string]any = ccxt.SafeMapTyped(message, "create_update")
 	if createUpdate != nil {
-		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
+		var bidAskArray []any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
 		var typeVar *string = this.SafeString(createUpdate, "type")
 		if typeVar != nil && *typeVar == "ASK" {
 			asksOrderSide.StoreArray(bidAskArray)

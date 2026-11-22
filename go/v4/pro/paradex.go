@@ -1446,7 +1446,7 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 		if (storedNonce == nil) || (nonce == nil) || (storedNonce != nil && *nonce <= *storedNonce) {
 			return
 		}
-		if !ccxt.IsEqual(nonce, (*storedNonce + 1)) {
+		if nonce == nil || *nonce != *storedNonce+1 {
 			// a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
 			stored.Fields().Nonce = nil
 			this.Spawn(this.ResubscribeOrderBookAsync, client, deltasChannel, messageHash)
@@ -1922,8 +1922,13 @@ func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], 
 			},
 		}
 	} else {
-		request = this.SubscribeRequest(channel)
-		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "markets", missing)
+		var subscribeParams map[string]any = map[string]any{
+			"channel": channel,
+			"markets": missing,
+		}
+		request = this.Extend(this.SubscribeRequest(channel), map[string]any{
+			"params": subscribeParams,
+		})
 		subscribeHashes = append(subscribeHashes, scopedHash)
 	}
 	// a failed request is forgotten with every market it carried, the next watch sends them again, and
@@ -2729,15 +2734,13 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) map[string
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var channel *string = this.SafeString(params, "channel")
 	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	}
+	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 	// watchTicker waits on the symbol whichever channel, per-market or all, carried it
-	var messageHash string = "markets_summary." + *symbol
+	var messageHash string = "markets_summary." + symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	return message
 }

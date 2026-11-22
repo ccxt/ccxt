@@ -1683,7 +1683,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var marketId *string = this.SafeString(trade, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var id *string = this.SafeString2(trade, "id", "tradeId")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeInteger(trade, "time")
@@ -2504,7 +2504,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var fees []any = this.ToArray(response)
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}

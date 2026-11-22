@@ -886,7 +886,7 @@ func (this *Blofin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	if marketType != nil && *marketType == "spot" {
 		panic(ccxt.NotSupported(this.Id + " watchBalance() is not supported for spot markets yet"))
 	}
-	var messageHash any = ccxt.Add(marketType, ":balance")
+	var messageHash string = *marketType + ":balance"
 	var sub map[string]any = map[string]any{
 		"channel": "account",
 	}
@@ -1342,15 +1342,15 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], isPu
 		for i := 0; i < len(symbols); i++ {
 			var current string = symbols[i]
 			var market map[string]any = nil
-			var channel string = channelName
+			var interval string = ""
 			if isOHLCV {
 				market = this.Market(current)
 				var tf string = *this.SafeString(this.SafeList(symbolsArray, i), 1, "")
-				var interval string = *this.SafeString(this.Timeframes, tf, tf)
-				channel = channel + interval
+				interval = *this.SafeString(this.Timeframes, tf, tf)
 			} else {
 				market = this.Market(current)
 			}
+			var channel string = "" + channelName + interval
 			var topic map[string]any = map[string]any{
 				"channel": channel,
 				"instId":  market["id"],
@@ -1427,12 +1427,12 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbols); i++ {
 		var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(this.SafeString(symbols, i)))
-		var channel string = channelName
+		var interval string = ""
 		if isOHLCV {
 			var tf string = *this.SafeString(this.SafeList(symbolsArray, i), 1, "")
-			var interval string = *this.SafeString(this.Timeframes, tf, tf)
-			channel = channel + interval
+			interval = *this.SafeString(this.Timeframes, tf, tf)
 		}
+		var channel string = channelName + interval
 		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  nil,

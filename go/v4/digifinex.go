@@ -2803,7 +2803,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for swap markets"))
 		}
-		var marketSymbol *string = SafeStringPtr(market["symbol"])
+		var marketSymbol *string = this.SafeString(market, "symbol", "")
 		var orders []map[string]any = []map[string]any{}
 		for i := 0; i < len(ids); i++ {
 			var orderItem map[string]any = map[string]any{

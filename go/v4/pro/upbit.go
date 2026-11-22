@@ -476,7 +476,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	//   "sequential_id": 1584508285000002,
 	//   "stream_type": "REALTIME" }
 	var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(message))
-	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
+	var symbol *string = this.SafeString(trade, "symbol")
 	if symbol == nil {
 		return
 	}

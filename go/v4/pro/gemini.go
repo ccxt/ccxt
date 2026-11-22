@@ -233,7 +233,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//     }
 	//
 	var trade map[string]any = this.ParseWsTrade(message)
-	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
+	var symbol *string = this.SafeString(trade, "symbol")
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	if stored == nil {
@@ -243,11 +243,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 		}
 	}
 	stored.Append(trade)
-	var messageHash *string = nil
-	if symbol != nil {
-		messageHashValue := "trades:" + *symbol
-		messageHash = &messageHashValue
-	}
+	var messageHash string = "trades:" + *this.SafeString(trade, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Gemini) HandleTrades(client any, message map[string]any) {

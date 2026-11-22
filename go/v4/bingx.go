@@ -3540,7 +3540,11 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		typeVar = "spot"
 	}
 	if market != nil {
-		typeVar = market["type"]
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, typeVar)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
@@ -7912,8 +7916,8 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data)}
 	return nil
 }
-func (this *Bingx) ParseParams(params map[string]any) any {
-	var copied any = this.Clone(params)
+func (this *Bingx) ParseParams(params map[string]any) map[string]any {
+	var copied map[string]any = this.Extend(map[string]any{}, params)
 	var sortedParams map[string]any = this.Keysort(params)
 	var rawKeys []string = nil
 	if sortedParams != nil {
@@ -7936,7 +7940,7 @@ func (this *Bingx) ParseParams(params map[string]any) any {
 				arrStr += ToString(arrayElement)
 			}
 			arrStr += "]"
-			AddElementToObject(copied, key, arrStr)
+			copied[key] = arrStr
 		}
 	}
 	return copied

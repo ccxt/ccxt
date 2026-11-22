@@ -867,10 +867,6 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// Build outcomes
 	var outcomeLabels []string = []string{"YES", "NO"}
-	var outcomeIds []any = []any{nil, ccxt.Add(ticker, "-NO")}
-	if ticker != nil {
-		outcomeIds[0] = *ticker
-	}
 	var outcomes []any = []any{}
 	var resolvedOutcome *string = nil
 	for oi := 0; oi < len(outcomeLabels); oi++ {
@@ -895,19 +891,18 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		// reassigned local into the anonymous inner class it emits for a map literal)
 		var winner any = winnerRaw
 		var settleFraction any = settleFractionRaw
+		var outcomeSuffix string = ""
+		if oi > 0 {
+			outcomeSuffix = "-NO"
+		}
+		var outcomeId *string = nil
+		if ticker != nil {
+			outcomeIdValue := *ticker + outcomeSuffix
+			outcomeId = &outcomeIdValue
+		}
 		outcomes = append(outcomes, map[string]any{
-			"id": func() any {
-				if oi >= 0 && oi < len(outcomeIds) {
-					return outcomeIds[oi]
-				}
-				return nil
-			}(),
-			"outcomeId": func() any {
-				if oi >= 0 && oi < len(outcomeIds) {
-					return outcomeIds[oi]
-				}
-				return nil
-			}(),
+			"id":             outcomeId,
+			"outcomeId":      outcomeId,
 			"outcome":        outcomeHandle,
 			"market":         marketSymbol,
 			"label":          label,
@@ -929,7 +924,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	}
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome *string = resolvedOutcome
-	var literal64215 map[string]any = map[string]any{
+	var literal64615 map[string]any = map[string]any{
 		"id":              ticker,
 		"market":          marketSymbol,
 		"base":            "USD",
@@ -994,11 +989,11 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 		"created": nil,
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal64215["expiry"] = this.Parse8601(endDate)
+		literal64615["expiry"] = this.Parse8601(endDate)
 	} else {
-		literal64215["expiry"] = nil
+		literal64615["expiry"] = nil
 	}
-	return literal64215
+	return literal64615
 }
 
 /**
@@ -1129,12 +1124,12 @@ func (this *Kalshi) fetchStatusBody(ch chan ccxt.AsyncResult[ccxt.Status], optio
 	//     { "exchange_active": true, "trading_active": true }
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
-	var ternaryStr78822 string = "maintenance"
+	var ternaryStr79222 string = "maintenance"
 	if tradingActive != nil && *tradingActive {
-		ternaryStr78822 = "ok"
+		ternaryStr79222 = "ok"
 	}
 	ch <- ccxt.AsyncResult[ccxt.Status]{Value: ccxt.StatusFromMap(map[string]any{
-		"status":  ternaryStr78822,
+		"status":  ternaryStr79222,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3682,7 +3677,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal261228 map[string]any = map[string]any{
+	var literal261628 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3705,9 +3700,9 @@ func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal261228["event"] = *eventSlug
+		literal261628["event"] = *eventSlug
 	}
-	return this.Extend(literal261228)
+	return this.Extend(literal261628)
 }
 
 /**

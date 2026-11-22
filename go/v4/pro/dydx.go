@@ -181,7 +181,11 @@ func (this *Dydx) HandleTrades(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var content, _ = message["contents"].(map[string]any)
-	var rawTrades []any = this.SafeListSlice(content, "trades", []any{})
+	var rawTrades []any
+	rawTrades, _ = content["trades"].([]any)
+	if rawTrades == nil {
+		rawTrades = []any{}
+	}
 	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -362,8 +366,16 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 		orderbook = this.OrderBook()
 	}
 	orderbook.SetSymbol(symbol)
-	var asks []any = this.SafeListSlice(content, "asks", []any{})
-	var bids []any = this.SafeListSlice(content, "bids", []any{})
+	var asks []any
+	asks, _ = content["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = content["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetNonce(this.SafeInteger(message, "message_id"))

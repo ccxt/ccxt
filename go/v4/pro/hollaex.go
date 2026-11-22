@@ -241,7 +241,11 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 		stored = ccxt.NewArrayCache(limit)
 		this.Trades[symbol] = stored
 	}
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsedTrades); i++ {
 		stored.Append(this.SafeDict(parsedTrades, i))
@@ -500,7 +504,8 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 		rawOrders = []any{dataDict}
 	}
 	// usually the first message is an empty array
-	if len(rawOrders) == 0 {
+	var rawOrdersLength int = len(rawOrders)
+	if rawOrdersLength == 0 {
 		return
 	}
 	if this.Orders == nil {

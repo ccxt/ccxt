@@ -154,8 +154,16 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 		orderbook.Reset()
 	}
 	orderbook.SetSymbol(&symbol)
-	var asks []any = this.SafeListSlice(data, "asks", []any{})
-	var bids []any = this.SafeListSlice(data, "bids", []any{})
+	var asks []any
+	asks, _ = data["asks"].([]any)
+	if asks == nil {
+		asks = []any{}
+	}
+	var bids []any
+	bids, _ = data["bids"].([]any)
+	if bids == nil {
+		bids = []any{}
+	}
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
 	orderbook.SetTimestamp(timestamp)

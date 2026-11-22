@@ -2472,7 +2472,7 @@ func (this *Xt) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optiona
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], market))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -2598,7 +2598,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 		}
 		var marketInner map[string]any = this.SafeMarket(marketId, market, "_", marketType)
 		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], marketInner))
-		var symbol *string = SafeStringPtr(ticker["symbol"])
+		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
 		}
@@ -2668,7 +2668,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "_", marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var open *string = this.SafeString(ticker, "o")
 	// spot 'cv' and 'cr' can lag 'o' and 'c', so safeTicker derives both from open and last
@@ -7155,7 +7155,8 @@ func (this *Xt) IndexPositionBreakList(breakList any) map[string]any {
 		// endpoint, including here and on position/list; there is no one-way/net
 		// mode that would report 'BOTH', see setLeverage()/setMarginMode() which
 		// both validate positionSide against exactly ['LONG', 'SHORT'])
-		AddElementToObject(breakBySymbolSide, *this.SafeString(breakEntry, "symbol", "")+"_"+*this.SafeString(breakEntry, "positionSide", ""), breakEntry)
+		var breakKey string = *this.SafeString(breakEntry, "symbol", "") + "_" + *this.SafeString(breakEntry, "positionSide", "")
+		breakBySymbolSide[breakKey] = breakEntry
 	}
 	return breakBySymbolSide
 }

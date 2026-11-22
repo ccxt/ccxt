@@ -148,7 +148,7 @@ func (this *Bittrade) HandleTicker(client any, message map[string]any) map[strin
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
-	var symbol *string = ccxt.SafeStringPtr(ticker["symbol"])
+	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 	}
@@ -258,14 +258,12 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) map[strin
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var tradesCache ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var tradesCache ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = tradesCache
-		}
+		this.Trades[symbol] = tradesCache
 	}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
@@ -375,21 +373,21 @@ func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
 	var parts []string = strings.Split(*ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(parts, 3)
 	var timeframe *string = this.FindTimeframe(interval)
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && timeframe != nil {
-		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
+	if timeframe != nil {
+		stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		if symbol != nil && timeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*timeframe] = stored
+		if timeframe != nil && this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
 	var tick, _ = message["tick"].(map[string]any)

@@ -640,16 +640,18 @@ func (this *Cryptocom) HandleTrades(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "instrument_name")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var dataLength int = len(data)
 	if dataLength == 0 {
 		return

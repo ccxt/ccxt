@@ -4490,13 +4490,8 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	}
 	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
 	var signature map[string]any = Ecdsa(this.HashString(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, nil)
-	request["signature"] = map[string]any{
-		"signer": func() any {
-			if signerAddress == nil {
-				return this.EthGetAddressFromPrivateKey("0x" + privateKeyWithoutZero)
-			}
-			return signerAddress
-		}(),
+	var signatureEntry map[string]any = map[string]any{
+		"signer":     nil,
 		"r":          this.FormatSignatureRS(signature["r"]),
 		"s":          this.FormatSignatureRS(signature["s"]),
 		"v":          this.Sum(27, signature["v"]),
@@ -4504,6 +4499,12 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 		"nonce":      requestSignature["nonce"],
 		"chain_id":   requestSignature["chain_id"],
 	}
+	if signerAddress == nil {
+		signatureEntry["signer"] = this.EthGetAddressFromPrivateKey("0x" + privateKeyWithoutZero)
+	} else {
+		signatureEntry["signer"] = signerAddress
+	}
+	request["signature"] = signatureEntry
 	return request
 }
 func (this *Grvt) FormatSignatureRS(value any) string {
@@ -4517,9 +4518,9 @@ func (this *Grvt) FormatSignatureRS(value any) string {
 func (this *Grvt) DefaultSignature() map[string]any {
 	var expirationSeconds int64 = *this.SafeInteger(this.Options, "expirationSeconds", 30)
 	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000*expirationSeconds)*1000
-	var ternaryStr330324 string = "325"
+	var ternaryStr330924 string = "325"
 	if this.IsSandboxModeEnabled {
-		ternaryStr330324 = "326"
+		ternaryStr330924 = "326"
 	}
 	return map[string]any{
 		"signer":     "",
@@ -4528,7 +4529,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		"v":          0,
 		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
-		"chain_id":   ternaryStr330324,
+		"chain_id":   ternaryStr330924,
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {

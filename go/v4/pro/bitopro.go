@@ -158,12 +158,9 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId, nil, "_"))
-	var symbol *string
-	if market.Symbol != "" {
-		symbol = &market.Symbol
-	}
+	var symbol string = market.Symbol
 	var event *string = this.SafeString(message, "event")
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		orderbook = this.OrderBook(map[string]any{})
 	}
@@ -171,7 +168,7 @@ func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
 	var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount")
 	orderbook.Reset(snapshot)
 	if event != nil {
-		var messageHash string = *event + ":" + *symbol
+		var messageHash string = *event + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
@@ -247,11 +244,15 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 	//
 	var marketId *string = this.SafeString(message, "pair")
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var event *string = this.SafeString(message, "event")
-	var rawData []any = this.SafeListSlice(message, "data", []any{})
+	var rawData []any
+	rawData, _ = message["data"].([]any)
+	if rawData == nil {
+		rawData = []any{}
+	}
 	var trades []any = this.ParseTrades(rawData, market)
-	var tradesCache ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesCache ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesCache == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesCache = ccxt.NewArrayCache(limit)
@@ -260,11 +261,9 @@ func (this *Bitopro) HandleTrade(client any, message map[string]any) {
 		var trade any = trades[i]
 		tradesCache.Append(trade)
 	}
-	if symbol != nil {
-		this.Trades[*symbol] = tradesCache
-	}
+	this.Trades[symbol] = tradesCache
 	if event != nil {
-		var messageHash string = *event + ":" + *symbol
+		var messageHash string = *event + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(tradesCache, messageHash)
 	}
 }
@@ -526,18 +525,16 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	}
 	// market-ids are lowercase in REST API and uppercase in WS API
 	var market map[string]any = this.SafeMarket(marketId, nil, "_")
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var event *string = this.SafeString(message, "event")
 	var result map[string]any = ccxt.TickerToMap(this.ParseTicker(message, market))
 	result["symbol"] = this.SafeString(market, "symbol") // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	result["timestamp"] = timestamp
 	result["datetime"] = this.Iso8601(timestamp) // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(result)
-	}
+	this.Tickers[symbol] = ccxt.TickerFromMap(result)
 	if event != nil {
-		var messageHash string = *event + ":" + *symbol
+		var messageHash string = *event + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(result, messageHash)
 	}
 }

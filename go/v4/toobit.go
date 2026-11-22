@@ -969,10 +969,8 @@ func (this *Toobit) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 		var coin any = coins[i]
 		var parsed map[string]any = this.ParseCurrency(coin)
 		if parsed != nil {
-			var code *string = SafeStringPtr(parsed["code"])
-			if code != nil {
-				result[*code] = parsed
-			}
+			var code string = *this.SafeString(parsed, "code", "")
+			result[code] = parsed
 		}
 	}
 
@@ -1539,7 +1537,7 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) Trade {
 		takerOrMaker = &takerOrMakerStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -3387,7 +3385,8 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	var result map[string]any = map[string]any{}
 	var marketResolved map[string]any = this.SafeMarket(this.SafeString(response, "symbol"), market)
 	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(response, marketResolved))
-	AddElementToObject(result, marketResolved["symbol"], fee)
+	var feeSymbol string = *this.SafeString(marketResolved, "symbol", "")
+	result[feeSymbol] = fee
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
@@ -3438,11 +3437,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277115 []any = TransactionsToList(r.Value)
-	if retRes277115 == nil {
+	var retRes277215 []any = TransactionsToList(r.Value)
+	if retRes277215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277115)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277215)}
 	}
 	return nil
 }
@@ -3479,11 +3478,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278615 []any = TransactionsToList(r.Value)
-	if retRes278615 == nil {
+	var retRes278715 []any = TransactionsToList(r.Value)
+	if retRes278715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278715)}
 	}
 	return nil
 }

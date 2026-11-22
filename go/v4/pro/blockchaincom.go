@@ -900,8 +900,16 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num")
 		orderbook.Reset(snapshot)
 	} else if event == "updated" {
-		var asks []any = this.SafeListSlice(message, "asks", []any{})
-		var bids []any = this.SafeListSlice(message, "bids", []any{})
+		var asks []any
+		asks, _ = message["asks"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = message["bids"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)

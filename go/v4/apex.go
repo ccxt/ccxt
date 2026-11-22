@@ -1585,7 +1585,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
 	var clientOrderId *string = this.SafeString(order, "clientId")
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var orderType *string = this.SafeString(order, "type")
@@ -1959,7 +1959,8 @@ func (this *Apex) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var subAccounts []any
 	subAccounts, _ = spotAccount["subAccounts"].([]any)
 	var nonce string = "0"
-	if len(subAccounts) > 0 {
+	var subAccountsLength int = len(subAccounts)
+	if subAccountsLength > 0 {
 		nonce = *this.SafeString(subAccounts[0], "nonce", "0")
 	}
 	var finalNonce string = nonce // java req

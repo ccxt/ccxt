@@ -527,8 +527,8 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		url = this.SafeString(wsUrls, "public", "")
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "orderbook" + ":" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook" + ":" + symbolValue
 	var request any = map[string]any{
 		"type":    "orderbookdepth",
 		"symbols": []any{*this.SafeString(market, "base", "") + "_" + *this.SafeString(market, "quote", "")},
@@ -602,7 +602,11 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//
 	var content, _ = message["content"].(map[string]any)
 	if content != nil {
-		var list []any = this.SafeListSlice(content, "list", []any{})
+		var list []any
+		list, _ = content["list"].([]any)
+		if list == nil {
+			list = []any{}
+		}
 		var first map[string]any
 		if 0 < len(list) {
 			first, _ = list[0].(map[string]any)
@@ -744,8 +748,8 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		url = this.SafeString(wsUrls, "public", "")
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "trade:" + *symbolValue
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade:" + symbolValue
 	var request any = map[string]any{
 		"type":    "transaction",
 		"symbols": []any{*this.SafeString(market, "base", "") + "_" + *this.SafeString(market, "quote", "")},

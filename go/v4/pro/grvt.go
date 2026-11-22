@@ -856,8 +856,16 @@ func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = this.SafeListSlice(data, "asks", []any{})
-		var bids []any = this.SafeListSlice(data, "bids", []any{})
+		var asks []any
+		asks, _ = data["asks"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = data["bids"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltasWithKeys(orderbook.GetAsks(), asks, "price", "size")
 		this.HandleDeltasWithKeys(orderbook.GetBids(), bids, "price", "size")
 		orderbook.SetTimestamp(timestamp)

@@ -3371,7 +3371,8 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		// dt (destination tag) is embedded into the address field
 		var addressParts []string = strings.Split(*addressRaw, "?dt=")
 		address = this.SafeString(addressParts, 0)
-		if len(addressParts) > 1 {
+		var addressPartsLength int = len(addressParts)
+		if addressPartsLength > 1 {
 			tag = this.SafeString(addressParts, 1)
 		}
 	}
@@ -4157,16 +4158,16 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = privateHeaders
 	}
-	var literal283715 map[string]any = map[string]any{
+	var literal283815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal283715["body"] = *requestBody
+		literal283815["body"] = *requestBody
 	}
-	return literal283715
+	return literal283815
 }
 func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

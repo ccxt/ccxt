@@ -174,7 +174,11 @@ func (this *Bitrue) HandleBalance(client any, message map[string]any) {
 	//      "u": 2285311
 	//    }
 	//
-	var balances []any = this.SafeListSlice(message, "B", []any{})
+	var balances []any
+	balances, _ = message["B"].([]any)
+	if balances == nil {
+		balances = []any{}
+	}
 	this.ParseWSBalances(balances)
 	var messageHash string = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
@@ -732,7 +736,7 @@ func (this *Bitrue) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchTrades is only supported for swap markets"))
 	}
@@ -745,7 +749,7 @@ func (this *Bitrue) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 		"symbols": []any{symbolValue},
 	}
 
-	r1 := <-this.UnSubscribeAsync("trades:"+*symbolValue, channel, wsId, subscription, params)
+	r1 := <-this.UnSubscribeAsync("trades:"+symbolValue, channel, wsId, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -935,7 +939,7 @@ func (this *Bitrue) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchOHLCV is only supported for swap markets"))
 	}
@@ -953,7 +957,7 @@ func (this *Bitrue) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		"symbolsAndTimeframes": []any{[]any{symbolValue, timeframe}},
 	}
 
-	r1 := <-this.UnSubscribeAsync("ohlcv:"+*symbolValue+":"+timeframe, channel, wsId, subscription, params)
+	r1 := <-this.UnSubscribeAsync("ohlcv:"+symbolValue+":"+timeframe, channel, wsId, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

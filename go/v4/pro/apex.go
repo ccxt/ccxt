@@ -461,8 +461,16 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = this.SafeListSlice(data, "a", []any{})
-		var bids []any = this.SafeListSlice(data, "b", []any{})
+		var asks []any
+		asks, _ = data["a"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = data["b"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -1087,7 +1095,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 			rawTrade = map[string]any{}
 		}
 		var parsed map[string]any = this.ParseWsTrade(rawTrade)
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
@@ -1147,7 +1155,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(lists, i, map[string]any{})))
-		var symbol *string = ccxt.SafeStringPtr(parsed["symbol"])
+		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
 		}
@@ -1550,15 +1558,27 @@ func (this *Apex) HandlePing(client any, message map[string]any) {
 }
 func (this *Apex) HandleAccount(client any, message map[string]any) {
 	var contents, _ = message["contents"].(map[string]any)
-	var fills []any = this.SafeListSlice(contents, "fills", []any{})
+	var fills []any
+	fills, _ = contents["fills"].([]any)
+	if fills == nil {
+		fills = []any{}
+	}
 	if fills != nil {
 		this.HandleMyTrades(client, fills)
 	}
-	var positions []any = this.SafeListSlice(contents, "positions", []any{})
+	var positions []any
+	positions, _ = contents["positions"].([]any)
+	if positions == nil {
+		positions = []any{}
+	}
 	if positions != nil {
 		this.HandlePositions(client, positions)
 	}
-	var orders []any = this.SafeListSlice(contents, "orders", []any{})
+	var orders []any
+	orders, _ = contents["orders"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	if orders != nil {
 		this.HandleOrder(client, orders)
 	}

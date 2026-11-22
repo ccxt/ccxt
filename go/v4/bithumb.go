@@ -610,19 +610,14 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		for i := 0; i < len(response); i++ {
 			var entry any = GetValue(response, i)
 			var marketId *string = this.SafeString(entry, "market")
-			var baseId any = nil
+			var baseId *string = nil
 			var quoteId any = nil
 			var base *string = nil
 			var quote *string = nil
 			if marketId != nil {
 				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
-				baseId = func() any {
-					if 1 >= 0 && 1 < len(parts) {
-						return parts[1]
-					}
-					return nil
-				}()
+				baseId = this.SafeString(parts, 1)
 				quoteId = parts[0]
 				base = this.SafeCurrencyCode(baseId)
 				quote = this.SafeCurrencyCode(quoteId)
@@ -630,13 +625,13 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			if (base == nil) || (quote == nil) {
 				continue
 			}
-			result = append(result, map[string]any{
+			var literal47529 map[string]any = map[string]any{
 				"id":             marketId,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
 				"quote":          quote,
 				"settle":         nil,
-				"baseId":         baseId,
+				"baseId":         nil,
 				"quoteId":        quoteId,
 				"settleId":       nil,
 				"type":           "spot",
@@ -678,7 +673,11 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 				},
 				"created": nil,
 				"info":    entry,
-			})
+			}
+			if baseId != nil {
+				literal47529["baseId"] = *baseId
+			}
+			result = append(result, literal47529)
 		}
 	} else {
 		var quoteCurrencies, _ = this.Options["quoteCurrencies"].(map[string]any)

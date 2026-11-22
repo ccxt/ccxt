@@ -358,15 +358,13 @@ func (this *Bingx) HandleTicker(client any, message map[string]any) {
 		marketType = "swap"
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	// the Coin-M stream is a distinct endpoint, so it identifies an inverse
 	// ticker even when the market id could not be resolved
 	var inverseUrl *string = this.SafeString(this.UrlsApi["ws"], "inverse")
 	var isInverse bool = (inverseUrl != nil) && (strings.Index(client.(ccxt.ClientInterface).GetUrl(), *inverseUrl) == 0)
 	var ticker map[string]any = this.ParseWsTicker(data, market, isInverse)
-	if symbol != nil {
-		this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
-	}
+	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 	client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker", symbol))
 	if this.SafeString(message, "dataType") != nil && *this.SafeString(message, "dataType") == "all@ticker" {
 		client.(ccxt.ClientInterface).Resolve(ticker, this.GetMessageHash("ticker"))
@@ -501,7 +499,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url any = nil
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchTrades", market, paramsMarketType, "linear")
@@ -518,7 +516,7 @@ func (this *Bingx) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbo
 			url = nil
 		}
 	}
-	var messageHash string = "trade::" + *symbolValue
+	var messageHash string = "trade::" + symbolValue
 	var uuid string = this.Uuid()
 	var request map[string]any = map[string]any{
 		"id":       uuid,
@@ -688,7 +686,11 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var dataList []any = this.SafeListSlice(message, "data", []any{})
+	var dataList []any
+	dataList, _ = message["data"].([]any)
+	if dataList == nil {
+		dataList = []any{}
+	}
 	var rawHash string = *this.SafeString(message, "dataType", "")
 	var hashParts []string = strings.Split(rawHash, "@")
 	var marketId *string = this.SafeString(hashParts, 0)
@@ -698,21 +700,19 @@ func (this *Bingx) HandleTrades(client any, message map[string]any) {
 		marketType = "swap"
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "trade::" + *symbol
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trade::" + symbol
 	var trades []any = nil
 	if this.SafeDictMap(message, "data") == nil {
 		trades = this.ParseTrades(dataList, market)
 	} else {
 		trades = []any{ccxt.TradeToMap(this.ParseTrade(this.SafeDict(message, "data", map[string]any{}), market))}
 	}
-	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	var stored ccxt.WsArrayCache = this.Trades[symbol]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbol != nil {
-			this.Trades[*symbol] = stored
-		}
+		this.Trades[symbol] = stored
 	}
 	for j := 0; j < len(trades); j++ {
 		stored.Append(trades[j])
@@ -939,8 +939,8 @@ func (this *Bingx) HandleOrderBook(client any, message map[string]any) {
 		marketType = "swap"
 	}
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var symbol string = *this.SafeString(market, "symbol", "")
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	if orderbook == nil {
 		// const limit = [ 5, 10, 20, 50, 100 ]
 		var subscriptionHash *string = dataType
@@ -948,11 +948,9 @@ func (this *Bingx) HandleOrderBook(client any, message map[string]any) {
 		// see handleOHLCV — subscription.limit may be missing for non-orderbook callers
 		// default to a reasonable depth instead of throwing NPE in the Java port.
 		var limit *int64 = this.SafeInteger(subscription, "limit", 100)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
-		}
+		this.Orderbooks[symbol] = this.OrderBook(map[string]any{}, limit)
 	}
-	orderbook = this.Orderbooks[*symbol]
+	orderbook = this.Orderbooks[symbol]
 	var snapshot map[string]any = nil
 	var timestamp *int64 = this.SafeInteger2(message, "timestamp", "ts")
 	timestamp = this.SafeInteger2(data, "timestamp", "ts", timestamp)
@@ -1096,9 +1094,9 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 		var data, _ = message["data"].(map[string]any)
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	if symbol != nil && this.Ohlcvs[*symbol] == nil {
-		this.Ohlcvs[*symbol] = map[string]any{}
+	var symbol string = *this.SafeString(market, "symbol", "")
+	if this.Ohlcvs[symbol] == nil {
+		this.Ohlcvs[symbol] = map[string]any{}
 	}
 	var timeframeParts []string = strings.Split(*dataType, "_")
 	var rawTimeframe *string = this.SafeString(timeframeParts, 1)
@@ -1109,20 +1107,20 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 		timeframes = map[string]any{}
 	}
 	var unifiedTimeframe *string = this.FindTimeframe(rawTimeframe, timeframes)
-	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[*symbol], unifiedTimeframe), nil) {
+	if ccxt.IsEqual(this.SafeValue(this.Ohlcvs[symbol], unifiedTimeframe), nil) {
 		var subscriptionHash *string = dataType
 		var subscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(subscriptionHash)
 		// subscription.limit is only set when watchOHLCV registers the subscription
 		// when handleMessage routes a non-ccxt.OHLCV-originated subscription here (or the
 		// subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
 		var limit *int64 = this.SafeInteger(subscription, "limit", this.SafeInteger(this.Options, "OHLCVLimit", 1000))
-		if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
-			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
+		if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
+			this.Ohlcvs[symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
 	var stored ccxt.WsArrayCache
-	if symbol != nil && unifiedTimeframe != nil {
-		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
+	if unifiedTimeframe != nil {
+		stored, _ = this.Ohlcvs[symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)

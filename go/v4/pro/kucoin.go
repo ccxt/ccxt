@@ -1358,12 +1358,7 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) ma
 	var topic *string = this.SafeString(ticker, "topic")
 	if strings.Index(*topic, "contractMarket") < 0 {
 		var parts []string = strings.Split(*topic, ":")
-		var marketId *string = ccxt.SafeStringPtr(func() any {
-			if 1 >= 0 && 1 < len(parts) {
-				return parts[1]
-			}
-			return nil
-		}())
+		var marketId *string = this.SafeString(parts, 1)
 		var marketResolved map[string]any = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(marketResolved, "symbol")
 		var data, _ = ticker["data"].(map[string]any)
@@ -3216,7 +3211,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 		// derives cost from the order price otherwise, which is wrong for
 		// orders filled at better prices, so the accumulated values win on
 		// the non match messages, see https://github.com/ccxt/ccxt/issues/19083
-		if !ccxt.IsEqual(order["average"], nil) {
+		if this.SafeNumber(order, "average") != nil {
 			parsed["average"] = this.SafeNumber(order, "average")
 			parsed["cost"] = this.SafeNumber(order, "cost")
 		}
@@ -3575,7 +3570,7 @@ func (this *Kucoin) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 	}
 	var order *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeIntegerProduct2(trade, "ts", "time", 0.000001)
-	var feeCurrency *string = ccxt.SafeStringPtr(marketResolved["quote"])
+	var feeCurrency *string = this.SafeString(marketResolved, "quote")
 	var feeRate *string = this.SafeString(trade, "feeRate")
 	var feeCost *string = this.SafeString(trade, "fee")
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{

@@ -778,7 +778,8 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var messageHash string = "candles:" + *symbolValue + ":" + timeframe
 	var ohlcv any = nil
 	if *this.SafeBool(market, "spot", false) {
-		var spotChannel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
+		var spotTimeframeId string = *this.SafeString(timeframes, timeframe, "")
+		var spotChannel string = "spot@public.kline.v3.api.pb@" + *this.SafeString(market, "id", "") + "@" + spotTimeframeId
 
 		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, params)
 		if r1.Err != nil {
@@ -1589,9 +1590,9 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var isMaker *int64 = this.SafeInteger(trade, "m")
 	var feeAmount *string = this.SafeString2(trade, "n", "feeAmount")
 	var feeCurrencyId *string = this.SafeString2(trade, "N", "feeCurrency")
-	var ternaryStr131128 string = "taker"
+	var ternaryStr131228 string = "taker"
 	if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
-		ternaryStr131128 = "maker"
+		ternaryStr131228 = "maker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1602,7 +1603,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"symbol":       this.SafeSymbol(nil, market),
 		"type":         nil,
 		"side":         side,
-		"takerOrMaker": ternaryStr131128,
+		"takerOrMaker": ternaryStr131228,
 		"price":        priceString,
 		"amount":       amountString,
 		"cost":         this.SafeString(trade, "amount"),
@@ -1874,9 +1875,9 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 			"cost":     nil,
 		}
 	}
-	var ternaryStr155720 string = "sell"
+	var ternaryStr155820 string = "sell"
 	if side != nil && *side == "1" {
-		ternaryStr155720 = "buy"
+		ternaryStr155820 = "buy"
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
@@ -1888,7 +1889,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"symbol":             this.SafeSymbol(nil, market),
 		"type":               this.ParseWsOrderType(typeVar),
 		"timeInForce":        this.ParseWsTimeInForce(typeVar),
-		"side":               ternaryStr155720,
+		"side":               ternaryStr155820,
 		"price":              this.SafeString(order, "price"),
 		"stopPrice":          this.SafeString2(order, "triggerPrice", "P"),
 		"triggerPrice":       this.SafeString2(order, "triggerPrice", "P"),
@@ -2384,7 +2385,8 @@ func (this *Mexc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	var url any = nil
 	if *this.SafeBool(market, "spot", false) {
 		url = this.UrlsApiSections["ws"]["spot"]
-		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
+		var spotTimeframeId string = *this.SafeString(timeframes, timeframe, "")
+		var channel string = "spot@public.kline.v3.api.pb@" + *this.SafeString(market, "id", "") + "@" + spotTimeframeId
 		params["unsubscribed"] = true
 		this.Spawn(this.WatchSpotPublicAsync, channel, messageHash, params)
 	} else {

@@ -1371,7 +1371,7 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	}
 	var paramsTriggerPrice map[string]any = params
 	if triggerPriceIsRequired {
-		paramsTriggerPrice = this.OmitDict(params, "triggerPrice")
+		paramsTriggerPrice = this.OmitDict(paramsTriggerPrice, "triggerPrice")
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsTriggerPrice, "clientOrderId")
 

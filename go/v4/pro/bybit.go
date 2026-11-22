@@ -1192,7 +1192,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+symbolString+"::"+*unfiedTimeframe)
 	}
 	var subExtension map[string]any = map[string]any{
-		"symbolsAndTimeframes": symbolsAndTimeframes,
+		"symbolsAndTimeframes": ccxt.AnyMatrixToList(symbolsAndTimeframes),
 	}
 
 	r2 := <-this.UnWatchTopicsAsync(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension)
@@ -1621,8 +1621,16 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a")
 		orderbook.Reset(snapshot)
 	} else {
-		var asks []any = this.SafeListSlice(data, "a", []any{})
-		var bids []any = this.SafeListSlice(data, "b", []any{})
+		var asks []any
+		asks, _ = data["a"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = data["b"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
@@ -1871,7 +1879,11 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	//         ]
 	//     }
 	//
-	var data []any = this.SafeListSlice(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var topic string = *this.SafeString(message, "topic", "")
 	var trades []any = data
 	var parts []string = strings.Split(topic, ".")
@@ -1951,13 +1963,12 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var takerOrMaker any = nil
 	var m any = this.SafeValue(trade, "m")
 	if side == nil {
-		var sideStr string
-		if m == true {
-			sideStr = "buy"
-		} else {
-			sideStr = "sell"
-		}
+		sideStr := "sell"
 		side = &sideStr
+		if m == true {
+			sideStr2 := "buy"
+			side = &sideStr2
+		}
 	} else {
 		// spot private
 		takerOrMaker = m
@@ -3447,7 +3458,7 @@ func (this *Bybit) watchTopicsBody(ch chan ccxt.AsyncResult[any], url string, me
 		for i := 0; i < messageHashesLength; i++ {
 			var messageHash string = messageHashes[i]
 			if !(client.(ccxt.ClientInterface).SubscriptionHas(messageHash)) {
-				newTopics = append(newTopics, ccxt.GetValue(topics, i))
+				newTopics = append(newTopics, this.SafeString(topics, i, ""))
 			}
 		}
 	} else {

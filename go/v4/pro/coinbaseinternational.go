@@ -439,7 +439,11 @@ func (this *Coinbaseinternational) unWatchMyTradesBody(ch chan ccxt.AsyncResult[
 func (this *Coinbaseinternational) HandleMyTrades(client any, message map[string]any) {
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
-	var data []any = this.SafeListSlice(params, "data", []any{})
+	var data []any
+	data, _ = params["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -779,7 +783,11 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 	var params, _ = message["params"].(map[string]any)
 	var channel *string = this.SafeString(params, "channel")
 	var data, _ = params["data"].(map[string]any)
-	var rawPositions []any = this.SafeListSlice(data, "positions", []any{})
+	var rawPositions []any
+	rawPositions, _ = data["positions"].([]any)
+	if rawPositions == nil {
+		rawPositions = []any{}
+	}
 	var positions []any = this.ParsePositions(rawPositions)
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
@@ -787,8 +795,9 @@ func (this *Coinbaseinternational) HandlePositions(client any, message map[strin
 		if this.SafeString(position, "side") == nil {
 			// flat (direction: zero) position, the cache is keyed by side so reset both sides
 			ccxt.AddElementToObject(position, "side", "long")
-			var shortPosition any = this.Clone(position)
-			ccxt.AddElementToObject(shortPosition, "side", "short")
+			var shortPosition map[string]any = this.Extend(position, map[string]any{
+				"side": "short",
+			})
 			this.Positions.Append(shortPosition)
 		}
 		this.Positions.Append(position)
@@ -2065,13 +2074,14 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 	var isGrouped bool = (channelPartsLength == 5)
 	if !(symbol != nil && this.Orderbooks[*symbol] != nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		if symbol != nil {
-			this.Orderbooks[*symbol] = func() any {
-				if isGrouped {
-					return this.OrderBook(map[string]any{}, limit)
-				}
-				return this.CountedOrderBook(map[string]any{}, limit)
-			}().(ccxt.OrderBookInterface)
+		if isGrouped {
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.OrderBook(map[string]any{}, limit)
+			}
+		} else {
+			if symbol != nil {
+				this.Orderbooks[*symbol] = this.CountedOrderBook(map[string]any{}, limit)
+			}
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
@@ -2095,18 +2105,18 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message map[strin
 			this.Spawn(this.ResubscribeOrderBookAsync, channel)
 			return
 		}
-		var deltas130012 []any
-		deltas130012, _ = data["asks"].([]any)
-		if deltas130012 == nil {
-			deltas130012 = []any{}
+		var deltas130312 []any
+		deltas130312, _ = data["asks"].([]any)
+		if deltas130312 == nil {
+			deltas130312 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas130012)
-		var deltas130112 []any
-		deltas130112, _ = data["bids"].([]any)
-		if deltas130112 == nil {
-			deltas130112 = []any{}
+		this.HandleDeltas(orderbook.GetAsks(), deltas130312)
+		var deltas130412 []any
+		deltas130412, _ = data["bids"].([]any)
+		if deltas130412 == nil {
+			deltas130412 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130112)
+		this.HandleDeltas(orderbook.GetBids(), deltas130412)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2138,13 +2148,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr132322 string = "public/unsubscribe"
+	var ternaryStr132622 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr132322 = "private/unsubscribe"
+		ternaryStr132622 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr132322,
+		"method":  ternaryStr132622,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},

@@ -4664,7 +4664,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var amountString *string = this.SafeStringN(trade, []any{"execQty", "orderQty", "size"})
 	var priceString *string = this.SafeStringN(trade, []any{"execPrice", "orderPrice", "price"})
 	var costString *string = this.SafeString(trade, "execValue")
@@ -5507,7 +5507,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 		marketType = &marketTypeStr
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger2(order, "createdTime", "createdAt")
 	var marketUnit *string = this.SafeString(order, "marketUnit") // '' is filtered by safeString, do not force a default:
 	// bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -11205,7 +11205,7 @@ func (this *Bybit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
 		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
-		var symbol *string = SafeStringPtr(fee["symbol"])
+		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
 		}
@@ -12285,10 +12285,8 @@ func (this *Bybit) ParseLeverageTiers(response any, optionalArgs ...any) map[str
 			AddElementToObject(GetValue(entry, j), "id", id)
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var symbol *string = SafeStringPtr(market["symbol"])
-		if symbol != nil {
-			tiers[*symbol] = this.ParseMarketLeverageTiers(this.SortBy(entry, "id"), market)
-		}
+		var symbol string = *this.SafeString(market, "symbol", "")
+		tiers[symbol] = this.ParseMarketLeverageTiers(this.SortBy(entry, "id"), market)
 	}
 	return tiers
 }

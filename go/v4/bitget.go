@@ -3989,8 +3989,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		}
 		var parsedMarket map[string]any = this.ParseMarket(market)
 		if (parsedMarket != nil) && (*this.SafeBool(parsedMarket, "spot", false)) {
-			var marketId *string = SafeStringPtr(parsedMarket["id"])
-			var instrument map[string]any = SafeMapTyped(spotInstruments, marketId)
+			var marketId string = *this.SafeString(parsedMarket, "id", "")
+			var instrument, _ = spotInstruments[marketId].(map[string]any)
 			if instrument != nil {
 				// only the stock flag is needed, read it directly instead of re-parsing the whole instrument
 				var assetType *string = this.SafeStringLower(instrument, "symbolType")

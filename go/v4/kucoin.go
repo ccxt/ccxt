@@ -2839,7 +2839,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan AsyncResult[bool], optionalA
 	defer ReturnPanicError(ch)
 	var force bool = GetArgBool(optionalArgs, 0, false)
 	_ = force
-	if _, ok := this.Options["hf"]; !ok || (IsEqual(this.Options["hf"], nil)) || (force == true) {
+	if _, ok := this.Options["hf"]; !ok || (this.SafeBool(this.Options, "hf") == nil) || (force == true) {
 
 		r := <-this.PrivateGetHfAccountsOpened()
 		if r.Err != nil {
@@ -5402,7 +5402,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 	var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))
 	// required param, cannot be used twice
 	var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId", this.Uuid())
-	var paramsOmitted any = this.Omit(params, []any{"clientOid", "clientOrderId"})
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOid", "clientOrderId"})
 	var request map[string]any = map[string]any{
 		"clientOid": clientOrderId,
 		"side":      side,
@@ -5419,7 +5419,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 	marginMode, paramsOmitted = this.HandleMarginModeAndParams("createOrder", paramsOmitted)
 	if typeVar == "market" {
 		if quoteAmount != nil {
-			paramsOmitted = this.Omit(paramsOmitted, []any{"cost", "funds"})
+			paramsOmitted = this.OmitDict(paramsOmitted, []any{"cost", "funds"})
 			// kucoin uses base precision even for quote values
 			costString = this.MarketOrderAmountToPrecision(symbol, quoteAmount)
 			request["funds"] = costString
@@ -5439,7 +5439,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 	var takeProfitPrice *float64 = this.SafeNumber(paramsOmitted, "takeProfitPrice")
 	var isTriggerOrder bool = (triggerPrice != nil) || (stopLossPrice != nil) || (takeProfitPrice != nil)
 	var isMarginOrder bool = (tradeType != nil && *tradeType == "MARGIN_TRADE") || (marginMode != nil)
-	paramsOmitted = this.Omit(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"})
+	paramsOmitted = this.OmitDict(paramsOmitted, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"})
 	if isTriggerOrder {
 		if triggerPrice != nil {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -5464,12 +5464,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 			panic(BadRequest(this.Id + " createOrder does not support isolated margin for stop orders"))
 		} else if marginMode != nil && *marginMode == "cross" {
 			var marginModes, _ = this.Options["marginModes"].(map[string]any)
-			request["tradeType"] = func() any {
-				if marginMode == nil {
-					return nil
-				}
-				return marginModes[*marginMode]
-			}()
+			request["tradeType"] = this.SafeString(marginModes, marginMode)
 		}
 	} else if isMarginOrder {
 		if marginMode != nil && *marginMode == "isolated" {
@@ -5479,7 +5474,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *
 	var postOnly bool
 	var postOnlyparamsOmittedVariable []any = this.HandlePostOnly((typeVar == "market"), false, paramsOmitted)
 	postOnly = postOnlyparamsOmittedVariable[0].(bool)
-	paramsOmitted = postOnlyparamsOmittedVariable[1]
+	paramsOmitted = postOnlyparamsOmittedVariable[1].(map[string]any)
 	if postOnly {
 		request["postOnly"] = true
 	}
@@ -7130,7 +7125,7 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan AsyncResult[[]Order], option
 	}
 	if marginMode != nil {
 		var marginModes, _ = this.Options["marginModes"].(map[string]any)
-		request["tradeType"] = marginModes[*marginMode]
+		request["tradeType"] = this.SafeString(marginModes, marginMode)
 		if (marginMode != nil && *marginMode == "isolated") && (trigger != nil && *trigger) {
 			panic(BadRequest(this.Id + " cancelAllOrders does not support isolated margin for stop orders"))
 		}

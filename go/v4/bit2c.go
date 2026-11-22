@@ -1260,7 +1260,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var id *string = nil
 	var price *string = nil
 	var amount *string = nil
-	var orderId any = nil
+	var orderId *string = nil
 	var fee map[string]any = nil
 	var side any = nil
 	var makerOrTaker *string = nil
@@ -1287,20 +1287,9 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 			makerOrTakerStr = "taker"
 		}
 		makerOrTaker = &makerOrTakerStr
+		orderId = this.SafeString(reference_parts, 1)
 		if isMaker != nil && *isMaker {
-			orderId = func() any {
-				if 2 >= 0 && 2 < len(reference_parts) {
-					return reference_parts[2]
-				}
-				return nil
-			}()
-		} else {
-			orderId = func() any {
-				if 1 >= 0 && 1 < len(reference_parts) {
-					return reference_parts[1]
-				}
-				return nil
-			}()
+			orderId = this.SafeString(reference_parts, 2)
 		}
 		var action *int64 = this.SafeInteger(trade, "action")
 		if action != nil && *action == 0 {
@@ -1328,13 +1317,13 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(nil, tradeMarket)
-	var literal97831 map[string]any = map[string]any{
+	var literal98131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       marketResolved["symbol"],
-		"order":        orderId,
+		"order":        nil,
 		"type":         nil,
 		"side":         side,
 		"takerOrMaker": makerOrTaker,
@@ -1344,15 +1333,18 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal97831["id"] = *id
+		literal98131["id"] = *id
+	}
+	if orderId != nil {
+		literal98131["order"] = *orderId
 	}
 	if price != nil {
-		literal97831["price"] = *price
+		literal98131["price"] = *price
 	}
 	if amount != nil {
-		literal97831["amount"] = *amount
+		literal98131["amount"] = *amount
 	}
-	return this.SafeTrade(literal97831, marketResolved)
+	return this.SafeTrade(literal98131, marketResolved)
 }
 func (this *Bit2c) IsFiat(code string) bool {
 	return (code == "NIS")

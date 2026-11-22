@@ -1794,22 +1794,6 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if until != nil {
 		request["endTime"] = until
 	}
-	var response any = nil
-	if this.IsNativeMarket(market) {
-
-		r1 := <-this.PublicGetOpenV1MarketKlines(this.Extend(request, paramsOmitted))
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		response = r1.Raw
-	} else {
-
-		r2 := <-this.BinanceGetKlines(this.Extend(request, paramsOmitted))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Raw
-	}
 	//
 	// binanceGetKlines
 	//
@@ -1844,16 +1828,31 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	//     }
 	//
 	var data []any = []any{}
-	if IsArray(response) {
-		data = ArrayTyped(response)
-	} else {
-		var dataList []any = SafeListTyped(response, "data")
+	if this.IsNativeMarket(market) {
+
+		r1 := <-this.PublicGetOpenV1MarketKlines(this.Extend(request, paramsOmitted))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var response map[string]any = r1.Value
+		var dataList []any
+		dataList, _ = response["data"].([]any)
 		if dataList != nil {
 			data = dataList
 		} else {
-			var dataDict map[string]any = SafeMapTyped(response, "data")
-			data = ArrayTyped(this.SafeList(dataDict, "list", []any{}))
+			var dataDict, _ = response["data"].(map[string]any)
+			data, _ = dataDict["list"].([]any)
+			if data == nil {
+				data = []any{}
+			}
 		}
+	} else {
+
+		dataRecv := <-this.BinanceGetKlines(this.Extend(request, paramsOmitted))
+		if dataRecv.Err != nil {
+			panic(dataRecv.Err)
+		}
+		data = dataRecv.Value
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limitValue))}
@@ -2616,11 +2615,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes219015 []any = OrdersToList(r.Value)
-	if retRes219015 == nil {
+	var retRes218515 []any = OrdersToList(r.Value)
+	if retRes218515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes219015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes218515)}
 	}
 	return nil
 }
@@ -2660,11 +2659,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes220615 []any = OrdersToList(r.Value)
-	if retRes220615 == nil {
+	var retRes220115 []any = OrdersToList(r.Value)
+	if retRes220115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220615)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes220115)}
 	}
 	return nil
 }
@@ -3397,16 +3396,16 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 			bodySigned = &bodySignedStr
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var literal274819 map[string]any = map[string]any{
+		var literal274319 map[string]any = map[string]any{
 			"url":     url,
 			"method":  method,
 			"body":    nil,
 			"headers": headersSigned,
 		}
 		if bodySigned != nil {
-			literal274819["body"] = *bodySigned
+			literal274319["body"] = *bodySigned
 		}
-		return literal274819
+		return literal274319
 	} else {
 		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
 			url += "?" + this.Urlencode(params)

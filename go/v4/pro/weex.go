@@ -1083,7 +1083,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sym
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":          true,
-		"symbolsAndTimeframes": symbolsAndTimeframes,
+		"symbolsAndTimeframes": ccxt.AnyMatrixToList(symbolsAndTimeframes),
 		"messageHashes":        unSubHashes,
 		"subMessageHashes":     subHashes,
 		"topic":                "ohlcv",
@@ -1449,8 +1449,16 @@ func (this *Weex) HandleOrderBook(client any, message map[string]any) {
 		parsed["nonce"] = nonce
 		orderbook.Reset(parsed)
 	} else {
-		var asks []any = this.SafeListSlice(message, "a", []any{})
-		var bids []any = this.SafeListSlice(message, "b", []any{})
+		var asks []any
+		asks, _ = message["a"].([]any)
+		if asks == nil {
+			asks = []any{}
+		}
+		var bids []any
+		bids, _ = message["b"].([]any)
+		if bids == nil {
+			bids = []any{}
+		}
 		this.HandleDeltas(orderbook.GetAsks(), asks)
 		this.HandleDeltas(orderbook.GetBids(), bids)
 		orderbook.SetTimestamp(timestamp)
