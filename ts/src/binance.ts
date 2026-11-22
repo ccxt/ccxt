@@ -13658,7 +13658,8 @@ export default class binance extends Exchange {
             const byLimit: List = this.safeList (config, 'byLimit', []);
             for (let i = 0; i < byLimit.length; i++) {
                 const entry = byLimit[i];
-                if (limit !== undefined && limit <= this.safeInteger (entry, 0, 0)) {
+                const entryLimit = this.safeInteger (entry, 0, 0);
+                if (limit !== undefined && limit <= entryLimit) {
                     return this.safeInteger (entry, 1);
                 }
             }

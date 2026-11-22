@@ -3410,7 +3410,8 @@ export default class htx extends Exchange {
         if (networkId === undefined) {
             return undefined;
         }
-        const keys = Object.keys (this.options['networkNamesByChainIds']);
+        const namesByChainIds = this.safeDict (this.options, 'networkNamesByChainIds', {});
+        const keys = Object.keys (namesByChainIds);
         const keysLength = keys.length;
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
@@ -3426,7 +3427,8 @@ export default class htx extends Exchange {
         if (currencyCode === undefined) {
             return super.networkCodeToId (networkCode);
         }
-        const keys = Object.keys (this.options['networkChainIdsByNames']);
+        const chainIdsByNames = this.safeDict (this.options, 'networkChainIdsByNames', {});
+        const keys = Object.keys (chainIdsByNames);
         const keysLength = keys.length;
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');

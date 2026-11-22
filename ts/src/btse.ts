@@ -3742,7 +3742,7 @@ export default class btse extends Exchange {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         // the futures v3 trading api reads DELETE params from a signed json
         // body like its POST and PUT counterparts, while the spot v4 and the
         // legacy apis keep DELETE params in the query string, verified live
