@@ -290,7 +290,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbolResolved = market['symbol'];
             channel = 'user.trades.' + this.safeString (market, 'id', '') + '.' + interval;
         }
-        const trades = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
+        const trades: ArrayCacheBySymbolById = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limit, true);
     }
 
@@ -361,7 +361,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbolResolved = market['symbol'];
             channel = 'user.orders.' + this.safeString (market, 'id', '') + '.' + interval;
         }
-        const orders = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
+        const orders: ArrayCacheBySymbolById = await this.subscribe ([ channel ], [ channel ], true, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -394,7 +394,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < symbolsLength; i++) {
             channels.push ('user.orders.' + this.safeString (this.market (this.safeString (symbolsResolved, i, '')), 'id', '') + '.' + interval);
         }
-        const orders = await this.subscribe (channels, channels, true, paramsInterval);
+        const orders: ArrayCacheBySymbolById = await this.subscribe (channels, channels, true, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (undefined, limit);
@@ -1080,7 +1080,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             const market = this.market (this.safeString (symbolsResolved, i, ''));
             channels.push ('trades.' + this.safeString (market, 'id', '') + '.' + interval);
         }
-        const trades = await this.subscribe (channels, channels, isPrivate, paramsInterval);
+        const trades: ArrayCache = await this.subscribe (channels, channels, isPrivate, paramsInterval);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             const first = this.safeDict (trades, 0);

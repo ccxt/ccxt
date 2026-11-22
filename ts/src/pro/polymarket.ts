@@ -400,7 +400,7 @@ export default class polymarket extends polymarketRest {
         const messageHash = 'trade:' + symbolResolved;
         const request = this.sendSubscription ('sub', [ 'trades::' + this.safeString (market, 'id', '') ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.safeString (this.urls['api'], 'ws');
-        const trades = await this.watch (url, messageHash, request, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limitResolved);
@@ -547,7 +547,7 @@ export default class polymarket extends polymarketRest {
         const channel = 'klines::' + this.safeString (market, 'id', '') + '::' + interval;
         const request = this.sendSubscription ('sub', [ channel ], [ messageHash ], [ messageHash ], {}, params);
         const url = this.safeString (this.urls['api'], 'ws');
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolResolved, limitResolved);
@@ -694,7 +694,7 @@ export default class polymarket extends polymarketRest {
         const subscribeHashes = [ 'orders' ];
         const request = this.sendSubscription ('sub', [ 'orders' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.safeString (this.urls['api'], 'ws');
-        const orders = await this.watch (url, messageHash, request, 'orders');
+        const orders: ArrayCache = await this.watch (url, messageHash, request, 'orders');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limitResolved);
@@ -784,7 +784,7 @@ export default class polymarket extends polymarketRest {
         const subscribeHashes = [ 'fills' ];
         const request = this.sendSubscription ('sub', [ 'fills' ], [ messageHash ], subscribeHashes, {}, params, subscribeHashes);
         const url = this.safeString (this.urls['api'], 'ws');
-        const trades = await this.watch (url, messageHash, request, 'fills');
+        const trades: ArrayCache = await this.watch (url, messageHash, request, 'fills');
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limitResolved);

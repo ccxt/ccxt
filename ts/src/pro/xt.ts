@@ -439,7 +439,7 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const ohlcv = await this.subscribe ('kline@' + this.safeString (market, 'id', '') + ',' + timeframe, 'public', 'watchOHLCV', market, undefined, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe ('kline@' + this.safeString (market, 'id', '') + ',' + timeframe, 'public', 'watchOHLCV', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -486,7 +486,7 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const trades = await this.subscribe ('trade@' + this.safeString (market, 'id', ''), 'public', 'watchTrades', market, undefined, params);
+        const trades: ArrayCache = await this.subscribe ('trade@' + this.safeString (market, 'id', ''), 'public', 'watchTrades', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -594,7 +594,7 @@ export default class xt extends xtRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const orders = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
+        const orders: ArrayCache = await this.subscribe (name, 'private', 'watchOrders', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbol, limit);
@@ -623,7 +623,7 @@ export default class xt extends xtRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const trades = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
+        const trades: ArrayCache = await this.subscribe (name, 'private', 'watchMyTrades', market, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);

@@ -700,7 +700,7 @@ export default class hitbtc extends hitbtcRest {
             request['limit'] = limit;
         }
         const name = 'trades';
-        const trades = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
+        const trades: ArrayCache = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -854,7 +854,7 @@ export default class hitbtc extends hitbtcRest {
         const request: Dict = {
             'params': subscribeParams,
         };
-        const ohlcv = await this.subscribePublic (name, name, [ symbol ], this.deepExtend (request, params));
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribePublic (name, name, [ symbol ], this.deepExtend (request, params));
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -1000,7 +1000,7 @@ export default class hitbtc extends hitbtcRest {
             'swap': 'futures_subscribe',
             'future': 'futures_subscribe',
         });
-        const orders = await this.subscribePrivate (name, symbol, paramsMarketType);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (name, symbol, paramsMarketType);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbol, limit);

@@ -1140,7 +1140,7 @@ export default class okx extends okxRest {
         const symbolValue: string = this.symbol (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
-        const ohlcv = await this.subscribe ('public', name, name, symbolValue, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe ('public', name, name, symbolValue, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1944,7 +1944,7 @@ export default class okx extends okxRest {
         const request: Dict = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, paramsMarginMode));
+        const orders: ArrayCacheBySymbolById = await this.subscribe ('private', messageHash, channel, undefined, this.extend (request, paramsMarginMode));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -2151,7 +2151,7 @@ export default class okx extends okxRest {
         if (isTrigger) {
             channel = 'orders-algo';
         }
-        const orders = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));
+        const orders: ArrayCacheBySymbolById = await this.subscribe ('private', channel, channel, symbolResolved, this.extend (request, paramsMarginMode));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

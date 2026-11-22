@@ -409,7 +409,7 @@ export default class poloniex extends poloniexRest {
         if (channel === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV cannot take a timeframe of ' + timeframe);
         }
-        const ohlcv = await this.subscribe (channel, channel, false, [ symbol ], params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe (channel, channel, false, [ symbol ], params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbol, limit);
@@ -614,7 +614,7 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
-        const orders = await this.subscribe (name, name, true, symbols, params);
+        const orders: ArrayCache = await this.subscribe (name, name, true, symbols, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -642,7 +642,7 @@ export default class poloniex extends poloniexRest {
         await this.authenticate ();
         const symbolResolved: Str = (symbol === undefined) ? undefined : this.symbol (symbol);
         const symbols = (symbolResolved === undefined) ? undefined : [ symbolResolved ];
-        const trades = await this.subscribe (name, messageHash, true, symbols, params);
+        const trades: ArrayCache = await this.subscribe (name, messageHash, true, symbols, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

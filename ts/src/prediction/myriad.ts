@@ -3414,7 +3414,7 @@ export default class myriad extends Exchange {
         const sym = this.safeOutcomeSymbol (outcome, outcomeObj);
         const channel = 'trades:' + networkId + ':' + marketId;
         const messageHash = 'myTrades';
-        const trades = await this.subscribeMyriadChannel (messageHash, channel, params);
+        const trades: ArrayCacheByOutcomeById = await this.subscribeMyriadChannel (messageHash, channel, params);
         return this.filterByValueSinceLimit (trades, 'outcome', sym, since, limit, 'timestamp', true) as PredictionTrade[];
     }
 
@@ -3688,7 +3688,7 @@ export default class myriad extends Exchange {
         }
         const channel = 'orders:' + networkId + ':' + trader;
         const messageHash = 'orders';
-        const orders = await this.subscribeMyriadChannel (messageHash, channel, params);
+        const orders: ArrayCacheByOutcomeById = await this.subscribeMyriadChannel (messageHash, channel, params);
         return this.filterByValueSinceLimit (orders, 'outcome', outcomeResolved, since, limit, 'timestamp', true) as PredictionOrder[];
     }
 
@@ -3770,7 +3770,7 @@ export default class myriad extends Exchange {
         }
         const requestId = this.requestId (url);
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
-        const positions = await this.watch (url, messageHash, subscribeMsg, channel);
+        const positions: ArrayCacheByOutcomeById = await this.watch (url, messageHash, subscribeMsg, channel);
         if (this.newUpdates) {
             return positions;
         }

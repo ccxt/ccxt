@@ -99,7 +99,7 @@ export default class hashkey extends hashkeyRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = 'kline_' + interval;
         const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
-        const ohlcv = await this.wathPublic (market, topic, messageHash, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.wathPublic (market, topic, messageHash, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -262,7 +262,7 @@ export default class hashkey extends hashkeyRest {
         const symbolValue: string = this.safeString (market, 'symbol', '');
         const topic = 'trade';
         const messageHash = 'trades:' + symbolValue;
-        const trades = await this.wathPublic (market, topic, messageHash, params);
+        const trades: ArrayCache = await this.wathPublic (market, topic, messageHash, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -405,7 +405,7 @@ export default class hashkey extends hashkeyRest {
         if (symbol !== undefined) {
             messageHash = 'orders' + ':' + symbolResolved;
         }
-        const orders = await this.watchPrivate (messageHash);
+        const orders: ArrayCache = await this.watchPrivate (messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -529,7 +529,7 @@ export default class hashkey extends hashkeyRest {
         if (symbol !== undefined) {
             messageHash = 'myTrades' + ':' + symbolResolved;
         }
-        const trades = await this.watchPrivate (messageHash);
+        const trades: ArrayCache = await this.watchPrivate (messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

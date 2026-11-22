@@ -179,7 +179,7 @@ export default class cex extends cexRest {
             'rooms': [ 'pair-' + baseId + '-' + quoteId ],
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -563,7 +563,7 @@ export default class cex extends cexRest {
             'oid': market['symbol'],
         };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, subscriptionHash, request);
         return this.filterBySymbolSinceLimit (orders, this.safeString (market, 'symbol'), since, limit);
     }
 
@@ -1171,7 +1171,7 @@ export default class cex extends cexRest {
                 'pair-' + baseId + '-' + quoteId,
             ],
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
