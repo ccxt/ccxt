@@ -3508,8 +3508,10 @@ export default class interactivebrokers extends Exchange {
         }
         const options = this.safeDict (this.options, 'fetchMyTrades', {});
         let defaultMethod = 'privateGetIserverAccountTrades';
-        if (market !== undefined) {
-            const assetClass = this.safeString (market['info'], 'assetClass');
+        if (symbol !== undefined) {
+            const symbolMarket = this.market (symbol);
+            const symbolInfo = this.safeDict (symbolMarket, 'info');
+            const assetClass = this.safeString (symbolInfo, 'assetClass');
             if (assetClass === 'CRYPTO') {
                 defaultMethod = 'privatePostPaTransactions';
             }
@@ -3579,7 +3581,7 @@ export default class interactivebrokers extends Exchange {
         }
         const request: Dict = {
             'acctIds': [ accountId ],
-            'conids': [ this.parseToInt (market['id']) ], // only one conid at a time is supported
+            'conids': [ this.parseToInt (this.safeString (market, 'id')) ], // only one conid at a time is supported
             'currency': currency,
             'days': days,
         };
