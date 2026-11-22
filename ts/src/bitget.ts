@@ -8234,13 +8234,14 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const symbol = this.safeString (params, 'symbol');
-        let paramsOmitted: Dict = this.omit (params, 'symbol');
+        const paramsNoSymbol: Dict = this.omit (params, 'symbol');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         let marketType: Str = undefined;
-        [ marketType, paramsOmitted ] = this.handleMarketTypeAndParams ('fetchLedger', market, paramsOmitted);
+        let paramsOmitted: NullableDict = undefined;
+        [ marketType, paramsOmitted ] = this.handleMarketTypeAndParams ('fetchLedger', market, paramsNoSymbol);
         let uta: Bool = undefined;
         [ uta, paramsOmitted ] = await this.handleUTAAndParams (paramsOmitted, 'fetchLedger', false);
         let paginate = false;
