@@ -893,7 +893,7 @@ export default class polymarket extends Exchange {
                 const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict (ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcome() could not resolve mkt');
                     }
@@ -953,7 +953,7 @@ export default class polymarket extends Exchange {
                 const rawMarkets = (response !== undefined) ? response : [];
                 const ccxtMarkets = this.parseEventToMarkets ({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
-                    const mkt = ccxtMarkets[i];
+                    const mkt = this.safeDict (ccxtMarkets, i);
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve mkt');
                     }
@@ -2521,7 +2521,7 @@ export default class polymarket extends Exchange {
                 }
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
-                const m = ccxtMarkets[mi];
+                const m = this.safeDict (ccxtMarkets, mi);
                 if (m === undefined) {
                     throw new ExchangeError (this.id + ' fetchEvents() missing m');
                 }
