@@ -4410,7 +4410,8 @@ export default class gate extends Exchange {
                 type = Precise.stringGt (amountString, '0') ? 'deposit' : 'withdrawal';
                 amountString = Precise.stringAbs (amountString);
             } else {
-                type = this.parseTransactionType (id[0]);
+                const idPrefix: Str = id.slice (0, 1);
+                type = this.parseTransactionType (idPrefix);
             }
         }
         const feeCostString = this.safeString2 (transaction, 'fee', 'fee_amount');
