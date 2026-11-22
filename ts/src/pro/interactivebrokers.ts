@@ -508,7 +508,8 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
+        const historyMarketId: string = this.safeString (market, 'id', '');
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe;
@@ -518,7 +519,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (market['id'], params);
         await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
-        const historyHash = 'smh::' + market['id'] + '::' + timeframe;
+        const historyHash = 'smh::' + historyMarketId + '::' + timeframe;
         if (!(historyHash in client.subscriptions)) {
             if (!(unifiedSymbol in this.ohlcvs)) {
                 this.ohlcvs[unifiedSymbol] = {};
@@ -539,7 +540,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 // no 'format', the bars carry the "t" timestamp only with the default format
             };
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            const request = 'smh+' + market['id'] + '+' + this.json (this.keysort (this.extend (historyRequest, query)));
+            const request = 'smh+' + historyMarketId + '+' + this.json (this.keysort (this.extend (historyRequest, query)));
             await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
         }
         const ohlcv = await future;
@@ -563,10 +564,11 @@ export default class interactivebrokers extends interactivebrokersRest {
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const unifiedSymbol = market['symbol'];
+        const unifiedSymbol: string = this.safeString (market, 'symbol', '');
+        const historyMarketId: string = this.safeString (market, 'id', '');
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const subHashes = [ 'ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + market['id'] + '::' + timeframe ];
+        const subHashes = [ 'ohlcv::' + unifiedSymbol + '::' + timeframe, 'smh::' + historyMarketId + '::' + timeframe ];
         const subscription: Dict = {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ unifiedSymbol, timeframe ] ],
