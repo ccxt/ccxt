@@ -1271,7 +1271,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         for ($i = 0; $i < count($args); $i++) {
             $rawTrade = $args[$i];
             $trade = $this->parse_trade($rawTrade);
-            $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
+            $tradeTimestamp = $trade['timestamp'];
             if (($threshold !== null) && ($tradeTimestamp !== null) && ($tradeTimestamp < $threshold)) {
                 continue;
             }
