@@ -21222,17 +21222,6 @@ const R84J1_OBJECT_ARG_READERS = new Set ([
     'safeDictN', 'safeList', 'safeList2', 'safeListN', 'safeValue', 'safeValue2', 'safeValueN',
 ]);
 
-// the `clone` member resolves to the base field alias `clone = clone` (ts/src/base/Exchange.ts)
-function r93j1BaseCloneCall (printer, call) {
-    try {
-        const declaration = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
-        return declaration !== undefined && ts.isPropertyDeclaration (declaration)
-            && /[\\/]ts[\\/]src[\\/]base[\\/]Exchange\.ts$/.test (declaration.getSourceFile ().fileName);
-    } catch (e) {
-        return false;
-    }
-}
-
 // 'native' | 'same' | undefined (= refuse)
 // a defaulted `Market`/`Dict` slot the printer declares the json box (its argument prints a Map conversion)
 function r84j1OptionalMapSlot (printer, call, at) {
@@ -21288,10 +21277,6 @@ function r84j1BoxUse (printer, n) {
                 return 'same';
             }
             if (isThisCall (parent) && R84J1_OBJECT_ARG_READERS.has (method) && resolvesToBaseOrStrippedAccessor (printer, parent, method)) {
-                return 'same';
-            }
-            // (93j1) base `clone` (hand-written `clone(Object)`, never overridden in ts/src) takes the box as is
-            if (isThisCall (parent) && method === 'clone' && parent.arguments.length === 1 && r93j1BaseCloneCall (printer, parent)) {
                 return 'same';
             }
         }

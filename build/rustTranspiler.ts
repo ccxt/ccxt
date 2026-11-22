@@ -62,22 +62,6 @@ function closeBracket(src: string, open: number): number {
 type Edit = { start: number, end: number, text: string };
 
 
-/** Bare identifier used as a key, or undefined. */
-function identKey(keyText: string): string | undefined {
-    const m = /^&?([A-Za-z_][A-Za-z0-9_]*)$/.exec(keyText.trim());
-    return m === null ? undefined : m[1];
-}
-
-/** Split `get_value(&RECV, &KEY)` at `callStart`; returns [recvEnd, close]. */
-function callArgs(masked: string, callStart: number, recv: string): [number, number] | undefined {
-    const head = 'get_value(&' + recv;
-    if (masked.slice(callStart, callStart + head.length) !== head) return undefined;
-    const afterRecv = callStart + head.length;
-    if (masked[afterRecv] !== ',') return undefined;
-    const close = closeBracket(masked, masked.indexOf('(', callStart));
-    if (close < 0) return undefined;
-    return [afterRecv, close];
-}
 
 
 // ---- native insert ----
@@ -2943,22 +2927,6 @@ function boolCalleeRetExprs (region: BoolCalleeRegion): string[] | undefined {
     return rets;
 }
 
-function boolCalleeSafeBoolDefault (call: string): boolean | undefined {
-    const open = call.indexOf('(');
-    const close = boolCalleeClose(call, open);
-    if (close < 0) return undefined;
-    const inner = call.slice(open + 1, close);
-    const listAt = inner.lastIndexOf('&[');
-    if (listAt < 0) return undefined;
-    const list = boolCalleeStrip(inner.slice(listAt));
-    if (!list.startsWith('&[') || !list.endsWith(']')) return undefined;
-    const items = list.slice(2, -1).trim();
-    if (items === '') return true;
-    const one = boolCalleeStrip(items);
-    if (/^Value::Bool\((?:true|false)\)$/.test(one)) return true;
-    if (one === 'Value::Null') return true;
-    return undefined;
-}
 
 // Hand-written (non-generated) helpers whose every return is `Value::Bool`:
 // exchange_stubs.rs `in_array`/`is_json_encoded_object`.
@@ -3005,9 +2973,6 @@ function boolCalleeVariant (expr: string, masked: string, byName: Map<string, Bo
     const call = /^self\.([a-z_][a-z0-9_]*)\s*\(/.exec(e);
     if (call !== null && boolCalleeClose(e, 'self.'.length + call[1].length) === e.length - 1) {
         if (BOOL_CALLEE_BASE.test(call[1])) return new Set<any>(['bool']);
-        if (/^safe_bool(_2|_k)?$/.test(call[1])) {
-            return boolCalleeSafeBoolDefault(e) === true ? new Set<any>(['bool', 'null']) : undefined;
-        }
         return boolCalleeReturnVariant(call[1], masked, byName, depth + 1, visiting);
     }
     return undefined;
@@ -3346,18 +3311,6 @@ function fnSpan(src: string, at: number): [number, number] {
     return [start, src.length];
 }
 
-/** How a `&ident` key may be lowered, or '' when the local's type is unproven. */
-function identKeyArg(body: string, ident: string, header: string): string {
-    const asStr = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*String\\s*=');
-    const asVal = new RegExp('\\blet\\s+(?:mut\\s+)?' + ident + '\\s*:\\s*Value\\s*=');
-    if (asStr.test(body)) return ident + '.clone()';
-    if (asVal.test(body)) return 'crate::runtime::stringify_param(&' + ident + ')';
-    const paramVal = new RegExp('(?:^|[(,]\\s*)(?:mut\\s+)?' + ident + '\\s*:\\s*Value\\b');
-    const paramStr = new RegExp('(?:^|[(,]\\s*)(?:mut\\s+)?' + ident + '\\s*:\\s*String\\b');
-    if (paramStr.test(header)) return ident + '.clone()';
-    if (paramVal.test(header)) return 'crate::runtime::stringify_param(&' + ident + ')';
-    return '';
-}
 
 interface FieldChainRw { start: number, end: number, text: string }
 
@@ -3383,13 +3336,7 @@ function runPass(content: string): string {
         if (lit !== null) {
             keyArg = '"' + lit[1] + '".to_string()';
         } else {
-            const ident = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(raw[1]);
-            if (ident === null) continue;
-            const [fnStart, fnEnd] = fnSpan(masked, m.index);
-            const headerEnd = masked.indexOf('\n', fnStart + 1);
-            const header = masked.slice(fnStart, headerEnd < 0 ? fnEnd : headerEnd);
-            keyArg = identKeyArg(masked.slice(fnStart, m.index), ident[1], header);
-            if (keyArg === '') continue;
+            continue;
         }
         const text = 'if let Value::Dict(__r05d) = ' + raw[0]
             + ' { std::sync::Arc::make_mut(__r05d).insert(' + keyArg + ', ' + value + '); }';
@@ -8165,7 +8112,6 @@ function typeGateTupleTernaries(content: string): string {
         const seen: string[] = [];
         const body = rest.replace(new RegExp(String.raw`\b${n}\.get\(([01])\)\.cloned\(\)\.unwrap_or\(Value::Null\)(\.into_dict\(\))?`, 'g'), (_r, i, d) => {
             seen.push(i);
-            const h30r03 = h30r03TernarySlot(expr, n, i, d); if (h30r03 !== undefined) return h30r03;
             return i === '1' ? (d ? `${n}.1` : `Value::Dict(${n}.1)`) : `${n}.0${d ?? ''}`;
         });
         const left = body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), '');
@@ -8314,7 +8260,6 @@ function rustTypedVenueBuilders (content: string, venue: string): string {
             const close = balancedCloseIndex (content, s + m0len (fn));
             if (close >= content.length) continue;
             const before = content.slice (content.lastIndexOf ('\n', s) + 1, s);
-            if (/^ *return $/.test (before) && typedReturnOwner (content, s, typed)) continue;
             const rest = content.slice (close + 1);
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
             else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
@@ -8323,12 +8268,6 @@ function rustTypedVenueBuilders (content: string, venue: string): string {
     return content;
 }
 const m0len = (fn: string) => 'self.'.length + fn.length + 1;
-// the fn holding position `at` is one of the typed signing fns (its `return self.x(..)` already answers Dict)
-function typedReturnOwner (content: string, at: number, typed: Set<string>): boolean {
-    const h = content.lastIndexOf ('\n    pub fn ', at);
-    const name = /^\n    pub fn (\w+)\(/.exec (content.slice (h, h + 80));
-    return !!name && typed.has (name[1]) && content.slice (h, at).includes (') -> crate::value::Dict {');
-}
 // `account()` always builds the three-key `{ free, used, total }` literal, so it returns `Dict`: `.into_dict()` drops,
 // an owned-map copy unwraps the fresh Arc, any other use (dispatch arm, `Value` locals, arguments) boxes it.
 function rustTypedAccountBuilder (content: string): string {
@@ -18259,11 +18198,5 @@ function h30r03DictSlot0Bodies(input: string): string {
         });
         return ok ? `${sig}(crate::value::Dict, crate::value::Dict)${open}${typed}\n}` : whole;
     });
-}
-// a gate ternary binds its tuple only when both arms are `dict_` rows: slot 0 then reads as the dict pair's map
-function h30r03TernarySlot(expr: string, n: string, i: string, d: string | undefined): string | undefined {
-    const called = [...expr.matchAll(/(?:self|exchange)(?:\.parent)?\.(\w+)\(/g)].map(m => m[1]).filter(f => RUST_TUPLE_VENUE_FAM.has(f));
-    if (i !== '0' || called.length === 0 || !called.every(f => RUST_TUPLE_VENUE_FAM.get(f) === 'dict_')) return undefined;
-    return d ? `${n}.0` : `Value::Dict(${n}.0)`;
 }
 // ===== end h30-H30-R03
