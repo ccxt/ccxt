@@ -1195,18 +1195,13 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position map[string]any = this.ParseWsPosition(this.SafeDict(data, i, map[string]any{}))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(data, i, map[string]any{})))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		if channelName != nil {
 			client.(ccxt.ClientInterface).Resolve(position, *channelName+":"+*this.SafeString(position, "symbol", ""))
 		}
 	}
-}
-func (this *Blofin) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	return ccxt.PositionToMap(this.ParsePosition(position, market))
 }
 
 /**

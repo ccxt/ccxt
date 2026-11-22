@@ -1065,7 +1065,7 @@ func (this *Okx) HandleTicker(client any, message map[string]any) {
 	var data, _ = message["data"].([]any)
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i]))
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, i, map[string]any{})))
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}

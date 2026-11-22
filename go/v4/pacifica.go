@@ -2349,8 +2349,9 @@ func (this *Pacifica) CreateOrdersRequest(orders []map[string]any, optionalArgs 
 		var side *string = this.SafeString(order, "side")
 		var price *string = this.SafeString(order, "price")
 		var typeVar *string = this.SafeString(order, "type", "limit")
-		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
-		orderParams["timestamp"] = timestamp
+		var orderParams map[string]any = this.Extend(this.SafeDict(order, "params", map[string]any{}), map[string]any{
+			"timestamp": timestamp,
+		})
 		var amount *string = this.SafeString(order, "amount")
 		var amountNumber *float64 = this.ParseNumber(amount)
 		var priceNumber *float64 = this.ParseNumber(price)
@@ -2906,11 +2907,11 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes211419 []any = r1.Value
-		if retRes211419 == nil {
+		var retRes211319 []any = r1.Value
+		if retRes211319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes211319)}
 		}
 		return nil
 	}
@@ -3339,11 +3340,11 @@ func (this *Pacifica) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes237819 []any = r1.Value
-		if retRes237819 == nil {
+		var retRes237719 []any = r1.Value
+		if retRes237719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes237719)}
 		}
 		return nil
 	}
@@ -3507,7 +3508,7 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	var lastIdx int = len(sorted)
 	if lastIdx > 0 {
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(sorted[0], market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(sorted, 0, map[string]any{}), market)}
 		return nil
 	}
 
@@ -3796,7 +3797,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(data[i], nil)))
+		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(data, i, map[string]any{}), nil)))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
@@ -4374,11 +4375,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311219 []any = r1.Value
-		if retRes311219 == nil {
+		var retRes311119 []any = r1.Value
+		if retRes311119 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311119)}
 		}
 		return nil
 	}
@@ -4690,11 +4691,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333019 []any = r1.Value
-		if retRes333019 == nil {
+		var retRes332919 []any = r1.Value
+		if retRes332919 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333019)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes332919)}
 		}
 		return nil
 	}
@@ -5256,16 +5257,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	var literal372515 map[string]any = map[string]any{
+	var literal372415 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if requestBody != nil {
-		literal372515["body"] = *requestBody
+		literal372415["body"] = *requestBody
 	}
-	return literal372515
+	return literal372415
 }
 func (this *Pacifica) CalculateRateLimiterCost(api any, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

@@ -1529,7 +1529,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[Order], id string, o
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
+func (this *Btcmarkets) CalculateFee(symbol string, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @name btcmarkets#calculateFee

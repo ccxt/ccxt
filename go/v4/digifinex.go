@@ -2891,12 +2891,11 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 	var symbolsById map[string]any = map[string]any{}
 	var marketType *string = nil
 	for i := 0; i < len(orders); i++ {
-		var order map[string]any = orders[i]
-		var id *string = this.SafeString(order, "id")
+		var id *string = this.SafeString(orders[i], "id")
 		if id == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires an id for each order"))
 		}
-		var symbol *string = this.SafeString(order, "symbol")
+		var symbol *string = this.SafeString(orders[i], "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrdersForSymbols() requires a symbol for each order"))
 		}
@@ -4133,11 +4132,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes310815 []any = TransactionsToList(r.Value)
-	if retRes310815 == nil {
+	var retRes310715 []any = TransactionsToList(r.Value)
+	if retRes310715 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310715)}
 	}
 	return nil
 }
@@ -4174,11 +4173,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312315 []any = TransactionsToList(r.Value)
-	if retRes312315 == nil {
+	var retRes312215 []any = TransactionsToList(r.Value)
+	if retRes312215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes312315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes312215)}
 	}
 	return nil
 }
@@ -4639,9 +4638,9 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan AsyncResult[CrossBorrowR
 	data, _ = response["list"].([]any)
 	var result any = nil
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
-		if this.SafeString(entry, "currency") != nil && *this.SafeString(entry, "currency") == code {
-			result = entry
+		var entryCurrency string = *this.SafeString(data[i], "currency", "")
+		if entryCurrency == code {
+			result = data[i]
 		}
 	}
 	var currency map[string]any = this.Currency(code)
@@ -5201,7 +5200,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	var positions []any = SafeListTyped(response, positionRequest)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(positions[i], market)))
+		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}), market)))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
@@ -5324,12 +5323,7 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 		dataRequest = "data"
 	}
 	var data []any = SafeListTyped(response, dataRequest)
-	var position map[string]any
-	if len(data) > 0 {
-		position = PositionToMap(this.ParsePosition(data[0], market))
-	} else {
-		position = PositionToMap(this.ParsePosition(nil, market))
-	}
+	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(data, 0, map[string]any{}), market))
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- AsyncResult[Position]{Value: PositionFromMap(position)}
@@ -6140,14 +6134,14 @@ func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) ma
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
-	var ternaryStr459120 string = "reduce"
+	var ternaryStr459020 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		ternaryStr459120 = "add"
+		ternaryStr459020 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "swap"),
-		"type":       ternaryStr459120,
+		"type":       ternaryStr459020,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,

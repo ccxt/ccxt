@@ -1438,13 +1438,18 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan AsyncResult[Ticker], symbol s
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	tickerPromiseA := this.FetchTickerV1Async(symbol, params)
-	tickerPromiseB := this.FetchTickerV2Async(symbol, params)
-	r := <-PromiseAllTyped[Ticker, AsyncResult[Ticker]](tickerPromiseA, tickerPromiseB)
+
+	r := <-this.LoadMarketsAsync()
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var tickerAtickerBVariable []map[string]any = StructSliceToMaps(r.Value, TickerToMap)
+	tickerPromiseA := this.FetchTickerV1Async(symbol, params)
+	tickerPromiseB := this.FetchTickerV2Async(symbol, params)
+	r1 := <-PromiseAllTyped[Ticker, AsyncResult[Ticker]](tickerPromiseA, tickerPromiseB)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var tickerAtickerBVariable []map[string]any = StructSliceToMaps(r1.Value, TickerToMap)
 	var tickerA any = nil
 	if tickerAtickerBVariable[0] != nil {
 		tickerA = tickerAtickerBVariable[0]

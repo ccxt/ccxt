@@ -3014,7 +3014,11 @@ func (this *Modetrade) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 		ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(response)), extendParams))}
 		return nil
 	}
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(data)), extendParams))}
 	return nil

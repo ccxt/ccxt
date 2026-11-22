@@ -3044,7 +3044,7 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
 		// if (isSpot) {
 		//     parsed = this.parseWsSpotOrder (rawOrders[i])
 		// } else {

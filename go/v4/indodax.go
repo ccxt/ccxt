@@ -823,10 +823,9 @@ func (this *Indodax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	var parsedTickers map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = TickerToMap(this.ParseTicker(rawTicker, market))
+		var parsed map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(tickers, key, map[string]any{}), market))
 		parsedTickers[marketId] = parsed
 	}
 
@@ -1081,7 +1080,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.SafeInteger(order, "submit_time")
 	var fee any = nil
 	var id *string = this.SafeString(order, "order_id")
-	var literal85631 map[string]any = map[string]any{
+	var literal85531 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1105,18 +1104,18 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             nil,
 	}
 	if cost != nil {
-		literal85631["cost"] = *cost
+		literal85531["cost"] = *cost
 	}
 	if amount != nil {
-		literal85631["amount"] = *amount
+		literal85531["amount"] = *amount
 	}
 	if filled != nil {
-		literal85631["filled"] = *filled
+		literal85531["filled"] = *filled
 	}
 	if remaining != nil {
-		literal85631["remaining"] = *remaining
+		literal85531["remaining"] = *remaining
 	}
-	return this.SafeOrder(literal85631)
+	return this.SafeOrder(literal85531)
 }
 
 /**
@@ -1869,9 +1868,9 @@ func (this *Indodax) ParseTransaction(transaction map[string]any, optionalArgs .
 			"rate":     nil,
 		}
 	}
-	var ternaryStr140720 string = "deposit"
+	var ternaryStr140620 string = "deposit"
 	if depositId == nil {
-		ternaryStr140720 = "withdraw"
+		ternaryStr140620 = "withdraw"
 	}
 	return TransactionFromMap(map[string]any{
 		"id":          this.SafeString2(transaction, "withdraw_id", "deposit_id"),
@@ -1883,7 +1882,7 @@ func (this *Indodax) ParseTransaction(transaction map[string]any, optionalArgs .
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type":        ternaryStr140720,
+		"type":        ternaryStr140620,
 		"currency":    this.SafeCurrencyCode(nil, currency),
 		"status":      this.ParseTransactionStatus(status),
 		"updated":     nil,

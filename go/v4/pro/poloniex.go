@@ -369,6 +369,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		panic(r1.Err)
 	}
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.Market(symbol))
+	var precisionSymbol string = market.Symbol
 	var uppercaseType string = strings.ToUpper(typeVar)
 	if false {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
@@ -409,7 +410,7 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		}
 		request["amount"] = quoteAmount
 	} else {
-		request["quantity"] = this.AmountToPrecision(market.Symbol, amount)
+		request["quantity"] = this.AmountToPrecision(precisionSymbol, amount)
 		if price != nil {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -1574,9 +1575,9 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string
 						previousOrder["trades"] = []any{}
 					}
 				}
-				retRes104720 := previousOrder["trades"]
-				ccxt.AppendToArray(&retRes104720, trade)
-				ccxt.AddElementToObject(previousOrder, "trades", retRes104720)
+				retRes104820 := previousOrder["trades"]
+				ccxt.AppendToArray(&retRes104820, trade)
+				ccxt.AddElementToObject(previousOrder, "trades", retRes104820)
 				if previousOrder != nil {
 					if ptrValue := this.SafeInteger(trade, "timestamp"); ptrValue != nil {
 						previousOrder["lastTradeTimestamp"] = *ptrValue

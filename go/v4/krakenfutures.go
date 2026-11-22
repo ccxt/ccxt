@@ -574,8 +574,9 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var future bool = (typeVar == "future")
 		var symbol *string = id
 		var split []string = strings.Split(*id, "_")
-		var splitMarket *string = this.SafeString(split, 1, "")
-		var baseId string = Slice(splitMarket, 0, len(*splitMarket)-3)
+		var splitMarket string = *this.SafeString(split, 1, "")
+		var baseIdLength int64 = int64(len(splitMarket)) - 3
+		var baseId string = splitMarket[0:min(baseIdLength+int64(len(splitMarket))*min(max(-baseIdLength, 0), 1), int64(len(splitMarket)))]
 		var quoteId string = "usd" // always USD
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
@@ -611,7 +612,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 				symbol = &symbolStr2
 			}
 		}
-		var literal50225 map[string]any = map[string]any{
+		var literal50325 map[string]any = map[string]any{
 			"id":                    id,
 			"symbol":                symbol,
 			"base":                  base,
@@ -665,12 +666,12 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			"info":    market,
 		}
 		if settle != nil {
-			literal50225["settle"] = *settle
+			literal50325["settle"] = *settle
 		}
 		if settleId != nil {
-			literal50225["settleId"] = *settleId
+			literal50325["settleId"] = *settleId
 		}
-		result = append(result, literal50225)
+		result = append(result, literal50325)
 	}
 	var settlementCurrencies []any = SafeListTyped(this.SafeDict(this.Options, "settlementCurrencies", map[string]any{}), "flex")
 	var currencies []any = []any{}
@@ -976,7 +977,7 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	}
 	var high *string = this.SafeString(ticker, "high24h")
 	var low *string = this.SafeString(ticker, "low24h")
-	var literal78132 map[string]any = map[string]any{
+	var literal78232 map[string]any = map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1001,9 +1002,9 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if baseVolume != nil {
-		literal78132["baseVolume"] = *baseVolume
+		literal78232["baseVolume"] = *baseVolume
 	}
-	return this.SafeTicker(literal78132)
+	return this.SafeTicker(literal78232)
 }
 
 /**
@@ -1183,11 +1184,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes93119 []any = r1.Value
-		if retRes93119 == nil {
+		var retRes93219 []any = r1.Value
+		if retRes93219 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes93119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes93219)}
 		}
 		return nil
 	}
@@ -1322,11 +1323,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes102619 []any = r1.Value
-		if retRes102619 == nil {
+		var retRes102719 []any = r1.Value
+		if retRes102719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102719)}
 		}
 		return nil
 	}
@@ -1593,7 +1594,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"rate":     feeRate,
 		}
 	}
-	var literal127031 map[string]any = map[string]any{
+	var literal127131 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"symbol":       this.SafeString(marketResolved, "symbol"),
@@ -1608,11 +1609,11 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if linear != nil && *linear {
-		literal127031["amount"] = amount
+		literal127131["amount"] = amount
 	} else {
-		literal127031["amount"] = nil
+		literal127131["amount"] = nil
 	}
-	return this.SafeTrade(literal127031)
+	return this.SafeTrade(literal127131)
 }
 func (this *Krakenfutures) CreateOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
@@ -3154,7 +3155,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")
 	}
-	var literal247531 map[string]any = map[string]any{
+	var literal247631 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       this.SafeStringN(details, []any{"clientOrderId", "clientId", "cliOrdId"}),
@@ -3182,15 +3183,15 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              trades,
 	}
 	if price != nil {
-		literal247531["price"] = *price
+		literal247631["price"] = *price
 	}
 	if cost != nil {
-		literal247531["cost"] = *cost
+		literal247631["cost"] = *cost
 	}
 	if average != nil {
-		literal247531["average"] = *average
+		literal247631["average"] = *average
 	}
-	return this.SafeOrder(literal247531)
+	return this.SafeOrder(literal247631)
 }
 
 /**
@@ -4389,7 +4390,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Posi
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var literal344834 map[string]any = map[string]any{
+	var literal344934 map[string]any = map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
 		"symbol":                      marketResolved["symbol"],
@@ -4416,9 +4417,9 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Posi
 		"percentage":                  nil,
 	}
 	if datetime != nil {
-		literal344834["datetime"] = *datetime
+		literal344934["datetime"] = *datetime
 	}
-	return this.SafePosition(literal344834)
+	return this.SafePosition(literal344934)
 }
 
 /**

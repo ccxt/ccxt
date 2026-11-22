@@ -2918,7 +2918,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan AsyncResult[map[string]Ticker],
 		var marketId string = baseId + delimiter + quoteId
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		result[symbol] = TickerToMap(this.ParseTicker(rates[baseId], market))
+		result[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(rates, baseId, map[string]any{}), market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}

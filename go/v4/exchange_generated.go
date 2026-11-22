@@ -3068,7 +3068,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 		"cost":     this.ParseNumber(cost),
 	}
 }
-func (this *BaseExchange) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
+func (this *BaseExchange) CalculateFee(symbol string, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	/**
 	 * @method
 	 * @description calculates the presumptive fee that would be charged for an order
@@ -4620,7 +4620,7 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) []a
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
-		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positionsArray[i])), params)
+		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(this.SafeDict(positionsArray, i, map[string]any{}))), params)
 		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -6711,8 +6711,8 @@ func (this *BaseExchange) CostToPrecision(symbol any, cost any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	retStr := this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(cost, TRUNCATE, this.SafeString2(market["precision"], "cost", "price"), this.PrecisionMode, this.PaddingMode)
+	return &retStrVal
 }
 func (this *BaseExchange) PriceToPrecision(symbol any, price any) *string {
 	if IsEqual(price, nil) {
@@ -6754,8 +6754,8 @@ func (this *BaseExchange) FeeToPrecision(symbol any, fee any) *string {
 	}
 
 	var market map[string]any = this.DerivedExchange.Market(symbol)
-	retStr := this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(fee, ROUND, GetValue(market["precision"], "price"), this.PrecisionMode, this.PaddingMode)
+	return &retStrVal
 }
 func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ...any) *string {
 	var networkCode *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6774,8 +6774,8 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 		return SafeStringPtr(this.ForceString(fee))
 	} else {
 		var roundingMode *int64 = this.SafeInteger(this.Options, "currencyToPrecisionRoundingMode", ROUND)
-		retStr := this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode)
-		return &retStr
+		retStrVal := this.DecimalToPrecision(fee, roundingMode, precision, this.PrecisionMode, this.PaddingMode)
+		return &retStrVal
 	}
 }
 func (this *BaseExchange) ForceString(value any) any {
@@ -6803,23 +6803,23 @@ func (this *BaseExchange) ParsePrecision(precision any) *string {
 	var precisionNumber int64 = ParseInt(precision)
 
 	if precisionNumber == 0 {
-		retStr := "1"
-		return &retStr
+		retStrVal := "1"
+		return &retStrVal
 	}
 	if precisionNumber > 0 {
 		var parsedPrecision string = "0."
 		for i := 0; int64(i) < precisionNumber-1; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		retStr2 := parsedPrecision + "1"
-		return &retStr2
+		retStrVal := parsedPrecision + "1"
+		return &retStrVal
 	} else {
 		var parsedPrecision string = "1"
 		for i := 0; int64(i) < int64(-1)-precisionNumber; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		retStr3 := parsedPrecision + "0"
-		return &retStr3
+		retStrVal := parsedPrecision + "0"
+		return &retStrVal
 	}
 }
 func (this *BaseExchange) IntegerPrecisionToAmount(precision *string) *string {
@@ -6846,8 +6846,8 @@ func (this *BaseExchange) IntegerPrecisionToAmount(precision *string) *string {
 		for i := 0; int64(i) < positivePrecision-1; i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
-		retStr := parsedPrecision + "0"
-		return &retStr
+		retStrVal := parsedPrecision + "0"
+		return &retStrVal
 	}
 }
 func (this *BaseExchange) LoadTimeDifferenceAsync(optionalArgs ...any) <-chan AsyncResult[int64] {

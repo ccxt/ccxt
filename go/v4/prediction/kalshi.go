@@ -411,10 +411,10 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 	var eventsDict map[string]any = map[string]any{}
 	var cursor *string = nil
 	// don't request a full 1000-market page (3+ MB) when the caller wants fewer
-	var pageLimit *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 1000)
-	var limit *int64 = pageLimit
-	if pageLimit != nil && (maxMarkets == nil || *maxMarkets < *pageLimit) {
-		limit = maxMarkets
+	var pageLimit int64 = *this.SafeInteger(this.Options, "marketsPageLimit", 1000)
+	var limit int64 = pageLimit
+	if maxMarkets == nil || *maxMarkets < pageLimit {
+		limit = *maxMarkets
 	}
 	// default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
 	// an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
@@ -467,7 +467,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 		}
 		cursor = this.SafeString(response, "cursor")
 		var collectedLength int = len(flatMarkets)
-		if ((cursor == nil) || (cursor != nil && *cursor == "")) || (limit != nil && int64(rawMarketsLength) < *limit) || (maxMarkets == nil || int64(collectedLength) >= *maxMarkets) {
+		if ((cursor == nil) || (cursor != nil && *cursor == "")) || (int64(rawMarketsLength) < limit) || (maxMarkets == nil || int64(collectedLength) >= *maxMarkets) {
 			break
 		}
 	}
@@ -740,7 +740,7 @@ func (this *Kalshi) HandleErrors(code int64, reason string, url string, method s
 	}
 	return nil
 }
-func (this *Kalshi) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
+func (this *Kalshi) CalculateFee(symbol string, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	// kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
 	// peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
 	// coefficient; compute the real per-contract formula here so fee estimates are accurate
@@ -1651,13 +1651,13 @@ func (this *Kalshi) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 			request["end_ts"] = now
 		}
 	} else {
-		var defaultLimit *int64 = this.SafeInteger(this.Options, "defaultFetchOHLCVLimit", 200)
-		var candlesCount int64 = *defaultLimit
+		var defaultLimit int64 = *this.SafeInteger(this.Options, "defaultFetchOHLCVLimit", 200)
+		var candlesCount int64 = defaultLimit
 		if limit != nil {
 			candlesCount = *limit
 		}
 		request["end_ts"] = now
-		request["start_ts"] = (now - (candlesCount * tf))
+		request["start_ts"] = now - (candlesCount * tf)
 	}
 
 	r1 := <-this.KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.Extend(request, params))
@@ -3725,9 +3725,10 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) map[string]any {
 	var apiGroup string = api[0]
 	var access string = api[1]
 	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, this.SafeString(baseUrls, "kalshi", ""))
+	var baseUrlDefault string = *this.SafeString(baseUrls, "kalshi", "")
+	var baseUrl string = *this.SafeString(baseUrls, apiGroup, baseUrlDefault)
 	var implodedPath string = this.ImplodeParams(path, params)
-	var url string = *baseUrl + "/" + implodedPath
+	var url string = baseUrl + "/" + implodedPath
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.Urlencode(query)
 	if (method == "GET") && (querystring != "") {
@@ -3745,8 +3746,8 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) map[string]any {
 		// Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
 		// INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
 		// the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-		var tradeApiIndex int = strings.Index(*baseUrl, "/trade-api")
-		var versionPrefix string = ccxt.Slice(baseUrl, tradeApiIndex, nil)
+		var tradeApiIndex int = strings.Index(baseUrl, "/trade-api")
+		var versionPrefix string = baseUrl[max(tradeApiIndex+len(baseUrl)*min(max(-tradeApiIndex, 0), 1), 0):]
 		var pathForSigning string = versionPrefix + "/" + implodedPath
 		var payload string = timestamp + method + pathForSigning
 		// RSA-PSS SHA-256 signature with the private key PEM

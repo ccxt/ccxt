@@ -639,7 +639,7 @@ func (this *Bullish) HandleOrders(client any, message map[string]any) {
 		var orders ccxt.WsArrayCache = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawOrders); i++ {
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
 			orders.Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {
@@ -1050,7 +1050,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	var positions ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositions[i]))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, i, map[string]any{})))
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}

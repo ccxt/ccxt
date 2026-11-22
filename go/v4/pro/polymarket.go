@@ -1616,12 +1616,12 @@ func (this *Polymarket) HandleAck(client any, message any) {
 	if errorMessage != nil {
 		error := ccxt.ExchangeError(this.Id + " " + *errorMessage)
 		for i := 0; i < len(messageHashes); i++ {
-			client.(ccxt.ClientInterface).Reject(error, ccxt.DerefScalar(messageHashes[i]))
+			var messageHash any = ccxt.DerefScalar(messageHashes[i])
+			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			// clearing the awaited hash lets a later call resend, and a
 			// failed subscribe must also clear the shared hash the base
 			// watch registered - a failed unsubscribe keeps the live
 			// subscription untouched instead
-			var messageHash any = ccxt.DerefScalar(messageHashes[i])
 			if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
 				client.(ccxt.ClientInterface).SubscriptionDel(messageHash)
 			}

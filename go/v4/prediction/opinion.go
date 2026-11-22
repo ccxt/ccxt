@@ -1941,14 +1941,11 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var result, _ = response["result"].(map[string]any)
 	var trades []any
 	trades, _ = result["list"].([]any)
-	if trades == nil {
-		trades = []any{}
-	}
 	var tradesLength int = len(trades)
+	var filled []any = []any{}
 	for i := 0; i < tradesLength; i++ {
-		var trade any = trades[i]
-		var tokenId *string = this.SafeString(trade, "tokenId")
-		var marketId *int64 = this.SafeInteger(trade, "marketId")
+		var tokenId *string = this.SafeString(trades[i], "tokenId")
+		var marketId *int64 = this.SafeInteger(trades[i], "marketId")
 		if (tokenId == nil) && (marketId != nil) {
 
 			r3 := <-this.LoadTradeMarketAsync(marketId)
@@ -1957,18 +1954,20 @@ func (this *Opinion) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 			}
 			var tradeMarket map[string]any = ccxt.StructResultMap(r3.Value, ccxt.MarketInterfaceToMap)
 			var info, _ = tradeMarket["info"].(map[string]any)
-			var isYes bool = (this.SafeStringLower(trade, "outcomeSideEnum") != nil && *this.SafeStringLower(trade, "outcomeSideEnum") == "yes")
-			var branchValue *string
+			var isYes bool = (this.SafeStringLower(trades[i], "outcomeSideEnum") != nil && *this.SafeStringLower(trades[i], "outcomeSideEnum") == "yes")
+			var extra map[string]any = map[string]any{}
 			if isYes {
-				branchValue = this.SafeString(info, "yesTokenId")
+				extra["tokenId"] = this.SafeString(info, "yesTokenId")
 			} else {
-				branchValue = this.SafeString(info, "noTokenId")
+				extra["tokenId"] = this.SafeString(info, "noTokenId")
 			}
-			ccxt.AddElementToObject(trade, "tokenId", branchValue)
+			filled = append(filled, this.Extend(trades[i], extra))
+		} else {
+			filled = append(filled, trades[i])
 		}
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(trades, outcomeObj, since, limit))}
+	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.ParsePredictionTrades(filled, outcomeObj, since, limit))}
 	return nil
 }
 
@@ -2099,7 +2098,8 @@ func (this *Opinion) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	var response map[string]any = r1.Value
 	var result, _ = response["result"].(map[string]any)
-	var rawBalances []any = ccxt.SafeListTyped(result, "balances")
+	var rawBalances []any
+	rawBalances, _ = result["balances"].([]any)
 	var rawBalancesLength int = len(rawBalances)
 	for i := 0; i < rawBalancesLength; i++ {
 		var rawBalance any = rawBalances[i]

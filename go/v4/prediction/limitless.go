@@ -4091,8 +4091,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "limitless"))
+	var baseUrl *string = this.SafeString(this.Urls["api"], apiGroup, this.SafeString(this.Urls["api"], "limitless", ""))
 	var url string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var querystring string = this.UrlencodeWithArrayRepeat(query)

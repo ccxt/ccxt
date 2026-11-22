@@ -784,8 +784,8 @@ func (this *Bittrade) ParseTradingLimits(limits any, optionalArgs ...any) map[st
 }
 func (this *Bittrade) CostToPrecision(symbol any, cost any) *string {
 	var precision map[string]any = SafeMapTyped(this.Market(symbol), "precision")
-	retStr := this.DecimalToPrecision(cost, TRUNCATE, precision["cost"], this.PrecisionMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(cost, TRUNCATE, precision["cost"], this.PrecisionMode)
+	return &retStrVal
 }
 
 /**

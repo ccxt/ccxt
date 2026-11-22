@@ -277,12 +277,12 @@ func (this *Paradex) UnsubscribedChannels(url string, channels any) []any {
  * @param {object} [params] extra parameters merged into the request
  * @returns {boolean} true once the reply is in
  */
-func (this *Paradex) SendUnsubscribeAsync(url any, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) SendUnsubscribeAsync(url string, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.sendUnsubscribeBody(ch, url, unsubHash, request, subscription, optionalArgs...)
 	return ch
 }
-func (this *Paradex) sendUnsubscribeBody(ch chan ccxt.AsyncResult[any], url any, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) any {
+func (this *Paradex) sendUnsubscribeBody(ch chan ccxt.AsyncResult[any], url string, unsubHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// an error reply rejects the unwatch only, the watchers keep their subscription
@@ -318,12 +318,12 @@ func (this *Paradex) sendUnsubscribeBody(ch chan ccxt.AsyncResult[any], url any,
  * @param {object} [params] extra parameters merged into each unsubscribe request
  * @returns {boolean} true once every channel is unsubscribed
  */
-func (this *Paradex) UnsubscribeChannelsAsync(url any, topic string, channels []any, subMessageHashes any, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) UnsubscribeChannelsAsync(url string, topic string, channels []any, subMessageHashes any, symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unsubscribeChannelsBody(ch, url, topic, channels, subMessageHashes, symbols, optionalArgs...)
 	return ch
 }
-func (this *Paradex) unsubscribeChannelsBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels []any, subMessageHashes any, symbols any, optionalArgs ...any) any {
+func (this *Paradex) unsubscribeChannelsBody(ch chan ccxt.AsyncResult[any], url string, topic string, channels []any, subMessageHashes any, symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// catch block:
@@ -380,12 +380,12 @@ func (this *Paradex) unsubscribeChannelsBody(ch chan ccxt.AsyncResult[any], url 
  * @param {object} [params] extra parameters merged into each unsubscribe request
  * @returns {int} the number of channels refused
  */
-func (this *Paradex) UnsubscribeChannelsFromAsync(url any, topic string, channels []any, subMessageHashes any, symbols any, start any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) UnsubscribeChannelsFromAsync(url string, topic string, channels []any, subMessageHashes any, symbols any, start any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unsubscribeChannelsFromBody(ch, url, topic, channels, subMessageHashes, symbols, start, optionalArgs...)
 	return ch
 }
-func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels []any, subMessageHashes any, symbols any, start any, optionalArgs ...any) any {
+func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], url string, topic string, channels []any, subMessageHashes any, symbols any, start any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -439,12 +439,12 @@ func (this *Paradex) unsubscribeChannelsFromBody(ch chan ccxt.AsyncResult[any], 
  * @param {object} [params] extra parameters merged into the unsubscribe request
  * @returns {boolean} true once unsubscribed
  */
-func (this *Paradex) UnsubscribeChannelAtAsync(url any, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) UnsubscribeChannelAtAsync(url string, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.unsubscribeChannelAtBody(ch, url, topic, channels, subMessageHashes, symbols, index, optionalArgs...)
 	return ch
 }
-func (this *Paradex) unsubscribeChannelAtBody(ch chan ccxt.AsyncResult[any], url any, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) any {
+func (this *Paradex) unsubscribeChannelAtBody(ch chan ccxt.AsyncResult[any], url string, topic string, channels any, subMessageHashes any, symbols any, index any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3124,7 +3124,7 @@ func (this *Paradex) SbeReadUint(frameHex string, offset any, length any) any {
 		var next int64 = position + 2
 		var high int = strings.Index(digits, frameHex[position+int64(len(frameHex))*min(max(-position, 0), 1):min(middle+int64(len(frameHex))*min(max(-middle, 0), 1), int64(len(frameHex)))])
 		var low int = strings.Index(digits, frameHex[middle+int64(len(frameHex))*min(max(-middle, 0), 1):min(next+int64(len(frameHex))*min(max(-next, 0), 1), int64(len(frameHex)))])
-		result = this.ParseToInt(this.Sum(result, ccxt.Multiply(high*16, factor), (int64(low) * factor)))
+		result = this.ParseToInt(this.Sum(result, ((int64(high) * factor) * 16), (int64(low) * factor)))
 		factor = this.ParseToInt(factor * 256)
 		position = this.ParseToInt(next)
 	}

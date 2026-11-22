@@ -3313,12 +3313,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	} else {
 		request["clOrdID"] = clientOrderId
 	}
-	var paramsOmitted map[string]any
-	if clientOrderId != nil {
-		paramsOmitted = this.OmitDict(params, []any{"clOrdID", "clientOrderId"})
-	} else {
-		paramsOmitted = params
-	}
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId"})
 	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"stopPx", "stopPrice", "triggerPrice"})
 	if triggerPrice != nil {
 		if isStableSettled {
@@ -3665,6 +3660,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3679,7 +3675,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	}
 	if price != nil {
 		if isStableSettled {
-			request["priceRp"] = this.PriceToPrecision(market["symbol"], price)
+			request["priceRp"] = this.PriceToPrecision(precisionSymbol, price)
 		} else {
 			request["priceEp"] = this.ToEp(price, market)
 		}
@@ -3691,7 +3687,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		request["baseQtyEV"] = finalQty
 	} else if amount != nil {
 		if isStableSettled {
-			request["orderQtyRq"] = this.AmountToPrecision(market["symbol"], amount)
+			request["orderQtyRq"] = this.AmountToPrecision(precisionSymbol, amount)
 		} else {
 			request["baseQtyEV"] = this.ToEv(amount, market)
 		}
@@ -5316,9 +5312,9 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
-	var ternaryStr426326 string = "isolated"
+	var ternaryStr426426 string = "isolated"
 	if isCross != nil && *isCross {
-		ternaryStr426326 = "cross"
+		ternaryStr426426 = "cross"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5344,7 +5340,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode":                  ternaryStr426326,
+		"marginMode":                  ternaryStr426426,
 		"side":                        side,
 		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":                  nil,
@@ -6079,16 +6075,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	var literal482215 map[string]any = map[string]any{
+	var literal482315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if bodyResolved != nil {
-		literal482215["body"] = *bodyResolved
+		literal482315["body"] = *bodyResolved
 	}
-	return literal482215
+	return literal482315
 }
 
 /**
@@ -6515,11 +6511,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511419 []any = r1.Value
-		if retRes511419 == nil {
+		var retRes511519 []any = r1.Value
+		if retRes511519 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511519)}
 		}
 		return nil
 	}

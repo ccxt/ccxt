@@ -2379,12 +2379,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan AsyncResult[Order], id str
 	} else {
 		request["client_oid"] = clientOrderId
 	}
-	var paramsOmitted map[string]any
-	if clientOrderId != nil {
-		paramsOmitted = this.OmitDict(params, []any{"clientOrderId", "client_oid"})
-	} else {
-		paramsOmitted = params
-	}
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_oid"})
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2697,12 +2692,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	if until != nil {
 		request["end_date"] = this.Iso8601(until)
 	}
-	var paramsUntil map[string]any
-	if until != nil {
-		paramsUntil = this.OmitDict(params, []any{"until"})
-	} else {
-		paramsUntil = params
-	}
+	var paramsUntil map[string]any = this.OmitDict(params, []any{"until"})
 
 	responseRecv := <-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))
 	if responseRecv.Err != nil {

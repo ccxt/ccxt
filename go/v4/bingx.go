@@ -7378,6 +7378,7 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var positionSide *string = this.SafeString(params, "positionSide")
 	if (market["inverse"] == true) && (positionSide == nil) {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a positionSide parameter for Coin-M markets"))
@@ -7386,7 +7387,7 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	if market["inverse"] == true {
 		amountString = this.CurrencyToPrecision(market["settle"], amount)
 	} else {
-		amountString = this.AmountToPrecision(market["symbol"], amount)
+		amountString = this.AmountToPrecision(precisionSymbol, amount)
 	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -7445,14 +7446,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var ternaryStr611220 string = "reduce"
+	var ternaryStr611320 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		ternaryStr611220 = "add"
+		ternaryStr611320 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       ternaryStr611220,
+		"type":       ternaryStr611320,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -8230,7 +8231,8 @@ func (this *Bingx) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 		response = r2.Value
 	}
 	var data, _ = response["data"].(map[string]any)
-	var success []any = SafeListTyped(data, "success")
+	var success []any
+	success, _ = data["success"].([]any)
 	var positions []any = []any{}
 	for i := 0; i < len(success); i++ {
 		var position map[string]any = PositionToMap(this.ParsePosition(map[string]any{
@@ -8896,16 +8898,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal744715 map[string]any = map[string]any{
+	var literal744815 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal744715["body"] = *requestBody
+		literal744815["body"] = *requestBody
 	}
-	return literal744715
+	return literal744815
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

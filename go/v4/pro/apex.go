@@ -1090,11 +1090,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 	var trades ccxt.WsArrayCache = this.MyTrades
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		var rawTrade, _ = lists[i].(map[string]any)
-		if rawTrade == nil {
-			rawTrade = map[string]any{}
-		}
-		var parsed map[string]any = this.ParseWsTrade(rawTrade)
+		var parsed map[string]any = this.ParseWsTrade(this.SafeDict(lists, i, map[string]any{}))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1249,11 +1245,7 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
-		var rawPosition, _ = lists[i].(map[string]any)
-		if rawPosition == nil {
-			rawPosition = map[string]any{}
-		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(lists, i, map[string]any{})))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later

@@ -2279,7 +2279,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var responses []any = r1.Value
 	var symbolsData []any = []any{}
 	if fetchSpotMarkets {
-		symbolsData = ArrayTyped(this.SafeList(GetValue(responses, 0), "data", []any{}))
+		symbolsData = ArrayTyped(this.SafeList(this.SafeDict(responses, 0, map[string]any{}), "data", []any{}))
 	}
 	var crossIndex int = 0
 	var isolatedIndex int = 0
@@ -2304,7 +2304,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	}
 	var crossData any
 	if requestMarginables {
-		crossData = this.SafeDict(GetValue(responses, crossIndex), "data", map[string]any{})
+		crossData = this.SafeDict(this.SafeDict(responses, crossIndex, map[string]any{}), "data", map[string]any{})
 	} else {
 		crossData = map[string]any{}
 	}
@@ -2312,7 +2312,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var crossById map[string]any = this.IndexBy(crossItems, "symbol")
 	var isolatedData any
 	if requestMarginables {
-		isolatedData = GetValue(responses, isolatedIndex)
+		isolatedData = this.SafeDict(responses, isolatedIndex, map[string]any{})
 	} else {
 		isolatedData = map[string]any{}
 	}
@@ -14312,7 +14312,7 @@ func (this *Kucoin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchPosition", "uta", uta)
 	var response map[string]any = nil
-	var position any = nil
+	var position any = map[string]any{}
 	if utaOption != nil && *utaOption {
 		request["accountMode"] = "unified"
 

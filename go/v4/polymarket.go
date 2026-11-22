@@ -1749,7 +1749,7 @@ func (this *Polymarket) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trad
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1760,7 +1760,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 		panic(NotSupported(this.Id + " createOrder() does not support trigger or attached stop orders yet"))
 	}
 	var symbol *string = this.SafeSymbol(nil, market)
-	var isMarketOrder bool = (IsEqual(typeVar, "market"))
+	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var isPostOnlyTimeInForce bool = (timeInForce != nil && *timeInForce == "PO")
 	var postOnly any = false
@@ -1790,7 +1790,7 @@ func (this *Polymarket) CreateOrderRequest(market map[string]any, typeVar any, s
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "c")
 	paramsOmitted = this.OmitDict(paramsOmitted, []any{"timeInForce", "reduceOnly", "clientOrderId"})
 	var instrumentId int64 = this.ParseToInt(market["id"])
-	var isBuy bool = (IsEqual(side, "buy"))
+	var isBuy bool = (side != nil && *side == "buy")
 	var quantity *string = this.AmountToPrecision(symbol, amount)
 	var priceString *string = nil
 	if price != nil {
@@ -2305,12 +2305,13 @@ func (this *Polymarket) editOrderBody(ch chan AsyncResult[Order], id string, sym
 		panic(r.Err)
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	if (amount == nil) || (price == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires both the amount and the price arguments"))
 	}
 	var orderId int64 = this.ParseToInt(id)
-	var priceString *string = this.PriceToPrecision(market["symbol"], price)
-	var quantity *string = this.AmountToPrecision(market["symbol"], amount)
+	var priceString *string = this.PriceToPrecision(precisionSymbol, price)
+	var quantity *string = this.AmountToPrecision(precisionSymbol, amount)
 	var signable []any = []any{"modifyOrders", []any{[]any{orderId, priceString, quantity}}}
 	var bodyOp map[string]any = map[string]any{
 		"type": "modifyOrders",
@@ -2475,7 +2476,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 			takeProfitPrice = triggerValue
 		}
 	}
-	var literal174831 map[string]any = map[string]any{
+	var literal174931 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeString2(order, "order_id", "oid"),
 		"clientOrderId":       this.SafeString2(order, "client_order_id", "coid"),
@@ -2503,12 +2504,12 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}
 	if stopLossPrice != nil {
-		literal174831["stopLossPrice"] = *stopLossPrice
+		literal174931["stopLossPrice"] = *stopLossPrice
 	}
 	if takeProfitPrice != nil {
-		literal174831["takeProfitPrice"] = *takeProfitPrice
+		literal174931["takeProfitPrice"] = *takeProfitPrice
 	}
-	return this.SafeOrder(literal174831, marketResolved)
+	return this.SafeOrder(literal174931, marketResolved)
 }
 
 /**
@@ -3694,11 +3695,11 @@ func (this *Polymarket) setMarginModeBody(ch chan AsyncResult[map[string]any], m
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes251815 map[string]any = r.Value
-	if retRes251815 == nil {
+	var retRes251915 map[string]any = r.Value
+	if retRes251915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes251815}
+		ch <- AsyncResult[map[string]any]{Value: retRes251915}
 	}
 	return nil
 }
@@ -3802,11 +3803,11 @@ func (this *Polymarket) addMarginBody(ch chan AsyncResult[map[string]any], symbo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes258115 map[string]any = r.Value
-	if retRes258115 == nil {
+	var retRes258215 map[string]any = r.Value
+	if retRes258215 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes258115}
+		ch <- AsyncResult[map[string]any]{Value: retRes258215}
 	}
 	return nil
 }
@@ -3836,11 +3837,11 @@ func (this *Polymarket) reduceMarginBody(ch chan AsyncResult[map[string]any], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes259515 map[string]any = r.Value
-	if retRes259515 == nil {
+	var retRes259615 map[string]any = r.Value
+	if retRes259615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes259515}
+		ch <- AsyncResult[map[string]any]{Value: retRes259615}
 	}
 	return nil
 }
@@ -4190,16 +4191,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			headersResolved["POLYMARKET-SECRET"] = this.SafeString(credentials, "secret")
 		}
 	}
-	var literal287215 map[string]any = map[string]any{
+	var literal287315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersResolved,
 	}
 	if bodyResolved != nil {
-		literal287215["body"] = *bodyResolved
+		literal287315["body"] = *bodyResolved
 	}
-	return literal287215
+	return literal287315
 }
 func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {

@@ -192,9 +192,11 @@ func (this *Lighter) subscribePrivateBody(ch chan ccxt.AsyncResult[any], message
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	params["auth"] = this.CreateAuth(params)
+	var request map[string]any = this.Extend(params, map[string]any{
+		"auth": this.CreateAuth(params),
+	})
 
-	r1 := <-this.SubscribePublicAsync(messageHash, params)
+	r1 := <-this.SubscribePublicAsync(messageHash, request)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2003,7 +2005,7 @@ func (this *Lighter) HandleOrders(client any, message map[string]any) bool {
 		var market map[string]any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(orders[j], market))
+			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(orders, j, map[string]any{}), market))
 			stored.Append(order)
 			var symbol *string = this.SafeString(order, "symbol")
 			if symbol != nil {

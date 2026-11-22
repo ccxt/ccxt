@@ -1673,8 +1673,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 			return
 		}
 		for i := 0; i < len(data); i++ {
-			var value any = ccxt.DerefScalar(data[i])
-			var parsed any = this.ParseWsOrder(value)
+			var parsed any = this.ParseWsOrder(ccxt.DerefScalar(data[i]))
 			var symbol *string = this.SafeString(parsed, "symbol", "")
 			if symbol != nil {
 				symbolIds[*symbol] = true

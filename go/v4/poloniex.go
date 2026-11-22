@@ -4606,7 +4606,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	for i := 0; i < len(responseKeys); i++ {
 		var currencyId string = responseKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var feeInfo map[string]any = SafeMapTyped(response, currencyId)
+		var feeInfo, _ = feesById[currencyId].(map[string]any)
 		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
 			var currency map[string]any = this.Currency(code)
 			depositWithdrawFees[*code] = this.ParseDepositWithdrawFee(feeInfo, currency)
@@ -4618,7 +4618,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 					var rawNetworkId string = *this.SafeString(childChains, j, "")
 					var networkId string = strings.Replace(rawNetworkId, *code, "", 1)
 					var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
-					var networkInfo map[string]any = SafeMapTyped(response, networkId)
+					var networkInfo, _ = feesById[networkId].(map[string]any)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
 					var withdrawObject map[string]any = map[string]any{

@@ -2196,8 +2196,8 @@ func (this *Coinbaseinternational) HandleDeltas(bookside any, deltas []any) {
 		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
-func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
-	var error map[string]any = ccxt.SafeMapTyped(message, "error")
+func (this *Coinbaseinternational) HandleErrorMessage(client any, message map[string]any) bool {
+	var error, _ = message["error"].(map[string]any)
 	if error == nil {
 		return false
 	}

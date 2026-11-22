@@ -547,8 +547,8 @@ func (this *Bithumb) SafeMarket(optionalArgs ...any) map[string]any {
 }
 func (this *Bithumb) AmountToPrecision(symbol any, amount any) *string {
 	var market map[string]any = this.Market(symbol)
-	retStr := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(amount, TRUNCATE, this.SafeInteger(market["precision"], "amount"), DECIMAL_PLACES)
+	return &retStrVal
 }
 func (this *Bithumb) GetGen2MarketId(market any) string {
 	var marketId *string = this.SafeString(market, "id")

@@ -673,8 +673,8 @@ func (this *Kraken) Describe() map[string]any {
 func (this *Kraken) FeeToPrecision(symbol any, fee any) *string {
 	var market map[string]any = this.Market(symbol)
 	var marketPrecision, _ = market["precision"].(map[string]any)
-	retStr := this.DecimalToPrecision(fee, TRUNCATE, marketPrecision["amount"], this.PrecisionMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(fee, TRUNCATE, marketPrecision["amount"], this.PrecisionMode)
+	return &retStrVal
 }
 
 /**
@@ -1390,7 +1390,11 @@ func (this *Kraken) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker any = tickers[id]
+		var ticker map[string]any
+		ticker, _ = tickers[id].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
 	}
 
@@ -3182,14 +3186,14 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", []any{})
-	if !(InOp(result, id)) {
+	var result, _ = response["result"].(map[string]any)
+	if _, ok := result[id]; !ok {
 		panic(OrderNotFound(this.Id + " fetchOrder() could not find order id " + id))
 	}
 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, GetValue(result, id)))}
+	}, result[id]))}
 	return nil
 }
 

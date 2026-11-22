@@ -193,15 +193,7 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 		if (symbols == nil) && ((stock != nil && *stock) || (explicitSource != nil && *explicitSource == "External") || (channel != nil)) && (market["stock"] != true) {
 			continue
 		}
-		var marketSelection []any = this.HandleStockParams(methodName, query, market)
-		var marketStock *bool = this.SafeBool(marketSelection, 0, false)
-		var marketParams map[string]any
-		if 1 < len(marketSelection) {
-			marketParams, _ = marketSelection[1].(map[string]any)
-		}
-		if marketParams == nil {
-			marketParams = map[string]any{}
-		}
+		marketStock, marketParams := this.HandleStockParams(methodName, query, market)
 		var isRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
 		var source *string = explicitSource
 		if source == nil {
@@ -1544,7 +1536,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	} else {
 		orderId = this.SafeString(trade, "a")
 	}
-	var literal103131 map[string]any = map[string]any{
+	var literal102931 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -1563,9 +1555,9 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		},
 	}
 	if orderId != nil {
-		literal103131["order"] = *orderId
+		literal102931["order"] = *orderId
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal103131, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal102931, marketResolved))
 }
 
 /**

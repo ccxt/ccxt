@@ -1163,19 +1163,17 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var data, _ = message["feed"].(map[string]any)
-	var position map[string]any = this.ParseWsPosition(data)
+	var data map[string]any
+	data, _ = message["feed"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+	var position map[string]any = ccxt.PositionToMap(this.ParsePosition(data))
 	this.Positions.Append(position)
 	var newPositions []any = []any{}
 	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions::"+*this.SafeString(position, "symbol", ""))
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
-}
-func (this *Grvt) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
-	// same as REST api
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	return ccxt.PositionToMap(this.ParsePosition(position, market))
 }
 
 /**

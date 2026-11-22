@@ -2253,8 +2253,7 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition any = rawPositions[i]
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, i, map[string]any{})))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
@@ -2273,13 +2272,13 @@ func (this *Htx) HandlePositions(client any, message map[string]any) {
 		if marginMode != nil {
 			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		}
-		retRes181912 := func() any {
+		retRes181812 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181912, position)
+		ccxt.AppendToArray(&retRes181812, position)
 		cache.Append(position)
 	}
 	var marginModes []string = nil
@@ -3455,7 +3454,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal287131 map[string]any = map[string]any{
+	var literal287031 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3471,9 +3470,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal287131["type"] = *typeVar
+		literal287031["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal287131, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal287031, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

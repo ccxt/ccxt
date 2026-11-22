@@ -3594,7 +3594,7 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position 
 		"takeProfitPrice":             this.SafeNumber(position, "tpTriggerPrice"),
 	})
 }
-func (this *Extended) GetExtendedStarkAmount(amount any, resolution *int64, optionalArgs ...any) any {
+func (this *Extended) GetExtendedStarkAmount(amount *string, resolution *int64, optionalArgs ...any) any {
 	var roundUp bool = GetArgBool(optionalArgs, 0, false)
 	_ = roundUp
 	var resolutionString *string = this.NumberToString(resolution)
@@ -3632,7 +3632,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan AsyncResult[map[string]an
 	ch <- AsyncResult[map[string]any]{Value: this.SafeDictMap(this.Options, "account", map[string]any{})}
 	return nil
 }
-func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString any, priceString any, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString *string, priceString *string, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var totalFee *string = this.SafeString(params, "totalFee")
@@ -3675,7 +3675,7 @@ func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString any, pr
 	settlement["s"] = s
 	return settlement
 }
-func (this *Extended) CreateWithdrawalSettlementData(address string, amountString any, currency map[string]any, account any, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateWithdrawalSettlementData(address string, amountString *string, currency map[string]any, account any, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
@@ -3709,7 +3709,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address string, amountStrin
 	}
 	return settlement
 }
-func (this *Extended) CreateTransferSettlementData(amountString any, currency map[string]any, account any, toVault string, toL2Key string, optionalArgs ...any) map[string]any {
+func (this *Extended) CreateTransferSettlementData(amountString *string, currency map[string]any, account any, toVault string, toL2Key string, optionalArgs ...any) map[string]any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()

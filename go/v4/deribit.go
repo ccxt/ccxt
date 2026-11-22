@@ -1998,7 +1998,7 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	result, _ = response["result"].([]any)
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(result[i]))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(result, i, map[string]any{})))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -2287,11 +2287,9 @@ func (this *Deribit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 		request["count"] = min(*limit, 1000) // default 10
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
-	var paramsOmitted map[string]any
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{})
 	if until != nil {
 		paramsOmitted = this.OmitDict(params, []any{"until"})
-	} else {
-		paramsOmitted = params
 	}
 	if until != nil {
 		request["end_timestamp"] = until
@@ -3040,7 +3038,7 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
-	var paramsOmitted map[string]any = params
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{})
 	if isTrailingAmountOrder {
 		paramsOmitted = this.OmitDict(paramsOmitted, "trigger_offset")
 	}
@@ -4311,7 +4309,7 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 	var account *string = this.SafeString(transfer, "other_side")
 	var direction *string = this.SafeString(transfer, "direction")
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var literal314415 map[string]any = map[string]any{
+	var literal314715 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        this.SafeString(transfer, "id"),
 		"status":    this.ParseTransferStatus(status),
@@ -4321,16 +4319,16 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) TransferEn
 		"datetime":  this.Iso8601(timestamp),
 	}
 	if direction == nil || *direction != "payment" {
-		literal314415["fromAccount"] = account
+		literal314715["fromAccount"] = account
 	} else {
-		literal314415["fromAccount"] = nil
+		literal314715["fromAccount"] = nil
 	}
 	if direction != nil && *direction == "payment" {
-		literal314415["toAccount"] = account
+		literal314715["toAccount"] = account
 	} else {
-		literal314415["toAccount"] = nil
+		literal314715["toAccount"] = nil
 	}
-	return TransferEntryFromMap(literal314415)
+	return TransferEntryFromMap(literal314715)
 }
 func (this *Deribit) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4593,11 +4591,11 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332719 []any = r1.Value
-		if retRes332719 == nil {
+		var retRes333019 []any = r1.Value
+		if retRes333019 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes332719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333019)}
 		}
 		return nil
 	}
@@ -4766,11 +4764,11 @@ func (this *Deribit) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes344919 []any = r1.Value
-		if retRes344919 == nil {
+		var retRes345219 []any = r1.Value
+		if retRes345219 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes344919)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes345219)}
 		}
 		return nil
 	}

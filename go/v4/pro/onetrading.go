@@ -939,7 +939,7 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
-		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
 		var symbol string = *this.SafeString(order, "symbol", "")
 		orders.Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+symbol)

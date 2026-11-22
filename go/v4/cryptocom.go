@@ -4035,8 +4035,12 @@ func (this *Cryptocom) fetchAccountsBody(ch chan AsyncResult[[]Account], optiona
 	if masterAccount == nil {
 		masterAccount = map[string]any{}
 	}
-	var accounts any = this.SafeList(result, "sub_account_list", []any{})
-	AppendToArray(&accounts, masterAccount)
+	var accounts []any
+	accounts, _ = result["sub_account_list"].([]any)
+	if accounts == nil {
+		accounts = []any{}
+	}
+	accounts = append(accounts, masterAccount)
 
 	ch <- AsyncResult[[]Account]{Value: AccountsFromList(this.ParseAccounts(accounts, params))}
 	return nil
@@ -4487,7 +4491,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 	var data []any
 	data, _ = result["data"].([]any)
 
-	ch <- AsyncResult[Position]{Value: this.ParsePosition(this.SafeDict(data, 0), market)}
+	ch <- AsyncResult[Position]{Value: this.ParsePosition(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 
@@ -4707,6 +4711,7 @@ func (this *Cryptocom) closePositionBody(ch chan AsyncResult[Order], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"type":            "MARKET",
@@ -4717,7 +4722,7 @@ func (this *Cryptocom) closePositionBody(ch chan AsyncResult[Order], symbol stri
 		request["type"] = typeVar
 	}
 	if price != nil {
-		request["price"] = this.PriceToPrecision(market["symbol"], price)
+		request["price"] = this.PriceToPrecision(precisionSymbol, price)
 	}
 
 	r1 := <-this.V1PrivatePostPrivateClosePosition(this.Extend(request, params))
@@ -4926,7 +4931,7 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var requestHeaders map[string]any = nil
-	var requestBody any = nil
+	var requestBody *string = nil
 	var typeVar string = api[0]
 	var access string = api[1]
 	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
@@ -4954,7 +4959,7 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 		var payload *string = SafeStringPtr(Add(Add(path+*nonce+this.ApiKey, strSortKey), nonce))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256)
 		var paramsKeysLength int = len(paramsKeys)
-		requestBody = this.Json(map[string]any{
+		var jsonBody string = this.Json(map[string]any{
 			"id":      nonce,
 			"method":  path,
 			"params":  params,
@@ -4970,18 +4975,24 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 		if paramsKeysLength == 0 {
 			var paramsString string = "{}"
 			var arrayString string = "[]"
-			requestBody = Replace(requestBody, arrayString, paramsString)
+			jsonBody = strings.Replace(jsonBody, arrayString, paramsString, 1)
 		}
+		requestBodyStr := jsonBody
+		requestBody = &requestBodyStr
 		requestHeaders = map[string]any{
 			"Content-Type": "application/json",
 		}
 	}
-	return map[string]any{
+	var literal366515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    requestBody,
+		"body":    nil,
 		"headers": requestHeaders,
 	}
+	if requestBody != nil {
+		literal366515["body"] = *requestBody
+	}
+	return literal366515
 }
 func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code")

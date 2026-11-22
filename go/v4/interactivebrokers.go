@@ -1105,9 +1105,9 @@ func (this *Interactivebrokers) authenticateBody(ch chan AsyncResult[*string], o
 	// wait for it to finish, then reuse its token (or sign in themselves if the leader failed)
 	if *this.SafeBool(this.Options, "signInInProgress", false) {
 		var pollInterval *int64 = this.SafeInteger(this.Options, "signInPollInterval", 100)
-		var maxWait *int64 = this.SafeInteger(this.Options, "signInMaxWait", 60000)
+		var maxWait int64 = *this.SafeInteger(this.Options, "signInMaxWait", 60000)
 		var waited int64 = 0
-		for (*this.SafeBool(this.Options, "signInInProgress", false)) && (maxWait != nil && waited < *maxWait) {
+		for (*this.SafeBool(this.Options, "signInInProgress", false)) && (waited < maxWait) {
 
 			<-this.Sleep(pollInterval)
 			waited = waited + *pollInterval
@@ -3660,10 +3660,14 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var maxLimit *int64 = this.SafeInteger(this.SafeDict(this.Options, "fetchOHLCV", map[string]any{}), "limit", 1000)
-	var requestLimit any = maxLimit
+	var maxLimit int64 = 1000
+	var configuredLimit *int64 = this.SafeInteger(this.SafeDict(this.Options, "fetchOHLCV", map[string]any{}), "limit")
+	if configuredLimit != nil {
+		maxLimit = *configuredLimit
+	}
+	var requestLimit int64 = maxLimit
 	if limit != nil {
-		requestLimit = min(*limit, *maxLimit)
+		requestLimit = min(*limit, maxLimit)
 	}
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var request map[string]any = map[string]any{
@@ -3675,7 +3679,11 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 		// and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
 		request["startTime"] = this.IbkrFormatTime(*since - (duration * 1000))
 		request["direction"] = "1" // forward from startTime, by default startTime is the end of the range
-		requestLimit = mathMin(Add(requestLimit, 1), maxLimit)
+		if limit != nil {
+			if *limit < maxLimit {
+				requestLimit = *limit + 1
+			}
+		}
 	}
 	request["period"] = this.IbkrPeriod(duration, requestLimit)
 
@@ -3703,25 +3711,25 @@ func (this *Interactivebrokers) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], sym
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(data, market, timeframe, since, limit))}
 	return nil
 }
-func (this *Interactivebrokers) IbkrPeriod(duration int64, limit any) any {
+func (this *Interactivebrokers) IbkrPeriod(duration int64, limit int64) string {
 	// duration of one bar in seconds, the period is expressed in the largest fitting unit
-	var total any = Multiply(duration, limit)
+	var total int64 = duration * limit
 	if duration < 3600 {
-		return *this.NumberToString(this.ParseToInt(Divide(total, 60))) + "min"
+		return *this.NumberToString(this.ParseToInt(float64(total) / 60)) + "min"
 	} else if duration < 86400 {
-		return *this.NumberToString(this.ParseToInt(Divide(total, 3600))) + "h"
+		return *this.NumberToString(this.ParseToInt(float64(total) / 3600)) + "h"
 	} else if duration < 604800 {
-		return *this.NumberToString(this.ParseToInt(Divide(total, 86400))) + "d"
+		return *this.NumberToString(this.ParseToInt(float64(total) / 86400)) + "d"
 	} else if duration < 2592000 {
-		return *this.NumberToString(this.ParseToInt(Divide(total, 604800))) + "w"
+		return *this.NumberToString(this.ParseToInt(float64(total) / 604800)) + "w"
 	}
 	// monthly bars, long month periods (e.g. "1000m") are rejected with "Chart data unavailable", so they are expressed in years
-	var months int64 = this.ParseToInt(Divide(total, 2592000))
+	var months int64 = this.ParseToInt(float64(total) / 2592000)
 	if months <= 12 {
 		return *this.NumberToString(months) + "m"
 	}
-	var years any = min(this.ParseToInt(float64(months+11)/12), 15) // 15y is the documented maximum period
-	return Add(this.NumberToString(years), "y")
+	var years int64 = min(this.ParseToInt(float64(months+11)/12), 15) // 15y is the documented maximum period
+	return *this.NumberToString(years) + "y"
 }
 func (this *Interactivebrokers) IbkrFormatTime(timestamp int64) string {
 	// YYYYMMDD-hh:mm:ss in UTC
@@ -4092,12 +4100,12 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
 	return nil
 }
-func (this *Interactivebrokers) CreateTestOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Interactivebrokers) CreateTestOrderAsync(symbol string, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.createTestOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], symbol string, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4164,7 +4172,7 @@ func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the order ticket
  */
-func (this *Interactivebrokers) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
+func (this *Interactivebrokers) CreateOrderRequest(symbol string, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4243,8 +4251,18 @@ func (this *Interactivebrokers) CreateOrderRequest(symbol any, typeVar any, side
 	}
 	request["cOID"] = clientOrderId
 	var query map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"})
-	var orderTicket map[string]any = this.Extend(request, query) // typed local, so the go transpiler returns a dict
-	return orderTicket
+	var queryKeys []string = nil
+	if query != nil {
+		queryKeys = make([]string, 0, len(query))
+		for objectKey := range query {
+			queryKeys = append(queryKeys, objectKey)
+		}
+	}
+	for i := 0; i < len(queryKeys); i++ {
+		var key string = queryKeys[i]
+		request[key] = query[key]
+	}
+	return request
 }
 
 /**
@@ -5593,7 +5611,7 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var position map[string]any = PositionToMap(this.ParsePosition(DerefScalar(positions[i]), market))
+		var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}), market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}
@@ -5648,14 +5666,14 @@ func (this *Interactivebrokers) ParsePosition(position any, optionalArgs ...any)
 		"lastUpdateTimestamp":         nil,
 	})
 }
-func (this *Interactivebrokers) IbkrEncrypt(value any) string {
+func (this *Interactivebrokers) IbkrEncrypt(value string) string {
 	// RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
 	var encoded string = this.Urlencode(map[string]any{
 		"v": value,
 	})
 	return encoded[2:] // strip the 'v=' prefix
 }
-func (this *Interactivebrokers) IbkrBaseString(method string, url any, params map[string]any, optionalArgs ...any) string {
+func (this *Interactivebrokers) IbkrBaseString(method string, url string, params map[string]any, optionalArgs ...any) string {
 	var prepend string = GetArgString(optionalArgs, 0, "")
 	_ = prepend
 	var query string = this.Rawencode(this.Keysort(params))
@@ -5695,24 +5713,42 @@ func (this *Interactivebrokers) IbkrOauthBase(consumerKey any, consumerAccessTok
  * @ignore
  * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
  * @param {object} params the request params, the path params are read from here
- * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+ * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
  */
-func (this *Interactivebrokers) IbkrImplodePath(path string, params any) []any {
+func (this *Interactivebrokers) IbkrImplodePath(path string, params any) string {
 	var segments []string = strings.Split(path, "/")
-	var pathParams []any = []any{}
 	var imploded []string = []string{}
 	for i := 0; i < len(segments); i++ {
 		var segment string = segments[i]
 		if strings.HasPrefix(segment, ":") {
 			var name string = segment[1:]
-			pathParams = append(pathParams, name)
 			var value string = *this.SafeString(params, name, segment)
 			imploded = append(imploded, value)
 		} else {
 			imploded = append(imploded, segment)
 		}
 	}
-	return []any{strings.Join(imploded, "/"), pathParams}
+	return strings.Join(imploded, "/")
+}
+
+/**
+ * @method
+ * @name interactivebrokers#ibkrPathParams
+ * @description the names of the ':name' path parameters of a webapi endpoint
+ * @ignore
+ * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+ * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+ */
+func (this *Interactivebrokers) IbkrPathParams(path string) []any {
+	var segments []string = strings.Split(path, "/")
+	var pathParams []any = []any{}
+	for i := 0; i < len(segments); i++ {
+		var segment string = segments[i]
+		if strings.HasPrefix(segment, ":") {
+			pathParams = append(pathParams, segment[1:])
+		}
+	}
+	return pathParams
 }
 
 /**
@@ -5784,13 +5820,12 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	implodedPathpathParamsVariable := this.IbkrImplodePath(path, params)
-	implodedPath := GetValue(implodedPathpathParamsVariable, 0)
-	pathParams := GetValue(implodedPathpathParamsVariable, 1)
+	var implodedPath string = this.IbkrImplodePath(path, params)
 	var apiBase string = api[0]
-	var baseUrl any = Add(this.UrlsApi[apiBase], implodedPath)
+	var apiUrl string = *this.SafeString(this.Urls["api"], apiBase, "")
+	var baseUrl string = apiUrl + implodedPath
 	var url any = baseUrl
-	var query any = this.Omit(params, pathParams)
+	var query any = this.Omit(params, this.IbkrPathParams(path))
 	queryMap, _ := query.(map[string]any)
 	var hasQuery bool = (len(queryMap) > 0)
 	var isGetOrDelete bool = (method == "GET") || (method == "DELETE")
@@ -5800,7 +5835,7 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 	if this.IbkrIsGatewayRequest(path) {
 		// the client portal gateway holds the authenticated session, requests are sent unsigned
 		var gatewayUrl *string = this.SafeString(this.Options, "gatewayUrl")
-		url = Add(this.IbkrGatewayBaseUrl(this.UrlsApi[apiBase], gatewayUrl), implodedPath)
+		url = Add(this.IbkrGatewayBaseUrl(apiUrl, gatewayUrl), implodedPath)
 		if isGetOrDelete {
 			if hasQuery {
 				url = Add(url, "?"+this.Urlencode(query))

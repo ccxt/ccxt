@@ -2515,14 +2515,15 @@ func (this *Delta) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	}
 	var orderType string = typeVar + "_order"
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"product_id": market["numericId"],
-		"size":       this.AmountToPrecision(market["symbol"], amount),
+		"size":       this.AmountToPrecision(precisionSymbol, amount),
 		"side":       side,
 		"order_type": orderType,
 	}
 	if typeVar == "limit" {
-		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
+		request["limit_price"] = this.PriceToPrecision(precisionSymbol, price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_order_id"})
@@ -2927,11 +2928,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234815 []any = OrdersToList(r.Value)
-	if retRes234815 == nil {
+	var retRes234915 []any = OrdersToList(r.Value)
+	if retRes234915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234915)}
 	}
 	return nil
 }
@@ -2968,11 +2969,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes236315 []any = OrdersToList(r.Value)
-	if retRes236315 == nil {
+	var retRes236415 []any = OrdersToList(r.Value)
+	if retRes236415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236415)}
 	}
 	return nil
 }

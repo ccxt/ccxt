@@ -1306,8 +1306,7 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker any = tickers[id]
-		result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
+		result[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(tickers, id, map[string]any{}), market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
@@ -1801,6 +1800,7 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"pair": market["id"],
 	}
@@ -1810,9 +1810,9 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		request["type"] = strings.ToUpper(side)
 		// todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
 		if side == "buy" {
-			request["counter_volume"] = this.AmountToPrecision(market["symbol"], amount)
+			request["counter_volume"] = this.AmountToPrecision(precisionSymbol, amount)
 		} else {
-			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
+			request["base_volume"] = this.AmountToPrecision(precisionSymbol, amount)
 		}
 
 		r1 := <-this.PrivatePostMarketorder(this.Extend(request, params))
@@ -1821,8 +1821,8 @@ func (this *Luno) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 		}
 		response = r1.Value
 	} else {
-		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
-		request["price"] = this.PriceToPrecision(market["symbol"], price)
+		request["volume"] = this.AmountToPrecision(precisionSymbol, amount)
+		request["price"] = this.PriceToPrecision(precisionSymbol, price)
 		if side == "buy" {
 			request["type"] = "BID"
 		} else {
@@ -2001,21 +2001,21 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	if ((minRowParam == nil) || (maxRowParam == nil)) && ((minRowParam != nil) || (maxRowParam != nil)) {
 		panic(ExchangeError(this.Id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined"))
 	}
-	var maxRowBase *int64 = this.SafeInteger(params, "max_row", 0)            // Default to most recent transactions
+	var maxRowBase int64 = *this.SafeInteger(params, "max_row", 0)            // Default to most recent transactions
 	var minRowBase *int64 = this.SafeInteger(params, "min_row", int64(-1000)) // Maximum number of records supported
-	var limitApplies bool = (limit != nil) && (*maxRowBase-*minRowBase > *limit)
+	var limitApplies bool = (limit != nil) && (maxRowBase-*minRowBase > *limit)
 	var min_row *int64 = func() *int64 {
-		if limitApplies && (limit != nil) && (maxRowBase == nil || *maxRowBase <= 0) {
-			return Int64PtrTyped(*maxRowBase - *limit)
+		if limitApplies && (limit != nil) && (maxRowBase <= 0) {
+			return Int64PtrTyped(maxRowBase - *limit)
 		}
 		return minRowBase
 	}()
-	var max_row any = maxRowBase
-	if limitApplies && (maxRowBase != nil && *maxRowBase > 0) && (minRowBase != nil && *minRowBase > 0) {
+	var max_row int64 = maxRowBase
+	if limitApplies && (maxRowBase > 0) && (minRowBase != nil && *minRowBase > 0) {
 		max_row = *minRowBase + *limit
 	}
-	var limitAdjusts bool = limitApplies && ((maxRowBase == nil || *maxRowBase <= 0) || (minRowBase != nil && *minRowBase > 0)) // max_row - min_row becomes limit
-	if (limitAdjusts && (limit != nil && *limit > 1000)) || (!limitAdjusts && (*maxRowBase-*minRowBase > 1000)) {
+	var limitAdjusts bool = limitApplies && ((maxRowBase <= 0) || (minRowBase != nil && *minRowBase > 0)) // max_row - min_row becomes limit
+	if (limitAdjusts && (limit != nil && *limit > 1000)) || (!limitAdjusts && (maxRowBase-*minRowBase > 1000)) {
 		panic(ExchangeError(this.Id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000"))
 	}
 	var request map[string]any = map[string]any{

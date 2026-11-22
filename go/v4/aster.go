@@ -4856,11 +4856,10 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = leverageBracket[i]
-		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
+		if Precise.StringLt(notionalStringAbs, this.SafeString(leverageBracket[i], 0)) {
 			break
 		}
-		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
+		maintenanceMarginPercentageString = this.SafeString(leverageBracket[i], 1)
 	}
 	var notional *float64 = this.ParseNumber(notionalStringAbs)
 	var contractsAbs *string = Precise.StringAbs(this.SafeString(position, "positionAmt"))
@@ -5126,11 +5125,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381619 []any = PositionsToList(r.Value)
-		if retRes381619 == nil {
+		var retRes381519 []any = PositionsToList(r.Value)
+		if retRes381519 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381619)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381519)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5139,11 +5138,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381819 []any = PositionsToList(r1.Value)
-		if retRes381819 == nil {
+		var retRes381719 []any = PositionsToList(r1.Value)
+		if retRes381719 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381819)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381719)}
 		}
 		return nil
 	} else {
@@ -5240,11 +5239,10 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 	var leverageBracket []any = SafeListTyped(leverageBrackets, symbol)
 	var maintenanceMarginPercentageString *string = nil
 	for i := 0; i < len(leverageBracket); i++ {
-		var bracket any = leverageBracket[i]
-		if Precise.StringLt(notionalStringAbs, this.SafeString(bracket, 0)) {
+		if Precise.StringLt(notionalStringAbs, this.SafeString(leverageBracket[i], 0)) {
 			break
 		}
-		maintenanceMarginPercentageString = this.SafeString(bracket, 1)
+		maintenanceMarginPercentageString = this.SafeString(leverageBracket[i], 1)
 	}
 	var maintenanceMarginPercentage *float64 = this.ParseNumber(maintenanceMarginPercentageString)
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedProfit")

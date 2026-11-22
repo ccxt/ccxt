@@ -3669,7 +3669,7 @@ func (this *Okx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string, 
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0), market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 
@@ -8807,7 +8807,7 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	var positions []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(positions[i])))
+		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}))))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols)))}

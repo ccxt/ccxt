@@ -3946,7 +3946,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) map[string]any {
 		baseUrl = groupUrl
 	}
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
-	var query any = this.Omit(params, this.ExtractParams(path))
+	var query map[string]any = this.Extend(map[string]any{}, this.Omit(params, this.ExtractParams(path)))
 	var existingHeaders map[string]any = map[string]any{}
 	var headersExtended map[string]any = this.Extend(map[string]any{
 		"Accept":       "application/json",
@@ -3959,7 +3959,11 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) map[string]any {
 	// /orders-v3/all and /orders-v3/event - take query parameters, like every GET
 	var sendAsQuery bool = (method == "GET")
 	if method == "DELETE" {
-		sendAsQuery = !(ccxt.InOp(query, "orders"))
+		if _, ok := query["orders"]; ok {
+			sendAsQuery = false
+		} else {
+			sendAsQuery = true
+		}
 	}
 	var bodyValue *string = nil
 	if sendAsQuery {
@@ -3968,7 +3972,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + querystring
 		}
 	} else {
-		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
+		if len(query) > 0 {
 			jsonText := this.Json(query)
 			bodyValue = &jsonText
 		}

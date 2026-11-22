@@ -315,7 +315,7 @@ func (this *Binance) GetFutureWsCategory(channel string) string {
 	}
 	return "market"
 }
-func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey *string) any {
+func (this *Binance) GetPrivateWsUrl(typeVar any, listenKey *string) string {
 	if listenKey == nil {
 		panic(ccxt.AuthenticationError(this.Id + " getPrivateWsUrl() requires a listenKey from authenticate()"))
 	}
@@ -793,7 +793,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[
 	}
 	var optionsType map[string]any = ccxt.SafeMapTyped(this.Options, typeVar)
 	var listenKey *string = this.SafeString(optionsType, "listenKey")
-	var url any = this.GetPrivateWsUrl(typeVar, listenKey)
+	var url string = this.GetPrivateWsUrl(typeVar, listenKey)
 	var message any = nil
 
 	r2 := <-this.WatchMultiple(url, messageHashes, message, []any{typeVar})
@@ -4067,10 +4067,10 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 		options = map[string]any{}
 	}
 	var lastAuthenticatedTime int64 = *this.SafeInteger(options, "lastAuthenticatedTime", 0)
-	var listenTokenRefreshRate *int64 = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
+	var listenTokenRefreshRate int64 = *this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
 	var time int64 = this.Milliseconds()
-	var delay int64 = *listenTokenRefreshRate + 10000
-	if time-lastAuthenticatedTime > delay {
+	var delay int64 = listenTokenRefreshRate + 10000
+	if (time - lastAuthenticatedTime) > delay {
 		// the future covers the REST create plus the ws subscribe, including the
 		// renewal timer re-entry through renewListenToken, so a concurrent caller
 		// waits for the leader rather than minting a second listenToken
@@ -4267,7 +4267,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	}
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, refreshRateKey, 1200000)
 	var delay int64 = *listenKeyRefreshRate + 10000
-	if time-lastAuthenticatedTime > delay {
+	if (time - lastAuthenticatedTime) > delay {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
 		// the flight is registered on a never-dialed client because the
 		// user-data url embeds the listenKey, so no real client exists
@@ -4451,7 +4451,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 					}
 					ret_ = func(this *Binance) any {
 						// catch block:
-						var url any = nil
+						var url string
 						if isStock {
 							// the stock user stream lives on a fixed url and subscribes to
 							// listenKey@orderReport, so the client is addressable without the key
@@ -4978,14 +4978,14 @@ func (this *Binance) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	}
 	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsValue, "watchBalance", "papi", "portfolioMargin", false)
 	isPortfolioMargin := &isPortfolioMarginValue
-	var url any = ""
+	var url string = ""
 	var urlType any = typeVar
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route to WebSocket API connection where the user data stream is subscribed
 		var urlsApi map[string]any = this.UrlsApi
 		var wsApiUrls, _ = urlsApi["ws"].(map[string]any)
 		var wsApiDict, _ = wsApiUrls["ws-api"].(map[string]any)
-		url = (*this.SafeString(wsApiDict, "spot", ""))
+		url = *this.SafeString(wsApiDict, "spot", "")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6167,13 +6167,13 @@ func (this *Binance) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	}
 	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsMarginMode, "watchOrders", "papi", "portfolioMargin", false)
 	isPortfolioMargin := &isPortfolioMarginValue
-	var url any = ""
+	var url string = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		// route orders to ws-api user data stream
 		var urlsApi map[string]any = this.UrlsApi
 		var wsApiUrls, _ = urlsApi["ws"].(map[string]any)
 		var wsApiDict, _ = wsApiUrls["ws-api"].(map[string]any)
-		url = (*this.SafeString(wsApiDict, "spot", ""))
+		url = *this.SafeString(wsApiDict, "spot", "")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"
@@ -6892,7 +6892,7 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 		urlType = "optionPrivate"
 	}
 	var optionsType map[string]any = ccxt.SafeMapTyped(this.Options, typeVar)
-	var url any = this.GetPrivateWsUrl(urlType, this.SafeString(optionsType, "listenKey"))
+	var url string = this.GetPrivateWsUrl(urlType, this.SafeString(optionsType, "listenKey"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized, isPortfolioMargin)
@@ -7502,12 +7502,12 @@ func (this *Binance) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	}
 	isPortfolioMarginValue, _ := this.HandleOptionBoolAndParams2(paramsSymbol, "watchMyTrades", "papi", "portfolioMargin", false)
 	isPortfolioMargin := &isPortfolioMarginValue
-	var url any = ""
+	var url string = ""
 	if (typeVar == "spot") || (typeVar == "margin") {
 		var urlsApi map[string]any = this.UrlsApi
 		var wsApiUrls, _ = urlsApi["ws"].(map[string]any)
 		var wsApiDict, _ = wsApiUrls["ws-api"].(map[string]any)
-		url = (*this.SafeString(wsApiDict, "spot", ""))
+		url = *this.SafeString(wsApiDict, "spot", "")
 	} else {
 		if isPortfolioMargin != nil && *isPortfolioMargin {
 			urlType = "papi"

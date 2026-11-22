@@ -885,11 +885,16 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 		return nil
 	}
 
-	r := <-promiseAll([]any{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfosAsync()})
+	r := <-this.LoadAccountInfosAsync()
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var results []any = r.Value
+
+	r1 := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](this.PrivateTradingPostFullV1GetAuthorizedBuilders())
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var results []map[string]any = r1.Value
 	//
 	// {
 	//     "results": [{
@@ -899,7 +904,7 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 	//     }]
 	// }
 	//
-	var currentBuilders map[string]any = SafeMapTyped(results, 0)
+	var currentBuilders map[string]any = results[0]
 	var approvedBuilder []any = SafeListTyped(currentBuilders, "results")
 	var length int = len(approvedBuilder)
 	var found bool = false
@@ -940,11 +945,11 @@ func (this *Grvt) initializeClientBody(ch chan AsyncResult[bool], optionalArgs .
 					"signature":            this.DefaultSignature(),
 				}
 
-				r1 := <-this.PrivateTradingPostFullV1AuthorizeBuilder(this.Extend(this.CreateSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE"), params))
-				if r1.Err != nil {
-					panic(r1.Err)
+				r2 := <-this.PrivateTradingPostFullV1AuthorizeBuilder(this.Extend(this.CreateSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE"), params))
+				if r2.Err != nil {
+					panic(r2.Err)
 				}
-				authResponse := r1.Raw
+				authResponse := r2.Raw
 				//
 				// {
 				//     "result": {
@@ -1076,7 +1081,7 @@ func (this *Grvt) ParseMarket(market any) map[string]any {
 	var isSwap bool = (typeVar != nil && *typeVar == "swap")
 	var isFuture bool = (typeVar != nil && *typeVar == "future")
 	var isContract bool = isSwap || isFuture
-	var literal73515 map[string]any = map[string]any{
+	var literal73615 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -1126,16 +1131,16 @@ func (this *Grvt) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if isSwap {
-		literal73515["linear"] = true
+		literal73615["linear"] = true
 	} else {
-		literal73515["linear"] = nil
+		literal73615["linear"] = nil
 	}
 	if isSwap {
-		literal73515["inverse"] = false
+		literal73615["inverse"] = false
 	} else {
-		literal73515["inverse"] = nil
+		literal73615["inverse"] = nil
 	}
-	return literal73515
+	return literal73615
 }
 
 /**
@@ -1660,11 +1665,11 @@ func (this *Grvt) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes117319 []any = r1.Value
-		if retRes117319 == nil {
+		var retRes117419 []any = r1.Value
+		if retRes117419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes117319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes117419)}
 		}
 		return nil
 	}
@@ -1787,11 +1792,11 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes126619 []any = r1.Value
-		if retRes126619 == nil {
+		var retRes126719 []any = r1.Value
+		if retRes126719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes126619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes126719)}
 		}
 		return nil
 	}
@@ -2407,11 +2412,11 @@ func (this *Grvt) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes171719 []any = r2.Value
-		if retRes171719 == nil {
+		var retRes171819 []any = r2.Value
+		if retRes171819 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes171719)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes171819)}
 		}
 		return nil
 	}
@@ -3165,11 +3170,11 @@ func (this *Grvt) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes229519 []any = r1.Value
-		if retRes229519 == nil {
+		var retRes229619 []any = r1.Value
+		if retRes229619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes229519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes229619)}
 		}
 		return nil
 	}
@@ -3648,11 +3653,11 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes263419 []any = r1.Value
-		if retRes263419 == nil {
+		var retRes263519 []any = r1.Value
+		if retRes263519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes263419)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes263519)}
 		}
 		return nil
 	}
@@ -4211,7 +4216,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var timestamp *int64 = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var literal307031 map[string]any = map[string]any{
+	var literal307131 map[string]any = map[string]any{
 		"id":                  this.SafeString(order, "order_id"),
 		"clientOrderId":       this.SafeString(metadata, "client_order_id"),
 		"timestamp":           timestamp,
@@ -4237,18 +4242,18 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 		"info":                order,
 	}
 	if price != nil {
-		literal307031["price"] = *price
+		literal307131["price"] = *price
 	}
 	if avgPrice != nil {
-		literal307031["average"] = *avgPrice
+		literal307131["average"] = *avgPrice
 	}
 	if size != nil {
-		literal307031["amount"] = *size
+		literal307131["amount"] = *size
 	}
 	if filled != nil {
-		literal307031["filled"] = *filled
+		literal307131["filled"] = *filled
 	}
-	return this.SafeOrder(literal307031, marketResolved)
+	return this.SafeOrder(literal307131, marketResolved)
 }
 func (this *Grvt) ParseTimeInForce(typeVar *string) *string {
 	var types map[string]any = map[string]any{
@@ -4518,9 +4523,9 @@ func (this *Grvt) FormatSignatureRS(value any) string {
 func (this *Grvt) DefaultSignature() map[string]any {
 	var expirationSeconds int64 = *this.SafeInteger(this.Options, "expirationSeconds", 30)
 	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000*expirationSeconds)*1000
-	var ternaryStr330924 string = "325"
+	var ternaryStr331024 string = "325"
 	if this.IsSandboxModeEnabled {
-		ternaryStr330924 = "326"
+		ternaryStr331024 = "326"
 	}
 	return map[string]any{
 		"signer":     "",
@@ -4529,7 +4534,7 @@ func (this *Grvt) DefaultSignature() map[string]any {
 		"v":          0,
 		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
-		"chain_id":   ternaryStr330924,
+		"chain_id":   ternaryStr331024,
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key string, request map[string]any, optionalArgs ...any) (map[string]any, map[string]any) {

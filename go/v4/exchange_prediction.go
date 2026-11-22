@@ -187,9 +187,9 @@ func (this *PredictionExchange) ApplyEventFetchParams(events []any, optionalArgs
 		// clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
 		// via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
 		var resultLength int = len(result)
-		var limitValue *int64 = this.SafeInteger(params, "limit", 0)
+		var limitValue int64 = *this.SafeInteger(params, "limit", 0)
 		var sliceEnd any = resultLength
-		if limitValue == nil || *limitValue < int64(resultLength) {
+		if limitValue < int64(resultLength) {
 			sliceEnd = limitValue
 		}
 		result = this.ArraySlice(result, 0, sliceEnd)

@@ -791,10 +791,11 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
 		//     }
 		//
 		var data, _ = response["data"].(map[string]any)
-		var categories []any = ccxt.SafeListTyped(data, "categories")
+		var categories []any
+		categories, _ = data["categories"].([]any)
 		var categoriesLength int = len(categories)
 		for ci := 0; ci < categoriesLength; ci++ {
-			var category any = this.SafeDict(categories, ci)
+			var category, _ = categories[ci].(map[string]any)
 			var categorySlug *string = this.SafeString(category, "slug")
 			var categorySlugInSeenSlugs bool
 			if categorySlug != nil {
@@ -2103,10 +2104,10 @@ func (this *Predictfun) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	}
 	var now int64 = this.Milliseconds()
 	var cached *string = this.SafeString(this.Options, "jwtToken")
-	var expiresAt *int64 = this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0)
+	var expiresAt int64 = *this.SafeInteger(this.Options, "jwtTokenExpiresAt", 0)
 	// a token outlives its window silently: the venue answers 401 on every order action once
 	// it lapses, so re-issue before that rather than after the first failure
-	if (cached != nil) && (expiresAt != nil && now < *expiresAt) {
+	if (cached != nil) && (now < expiresAt) {
 
 		ch <- ccxt.AsyncResult[*string]{Value: cached}
 		return nil

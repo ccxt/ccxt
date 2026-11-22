@@ -1834,7 +1834,11 @@ func (this *Bitopro) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var orders any = this.SafeList(response, "data", []any{})
+	var orders []any
+	orders, _ = response["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	if orders == nil {
 		orders = []any{}
 	}

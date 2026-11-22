@@ -17470,8 +17470,8 @@ func (this *Binance) GetBaseDomainFromUrl(url *string) *string {
 	if domain == nil {
 		return nil
 	}
-	retStr := *scheme + "//" + *domain + "/"
-	return &retStr
+	retStrVal := *scheme + "//" + *domain + "/"
+	return &retStrVal
 }
 func (this *Binance) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
@@ -17776,8 +17776,8 @@ func (this *Binance) CalculateRateLimiterCost(api any, method string, path strin
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
 			var entry any = byLimit[i]
-			var entryLimit *int64 = this.SafeInteger(entry, 0, 0)
-			if (limit != nil) && (entryLimit != nil && *limit <= *entryLimit) {
+			var entryLimit int64 = *this.SafeInteger(entry, 0, 0)
+			if (limit != nil) && (*limit <= entryLimit) {
 				return this.SafeInteger(entry, 1)
 			}
 		}

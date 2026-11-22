@@ -1700,8 +1700,8 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 	}
 	for i := 0; i < len(currencyKeys); i++ {
 		var code string = currencyKeys[i]
-		var currency any = currenciesData[code]
-		if IsEqual(currency, nil) {
+		var currency, _ = currenciesData[code].(map[string]any)
+		if currency == nil {
 			continue
 		}
 		if (codes != nil) && !this.InArray(code, codes) {
@@ -1725,7 +1725,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 			}
 		}
 		// Build comprehensive funding limits
-		var currencyLimits map[string]any = SafeMapTyped(currency, "limits")
+		var currencyLimits, _ = currency["limits"].(map[string]any)
 		var depositLimits, _ = currencyLimits["deposit"].(map[string]any)
 		var withdrawLimits, _ = currencyLimits["withdraw"].(map[string]any)
 		var depositLimitsResult map[string]any = map[string]any{
@@ -3694,7 +3694,7 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = OrderToMap(this.ParseOrder(orders[j], marketNew))
+			var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(orders, j, map[string]any{}), marketNew))
 			results = append(results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))

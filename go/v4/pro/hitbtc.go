@@ -2043,19 +2043,18 @@ func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[s
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var result any = this.SafeValue(message, "result", map[string]any{})
-	if ccxt.IsArray(result) {
+	var rows, _ = message["result"].([]any)
+	if rows == nil {
+		var parsedOrder any = this.ParseWsOrder(this.SafeDict(message, "result", map[string]any{}))
+		client.(ccxt.ClientInterface).Resolve(parsedOrder, messageHash)
+	} else {
 		var parsedOrders []any = []any{}
-		var rows, _ = message["result"].([]any)
 		var rowsLength int = len(rows)
 		for i := 0; i < rowsLength; i++ {
 			var parsedOrder any = this.ParseWsOrder(rows[i])
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 		client.(ccxt.ClientInterface).Resolve(parsedOrders, messageHash)
-	} else {
-		var parsedOrder any = this.ParseWsOrder(result)
-		client.(ccxt.ClientInterface).Resolve(parsedOrder, messageHash)
 	}
 	return message
 }

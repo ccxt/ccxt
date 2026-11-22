@@ -6199,11 +6199,7 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var data []any
 	data, _ = response["data"].([]any)
 
-	if len(data) > 0 {
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data[0], market)}
-	} else {
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(nil, market)}
-	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 
@@ -6253,11 +6249,7 @@ func (this *Bitget) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol strin
 	var data []any
 	data, _ = response["data"].([]any)
 
-	if len(data) > 0 {
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data[0], market)}
-	} else {
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(nil, market)}
-	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
 	return nil
 }
 
@@ -12837,7 +12829,7 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	}
 	var result []any = []any{}
 	for i := 0; i < len(position); i++ {
-		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(position[i], market))
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(position, i, map[string]any{}), market))
 		result = append(result, parsedPosition)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)

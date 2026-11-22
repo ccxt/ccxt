@@ -8723,8 +8723,8 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLedger", nil, paramsPaginate)
 	var response map[string]any = nil
 	if enableUnified != nil && *enableUnified {
-		var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
-		if (subType != nil && *subType == "inverse") && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
+		var unifiedMarginStatus int64 = *this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
+		if (subType != nil && *subType == "inverse") && (unifiedMarginStatus < 5) {
 
 			r3 := <-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, paramsSubType))
 			if r3.Err != nil {
@@ -9298,12 +9298,15 @@ func (this *Bybit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	var positions []any = this.AddPaginationCursorToResult(response)
 	var results []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var rawPosition any = positions[i]
-		if (InOp(rawPosition, "data")) && (InOp(rawPosition, "is_valid")) {
+		var rawPosition, _ = positions[i].(map[string]any)
+		_, has1 := rawPosition["data"]
+		_, has2 := rawPosition["is_valid"]
+		if has1 && has2 {
 			// futures only
-			rawPosition = this.SafeDict(rawPosition, "data")
+			results = append(results, PositionToMap(this.ParsePosition(this.SafeDict(rawPosition, "data", map[string]any{}))))
+		} else {
+			results = append(results, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}))))
 		}
-		results = append(results, PositionToMap(this.ParsePosition(rawPosition)))
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbolsNormalized))}
@@ -10173,11 +10176,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes756819 []any = r1.Value
-		if retRes756819 == nil {
+		var retRes756919 []any = r1.Value
+		if retRes756919 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes756819)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes756919)}
 		}
 		return nil
 	}
@@ -10199,11 +10202,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes758015 []any = OpenInterestsToList(r2.Value)
-	if retRes758015 == nil {
+	var retRes758115 []any = OpenInterestsToList(r2.Value)
+	if retRes758115 == nil {
 		ch <- AsyncResult[[]OpenInterest]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758015)}
+		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758115)}
 	}
 	return nil
 }
@@ -10690,11 +10693,11 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes790019 []any = r1.Value
-		if retRes790019 == nil {
+		var retRes790119 []any = r1.Value
+		if retRes790119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790119)}
 		}
 		return nil
 	}
@@ -11046,12 +11049,12 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes815315Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
-	var retRes815315 []any = retRes815315Recv
-	if retRes815315 == nil {
+	retRes815415Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
+	var retRes815415 []any = retRes815415Recv
+	if retRes815415 == nil {
 		ch <- AsyncResult[[]LeverageTier]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes815315)}
+		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes815415)}
 	}
 	return nil
 }
@@ -11999,11 +12002,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes884919 []any = r1.Value
-		if retRes884919 == nil {
+		var retRes885019 []any = r1.Value
+		if retRes885019 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes884919)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885019)}
 		}
 		return nil
 	}
@@ -12156,11 +12159,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes897319 []any = r1.Value
-		if retRes897319 == nil {
+		var retRes897419 []any = r1.Value
+		if retRes897419 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes897319)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes897419)}
 		}
 		return nil
 	}
@@ -12232,11 +12235,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem901840 *string = nil
+		var symbolsElem901940 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem901840 = &symbols[0]
+			symbolsElem901940 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem901840)
+		var market map[string]any = this.Market(symbolsElem901940)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12324,24 +12327,23 @@ func (this *Bybit) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tiers []any = []any{}
+	var minNotional *float64 = this.ParseNumber("0")
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier map[string]any = SafeMapTyped(info, i)
 		var marketId *string = this.SafeString(tier, "symbol")
 		var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
-		var minNotional *float64 = this.ParseNumber("0")
-		if i != 0 {
-			minNotional = this.SafeNumber(GetValue(info, i-1), "riskLimitValue")
-		}
+		var tierMaxNotional *float64 = this.SafeNumber(tier, "riskLimitValue")
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "id"),
 			"symbol":                this.SafeSymbol(marketId, marketResolved),
 			"currency":              marketResolved["settle"],
 			"minNotional":           minNotional,
-			"maxNotional":           this.SafeNumber(tier, "riskLimitValue"),
+			"maxNotional":           tierMaxNotional,
 			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           this.SafeNumber(tier, "maxLeverage"),
 			"info":                  tier,
 		})
+		minNotional = tierMaxNotional
 	}
 	return tiers
 }

@@ -2341,11 +2341,7 @@ func (this *Xt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opti
 		var tickers []any
 		tickers, _ = response["result"].([]any)
 
-		if len(tickers) > 0 {
-			ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickers[0], market)}
-		} else {
-			ch <- AsyncResult[Ticker]{Value: this.ParseTicker(nil, market)}
-		}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(tickers, 0, map[string]any{}), market)}
 		return nil
 	}
 	var ticker map[string]any
@@ -2473,7 +2469,7 @@ func (this *Xt) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optiona
 	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], market))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(tickers, i, map[string]any{}), market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker

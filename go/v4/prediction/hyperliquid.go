@@ -1622,7 +1622,7 @@ func (this *Hyperliquid) createOrderBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 		orderObj["c"] = clientOrderId
 	}
 	vaultAddressOption, _ := this.HandleOptionStringAndParams(params, "createOrder", "vaultAddress")
-	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var vaultAddress *string = this.FormatVaultAddress(vaultAddressOption)
 	var orderAction map[string]any = map[string]any{
 		"type":     "order",
 		"orders":   []any{orderObj},
@@ -1811,7 +1811,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predic
 	}
 	cancelAction["cancels"] = cancelReq
 	vaultAddressOption, _ := this.HandleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress")
-	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
+	var vaultAddress *string = this.FormatVaultAddress(vaultAddressOption)
 	var signature map[string]any = this.SignL1Action(cancelAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    cancelAction,
@@ -2683,8 +2683,8 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	retStr := this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
+	return &retStrVal
 }
 func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2696,8 +2696,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	retStr := this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)
+	return &retStrVal
 }
 func (this *Hyperliquid) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
@@ -2925,7 +2925,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*st
 	}
 	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
-func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
+func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) *string {
 	address := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = address
 	if address == nil {
@@ -2935,7 +2935,8 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	if ccxt.StartsWith(normalized, "0x") || ccxt.StartsWith(normalized, "0X") {
 		normalized = ccxt.Slice(normalized, 2, nil)
 	}
-	return ccxt.ToLower(normalized)
+	retStrVal := ccxt.ToLower(normalized)
+	return &retStrVal
 }
 func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = ccxt.GetArgStringSlice(optionalArgs, 0, []string{"public"})

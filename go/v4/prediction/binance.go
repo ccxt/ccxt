@@ -2218,8 +2218,8 @@ func (this *Binance) PriceToPrecision(outcome any, price any) *string {
 	if (prec != nil) && (*prec > 0) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
-	retStr := this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return &retStrVal
 }
 func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
 	var market map[string]any = this.Market(outcome)
@@ -2229,8 +2229,8 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) *string {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	// amounts truncate so a rounded-up value can never exceed the caller's balance
-	retStr := this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(amount, ccxt.TRUNCATE, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
+	return &retStrVal
 }
 
 /**

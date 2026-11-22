@@ -1183,7 +1183,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	result, _ = response["result"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		orders = append(orders, OrderToMap(this.ParseOrder(result[i], market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(this.SafeDict(result, i, map[string]any{}), market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}

@@ -2050,7 +2050,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 	var time int64 = this.Milliseconds()
 	var lastAuthenticatedTime int64 = *this.SafeInteger(this.Options, "lastAuthenticatedTime", 0)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000) // 1 hour
-	if (listenKeyRefreshRate != nil) && (time-lastAuthenticatedTime > *listenKeyRefreshRate) {
+	if (listenKeyRefreshRate != nil) && ((time - lastAuthenticatedTime) > *listenKeyRefreshRate) {
 		// single-flight leader election on a never-dialed client, see
 		// https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
 		// different keys and the key rides the private url, so losers

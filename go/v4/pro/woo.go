@@ -1229,19 +1229,17 @@ func (this *Woo) HandleTrade(client any, message map[string]any) {
 	var data, _ = message["data"].(map[string]any)
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
-	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	var symbol string = *this.SafeString(market, "symbol", "")
 	var trade map[string]any = this.ParseWsTrade(this.Extend(data, map[string]any{
 		"timestamp": timestamp,
 	}), market)
-	var tradesArray ccxt.WsArrayCache = this.Trades[*symbol]
+	var tradesArray ccxt.WsArrayCache = this.Trades[symbol]
 	if tradesArray == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	tradesArray.Append(trade)
-	if symbol != nil {
-		this.Trades[*symbol] = tradesArray
-	}
+	this.Trades[symbol] = tradesArray
 	client.(ccxt.ClientInterface).Resolve(tradesArray, topic)
 }
 func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
@@ -2022,8 +2020,7 @@ func (this *Woo) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var rawPosition any = rawPositions[marketId]
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPosition, market))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, marketId, map[string]any{}), market))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")

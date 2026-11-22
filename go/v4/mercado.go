@@ -775,13 +775,14 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var precisionSymbol string = *this.SafeString(market, "symbol", "")
 	var request map[string]any = map[string]any{
 		"coin_pair": market["id"],
 	}
 	var response map[string]any = nil
 	if typeVar == "limit" {
-		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
-		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
+		request["limit_price"] = this.PriceToPrecision(precisionSymbol, price)
+		request["quantity"] = this.AmountToPrecision(precisionSymbol, amount)
 		if side == "buy" {
 
 			r1 := <-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))
@@ -804,7 +805,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			}
 			var amountString *string = this.NumberToString(amount)
 			var priceString *string = this.NumberToString(price)
-			request["cost"] = this.PriceToPrecision(market["symbol"], this.ParseToNumeric(Precise.StringMul(amountString, priceString)))
+			request["cost"] = this.PriceToPrecision(precisionSymbol, this.ParseToNumeric(Precise.StringMul(amountString, priceString)))
 
 			r3 := <-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))
 			if r3.Err != nil {
@@ -812,7 +813,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			}
 			response = r3.Value
 		} else {
-			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
+			request["quantity"] = this.AmountToPrecision(precisionSymbol, amount)
 
 			r4 := <-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))
 			if r4.Err != nil {

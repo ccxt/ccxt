@@ -852,12 +852,12 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 }
 func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) map[string]any {
 	var timestamp *int64 = this.SafeInteger(message, "T")
-	var bidAskSymbol any = nil
+	var bidAskSymbol *string = nil
 	if market != nil {
-		bidAskSymbol = market["symbol"]
+		bidAskSymbol = this.SafeString(market, "symbol")
 	}
-	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
-		"symbol":    bidAskSymbol,
+	var literal59832 map[string]any = map[string]any{
+		"symbol":    nil,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"ask":       this.SafeString(message, "a"),
@@ -865,7 +865,11 @@ func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) 
 		"bid":       this.SafeString(message, "b"),
 		"bidVolume": this.SafeString(message, "B"),
 		"info":      message,
-	}, market))
+	}
+	if bidAskSymbol != nil {
+		literal59832["symbol"] = *bidAskSymbol
+	}
+	return ccxt.TickerToMap(this.SafeTicker(literal59832, market))
 }
 
 /**

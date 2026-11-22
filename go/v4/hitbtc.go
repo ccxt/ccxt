@@ -1987,8 +1987,7 @@ func (this *Hitbtc) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var addressTo *string = address
 	var tag *string = this.SafeString(native, "payment_id")
 	var tagTo *string = tag
-	var sender []any = SafeListTyped(native, "senders")
-	var addressFrom *string = this.SafeString(sender, 0)
+	var addressFrom *string = this.SafeString(this.SafeList(native, "senders", []any{}), 0)
 	var amount *float64 = this.SafeNumber(native, "amount")
 	var subType *string = this.SafeString(transaction, "subtype")
 	var internal bool = (subType != nil && *subType == "OFFCHAIN")
@@ -2469,11 +2468,11 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189219 []any = r1.Value
-		if retRes189219 == nil {
+		var retRes189119 []any = r1.Value
+		if retRes189119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189119)}
 		}
 		return nil
 	}
@@ -2759,6 +2758,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 			panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 		}
 	}
+
 	//
 	//     [
 	//       {
@@ -2778,9 +2778,7 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//       }
 	//     ]
 	//
-	var order map[string]any = this.SafeDictMap(response, 0, map[string]any{})
-
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, 0, map[string]any{}), market)}
 	return nil
 }
 
@@ -4042,11 +4040,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297819 []any = r1.Value
-		if retRes297819 == nil {
+		var retRes297619 []any = r1.Value
+		if retRes297619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297619)}
 		}
 		return nil
 	}
@@ -5343,17 +5341,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394415 map[string]any = map[string]any{
+	var literal394215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394415["body"] = nil
+		literal394215["body"] = nil
 	} else {
-		literal394415["body"] = bodyString
+		literal394215["body"] = bodyString
 	}
-	return literal394415
+	return literal394215
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

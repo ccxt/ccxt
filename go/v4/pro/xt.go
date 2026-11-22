@@ -256,15 +256,13 @@ func (this *Xt) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any) {
 	var bids ccxt.IOrderBookSide = orderbook.GetBids()
 	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(obBids); i++ {
-		var bid []any = ccxt.SafeListTyped(obBids, i)
-		var price *float64 = this.SafeNumber(bid, 0)
-		var quantity *float64 = this.SafeNumber(bid, 1)
+		var price *float64 = this.SafeNumber(obBids[i], 0)
+		var quantity *float64 = this.SafeNumber(obBids[i], 1)
 		bids.Store(price, quantity)
 	}
 	for i := 0; i < len(obAsks); i++ {
-		var ask []any = ccxt.SafeListTyped(obAsks, i)
-		var price *float64 = this.SafeNumber(ask, 0)
-		var quantity *float64 = this.SafeNumber(ask, 1)
+		var price *float64 = this.SafeNumber(obAsks[i], 0)
+		var quantity *float64 = this.SafeNumber(obAsks[i], 1)
 		asks.Store(price, quantity)
 	}
 }
@@ -301,12 +299,12 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var ternaryStr21022 string = "subscribe"
+	var ternaryStr20822 string = "subscribe"
 	if isContract {
-		ternaryStr21022 = "SUBSCRIBE"
+		ternaryStr20822 = "SUBSCRIBE"
 	}
 	var subscribe map[string]any = map[string]any{
-		"method": ternaryStr21022,
+		"method": ternaryStr20822,
 		"id":     id,
 	}
 	if privateAccess {
@@ -398,12 +396,12 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var ternaryStr26922 string = "unsubscribe"
+	var ternaryStr26722 string = "unsubscribe"
 	if isContract {
-		ternaryStr26922 = "UNSUBSCRIBE"
+		ternaryStr26722 = "UNSUBSCRIBE"
 	}
 	var unsubscribe map[string]any = map[string]any{
-		"method": ternaryStr26922,
+		"method": ternaryStr26722,
 		"id":     id,
 	}
 	if privateAccess {
@@ -768,8 +766,8 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes46815 := r1.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes46815}
+	retRes46615 := r1.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes46615}
 	return nil
 }
 
@@ -1825,18 +1823,16 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		if obAsks != nil {
 			var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 			for i := 0; i < len(obAsks); i++ {
-				var ask []any = ccxt.SafeListTyped(obAsks, i)
-				var price *float64 = this.SafeNumber(ask, 0)
-				var quantity *float64 = this.SafeNumber(ask, 1)
+				var price *float64 = this.SafeNumber(obAsks[i], 0)
+				var quantity *float64 = this.SafeNumber(obAsks[i], 1)
 				asks.Store(price, quantity)
 			}
 		}
 		if obBids != nil {
 			var bids ccxt.IOrderBookSide = orderbook.GetBids()
 			for i := 0; i < len(obBids); i++ {
-				var bid []any = ccxt.SafeListTyped(obBids, i)
-				var price *float64 = this.SafeNumber(bid, 0)
-				var quantity *float64 = this.SafeNumber(bid, 1)
+				var price *float64 = this.SafeNumber(obBids[i], 0)
+				var quantity *float64 = this.SafeNumber(obBids[i], 1)
 				bids.Store(price, quantity)
 			}
 		}

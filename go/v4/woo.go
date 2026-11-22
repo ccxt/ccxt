@@ -4482,14 +4482,7 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagPtr *string = nil
-	tagWithdrawTagPtr, paramsWithdrawTag := this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if tagWithdrawTagPtr != nil {
-			return *tagWithdrawTagPtr
-		}
-		return nil
-	}()
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -4504,7 +4497,7 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		"address": address,
 	}
 	if tagWithdrawTag != nil {
-		request["extra"] = tagWithdrawTag
+		request["extra"] = *tagWithdrawTag
 	}
 	var network *string = this.SafeString(paramsWithdrawTag, "network")
 	if network == nil {
@@ -4536,11 +4529,15 @@ func (this *Woo) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 		"currency":  code,
 		"amount":    amount,
 		"addressTo": address,
-		"tag":       tagWithdrawTag,
 		"network":   this.SafeString(this.NetworkAliases, network, network),
 		"type":      "withdrawal",
 		"status":    "pending",
 	})
+	if tagWithdrawTag != nil {
+		transactionData["tag"] = *tagWithdrawTag
+	} else {
+		transactionData["tag"] = nil
+	}
 
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(transactionData, currency)}
 	return nil

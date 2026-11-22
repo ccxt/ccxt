@@ -805,11 +805,11 @@ func (this *Bitfinex) IsFiat(code any) bool {
 	var fiat, _ = this.Options["fiat"].(map[string]any)
 	return (this.SafeString(fiat, code) != nil)
 }
-func (this *Bitfinex) GetCurrencyName(code string) any {
+func (this *Bitfinex) GetCurrencyName(code string) string {
 	// temporary fix for transpiler recognition, even though this is in parent class
 	var name *string = this.SafeString(this.Options["currencyNames"], code)
 	if name != nil {
-		return name
+		return *name
 	}
 	panic(NotSupported(this.Id + " " + code + " not supported for withdrawal"))
 }
@@ -819,8 +819,8 @@ func (this *Bitfinex) AmountToPrecision(symbol any, amount any) *string {
 	// Anything exceeding this will be rounded to the 8th decimal.
 	var symbolValue *string = this.SafeSymbol(symbol)
 	var market map[string]any = this.Market(symbolValue)
-	retStr := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(amount, TRUNCATE, this.SafeValue(market["precision"], "amount"), DECIMAL_PLACES)
+	return &retStrVal
 }
 func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	var symbolValue *string = this.SafeSymbol(symbol)
@@ -830,8 +830,8 @@ func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
 	// The precision level of all trading prices is based on significant figures.
 	// All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
 	// Prices submit with a precision larger than 5 will be cut by the API.
-	retStr := this.DecimalToPrecision(priceValue, TRUNCATE, 8, DECIMAL_PLACES)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(priceValue, TRUNCATE, 8, DECIMAL_PLACES)
+	return &retStrVal
 }
 
 /**
@@ -2765,7 +2765,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 			"id": this.ParseToInt(id),
 		}
 	}
-	var paramsOmitted map[string]any
+	var paramsOmitted map[string]any = map[string]any{}
 	if cid != nil {
 		paramsOmitted = this.OmitDict(params, []any{"cid", "clientOrderId"})
 	} else {
@@ -3138,11 +3138,11 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes227019 []any = r1.Value
-		if retRes227019 == nil {
+		var retRes227519 []any = r1.Value
+		if retRes227519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes227019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes227519)}
 		}
 		return nil
 	}
@@ -4148,9 +4148,9 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 	var meta *string = this.SafeString(positionList, 19)
 	var tradePrice *string = this.SafeString(meta, "trade_price")
 	var tradeAmount *string = this.SafeString(meta, "trade_amount")
-	var ternaryStr304220 string = "short"
+	var ternaryStr304720 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr304220 = "long"
+		ternaryStr304720 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        positionList,
@@ -4166,7 +4166,7 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position 
 		"contractSize":                nil,
 		"markPrice":                   nil,
 		"lastPrice":                   nil,
-		"side":                        ternaryStr304220,
+		"side":                        ternaryStr304720,
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -4421,11 +4421,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes321919 []any = r1.Value
-		if retRes321919 == nil {
+		var retRes322419 []any = r1.Value
+		if retRes322419 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes321919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes322419)}
 		}
 		return nil
 	}
@@ -4604,11 +4604,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333619 []any = r1.Value
-		if retRes333619 == nil {
+		var retRes334119 []any = r1.Value
+		if retRes334119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes333619)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes334119)}
 		}
 		return nil
 	}
@@ -4966,11 +4966,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361419 []any = r1.Value
-		if retRes361419 == nil {
+		var retRes361919 []any = r1.Value
+		if retRes361919 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361419)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361919)}
 		}
 		return nil
 	}
@@ -5145,11 +5145,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375219 []any = r1.Value
-		if retRes375219 == nil {
+		var retRes375719 []any = r1.Value
+		if retRes375719 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375219)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375719)}
 		}
 		return nil
 	}

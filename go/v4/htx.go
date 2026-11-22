@@ -2512,8 +2512,8 @@ func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) map[string]
 }
 func (this *Htx) CostToPrecision(symbol any, cost any) *string {
 	var market map[string]any = this.Market(symbol)
-	retStr := this.DecimalToPrecision(cost, TRUNCATE, this.SafeValue(market["precision"], "cost"), this.PrecisionMode)
-	return &retStr
+	retStrVal := this.DecimalToPrecision(cost, TRUNCATE, this.SafeValue(market["precision"], "cost"), this.PrecisionMode)
+	return &retStrVal
 }
 
 /**
@@ -9817,7 +9817,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	var market map[string]any = this.Market(symbol)
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
-		if EvalTruthy(market["linear"]) {
+		if *this.SafeBool(market, "linear", false) {
 
 			r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100)
 			if r1.Err != nil {
@@ -10318,7 +10318,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var signedHeaders map[string]any = nil
-	var signedBody any = nil
+	var signedBody *string = nil
 	var pathString string = path
 	var url string = "/"
 	var isArrayParams bool = IsArray(params)
@@ -10365,7 +10365,8 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 				} else {
 					bodyRequest = query
 				}
-				signedBody = this.Json(bodyRequest)
+				jsonText := this.Json(bodyRequest)
+				signedBody = &jsonText
 				signedHeaders = map[string]any{
 					"Content-Type": "application/json",
 				}
@@ -10457,9 +10458,13 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 				} else {
 					bodyRequest = query
 				}
-				signedBody = this.Json(bodyRequest)
-				if !isArrayParams && (GetLength(signedBody) == 2) {
-					signedBody = "{}"
+				var bodyJson string = this.Json(bodyRequest)
+				if !isArrayParams && (len(bodyJson) == 2) {
+					signedBodyStr := "{}"
+					signedBody = &signedBodyStr
+				} else {
+					signedBodyStr2 := bodyJson
+					signedBody = &signedBodyStr2
 				}
 				signedHeaders = map[string]any{
 					"Content-Type": "application/json",
@@ -10480,7 +10485,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 		}) + url
 	}
 	var headersResolved map[string]any = signedHeaders
-	var bodyResolved any = signedBody
+	var bodyResolved *string = signedBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -11216,11 +11221,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes857119 []any = r1.Value
-		if retRes857119 == nil {
+		var retRes857319 []any = r1.Value
+		if retRes857319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857119)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857319)}
 		}
 		return nil
 	}
@@ -12509,12 +12514,12 @@ func (this *Htx) ParseSettlements(settlements any, market map[string]any) []any 
 				result = append(result, this.Extend(parsedSettlement, timestampDetails))
 			}
 		} else {
-			result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
+			result = append(result, this.ParseSettlement(settlement, market))
 		}
 	}
 	return result
 }
-func (this *Htx) ParseSettlement(settlement any, market map[string]any) map[string]any {
+func (this *Htx) ParseSettlement(settlement map[string]any, market map[string]any) map[string]any {
 	//
 	// coin-m swap, fetchSettlementHistory
 	//
@@ -12811,7 +12816,11 @@ func (this *Htx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 		}
 	}
 	if *this.SafeBool(market, "linear", false) {
-		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var data map[string]any
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 
 		ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 		return nil

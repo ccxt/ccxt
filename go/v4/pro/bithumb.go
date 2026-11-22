@@ -133,7 +133,7 @@ func (this *Bithumb) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		"tickTypes": []any{tickTypes},
 	}
 	if isGenerationTwo {
-		var marketIdRequest any = this.GetGen2MarketId(market)
+		var marketIdRequest string = this.GetGen2MarketId(market)
 		request = []any{map[string]any{
 			"ticket": this.Uuid(),
 		}, this.Extend(map[string]any{
@@ -534,7 +534,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 		"symbols": []any{*this.SafeString(market, "base", "") + "_" + *this.SafeString(market, "quote", "")},
 	}
 	if isGenerationTwo {
-		var marketIdRequest any = this.GetGen2MarketId(market)
+		var marketIdRequest string = this.GetGen2MarketId(market)
 		request = []any{map[string]any{
 			"ticket": this.Uuid(),
 		}, this.Extend(map[string]any{
@@ -755,7 +755,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 		"symbols": []any{*this.SafeString(market, "base", "") + "_" + *this.SafeString(market, "quote", "")},
 	}
 	if isGenerationTwo {
-		var marketIdRequest any = this.GetGen2MarketId(market)
+		var marketIdRequest string = this.GetGen2MarketId(market)
 		request = []any{map[string]any{
 			"ticket": this.Uuid(),
 		}, this.Extend(map[string]any{

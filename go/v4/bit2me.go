@@ -1156,14 +1156,7 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	} else {
 		requestLimit = min(*limit, int64(maxLimit))
 	}
-	var untilPtr *int64 = nil
-	untilPtr, paramsUntil := this.HandleParamInteger(paramsPaginate, "until")
-	until := func() any {
-		if untilPtr != nil {
-			return *untilPtr
-		}
-		return nil
-	}()
+	until, paramsUntil := this.HandleParamInteger(paramsPaginate, "until")
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1175,13 +1168,13 @@ func (this *Bit2me) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		// the endpoint returns the oldest candles first, so request a window that covers `limit` candles
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		if until != nil {
-			request["startTime"] = Subtract(until, requestLimit*duration)
+			request["startTime"] = *until - (requestLimit * duration)
 		} else {
 			request["startTime"] = this.Milliseconds() - (requestLimit * duration)
 		}
 	}
 	if until != nil {
-		request["endTime"] = until
+		request["endTime"] = *until
 	}
 
 	responseRecv := <-this.PublicGetV1TradingCandle(this.Extend(request, paramsUntil))

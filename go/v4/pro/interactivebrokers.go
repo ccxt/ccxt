@@ -1088,11 +1088,11 @@ func (this *Interactivebrokers) HandleOHLCV(client any, message map[string]any) 
  * @param {int} limit the number of bars
  * @returns {string} the period, e.g. '2h'
  */
-func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit any) any {
+func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit any) string {
 	var total any = ccxt.Multiply(duration, limit)
 	var minutes int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 59)), 60))
 	if minutes <= 30 {
-		return ccxt.Add(this.NumberToString(max(minutes, 1)), "min")
+		return *this.NumberToString(max(minutes, 1)) + "min"
 	}
 	var hours int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 3599)), 3600))
 	if hours <= 8 {
@@ -1111,7 +1111,7 @@ func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit any) any {
 		return *this.NumberToString(months) + "m"
 	}
 	var years int64 = this.ParseToInt(ccxt.Divide((ccxt.Add(total, 31535999)), 31536000))
-	return ccxt.Add(this.NumberToString(min(years, 15)), "y")
+	return *this.NumberToString(min(years, 15)) + "y"
 }
 
 /**

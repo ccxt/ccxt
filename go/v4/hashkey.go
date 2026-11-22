@@ -1256,12 +1256,11 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 		}
 	}
 	var tradingFees, _ = this.Fees["trading"].(map[string]any)
-	var fees map[string]any = nil
+	var feeKey string = "swap"
 	if isSpot {
-		fees = this.SafeDictMap(tradingFees, "spot")
-	} else {
-		fees = this.SafeDictMap(tradingFees, "swap")
+		feeKey = "spot"
 	}
+	var fees, _ = tradingFees[feeKey].(map[string]any)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1843,11 +1842,11 @@ func (this *Hashkey) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158119 []any = r1.Value
-		if retRes158119 == nil {
+		var retRes158019 []any = r1.Value
+		if retRes158019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes158119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes158019)}
 		}
 		return nil
 	}
@@ -3926,11 +3925,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes331219 []any = OrdersToList(r1.Value)
-		if retRes331219 == nil {
+		var retRes331119 []any = OrdersToList(r1.Value)
+		if retRes331119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes331219)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes331119)}
 		}
 		return nil
 	} else if marketTypeOption != nil && *marketTypeOption == "swap" {
@@ -3939,11 +3938,11 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes331419 []any = OrdersToList(r2.Value)
-		if retRes331419 == nil {
+		var retRes331319 []any = OrdersToList(r2.Value)
+		if retRes331319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes331419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes331319)}
 		}
 		return nil
 	} else {
@@ -4740,11 +4739,11 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes403215 []any = PositionsToList(r1.Value)
-	if retRes403215 == nil {
+	var retRes403115 []any = PositionsToList(r1.Value)
+	if retRes403115 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes403215)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes403115)}
 	}
 	return nil
 }
@@ -5176,9 +5175,9 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var errorCode *string = this.SafeString(data, "code")
 	var success bool = (errorCode != nil && *errorCode == "0000")
-	var ternaryStr431522 string = "failed"
+	var ternaryStr431422 string = "failed"
 	if success {
-		ternaryStr431522 = "ok"
+		ternaryStr431422 = "ok"
 	}
 	return map[string]any{
 		"info":       data,
@@ -5188,7 +5187,7 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) map[
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       marketResolved["settle"],
-		"status":     ternaryStr431522,
+		"status":     ternaryStr431422,
 		"timestamp":  timestamp,
 		"datetime":   this.Iso8601(timestamp),
 	}

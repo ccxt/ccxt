@@ -2661,10 +2661,8 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) map[string]any {
 				"bid":       this.ParseX18(bid),
 				"info":      bbo,
 			}, market))
-			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			if symbol != nil {
-				result[*symbol] = ticker
-			}
+			var symbol string = *this.SafeString(market, "symbol", "")
+			result[symbol] = ticker
 		}
 	}
 	return result

@@ -1193,9 +1193,9 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]map[string]any
 		}
 		allInstruments = this.ArrayConcat(allInstruments, data)
 		var pagination, _ = result["pagination"].(map[string]any)
-		var totalCount *int64 = this.SafeInteger(pagination, "count", 0) // not named count: that collides with the php builtin the length mapping expands to
+		var totalCount int64 = *this.SafeInteger(pagination, "count", 0) // not named count: that collides with the php builtin the length mapping expands to
 		var collected int = len(allInstruments)
-		if totalCount == nil || int64(collected) >= *totalCount {
+		if int64(collected) >= totalCount {
 			break
 		}
 	}
@@ -1858,12 +1858,7 @@ func (this *Derive) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[strin
 	}
 	var parsed []any = this.ParseSettlements(settlements, market)
 	var sorted []any = this.SortBy(parsed, "timestamp")
-	var symbolResolved any
-	if market != nil {
-		symbolResolved = market["symbol"]
-	} else {
-		symbolResolved = nil
-	}
+	var symbolResolved *string = this.SafeString(market, "symbol")
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
