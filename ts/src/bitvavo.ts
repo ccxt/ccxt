@@ -2756,7 +2756,8 @@ export default class bitvavo extends Exchange {
     }
 
     override calculateRateLimiterCost (api: string[], method: string, path: string, params: Dict, config: Dict = {}) {
-        if (('noMarket' in config) && !('market' in params)) {
+        const marketId = this.safeString (params, 'market');
+        if (('noMarket' in config) && (marketId === undefined)) {
             return config['noMarket'];
         }
         return this.safeInteger (config, 'cost', 1);
