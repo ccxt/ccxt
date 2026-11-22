@@ -1924,8 +1924,9 @@ export default class htx extends Exchange {
             this.options['futureMarketIdsForSymbols'] = {};
         }
         const futureMarketIdsForSymbols = this.safeDict (this.options, 'futureMarketIdsForSymbols', {});
-        if (symbolOrMarketId in futureMarketIdsForSymbols) {
-            return futureMarketIdsForSymbols[symbolOrMarketId];
+        const knownSymbol: string = this.safeString (futureMarketIdsForSymbols, symbolOrMarketId, '');
+        if (knownSymbol !== '') {
+            return knownSymbol;
         }
         const futureMarkets = this.filterBy (this.markets, 'future', true);
         const futuresCharsMaps: Dict = {
