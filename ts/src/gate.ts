@@ -3573,7 +3573,8 @@ export default class gate extends Exchange {
             const isIndex = (price === 'index');
             if (isMark || isIndex) {
                 const marketId: string = this.safeString (market, 'id', '');
-                request['contract'] = price + '_' + marketId;
+                const contractId: string = price + '_' + marketId;
+                request['contract'] = contractId;
             }
             let paramsContract = paramsOmitted;
             if (isMark || isIndex) {
