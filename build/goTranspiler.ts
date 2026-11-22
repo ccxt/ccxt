@@ -12354,7 +12354,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goHashmapRowReads (content) : content;
     content = goTypedNativeDerefs (path, content);
     content = goTypedStrNativeStringHelpers (path, content);
-    content = path.endsWith ('.go') ? goNativeStringAdds (goRetypeNonNilStringMethods (content)) : content;  // row reads exist only from here
+    content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // row reads exist only from here
     content = path.endsWith ('.go') ? goAsyncInt64Value (content) : content;  // typed async int64 value
     content = path.endsWith ('.go') ? goStringSliceIndexPtr (goAsyncStringValue (content, path)) : content;  // typed async string value
     content = path.endsWith ('.go') ? goProvenLocalIsEqual (content) : content;
@@ -16143,7 +16143,7 @@ async function runMain () {
             [ 'h28-a23 struct row *string key: ', h28a23StructRowPtrKeyReadsSelfTest ],
             [ 'h29-a22 struct box info reads: ', h29a22StructBoxInfoReadsSelfTest ],
             [ 'h29-g16 append task list slots: ', goChan3H29G16SelfTest ],
-            [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go non-nil string methods: ', goRetypeNonNilStringMethodsSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
+            [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
             [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, [ '', goInOpHelperCheck ], goCaseAffixWiredCheck,
@@ -17722,76 +17722,6 @@ function goRetypeStringReturns (content: string, receiver: string, methods: { [n
         content = content.slice (0, head.index) + head[0].replace (/ any \{$/, ' string {') + body + content.slice (close);
     }
     return content;
-}
-
-// venue ws-url methods (ts/src `: string`, declared once per venue, no subclass redeclares them): `any` -> `string`
-// when every return is a literal, a literal-default SafeString (derefed), a never-nil `*string` local (derefed),
-// a `string` local or a native string sum; any other return keeps the box
-function goRetypeNonNilStringMethods (content: string): string {
-    const GO_NON_NIL_STRING_METHODS = [ 'GetWsUrl', 'GetTypeByMarket', 'GetGen2MarketId' ];
-    if (!GO_NON_NIL_STRING_METHODS.some ((m) => content.indexOf (') ' + m + '(') >= 0)) { return content; }
-    const fileMasked = goTextMaskLiteralsAndComments (content);
-    const overridden = goAddOverriddenMethods (fileMasked);
-    return goRewriteFuncBlocks (content, (fn, start) => {
-        const head = /^(\s*func \(this \*\w+\) (\w+)\([^)\n]*\)) any \{\n/.exec (fn);
-        if ((head === null) || !GO_NON_NIL_STRING_METHODS.includes (head[2])) { return fn; }
-        const masked = fileMasked.slice (start, start + fn.length);
-        if (/\bfunc\s*\(/.test (masked.slice (head[0].length))) { return fn; }
-        const locals = goAddStringLocals (fn, masked, fileMasked);
-        const literal = (a: string) => /^"(?:[^"\\]|\\.)*"$/.test (a);
-        const rets = [ ...masked.matchAll (/^([ \t]*return )([^\n]*)$/gm) ];
-        if (rets.length === 0) { return fn; }
-        let out = fn;
-        for (let i = rets.length - 1; i >= 0; i--) {
-            const r = rets[i];
-            const at = (r.index as number) + r[1].length;
-            const expr = fn.slice (at, at + r[2].length);
-            if (expr.trim () !== expr) { return fn; }
-            let native: string | null = null;
-            if (literal (expr)) {
-                native = expr;
-            } else if (goNonNilStringCall (expr)) {
-                native = '*' + expr;
-            } else if (/^\w+$/.test (expr)) {
-                const type = goFuncDeclaredType (fn, expr);
-                native = (type === 'string') ? expr : (((type === '*string') && (goNonNilStringPtr (fn, expr) || goNilGuardedReturn (fn, at, expr))) ? '*' + expr : null);
-            } else {
-                native = goAddStringSum (expr, r[2], locals, overridden);
-            }
-            if ((native === null) || /(?<![\w.])Add\(/.test (native)) { return fn; }
-            out = out.slice (0, at) + native + out.slice (at + expr.length);
-        }
-        return out.replace (head[0], head[1] + ' string {\n');
-    });
-}
-
-// `return x` whose innermost enclosing `if` opens with `x != nil` and nothing writes x in between
-function goNilGuardedReturn (fn: string, at: number, name: string): boolean {
-    const lines = fn.slice (0, at).split ('\n');
-    const indent = (l: string) => l.length - l.trimStart ().length;
-    const own = indent (lines[lines.length - 1]);
-    for (let i = lines.length - 2; i >= 0; i--) {
-        if ((lines[i].trim () === '') || (indent (lines[i]) >= own)) {
-            if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (lines[i])) { return false; }
-            continue;
-        }
-        return new RegExp ('^\\s*if \\(?' + name + ' != nil\\)?(?: && [^\\n]*)? \\{$').test (lines[i]);
-    }
-    return false;
-}
-
-function goRetypeNonNilStringMethodsSelfTest (ok: SelfTestOk): void {
-    const f = (body: string, sig = '') => goNativeStringAdds (goRetypeNonNilStringMethods ('package ccxt\n\nfunc (this *X) GetWsUrl(' + sig + ') any {\n' + body + '}\nfunc (this *X) G() any {\n\treturn Add(this.GetWsUrl(), "/")\n}\n'));
-    let r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\tif x {\n\t\treturn "a"\n\t}\n\tif y {\n\t\treturn this.SafeString(this.Urls, "p", "")\n\t}\n\treturn *u + "/" + c\n', 'c string');
-    ok (r.includes ('GetWsUrl(c string) string {') && r.includes ('return *this.SafeString(this.Urls, "p", "")') && r.includes ('return this.GetWsUrl() + "/"'), 'every return proven: string, Add native: ' + r);
-    r = f ('\tvar u *string = this.SafeString(this.Urls, "ws", "")\n\treturn u\n');
-    ok (r.includes ('GetWsUrl() string {') && r.includes ('return *u'), 'literal-default pointer local derefs: ' + r);
-    r = f ('\tvar u *string = this.SafeString(this.Urls, "ws")\n\tif (u != nil) && (strings.Index(*u, "-") >= 0) {\n\t\treturn u\n\t}\n\treturn "a"\n');
-    ok (r.includes ('GetWsUrl() string {') && r.includes ('return *u'), 'nil-guarded pointer return derefs: ' + r);
-    ok (f ('\tvar u *string = this.SafeString(this.Urls, "ws")\n\tif u != nil {\n\t\tu = nil\n\t\treturn u\n\t}\n\treturn "a"\n').includes ('GetWsUrl() any {'), 'write after the guard keeps any');
-    for (const keep of [ '\treturn this.SafeString(this.Urls, "ws")\n', '\treturn nil\n', '\treturn p\n', '\treturn func() any {\n\t\treturn "a"\n\t}()\n' ]) {
-        ok (f (keep, 'p any').includes ('GetWsUrl(p any) any {'), 'unproven return keeps any: ' + keep);
-    }
 }
 
 // `this.Hash(x, h, "hex"|"base64")` answers a string: the HashString twin (go/v4/exchange_crypto.go) declares it
