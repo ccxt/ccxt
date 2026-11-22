@@ -7256,15 +7256,20 @@ export default class bingx extends Exchange {
         };
     }
 
-    customEncode (params: Dict): Str {
+    customEncode (params: Dict): string {
         const sortedParams: Dict = this.keysort (params);
         const rawKeys = Object.keys (sortedParams);
         const rawKeysLength = rawKeys.length;
         let adjustedValue: Str = undefined;
-        let result: Str = undefined;
+        let result: string = '';
         for (let i = 0; i < rawKeysLength; i++) {
             const key = rawKeys[i];
             let value = sortedParams[key];
+            let pair: string = this.safeString (sortedParams, key, '');
+            const flag = this.safeBool (sortedParams, key);
+            if (flag !== undefined) {
+                pair = flag ? 'true' : 'false';
+            }
             if (Array.isArray (value)) {
                 let arrStr: Str = undefined;
                 for (let j = 0; j < value.length; j++) {
@@ -7287,11 +7292,12 @@ export default class bingx extends Exchange {
                 }
                 adjustedValue = '[' + arrStr + ']';
                 value = adjustedValue;
+                pair = '[' + arrStr + ']';
             }
             if (i === 0) {
-                result = key + '=' + value;
+                result = key + '=' + pair;
             } else {
-                result += '&' + key + '=' + value;
+                result += '&' + key + '=' + pair;
             }
         }
         return result;
