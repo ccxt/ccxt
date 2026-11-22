@@ -2848,6 +2848,7 @@ export default class binance extends binanceRest {
             unifiedPrefix = 'ticker';
         }
         let channelName: Str = undefined;
+        let batchMessageHash: string = '';
         const resolvedMessageHashes: string[] = [];
         let rawTickers: Dict[] = [];
         const newTickers: Dict = {};
@@ -2896,6 +2897,7 @@ export default class binance extends binanceRest {
                     this.tickers[symbol] = parsedTicker;
                 }
             }
+            batchMessageHash = unifiedPrefix + 's:' + channelName;
             if (symbol !== undefined) {
                 const messageHash = unifiedPrefix + ':' + channelName + '@' + symbol;
                 resolvedMessageHashes.push (messageHash);
@@ -2905,7 +2907,6 @@ export default class binance extends binanceRest {
         // resolve batch endpoint
         const length = resolvedMessageHashes.length;
         if (length > 0) {
-            const batchMessageHash = unifiedPrefix + 's:' + channelName;
             client.resolve (newTickers, batchMessageHash);
         }
     }
