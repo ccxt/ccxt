@@ -975,7 +975,8 @@ function nativeInserts (content: string): string {
         let suffix = content.slice(after, lineEnd);
         if (suffix.startsWith(';')) suffix = suffix.slice(1);
         const merged = content.slice(lineStart, at) + native + suffix;
-        if (before.length <= 400 && merged.length > 400) {
+        // a call spanning several lines is measured per line
+        if (before.length <= 400 && merged.length > 400 && merged.split('\n').some(l => l.length > 400)) {
             const ind = content.slice(lineStart, at);
             const split = native.replace(/^(if let Value::Dict\(__rda\) = [^{]*\{) (.*) \}$/, '$1\n' + ind + '    $2\n' + ind + '}');
             if (keys.length > 0 || readsReceiver || !/^\s*$/.test(ind) || split === native || split.split('\n').some(l => l.length > 400) || suffix.trim() !== '') continue;
@@ -8803,7 +8804,7 @@ function boxedStrKey (arg: string, body: string): boolean {
     const [, o, test, a, b] = m;
     const some = test === 'some' ? a : b;
     const other = test === 'some' ? b : a;
-    return new RegExp('^[ \\t]*let mut ' + o + ': Option<String> = ', 'm').test(body) && some.trim() === o + '.clone().map(Value::from).unwrap_or(Value::Null)' && str(other);
+    return new RegExp('^[ \\t]*let mut ' + o + ': Option<String> = ', 'm').test(body) && (some.trim() === o + '.clone().map(Value::from).unwrap_or(Value::Null)' || some.trim() === 'Value::from(' + o + '.as_deref())') && str(other);
 }
 /** `list` is bound once to `[Value::Arr(]self.parse_positions(..)` (base body, overridden neither here nor on the REST parent:
  *  fresh `extend_t(parse_position(..), params)` dicts) and never written. */

@@ -2111,7 +2111,7 @@ export default class htx extends htxRest {
             }
             const first = this.safeDict (data, 0, {});
             const splitTopic = topic.split ('.');
-            let messageHash = this.safeString (splitTopic, 0);
+            let messageHash: string = this.safeString (splitTopic, 0, '');
             let subscription = this.safeDict2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
