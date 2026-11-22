@@ -107,7 +107,7 @@ type IWatchTradesForSymbols interface {
 }
 
 type IFetchTrades interface { // W28
-	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade]
+	FetchTradesAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Trade]
 }
 type IFetchOrders interface { // W28
 	FetchOrdersAsync(optionalArgs ...any) <-chan AsyncResult[[]Order]
