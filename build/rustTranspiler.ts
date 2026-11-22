@@ -6145,32 +6145,28 @@ function splitLongRustLines(content: string, max = 400): string {
 // become field reads; any other use re-boxes the pair as the list it was. Runs at write time, after the head-keyed passes.
 // Base handle{Option*,MarketType,MarginMode,SubType}AndParams, handleParam{String,Bool,Integer}(2) and handlePostOnly share the shape
 const RUST_TUPLE_FN_CORE = String.raw`(?:super_)?handle_(?:option_(?:bool_|string_|integer_)?|margin_mode_|sub_type_)and_params2?|handle_market_type_and_params|handle_param_(?:bool|string|integer)2?|handle_post_only|handle_(?:network_code|product_type|uta|trigger_direction|max_entries_per_request)_and_params|handle_stock_params|is_unified_enabled|get_bybit_type`;
+// venue methods ts/src declares `[Dict, Dict]` (or its Promise) at every declaration of the name: the `dict_` pair rows
+function rustDeclaredDictPairFns(): string[] {
+    const pair = new Set<string>(), other = new Set<string>();
+    for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
+        let files: string[] = [];
+        try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
+        for (const f of files) for (const m of (readTsIndexSource(`${dir}/${f}`) ?? '').matchAll(/\n {4}(?:async )?(\w+) \([^\n]*\)\s*:\s*([^{\n]*?)\s*\{\s*\n/g)) (/^(?:Promise<)?\[\s*Dict,\s*Dict\s*\]>?$/.test(m[2]) ? pair : other).add(toSnakeCase(m[1]));
+    }
+    return [...pair].filter((n) => !other.has(n)).sort();
+}
 // venue request/option helpers answering a `[slot 0, Dict]` pair: [name, slot-0 family key of RUST_OPTION_TUPLE_SLOT0]
 const RUST_TUPLE_VENUE_FNS: Array<[string, string]> = [
     ['handle_api_key_index', 'integer_'],
     ['handle_account_index', 'integer_'],
-    ['prepare_request', ''],
     ['get_margin_mode', ''],
-    ['prepare_orders_by_status_request', ''],
-    ['multi_order_spot_prepare_request', ''],
-    ['spot_order_prepare_request', ''],
     ['handle_derive_subaccount_id', 'integer_'],
     ['handle_derive_wallet_address', 'string_'],
     ['handle_origin_and_single_address', 'string_'],
-    ['handle_until_option_string', ''],
     ['handle_public_address', ''],
     ['get_inst_type', 'string_'],
     ['handle_hf_and_params', 'bool_'],
-    ['prepare_account_request_with_currency_code', ''],
-    ['order_request', ''],
-    ['order_request_ws', ''],
-    ['fetch_order_request', ''],
-    ['parse_create_edit_order_args', ''],
-    ['handle_trading_statistics_window', ''],
-    ['prepare_request', 'dict_'],
-    ['spot_order_prepare_request', 'dict_'],
-    ['multi_order_spot_prepare_request', 'dict_'],
-    ['prepare_account_request_with_currency_code', 'dict_'],
+    ...rustDeclaredDictPairFns().map((n): [string, string] => [n, 'dict_']),
 ];
 const RUST_TUPLE_VENUE_FAM = new Map<string, string>(RUST_TUPLE_VENUE_FNS);
 const RUST_TUPLE_FN_NAME = `(?:${[RUST_TUPLE_FN_CORE, ...RUST_TUPLE_VENUE_FNS.map(r => r[0])].join('|')})`;
@@ -6339,7 +6335,7 @@ function typeHandleOptionTuples(input: string): string {
     out = h30r03DictSlot0Bodies(out);
     return out.replace(new RegExp(String.raw`(\n {4}(?:pub )?(?:async )?fn (${RUST_TUPLE_FN_NAME})\([^\n]*\) -> )Value( \{\n)([\s\S]*?)\n\n {4}Value::Null\n\}`, 'g'),
         (_m, sig, name, open, body) => { const fam = rustTupleFam(name, out); if (fam === 'bool_pair_') return `${sig}(Option<bool>, Option<bool>)${open}${body.replace(/return Value::from\(vec!\[(self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\)), (self\.options\.get\("\w+"\)\.cloned\(\)\.unwrap_or\(Value::Null\))\]\);/g, 'return ($1.as_bool(), $2.as_bool());')}\n}`; return `${sig}(${RUST_OPTION_TUPLE_SLOT0[fam][0]}, crate::value::Dict)${open}${body.replace(/return Value::from\(vec!\[(.*), (?:Value::(?:Dict|from)\(&?(\w+)\)|Value::Map\((\w+)\)|(\w+(?:\.clone\(\))?))\]\);/g,
-            (_r, v, d, mp, b) => `return (${v.replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? (mp ? `std::sync::Arc::new(${mp})` : `${b}.into_dict()`)});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
+            (_r, v, d, mp, b) => `return (${(fam === 'dict_' ? rustDictPairSlot0(v) : v).replace(/^(\w+)\.map_or\(Value::Null, Value::Bool\)$/, '$1@')}${RUST_OPTION_TUPLE_SLOT0[fam][1] ? `.${RUST_OPTION_TUPLE_SLOT0[fam][1]}()` : ''}, ${d ?? (mp ? `std::sync::Arc::new(${mp})` : `${b}.into_dict()`)});`.replace(/@\.as_bool\(\)/, ''))}\n}`; });
 }
 
 // parsePredictionPositions has one declaration whose only list is `results`, fed by `push(Value::Dict(..))`:
@@ -8180,8 +8176,13 @@ function typeVenueTupleExtendReturns(content: string): string {
 }
 // grvt handleUntilOptionString answers `(request, omit(params))` on its until branch: return the pair, moving the local
 function typeUntilOptionTupleReturn(content: string): string {
-    return content.replace(/(\n {4}pub fn handle_until_option_string\([^\n]*\) -> \(Value, crate::value::Dict\) \{\n[\s\S]*?)return Value::from\(vec!\[(\w+)(?:\.clone\(\))?, (self\.omit\(&params, &\["until", "till"\], &\[\]\))\]\);/g,
-        (_m, head, req, omit) => `${head}return (${req}, ${omit}.into_dict());`);
+    return content.replace(/(\n {4}pub fn handle_until_option_string\([^\n]*\) -> \((Value|crate::value::Dict), crate::value::Dict\) \{\n[\s\S]*?)return Value::from\(vec!\[(\w+)(?:\.clone\(\))?, (self\.omit\(&params, &\["until", "till"\], &\[\]\))\]\);/g,
+        (_m, head, t, req, omit) => `${head}return (${t === 'Value' ? req : rustDictPairSlot0(req)}, ${omit}.into_dict());`);
+}
+// slot 0 of a `dict_` pair return: a boxed map literal or Dict moves out unboxed, any other value unboxes once
+function rustDictPairSlot0(v: string): string {
+    const m = /^Value::(?:Map\((\w+)\)|Dict\((\w+)\))$/.exec(v);
+    return m === null ? `${v}.into_dict()` : m[1] !== undefined ? `std::sync::Arc::new(${m[1]})` : m[2];
 }
 // a venue `[x, Dict]` tuple re-boxed only to read slot 1 through safe_dict*: slot 1 is always a Dict, so read `.1`
 function readVenueTupleDictSlot(content: string): string {
