@@ -1912,7 +1912,7 @@ export default class sxbet extends Exchange {
         const hasApiKey = !this.isEmptyString (this.apiKey);
         if (!hasApiKey) {
             for (let i = 0; i < hashesLength; i++) {
-                const marketHash = hashesOrder[i];
+                const marketHash = this.safeString (hashesOrder, i, '');
                 const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
                 rowsByHash[marketHash] = this.parseSxbetSnapshotBestOdds (snapshot);
             }
@@ -2428,7 +2428,7 @@ export default class sxbet extends Exchange {
             const refreshed = this.applySxbetWsSnapshot (rows[i]);
             const refreshedLength = refreshed.length;
             for (let j = 0; j < refreshedLength; j++) {
-                const sym = refreshed[j];
+                const sym = this.safeString (refreshed, j, '');
                 client.resolve (this.safeValue (this.orderbooks, sym), 'orderbook::' + sym);
             }
         }
