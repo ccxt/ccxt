@@ -505,7 +505,7 @@ export default class btcturk extends Exchange {
         //
         const marketId = this.safeString (ticker, 'pair');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open');

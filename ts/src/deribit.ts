@@ -1470,7 +1470,7 @@ export default class deribit extends Exchange {
         const tickers: Dict = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
-            const symbol: Str = ticker['symbol'];
+            const symbol: Str = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 tickers[symbol] = ticker;
             }

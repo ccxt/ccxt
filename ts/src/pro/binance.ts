@@ -1683,7 +1683,7 @@ export default class binance extends binanceRest {
             marketType = 'spot';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade::' + symbol;
         const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
@@ -2003,7 +2003,7 @@ export default class binance extends binanceRest {
             marketType = 'spot';
         }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
         const inverse = this.safeBool (market, 'inverse');
         const volumeKey = (inverse === true) ? 'q' : 'v';

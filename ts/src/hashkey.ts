@@ -1716,7 +1716,7 @@ export default class hashkey extends Exchange {
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 's');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const last = this.safeString (ticker, 'c');
         let baseVolume = this.safeString (ticker, 'v');
         const contractSizeValue = this.safeString (marketResolved, 'contractSize');
@@ -4083,7 +4083,7 @@ export default class hashkey extends Exchange {
     override parsePosition (position: Dict, market: Market = undefined): Position {
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         return this.safePosition ({
             'symbol': symbol,
             'id': undefined,
