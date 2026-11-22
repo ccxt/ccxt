@@ -575,7 +575,7 @@ export default class zebpay extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -971,7 +971,7 @@ export default class zebpay extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'tradeTime');
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, '_');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const side = this.safeStringLower (trade, 'side');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'amount', 'quantity');
@@ -1352,7 +1352,7 @@ export default class zebpay extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const type = this.safeString (order, 'type');
         const timestamp = this.safeNumber (order, 'timestamp');
         const datetime = this.iso8601 (timestamp);

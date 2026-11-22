@@ -3357,7 +3357,7 @@ export default class bybit extends Exchange {
             marketType = this.safeString (market, 'type');
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
         const priceString = this.safeStringN (trade, [ 'execPrice', 'orderPrice', 'price' ]);
         const costString = this.safeString (trade, 'execValue');
@@ -4074,7 +4074,7 @@ export default class bybit extends Exchange {
             marketType = isContract ? 'contract' : 'spot';
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger2 (order, 'createdTime', 'createdAt');
         const marketUnit = this.safeString (order, 'marketUnit'); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
@@ -8263,7 +8263,7 @@ export default class bybit extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
-            const symbol = fee['symbol'];
+            const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
             }
@@ -9049,7 +9049,7 @@ export default class bybit extends Exchange {
                 entry[j]['id'] = id;
             }
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             tiers[symbol] = this.parseMarketLeverageTiers (this.sortBy (entry, 'id'), market);
         }
         return tiers as LeverageTiers;

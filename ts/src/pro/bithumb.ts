@@ -384,7 +384,7 @@ export default class bithumb extends bithumbRest {
         const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = isGenerationTwo ? this.safeString (wsUrls, 'publicGen2', '') : this.safeString (wsUrls, 'public', '');
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'orderbook' + ':' + symbolValue;
         let request: Dict | Dict[] = {
             'type': 'orderbookdepth',
@@ -559,7 +559,7 @@ export default class bithumb extends bithumbRest {
         const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         const url = isGenerationTwo ? this.safeString (wsUrls, 'publicGen2', '') : this.safeString (wsUrls, 'public', '');
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trade:' + symbolValue;
         let request: Dict | Dict[] = {
             'type': 'transaction',

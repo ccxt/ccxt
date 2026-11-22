@@ -227,7 +227,7 @@ export default class upbit extends upbitRest {
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         const ticker = this.parseTicker (message);
-        const symbol = ticker['symbol'];
+        const symbol = this.safeString (ticker, 'symbol');
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
@@ -307,7 +307,7 @@ export default class upbit extends upbitRest {
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         const trade = this.parseTrade (message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol');
         if (symbol === undefined) {
             return;
         }

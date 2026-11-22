@@ -2109,7 +2109,7 @@ export default class digifinex extends Exchange {
             if (market === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument for swap markets');
             }
-            const marketSymbol = market['symbol'];
+            const marketSymbol = this.safeString (market, 'symbol', '');
             const orders: CancellationRequest[] = [];
             for (let i = 0; i < ids.length; i++) {
                 const orderItem: CancellationRequest = {

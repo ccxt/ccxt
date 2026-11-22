@@ -1720,7 +1720,7 @@ export default class binance extends binanceRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchOHLCV', 'stock', false);
         if (stock === true) {
             if ((timeframe !== '5m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
@@ -1948,7 +1948,7 @@ export default class binance extends binanceRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         params['callerMethodName'] = 'watchOHLCV';
         return await this.unWatchOHLCVForSymbols ([ [ symbolValue, timeframe ] ], params);
     }
@@ -2883,7 +2883,7 @@ export default class binance extends binanceRest {
                 tickerMarketType = this.safeString (tickerMarketById, 'type');
             }
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
-            const symbol = parsedTicker['symbol'];
+            const symbol = this.safeString (parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 newTickers[symbol] = parsedTicker;
             }
