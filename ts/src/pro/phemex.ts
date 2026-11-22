@@ -532,7 +532,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
@@ -620,7 +620,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -666,7 +666,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];
@@ -709,7 +709,7 @@ export default class phemex extends phemexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const isSwap = market['swap'];

@@ -55,7 +55,7 @@ export default class gemini extends geminiRest {
         }
         const market = this.market (symbol);
         const messageHash = 'trades:' + this.safeString (market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' watchTrades() marketId is required');
         }
@@ -176,7 +176,7 @@ export default class gemini extends geminiRest {
         //     }
         //
         const trade = this.parseWsTrade (message);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol');
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -392,7 +392,7 @@ export default class gemini extends geminiRest {
         }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         if (marketId === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrderBook() marketId is required');
         }

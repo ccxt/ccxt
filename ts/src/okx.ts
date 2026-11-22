@@ -2282,7 +2282,7 @@ export default class okx extends Exchange {
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'instId');
         const marketResolved: Market = this.safeMarket (marketId, market, '-', marketType);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const last = this.safeString (ticker, 'last');
         const open = this.safeString (ticker, 'open24h');
         const spot = this.safeBool (marketResolved, 'spot', false);
@@ -2546,7 +2546,7 @@ export default class okx extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         const marketId = this.safeString (trade, 'instId');
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (trade, 'ts');
         const price = this.safeString2 (trade, 'fillPx', 'px');
         const amount = this.safeString2 (trade, 'fillSz', 'sz');
@@ -5560,7 +5560,7 @@ export default class okx extends Exchange {
         }
         const currencyId = this.safeString (depositAddress, 'ccy');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const code = currencyResolved['code'];
+        const code = this.safeString (currencyResolved, 'code');
         const chain = this.safeString (depositAddress, 'chain');
         const networks = this.safeDict (currencyResolved, 'networks', {});
         const networksById = this.indexBy (networks, 'id');
@@ -6512,7 +6512,7 @@ export default class okx extends Exchange {
         //
         const marketId = this.safeString (position, 'instId');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs (pos);
         let side = this.safeString2 (position, 'posSide', 'direction');

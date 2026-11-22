@@ -2597,7 +2597,7 @@ export default class htx extends Exchange {
         //
         const marketId = this.safeString2 (trade, 'contract_code', 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeIntegerN (trade, [ 'ts', 'created-at', 'created_at', 'create_date', 'created_time' ]);
         const order = this.safeString2 (trade, 'order-id', 'order_id');
         let side = this.safeString2 (trade, 'direction', 'side');
@@ -3059,7 +3059,7 @@ export default class htx extends Exchange {
             untilSeconds = this.parseToInt (until / 1000);
         }
         const isContract = (market['contract'] === true);
-        const marketType: Str = market['type'];
+        const marketType: Str = this.safeString (market, 'type');
         const contractLimit: number = (limit !== undefined) ? limit : 2000; // only used for from/to calculation
         let rangeLimit = limit;
         if (isContract) {
@@ -8089,7 +8089,7 @@ export default class htx extends Exchange {
         //     }
         //
         const marketResolved: Market = this.safeMarket (this.safeString (position, 'contract_code'));
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const contracts = this.safeString (position, 'volume');
         const contractSize = this.safeNumber (marketResolved, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);

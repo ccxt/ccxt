@@ -451,7 +451,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawfr = this.safeDict (data, i);
             const fundingRate = this.parseFundingRate (rawfr);
-            const symbol = fundingRate['symbol'];
+            const symbol = this.safeString (fundingRate, 'symbol');
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
@@ -2068,7 +2068,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, '-');
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const channel = this.safeString (arg, 'channel', '');
         const data: Dict[] = this.safeList (message, 'data', []);
         if (this.positions === undefined) {
