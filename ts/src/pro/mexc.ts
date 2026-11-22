@@ -2083,7 +2083,8 @@ export default class mexc extends mexcRest {
         // spot ws client - the first caller fetches the listenKey, concurrent
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
-        const client = this.client (this.urls['api']['ws']['spot']);
+        const spotUrl = this.urls['api']['ws']['spot'];
+        const client = this.client (spotUrl);
         const messageHash = 'authenticate:listenKey';
         const isFetching = this.safeBool (this.options, 'listenKeyFetching', false);
         if (isFetching) {
