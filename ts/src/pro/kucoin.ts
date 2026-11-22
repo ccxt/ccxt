@@ -1687,11 +1687,10 @@ export default class kucoin extends kucoinRest {
         if ((topic as string).indexOf ('Depth') >= 0) {
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook ();
-            } else {
-                const orderbook = this.orderbooks[symbol];
-                orderbook.reset ();
             }
-            this.orderbooks[symbol]['symbol'] = symbol;
+            const storedBook = this.orderbooks[symbol];
+            storedBook.reset ();
+            storedBook['symbol'] = this.safeSymbol (marketId, undefined, '-');
         } else {
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook ();
