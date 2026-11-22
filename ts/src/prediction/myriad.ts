@@ -1440,13 +1440,7 @@ export default class myriad extends Exchange {
         if ((requestedStatus === 'open') || (requestedStatus === 'cancelled') || (requestedStatus === 'canceled') || (requestedStatus === 'expired')) {
             return [];
         }
-        const traderParam = this.safeString2 (params, 'trader', 'address');
-        let trader: Str = undefined;
-        if (traderParam !== undefined) {
-            trader = traderParam;
-        } else {
-            trader = this.walletAddressOrUndefined ();
-        }
+        const trader = this.safeString2 (params, 'trader', 'address', this.walletAddressOrUndefined ());
         if (trader === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() for AMM history requires a trader address or wallet/privateKey');
         }
