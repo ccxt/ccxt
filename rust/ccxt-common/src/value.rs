@@ -752,6 +752,10 @@ pub fn get_value_k(obj: &Value, key: &str) -> Value {
 pub type Dict = Arc<HashMap<String, Value>>;
 /// The shared list a list-typed local holds; a non-list value reads like an empty list.
 pub type List = Arc<Vec<Value>>;
+/// A list read as rows of maps, converted once: a non-map element is the empty map in its slot (what `safe_dict_t` answers).
+pub fn dict_rows(list: List) -> Vec<Dict> {
+    list.iter().map(|v| if let Value::Dict(m) = v { Arc::clone(m) } else { Dict::default() }).collect()
+}
 /// Declared shape of an implicit-endpoint body (`Dict` or `List`).
 pub trait EndpointBody: Sized + Send { fn from_body(v: Value) -> Option<Self>; }
 impl EndpointBody for Dict { fn from_body(v: Value) -> Option<Self> { if let Value::Dict(m) = v { Some(m) } else { None } } }
