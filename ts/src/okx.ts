@@ -6524,7 +6524,7 @@ export default class okx extends Exchange {
                 const posCcy = this.safeString (position, 'posCcy');
                 const parsedCurrency = this.safeCurrencyCode (posCcy);
                 if (parsedCurrency !== undefined) {
-                    side = (marketResolved['base'] === parsedCurrency) ? 'long' : 'short';
+                    side = (this.safeString (marketResolved, 'base') === parsedCurrency) ? 'long' : 'short';
                 }
             }
             if (side === undefined) {
