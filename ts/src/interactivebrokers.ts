@@ -3252,10 +3252,9 @@ export default class interactivebrokers extends Exchange {
         const parsed = this.parseOrders (orders, market, undefined, undefined);
         const result: Order[] = [];
         for (let i = 0; i < parsed.length; i++) {
-            const order = parsed[i];
-            const status = order['status'];
+            const status = this.safeString (parsed[i], 'status');
             if ((status === 'closed') || (status === 'canceled')) {
-                result.push (order);
+                result.push (parsed[i]);
             }
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Order[];
