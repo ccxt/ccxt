@@ -1641,7 +1641,8 @@ export default class bitrue extends Exchange {
         //     }
         //
         const data: Dict = {};
-        data[(market['id'] as string)] = response;
+        const tickerKey: string = this.safeString (market, 'id', '');
+        data[tickerKey] = response;
         return this.parseTickers (data, symbolsNormalized);
     }
 
@@ -1734,7 +1735,8 @@ export default class bitrue extends Exchange {
                 continue;
             }
             const market = this.safeMarket (marketId);
-            tickers[(market['id'] as string)] = ticker;
+            const tickerKey: string = this.safeString (market, 'id', '');
+            tickers[tickerKey] = ticker;
         }
         return this.parseTickers (tickers, symbolsNormalized);
     }

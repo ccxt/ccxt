@@ -13451,7 +13451,8 @@ export default class binance extends Exchange {
                     const origclientorderidlist = this.safeList2 (extendedParams, 'origclientorderidlist', 'origClientOrderIdList', []);
                     extendedParams = this.omit (extendedParams, [ 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ]);
                     if ('symbol' in extendedParams) {
-                        extendedParams['symbol'] = this.encodeURIComponent (this.safeString (extendedParams, 'symbol', ''));
+                        const encodedSymbol: string = this.encodeURIComponent (this.safeString (extendedParams, 'symbol', ''));
+                        extendedParams['symbol'] = encodedSymbol;
                     }
                     query = this.rawencode (extendedParams);
                     const orderidlistLength = orderidlist.length;

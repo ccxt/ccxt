@@ -2476,7 +2476,8 @@ export default class bybit extends bybitRest {
                 const recordedTopics = this.safeList (existing, 'topics', []);
                 const recordedLength = recordedTopics.length;
                 for (let j = 0; j < recordedLength; j++) {
-                    subscribedTopics[recordedTopics[j]] = true;
+                    const recordedTopic: string = this.safeString (recordedTopics, j, '');
+                    subscribedTopics[recordedTopic] = true;
                 }
             }
             for (let i = 0; i < topicsLength; i++) {
