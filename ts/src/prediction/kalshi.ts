@@ -2659,7 +2659,8 @@ export default class kalshi extends Exchange {
         const apiGroup: string = api[0];
         const access: string = api[1];
         const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString (baseUrls, apiGroup, this.safeString (baseUrls, 'kalshi', ''));
+        const baseUrlDefault: string = this.safeString (baseUrls, 'kalshi', '');
+        const baseUrl: string = this.safeString (baseUrls, apiGroup, baseUrlDefault);
         const implodedPath = this.implodeParams (path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
