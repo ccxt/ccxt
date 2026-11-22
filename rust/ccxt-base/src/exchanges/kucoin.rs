@@ -888,18 +888,20 @@ if _try_result.is_err() {
         let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), currency);
         let mut address: Option<String> = self.safe_string_k_opt(&transaction, "address", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&transaction, "amount", &[]);
-        let mut txid: Option<String> = self.safe_string_k_opt(&transaction, "walletTxId", &[]);
-        if (txid.is_some()) {
-            let txidParts: Vec<Value> = Value::Array(if let Some(__s) = txid.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+        let walletTxId: Option<String> = self.safe_string_k_opt(&transaction, "walletTxId", &[]);
+        let mut txid: Option<String> = None;
+        if (walletTxId.is_some()) {
+            let txidParts: crate::value::List = crate::value::List::new(if let Some(__s) = walletTxId.as_deref() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
             let numTxidParts: i64 = txidParts.len() as i64;
             if numTxidParts > 1 {
+                let txidAddress: Option<String> = txidParts.get(1).and_then(Value::as_str).map(str::to_owned);
                 if (address.is_none()) {
-                    if ((txidParts.get(1).cloned().unwrap_or(Value::Null).len() as i64) as f64) > ((1i64) as f64) {
-                        address = txidParts.get(1).and_then(Value::as_str).map(str::to_owned);
+                    if ((txidAddress.as_deref().unwrap_or_default().chars().count() as i64)) > 1 {
+                        address = txidAddress;
                     }
                 }
             }
-            txid = txidParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            txid = self.safe_string_opt(&txidParts, Value::Int(0), &[]);
         }
         let mut type_var: String = "deposit".to_string();
         if (txid.is_none()) {
@@ -7699,7 +7701,8 @@ impl Kucoin {
             if (amount.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires an amount argument")));
             }
-            if amount.unwrap_or(f64::NAN) < ((1i64) as f64) {
+            let amountInt: Option<i64> = self.parse_to_int(Value::from(amount));
+            if (amountInt.is_some() && amountInt < Some(1)) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() minimum contract order amount is 1")));
             }
             let sizeString: Option<String> = self.amount_to_precision(symbol, Value::from(amount));
@@ -12255,21 +12258,21 @@ impl Kucoin {
         });
         if isolated {
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-            let assets: crate::value::List = self.safe_list_k_t(&data, "assets");
+            let assets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "assets"));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
                 while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (assets.len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(i));
+                let entry: crate::value::Dict = assets.get(i as usize).cloned().unwrap_or_default();
                 let base: crate::value::Dict = self.safe_dict_k_t(&entry, "baseAsset");
                 let quote: crate::value::Dict = self.safe_dict_k_t(&entry, "quoteAsset");
                 let baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]).as_str(), None);
                 let quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]).as_str(), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base))).into_dict();
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote))).into_dict();
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote)));
                 }
             }
             }
@@ -12502,13 +12505,13 @@ impl Kucoin {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let accounts: crate::value::List = self.safe_list_k_t(&data, "accounts");
+        let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "accounts"));
         if isIsolated {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (accounts.len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+                let entry: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or_default();
                 let currencies: crate::value::List = self.safe_list_k_t(&entry, "currencies");
                 {
                                         let mut j: i64 = 0;
@@ -12518,14 +12521,14 @@ impl Kucoin {
                     let currencyId: Option<String> = self.safe_string_k_opt(&currencyEntry, "currency", &[]);
                     let currencyCode: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                     if (currencyCode.is_some()) {
-                        result = self.merge_balance_account(Value::Dict(result), currencyCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&currencyEntry))).into_dict();
+                        result = self.merge_balance_account(Value::Dict(result), currencyCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&currencyEntry)));
                     }
                 }
                 }
             }
             }
         }  else {
-            let firstAccount: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(0));
+            let firstAccount: crate::value::Dict = accounts.get(0).cloned().unwrap_or_default();
             let currencies: crate::value::List = self.safe_list_k_t(&firstAccount, "currencies");
             {
                                 let mut i: i64 = 0;
@@ -13479,8 +13482,8 @@ impl Kucoin {
             //     }
             //
             let dataClassic: crate::value::Dict = self.safe_dict_k_t(&responseClassic, "data");
-            let items: crate::value::List = self.safe_list_k_t(&dataClassic, "items");
-            let item: crate::value::Dict = self.safe_dict_t(&items, Value::Int(0));
+            let items: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&dataClassic, "items"));
+            let item: crate::value::Dict = items.get(0).cloned().unwrap_or_default();
             return self.parse_borrow_rate(Value::Dict(item), Some(&currency));
         }
         let __ws_arg_121 = self.extend(Value::Map(request), &[&paramsRequest]);

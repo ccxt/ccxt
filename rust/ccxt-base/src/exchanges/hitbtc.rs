@@ -630,8 +630,8 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         //         "positions": null
         //     }
         //
-        let currencies: crate::value::List = self.safe_list_k_t(&data, "currencies");
-        let currencyInfo: crate::value::Dict = self.safe_dict_t(&currencies, Value::Int(0));
+        let currencies: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "currencies"));
+        let currencyInfo: crate::value::Dict = currencies.get(0).cloned().unwrap_or_default();
         let datetime: Option<String> = self.safe_string_k_opt(&data, "updated_at", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3241,13 +3241,13 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let fee: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_trading_fee(self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let fee: crate::value::Dict = self.parse_trading_fee(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None));
-            let symbol: Option<String> = fee.get("symbol").and_then(Value::as_str).map(str::to_owned);
+})]), None);
+            let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fee));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
             }
         }
         }
@@ -5051,7 +5051,8 @@ impl Hitbtc {
         if (Some((market).market_type.as_str()) != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id, " setLeverage() supports swap contracts only")));
         }
-        if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_i64().unwrap_or_default() > maxLeverage) {
+        let leverageValue: Option<i64> = self.parse_to_int(&leverage);
+        if ((leverageValue.is_some() && leverageValue < Some(1))) || (leverageValue > Some(maxLeverage)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " setLeverage() leverage should be between 1 and ").into()), Value::Str(format!("{}", maxLeverage).into())).into()), " for ").into()), symbol)));
         }
         let request: indexmap::IndexMap<String, Value> = ({

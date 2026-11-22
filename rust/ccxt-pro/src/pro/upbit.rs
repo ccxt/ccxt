@@ -454,12 +454,12 @@ impl Upbit {
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         let ticker: crate::value::Dict = self.parse_ticker(message, None);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&ticker, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (symbol.is_some()) {
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
+            let messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
+            client.resolve(Value::Dict(ticker), messageHash.as_str());
         }
-        let messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
-        client.resolve(Value::Dict(ticker), messageHash.as_str());
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {

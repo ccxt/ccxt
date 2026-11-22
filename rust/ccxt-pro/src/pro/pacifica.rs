@@ -553,13 +553,13 @@ impl Pacifica {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let results: crate::value::List = self.safe_list_k_t(&data, "results");
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "results"));
         let mut ordersToReturn: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (results.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -1434,8 +1434,8 @@ impl Pacifica {
         //   ]
         // }
         //
-        let entry: crate::value::List = message.key_list("data");
-        let first: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(0));
+        let entry: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let first: crate::value::Dict = entry.get(0).cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&first, "s", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1450,7 +1450,7 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (entry.len() as i64) } {
-            let data: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(i));
+            let data: crate::value::Dict = entry.get(i as usize).cloned().unwrap_or_default();
             let trade: crate::value::Dict = self.parse_ws_trade(&data, None);
             trades.append(Value::Dict(trade));
         }

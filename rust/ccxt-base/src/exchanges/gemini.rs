@@ -2442,7 +2442,7 @@ impl Gemini {
         //
         let result: Value = self.parse_tickers(&response, &[Value::from(symbols)]);
         let brokenPairs: crate::value::List = self.safe_list_k_t(&self.options, "brokenPairs");
-        return self.remove_keys_from_dict(result, Value::Arr(brokenPairs));
+        return Value::Dict(self.remove_keys_from_dict(result, Value::Arr(brokenPairs)));
         Value::Null
         }).await?))
     }
@@ -3098,7 +3098,7 @@ impl Gemini {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let codeValue: Option<String> = crate::value::KeyRead::key_read(&&currency, "code").as_str().map(str::to_owned);
+        let codeValue: String = self.safe_string_k(&currency, "code", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let networkCodeparamsNetworkCodeVariable = self.handle_network_code_and_params(params);
         let networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.0.as_str().map(str::to_owned);
         let paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.1;
@@ -3113,10 +3113,10 @@ impl Gemini {
         });
         let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::List = self.private_post_v1_addresses_network(&[&__ws_arg_12]).await.unwrap_or_default();
-        let results: Value = self.parse_deposit_addresses(&response, &[Value::from(vec![Value::from(codeValue.as_deref())]), Value::Bool(false), Value::Map({
+        let results: Value = self.parse_deposit_addresses(&response, &[Value::from(vec![Value::from(codeValue.as_str())]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("network".to_string(), networkCode.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), Value::from(codeValue.as_deref()));
+        m.insert("currency".to_string(), Value::from(codeValue.as_str()));
     m
 })]);
         return Value::Dict(self.index_by(results, Value::Str("network".into())));
@@ -3210,19 +3210,8 @@ impl Gemini {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let response: Option<crate::value::List> = self.public_get_v2_candles_symbol_timeframe(&[&__ws_arg_14]).await;
-        //
-        //     [
-        //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
-        //         [1591514700000,0.02503,0.02509,0.02503,0.02509,44.6405],
-        //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
-        //     ]
-        //
-        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            candles = response.unwrap_or_default();
-        }
-        return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
+        let response: crate::value::List = self.public_get_v2_candles_symbol_timeframe(&[&__ws_arg_14]).await.unwrap_or_default();
+        return Value::Arr(self.parse_ohlc_vs(&response, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }

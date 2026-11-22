@@ -155,9 +155,9 @@ impl crate::exchange::DerivedExchange for Coinbase {
         let mut askVolume: Option<f64> = None;
         let bids: Option<crate::value::List> = self.safe_list_k_o(&ticker, "bids");
         if (bids.is_some()) {
-            let asks: crate::value::List = self.safe_list_k_t(&ticker, "asks");
+            let asks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&ticker, "asks"));
             let firstBid: crate::value::Dict = self.safe_dict_t(&bids, Value::Int(0));
-            let firstAsk: crate::value::Dict = self.safe_dict_t(&asks, Value::Int(0));
+            let firstAsk: crate::value::Dict = asks.get(0).cloned().unwrap_or_default();
             bid = self.safe_number_k(&firstBid, "price", &[]).as_f64();
             bidVolume = self.safe_number_k(&firstBid, "size", &[]).as_f64();
             ask = self.safe_number_k(&firstAsk, "price", &[]).as_f64();
@@ -4352,8 +4352,8 @@ if _try_result.is_err() {
         //         "best_ask": "28208.62"
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "trades");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "trades"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let mut ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         ticker.insert("bid".into(), self.safe_number_k(&response, "best_bid", &[]));
         ticker.insert("ask".into(), self.safe_number_k(&response, "best_ask", &[]));

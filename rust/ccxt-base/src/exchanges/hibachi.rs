@@ -118,7 +118,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
         //      }
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let id: Option<String> = self.safe_string_k_opt(&trade, "id", &[]);
         let price: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&trade, "quantity", &[]);

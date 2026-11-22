@@ -256,7 +256,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         let timestamp: Option<i64> = self.safe_integer_k(&order, "created", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let status: Option<String> = self.parse_order_status(self.safe_string_k(&order, "status", &[]).as_str());
         let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
         let type_var: Option<String> = self.safe_string_k_opt(&order, "orderType", &[]);
@@ -293,7 +293,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly.map_or(Value::Null, Value::Bool));
@@ -3396,7 +3396,8 @@ impl Bitvavo {
         let params = params.as_map().unwrap_or(&__params_empty);
         let __config_empty = indexmap::IndexMap::new();
         let config = config.as_map().unwrap_or(&__config_empty);
-        if (config.contains_key("noMarket")) && !(params.contains_key("market")) {
+        let marketId: Option<String> = (match params.get("market") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        if (config.contains_key("noMarket")) && (marketId.is_none()) {
             return config.get("noMarket").cloned().unwrap_or(Value::Null);
         }
         return (match config.get("cost") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(1) } }, _ => Value::Int(1) });

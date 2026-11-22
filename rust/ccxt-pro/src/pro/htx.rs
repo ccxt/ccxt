@@ -3295,25 +3295,25 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut messageHash: Option<String> = self.safe_string2_opt(&message, Value::Str("ch".into()), Value::Str("topic".into()), &[]);
         if (messageHash.is_some()) {
-            let data: Value = (match __pro_message.get("data").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null });
-            if (data != Value::Null) {
+            let data: bool = (match __pro_message.get("data").cloned() { Some(Value::Str(__s)) if __s.is_empty() => Value::Null, Some(__v) => __v, None => Value::Null }) != Value::Null;
+            if (data) {
                 let contractCode: Option<String> = (match __pro_message.get("contract_code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let market: Option<crate::types::Market> = (if (contractCode.is_some()) { Some(self.safe_market(contractCode.as_deref(), None, &[])) } else { None });
-                if (matches!(&data, Value::Arr(_))) {
-                    let dataList: crate::value::List = __pro_message.key_list("data");
-                    {
-                                                let mut i: i64 = 0;
-                        let mut __for_first_12: bool = true;
-                        while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (dataList.len() as i64) } {
-                        let parsed: crate::value::Dict = self.parse_ws_trade(dataList.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref());
-                        let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
-                        if (symbol.is_some()) {
-                            self.myTrades.append(Value::Dict(parsed));
-                        }
+                let dataList: crate::value::List = __pro_message.key_list("data");
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_12: bool = true;
+                    while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (dataList.len() as i64) } {
+                    let parsed: crate::value::Dict = self.parse_ws_trade(dataList.get(i as usize).cloned().unwrap_or(Value::Null), market.as_ref());
+                    let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
+                    if (symbol.is_some()) {
+                        self.myTrades.append(Value::Dict(parsed));
                     }
-                    }
-                }  else {
-                    let parsed: crate::value::Dict = self.parse_ws_trade(data, market.as_ref());
+                }
+                }
+                let dataDict: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "data");
+                if (dataDict.is_some()) {
+                    let parsed: crate::value::Dict = self.parse_ws_trade(&dataDict, market.as_ref());
                     let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
                     if (symbol.is_some()) {
                         self.myTrades.append(Value::Dict(parsed));

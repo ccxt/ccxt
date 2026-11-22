@@ -324,13 +324,13 @@ impl Hashkey {
             let limit: i64 = self.safe_integer_k(&self.options, "OHLCVLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
-        let data: crate::value::List = __pro_message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
-            let candle: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let candle: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(candle), Some(&market));
             stored.append(Value::Arr(parsed));
         }
@@ -1117,8 +1117,8 @@ impl Hashkey {
         //     }
         //
         let event: Option<String> = (match __pro_message.get("e").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let data: crate::value::List = __pro_message.key_list("B");
-        let balanceUpdate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("B"));
+        let balanceUpdate: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: String = "swap".to_string();
         if isSpot {

@@ -1328,8 +1328,8 @@ impl Okx {
         let arg: crate::value::Dict = message.key_dict("arg");
         let marketId: Option<String> = self.safe_string_k_opt(&arg, "instId", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let data: crate::value::List = message.key_list("data");
-        let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let ticker: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, Some(&market));
         let symbol: Option<String> = self.safe_string_k_opt(&parsedTicker, "symbol", &[]);
         if (symbol.is_some()) {
@@ -1667,8 +1667,8 @@ impl Okx {
         //        }]
         //    }
         //
-        let posData: crate::value::List = self.safe_list_k_t(&liquidation, "posData");
-        let firstPosData: crate::value::Dict = self.safe_dict_t(&posData, Value::Int(0));
+        let posData: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&liquidation, "posData"));
+        let firstPosData: crate::value::Dict = posData.get(0).cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&firstPosData, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&firstPosData, "uTIme", &[]).as_i64();
@@ -1710,8 +1710,8 @@ impl Okx {
         //        "uly": "IOST-USDT"
         //    }
         //
-        let details: crate::value::List = self.safe_list_k_t(&liquidation, "details");
-        let liquidationDetails: crate::value::Dict = self.safe_dict_t(&details, Value::Int(0));
+        let details: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&liquidation, "details"));
+        let liquidationDetails: crate::value::Dict = details.get(0).cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&liquidation, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&liquidationDetails, "ts", &[]).as_i64();
@@ -3740,12 +3740,12 @@ impl Okx {
                 if (messageString.is_some()) {
                     self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(messageString.as_deref()), feedback.as_str());
                 }  else {
-                    let data: crate::value::List = __pro_message.key_list("data");
+                    let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_32: bool = true;
                         while { if !__for_first_32 { i += 1; } __for_first_32 = false; i < (data.len() as i64) } {
-                        let d: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+                        let d: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
                         errorCode = self.safe_string_k_opt(&d, "sCode", &[]);
                         if (errorCode.is_some()) {
                             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());

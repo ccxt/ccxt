@@ -2306,7 +2306,7 @@ pub trait ExchangeBase:
         let networkIdsToCodesGenerated: crate::value::Dict = self.invert_flat_string_dictionary(self.safe_dict_k(&self.options, "networks", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})])).into_dict();
+})]));
         { let __be_tmp = self.extend(networkIdsToCodesGenerated, &[self.safe_dict_k(&self.options, "networksById", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3802,7 +3802,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn invert_flat_string_dictionary(&self, mut dict: Value) -> Value {
+    fn invert_flat_string_dictionary(&self, mut dict: Value) -> crate::value::Dict {
         let mut reversed: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3819,9 +3819,9 @@ pub trait ExchangeBase:
             }
         }
         }
-        return Value::Map(reversed);
+        return std::sync::Arc::new(reversed);
 
-    Value::Null
+    Default::default()
 }
 
     fn string_to_base16(&self, mut str_val: Value) -> Value {
@@ -4297,7 +4297,7 @@ pub trait ExchangeBase:
         return std::sync::Arc::new(result);
 }
 
-    fn convert_ohlcv_to_trading_view(&self, mut ohlcvs: Value, optional_args: &[Value]) -> Value {
+    fn convert_ohlcv_to_trading_view(&self, mut ohlcvs: Value, optional_args: &[Value]) -> crate::value::Dict {
         let timestamp = get_arg(optional_args, 0, Value::Str("t".into()));
         let open = get_arg(optional_args, 1, Value::Str("o".into()));
         let high = get_arg(optional_args, 2, Value::Str("h".into()));
@@ -4344,9 +4344,9 @@ pub trait ExchangeBase:
             if let Some(__k) = volume.as_str() { result.insert(__k.to_string(), resultVolume); }
         }
         }
-        return Value::Map(result);
+        return std::sync::Arc::new(result);
 
-    Value::Null
+    Default::default()
 }
 
     fn fetch_web_endpoint(&mut self, mut method: Value, mut endpointMethod: Value, mut returnAsJson: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
@@ -7017,7 +7017,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     } }
 
-    fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
+    fn set_take_profit_and_stop_loss_params(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> crate::value::Dict {
         let price = get_arg(optional_args, 0, Value::Null);
         let takeProfit = get_arg(optional_args, 1, Value::Null);
         let stopLoss = get_arg(optional_args, 2, Value::Null);
@@ -7077,9 +7077,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), Value::Map(stopLossRequest)); }
         }
         let paramsOmitted: Value = self.omit(params, &["takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"], &[]);
-        return paramsOmitted;
+        return paramsOmitted.into_dict();
 
-    Value::Null
+    Default::default()
 }
 
     fn create_spot_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send { async move {
@@ -7552,10 +7552,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {object} account a balance account with string free/used/total/debt
  * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
  */
-    fn merge_balance_account(&self, mut result: Value, mut code: Value, mut account: Value) -> Value {
+    fn merge_balance_account(&self, mut result: Value, mut code: Value, mut account: Value) -> crate::value::Dict {
         if !(matches!((&result, &code), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
-            return result;
+            return result.into_dict();
         }
         let fields: crate::value::List = std::sync::Arc::new(vec![Value::Str("free".into()), Value::Str("used".into()), Value::Str("total".into()), Value::Str("debt".into())]);
         {
@@ -7572,9 +7572,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return result;
+        return result.into_dict();
 
-    Value::Null
+    Default::default()
 }
 
     fn common_currency_code(&self, mut code: Value) -> Value {
@@ -8304,7 +8304,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_trigger_prices_and_params(&self, mut symbol: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    fn handle_trigger_prices_and_params(&self, mut symbol: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> (Option<String>, Option<String>, Option<String>, crate::value::Dict) {
         let params: Value = params.into();
         let omitParams = get_arg(optional_args, 0, Value::Bool(true));
         //
@@ -8337,9 +8337,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let keysToOmitLength: i64 = keysToOmit.len() as i64;
         let paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(&params, Value::from(keysToOmit), &[]) } else { params });
-        return Value::from(vec![triggerPriceStr.map(Value::from).unwrap_or(Value::Null), stopLossPriceStr.map(Value::from).unwrap_or(Value::Null), takeProfitPriceStr.map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
-
-    Value::Null
+        return (triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted.into_dict());
 }
 
     fn handle_trigger_direction_and_params(&self, params: impl Into<crate::Value>, optional_args: &[Value]) -> (Value, crate::value::Dict) {
@@ -8945,7 +8943,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn assign_default_deposit_withdraw_fees(&self, mut fee: Value, optional_args: &[Value]) -> Value {
+    fn assign_default_deposit_withdraw_fees(&self, mut fee: Value, optional_args: &[Value]) -> crate::value::Dict {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let __currency_empty = indexmap::IndexMap::new();
         let currency = currency.as_map().unwrap_or(&__currency_empty);
@@ -8975,9 +8973,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return fee;
+        return fee.into_dict();
 
-    Value::Null
+    Default::default()
 }
 
     fn parse_income(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
@@ -9632,7 +9630,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> Value {
+    fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> crate::value::Dict {
         let mut keys: Vec<&str> = dict.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut newDict: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -9648,9 +9646,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         }
-        return Value::Map(newDict);
+        return std::sync::Arc::new(newDict);
 
-    Value::Null
+    Default::default()
 }
 
     fn handle_until_option(&self, mut key: Value, mut request: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> (crate::value::Dict, crate::value::Dict) {
@@ -11023,7 +11021,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
+        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
         if (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
@@ -12561,7 +12559,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]).into_dict();
+        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
         if (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
@@ -13188,7 +13186,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
             "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "arrays_concat" => self.arrays_concat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "assign_default_deposit_withdraw_fees" => self.assign_default_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "assign_default_deposit_withdraw_fees" => Value::Dict(self.assign_default_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "borrow_cross_margin" => crate::types::IntoRaw::into_raw(self.borrow_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
             "borrow_isolated_margin" => crate::types::IntoRaw::into_raw(self.borrow_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
             "borrow_margin" => crate::types::IntoRaw::into_raw(self.borrow_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or_default()).await),
@@ -13223,7 +13221,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "convert_expire_date" => self.convert_expire_date(args.get(0).and_then(crate::Value::as_text).as_deref()),
             "convert_expire_date_to_market_id_date" => self.convert_expire_date_to_market_id_date(args.get(0).and_then(crate::Value::as_text).as_deref()),
             "convert_market_id_expire_date" => self.convert_market_id_expire_date(args.get(0).and_then(crate::Value::as_text).as_deref()),
-            "convert_ohlcv_to_trading_view" => self.convert_ohlcv_to_trading_view(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "convert_ohlcv_to_trading_view" => Value::Dict(self.convert_ohlcv_to_trading_view(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "convert_trading_view_to_ohlcv" => Value::Arr(self.convert_trading_view_to_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
             "convert_type_to_account" => self.convert_type_to_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "cost_to_precision" => crate::Value::from(self.cost_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
@@ -13516,12 +13514,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "handle_time_in_force" => self.handle_time_in_force(&args[..]),
             "handle_trigger_and_params" => self.handle_trigger_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "handle_trigger_direction_and_params" => { let __t = self.handle_trigger_direction_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-            "handle_trigger_prices_and_params" => self.handle_trigger_prices_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
+            "handle_trigger_prices_and_params" => { let __t = self.handle_trigger_prices_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); Value::from(vec![Value::from(__t.0), Value::from(__t.1), Value::from(__t.2), Value::Dict(__t.3)]) },
             "handle_until_option" => crate::Value::from(self.handle_until_option(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..])),
             "implode_hostname" => self.implode_hostname(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "incrementing_nonce" => crate::Value::from(self.incrementing_nonce()),
             "integer_precision_to_amount" => self.integer_precision_to_amount(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "invert_flat_string_dictionary" => self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "invert_flat_string_dictionary" => Value::Dict(self.invert_flat_string_dictionary(args.get(0).cloned().unwrap_or(crate::Value::Null))),
             "is_empty_string" => self.is_empty_string(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_leveraged_currency" => self.is_leveraged_currency(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "is_post_only" => crate::Value::from(self.is_post_only(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
@@ -13543,7 +13541,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "market_or_null" => self.market_or_null(&args[..]),
             "market_symbols" => self.market_symbols(&args[..].iter().collect::<Vec<_>>()).map_or(Value::Null, Value::Arr),
             "markets_for_symbols" => self.markets_for_symbols(&args[..]),
-            "merge_balance_account" => self.merge_balance_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
+            "merge_balance_account" => Value::Dict(self.merge_balance_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
             "network_code_to_id" => self.network_code_to_id(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
             "network_id_to_code" => crate::Value::from(self.network_id_to_code(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref())),
             "nonce" => <Self as crate::exchange_generated::ExchangeBase>::nonce(self),
@@ -13641,7 +13639,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "reduce_fees_by_currency" => self.reduce_fees_by_currency(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
-            "remove_keys_from_dict" => self.remove_keys_from_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "remove_keys_from_dict" => Value::Dict(self.remove_keys_from_dict(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "remove_repeated_elements_from_array" => self.remove_repeated_elements_from_array(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "remove_repeated_trades_from_array" => self.remove_repeated_trades_from_array(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "repay_cross_margin" => crate::types::IntoRaw::into_raw(self.repay_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -13674,7 +13672,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_markets_from_exchange" => self.set_markets_from_exchange(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
-            "set_take_profit_and_stop_loss_params" => self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+            "set_take_profit_and_stop_loss_params" => Value::Dict(self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..])),
             "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
             "sign_in" => self.sign_in(&args[..]).await,
             "sort_cursor_paginated_result" => self.sort_cursor_paginated_result(args.get(0).cloned().unwrap_or(crate::Value::Null)),

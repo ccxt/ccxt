@@ -2580,8 +2580,8 @@ impl Hollaex {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let transaction: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let transaction: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &transaction, currency.as_ref());
 
     Value::Null

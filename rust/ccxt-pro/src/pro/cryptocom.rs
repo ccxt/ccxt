@@ -1204,8 +1204,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_bid_ask(&mut self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let data: crate::value::List = message.key_list("data");
-        let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let ticker: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let parsedTicker: crate::value::Dict = self.parse_ws_bid_ask(&ticker, None);
         let symbol: String = self.safe_string_k(&parsedTicker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if (symbol != "") {
@@ -1600,8 +1600,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        let data: crate::value::List = message.key_list("data");
-        let firstData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let firstData: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let rawPositions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&firstData, "positions"));
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));

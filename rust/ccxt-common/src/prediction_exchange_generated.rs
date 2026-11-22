@@ -1091,8 +1091,6 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_27: bool = true;
             while { if !__for_first_27 { i += 1; } __for_first_27 = false; i < (rawWords.len() as i64) } {
             let word: Option<String> = rawWords.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            // inline .length so the php transpiler emits strlen() — the standalone
-            // `const n = str.length;` statement form wrongly becomes count() (array)
             if (((word.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
                 continue;
             }

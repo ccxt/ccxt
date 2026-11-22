@@ -3867,11 +3867,11 @@ impl Weex {
         if !isMarketOrder {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol, Value::from(price))));
         }
-        let triggerPricestopLossPricetakeProfitPricequeryVariable: Vec<Value> = self.handle_trigger_prices_and_params(Value::from(symbol), params.clone(), &[]).as_array().cloned().unwrap_or_default();
-        let triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.get(2).and_then(Value::as_str).map(str::to_owned);
-        let query: crate::value::Dict = triggerPricestopLossPricetakeProfitPricequeryVariable.get(3).cloned().unwrap_or(Value::Null).into_dict();
+        let triggerPricestopLossPricetakeProfitPricequeryVariable = self.handle_trigger_prices_and_params(Value::from(symbol), params.clone(), &[]);
+        let triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.0;
+        let stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.1;
+        let takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPricequeryVariable.2;
+        let query: crate::value::Dict = triggerPricestopLossPricetakeProfitPricequeryVariable.3;
         let isTrigger: bool = triggerPrice.is_some();
         let isStopLoss: bool = stopLossPrice.is_some();
         let isTakeProfit: bool = takeProfitPrice.is_some();

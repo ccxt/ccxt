@@ -470,8 +470,8 @@ impl crate::exchange::DerivedExchange for Mudrex {
         }
         let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
-            let errors: crate::value::List = self.safe_list_k_t(&response, "errors");
-            let first: crate::value::Dict = self.safe_dict_t(&errors, Value::Int(0));
+            let errors: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "errors"));
+            let first: crate::value::Dict = errors.get(0).cloned().unwrap_or_default();
             let text: Option<String> = self.safe_string_k_opt(&first, "text", &[&json_stringify(&response)]);
             let errCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
@@ -2027,7 +2027,7 @@ impl Mudrex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return crate::types::IntoRaw::into_raw(self.add_margin(symbol.as_str().unwrap_or_default(), ((match &(Value::from(amount)) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })).as_f64().unwrap_or_default(), params).await);
+        return crate::types::IntoRaw::into_raw(self.add_margin(symbol.as_str().unwrap_or_default(), (self.parse_number(crate::precise::Precise::stringNeg(&Value::from(self.number_to_string(amount))), &[])).as_f64().unwrap_or_default(), params).await);
         Value::Null
         }).await?))
     }

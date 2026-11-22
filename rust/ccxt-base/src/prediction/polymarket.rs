@@ -2054,7 +2054,7 @@ impl Polymarket {
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcome() could not resolve mkt")));
                     }
-                    add_element_to_object(&mut self.markets, &mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), mkt);
+                    if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), mkt); }
                 }
                 }
                 self.populate_outcomes();
@@ -2076,20 +2076,18 @@ impl Polymarket {
  * @returns {object} the outcome cache
  */
     pub async fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> Value {
-        let __outcomeSymbols_empty = Vec::new();
-        let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         let mut tokenIds: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < (outcomeSymbols.len() as i64) } {
-            let outcomeSymbol: Option<&str> = outcomeSymbols.get(i as usize).and_then(Value::as_str);
+            let outcomeSymbol: String = self.safe_string(&outcomeSymbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if (!outcomeSymbol.as_deref().unwrap_or_default().contains(":")) && (self.outcome_search_query(Value::from(outcomeSymbol.as_deref())) == Value::Null) {
-                std::sync::Arc::make_mut(&mut tokenIds).push(Value::from(outcomeSymbol.as_deref()));
+            if (!outcomeSymbol.contains(":")) && (self.outcome_search_query(Value::from(outcomeSymbol.as_str())) == Value::Null) {
+                std::sync::Arc::make_mut(&mut tokenIds).push(Value::from(outcomeSymbol));
             }
         }
         }
@@ -2137,7 +2135,7 @@ impl Polymarket {
                     if (mkt == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcomes() could not resolve mkt")));
                     }
-                    add_element_to_object(&mut self.markets, &mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), mkt);
+                    if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), mkt); }
                 }
                 }
                 startIndex = (startIndex + chunkSize);
@@ -2148,8 +2146,9 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (outcomeSymbols.len() as i64) } {
-            if !(self.has_outcome((outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str()).as_bool() == Some(true)) {
-                self.fetch_outcome(outcomeSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).await;
+            let pendingSymbol: String = self.safe_string(&outcomeSymbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            if !(self.has_outcome(Some(pendingSymbol.as_str())).as_bool() == Some(true)) {
+                self.fetch_outcome(Value::from(pendingSymbol)).await;
             }
         }
         }
@@ -2584,7 +2583,7 @@ impl Polymarket {
         //         ]
         //     }
         //
-        let history: crate::value::List = self.safe_list_k_t(&response, "history");
+        let history: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "history"));
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         let resolutionMs: i64 = (((fidelityMin * 60)) * 1000);
@@ -2596,7 +2595,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { i += 1; } __for_first_29 = false; i < (history.len() as i64) } {
-            let item: crate::value::Dict = self.safe_dict_t(&history, Value::Int(i));
+            let item: crate::value::Dict = history.get(i as usize).cloned().unwrap_or_default();
             let t: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
             let price: Option<f64> = self.safe_number_k(&item, "p", &[]).as_f64();
             if (t.is_none()) || (price.is_none()) {
@@ -2624,10 +2623,18 @@ impl Polymarket {
                     }
                 }
                 let open: Option<f64> = self.safe_number((if let (Some(__m), Some(__k)) = (buckets.as_map(), bucketKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(1), &[]).as_f64();
+                let mut high: Option<f64> = price;
+                let prevHigh: Option<f64> = self.safe_number((if let (Some(__m), Some(__k)) = (buckets.as_map(), bucketKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(2), &[]).as_f64();
+                if (prevHigh.is_some()) && (price.is_some()) && ((prevHigh.is_some() && price.is_some() && prevHigh > price)) {
+                    high = prevHigh;
+                }
+                let mut low: Option<f64> = price;
+                let prevLow: Option<f64> = self.safe_number((if let (Some(__m), Some(__k)) = (buckets.as_map(), bucketKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(3), &[]).as_f64();
+                if (prevLow.is_some()) && (price.is_some()) && ((price.is_some() && prevLow.is_some() && price > prevLow)) {
+                    low = prevLow;
+                }
                 // close is the last tick
-                { let __be_tmp = Value::from(vec![Value::from(snappedMs), Value::from(open), crate::runtime::Math::max(&self.safe_number((if let (Some(__m), Some(__k)) = (buckets.as_map(), bucketKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(2), &[]), &Value::from(price)),
-                    crate::runtime::Math::min(&self.safe_number((if let (Some(__m), Some(__k)) = (buckets.as_map(), bucketKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Int(3), &[]), &Value::from(price)), Value::from(price), Value::from(candleVol)]);
-                    if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), __be_tmp); } }
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&bucketKey), Value::from(vec![Value::from(snappedMs), Value::from(open), Value::from(high), Value::from(low), Value::from(price), Value::from(candleVol)])); }
             }
         }
         }
@@ -2978,12 +2985,12 @@ impl Polymarket {
             let trade: Option<&crate::types::Trade> = trades.get(i as usize);
             let info: crate::value::Dict = self.safe_dict_k_t(&trade, "info");
             let mut belongs: bool = (self.safe_string_k(&trade, "order", &[]).as_str() == id.as_str()) || (self.safe_string_k(&info, "taker_order_id", &[]).as_str() == id.as_str());
-            let makerOrders: crate::value::List = self.safe_list_k_t(&info, "maker_orders");
+            let makerOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&info, "maker_orders"));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_32: bool = true;
                 while { if !__for_first_32 { j += 1; } __for_first_32 = false; j < (makerOrders.len() as i64) } {
-                let makerOrder: crate::value::Dict = self.safe_dict_t(&makerOrders, Value::Int(j));
+                let makerOrder: crate::value::Dict = makerOrders.get(j as usize).cloned().unwrap_or_default();
                 if (self.safe_string_k(&makerOrder, "order_id", &[]).as_str() == id.as_str()) {
                     belongs = true;
                 }
@@ -3110,7 +3117,8 @@ impl Polymarket {
             let mut __for_first_34: bool = true;
             while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (outcomes.len() as i64) } {
             let outcomeObj: Option<crate::types::Market> = self.outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
-            wantedIds.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&outcomeObj, "outcomeId"))), Value::Bool(true));
+            let outcomeId: String = self.safe_string_k(&outcomeObj, "outcomeId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            wantedIds.insert(outcomeId, Value::Bool(true));
         }
         }
         let mut result: Vec<Value> = Vec::new();
@@ -4144,7 +4152,7 @@ impl Polymarket {
                 if (m == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
                 }
-                add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m);
+                if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), m); }
             }
             }
             let parsedEvent: crate::value::Dict = self.parse_event(rawEvent);

@@ -1542,8 +1542,8 @@ impl Apex {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_v3_ticker(&[&__ws_arg_0]).await.unwrap_or_default();
-        let tickers: crate::value::List = self.safe_list_k_t(&response, "data");
-        let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let rawTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -1804,8 +1804,8 @@ impl Apex {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_v3_ticker(&[&__ws_arg_4]).await.unwrap_or_default();
-        let tickers: crate::value::List = self.safe_list_k_t(&response, "data");
-        let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let rawTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &rawTicker, Some(&market));
         Value::Null
         }).await?))
@@ -2072,9 +2072,8 @@ impl Apex {
         let fees: crate::value::Dict = self.safe_dict_k_t(&self.fees, "swap");
         let taker: String = self.safe_string_k(&fees, "taker", &[Value::Str("0.0005".into())]).as_str().unwrap_or("0.0005").to_string();
         let maker: String = self.safe_string_k(&fees, "maker", &[Value::Str("0.0002".into())]).as_str().unwrap_or("0.0002").to_string();
-        let pricePrecision: Value = crate::value::KeyRead::key_read(&&market, "precision").as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null);
-        let limitFee: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &Value::from(self.number_to_string(&pricePrecision))), Value::Int(crate::runtime::TRUNCATE), pricePrecision, &[self.precisionMode.clone(),
-            self.paddingMode.clone()]).as_str().map(str::to_owned);
+        let pricePrecision: Option<f64> = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]).as_f64();
+        let limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &Value::from(self.number_to_string(Value::from(pricePrecision)))), Value::Int(crate::runtime::TRUNCATE), Value::from(pricePrecision), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         let timeNow: i64 = self.milliseconds();
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&params, "triggerPrice", &[]);
         let stopLossPrice: Option<String> = self.safe_string_k_opt(&params, "stopLossPrice", &[]);
@@ -2133,7 +2132,7 @@ impl Apex {
                 m.insert("type".to_string(), Value::from(orderType));
                 m.insert("size".to_string(), orderSize.map(Value::from).unwrap_or(Value::Null));
                 m.insert("price".to_string(), finalOrderPrice.map(Value::from).unwrap_or(Value::Null));
-                m.insert("limitFee".to_string(), limitFee.map(Value::from).unwrap_or(Value::Null));
+                m.insert("limitFee".to_string(), limitFee);
                 m.insert("expiration".to_string(), (match (&(Value::from(self.parse_to_int(Value::Float(((timeNow as f64) / 1000.0))))), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x),
                     Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
                     (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),

@@ -1022,11 +1022,11 @@ impl Bullish {
             account.insert("total".into(), self.safe_string_k(&data, "availableQuantity", &[]));
             account.insert("used".into(), self.safe_string_k(&data, "lockedQuantity", &[]));
             let code: Option<String> = self.safe_currency_code(assetId.as_deref(), None);
-            { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(tradingAccountId.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("info".to_string(), message); } }
             let mut deltaBalance: indexmap::IndexMap<String, Value> = self.balance.get(tradingAccountId.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })).as_map().cloned().unwrap_or_default();
+            deltaBalance.insert("info".into(), message);
             if (tradingAccountId.is_some()) && (code.is_some()) {
                 deltaBalance.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
@@ -1071,8 +1071,6 @@ impl Bullish {
         let mut symbolsNormalized: Option<crate::value::List> = Value::from(symbols.clone()).into_opt_list();
         if hasSymbols {
             symbolsNormalized = self.market_symbols(&[&Value::from(symbols)]);
-        }
-        if hasSymbols && (symbolsNormalized.is_some()) {
             messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));
         }
         let request: indexmap::IndexMap<String, Value> = ({

@@ -1110,12 +1110,12 @@ impl crate::exchange::DerivedExchange for Woo {
         }
         let mut longLeverage: Option<i64> = spotLeverage;
         let mut shortLeverage: Option<i64> = spotLeverage;
-        let details: crate::value::List = self.safe_list_k_t(&leverage, "details");
+        let details: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&leverage, "details"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (details.len() as i64) } {
-            let position: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
+            let position: crate::value::Dict = details.get(i as usize).cloned().unwrap_or_default();
             let positionLeverage: Option<i64> = self.safe_integer_k(&position, "leverage", &[]).as_i64();
             let side: Option<String> = self.safe_string_k_opt(&position, "positionSide", &[]);
             if (side.as_deref() == Some("BOTH")) {
@@ -5505,8 +5505,8 @@ impl Woo {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        let first: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(0));
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
+        let first: crate::value::Dict = rows.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &first, Some(&market));
         Value::Null
         }).await?))
@@ -5951,8 +5951,8 @@ impl Woo {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let positions: crate::value::List = self.safe_list_k_t(&result, "positions");
-        let first: crate::value::Dict = self.safe_dict_t(&positions, Value::Int(0));
+        let positions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "positions"));
+        let first: crate::value::Dict = positions.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

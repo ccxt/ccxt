@@ -465,7 +465,7 @@ impl Woofipro {
         data.insert("date".into(), Value::from(timestamp));
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Map(data), Some(&market));
         std::sync::Arc::make_mut(&mut ticker).insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "symbol"));
-        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), topic.as_deref());
         return message;
 
@@ -549,7 +549,7 @@ impl Woofipro {
                 m
             })]);
             let ticker: crate::value::Dict = self.parse_ws_ticker(__ws_arg_0, Some(&market));
-            std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
+            { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker)); }
             std::sync::Arc::make_mut(&mut result).push(Value::Dict(ticker));
         }
         }

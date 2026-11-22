@@ -411,8 +411,8 @@ impl Hyperliquid {
         // response is the same as in this.editOrder
         let responseObject: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let dataObject: crate::value::Dict = self.safe_dict_k_t(&responseObject, "data");
-        let statuses: crate::value::List = self.safe_list_k_t(&dataObject, "statuses");
-        let first: crate::value::Dict = self.safe_dict_t(&statuses, Value::Int(0));
+        let statuses: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&dataObject, "statuses"));
+        let first: crate::value::Dict = statuses.get(0).cloned().unwrap_or_default();
         let parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(first), Some(&market));
         return Value::Dict(parsedOrder);
         Value::Null
@@ -1448,12 +1448,12 @@ impl Hyperliquid {
         //         ]
         //     }
         //
-        let entry: crate::value::List = message.key_list("data");
+        let entry: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let entryLength: i64 = entry.len() as i64;
         if (entryLength == 0) {
             return;
         }
-        let first: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(0));
+        let first: crate::value::Dict = entry.get(0).cloned().unwrap_or_default();
         let coin: Option<String> = self.safe_string_k_opt(&first, "coin", &[]);
         let marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1468,7 +1468,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (entry.len() as i64) } {
-            let data: crate::value::Dict = self.safe_dict_t(&entry, Value::Int(i));
+            let data: crate::value::Dict = entry.get(i as usize).cloned().unwrap_or_default();
             let trade: crate::value::Dict = self.parse_ws_trade(&data, None);
             trades.append(Value::Dict(trade));
         }

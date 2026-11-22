@@ -1536,7 +1536,7 @@ impl Derive {
         let topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topicParts: crate::value::List = crate::value::List::new(topic.split(".").map(Value::from).collect());
         let subaccountIdKey: Option<String> = self.safe_string_opt(&topicParts, Value::Int(0), &[]);
-        let data: crate::value::List = self.safe_list_k_t(&params, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&params, "data"));
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
                 let m = indexmap::IndexMap::new();
@@ -1553,7 +1553,7 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let name: String = self.safe_string_k(&entry, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure

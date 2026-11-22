@@ -645,8 +645,8 @@ impl Bitget {
         //     }
         //
         let arg: crate::value::Dict = message.key_dict("arg");
-        let data: crate::value::List = message.key_list("data");
-        let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let ticker: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[Value::from(utaTimestamp)]).as_i64();
         let instType: Option<String> = self.safe_string_lower_k_opt(&arg, "instType", &[]);
@@ -781,8 +781,8 @@ impl Bitget {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let arg: crate::value::Dict = message.key_dict("arg");
-        let data: crate::value::List = message.key_list("data");
-        let ticker: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let ticker: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "ts", &[Value::from(utaTimestamp)]).as_i64();
         let instType: Option<String> = self.safe_string_lower_k_opt(&arg, "instType", &[]);
@@ -2469,8 +2469,8 @@ impl Bitget {
         }  else {
             marketType = Some("contract".to_string());
         }
-        let data: crate::value::List = message.key_list("data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let category: Option<String> = self.safe_string_lower_k_opt(&first, "category", &[Value::from(instType.as_deref())]);
         let isLinearSwap: bool = category.as_deref() == Some("usdt-futures");
         let isInverseSwap: bool = category.as_deref() == Some("coin-futures");
@@ -2505,7 +2505,7 @@ impl Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (data.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let marketId: Option<String> = self.safe_string2_opt(&order, Value::Str("instId".into()), Value::Str("symbol".into()), &[&Value::from(argInstId.as_deref())]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
             let parsed: crate::value::Dict = self.parse_ws_order(&order, Some(&market));
@@ -2713,8 +2713,8 @@ impl Bitget {
         let timestamp: Option<i64> = self.safe_integer2(&order, Value::Str("cTime".into()), Value::Str("createdTime".into()), &[]).as_i64();
         let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let rawStatus: Option<String> = self.safe_string2_opt(&order, Value::Str("status".into()), Value::Str("orderStatus".into()), &[]);
-        let orderFee: crate::value::List = self.safe_list_k_t(&order, "feeDetail");
-        let fee: crate::value::Dict = self.safe_dict_t(&orderFee, Value::Int(0));
+        let orderFee: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&order, "feeDetail"));
+        let fee: crate::value::Dict = orderFee.get(0).cloned().unwrap_or_default();
         let feeAmount: Option<String> = self.safe_string_k_opt(&fee, "fee", &[]);
         let mut feeObject: Option<crate::value::Dict> = None;
         if (feeAmount.is_some()) {

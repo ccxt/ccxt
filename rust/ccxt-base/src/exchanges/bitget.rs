@@ -1078,7 +1078,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_n(&position, Value::from(vec![Value::Str("cTime".into()), Value::Str("ctime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut marginMode: Option<String> = self.safe_string_k_opt(&position, "marginMode", &[]);
         let mut collateral: Option<String> = None;
@@ -12580,12 +12580,12 @@ if _try_result.is_err() {
                 return <Self as crate::exchange::DerivedExchange>::parse_order(self, &data, Some(&market));
             }
         }
-        let dataList: crate::value::List = self.safe_list_k_t(&response, "data");
+        let dataList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let dataListLength: i64 = dataList.len() as i64;
         if (dataListLength == 0) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order id ").into()), id).into()), " in ").into()), json_stringify(&response))));
         }
-        let first: crate::value::Dict = self.safe_dict_t(&dataList, Value::Int(0));
+        let first: crate::value::Dict = dataList.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &first, Some(&market));
         None
         }).await?))
@@ -15164,7 +15164,8 @@ if _try_result.is_err() {
     let m = indexmap::IndexMap::new();
     m
 }));
-        if Some(amount).unwrap_or(f64::NAN) > ((0i64) as f64) {
+        let amountString: Option<String> = self.number_to_string(&amount);
+        if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " reduceMargin() amount parameter must be a negative value")));
         }
         let holdSide: Option<String> = self.safe_string_k_opt(&params, "holdSide", &[]);
@@ -16245,8 +16246,8 @@ if _try_result.is_err() {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "requestTime", &[]).as_i64();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let mut first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let mut first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         std::sync::Arc::make_mut(&mut first).insert("timestamp".into(), Value::from(timestamp));
         return self.parse_isolated_borrow_rate(&first, Some(&market));
         Value::Null
@@ -17152,8 +17153,8 @@ if _try_result.is_err() {
             let __ws_arg_157 = self.extend(Value::Map(request), &[&paramsUTA]);
             response = self.public_mix_get_v2_mix_market_funding_time(&[&__ws_arg_157]).await;
         }
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &first, Some(&market));
         Value::Null
         }).await?))

@@ -2302,7 +2302,7 @@ impl Grvt {
         // }
         //
         let currentBuilders: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
-        let approvedBuilder: crate::value::List = self.safe_list_k_t(&currentBuilders, "results");
+        let approvedBuilder: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currentBuilders, "results"));
         let length: i64 = approvedBuilder.len() as i64;
         let mut found: bool = false;
         let builderId: Option<String> = self.safe_string_k_opt(&self.options, "builder", &[]);
@@ -2310,7 +2310,7 @@ impl Grvt {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < length } {
-            let builderInfo: crate::value::Dict = self.safe_dict_t(&approvedBuilder, Value::Int(i));
+            let builderInfo: crate::value::Dict = approvedBuilder.get(i as usize).cloned().unwrap_or_default();
             let builderAccountId: Option<String> = self.safe_string_k_opt(&builderInfo, "builder_account_id", &[]);
             if (builderAccountId == builderId) {
                 found = true;
@@ -3558,11 +3558,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted3, &["reduceOnly", "postOnly", "timeInForce"], &[]);
         // Trigger & SL & TP
-        let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
-        let triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).and_then(Value::as_str).map(str::to_owned);
-        let takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).and_then(Value::as_str).map(str::to_owned);
-        let paramsTriggerPrices: crate::value::Dict = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(3).cloned().unwrap_or(Value::Null).into_dict();
+        let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]);
+        let triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.0;
+        let stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.1;
+        let takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.2;
+        let paramsTriggerPrices: crate::value::Dict = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.3;
         let isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         if isTriggerOrder {
             // trigger price

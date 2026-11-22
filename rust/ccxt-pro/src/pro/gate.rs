@@ -2136,13 +2136,13 @@ impl Gate {
         //
         let result: crate::value::List = message.key_list("result");
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), Value::Arr(result)); }
-        let rows: crate::value::List = message.key_list("result");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
         let rowsLength: i64 = rows.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < rowsLength } {
-            let rawBalance: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let rawBalance: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
             let currencyId: String = self.safe_string_k(&rawBalance, "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string(); // when not present it is USDT
             let code: Option<String> = self.safe_currency_code(Some(currencyId.as_str()), None);

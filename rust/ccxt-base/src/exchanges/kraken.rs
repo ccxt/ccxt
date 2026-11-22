@@ -1056,42 +1056,40 @@ impl crate::exchange::DerivedExchange for Kraken {
             return Value::Null;
         }
         if (self.safe_string(&body, Value::Int(0), &[]).as_str() == Some("{")) {
-            if !matches!(&response, Value::Str(_)) {
-                let message: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-                let errors: Option<crate::value::List> = self.safe_list_k_o(&response, "error");
-                if (errors.is_some()) {
-                    let numErrors: i64 = errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
-                    if numErrors > 0 {
-                        {
-                                                        let mut i: i64 = 0;
-                            let mut __for_first_18: bool = true;
-                            while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < numErrors } {
-                            let error: Value = errors.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, message.as_str());
-                            self.throw_broadly_matched_exception(self.exceptions.at("broad"), error, message.as_str());
-                        }
-                        }
-                        panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
+            let message: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
+            let errors: Option<crate::value::List> = self.safe_list_k_o(&response, "error");
+            if (errors.is_some()) {
+                let numErrors: i64 = errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+                if numErrors > 0 {
+                    {
+                                                let mut i: i64 = 0;
+                        let mut __for_first_18: bool = true;
+                        while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < numErrors } {
+                        let error: Value = errors.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, message.as_str());
+                        self.throw_broadly_matched_exception(self.exceptions.at("broad"), error, message.as_str());
                     }
+                    }
+                    panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
                 }
-                // handleCreateOrdersErrors:
-                let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(response, "result");
-                if (result.is_some()) {
-                    if (matches!(result.as_deref(), Some(__d) if __d.contains_key("orders"))) {
-                        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "orders"));
-                        {
-                                                        let mut i: i64 = 0;
-                            let mut __for_first_19: bool = true;
-                            while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (orders.len() as i64) } {
-                            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
-                            let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
-                            if (error.is_some()) {
-                                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
-                                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
-                                panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
-                            }
+            }
+            // handleCreateOrdersErrors:
+            let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(response, "result");
+            if (result.is_some()) {
+                if (matches!(result.as_deref(), Some(__d) if __d.contains_key("orders"))) {
+                    let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "orders"));
+                    {
+                                                let mut i: i64 = 0;
+                        let mut __for_first_19: bool = true;
+                        while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (orders.len() as i64) } {
+                        let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
+                        let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
+                        if (error.is_some()) {
+                            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
+                            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
+                            panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
                         }
-                        }
+                    }
                     }
                 }
             }
@@ -3734,7 +3732,7 @@ impl Kraken {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let orderTrades: Option<crate::value::List> = (match params.get("trades") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
-        let mut tradeIds: Vec<Value> = Vec::new();
+        let mut tradeIds: crate::value::List = std::sync::Arc::new(Vec::new());
         if (orderTrades.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")));
         }  else {
@@ -3744,9 +3742,9 @@ impl Kraken {
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let orderTrade: Value = orderTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if matches!(&orderTrade, Value::Str(_)) {
-                    tradeIds.push(orderTrade);
+                    std::sync::Arc::make_mut(&mut tradeIds).push(orderTrade);
                 }  else {
-                    tradeIds.push(self.safe_string_k(&orderTrade, "id", &[]));
+                    std::sync::Arc::make_mut(&mut tradeIds).push(self.safe_string_k(&orderTrade, "id", &[]));
                 }
             }
             }
@@ -3760,29 +3758,29 @@ impl Kraken {
         let numTradeIds: i64 = tradeIds.len() as i64;
         // full batches of batchSize ids, then the remainder (an empty one when the ids divide evenly)
         let mut batches: Vec<Value> = Vec::new();
-        let mut batch: Value = Value::from(vec![]);
+        let mut batch: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < numTradeIds } {
-            if let Value::Arr(__a) = &mut batch { std::sync::Arc::make_mut(__a).push(tradeIds.get(i as usize).cloned().unwrap_or(Value::Null)); }
+            let tradeId: String = self.safe_string(&tradeIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            std::sync::Arc::make_mut(&mut batch).push(Value::from(tradeId));
             let batchLength: i64 = batch.len() as i64;
             if batchLength >= batchSize {
-                batches.push(batch.clone());
-                batch = Value::from(vec![]);
+                batches.push(Value::Str(batch.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
+                batch = std::sync::Arc::new(Vec::new());
             }
         }
         }
-        batches.push(batch);
+        batches.push(Value::Str(batch.iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut j: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { j += 1; } __for_first_11 = false; j < (batches.len() as i64) } {
-            let requestIds: Value = batches.get(j as usize).cloned().unwrap_or(Value::Null);
             let request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("txid".to_string(), Value::Str(requestIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                    m.insert("txid".to_string(), batches.get(j as usize).cloned().unwrap_or(Value::Null));
                 m
             });
             let response: crate::value::Dict = self.private_post_query_trades(&[&Value::Map(request)]).await.unwrap_or_default();
@@ -3807,8 +3805,11 @@ impl Kraken {
             //         }
             //     }
             //
-            let rawTrades: Value = self.safe_value_k(&response, "result", &[]);
-            let ids: Vec<Value> = Value::Array(rawTrades.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let rawTrades: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "result", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            let ids: Vec<Value> = Value::Array(rawTrades.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut rawTradesWithIds: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
                 m
@@ -3821,7 +3822,7 @@ impl Kraken {
                 let mut rawTradeWithId: crate::value::Dict = self.extend_t(Value::Map({
                     let m = indexmap::IndexMap::new();
                     m
-                }), &[get_value(&rawTrades, rawTradeId.as_deref())]);
+                }), &[rawTrades.get(rawTradeId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)]);
                 std::sync::Arc::make_mut(&mut rawTradeWithId).insert("id".into(), Value::from(rawTradeId.as_deref()));
                 rawTradesWithIds.insert(rawTradeId.as_deref().unwrap_or("null").to_string(), Value::Dict(rawTradeWithId));
             }
@@ -4833,8 +4834,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        let firstResult: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
+        let firstResult: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         if (false) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", self.id, " privatePostDepositAddresses() returned no addresses for ").into()), codeResolved)));
         }

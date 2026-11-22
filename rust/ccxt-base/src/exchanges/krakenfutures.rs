@@ -3555,13 +3555,13 @@ impl Krakenfutures {
         //    }
         //
         let cancelStatus: crate::value::Dict = self.safe_dict_k_t(&response, "cancelStatus");
-        let orderEvents: crate::value::List = self.safe_list_k_t(&cancelStatus, "orderEvents");
+        let orderEvents: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&cancelStatus, "orderEvents"));
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (orderEvents.len() as i64) } {
-            let orderEvent: crate::value::Dict = self.safe_dict_t(&orderEvents, Value::Int(0));
+            let orderEvent: crate::value::Dict = orderEvents.get(0).cloned().unwrap_or_default();
             let order: crate::value::Dict = self.safe_dict_k_t(&orderEvent, "order");
             orders.push(Value::Dict(order));
         }
@@ -5031,8 +5031,8 @@ impl Krakenfutures {
         //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
         //     }
         //
-        let leveragePreferences: crate::value::List = self.safe_list_k_t(&response, "leveragePreferences");
-        let data: crate::value::Dict = self.safe_dict_t(&leveragePreferences, Value::Int(0));
+        let leveragePreferences: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "leveragePreferences"));
+        let data: crate::value::Dict = leveragePreferences.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &data, Some(&market));
         Value::Null
         }).await?))

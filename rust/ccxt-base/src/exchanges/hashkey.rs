@@ -67,7 +67,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "t", &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let last: Option<String> = self.safe_string_k_opt(&ticker, "c", &[]);
         let mut baseVolume: Option<String> = self.safe_string_k_opt(&ticker, "v", &[]);
         let contractSizeValue: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
@@ -717,12 +717,12 @@ impl crate::exchange::DerivedExchange for Hashkey {
                 m.insert("info".to_string(), balance.clone());
             m
         });
-        let balances: crate::value::List = self.safe_list_k_t(balance, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(balance, "balances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (balances.len() as i64) } {
-            let balanceEntry: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balanceEntry: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balanceEntry, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -742,7 +742,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let position: Value = position.into();
         let marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return Some(self.safe_position(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -1394,12 +1394,12 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut responseCodeString: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
         let responseCodeInteger: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64(); // some codes in response are returned as '0000' others as 0
         if (responseCodeInteger == Some(0)) {
-            let result: crate::value::List = self.safe_list_k_t(response, "result"); // for batch methods
+            let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "result")); // for batch methods
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_7: bool = true;
                 while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (result.len() as i64) } {
-                let entry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+                let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
                 let entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
                     errorInArray = true;
@@ -4151,13 +4151,13 @@ impl Hashkey {
             let marketTypeValue: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), "createOrderRequest() is not supported for ").into()), marketTypeValue).into()), " type of markets")));
         }
-        let result: crate::value::List = self.safe_list_k_t(&response, "result");
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (result.len() as i64) } {
-            let responseEntry: crate::value::Dict = self.safe_dict_t(&result, Value::Int(i));
+            let responseEntry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
             let responseOrder: crate::value::Dict = self.safe_dict_k_t(&responseEntry, "order");
             responseOrders.push(Value::Dict(responseOrder));
         }
@@ -5424,7 +5424,7 @@ impl Hashkey {
         //         "updateTimestamp": "1722320137809"
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -5433,7 +5433,7 @@ impl Hashkey {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
-            let fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let fee: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsedFee: crate::value::Dict = self.parse_trading_fee(&fee, None);
             let feeSymbol: String = self.safe_string_k(&parsedFee, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result.insert(feeSymbol, Value::Dict(parsedFee));

@@ -2972,15 +2972,20 @@ impl Coinbaseexchange {
         let paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
         let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsUntil]);
         let response: crate::value::List = self.private_get_accounts_id_ledger(&[&__ws_arg_25]).await.unwrap_or_default();
-        let mut entries: Value = self.to_array(&response);
+        let entries: crate::value::List = self.to_array_t(&response);
+        let mut entriesWithCurrency: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (entries.len() as i64) } {
-            if let Value::Arr(__a) = &mut entries { if let Some(Value::Dict(__d)) = std::sync::Arc::make_mut(__a).get_mut(i as usize) { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(code.clone())); } }
+            entriesWithCurrency.push(self.extend(entries.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("currency".to_string(), code.clone());
+                m
+            })]));
         }
         }
-        return self.parse_ledger(entries, Some(&currency), &[&Value::from(since), &Value::from(limit)]);
+        return self.parse_ledger(Value::from(entriesWithCurrency), Some(&currency), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
         }).await?))
     }

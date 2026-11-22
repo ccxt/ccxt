@@ -926,7 +926,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let isArray: bool = matches!(&params, Value::Arr(_));
         if (method.as_str() == Some("GET")) && (matches!(&params, Value::Dict(__d) if __d.contains_key("symbol"))) {
-            { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&params, "symbol")); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
+            { let __be_tmp = self.encode_uri_component(self.safe_string_k(&params, "symbol", &[])); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
         }
         let query: Value = self.omit(&params, self.extract_params(Value::from(path)), &[]);
         let implodedPath: String = self.implode_params(Value::from(path), params);
@@ -2321,32 +2321,8 @@ impl Poloniex {
             return Value::Arr(self.parse_ohlc_vs(&data, Some(&market), &[timeframe.clone(), Value::from(since), Value::from(limit)]));
         }
         let __ws_arg_1 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: Option<crate::value::List> = self.public_get_markets_symbol_candles(&[&__ws_arg_1]).await;
-        //
-        //     [
-        //         [
-        //             "22814.01",
-        //             "22937.42",
-        //             "22832.57",
-        //             "22937.42",
-        //             "3916.58764051",
-        //             "0.171199",
-        //             "2982.64647063",
-        //             "0.130295",
-        //             33,
-        //             0,
-        //             "22877.449915304470460711",
-        //             "MINUTE_5",
-        //             1659664800000,
-        //             1659665099999
-        //         ]
-        //     ]
-        //
-        let mut candles: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (response.is_some()) {
-            candles = response.unwrap_or_default();
-        }
-        return Value::Arr(self.parse_ohlc_vs(&candles, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
+        let response: crate::value::List = self.public_get_markets_symbol_candles(&[&__ws_arg_1]).await.unwrap_or_default();
+        return Value::Arr(self.parse_ohlc_vs(&response, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -4059,12 +4035,12 @@ impl Poloniex {
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (response.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict_t(&response, Value::Int(i));
-            let balances: crate::value::List = self.safe_list_k_t(&account, "balances");
+            let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&account, "balances"));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_5: bool = true;
                 while { if !__for_first_5 { j += 1; } __for_first_5 = false; j < (balances.len() as i64) } {
-                let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(j));
+                let balance: crate::value::Dict = balances.get(j as usize).cloned().unwrap_or_default();
                 let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
                 let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
                 let mut newAccount: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

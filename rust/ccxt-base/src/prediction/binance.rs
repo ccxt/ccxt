@@ -263,9 +263,12 @@ impl crate::exchange::DerivedExchange for Binance {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let baseUrls: crate::value::Dict = self.urls.get("api").cloned().unwrap_or(Value::Null).into_dict();
-        let baseUrl: Option<String> = self.safe_string_opt(&baseUrls, Value::from(apiGroup.as_deref()), &[&crate::value::KeyRead::key_read(&&baseUrls, "sapi")]);
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), &params));
+        let baseUrls: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
+        let mut baseUrl: String = self.safe_string(&baseUrls, Value::from(apiGroup.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (baseUrl == "") {
+            baseUrl = self.safe_string_k(&baseUrls, "sapi", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        }
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, "/").into()), self.implode_params(Value::from(path), &params));
         let query: crate::value::Dict = self.omit_t(params, self.extract_params(Value::from(path)), &[]);
         self.check_required_credentials(&[]);
         let mut extendedParams: crate::value::Dict = self.extend_t(Value::Map({
@@ -827,11 +830,11 @@ impl Binance {
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < rawTopicsLength } {
             let rawTopic: crate::value::Dict = rawTopics.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let rawMarkets: crate::value::List = self.safe_list_k_t(&rawTopic, "markets");
+            let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawTopic, "markets"));
             let rawMarketsLength: i64 = rawMarkets.len() as i64;
             let mut hasOutcomes: bool = false;
             if rawMarketsLength > 0 {
-                let firstMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(0));
+                let firstMarket: crate::value::Dict = rawMarkets.get(0).cloned().unwrap_or_default();
                 let firstOutcomes: crate::value::List = self.safe_list_k_t(&firstMarket, "outcomes");
                 let firstOutcomesLength: i64 = firstOutcomes.len() as i64;
                 hasOutcomes = firstOutcomesLength > 0;

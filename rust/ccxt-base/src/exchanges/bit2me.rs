@@ -1755,14 +1755,12 @@ impl Bit2me {
             if (triggerPrice.is_some()) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() does not support stop-market orders, use a limit price to place a stop-limit order")));
             }
-            let mut quoteAmount: Option<String> = None;
             if (cost.is_some()) {
-                quoteAmount = cost;
+                request.insert("amount".into(), Value::from(self.cost_to_precision(Some(symbol), cost.map(Value::from).unwrap_or(Value::Null))));
+                request.insert("amountInQuote".into(), Value::Bool(true));
             }  else if (side == "buy") && (price.is_some()) {
                 // the unified convention for market buy orders, the cost to spend is amount * price
-                quoteAmount = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::from(self.number_to_string(Value::from(price)))).as_str().map(str::to_owned);
-            }
-            if (quoteAmount.is_some()) {
+                let quoteAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::from(self.number_to_string(Value::from(price)))).as_str().map(str::to_owned);
                 request.insert("amount".into(), Value::from(self.cost_to_precision(Some(symbol), quoteAmount.map(Value::from).unwrap_or(Value::Null))));
                 request.insert("amountInQuote".into(), Value::Bool(true));
             }  else {

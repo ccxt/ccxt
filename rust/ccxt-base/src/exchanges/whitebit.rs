@@ -973,8 +973,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
         //         "rate": "0.00001193"
         //     }
         //
-        let path: crate::value::List = self.safe_list_k_t(&conversion, "path");
-        let first: crate::value::Dict = self.safe_dict_t(&path, Value::Int(0));
+        let path: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&conversion, "path"));
+        let first: crate::value::Dict = path.get(0).cloned().unwrap_or_default();
         let fromPath: Option<String> = self.safe_string_k_opt(&first, "from", &[]);
         let toPath: Option<String> = self.safe_string_k_opt(&first, "to", &[]);
         let timestamp: Option<i64> = self.safe_timestamp2(&conversion, Value::Str("date".into()), Value::Str("expireAt".into()), &[]).as_i64();
@@ -2698,7 +2698,7 @@ impl Whitebit {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (depositWithdrawCodes.len() as i64) } {
             let code: Option<&str> = depositWithdrawCodes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+            { let __be_tmp = Value::Dict(self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))])); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(depositWithdrawFees);
@@ -4861,12 +4861,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let subAccounts: crate::value::List = self.safe_list_k_t(&response, "data");
+        let subAccounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (subAccounts.len() as i64) } {
-            let subAccount: crate::value::Dict = self.safe_dict_t(&subAccounts, Value::Int(i));
+            let subAccount: crate::value::Dict = subAccounts.get(i as usize).cloned().unwrap_or_default();
             let accountId: Option<String> = self.safe_string_k_opt(&subAccount, "id", &[]);
             let accountName: Option<String> = self.safe_string_k_opt(&subAccount, "alias", &[]);
             accounts.push(Value::Map({
@@ -5135,8 +5135,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let records: crate::value::List = self.safe_list_k_t(&response, "records");
-        let first: crate::value::Dict = self.safe_dict_t(&records, Value::Int(0));
+        let records: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "records"));
+        let first: crate::value::Dict = records.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, currency.as_ref());
 
     Value::Null

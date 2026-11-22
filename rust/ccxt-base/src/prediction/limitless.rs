@@ -1425,12 +1425,8 @@ impl Limitless {
                     page = (page + 1);
                     request.insert("page".into(), Value::from(page));
                     let __ws_arg_3 = self.extend(&request, &[&rest]);
-                    let response: Value = self.limitless_public_get_markets_active(&[&__ws_arg_3]).await;
-                    let mut responseRows: Value = Value::from(vec![]);
-                    if (matches!(&response, Value::Arr(_))) {
-                        responseRows = response.clone();
-                    }
-                    let page_markets: crate::value::List = self.safe_list_k_or(&response, "data", responseRows);
+                    let response: crate::value::Dict = self.call_method_t("limitless_public_get_markets_active", &[&__ws_arg_3]).await;
+                    let page_markets: crate::value::List = self.safe_list_k_t(&response, "data");
                     let pageMarketsLength: i64 = page_markets.len() as i64;
                     if (pageMarketsLength == 0) {
                         break;
@@ -2956,13 +2952,13 @@ impl Limitless {
         //         ]
         //     }
         //
-        let results: crate::value::List = self.safe_list_k_t(&response, "results");
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "results"));
         let mut found: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (results.len() as i64) } {
-            let item: crate::value::Dict = self.safe_dict_t(&results, Value::Int(i));
+            let item: crate::value::Dict = results.get(i as usize).cloned().unwrap_or_default();
             let itemStatus: Option<String> = self.safe_string_k_opt(&item, "status", &[]);
             if (itemStatus.as_deref() == Some("found")) {
                 found.push(Value::Dict(item));
@@ -4157,7 +4153,7 @@ if _try_result.is_err() {
             if (m == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing m")));
             }
-            add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
+            if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), m.clone()); }
             if (eventKey.is_some()) && (eventKey.as_deref() != Some("")) {
                 if !(matches!(eventKey.as_deref(), Some(__k) if eventGroups.contains_key(__k))) {
                     eventGroups.insert(eventKey.as_deref().unwrap_or("null").to_string(), Value::Map({

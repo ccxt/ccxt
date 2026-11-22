@@ -30,7 +30,7 @@ pub fn testMergeBalanceAccount() {
         let m = indexmap::IndexMap::new();
         m
     });
-    result = exchange.extend(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount), &[]);
+    result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount)), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("1")))));
     let btcAccount2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -39,7 +39,7 @@ pub fn testMergeBalanceAccount() {
             m.insert("total".to_string(), Value::Str("2.25".into()));
         m
     });
-    result = exchange.extend(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount2), &[]);
+    result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("BTC".into()), btcAccount2)), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str() == Some("0.75")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("BTC")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str() == Some("2.25")))));
@@ -49,7 +49,7 @@ pub fn testMergeBalanceAccount() {
             m.insert("free".to_string(), Value::Str("5".into()));
         m
     });
-    result = exchange.extend(exchange.merge_balance_account(result, Value::Str("USDT".into()), usdtAccount), &[]);
+    result = exchange.extend(Value::Dict(exchange.merge_balance_account(result, Value::Str("USDT".into()), usdtAccount)), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str() == Some("5")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(result.as_map().and_then(|__m| __m.get("USDT")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]) == Value::Null))));
     let keys: Value = object_keys(&result);

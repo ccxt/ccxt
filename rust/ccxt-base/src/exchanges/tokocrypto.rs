@@ -2869,8 +2869,8 @@ impl Tokocrypto {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let list: crate::value::List = self.safe_list_k_t(&data, "list");
-        let rawOrder: crate::value::Dict = self.safe_dict_t(&list, Value::Int(0));
+        let list: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "list"));
+        let rawOrder: crate::value::Dict = list.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &rawOrder, None);
         None
         }).await?))

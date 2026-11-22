@@ -3831,8 +3831,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let addressParts: Vec<Value> = Value::Array(if let Some(__s) = addressString { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let address: Option<String> = addressParts.get(0).and_then(Value::as_str).map(str::to_owned);
             let rawTag: Option<String> = addressParts.get(1).and_then(Value::as_str).map(str::to_owned);
-            let splitted: Vec<Value> = Value::Array(if let Some(__s) = rawTag.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), splitted.get(1).cloned().unwrap_or(Value::Null)]);
+            let splitted: crate::value::List = crate::value::List::new(if let Some(__s) = rawTag.as_deref() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
+            let tag: Option<String> = self.safe_string_opt(&splitted, Value::Int(1), &[]);
+            return Value::from(vec![address.map(Value::from).unwrap_or(Value::Null), tag.map(Value::from).unwrap_or(Value::Null)]);
         }
         return Value::from(vec![Value::from(addressString), Value::Null]);
 
@@ -4666,8 +4667,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let data: crate::value::List = self.safe_list_k_t(&result, "data");
-        let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "data"));
+        let entry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market));
         Value::Null
         }).await?))

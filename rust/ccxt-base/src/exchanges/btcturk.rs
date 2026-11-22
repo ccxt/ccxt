@@ -77,7 +77,7 @@ impl crate::exchange::DerivedExchange for Btcturk {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "pair", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let timestamp: Option<i64> = self.safe_integer_k(&ticker, "timestamp", &[]).as_i64();
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         let open: Option<String> = self.safe_string_k_opt(&ticker, "open", &[]);

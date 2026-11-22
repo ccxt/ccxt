@@ -6971,8 +6971,8 @@ impl Bybit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let tickers: crate::value::List = self.safe_list_k_t(&result, "list");
-        let rawTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
+        let rawTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -9225,7 +9225,7 @@ impl Bybit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let innerList: crate::value::List = self.safe_list_k_t(&result, "list");
+        let innerList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
         // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
         // see https://github.com/ccxt/ccxt/pull/29602
         let innerListLength: i64 = innerList.len() as i64;
@@ -9236,7 +9236,7 @@ impl Bybit {
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Order ".into()), Value::Str(format!("{}", id).into())).into()), " was not found.").into()), extra)));
         }
-        let order: crate::value::Dict = self.safe_dict_t(&innerList, Value::Int(0));
+        let order: crate::value::Dict = innerList.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -11394,10 +11394,10 @@ impl Bybit {
         //
         let timestamp: Option<i64> = self.safe_integer_k(&response, "time", &[]).as_i64();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let vipCoinList: crate::value::List = self.safe_list_k_t(&data, "vipCoinList");
-        let firstVip: crate::value::Dict = self.safe_dict_t(&vipCoinList, Value::Int(0));
-        let coins: crate::value::List = self.safe_list_k_t(&firstVip, "list");
-        let mut coin: crate::value::Dict = self.safe_dict_t(&coins, Value::Int(0));
+        let vipCoinList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "vipCoinList"));
+        let firstVip: crate::value::Dict = vipCoinList.get(0).cloned().unwrap_or_default();
+        let coins: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&firstVip, "list"));
+        let mut coin: crate::value::Dict = coins.get(0).cloned().unwrap_or_default();
         std::sync::Arc::make_mut(&mut coin).insert("timestamp".into(), Value::from(timestamp));
         return self.parse_borrow_rate(Value::Dict(coin), Some(&currency));
         Value::Null
@@ -12020,8 +12020,8 @@ impl Bybit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let fees: crate::value::List = self.safe_list_k_t(&result, "list");
-        let first: crate::value::Dict = self.safe_dict_t(&fees, Value::Int(0));
+        let fees: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
+        let first: crate::value::Dict = fees.get(0).cloned().unwrap_or_default();
         return Value::Dict(self.parse_trading_fee(&first, Some(&market)));
         Value::Null
         }).await?))
@@ -13032,8 +13032,8 @@ impl Bybit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let resultList: crate::value::List = self.safe_list_k_t(&result, "list");
-        let chain: crate::value::Dict = self.safe_dict_t(&resultList, Value::Int(0));
+        let resultList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "list"));
+        let chain: crate::value::Dict = resultList.get(0).cloned().unwrap_or_default();
         return self.parse_option(&chain, None, &[(market).raw.clone()]);
         Value::Null
         }).await?))

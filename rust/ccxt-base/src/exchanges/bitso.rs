@@ -349,8 +349,8 @@ impl crate::exchange::DerivedExchange for Bitso {
         //     }
         let operation: Option<String> = self.safe_string_k_opt(&item, "operation", &[]);
         let type_var: Option<String> = self.parse_ledger_entry_type(operation.as_deref());
-        let balanceUpdates: crate::value::List = self.safe_list_k_t(&item, "balance_updates");
-        let firstBalance: crate::value::Dict = self.safe_dict_t(&balanceUpdates, Value::Int(0));
+        let balanceUpdates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&item, "balance_updates"));
+        let firstBalance: crate::value::Dict = balanceUpdates.get(0).cloned().unwrap_or_default();
         let mut direction: Option<String> = None;
         let mut fee: Option<crate::value::Dict> = None;
         let amount: Option<String> = self.safe_string_k_opt(&firstBalance, "amount", &[]);
@@ -2276,8 +2276,8 @@ impl Bitso {
         //         }]
         //     }
         //
-        let transactions: crate::value::List = self.safe_list_k_t(&response, "payload");
-        let first: crate::value::Dict = self.safe_dict_t(&transactions, Value::Int(0));
+        let transactions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "payload"));
+        let first: crate::value::Dict = transactions.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, None);
 
     Value::Null
@@ -2691,13 +2691,49 @@ impl Bitso {
                 let withdrawFee: Value = self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]);
                 let resultValue: Option<crate::value::Dict> = self.safe_dict_o(&result, Value::from(code.as_deref()));
                 if (resultValue.is_none()) {
-                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::Map({
-    let m = indexmap::IndexMap::new();
+                    let mut newInfo: indexmap::IndexMap<String, Value> = ({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    });
+                    newInfo.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]));
+                    let __ws_arg_16 = self.deposit_withdraw_fee(Value::Map(newInfo));
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.extend(__ws_arg_16, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("withdraw".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("fee".to_string(), withdrawFee.clone());
+        m.insert("percentage".to_string(), Value::Null);
     m
-})));
+}));
+    m
+})]));
+                }  else {
+                    let mut infoUpdate: indexmap::IndexMap<String, Value> = ({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    });
+                    infoUpdate.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(crate::value::KeyRead::read(&&withdrawalResponse, &Value::from(currencyId)), &[]));
+                    let __ws_arg_17 = self.safe_dict_k(&resultValue, "withdraw", &[Value::Map({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    })]);
+                    let withdraw: crate::value::Dict = self.extend_t(__ws_arg_17, &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                            m.insert("fee".to_string(), withdrawFee);
+                        m
+                    })]);
+                    let __ws_arg_18 = self.safe_dict_k(&resultValue, "info", &[Value::Map({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    })]);
+                    let info: crate::value::Dict = self.extend_t(__ws_arg_18, &[Value::Map(infoUpdate)]);
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), self.extend(resultValue, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("withdraw".to_string(), Value::Dict(withdraw));
+        m.insert("info".to_string(), Value::Dict(info));
+    m
+})]));
                 }
-                add_element_to_object(get_value_mut(result.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("withdraw".into())), &Value::Str("fee".into()), withdrawFee.clone());
-                add_element_to_object(get_value_mut(result.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &Value::from(code.as_deref()), withdrawFee);
             }
         }
         }

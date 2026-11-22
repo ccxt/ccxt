@@ -135,7 +135,7 @@ impl crate::exchange::DerivedExchange for Coincheck {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("_".into())]);
         let baseId: Option<String> = self.safe_string_k_opt(&marketResolved, "baseId", &[]);
         let quoteId: Option<String> = self.safe_string_k_opt(&marketResolved, "quoteId", &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut takerOrMaker: Option<String> = None;
         let mut amountString: Option<String> = None;
         let mut costString: Option<String> = None;

@@ -1165,7 +1165,7 @@ impl Blofin {
         let arg: crate::value::Dict = message.key_dict("arg");
         let channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::Null }).as_array().cloned().unwrap_or_default();
-        let mut symbols: Vec<Value> = Vec::new();
+        let mut symbols: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
@@ -1175,7 +1175,7 @@ impl Blofin {
                 m
             })]), None);
             self.orders.append(Value::from(&order));
-            symbols.push(self.safe_string_k(&order, "symbol", &[Value::Str("".into())]));
+            std::sync::Arc::make_mut(&mut symbols).push(self.safe_string_k(&order, "symbol", &[Value::Str("".into())]));
         }
         }
         {
@@ -1183,7 +1183,7 @@ impl Blofin {
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbols.len() as i64) } {
             if (channelName.is_some()) {
-                client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), symbols.get(i as usize).cloned().unwrap_or(Value::Null)).into())));
+                client.resolve(Value::from(&self.orders), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName.as_deref().unwrap_or("null"), ":").into()), self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())])).into())));
             }
             client.resolve(Value::from(&self.orders), channelName.as_deref());
         }
@@ -1336,8 +1336,8 @@ impl Blofin {
         //         ]
         //     }
         //
-        let data: crate::value::List = message.key_list("data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let fundingRate: crate::value::Dict = self.parse_funding_rate(Value::Dict(first), None).into_dict();
         let symbol: String = self.safe_string_k(&fundingRate, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if let Value::Dict(__d) = &mut self.fundingRates { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&fundingRate)); }

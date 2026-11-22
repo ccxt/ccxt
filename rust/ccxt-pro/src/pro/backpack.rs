@@ -2058,7 +2058,7 @@ impl Backpack {
             m
         }), Value::Str("balances".into()));
         if stock {
-            let securities: crate::value::List = self.safe_list_k_t(&self.options, "securities");
+            let securities: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&self.options, "securities"));
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer_k(&balances, "timestamp", &[]));
@@ -2070,7 +2070,7 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (securities.len() as i64) } {
-                let security: crate::value::Dict = self.safe_dict_t(&securities, Value::Int(i));
+                let security: crate::value::Dict = securities.get(i as usize).cloned().unwrap_or_default();
                 let code: Option<String> = self.safe_currency_code(self.safe_string_k(&security, "asset", &[]).as_str(), None);
                 if (code.is_none()) {
                     continue;

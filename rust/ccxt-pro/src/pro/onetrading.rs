@@ -1576,8 +1576,9 @@ impl Onetrading {
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (keys.len() as i64) } {
             let key: Option<String> = keys.get(i as usize).copied().map(str::to_owned);
-            if ((unit.as_deref() == self.safe_string((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("unit".into()), &[]).as_str())) && ((period.as_deref() == self.safe_string((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(),
-                key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("period".into()), &[]).as_str())) {
+            let rowUnit: Option<String> = self.safe_string_k_opt((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), "unit", &[]);
+            let rowPeriod: Option<String> = self.safe_string_k_opt((if let (Some(__m), Some(__k)) = (timeframesResolved.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), "period", &[]);
+            if (rowUnit == unit) && (rowPeriod == period) {
                 return key;
             }
         }

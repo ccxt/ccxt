@@ -3139,10 +3139,10 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (result.len() as i64) } {
-            let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, result.get(i as usize).cloned().unwrap_or(Value::Null), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, result.get(i as usize).cloned().unwrap_or(Value::Null), None).unwrap_or_default();
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
-                tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+                tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }
@@ -5437,8 +5437,8 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        let chain: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
+        let chain: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         return self.parse_option(&chain, None, &[(market).raw.clone()]);
         Value::Null
         }).await?))
@@ -5636,8 +5636,8 @@ impl Deribit {
         //         "testnet": true
         //     }
         //
-        let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        let data: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
+        let data: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &data, Some(&market));
         Value::Null
         }).await?))

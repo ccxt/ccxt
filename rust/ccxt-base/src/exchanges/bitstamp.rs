@@ -450,7 +450,11 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         if (type_var.as_deref() == Some("trade")) {
             let parsedTrade: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_trade(self, item.clone(), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             let mut market: Option<crate::types::Market> = None;
-            let mut keys: Vec<Value> = Value::Array(item.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let itemDict: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&item]);
+            let mut keys: Vec<Value> = Value::Array(itemDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;

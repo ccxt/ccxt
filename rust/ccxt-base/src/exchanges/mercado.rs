@@ -186,7 +186,7 @@ impl crate::exchange::DerivedExchange for Mercado {
         let filled: Option<String> = self.safe_string_k_opt(&order, "executed_quantity", &[]);
         let lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(&order, "updated_timestamp", &[]).as_i64();
         let rawTrades: crate::value::List = self.safe_list_k_t(&order, "operations");
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order);

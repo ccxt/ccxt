@@ -545,8 +545,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     ]
         //
-        let response: crate::value::List = message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -720,8 +720,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let response: crate::value::List = message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -941,8 +941,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let response: crate::value::List = message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1097,8 +1097,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "mt": 1760975816446
         //     }
         //
-        let response: crate::value::List = __pro_message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1126,8 +1126,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_order_book_snapshot(&self, client: &Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let entries: crate::value::List = message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&entries, Value::Int(0));
+        let entries: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
+        let first: crate::value::Dict = entries.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1139,7 +1139,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (entries.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&entries, Value::Int(i));
+            let entry: crate::value::Dict = entries.get(i as usize).cloned().unwrap_or_default();
             let entryData: crate::value::Dict = self.safe_dict_k_t(&entry, "d");
             let side: Option<String> = self.safe_string_k_opt(&entryData, "D", &[]);
             let price: Option<f64> = self.safe_number_k(&entryData, "P", &[]).as_f64();
@@ -1299,8 +1299,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let result: crate::value::List = message.key_list("result");
-        let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
+        let first: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1396,8 +1396,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let result: crate::value::List = message.key_list("result");
-        let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
+        let first: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1568,8 +1568,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let result: crate::value::List = message.key_list("result");
-        let first: crate::value::Dict = self.safe_dict_t(&result, Value::Int(0));
+        let result: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("result"));
+        let first: crate::value::Dict = result.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "data");
         let marketId: Option<String> = self.safe_string_k_opt(&data, "I", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("/".into())]);
@@ -1727,8 +1727,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         ]
         //     }
         //
-        let response: crate::value::List = message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let action: Option<String> = self.safe_string_k_opt(&data, "A", &[]); // 1 = subscribe, 0 = unsubscribe
         if (action.as_deref() == Some("0")) {
@@ -1773,8 +1773,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let messageText: String = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        let response: crate::value::List = __pro_message.key_list("r");
-        let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("r"));
+        let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
         let requestId: Option<i64> = self.safe_integer_k(&data, "L", &[]).as_i64();
         let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));

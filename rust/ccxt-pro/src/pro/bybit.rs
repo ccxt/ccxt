@@ -2195,7 +2195,7 @@ impl Bybit {
         let topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => Some("".to_string()) });
         let spot: bool = topic.as_deref() == Some("ticketInfo");
         let executionFast: bool = topic.as_deref() == Some("execution.fast");
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         if (self.myTrades.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2224,7 +2224,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let mut parsed: Value = Value::Null;
             if spot && !executionFast {
                 parsed = Value::Dict(self.parse_ws_trade(&rawTrade, None));

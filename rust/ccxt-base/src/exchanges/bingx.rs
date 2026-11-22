@@ -6645,16 +6645,18 @@ impl Bingx {
         });
         let mut clientOrderIds: Option<crate::value::List> = self.safe_list_k_o(&params, "clientOrderIds");
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("clientOrderIds".into()), &[]);
+        let mut idsCount: i64 = ids.len() as i64;
         let mut idsToParse: Value = ids;
         let areClientOrderIds: bool = clientOrderIds.is_some();
         if areClientOrderIds {
+            idsCount = clientOrderIds.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
             idsToParse = clientOrderIds.map_or(Value::Null, Value::Arr);
         }
         let mut parsedIds: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (idsToParse.len() as i64) } {
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < idsCount } {
             let id: String = self.safe_string(&idsToParse, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let stringId: String = id;
             std::sync::Arc::make_mut(&mut parsedIds).push(Value::from(stringId));

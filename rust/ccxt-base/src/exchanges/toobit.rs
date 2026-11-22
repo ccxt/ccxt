@@ -3077,9 +3077,9 @@ impl Toobit {
         if isPostOnly {
             request.insert("timeInForce".into(), Value::Str("LIMIT_MAKER".into()));
         }
-        let values: Vec<Value> = self.handle_trigger_prices_and_params(Value::from(symbol), &paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
-        let triggerPrice: Option<String> = values.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsTrigger: crate::value::Dict = values.get(3).cloned().unwrap_or(Value::Null).into_dict();
+        let values = self.handle_trigger_prices_and_params(Value::from(symbol), &paramsPostOnly, &[]);
+        let triggerPrice: Option<String> = values.0;
+        let paramsTrigger: crate::value::Dict = values.3;
         if (triggerPrice.is_some()) {
             request.insert("stopPrice".into(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
         }

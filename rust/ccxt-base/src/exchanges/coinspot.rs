@@ -178,7 +178,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         });
         let balances: Value = self.safe_value2(&response, Value::Str("balance".into()), Value::Str("balances".into()), &[]);
         if (matches!(&balances, Value::Arr(_))) {
-            let rows: crate::value::List = self.safe_list2_t(response, Value::Str("balance".into()), Value::Str("balances".into()));
+            let rows: crate::value::List = self.safe_list2_t(&response, Value::Str("balance".into()), Value::Str("balances".into()));
             let numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -203,7 +203,11 @@ impl crate::exchange::DerivedExchange for Coinspot {
             }
             }
         }  else {
-            let currencyIdsMap: Vec<&str> = balances.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+            let balancesDict: Value = self.safe_dict2(response, Value::Str("balance".into()), Value::Str("balances".into()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+            let currencyIdsMap: Vec<&str> = balancesDict.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_2: bool = true;

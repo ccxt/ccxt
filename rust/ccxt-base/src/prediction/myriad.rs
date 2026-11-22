@@ -1059,14 +1059,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             let __ws_arg_4 = self.extend(Value::Map(keywordRequest), &[params]);
             let response: crate::value::Dict = self.myriad_public_get_questions(&[&__ws_arg_4]).await.unwrap_or_default();
-            let questions: crate::value::List = self.safe_list_k_t(&response, "data");
+            let questions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
             let questionsLength: i64 = questions.len() as i64;
             let idLower: String = id.to_string().to_lowercase();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < questionsLength } {
-                let q: crate::value::Dict = self.safe_dict_t(&questions, Value::Int(i));
+                let q: crate::value::Dict = questions.get(i as usize).cloned().unwrap_or_default();
                 let qId: String = self.safe_string_k(&q, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let qSlug: String = self.safe_string_k(&q, "slug", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let qTitle: String = self.safe_string_k(&q, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3145,7 +3145,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let networkId: Option<String> = self.safe_string_k_opt(&raw, "networkId", &[]);
         let marketId: Option<String> = self.safe_string_k_opt(&raw, "id", &[]);
         let mut slug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[&Value::from(marketId.as_deref())]);
-        let rawOutcomes: crate::value::List = self.safe_list_k_t(&raw, "outcomes");
+        let rawOutcomes: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&raw, "outcomes"));
         let endDate: Option<String> = self.safe_string_k_opt(&raw, "expiresAt", &[]);
         let state: String = self.safe_string_k(&raw, "state", &[Value::Str("open".into())]).as_str().unwrap_or("open").to_string();
         let active: bool = state == "open";
@@ -3176,7 +3176,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (rawOutcomes.len() as i64) } {
-            let outcome: crate::value::Dict = self.safe_dict_t(&rawOutcomes, Value::Int(i));
+            let outcome: crate::value::Dict = rawOutcomes.get(i as usize).cloned().unwrap_or_default();
             let outcomeId: Value = self.safe_string_k(&outcome, "outcomeId", &[self.safe_string_k(&outcome, "id", &[Value::Str(format!("{}", i).into())])]);
             let outcomeLabel: Option<String> = self.safe_string_k_opt(&outcome, "label", &[&self.safe_string_k(&outcome, "title", &[outcomeId.clone()])]);
             let price: Option<f64> = self.safe_number_k(&outcome, "price", &[]).as_f64();
@@ -3504,7 +3504,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "externalSources": []
         //     }
         //
-        let outcomeId: Option<String> = (if ((market.is_some()) && (market.is_some())) { self.safe_string_k_opt(crate::value::KeyRead::key_read(&market, "info"), "outcomeId", &[]) } else { None });
+        let outcomeId: Option<String> = self.safe_string_k_opt(self.safe_dict_k(&market, "info", &[]), "outcomeId", &[]);
         let outcomes: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&raw, "outcomes"));
         let mut price: Option<f64> = None;
         let mut change: Option<f64> = None;
@@ -3525,7 +3525,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (priceValue.is_some()) && (changeValue.is_some()) {
                     let previousCloseValue: Option<f64> = (if let (Some(__l), Some(__r)) = (priceValue, changeValue) { Some(__l - __r) } else { None });
                     previousClose = previousCloseValue;
-                    if (previousCloseValue != Some(0.0)) {
+                    if (priceValue != changeValue) {
                         percentage = (match (&((match ((Value::from(changeValue)).as_f64(), (Value::from(previousCloseValue)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y),
                             (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
                     }
@@ -4198,8 +4198,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     let mut __for_first_31: bool = true;
                     while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < requestedTagsLength } {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
-                    let tagSlug: Value = requestedTags.get(i as usize).cloned().unwrap_or(Value::Null);
-                    tagQueries.push(replace_all_str(&tagSlug, &Value::Str("-".into()), &Value::Str(" ".into())));
+                    let mut tagSlug: String = self.safe_string(&requestedTags, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    tagQueries.push(Value::from(tagSlug.replace("-", " ")));
                 }
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
@@ -4457,7 +4457,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_36: bool = true;
             while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < linesLength } {
             let line: Value = lines.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((line.len() as i64) as f64) > ((0i64) as f64) {
+            if (line.as_str() != Some("")) {
                 let parsed: Value = json_parse(&line);
                 self.handle_centrifugo_frame(client.clone(), parsed);
             }

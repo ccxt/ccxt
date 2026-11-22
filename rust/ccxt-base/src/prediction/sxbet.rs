@@ -1706,8 +1706,8 @@ impl Sxbet {
         let __ws_arg_6 = self.extend(Value::Map(request), &[&rest]);
         let response: crate::value::Dict = self.sxbet_private_post_orders_v3(&[&__ws_arg_6]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let results: crate::value::List = self.safe_list_k_t(&data, "orders");
-        let first: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
+        let results: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "orders"));
+        let first: crate::value::Dict = results.get(0).cloned().unwrap_or_default();
         let status: Option<String> = self.safe_string_upper_k_opt(&first, "status", &[]);
         if (status.as_deref() == Some("FAILED")) {
             let reason: String = self.safe_string_k(&first, "reason", &[Value::Str("FAILED".into())]).as_str().unwrap_or("FAILED").to_string();
@@ -2820,10 +2820,10 @@ impl Sxbet {
         let __snapshot_empty = indexmap::IndexMap::new();
         let snapshot = snapshot.as_map().unwrap_or(&__snapshot_empty);
         // levels arrive sorted best-first; the best level's odds mirror the v2 best-odds fields
-        let oneLevels: crate::value::List = snapshot.key_list("outcomeOne");
-        let twoLevels: crate::value::List = snapshot.key_list("outcomeTwo");
-        let bestOne: crate::value::Dict = self.safe_dict_t(&oneLevels, Value::Int(0));
-        let bestTwo: crate::value::Dict = self.safe_dict_t(&twoLevels, Value::Int(0));
+        let oneLevels: Vec<crate::value::Dict> = crate::value::dict_rows(snapshot.key_list("outcomeOne"));
+        let twoLevels: Vec<crate::value::Dict> = crate::value::dict_rows(snapshot.key_list("outcomeTwo"));
+        let bestOne: crate::value::Dict = oneLevels.get(0).cloned().unwrap_or_default();
+        let bestTwo: crate::value::Dict = twoLevels.get(0).cloned().unwrap_or_default();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketHash".to_string(), (match snapshot.get("marketHash") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }));
@@ -3503,7 +3503,7 @@ impl Sxbet {
     m
 })]), Value::from(marketHash.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if (held != "") && ((match (Some(version.as_str()), Some(held.as_str())) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }) || __x == __y, (None, None) => true, _ => false })) {
+        if (held != "") && ((version == "") || crate::precise::Precise::stringLe(&version, &held).as_bool() == Some(true)) {
             return Value::from(refreshed);
         }
         self.set_ws_option("wsBookVersions", marketHash.as_deref().unwrap_or_default(), Value::from(version));

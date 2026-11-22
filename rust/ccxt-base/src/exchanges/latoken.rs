@@ -89,10 +89,11 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut symbol: Option<String> = None;
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
-            if (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
-                marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let knownSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+            if (self.markets.is_some()) && (matches!((&self.markets, Some(knownSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, knownSymbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
+            symbol = Some(knownSymbol);
         }
         let last: Option<String> = self.safe_string_k_opt(&ticker, "lastPrice", &[]);
         let timestamp: Option<i64> = self.safe_integer_omit_zero(&ticker, Value::Str("updateTimestamp".into()), &[]).as_i64(); // sometimes latoken provided '0' ts from /ticker endpoint
@@ -193,10 +194,11 @@ impl crate::exchange::DerivedExchange for Latoken {
         let mut symbol: Option<String> = None;
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
-            if (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
-                marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let knownSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+            if (self.markets.is_some()) && (matches!((&self.markets, Some(knownSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, knownSymbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             }
+            symbol = Some(knownSymbol);
         }
         let id: Option<String> = self.safe_string_k_opt(&trade, "id", &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "order", &[]);
@@ -282,10 +284,14 @@ impl crate::exchange::DerivedExchange for Latoken {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(quoteId.as_deref(), None);
         let mut symbol: Option<String> = None;
+        let mut symbolKnown: bool = false;
         if (base.is_some()) && (quote.is_some()) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
+            let knownSymbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+            if (self.markets.is_some()) && (matches!((&self.markets, Some(knownSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                symbolKnown = true;
+            }
+            symbol = Some(knownSymbol);
         }
-        let symbolKnown: bool = (symbol.is_some()) && (self.markets.is_some()) && (matches!((&self.markets, symbol.as_deref()), (Some(__d), Some(__k)) if __d.contains_key(__k)));
         let mut marketResolved: Option<crate::types::Market> = market.cloned();
         if symbolKnown {
             marketResolved = Some(match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

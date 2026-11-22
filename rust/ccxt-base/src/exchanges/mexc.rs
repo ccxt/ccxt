@@ -1216,7 +1216,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         }
         }
         result.insert("networks".into(), Value::Map(networks));
-        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[]);
+        return Value::Dict(self.assign_default_deposit_withdraw_fees(Value::Map(result), &[]));
 
     Value::Null
 }
@@ -6087,10 +6087,10 @@ impl Mexc {
                 let baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "asset", &[]).as_str(), None);
                 let quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "asset", &[]).as_str(), None);
                 if (baseCode.is_some()) {
-                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base))).into_dict();
+                    result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base)));
                 }
                 if (quoteCode.is_some()) {
-                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote))).into_dict();
+                    result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote)));
                 }
             }
             }
@@ -7102,12 +7102,12 @@ impl Mexc {
         }
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
-            let currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
-            request.insert("coin".into(), Value::from(currencyId.as_deref()));
+            let currencyId: String = self.safe_string_k(&currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            request.insert("coin".into(), Value::from(currencyId.as_str()));
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if (rawNetwork.is_some()) {
-                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId.as_deref().unwrap_or("null"), "-").into()), rawNetwork.as_deref().unwrap_or("null")).into()));
+                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, "-").into()), rawNetwork.as_deref().unwrap_or("null")).into()));
             }
         }
         if (since.is_some()) {

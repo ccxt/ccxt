@@ -1156,8 +1156,8 @@ impl Poloniex {
         }
         if !(self.balance.contains_key("info")) {
             { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), response.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null)); }
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), response.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
-            { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), response.as_map().and_then(|__m| __m.get("datetime")).cloned().unwrap_or(Value::Null)); }
+            { let __be_tmp = self.safe_integer_k(&response, "timestamp", &[]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), __be_tmp); } }
+            { let __be_tmp = self.safe_string_k(&response, "datetime", &[]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         }
         { let __f = std::mem::take(&mut self.balance); let __t = self.safe_balance(__f); self.balance = __t; }
         // don't remove the future from the .futures cache
@@ -1500,7 +1500,7 @@ impl Poloniex {
                         if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::from(vec![])); }
                     }
                     if let Some(__d) = &mut previousOrder { if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("trades".to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(trade.clone()); } }
-                    if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
+                    if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), self.safe_integer_k(&trade, "timestamp", &[])); }
                     let mut totalCost: Option<String> = Some("0".to_string());
                     let mut totalAmount: Option<String> = Some("0".to_string());
                     let previousOrderTrades: crate::value::List = self.safe_list_k_t(&previousOrder, "trades");
@@ -1544,7 +1544,7 @@ impl Poloniex {
 })); }
                     }
                     if (self.safe_string_k(crate::value::KeyRead::key_read(&&previousOrder, "fee"), "cost", &[]) != Value::Null) && (self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]) != Value::Null) {
-                        let stringOrderCost: Option<String> = self.number_to_string(crate::value::get_value_k(&crate::value::KeyRead::key_read(&&previousOrder, "fee"), "cost"));
+                        let stringOrderCost: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&previousOrder, "fee"), "cost", &[]);
                         let stringTradeCost: Option<String> = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".into()), &[]));
                         if let Some(__d) = &mut previousOrder { if let Value::Dict(__f) = std::sync::Arc::make_mut(__d).entry("fee".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__f).insert("cost".into(), Value::from(crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost))); } }
                     }
@@ -1878,7 +1878,7 @@ impl Poloniex {
         // message keeps a reference to the old object while Client.resolve is
         // a no-op with no waiter, so updates landing in that window would
         // never reach that consumer (same class as kraken issue #26773)
-        let data: crate::value::List = message.key_list("data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let messageHash: String = "balances".to_string();
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
@@ -1887,7 +1887,7 @@ impl Poloniex {
             });
         }
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("info".into(), (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) })); }
-        let firstBalance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let firstBalance: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let timestamp: Option<i64> = self.safe_integer_k(&firstBalance, "ts", &[]).as_i64();
         { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         { let __be_tmp = self.iso8601(timestamp); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
@@ -1895,7 +1895,7 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut newAccount: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

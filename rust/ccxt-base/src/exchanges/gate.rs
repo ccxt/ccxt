@@ -1452,7 +1452,8 @@ impl crate::exchange::DerivedExchange for Gate {
                 type_var = (if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
                 amountString = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);
             }  else {
-                type_var = self.parse_transaction_type((get_value(&Value::from(id.as_deref()), &Value::Int(0))).as_str());
+                let idPrefix: Option<String> = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(0).take(1).collect::<String>()) } else { None });
+                type_var = self.parse_transaction_type(idPrefix.as_deref());
             }
         }
         let feeCostString: Option<String> = self.safe_string2_opt(&transaction, Value::Str("fee".into()), Value::Str("fee_amount".into()), &[]);
@@ -7281,8 +7282,8 @@ if _try_result.is_err() {
                 let quote: crate::value::Dict = self.safe_dict_k_t(&entry, "quote");
                 let baseCode: Option<String> = self.safe_currency_code(self.safe_string_k(&base, "currency", &[]).as_str(), None);
                 let quoteCode: Option<String> = self.safe_currency_code(self.safe_string_k(&quote, "currency", &[]).as_str(), None);
-                result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base))).into_dict();
-                result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote))).into_dict();
+                result = self.merge_balance_account(Value::Dict(result), baseCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&base)));
+                result = self.merge_balance_account(Value::Dict(result), quoteCode.map(Value::from).unwrap_or(Value::Null), Value::Dict(self.parse_balance_helper(&quote)));
             }  else {
                 let code: Option<String> = self.safe_currency_code(self.safe_string_k(&entry, "currency", &[]).as_str(), None);
                 std::sync::Arc::make_mut(&mut result).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_balance_helper(entry)));
@@ -8648,7 +8649,7 @@ if _try_result.is_err() {
             let contractParams: crate::value::Dict = contractRequestcontractParamsVariable.1;
             let contractOrder: crate::value::Dict = self.extend_t(contractRequest, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("order_id".to_string(), orderId.as_deref().map(str::to_owned).map(Value::from).unwrap_or(Value::Null));
+                    m.insert("order_id".to_string(), Value::from(orderId.as_deref()));
                 m
             })]);
             return (contractOrder, contractParams);

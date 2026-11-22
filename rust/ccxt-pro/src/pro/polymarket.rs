@@ -1499,13 +1499,13 @@ impl Polymarket {
         if (self.positions.is_none()) {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let rows: crate::value::List = self.safe_list_k_t(&data, "positions");
+        let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let row: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or_default();
             let extended: crate::value::Dict = self.extend_t(row, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), Value::from(timestamp));

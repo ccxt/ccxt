@@ -1174,7 +1174,7 @@ impl Krakenfutures {
                     if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::from(vec![])); }
                 }
                 if let Some(__d) = &mut previousOrder { if let Value::Arr(__a) = std::sync::Arc::make_mut(__d).entry("trades".to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(trade.clone()); } }
-                if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
+                if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), self.safe_integer_k(&trade, "timestamp", &[])); }
                 let mut totalCost: Option<String> = Some("0".to_string());
                 let mut totalAmount: Option<String> = Some("0".to_string());
                 let trades: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&previousOrder, "trades"));
@@ -1932,17 +1932,17 @@ impl Krakenfutures {
     let m = indexmap::IndexMap::new();
     m
 })); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message.clone()); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), Value::from(timestamp)); } }
-            { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-            let mut holdingCodes: indexmap::IndexMap<String, Value> = ({
-                let m = indexmap::IndexMap::new();
-                m
-            });
             let mut cashBalance: indexmap::IndexMap<String, Value> = self.balance.get("cash").filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })).as_map().cloned().unwrap_or_default();
+            cashBalance.insert("info".into(), message.clone());
+            cashBalance.insert("timestamp".into(), Value::from(timestamp));
+            cashBalance.insert("datetime".into(), self.iso8601(timestamp));
+            let mut holdingCodes: indexmap::IndexMap<String, Value> = ({
+                let m = indexmap::IndexMap::new();
+                m
+            });
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
@@ -1967,17 +1967,17 @@ impl Krakenfutures {
     let m = indexmap::IndexMap::new();
     m
 })); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("margin".into(), __be_tmp); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message.clone()); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), Value::from(timestamp)); } }
-            { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("margin".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-            let mut futuresSymbols: indexmap::IndexMap<String, Value> = ({
-                let m = indexmap::IndexMap::new();
-                m
-            });
             let mut marginBalance: indexmap::IndexMap<String, Value> = self.balance.get("margin").filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })).as_map().cloned().unwrap_or_default();
+            marginBalance.insert("info".into(), message.clone());
+            marginBalance.insert("timestamp".into(), Value::from(timestamp));
+            marginBalance.insert("datetime".into(), self.iso8601(timestamp));
+            let mut futuresSymbols: indexmap::IndexMap<String, Value> = ({
+                let m = indexmap::IndexMap::new();
+                m
+            });
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_11: bool = true;
@@ -2016,17 +2016,17 @@ impl Krakenfutures {
     let m = indexmap::IndexMap::new();
     m
 })); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert("flex".into(), __be_tmp); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("info".to_string(), message); } }
-            { let __r08a = &mut self.balance; let __r08e = std::sync::Arc::make_mut(__r08a).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r08b) = __r08e { std::sync::Arc::make_mut(__r08b).insert("timestamp".to_string(), Value::from(timestamp)); } }
-            { let __be_tmp = self.iso8601(timestamp); { let __bf03d0 = &mut self.balance; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("flex".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert("datetime".to_string(), __be_tmp); } } }
-            let mut flexCodes: indexmap::IndexMap<String, Value> = ({
-                let m = indexmap::IndexMap::new();
-                m
-            });
             let mut flexBalance: indexmap::IndexMap<String, Value> = self.balance.get("flex").filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })).as_map().cloned().unwrap_or_default();
+            flexBalance.insert("info".into(), message);
+            flexBalance.insert("timestamp".into(), Value::from(timestamp));
+            flexBalance.insert("datetime".into(), self.iso8601(timestamp));
+            let mut flexCodes: indexmap::IndexMap<String, Value> = ({
+                let m = indexmap::IndexMap::new();
+                m
+            });
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_12: bool = true;

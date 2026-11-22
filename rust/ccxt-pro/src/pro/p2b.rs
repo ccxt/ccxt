@@ -298,8 +298,11 @@ impl P2b {
         let paramsName: crate::value::Dict = nameOptionparamsNameVariable.1;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         add_element_to_object(std::sync::Arc::make_mut(&mut self.options).entry("tickerSubs".to_string()).or_insert(Value::Null), &Value::from((market).id.as_deref()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
-        let tickerSubs: Value = self.options.get("tickerSubs").cloned().unwrap_or(Value::Null);
-        let request: crate::value::List = object_keys(&tickerSubs).into_list();
+        let tickerSubs: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "tickerSubs", &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
+        let request: crate::value::List = crate::value::List::new(tickerSubs.keys().cloned().map(Value::from).collect());
         return self.subscribe(Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), ".subscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), "::").into()), Value::from((market).symbol.as_str())).into()), &request, &[Value::Dict(paramsName)]).await;
         Value::Null
         }).await?))

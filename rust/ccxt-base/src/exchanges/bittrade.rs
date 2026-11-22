@@ -1700,8 +1700,11 @@ impl Bittrade {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let symbol: Option<String> = symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&params]).await));
+            let symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
+            let limits: crate::value::Dict = self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&params]).await;
+            if (symbol.is_some()) {
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(limits));
+            }
         }
         }
         return Value::Map(result);

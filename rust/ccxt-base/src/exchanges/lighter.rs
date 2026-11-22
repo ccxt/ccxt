@@ -112,7 +112,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         //
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "market_id", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last_trade_price", &[]);
         let high: Option<String> = self.safe_string_k_opt(&ticker, "daily_price_high", &[]);
         let low: Option<String> = self.safe_string_k_opt(&ticker, "daily_price_low", &[]);
@@ -121,7 +121,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         let change: Option<String> = self.safe_string_k_opt(&ticker, "daily_price_change", &[]);
         return Some(self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), high.map(Value::from).unwrap_or(Value::Null));
@@ -3295,19 +3295,19 @@ if _try_result.is_err() {
                 m.insert("info".to_string(), Value::from(&response));
             m
         });
-        let accounts: crate::value::List = self.safe_list_k_t(&response, "accounts");
+        let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "accounts"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (accounts.len() as i64) } {
-            let mut account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+            let mut account: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or_default();
             if (type_var.as_deref() == Some("spot")) {
-                let assets: crate::value::List = self.safe_list_k_t(&account, "assets");
+                let assets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&account, "assets"));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_4: bool = true;
                     while { if !__for_first_4 { j += 1; } __for_first_4 = false; j < (assets.len() as i64) } {
-                    let asset: crate::value::Dict = self.safe_dict_t(&assets, Value::Int(j));
+                    let asset: crate::value::Dict = assets.get(j as usize).cloned().unwrap_or_default();
                     let codeId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
                     let code: Option<String> = self.safe_currency_code(codeId.as_deref(), None);
                     let __ws_arg_17 = Value::Dict(self.account());
@@ -3462,12 +3462,12 @@ if _try_result.is_err() {
         //     }
         //
         let mut allPositions: Vec<Value> = Vec::new();
-        let accounts: crate::value::List = self.safe_list_k_t(&response, "accounts");
+        let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "accounts"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (accounts.len() as i64) } {
-            let account: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(i));
+            let account: crate::value::Dict = accounts.get(i as usize).cloned().unwrap_or_default();
             let positions: crate::value::List = self.safe_list_k_t(&account, "positions");
             {
                                 let mut j: i64 = 0;
@@ -4566,7 +4566,7 @@ if _try_result.is_err() {
         let signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (leverage).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+                m.insert("initial_margin_fraction".to_string(), Value::from(self.parse_to_int((match ((Value::Int(10000)).as_f64(), (Value::from(self.parse_to_int(leverage))).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
                 m.insert("margin_mode".to_string(), (if (marginMode == "cross") { Value::Int(0) } else { Value::Int(1) }));
                 m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));

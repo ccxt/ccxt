@@ -1307,8 +1307,8 @@ impl Bitbank {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let candlestick: crate::value::List = self.safe_list_k_t(&data, "candlestick");
-        let first: crate::value::Dict = self.safe_dict_t(&candlestick, Value::Int(0));
+        let candlestick: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "candlestick"));
+        let first: crate::value::Dict = candlestick.get(0).cloned().unwrap_or_default();
         let ohlcv: crate::value::List = self.safe_list_k_t(&first, "ohlcv");
         return Value::Arr(self.parse_ohlc_vs(&ohlcv, Some(&market), &[timeframe, Value::from(sinceResolved), Value::from(limitResolved)]));
         Value::Null
@@ -1664,8 +1664,8 @@ impl Bitbank {
         let response: crate::value::Dict = self.private_get_user_withdrawal_account(&[&__ws_arg_9]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         // Not sure about this if there could be more than one account...
-        let accounts: crate::value::List = self.safe_list_k_t(&data, "accounts");
-        let firstAccount: crate::value::Dict = self.safe_dict_t(&accounts, Value::Int(0));
+        let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "accounts"));
+        let firstAccount: crate::value::Dict = accounts.get(0).cloned().unwrap_or_default();
         let address: Option<String> = self.safe_string_k_opt(&firstAccount, "address", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

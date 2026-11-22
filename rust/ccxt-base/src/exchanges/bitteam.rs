@@ -805,8 +805,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let timestamp: Option<i64> = self.safe_integer_k(&transaction, "timestamp", &[]).as_i64();
         let mut networkId: Option<String> = self.safe_string_k_opt(&transaction, "blockChain", &[]);
         if (networkId.is_none()) {
-            let links: crate::value::List = self.safe_list_k_t(&currencyObject, "links");
-            let blockChain: crate::value::Dict = self.safe_dict_t(&links, Value::Int(0));
+            let links: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&currencyObject, "links"));
+            let blockChain: crate::value::Dict = links.get(0).cloned().unwrap_or_default();
             networkId = self.safe_string_k_opt(&blockChain, "blockChain", &[]);
         }
         let addressFrom: Option<String> = self.safe_string_k_opt(&transaction, "sender", &[]);

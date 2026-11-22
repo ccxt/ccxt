@@ -1115,7 +1115,7 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let metadata: crate::value::Dict = self.safe_dict_k_t(&response, "metadata");
         let timestamp: Option<i64> = self.safe_integer_k(&metadata, "timestamp", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1126,7 +1126,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
-            let mut tickerData: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut tickerData: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             std::sync::Arc::make_mut(&mut tickerData).insert("timestamp".into(), Value::from(timestamp));
             let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &tickerData, None).unwrap_or_default();
             let symbol: String = self.safe_string_k(&ticker, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1408,13 +1408,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_trade(self, &trade, Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
@@ -1459,7 +1459,7 @@ impl Revolutx {
                 m
             });
         }
-        let data: crate::value::List = self.safe_list_k_t(&payload, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&payload, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -1469,7 +1469,7 @@ impl Revolutx {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currency: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currency.as_deref(), None);
             if (code.is_none()) {
@@ -1946,13 +1946,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (data.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None).map_or(Value::Null, Value::Dict));
         }
         }
@@ -2036,13 +2036,13 @@ impl Revolutx {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, &["until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"], &[])]);
         let response: crate::value::Dict = self.private_get10_orders_historical(&[&__ws_arg_11]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let order: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_order(self, &order, None).map_or(Value::Null, Value::Dict));
         }
         }
@@ -2168,13 +2168,13 @@ impl Revolutx {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             result.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, &trade, Some(&market)));
         }
         }

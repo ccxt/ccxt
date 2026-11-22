@@ -644,8 +644,8 @@ impl Weex {
         if (false) {
             return;
         }
-        let tickers: crate::value::List = __pro_message.key_list("d");
-        let data: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("d"));
+        let data: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         let ticker: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ws_ticker(&data, Some(&market)));
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "ticker::", symbol);
@@ -915,13 +915,13 @@ impl Weex {
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        let data: crate::value::List = __pro_message.key_list("d");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("d"));
         let mut newTrades: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-            let rawTrade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawTrade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market));
             newTrades.push(Value::Dict(trade));
         }
@@ -1238,8 +1238,8 @@ impl Weex {
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
-        let data: crate::value::List = __pro_message.key_list("d");
-        let firstEntry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("d"));
+        let firstEntry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let interval: Option<String> = self.safe_string_k_opt(&firstEntry, "i", &[]);
         let timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
@@ -1254,7 +1254,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(entry), None);
             stored.append(Value::Arr(parsed));
         }
@@ -1848,7 +1848,7 @@ impl Weex {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let data: crate::value::List = message.key_list("d");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("d"));
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1857,7 +1857,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_ws_my_trade(&trade, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -2107,7 +2107,7 @@ impl Weex {
         //         ]
         //     }
         //
-        let data: crate::value::List = message.key_list("d");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("d"));
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -2120,7 +2120,7 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (data.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_ws_order(&rawOrder, None);
             self.orders.append(Value::from(&parsed));
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
@@ -2470,12 +2470,12 @@ impl Weex {
             m
         })).as_map().cloned().unwrap_or_default();
         balance.insert("info".into(), message);
-        let balanceUpdates: crate::value::List = __pro_message.key_list("d");
+        let balanceUpdates: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("d"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < (balanceUpdates.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&balanceUpdates, Value::Int(i));
+            let entry: crate::value::Dict = balanceUpdates.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2671,12 +2671,12 @@ impl Weex {
             self.positions = Some(ArrayCacheBySymbolById::new(Value::Null));
         }
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
-        let data: crate::value::List = message.key_list("d");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("d"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_19: bool = true;
             while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (data.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rawPosition: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let position: crate::value::Dict = self.parse_ws_position(&rawPosition, None);
             self.positions.append(Value::from(&position));
             std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));

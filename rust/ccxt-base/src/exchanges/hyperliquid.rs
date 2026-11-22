@@ -987,9 +987,12 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
             if (matches!(baseName.as_deref(), Some(__k) if spotCurrencyMapping.contains_key(__k))) {
                 let unifiedBaseName: Option<String> = self.safe_string_opt(&spotCurrencyMapping, baseName.map(Value::from).unwrap_or(Value::Null), &[]);
                 let quote: Option<String> = self.safe_string_opt(&symbolParts, Value::Int(1), &[]);
-                let newSymbol: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.as_deref(), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.as_deref().unwrap_or("null"));
-                if (matches!((&self.markets, Some(newSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
-                    return (if let Some(__m) = self.markets.as_deref() { __m.get(newSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let unifiedBase: Option<String> = self.safe_currency_code(unifiedBaseName.as_deref(), None);
+                if (unifiedBase.is_some()) && (quote.is_some()) {
+                    let newSymbol: String = format!("{}{}", Value::Str(format!("{}{}", unifiedBase.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
+                    if (matches!((&self.markets, Some(newSymbol.as_str())), (Some(__d), Some(__k)) if __d.contains_key(__k))) {
+                        return (if let Some(__m) = self.markets.as_deref() { __m.get(newSymbol.as_str()).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                    }
                 }
             }
         }
@@ -2237,8 +2240,8 @@ impl Hyperliquid {
         //
         let first: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
         let second: crate::value::List = self.safe_list_t(&response, Value::Int(1));
-        let meta: crate::value::List = self.safe_list_k_t(&first, "universe");
-        let tokens: crate::value::List = self.safe_list_k_t(&first, "tokens");
+        let meta: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&first, "universe"));
+        let tokens: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&first, "tokens"));
         // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
         let mut tokensByIndex: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -2248,7 +2251,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (tokens.len() as i64) } {
-            let token: crate::value::Dict = self.safe_dict_t(&tokens, Value::Int(i));
+            let token: crate::value::Dict = tokens.get(i as usize).cloned().unwrap_or_default();
             let tokenIndex: Option<String> = self.safe_string_k_opt(&token, "index", &[]);
             if (tokenIndex.is_some()) {
                 tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), Value::Dict(token));
@@ -2260,7 +2263,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (meta.len() as i64) } {
-            let market: crate::value::Dict = self.safe_dict_t(&meta, Value::Int(i));
+            let market: crate::value::Dict = meta.get(i as usize).cloned().unwrap_or_default();
             let index: Option<i64> = self.safe_integer_k(&market, "index", &[]).as_i64();
             let extraData: crate::value::Dict = self.safe_dict_t(&second, index);
             let mut marketName: Option<String> = self.safe_string_k_opt(&market, "name", &[]);
@@ -3738,7 +3741,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let vaultAddressOption: Option<String> = vaultAddressOptionparamsVaultVariable.0.as_str().map(str::to_owned);
         let paramsVault: crate::value::Dict = vaultAddressOptionparamsVaultVariable.1;
         let vaultAddress: Option<String> = self.format_vault_address(vaultAddressOption.as_deref());
-        let durationMins: Value = ((match (((match ((duration).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null); // convert from ms to minutes
+        let durationMins: Value = ((match (((match ((Value::from(self.parse_to_int(duration))).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y),
+            _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null); // convert from ms to minutes
         let orderObj: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("a".to_string(), Value::from(self.parse_to_int(Value::from((market).base_id.as_deref()))));

@@ -250,11 +250,11 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let childOrders: Option<crate::value::List> = self.safe_list_k_o(&order, "childOrders");
         if (childOrders.is_some()) {
             let first: crate::value::Dict = self.safe_dict_t(&childOrders, Value::Int(0));
-            let innerChildOrders: crate::value::List = self.safe_list_k_t(&first, "childOrders");
+            let innerChildOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&first, "childOrders"));
             let innerChildOrdersLength: i64 = innerChildOrders.len() as i64;
             if innerChildOrdersLength > 0 {
-                let takeProfitOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(0));
-                let stopLossOrder: crate::value::Dict = self.safe_dict_t(&innerChildOrders, Value::Int(1));
+                let takeProfitOrder: crate::value::Dict = innerChildOrders.get(0).cloned().unwrap_or_default();
+                let stopLossOrder: crate::value::Dict = innerChildOrders.get(1).cloned().unwrap_or_default();
                 takeProfitPrice = self.safe_number_k(&takeProfitOrder, "triggerPrice", &[]).as_f64();
                 stopLossPrice = self.safe_number_k(&stopLossOrder, "triggerPrice", &[]).as_f64();
             }

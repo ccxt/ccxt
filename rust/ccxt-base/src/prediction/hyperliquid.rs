@@ -927,8 +927,8 @@ impl Hyperliquid {
             m
         }), &[params]);
         let response: crate::value::Dict = self.call_method_t("public_post_info", &[&__ws_arg_0]).await;
-        let outcomesList: crate::value::List = self.safe_list_k_t(&response, "outcomes");
-        let questionsList: crate::value::List = self.safe_list_k_t(&response, "questions");
+        let outcomesList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "outcomes"));
+        let questionsList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "questions"));
         let mut outcomesToQuestions: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -937,7 +937,7 @@ impl Hyperliquid {
                         let mut qi: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { qi += 1; } __for_first_3 = false; qi < (questionsList.len() as i64) } {
-            let question: crate::value::Dict = self.safe_dict_t(&questionsList, Value::Int(qi));
+            let question: crate::value::Dict = questionsList.get(qi as usize).cloned().unwrap_or_default();
             let fallbackOutcome: Option<i64> = self.safe_integer_k(&question, "fallbackOutcome", &[]).as_i64();
             if (fallbackOutcome.is_some()) {
                 let fallbackKey: String = format!("{}", Value::from(fallbackOutcome));
@@ -971,7 +971,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (outcomesList.len() as i64) } {
-            let outcomeInfo: crate::value::Dict = self.safe_dict_t(&outcomesList, Value::Int(i));
+            let outcomeInfo: crate::value::Dict = outcomesList.get(i as usize).cloned().unwrap_or_default();
             let outcomeId: Value = self.safe_integer_k(&outcomeInfo, "outcome", &[Value::Int(i)]);
             let linkedQuestion: crate::value::Dict = self.safe_dict_t(&outcomesToQuestions, Value::Str(format!("{}", outcomeId).into()));
             let market: crate::value::Dict = self.parse_outcome_market(&outcomeInfo, Value::Str(format!("{}", outcomeId).into()), outcomeId, &[&Value::Dict(linkedQuestion)]).into_dict();
@@ -1037,8 +1037,8 @@ impl Hyperliquid {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             let expParts: Vec<Value> = Value::Array(if let Some(__s) = expiry.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let expPartsLength: i64 = expParts.len() as i64;
-            if expPartsLength >= 1 && (Value::Int(expParts.get(0).cloned().unwrap_or(Value::Null).len() as i64).as_f64() == Some(8.0)) {
-                let ymd: Option<String> = expParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            let ymd: Option<String> = expParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            if expPartsLength >= 1 && (((ymd.as_deref().unwrap_or_default().chars().count() as i64)) == 8) {
                 let mut hm: Option<String> = Some("0000".to_string());
                 if expPartsLength >= 2 {
                     hm = expParts.get(1).and_then(Value::as_str).map(str::to_owned);
@@ -1120,7 +1120,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), outcomeKey.clone());
         m.insert("market".to_string(), parentSymbol.clone());
-        m.insert("base".to_string(), Value::Array(if let Some(__s) = parentSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
+        m.insert("base".to_string(), self.safe_string(Value::Array(if let Some(__s) = parentSymbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[]));
         m.insert("quote".to_string(), Value::from(quoteCurrency.as_str()));
         m.insert("settle".to_string(), Value::Null);
         m.insert("baseId".to_string(), outcomeKey);
@@ -1752,7 +1752,7 @@ impl Hyperliquid {
         let results: crate::value::List = promise_all(&Value::Arr(promises)).await;
         let response: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
         let midsResponse: Value = crate::value::KeyRead::read(&&results, &Value::Int(1));
-        let balances: crate::value::List = self.safe_list_k_t(&response, "balances");
+        let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let allMids: crate::value::Dict = Self::info_dict(midsResponse);
         let mids: crate::value::Dict = self.safe_dict_k_or(&allMids, "mids", Value::from(&allMids));
         let mut positions: Vec<Value> = Vec::new();
@@ -1760,7 +1760,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (balances.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&balances, Value::Int(i));
+            let balance: crate::value::Dict = balances.get(i as usize).cloned().unwrap_or_default();
             let mut coin: String = self.safe_string_k(&balance, "coin", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
             if (((if let (Some(__h), Some(__n)) = (Some(coin.as_str()), Some("+")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) != 0) {
@@ -2077,8 +2077,8 @@ impl Hyperliquid {
         //
         let responseObj: crate::value::Dict = self.safe_dict_k_t(&response, "response");
         let data: crate::value::Dict = self.safe_dict_k_t(&responseObj, "data");
-        let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
-        let firstStatus: crate::value::Dict = self.safe_dict_t(&statuses, Value::Int(0));
+        let statuses: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "statuses"));
+        let firstStatus: crate::value::Dict = statuses.get(0).cloned().unwrap_or_default();
         let resting: crate::value::Dict = self.safe_dict_k_t(&firstStatus, "resting");
         let filled: crate::value::Dict = self.safe_dict_k_t(&firstStatus, "filled");
         let oid: Option<String> = self.safe_string_k_opt(&resting, "oid", &[&self.safe_string_k(&filled, "oid", &[])]);
@@ -2810,8 +2810,8 @@ impl Hyperliquid {
         if (expiryRaw.is_some()) && (expiryRaw.as_deref() != Some("")) {
             let parts: Vec<Value> = Value::Array(if let Some(__s) = expiryRaw.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             let partsLength: i64 = parts.len() as i64;
-            if partsLength >= 1 && (Value::Int(parts.get(0).cloned().unwrap_or(Value::Null).len() as i64).as_f64() == Some(8.0)) {
-                let ymd: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
+            let ymd: Option<String> = parts.get(0).and_then(Value::as_str).map(str::to_owned);
+            if partsLength >= 1 && (((ymd.as_deref().unwrap_or_default().chars().count() as i64)) == 8) {
                 let mut hm: Option<String> = Some("0000".to_string());
                 if partsLength >= 2 {
                     hm = parts.get(1).and_then(Value::as_str).map(str::to_owned);

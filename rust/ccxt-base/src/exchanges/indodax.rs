@@ -1824,7 +1824,7 @@ impl Indodax {
         m.insert("percentage".to_string(), Value::Bool(false));
     m
 }));
-        return self.assign_default_deposit_withdraw_fees(Value::Map(result), &[crate::Value::from(Some(&currency))]);
+        return Value::Dict(self.assign_default_deposit_withdraw_fees(Value::Map(result), &[crate::Value::from(Some(&currency))]));
         Value::Null
         }).await?))
     }

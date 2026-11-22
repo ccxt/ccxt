@@ -1074,7 +1074,7 @@ impl Coinbaseexchange {
                         let mut previousTrades: crate::value::List = self.safe_list_k_t(&previousOrder, "trades");
                         std::sync::Arc::make_mut(&mut previousTrades).push(trade.clone());
                         if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("trades".into(), Value::Arr(previousTrades.clone())); }
-                        if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null)); }
+                        if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("lastTradeTimestamp".into(), self.safe_integer_k(&trade, "timestamp", &[])); }
                         let mut totalCost: String = "0".to_string();
                         let mut totalAmount: String = "0".to_string();
                         {
@@ -1098,12 +1098,13 @@ impl Coinbaseexchange {
                             }
                         }
                         if (self.safe_dict_k(&previousOrder, "fee", &[]) == Value::Null) {
-                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(0));
-        m.insert("currency".to_string(), self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]));
-    m
-})); }
+                            let newFee: indexmap::IndexMap<String, Value> = ({
+                                let mut m = indexmap::IndexMap::new();
+                                    m.insert("cost".to_string(), Value::Int(0));
+                                    m.insert("currency".to_string(), self.safe_string(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("currency".into()), &[]));
+                                m
+                            });
+                            if let Some(__d) = &mut previousOrder { std::sync::Arc::make_mut(__d).insert("fee".into(), Value::Map(newFee)); }
                         }
                         let mut previousOrderFee: indexmap::IndexMap<String, Value> = self.safe_dict_k(&previousOrder, "fee", &[Value::Map({
                             let m = indexmap::IndexMap::new();

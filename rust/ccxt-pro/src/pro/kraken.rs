@@ -956,8 +956,8 @@ impl Kraken {
         //         ]
         //     }
         //
-        let data: crate::value::List = message.key_list("data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let marketId: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
@@ -978,7 +978,7 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < ohlcvsLength } {
-            let candle: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let candle: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let datetime: Option<String> = self.safe_string_k_opt(&candle, "interval_begin", &[]);
             let timestamp: Option<i64> = self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null));
             let parsed: crate::value::List = std::sync::Arc::new(vec![Value::from(timestamp), self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
@@ -1564,8 +1564,8 @@ impl Kraken {
         //     }
         //
         let type_var: Option<String> = (match message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let data: crate::value::List = message.key_list("data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let symbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let a: crate::value::List = self.safe_list_k_t(&first, "asks");
         let b: crate::value::List = self.safe_list_k_t(&first, "bids");
@@ -1894,7 +1894,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "sequence": 10
         //     }
         //
-        let allTrades: crate::value::List = message.key_list("data");
+        let allTrades: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let allTradesLength: i64 = allTrades.len() as i64;
         if allTradesLength > 0 {
             if (self.myTrades.is_none()) {
@@ -1909,7 +1909,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_8: bool = true;
                 while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < (allTrades.len() as i64) } {
-                let trade: crate::value::Dict = self.safe_dict_t(&allTrades, Value::Int(i));
+                let trade: crate::value::Dict = allTrades.get(i as usize).cloned().unwrap_or_default();
                 let parsed: crate::value::Dict = self.parse_ws_trade(&trade, None);
                 self.myTrades.append(Value::from(&parsed));
                 let symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
@@ -2063,7 +2063,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "sequence": 8
         //     }
         //
-        let allOrders: crate::value::List = message.key_list("data");
+        let allOrders: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
         let allOrdersLength: i64 = allOrders.len() as i64;
         if allOrdersLength > 0 {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -2078,7 +2078,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
                 while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (allOrders.len() as i64) } {
-                let order: crate::value::Dict = self.safe_dict_t(&allOrders, Value::Int(i));
+                let order: crate::value::Dict = allOrders.get(i as usize).cloned().unwrap_or_default();
                 let id: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
                 let parsed: crate::value::Dict = self.parse_ws_order(&order, None);
                 let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
@@ -2489,8 +2489,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (channel.is_some()) {
             if (channel.as_deref() == Some("executions")) {
-                let data: crate::value::List = __pro_message.key_list("data");
-                let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+                let data: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
+                let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
                 let execType: Option<String> = self.safe_string_k_opt(&first, "exec_type", &[]);
                 channel = (if (execType.as_deref() == Some("trade")) { Some("myTrades".to_string()) } else { Some("orders".to_string()) });
             }

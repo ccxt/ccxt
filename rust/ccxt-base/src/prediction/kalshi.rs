@@ -135,8 +135,8 @@ impl crate::exchange::DerivedExchange for Kalshi {
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
-        let priceRanges: crate::value::List = self.safe_list_k_t(&raw, "price_ranges");
-        let firstRange: crate::value::Dict = self.safe_dict_t(&priceRanges, Value::Int(0));
+        let priceRanges: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&raw, "price_ranges"));
+        let firstRange: crate::value::Dict = priceRanges.get(0).cloned().unwrap_or_default();
         let stepDollars: Option<String> = self.safe_string_k_opt(&firstRange, "step", &[]);
         let mut pricePrecision: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&self.safe_string_k(&raw, "tick_size", &[Value::Str("1".into())]), &Value::Str("100".into())), &[]).as_f64();
         if (stepDollars.is_some()) {
@@ -152,6 +152,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         let outcomeLabels: crate::value::List = std::sync::Arc::new(vec![Value::Str("YES".into()), Value::Str("NO".into())]);
         let mut outcomes: Vec<Value> = Vec::new();
         let mut resolvedOutcome: Option<String> = None;
+        let resultText: String = self.safe_string_lower_k(&raw, "result", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         {
                         let mut oi: i64 = 0;
             let mut __for_first_8: bool = true;
@@ -161,7 +162,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
-                winnerRaw = Some((label.as_deref().map(str::to_lowercase)) == result);
+                winnerRaw = Some((label.as_deref().map(str::to_lowercase)).as_deref() == Some(resultText.as_str()));
                 settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
                 if (winnerRaw == Some(true)) {
                     resolvedOutcome = outcomeHandle.clone();
@@ -1520,7 +1521,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (parsed == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcome() could not resolve parsed")));
                 }
-                add_element_to_object(&mut self.markets, &parsed.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), parsed.clone());
+                if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parsed.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), parsed.clone()); }
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 self.index_market_outcomes(parsed);
@@ -1625,7 +1626,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (parsed == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchOutcomes() could not resolve parsed")));
                 }
-                add_element_to_object(&mut self.markets, &parsed.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), parsed.clone());
+                if let Some(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parsed.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)), parsed.clone()); }
                 self.index_market_outcomes(parsed);
             }
             }
@@ -3775,7 +3776,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        let rawMarkets: crate::value::List = self.safe_list_k_t(&rawEvent, "markets");
+        let rawMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&rawEvent, "markets"));
         let mut marketsList: Vec<Value> = Vec::new();
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
@@ -3783,7 +3784,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut totalVolume: Value = Value::Int(0);
         let mut totalLiquidity: Value = Value::Int(0);
         // seeded from the first market, which the loop re-reads, so the min/max stays the same
-        let firstMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(0));
+        let firstMarket: crate::value::Dict = rawMarkets.get(0).cloned().unwrap_or_default();
         let mut earliestCreated: Option<i64> = self.parse8601(self.safe_string_k(&firstMarket, "open_time", &[]));
         let mut anyActive: bool = false;
         let mut allResolved: bool = true;
@@ -3792,7 +3793,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_40: bool = true;
             while { if !__for_first_40 { i += 1; } __for_first_40 = false; i < (rawMarkets.len() as i64) } {
-            let rawMarket: crate::value::Dict = self.safe_dict_t(&rawMarkets, Value::Int(i));
+            let rawMarket: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, &rawMarket).into_dict();
             marketsList.push(Value::Dict(parsed));
             totalVolume = self.sum(&[std::mem::take(&mut totalVolume), self.safe_number2(&rawMarket, Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);

@@ -514,12 +514,12 @@ impl crate::exchange::DerivedExchange for Blofin {
         });
         let data: crate::value::Dict = self.safe_dict_k_t(response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
-        let details: crate::value::List = self.safe_list_k_t(&data, "details");
+        let details: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "details"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (details.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&details, Value::Int(i));
+            let balance: crate::value::Dict = details.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
@@ -2526,8 +2526,8 @@ impl Blofin {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         let timestamp: Option<i64> = self.safe_integer_k(&first, "ts", &[]).as_i64();
         return Value::Dict(self.parse_order_book(&first, symbol, &[Value::from(timestamp)]));
         Value::Null
@@ -2566,8 +2566,8 @@ impl Blofin {
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_market_tickers(&[&__ws_arg_1]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2605,8 +2605,8 @@ impl Blofin {
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.public_get_market_mark_price(&[&__ws_arg_2]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2821,12 +2821,12 @@ impl Blofin {
         let __ws_arg_5 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.public_get_market_funding_rate_history(&[&__ws_arg_5]).await.unwrap_or_default();
         let mut rates: Vec<Value> = Vec::new();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
-            let rate: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let rate: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let timestamp: Option<i64> = self.safe_integer_k(&rate, "fundingTime", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2893,8 +2893,8 @@ impl Blofin {
         //        "msg": ""
         //    }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let entry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market));
         Value::Null
         }).await?))
@@ -2934,12 +2934,12 @@ impl Blofin {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let data: crate::value::List = self.safe_list_k_t(response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (data.len() as i64) } {
-            let balance: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let balance: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&balance, "currency", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());

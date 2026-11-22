@@ -5131,8 +5131,8 @@ impl Derive {
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-        let spotAssets: crate::value::List = self.safe_list_k_t(crate::value::KeyRead::key_read(&&currency, "info"), "spot");
-        let spotAsset: crate::value::Dict = self.safe_dict_t(&spotAssets, Value::Int(0));
+        let spotAssets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(crate::value::KeyRead::key_read(&&currency, "info"), "spot"));
+        let spotAsset: crate::value::Dict = spotAssets.get(0).cloned().unwrap_or_default();
         let assetAddress: Option<String> = self.safe_string_k_opt(&spotAsset, "address", &[]);
         if (assetAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " transfer() ").into()), code).into()), " has no deposit-enabled spot asset")));
@@ -5490,8 +5490,8 @@ impl Derive {
         self.check_address(&[&address]);
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         // the exchange reconstructs the signed payload from asset_name using the protocol spot-asset address, so signing any other address can never verify
-        let spotAssets: crate::value::List = self.safe_list_k_t(crate::value::KeyRead::key_read(&&currency, "info"), "spot");
-        let spotAsset: crate::value::Dict = self.safe_dict_t(&spotAssets, Value::Int(0));
+        let spotAssets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(crate::value::KeyRead::key_read(&&currency, "info"), "spot"));
+        let spotAsset: crate::value::Dict = spotAssets.get(0).cloned().unwrap_or_default();
         let assetAddress: Option<String> = self.safe_string_k_opt(&spotAsset, "address", &[]);
         if (assetAddress.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() ").into()), code).into()), " has no deposit-enabled spot asset")));

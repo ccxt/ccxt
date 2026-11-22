@@ -73,7 +73,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let timestamp: Option<i64> = self.safe_integer_omit_zero(&ticker, Value::Str("ts".into()), &[]).as_i64();
         let marketId: Option<String> = self.safe_string_k_opt(&ticker, "instId", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Str("-".into())]);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let last: Option<String> = self.safe_string_k_opt(&ticker, "last", &[]);
         let open: Option<String> = self.safe_string_k_opt(&ticker, "open24h", &[]);
         let mut quoteVolume: Option<String> = self.safe_string_k_opt(&ticker, "volCcy24h", &[]);
@@ -862,12 +862,12 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
             msg = sMsg;
         }
-        let errorList: crate::value::List = self.safe_list_k_t(&data, "errorList");
+        let errorList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "errorList"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (errorList.len() as i64) } {
-            let entry: crate::value::Dict = self.safe_dict_t(&errorList, Value::Int(i));
+            let entry: crate::value::Dict = errorList.get(i as usize).cloned().unwrap_or_default();
             errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
         }
         }
@@ -4196,8 +4196,8 @@ impl Deepcoin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let rates: crate::value::List = self.safe_list_k_t(&data, "current_fund_rates");
-        let entry: crate::value::Dict = self.safe_dict_t(&rates, Value::Int(0));
+        let rates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "current_fund_rates"));
+        let entry: crate::value::Dict = rates.get(0).cloned().unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market));
         Value::Null
         }).await?))

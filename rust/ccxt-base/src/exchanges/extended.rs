@@ -2026,10 +2026,10 @@ impl Extended {
             let marketId: Option<String> = self.safe_string_k_opt(&marketData, "name", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let stats: crate::value::Dict = self.safe_dict_k_t(&marketData, "marketStats");
-            let ticker: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &stats, Some(&market)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
-            let symbol: Option<String> = ticker.get("symbol").and_then(Value::as_str).map(str::to_owned);
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &stats, Some(&market)).unwrap_or_default();
+            let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
-                tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(ticker));
+                tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
         }
         }
@@ -2229,7 +2229,7 @@ impl Extended {
         //         }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -2238,7 +2238,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2327,7 +2327,7 @@ impl Extended {
         //         }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -2336,7 +2336,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2562,7 +2562,7 @@ impl Extended {
         //       }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -2571,7 +2571,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2875,7 +2875,7 @@ impl Extended {
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let response: crate::value::Dict = self.v1_private_get_user_asset_operations(&[&__ws_arg_9]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -2884,7 +2884,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2968,7 +2968,7 @@ impl Extended {
         //         }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -2977,7 +2977,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3200,7 +3200,7 @@ impl Extended {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsPaginate]);
         let response: crate::value::Dict = self.v1_private_get_user_asset_operations(&[&__ws_arg_14]).await.unwrap_or_default();
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -3209,7 +3209,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
             while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3403,8 +3403,8 @@ impl Extended {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let first: crate::value::Dict = self.safe_dict_t(&data, Value::Int(0));
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
         return Value::Dict(self.parse_trading_fee(&first, Some(&market)));
         Value::Null
         }).await?))
@@ -3445,7 +3445,7 @@ impl Extended {
         //         ]
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3454,7 +3454,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-            let fee: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let fee: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             let parsed: crate::value::Dict = self.parse_trading_fee(&fee, None);
             let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
@@ -3752,7 +3752,7 @@ impl Extended {
         //         }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -3761,7 +3761,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4802,7 +4802,7 @@ impl Extended {
         //       }
         //     }
         //
-        let data: crate::value::List = self.safe_list_k_t(&response, "data");
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let pagination: crate::value::Dict = self.safe_dict_k_t(&response, "pagination");
         let cursor: Option<String> = self.safe_string_k_opt(&pagination, "cursor", &[]);
         let mut result: Vec<Value> = Vec::new();
@@ -4811,7 +4811,7 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < dataLength } {
-            let mut entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
             if (cursor.is_some()) && (i == ((dataLength - 1))) {
                 entry = self.extend_t(entry, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

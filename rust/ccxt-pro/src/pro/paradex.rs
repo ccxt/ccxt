@@ -1140,7 +1140,7 @@ if _try_result.is_err() {
         let params: crate::value::Dict = __pro_message.key_dict("params");
         let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let parsedTrade: crate::value::Dict = self.parse_trade(Value::from(&data), None);
-        let symbol: Value = crate::value::KeyRead::key_read(&&parsedTrade, "symbol");
+        let symbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
         let messageHash: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
@@ -1153,15 +1153,20 @@ if _try_result.is_err() {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
             let liquidation: crate::value::Dict = self.parse_ws_liquidation(&data, None);
-            let mut caches: crate::value::Dict = self.safe_dict_k_t(&self.options, "liquidationsBySymbol");
-            let mut liquidations: Value = self.safe_value(&caches, &symbol, &[]);
+            let mut caches: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "liquidationsBySymbol", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]).as_map().cloned().unwrap_or_default();
+            let mut liquidations: Value = self.safe_value(&caches, Value::from(symbol.as_deref()), &[]);
             if (liquidations == Value::Null) {
                 liquidations = Value::from(ArrayCache::new(self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)])));
-                std::sync::Arc::make_mut(&mut caches).insert(crate::runtime::stringify_param(&symbol), liquidations.clone());
-                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("liquidationsBySymbol".into(), Value::Dict(caches)); }
+                caches.insert(symbol.as_deref().unwrap_or("null").to_string(), liquidations.clone());
+                { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("liquidationsBySymbol".into(), Value::Map(caches)); }
             }
             liquidations.append(Value::Dict(liquidation));
-            client.resolve(liquidations, &(Value::Str(format!("{}{}", "liquidations:", symbol).into())));
+            if (symbol.is_some()) {
+                client.resolve(liquidations, &(Value::Str(format!("{}{}", "liquidations:", symbol.as_deref().unwrap_or("null")).into())));
+            }
         }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
@@ -1444,12 +1449,12 @@ if _try_result.is_err() {
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { k += 1; } __for_first_15 = false; k < (levelKeys.len() as i64) } {
             let isDelete: bool = levelKeys.get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
-            let levels: crate::value::List = self.safe_list_t(&data, levelKeys.get(k as usize).cloned().unwrap_or(Value::Null));
+            let levels: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&data, levelKeys.get(k as usize).cloned().unwrap_or(Value::Null)));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_14: bool = true;
                 while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (levels.len() as i64) } {
-                let level: crate::value::Dict = self.safe_dict_t(&levels, Value::Int(i));
+                let level: crate::value::Dict = levels.get(i as usize).cloned().unwrap_or_default();
                 let price: Option<String> = self.safe_string_k_opt(&level, "price", &[]);
                 let size: Option<String> = (if (isDelete) { Some("0".to_string()) } else { self.safe_string_k_opt(&level, "size", &[]) });
                 if (self.safe_string_k(&level, "side", &[]).as_str() == Some("BUY")) {
@@ -1741,8 +1746,8 @@ if _try_result.is_err() {
             while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < symbolsLength } {
             let symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let marketId: Value = Value::from((market).id.as_deref());
-            marketIds.push(marketId.clone());
+            let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            marketIds.push(Value::from(marketId.as_str()));
             std::sync::Arc::make_mut(&mut subscribeHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId).into()));
             subMessageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), symbol).into()));
         }
@@ -1864,11 +1869,11 @@ if _try_result.is_err() {
             let mut __for_first_23: bool = true;
             while { if !__for_first_23 { i += 1; } __for_first_23 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let marketId: Value = Value::from((market).id.as_deref());
+            let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let subscribeHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ".").into()), marketId);
             subscribeHashes.push(Value::from(subscribeHash.as_str()));
             if !(client.has_subscription(subscribeHash.as_str())) {
-                missing.push(marketId);
+                missing.push(Value::from(marketId));
                 missingHashes.push(messageHashes.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -2107,9 +2112,11 @@ if _try_result.is_err() {
         let params: crate::value::Dict = message.key_dict("params");
         let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let bidAsk: crate::value::Dict = self.parse_ws_bid_ask(&data, None);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&bidAsk, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&bidAsk, "symbol", &[]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&bidAsk)); }
-        client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
+        if (symbol.is_some()) {
+            client.resolve(Value::from(&bidAsk), &(Value::Str(format!("{}{}", "bidask:", symbol.as_deref().unwrap_or("null")).into())));
+        }
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(Value::Dict(bidAsk), "bidask");
 }
@@ -2377,12 +2384,14 @@ if _try_result.is_err() {
         if (symbolsLength == 0) {
             messageHashes.push(Value::from(channel.as_str()));
         }  else {
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_26: bool = true;
-                while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < symbolsLength } {
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
-            }
+            if (symbolsNormalized.is_some()) {
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_26: bool = true;
+                    while { if !__for_first_26 { i += 1; } __for_first_26 = false; i < symbolsLength } {
+                    messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+                }
+                }
             }
         }
         let request: indexmap::IndexMap<String, Value> = Value::Dict(self.subscribe_request(channel.as_str())).as_map().cloned().unwrap_or_default();
@@ -2434,7 +2443,7 @@ if _try_result.is_err() {
             self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let position: crate::value::Dict = self.parse_position(Value::Dict(data), None);
-        let symbol: Option<String> = crate::value::KeyRead::key_read(&&position, "symbol").as_str().map(str::to_owned);
+        let symbol: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
         let mut newPositions: crate::value::List = std::sync::Arc::new(Vec::new());
         // one position per market, so a fill through zero flips its side: the cache keys by
         // symbol and side, and the opposite side it still holds is flattened here
@@ -2465,7 +2474,9 @@ if _try_result.is_err() {
         self.positions.append(Value::from(&position));
         std::sync::Arc::make_mut(&mut newPositions).push(Value::Dict(position));
         client.resolve(&newPositions, "positions");
-        client.resolve(Value::Arr(newPositions), &(Value::Str(format!("{}{}", "positions:", symbol.as_deref().unwrap_or("null")).into())));
+        if (symbol.is_some()) {
+            client.resolve(Value::Arr(newPositions), &(Value::Str(format!("{}{}", "positions:", symbol.as_deref().unwrap_or("null")).into())));
+        }
 }
 
 /*

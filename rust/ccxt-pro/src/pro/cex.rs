@@ -349,8 +349,8 @@ impl Cex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let currentSymbol: Option<String> = self.safe_string_k_opt(self.options.get("watchTrades").cloned().unwrap_or(Value::Null), "symbol", &[]);
-        if (currentSymbol.is_some()) && (currentSymbol.as_deref() != Some(symbol.as_str().unwrap_or_default().to_string().as_str())) {
+        let currentSymbol: String = self.safe_string(self.options.get("watchTrades").cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if (currentSymbol != "") && (currentSymbol != symbol.as_str().unwrap_or_default().to_string()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")));
         }
         let __ws_arg_0 = self.safe_dict_k(&self.options, "watchTrades", &[Value::Map({
@@ -813,7 +813,7 @@ impl Cex {
         self.authenticate(&[&params]).await;
         let url: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orders:", symbolValue);
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

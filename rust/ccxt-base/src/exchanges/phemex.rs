@@ -991,7 +991,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         let txid: Option<String> = self.safe_string_k_opt(&transaction, "txHash", &[]);
         let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
         let currencyResolved: crate::types::Currency = self.safe_currency(currencyId.as_deref(), currency);
-        let code: Option<String> = crate::value::KeyRead::key_read(&&currencyResolved, "code").as_str().map(str::to_owned);
+        let code: Option<String> = self.safe_string_k_opt(&currencyResolved, "code", &[]);
         let networkId: Option<String> = self.safe_string_k_opt(&transaction, "chainName", &[]);
         let timestamp: Option<i64> = self.safe_integer_n(&transaction, Value::from(vec![Value::Str("createdAt".into()), Value::Str("submitedAt".into()), Value::Str("submittedAt".into())]), &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(&transaction, "type", &[]);
@@ -1303,7 +1303,7 @@ impl crate::exchange::DerivedExchange for Phemex {
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
-        let mut params = get_arg(optional_args, 2, Value::Map({
+        let params = get_arg(optional_args, 2, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -1335,14 +1335,19 @@ impl crate::exchange::DerivedExchange for Phemex {
             privateHeaders.insert("x-phemex-request-expiry".into(), Value::from(expiryString.as_str()));
             let mut payload: Option<String> = Some("".to_string());
             if (method.as_str() == Some("POST")) {
+                payload = json_stringify(&params).as_str().map(str::to_owned);
                 let isOrderPlacement: bool = (path == "g-orders") || (path == "spot/orders") || (path == "orders");
                 if isOrderPlacement {
                     if (self.safe_string_k(&params, "clOrdID", &[]) == Value::Null) {
                         let id: String = self.safe_string_k(&self.options, "brokerId", &[Value::Str("CCXT123456".into())]).as_str().unwrap_or("CCXT123456").to_string();
-                        if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdID".into(), Value::Str(format!("{}{}", id, self.uuid16(&[])).into())); }
+                        let __ws_arg_56 = self.extend(params, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clOrdID".to_string(), Value::Str(format!("{}{}", id, self.uuid16(&[])).into()));
+    m
+})]);
+                        payload = self.json(__ws_arg_56).as_str().map(str::to_owned);
                     }
                 }
-                payload = json_stringify(&params).as_str().map(str::to_owned);
                 requestBody = payload.clone();
                 privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
@@ -6572,12 +6577,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("longLeverageRr".into(), Value::from(longVar));
                 request.insert("shortLeverageRr".into(), Value::from(shortVar));
             }
-            let __ws_arg_56 = self.extend(&request, &[&params]);
-            response = self.call_method_o("private_put_g_positions_leverage", &[&__ws_arg_56]).await;
+            let __ws_arg_57 = self.extend(&request, &[&params]);
+            response = self.call_method_o("private_put_g_positions_leverage", &[&__ws_arg_57]).await;
         }  else {
             request.insert("leverage".into(), leverage);
-            let __ws_arg_57 = self.extend(Value::Map(request), &[params]);
-            response = self.call_method_o("private_put_positions_leverage", &[&__ws_arg_57]).await;
+            let __ws_arg_58 = self.extend(Value::Map(request), &[params]);
+            response = self.call_method_o("private_put_positions_leverage", &[&__ws_arg_58]).await;
         }
         return response.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -6635,8 +6640,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("amountEv".to_string(), scaledAmmount.clone());
                 m
             });
-            let __ws_arg_58 = self.extend(request, &[&params]);
-            let response: crate::value::Dict = self.private_post_assets_transfer(&[&__ws_arg_58]).await.unwrap_or_default();
+            let __ws_arg_59 = self.extend(request, &[&params]);
+            let response: crate::value::Dict = self.private_post_assets_transfer(&[&__ws_arg_59]).await.unwrap_or_default();
             //
             //     {
             //         "code": "0",
@@ -6663,8 +6668,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("bizType".to_string(), self.safe_string_k(&params, "bizType", &[Value::Str("SPOT".into())]));
                 m
             });
-            let __ws_arg_59 = self.extend(request, &[params]);
-            let response: crate::value::Dict = self.private_post_assets_universal_transfer(&[&__ws_arg_59]).await.unwrap_or_default();
+            let __ws_arg_60 = self.extend(request, &[params]);
+            let response: crate::value::Dict = self.private_post_assets_universal_transfer(&[&__ws_arg_60]).await.unwrap_or_default();
             //
             //     {
             //         "code": "0",
@@ -6737,8 +6742,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_assets_transfer(&[&__ws_arg_60]).await.unwrap_or_default();
+        let __ws_arg_61 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_assets_transfer(&[&__ws_arg_61]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -6845,11 +6850,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: Option<crate::value::Dict> = None;
         if isUsdtSettled {
-            let __ws_arg_61 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.v2_get_api_data_public_data_funding_rate_history(&[&__ws_arg_61]).await;
+            let __ws_arg_62 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.v2_get_api_data_public_data_funding_rate_history(&[&__ws_arg_62]).await;
         }  else {
-            let __ws_arg_62 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.v1_get_api_data_public_data_funding_rate_history(&[&__ws_arg_62]).await;
+            let __ws_arg_63 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.v1_get_api_data_public_data_funding_rate_history(&[&__ws_arg_63]).await;
         }
         //
         //    {
@@ -6953,8 +6958,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (tagWithdrawTag.is_some()) {
             request.insert("addressTag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let response: crate::value::Dict = self.private_post_phemex_withdraw_wallets_api_create_withdraw(&[&__ws_arg_63]).await.unwrap_or_default();
+        let __ws_arg_64 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
+        let response: crate::value::Dict = self.private_post_phemex_withdraw_wallets_api_create_withdraw(&[&__ws_arg_64]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -7020,8 +7025,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_64 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.v2_get_md_v2_ticker24hr(&[&__ws_arg_64]).await.unwrap_or_default();
+        let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.v2_get_md_v2_ticker24hr(&[&__ws_arg_65]).await.unwrap_or_default();
         //
         //    {
         //        error: null,
@@ -7086,8 +7091,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("fromAmountEv".to_string(), self.to_en(Value::from(amount), valueScale));
             m
         });
-        let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_assets_quote(&[&__ws_arg_65]).await.unwrap_or_default();
+        let __ws_arg_66 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_assets_quote(&[&__ws_arg_66]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -7153,8 +7158,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (amount.is_some()) {
             request.insert("fromAmountEv".into(), self.to_en(Value::from(amount), valueScale));
         }
-        let __ws_arg_66 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_post_assets_convert(&[&__ws_arg_66]).await.unwrap_or_default();
+        let __ws_arg_67 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_post_assets_convert(&[&__ws_arg_67]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -7226,8 +7231,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_67 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_assets_convert(&[&__ws_arg_67]).await.unwrap_or_default();
+        let __ws_arg_68 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_assets_convert(&[&__ws_arg_68]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -7322,15 +7327,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let method: Option<String> = methodparamsMethodVariable.0.as_str().map(str::to_owned);
             let paramsMethod: crate::value::Dict = methodparamsMethodVariable.1;
             if (method.as_deref() == Some("privateGetGAccountsAccountPositions")) {
-                let __ws_arg_68 = self.extend(&request, &[&paramsMethod]);
-                response = self.private_get_g_accounts_account_positions(&[&__ws_arg_68]).await;
-            }  else {
                 let __ws_arg_69 = self.extend(&request, &[&paramsMethod]);
-                response = self.private_get_g_accounts_positions(&[&__ws_arg_69]).await;
+                response = self.private_get_g_accounts_account_positions(&[&__ws_arg_69]).await;
+            }  else {
+                let __ws_arg_70 = self.extend(&request, &[&paramsMethod]);
+                response = self.private_get_g_accounts_positions(&[&__ws_arg_70]).await;
             }
         }  else {
-            let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_get_accounts_account_positions(&[&__ws_arg_70]).await;
+            let __ws_arg_71 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_get_accounts_account_positions(&[&__ws_arg_71]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let ranks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "positions"));

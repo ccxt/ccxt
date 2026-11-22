@@ -2290,6 +2290,7 @@ impl Dydx {
         let mut conditionalType: i64 = 0;
         let mut conditionalOrderTriggerSubticks: Option<String> = Some("0".to_string());
         let mut orderFlag: Option<i64> = None;
+        let mut isShortTerm: bool = false;
         let mut timeInForceNumber: Option<i64> = None;
         if (timeInForce.as_deref() == Some("FOK")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " timeInForce fok has been deprecated")));
@@ -2297,6 +2298,7 @@ impl Dydx {
         if (orderType == "MARKET") {
             // short-term
             orderFlag = Some(0);
+            isShortTerm = true;
             clientMetadata = 1; // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce.is_some()) {
                 // default is ioc
@@ -2306,6 +2308,7 @@ impl Dydx {
             if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
                 orderFlag = Some(64);
+                isShortTerm = false;
                 if postOnly {
                     timeInForceNumber = Some(2);
                 }  else {
@@ -2313,6 +2316,7 @@ impl Dydx {
                 }
             }  else {
                 orderFlag = Some(0);
+                isShortTerm = true;
                 if (timeInForce.as_deref() == Some("IOC")) {
                     timeInForceNumber = Some(1);
                 }  else {
@@ -2323,6 +2327,7 @@ impl Dydx {
         if isConditional {
             // conditional
             orderFlag = Some(32);
+            isShortTerm = false;
             if (stopLossPrice.is_some()) {
                 conditionalType = 1;
                 conditionalOrderTriggerSubticks = self.price_to_precision(symbol, stopLossPrice.map(Value::from).unwrap_or(Value::Null));
@@ -2340,7 +2345,7 @@ impl Dydx {
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = self.handle_option_integer_and_params(&paramsSubAccountId, Value::Str("createOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]);
         let goodTillBlockTimeInSecondsOption: Option<i64> = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.0;
         let paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.1;
-        if (orderFlag == Some(0)) {
+        if isShortTerm {
             if (goodTillBlock.is_none()) {
                 // short term order
                 if (latestBlockHeight.is_none()) {

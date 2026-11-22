@@ -388,8 +388,8 @@ impl Kucoin {
                 response = self.parent.futures_public_post_bullet_public(&[&params]).await;
             }
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-            let instanceServers: crate::value::List = self.safe_list_k_t(&data, "instanceServers");
-            let firstInstanceServer: crate::value::Dict = self.safe_dict_t(&instanceServers, Value::Int(0));
+            let instanceServers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "instanceServers"));
+            let firstInstanceServer: crate::value::Dict = instanceServers.get(0).cloned().unwrap_or_default();
             let pingInterval: Value = self.safe_integer_k(&firstInstanceServer, "pingInterval", &[]);
             let endpoint: Option<String> = self.safe_string_k_opt(&firstInstanceServer, "endpoint", &[]);
             if (endpoint.is_none()) {
@@ -1068,7 +1068,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
         let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), Some(&market));
-        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into())));
 }
 
@@ -1111,7 +1111,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let ticker: crate::value::Dict = self.parse_ws_uta_ticker(&data, Some(&market));
-        std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker));
+        { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&crate::value::KeyRead::key_read(&&market, "symbol")), Value::from(&ticker)); }
         client.resolve(Value::Dict(ticker), &(Value::Str(format!("{}{}", Value::Str("uta:ticker:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into())));
 }
 

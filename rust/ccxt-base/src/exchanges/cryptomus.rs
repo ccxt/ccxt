@@ -190,9 +190,9 @@ impl crate::exchange::DerivedExchange for Cryptomus {
         let type_var: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
         let side: Option<String> = self.safe_string_k_opt(&order, "direction", &[]);
         let mut price: Option<f64> = self.safe_number_k(&order, "price", &[]).as_f64();
-        let transaction: crate::value::List = self.safe_list_k_t(&deal, "transactions");
+        let transaction: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&deal, "transactions"));
         let mut fee: Option<crate::value::Dict> = None;
-        let firstTx: crate::value::Dict = self.safe_dict_t(&transaction, Value::Int(0));
+        let firstTx: crate::value::Dict = transaction.get(0).cloned().unwrap_or_default();
         let feeCurrency: Option<String> = self.safe_string_k_opt(&firstTx, "feeCurrency", &[]);
         if (feeCurrency.is_some()) {
             fee = Some(crate::value::Dict::new({

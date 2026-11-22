@@ -3008,8 +3008,8 @@ impl Digifinex {
         //     }
         //
         let date: Option<i64> = self.safe_integer_k(&response, "date", &[]).as_i64();
-        let tickers: crate::value::List = self.safe_list_k_t(&response, "ticker");
-        let firstTicker: crate::value::Dict = self.safe_dict_t(&tickers, Value::Int(0));
+        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "ticker"));
+        let firstTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         if !(market).swap {
             let __ws_arg_7 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6180,7 +6180,7 @@ impl Digifinex {
             while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (depositWithdrawCodes.len() as i64) } {
             let code: Option<&str> = depositWithdrawCodes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+            { let __be_tmp = Value::Dict(self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))])); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(depositWithdrawFees);

@@ -481,12 +481,12 @@ impl Extended {
                 { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(account)); }
             }
         }
-        let spotBalances: crate::value::List = self.safe_list_k_t(&data, "spotBalances");
+        let spotBalances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "spotBalances"));
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (spotBalances.len() as i64) } {
-            let spotBalance: crate::value::Dict = self.safe_dict_t(&spotBalances, Value::Int(i));
+            let spotBalance: crate::value::Dict = spotBalances.get(i as usize).cloned().unwrap_or_default();
             let currencyId: Option<String> = self.safe_string_k_opt(&spotBalance, "asset", &[]);
             let code: Option<String> = self.safe_currency_code(currencyId.as_deref(), None);
             if (code.is_some()) {

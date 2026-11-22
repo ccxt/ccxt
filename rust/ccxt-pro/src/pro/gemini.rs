@@ -860,7 +860,8 @@ impl Gemini {
             let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(itemHashName), ":").into()), symbol);
             messageHashes.push(Value::from(messageHash));
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            marketIds.push(Value::from((market).id.as_deref()));
+            let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            marketIds.push(Value::from(marketId));
         }
         }
         let queryStr: String = marketIds.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");

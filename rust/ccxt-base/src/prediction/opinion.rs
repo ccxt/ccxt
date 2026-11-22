@@ -781,11 +781,11 @@ impl Opinion {
         // }
         let marketId: Option<String> = self.safe_string_k_opt(&raw, "marketId", &[]);
         let slug: Option<String> = self.safe_string_k_opt(&raw, "slug", &[]);
-        let mut effectiveEventSlug: Value = Value::from(eventSlug);
+        let mut effectiveEventSlug: Option<String> = eventSlug.map(str::to_owned);
         if (eventSlug.is_some()) && (slug.is_some()) && (((if let (Some(__h), Some(__n)) = (slug.as_deref(), (Value::from(eventSlug)).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
-            effectiveEventSlug = Value::Null;
+            effectiveEventSlug = None;
         }
-        let marketSymbol: Option<String> = self.slug_to_market_symbol(effectiveEventSlug.clone(), Value::from(slug.as_deref())).as_str().map(str::to_owned);
+        let marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(effectiveEventSlug.as_deref()), Value::from(slug.as_deref())).as_str().map(str::to_owned);
         let statusEnum: Option<String> = self.safe_string_k_opt(&raw, "statusEnum", &[]);
         let active: bool = statusEnum.as_deref() == Some("Activated");
         let resolved: bool = statusEnum.as_deref() == Some("Resolved");
@@ -801,7 +801,7 @@ impl Opinion {
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (outcomeLabels.len() as i64) } {
             let label: Option<String> = self.safe_string_opt(&outcomeLabels, Value::Int(i), &[]);
             let tokenId: Option<String> = self.safe_string_opt(&outcomeTokenIds, Value::Int(i), &[]);
-            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), Value::from(slug.as_deref()), Value::from(label.as_deref())).as_str().map(str::to_owned);
+            let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(effectiveEventSlug.as_deref()), Value::from(slug.as_deref()), Value::from(label.as_deref())).as_str().map(str::to_owned);
             let mut winner: Option<bool> = None;
             let mut settleFraction: Option<i64> = None;
             if hasResult {
@@ -1317,10 +1317,10 @@ impl Opinion {
         let priceResult: crate::value::Dict = self.safe_dict_k_t(&priceResponse, "result");
         let bookResponse: crate::value::Dict = self.safe_dict_k_t(&ticker, "book");
         let bookResult: crate::value::Dict = self.safe_dict_k_t(&bookResponse, "result");
-        let bids: crate::value::List = self.safe_list_k_t(&bookResult, "bids");
-        let asks: crate::value::List = self.safe_list_k_t(&bookResult, "asks");
-        let bestBid: crate::value::Dict = self.safe_dict_t(&bids, Value::Int(0));
-        let bestAsk: crate::value::Dict = self.safe_dict_t(&asks, Value::Int(0));
+        let bids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&bookResult, "bids"));
+        let asks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&bookResult, "asks"));
+        let bestBid: crate::value::Dict = bids.get(0).cloned().unwrap_or_default();
+        let bestAsk: crate::value::Dict = asks.get(0).cloned().unwrap_or_default();
         let last: Option<f64> = self.safe_number_k(&priceResult, "price", &[]).as_f64();
         let mut timestamp: Option<i64> = self.safe_integer_k(&priceResult, "timestamp", &[]).as_i64();
         if (timestamp == Some(0)) {
