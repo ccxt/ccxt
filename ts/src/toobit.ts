@@ -2938,7 +2938,9 @@ export default class toobit extends Exchange {
         const tagFrom = this.safeString (transaction, 'fromAddressTag');
         const addressTo = this.safeString (transaction, 'address');
         const addressFrom = this.safeString (transaction, 'fromAddress');
-        const isWithdraw = ('arriveQuantity' in transaction) || ('success' in transaction);
+        const arriveQuantity = this.safeString (transaction, 'arriveQuantity');
+        const success = this.safeBool (transaction, 'success');
+        const isWithdraw = (arriveQuantity !== undefined) || (success !== undefined);
         const type = isWithdraw ? 'withdrawal' : 'deposit';
         return {
             'info': transaction,
