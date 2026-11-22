@@ -794,14 +794,14 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // Dictionary<string, object> — the request builders, the describe/parse helpers and
     // the index/invert/dict utilities
     'account': 'Dictionary<string, object>', 'batchOrdersRequest': 'Dictionary<string, object>', 'buildClobOrderBody': 'Dictionary<string, object>', 'buildOrderbookOrder': 'Dictionary<string, object>',
-    'calculateFeeWithRate': 'Dictionary<string, object>', 'capitalizeKeys': 'Dictionary<string, object>', 'clobOrderMessage': 'Dictionary<string, object>', 'constructCurrencyObject': 'Dictionary<string, object>',
+    'calculateFeeWithRate': 'Dictionary<string, object>', 'clobOrderMessage': 'Dictionary<string, object>', 'constructCurrencyObject': 'Dictionary<string, object>',
     'constructPhantomAgent': 'Dictionary<string, object>', 'convertOHLCVToTradingView': 'Dictionary<string, object>', 'createAdvancedOrderRequest': 'Dictionary<string, object>', 'createEditOrderRequest': 'Dictionary<string, object>',
     'createOHLCVObject': 'Dictionary<string, object>', 'createOrderSettlementData': 'Dictionary<string, object>', 'createPublicRequest': 'Dictionary<string, object>', 'createPublicSubscriptionRequest': 'Dictionary<string, object>',
     'createRegularOrderRequest': 'Dictionary<string, object>', 'createSwapOrderRequest': 'Dictionary<string, object>', 'createTpslOrderRequest': 'Dictionary<string, object>', 'createTransferSettlementData': 'Dictionary<string, object>',
     'createTriggerOrderRequest': 'Dictionary<string, object>', 'createUtaOrderRequest': 'Dictionary<string, object>', 'createWSAuth': 'Dictionary<string, object>', 'createWithdrawalSettlementData': 'Dictionary<string, object>',
     'customParseOrderBook': 'Dictionary<string, object>', 'defaultSignature': 'Dictionary<string, object>', 'depositWithdrawFee': 'Dictionary<string, object>', 'describe': 'Dictionary<string, object>',
     'describeData': 'Dictionary<string, object>', 'editContractOrderRequest': 'Dictionary<string, object>', 'editOrdersRequest': 'Dictionary<string, object>', 'editSpotOrderRequest': 'Dictionary<string, object>',
-    'eipDefinitions': 'Dictionary<string, object>', 'eipDomainData': 'Dictionary<string, object>', 'eipMessageForOrder': 'Dictionary<string, object>', 'fetchDepositsRequest': 'Dictionary<string, object>',
+    'eipDefinitions': 'Dictionary<string, object>', 'eipDomainData': 'Dictionary<string, object>', 'fetchDepositsRequest': 'Dictionary<string, object>',
     'fetchMyTradesRequest': 'Dictionary<string, object>', 'fetchOHLCVRequest': 'Dictionary<string, object>', 'fetchOrdersRequest': 'Dictionary<string, object>', 'fetchWithdrawalsRequest': 'Dictionary<string, object>',
     'getDefaultOptions': 'Dictionary<string, object>', 'getDescribeForExtendedWsExchange': 'Dictionary<string, object>', 'getMarketFromClientAndMessage': 'Dictionary<string, object>', 'getMarketFromOrder': 'Dictionary<string, object>',
     // polymarket#sendSubscription: one declaration, both returns are this.extend (request, params)
@@ -865,7 +865,7 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'parseEvent': 'Dictionary<string, object>',
     'parseSwapMarket': 'Dictionary<string, object>', 'parseTradeQuote': 'Dictionary<string, object>', 'parseTradingFees': 'Dictionary<string, object>', 'parseTradingLimits': 'Dictionary<string, object>',
     'parseTransactionFee': 'Dictionary<string, object>', 'parseTransactionFees': 'Dictionary<string, object>', 'parseWsAllBidsAsks': 'Dictionary<string, object>', 'polymarketOrderRawAmounts': 'Dictionary<string, object>',
-    'postActionRequest': 'Dictionary<string, object>', 'prepareAccountRequest': 'Dictionary<string, object>', 'removeKeysFromDict': 'Dictionary<string, object>', 'safeLedgerEntry': 'Dictionary<string, object>',
+    'prepareAccountRequest': 'Dictionary<string, object>', 'removeKeysFromDict': 'Dictionary<string, object>', 'safeLedgerEntry': 'Dictionary<string, object>',
     'safeNetwork': 'Dictionary<string, object>', 'safeOpenInterest': 'Dictionary<string, object>', 'safeOrder': 'Dictionary<string, object>', 'safePosition': 'Dictionary<string, object>', 'safeTicker': 'Dictionary<string, object>',
     // the trade/position row producers the four parsers below hand back unchanged: each has
     // a single return, the input row itself, after the body wrote fee/fees/amount/price/cost
