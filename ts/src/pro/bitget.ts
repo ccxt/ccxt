@@ -2127,7 +2127,7 @@ export default class bitget extends bitgetRest {
         const marketId = this.safeString2 (order, 'instId', 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'cTime', 'createdTime');
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const rawStatus = this.safeString2 (order, 'status', 'orderStatus');
         const orderFee = this.safeList (order, 'feeDetail', []);
         const fee = this.safeDict (orderFee, 0);
@@ -3001,7 +3001,7 @@ export default class bitget extends bitgetRest {
         }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const messageHash = 'unsubscribe:orderbook:' + this.safeString (market, 'symbol', '');
         const subMessageHash = 'orderbook:' + symbol;
         if (symbol in this.orderbooks) {
@@ -3063,7 +3063,7 @@ export default class bitget extends bitgetRest {
         }
         const instId = this.safeString2 (arg, 'instId', 'symbol');
         const market = this.safeMarket (instId, undefined, undefined, type);
-        const symbol = market['symbol'];
+        const symbol: string = this.safeString (market, 'symbol', '');
         const messageHash = 'unsubscribe:ticker:' + this.safeString (market, 'symbol', '');
         const subMessageHash = 'ticker:' + symbol;
         if (symbol in this.tickers) {

@@ -747,7 +747,7 @@ export default class xt extends xtRest {
             const timestamp = this.safeInteger (data, 't');
             fundingRate['timestamp'] = timestamp;
             fundingRate['datetime'] = this.iso8601 (timestamp);
-            const symbol = fundingRate['symbol'];
+            const symbol: string = this.safeString (fundingRate, 'symbol', '');
             this.fundingRates[(symbol as string)] = fundingRate;
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
@@ -1077,7 +1077,7 @@ export default class xt extends xtRest {
                 tradeType = 'spot';
             }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
@@ -1137,7 +1137,7 @@ export default class xt extends xtRest {
                 tradeType = 'spot';
             }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const event = this.safeString (message, 'event');
             let tradesArray = this.safeValue (this.trades, symbol);
             if (tradesArray === undefined) {
@@ -1225,7 +1225,7 @@ export default class xt extends xtRest {
                 tradeType = 'contract';
             }
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const obAsks = this.safeList (data, 'a');
             const obBids = this.safeList (data, 'b');
             const messageHash = event + '::' + tradeType;

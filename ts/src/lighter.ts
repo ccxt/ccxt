@@ -2561,7 +2561,7 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.safeInteger (this.options, 'chainId'), this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsToAccountIndex);
         const currency = this.currency (code);
-        const currencyCode = currency['code'];
+        const currencyCode: string = this.safeString (currency, 'code', '');
         if ((currencyCode !== 'USDC') && (currencyCode !== 'ETH')) {
             throw new ExchangeError (this.id + ' transfer() only supports USDC and ETH transfers');
         }
@@ -2910,7 +2910,7 @@ export default class lighter extends Exchange {
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.safeInteger (this.options, 'chainId'), this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, paramsAccountIndex);
         const currency = this.currency (code);
-        const currencyCode = currency['code'];
+        const currencyCode: string = this.safeString (currency, 'code', '');
         if ((currencyCode !== 'USDC') && (currencyCode !== 'ETH')) {
             throw new ExchangeError (this.id + ' withdraw() only supports USDC and ETH transfers');
         }

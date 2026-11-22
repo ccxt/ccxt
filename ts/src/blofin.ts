@@ -3022,7 +3022,7 @@ export default class blofin extends Exchange {
         //
         const marketId = this.safeString (position, 'instId');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const pos = this.safeString (position, 'positions');
         const contractsAbs = Precise.stringAbs (pos);
         let side = this.safeString (position, 'positionSide');

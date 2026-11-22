@@ -403,7 +403,7 @@ export default class mudrex extends Exchange {
                 continue;
             }
             const m = this.safeMarket (sym);
-            const symbol = m['symbol'];
+            const symbol: string = this.safeString (m, 'symbol', '');
             if (symbols !== undefined && !this.inArray (symbol, symbols)) {
                 continue;
             }
@@ -415,7 +415,7 @@ export default class mudrex extends Exchange {
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const ms = this.safeString (ticker, 'symbol');
         const marketResolved: Market = this.safeMarket (ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const pct = this.safeNumber (ticker, 'change_perc');
         return this.safeTicker ({
             'symbol': symbol,
@@ -857,7 +857,7 @@ export default class mudrex extends Exchange {
         }
         const ts = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeStringLower (order, 'status'));
-        const sym = marketResolved['symbol'];
+        const sym: string = this.safeString (marketResolved, 'symbol', '');
         return this.safeOrder ({
             'info': order,
             'id': oid,
@@ -1380,7 +1380,7 @@ export default class mudrex extends Exchange {
         //
         const ms = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (ms, market);
-        const symbol = marketResolved['symbol'];
+        const symbol: string = this.safeString (marketResolved, 'symbol', '');
         const ts = this.parse8601 (this.safeString (trade, 'created_at'));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower (trade, 'order_type');

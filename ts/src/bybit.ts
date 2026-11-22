@@ -3129,7 +3129,7 @@ export default class bybit extends Exchange {
         };
         const market = this.market (symbol);
         const fundingTimeFrameMins = this.safeInteger (market['info'], 'fundingInterval');
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         request['symbol'] = market['id'];
         const [ type, paramsValue ] = this.getBybitType ('fetchFundingRateHistory', market, paramsPaginate);
         if (type === 'spot' || type === 'option') {
@@ -4313,7 +4313,7 @@ export default class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        const symbolValue: Str = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const lowerCaseType = type.toLowerCase ();
         const request: Dict = {
             'symbol': market['id'],

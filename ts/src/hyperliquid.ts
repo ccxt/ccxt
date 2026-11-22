@@ -2434,7 +2434,7 @@ export default class hyperliquid extends Exchange {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const type = this.safeStringUpper (rawOrder, 'type');
             const side = this.safeStringUpper (rawOrder, 'side');
             let amount = this.safeString (rawOrder, 'amount');
@@ -2887,7 +2887,7 @@ export default class hyperliquid extends Exchange {
             const id = this.safeString (rawOrder, 'id');
             const marketId = this.safeString (rawOrder, 'symbol');
             const market = this.market (marketId);
-            const symbol = market['symbol'];
+            const symbol: string = this.safeString (market, 'symbol', '');
             const type = this.safeStringUpper (rawOrder, 'type');
             const isMarket = (type === 'MARKET');
             const side = this.safeStringUpper (rawOrder, 'side');
