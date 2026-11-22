@@ -17395,7 +17395,8 @@ function csharpMethodHasModifier (node, kind) {
 // already about to append the `?` itself
 function csharpParameterPrintedType (parameter, mapped) {
     if (!mapped.value) {
-        return mapped.type;
+        // `Str` admits undefined: without a default it prints the nullable string a `string?` argument binds to
+        return ((mapped === CSHARP_PARAMETER_ALIAS_TYPES['Str']) && (parameter.initializer === undefined)) ? 'string?' : mapped.type;
     }
     const initializer = parameter.initializer;
     if (initializer === undefined) {
@@ -17692,7 +17693,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
     const related = (rel) => rel.startsWith ('ts/src/base/') || (corpus.imports.get (rel)?.has (moduleBase) ?? false)
         || (corpus.imports.get (declaringRel)?.has (path.basename (rel).replace (/\.ts$/, '')) ?? false)
         || declaringChain.has (rel) || ancestors (rel).has (declaringRel);
-    if ((literalOnly || printedOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || calledParameterCollectionTarget (target))
+    if ((literalOnly || printedOnly || target === CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type || calledParameterCollectionTarget (target) || calledParameterScalarTarget (target))
         && ((declared === undefined) || [ ...declared ].some ((rel) => (rel !== declaringRel) && related (rel)))) {
         return false;
     }
@@ -17701,7 +17702,7 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
         if (site.declarations.indexOf (owner) < 0) {
             continue; // a site binding another class's method
         }
-        if (!literalOnly && !printedOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !calledParameterCollectionTarget (target)) {
+        if (!literalOnly && !printedOnly && target !== CSHARP_PARAMETER_ALIAS_TYPES['Dict'].type && !calledParameterCollectionTarget (target) && !calledParameterScalarTarget (target)) {
             return false; // a called method's value-type parameters are not this rule's
         }
         resolved++;
@@ -20264,6 +20265,11 @@ function interfaceSelfOmitWriteType (csharp, context, declaration, running, sawN
 // site's proven argument is a List / IList / null, so the box each caller passes is unchanged.
 function calledParameterCollectionTarget (target) {
     return target === CSHARP_PARAMETER_ALIAS_TYPES['List'].type;
+}
+
+// a scalar alias (Str / Int / Num / Bool) of a called method: every proven site passes the same box
+function calledParameterScalarTarget (target) {
+    return [ 'string', 'string?', 'Int64', 'Int64?', 'double', 'double?', 'bool', 'bool?' ].includes (target);
 }
 
 // ===== `add (a, b)` -> `(a + b)` on a left operand proven a NON-NULL string =====
