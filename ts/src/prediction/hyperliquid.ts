@@ -566,7 +566,7 @@ export default class hyperliquid extends Exchange {
         const marketRow = this.safeMarketStructure ({
             'id': outcomeKey,
             'market': parentSymbol,
-            'base': parentSymbol.split ('/')[0],
+            'base': this.safeString (parentSymbol.split ('/'), 0),
             'quote': quoteCurrency,
             'settle': undefined,
             'baseId': outcomeKey,
