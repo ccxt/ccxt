@@ -5,7 +5,7 @@
 #[cfg(all(test, feature = "engine", feature = "binance"))]
 mod response_mock_tests {
     use crate::exchange::ExchangeRuntime;
-    use crate::{get_value, Value};
+    use crate::Value;
 
     #[tokio::test]
     async fn response_mock_serves_multiple_requests_until_reset() {
@@ -68,8 +68,8 @@ mod response_mock_tests {
         assert_eq!(exchange.exchange.last_request_url, Value::Str(
             "https://api.binance.com/api/v3/order".into(),
         ));
-        assert_eq!(get_value(&exchange.exchange.last_request_headers,
-            &Value::Str("X-MBX-APIKEY".into())), Value::Str("fixture-key".into()));
+        assert_eq!(exchange.exchange.last_request_headers.at("X-MBX-APIKEY"),
+            &Value::Str("fixture-key".into()));
         let Value::Str(body) = &exchange.exchange.last_request_body else {
             panic!("signed POST must retain its encoded body");
         };
@@ -120,8 +120,8 @@ mod rate_limit_config_tests {
             .3
             .clone();
         assert_eq!(
-            crate::get_value(&config, &Value::Str("cost".into())),
-            Value::Int(2),
+            config.at("cost"),
+            &Value::Int(2),
             "the implicit API table dropped the endpoint's base cost"
         );
         let params = Value::Map({

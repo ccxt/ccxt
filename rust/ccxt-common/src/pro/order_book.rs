@@ -228,8 +228,8 @@ mod side_tests {
         }
         side.store(Value::Float(9.5), Value::Float(4.0));
         side.store_array(level(9.0, 0.0));
-        assert_eq!(crate::runtime::get_array_length(&book.book_field("bids")), Value::Int(2));
-        assert_eq!(crate::value::get_value(&book.book_field("bids"), &Value::Int(1)), level(9.5, 4.0));
+        assert_eq!(Side::of(book.book_field("bids")).length(), Value::Int(2));
+        assert_eq!(Side::of(book.book_field("bids")).level(&Value::Int(1)), level(9.5, 4.0));
         let mut none = Side::of(Value::Null);
         none.store(Value::Int(1), Value::Int(1));
         assert_eq!(Value::from(none), Value::Null);
