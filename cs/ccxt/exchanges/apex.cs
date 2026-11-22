@@ -1905,7 +1905,11 @@ public partial class apex : Exchange
         {
             request["endTimeExclusive"] = endTimeExclusive;
         }
-        IDictionary<string, object> paramsOmitted = ((endTimeExclusive != null)) ? this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {});
+        if ((endTimeExclusive != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        }
         Dictionary<string, object> response = await this.privateGetV3HistoryOrders(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
@@ -1989,7 +1993,11 @@ public partial class apex : Exchange
         {
             request["endTimeExclusive"] = endTimeExclusive;
         }
-        IDictionary<string, object> paramsOmitted = ((endTimeExclusive != null)) ? this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {});
+        if ((endTimeExclusive != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        }
         Dictionary<string, object> response = await this.privateGetV3Fills(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "orders", new List<object>() {});
@@ -2037,7 +2045,11 @@ public partial class apex : Exchange
         {
             request["endTimeExclusive"] = endTimeExclusive;
         }
-        IDictionary<string, object> paramsOmitted = ((endTimeExclusive != null)) ? this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {});
+        if ((endTimeExclusive != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        }
         Dictionary<string, object> response = await this.privateGetV3Funding(this.extend(request, paramsOmitted));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> fundingValues = this.safeList(data, "fundingValues", new List<object>() {});

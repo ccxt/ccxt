@@ -2217,7 +2217,7 @@ public partial class kucoin : Exchange
         List<object> symbolsData = new List<object>() {};
         if (fetchSpotMarkets)
         {
-            symbolsData = this.safeList((responses != null && 0 < responses.Count ? responses[0] : null), "data", new List<object>() {});
+            symbolsData = this.safeList(this.safeDict(responses, 0, new Dictionary<string, object>() {}), "data", new List<object>() {});
         }
         Int64? crossIndex = 0;
         Int64? isolatedIndex = 0;
@@ -2244,10 +2244,10 @@ public partial class kucoin : Exchange
         {
             contractIndex = nextIndex;
         }
-        IDictionary<string, object> crossData = requestMarginables ? this.safeDict((responses != null && crossIndex != null && crossIndex < responses.Count ? responses[(int)crossIndex] : null), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> crossData = requestMarginables ? this.safeDict(this.safeDict(responses, crossIndex, new Dictionary<string, object>() {}), "data", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> crossItems = this.safeList(crossData, "items", new List<object>() {});
         Dictionary<string, object> crossById = this.indexBy(crossItems, "symbol");
-        object isolatedData = requestMarginables ? (responses != null && isolatedIndex != null && isolatedIndex < responses.Count ? responses[(int)isolatedIndex] : null) : new Dictionary<string, object>() {};
+        IDictionary<string, object> isolatedData = requestMarginables ? this.safeDict(responses, isolatedIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         List<object> isolatedItems = this.safeList(isolatedData, "data", new List<object>() {});
         Dictionary<string, object> isolatedById = this.indexBy(isolatedItems, "symbol");
         IDictionary<string, object> tickersResponse = fetchTickersFees == true ? this.safeDict(responses, tickersIndex, new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
@@ -6303,7 +6303,7 @@ public partial class kucoin : Exchange
      * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6503,7 +6503,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchContractOrdersByStatus(string? status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchContractOrdersByStatus(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12018,7 +12018,7 @@ public partial class kucoin : Exchange
         bool? utaOption = utaOptionparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = (utaOptionparamsUtaVariable.Item2);
         Dictionary<string, object> response = null;
-        IDictionary<string, object> position = null;
+        IDictionary<string, object> position = new Dictionary<string, object>() {};
         if ((utaOption == true))
         {
             request["accountMode"] = "unified";

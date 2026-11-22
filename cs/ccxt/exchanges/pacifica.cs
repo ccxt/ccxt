@@ -2017,8 +2017,9 @@ public partial class pacifica : Exchange
             string? side = this.safeString(order, "side");
             string? price = this.safeString(order, "price");
             string? type = this.safeString(order, "type", "limit");
-            IDictionary<string, object> orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
-            orderParams["timestamp"] = timestamp;
+            Dictionary<string, object> orderParams = this.extend(this.safeDict(order, "params", new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+                { "timestamp", timestamp },
+            });
             string? amount = this.safeString(order, "amount");
             double? amountNumber = this.parseNumber(amount);
             double? priceNumber = this.parseNumber(price);
@@ -2884,7 +2885,7 @@ public partial class pacifica : Exchange
         int lastIdx = (sorted?.Count ?? 0);
         if (lastIdx > 0)
         {
-            return this.parseOrder((sorted != null && 0 < sorted.Count ? sorted[0] : null), market);
+            return this.parseOrder(this.safeDict(sorted, 0, new Dictionary<string, object>() {}), market);
         }
         return this.parseOrder(new Dictionary<string, object>() {}, market);
     }
@@ -3142,7 +3143,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parsePosition(data[i], null));
+            result.Add(this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {}), null));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }

@@ -614,10 +614,9 @@ public partial class hyperliquid : Exchange
         for (int i = 1; i < dexesCount; i++)
         {
             // builder-deployed perp dexs start at 110000
-            IDictionary<string, object> dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
             Int64 secondPart = ((i * 10000L) - 10000);
             Int64 offset = this.sum(110000, secondPart);
-            string? dexKey = this.safeString(dex, "name", "");
+            string? dexKey = this.safeString(this.safeDict(fetchDexes, i), "name", "");
             perpDexesOffset[(string)dexKey] = offset;
         }
         List<object> fetchDexesList = new List<object>() {};
@@ -647,12 +646,7 @@ public partial class hyperliquid : Exchange
                 {
                     break;
                 }
-                IDictionary<string, object> dex = this.safeDict(fetchDexes, i, new Dictionary<string, object>() {});
-                if ((dex == null))
-                {
-                    continue;
-                }
-                string? dexName = this.safeString(dex, "name");
+                string? dexName = this.safeString(this.safeDict(fetchDexes, i), "name");
                 fetchDexesList.Add(dexName);
             }
         }
@@ -2196,7 +2190,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    public async virtual Task<List<object>> isUnifiedEnabled(object method, object address = null, bool? shouldRefresh = null, object parameters = null)
+    public async virtual Task<List<object>> isUnifiedEnabled(string method, object address = null, bool? shouldRefresh = null, object parameters = null)
     {
         shouldRefresh ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -4464,7 +4458,7 @@ public partial class hyperliquid : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parsePosition(data[i]));
+            result.Add(this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {})));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }

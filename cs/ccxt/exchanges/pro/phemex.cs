@@ -356,7 +356,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, paramsMarketType));
     }
 
-    public virtual void handleBalance(WebSocketClient client, IList<object> message, string? type)
+    public virtual void handleBalance(WebSocketClient client, IList<object> message, string type)
     {
         // spot
         //    [
@@ -437,7 +437,7 @@ public partial class phemex : ccxt.phemex
             }
             this.balance = this.safeBalance(this.balance);
         }
-        string? messageHash = ((string)((type + ":balance")));
+        string messageHash = (type + ":balance");
         client.resolve(this.balance, messageHash);
     }
 
@@ -796,7 +796,7 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public async virtual Task<object> unSubscribePublic(object method, object subMessageHash, IList<object> marketParams, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublic(string method, string subMessageHash, IList<object> marketParams, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -1864,7 +1864,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public async virtual Task<object> subscribePrivate(object type, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(object type, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

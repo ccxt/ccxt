@@ -536,12 +536,12 @@ public partial class bitrue : ccxt.bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true
      */
-    public async virtual Task<object> unSubscribe(object subHash, object channel, object cbId, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribe(string subHash, string channel, string cbId, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("futurePublic") ? this.urlsApiSections["ws"]["futurePublic"] : null));
         var client = this.client(url);
-        if ((client.subscriptions != null && subHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subHash)))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", "unsub" },

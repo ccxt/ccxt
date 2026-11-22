@@ -91,7 +91,7 @@ public partial class bitvavo : ccxt.bitvavo
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchPublicMultiple(object methodName, object channelName, IList<object> symbols, object parameters = null)
+    public async virtual Task<object> watchPublicMultiple(string methodName, string channelName, IList<object> symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

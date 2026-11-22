@@ -1291,6 +1291,7 @@ public partial class gemini : Exchange
     public async virtual Task<ccxt.Ticker> FetchTickerV1AndV2(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         Task<ccxt.Ticker> tickerPromiseA = this.FetchTickerV1(symbol, parameters);
         Task<ccxt.Ticker> tickerPromiseB = this.FetchTickerV2(symbol, parameters);
         var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});

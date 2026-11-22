@@ -1365,7 +1365,7 @@ public partial class bingx : ccxt.bingx
 
     public virtual void setBalanceCache(WebSocketClient client, string type, string? subType, string subscriptionHash, object parameters)
     {
-        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -1719,7 +1719,7 @@ public partial class bingx : ccxt.bingx
         Int64 time = this.milliseconds();
         Int64? lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
-        if (((listenKeyRefreshRate != null)) && (((time - lastAuthenticatedTime) > listenKeyRefreshRate)))
+        if (((listenKeyRefreshRate != null)) && ((time - lastAuthenticatedTime) > listenKeyRefreshRate.GetValueOrDefault()))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint

@@ -97,7 +97,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<object> subscribeMultiple(object name, object symbols = null, string? messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string name, object symbols = null, string? messageHashStart = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();

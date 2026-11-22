@@ -643,7 +643,7 @@ public partial class htx : ccxt.htx
                 Int64? maxAttempts = this.parseToInt(this.handleOption("watchOrderBook", "maxRetries", 3));
                 Int64? numAttempts = this.safeInteger(subscription, "numAttempts", 0);
                 // retry to synchronize if we have not reached maxAttempts yet
-                if ((maxAttempts != null && (numAttempts == null || numAttempts < maxAttempts)))
+                if (numAttempts.GetValueOrDefault() < maxAttempts)
                 {
                     // safety guard
                     if (((messageHash != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
@@ -834,7 +834,7 @@ public partial class htx : ccxt.htx
             orderbook["nonce"] = version;
         }
         Int64? orderbookNonce = this.safeInteger(orderbook, "nonce", 0);
-        if (((prevSeqNum != null)) && prevSeqNum.Value > orderbookNonce.GetValueOrDefault())
+        if (((prevSeqNum != null)) && prevSeqNum > orderbookNonce.GetValueOrDefault())
         {
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if ((checksum == true))
@@ -1984,8 +1984,7 @@ public partial class htx : ccxt.htx
         Int64? timestamp = this.safeInteger(message, "ts");
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
-            Dictionary<string, object> position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(rawPositions, i, new Dictionary<string, object>() {}));
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
             string? marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);

@@ -920,19 +920,13 @@ public partial class grvt : ccxt.grvt
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        IDictionary<string, object> data = this.safeDict(message, "feed");
-        Dictionary<string, object> position = this.parseWsPosition(data);
+        IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
+        Dictionary<string, object> position = this.parsePosition(data);
         ccxt.pro.BaseCache.appendTo(this.positions, position);
         List<object> newPositions = new List<object>() {};
         newPositions.Add(position);
         client.resolve(newPositions, ("positions::" + this.safeString(position, "symbol", "")));
         client.resolve(newPositions, "positions");
-    }
-
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
-    {
-        // same as REST api
-        return this.parsePosition(position, market);
     }
 
     /**

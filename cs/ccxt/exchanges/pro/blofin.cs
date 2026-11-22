@@ -870,7 +870,7 @@ public partial class blofin : ccxt.blofin
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.parseWsPosition(this.safeDict(data, i, new Dictionary<string, object>() {}));
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {}));
             newPositions.Add(position);
             cache.append(position);
             if ((channelName != null))
@@ -878,11 +878,6 @@ public partial class blofin : ccxt.blofin
                 client.resolve(position, ((channelName + ":") + this.safeString(position, "symbol", "")));
             }
         }
-    }
-
-    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
-    {
-        return this.parsePosition(position, market);
     }
 
     /**

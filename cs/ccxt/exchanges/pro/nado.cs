@@ -1166,7 +1166,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(object streamType, IDictionary<string, object> market, object messageHash, object parameters = null)
+    public async virtual Task<object> watchPublic(string streamType, IDictionary<string, object> market, string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1199,7 +1199,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(string? streamType, IDictionary<string, object> stream, object messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string streamType, IDictionary<string, object> stream, string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1318,7 +1318,7 @@ public partial class nado : ccxt.nado
         return ((string?)((object)(this.signHash(this.hash(encoded, keccak, "hex"), this.privateKey))));
     }
 
-    public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, object streamType, object market = null, Int64? id = null, object parameters = null)
+    public virtual Dictionary<string, object> createPublicSubscriptionRequest(string method, string? streamType, object market = null, Int64? id = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> stream = new Dictionary<string, object>() {
@@ -1335,7 +1335,7 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public async virtual Task<object> watchPublicMultiple(object streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
+    public async virtual Task<object> watchPublicMultiple(string streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1368,7 +1368,7 @@ public partial class nado : ccxt.nado
         return await this.watchMultiple(url, messageHashes, null, messageHashes);
     }
 
-    public async virtual Task<object> unWatchPublic(object streamType, IDictionary<string, object> market, object messageHash, object parameters = null)
+    public async virtual Task<object> unWatchPublic(string streamType, IDictionary<string, object> market, string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1387,7 +1387,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    public async virtual Task<bool> unWatchPublicMultiple(object streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
+    public async virtual Task<bool> unWatchPublicMultiple(string streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object> subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1863,7 +1863,7 @@ public partial class nado : ccxt.nado
                     { "bid", this.parseX18(bid) },
                     { "info", bbo },
                 }, market);
-                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+                string? symbol = this.safeString(market, "symbol", "");
                 result[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
         }

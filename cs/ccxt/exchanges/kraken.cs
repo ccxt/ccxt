@@ -1277,7 +1277,7 @@ public partial class kraken : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = this.safeString(market, "symbol", "");
-            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
+            IDictionary<string, object> ticker = this.safeDict(tickers, id, new Dictionary<string, object>() {});
             result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -2768,7 +2768,7 @@ public partial class kraken : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> result = this.safeDict(response, "result", new List<object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         if (!((result != null && result.ContainsKey(id))))
         {
             throw new OrderNotFound (((this.id + " fetchOrder() could not find order id ") + id)) ;

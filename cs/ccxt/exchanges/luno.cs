@@ -1080,8 +1080,7 @@ public partial class luno : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = this.safeString(market, "symbol", "");
-            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(ticker, market));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(tickers, id, new Dictionary<string, object>() {}), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -1446,6 +1445,7 @@ public partial class luno : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -1457,16 +1457,16 @@ public partial class luno : Exchange
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if ((side == "buy"))
             {
-                request["counter_volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+                request["counter_volume"] = this.amountToPrecision(precisionSymbol, amount);
             } else
             {
-                request["base_volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+                request["base_volume"] = this.amountToPrecision(precisionSymbol, amount);
             }
             response = await this.privatePostMarketorder(this.extend(request, parameters));
         } else
         {
-            request["volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
-            request["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
+            request["volume"] = this.amountToPrecision(precisionSymbol, amount);
+            request["price"] = this.priceToPrecision(precisionSymbol, price);
             request["type"] = ((side == "buy")) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
         }
@@ -1567,11 +1567,11 @@ public partial class luno : Exchange
         bool limitApplies = ((limit != null)) && (((maxRowBase - minRowBase) > limit));
         object min_row = (limitApplies && ((limit != null)) && maxRowBase.GetValueOrDefault() <= 0) ? (maxRowBase - limit) : minRowBase;
         object max_row = maxRowBase;
-        if (limitApplies && maxRowBase > 0 && minRowBase > 0)
+        if (limitApplies && maxRowBase.GetValueOrDefault() > 0 && minRowBase.GetValueOrDefault() > 0)
         {
             max_row = add(minRowBase, limit);
         }
-        bool limitAdjusts = limitApplies && (maxRowBase.GetValueOrDefault() <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        bool limitAdjusts = limitApplies && (maxRowBase.GetValueOrDefault() <= 0 || minRowBase.GetValueOrDefault() > 0); // max_row - min_row becomes limit
         if ((limitAdjusts && limit > 1000) || (!limitAdjusts && ((maxRowBase - minRowBase) > 1000)))
         {
             throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;

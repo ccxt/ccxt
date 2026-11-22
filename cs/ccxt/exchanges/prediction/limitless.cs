@@ -318,7 +318,7 @@ public partial class limitless : PredictionExchange
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
             Int64? limit = 50;
-            if (((requestedLimit != null)) && (requestedLimit.Value < 50))
+            if (((requestedLimit != null)) && (requestedLimit.GetValueOrDefault() < 50))
             {
                 limit = requestedLimit;
             }
@@ -399,7 +399,7 @@ public partial class limitless : PredictionExchange
                         allRaw.Add(raw);
                     }
                     int allRawCount = (allRaw?.Count ?? 0);
-                    if (pageMarketsLength < pageSize || (maxMarkets == null || allRawCount >= maxMarkets))
+                    if (pageMarketsLength < pageSize.GetValueOrDefault() || (maxMarkets == null || allRawCount >= maxMarkets))
                     {
                         break;
                     }
@@ -3350,7 +3350,7 @@ public partial class limitless : PredictionExchange
             Int64? requestedLimit = this.safeInteger(parameters, "limit", 50);
             // the search endpoint rejects limit > 50 - cap the per-query request
             Int64? limit = 50;
-            if (((requestedLimit != null)) && (requestedLimit.Value < 50))
+            if (((requestedLimit != null)) && (requestedLimit.GetValueOrDefault() < 50))
             {
                 limit = requestedLimit;
             }
@@ -3507,7 +3507,7 @@ public partial class limitless : PredictionExchange
             }
             page = this.sum(page, 1);
             int collectedTotal = (allRaw?.Count ?? 0);
-            if (dataLength < pageSize || (maxMarkets == null || collectedTotal >= maxMarkets))
+            if (dataLength < pageSize.GetValueOrDefault() || (maxMarkets == null || collectedTotal >= maxMarkets))
             {
                 break;
             }
@@ -3610,8 +3610,7 @@ public partial class limitless : PredictionExchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string? baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
+        string? baseUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiGroup, this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "limitless", ""));
         object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);

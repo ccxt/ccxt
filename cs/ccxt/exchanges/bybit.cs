@@ -5488,7 +5488,7 @@ public partial class bybit : Exchange
             amountValue = amount;
         }
         string? amountString = (!(amountValue == null)) ? this.getAmount(symbolValue, amountValue) : null;
-        object priceString = ((price != null)) ? this.getPrice(symbolValue, this.numberToString(price)) : null;
+        string? priceString = ((price != null)) ? this.getPrice(symbolValue, this.numberToString(price)) : null;
         if (endpointIsTradingStop)
         {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || (this.safeBool(market, "spot", false) == true))
@@ -5956,7 +5956,7 @@ public partial class bybit : Exchange
         }
         if ((triggerPrice != null))
         {
-            object triggerPriceRequest = (triggerPrice == "0") ? triggerPrice : this.getPrice(symbol, triggerPrice);
+            string? triggerPriceRequest = (triggerPrice == "0") ? triggerPrice : this.getPrice(symbol, triggerPrice);
             request["triggerPrice"] = triggerPriceRequest;
             string? triggerBy = this.safeString(paramsValue, "triggerBy", "LastPrice");
             request["triggerBy"] = triggerBy;
@@ -5966,7 +5966,7 @@ public partial class bybit : Exchange
             if (hasStopLoss)
             {
                 string? slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                object stopLossRequest = (slTriggerPrice == "0") ? slTriggerPrice : this.getPrice(symbol, slTriggerPrice);
+                string? stopLossRequest = (slTriggerPrice == "0") ? slTriggerPrice : this.getPrice(symbol, slTriggerPrice);
                 request["stopLoss"] = stopLossRequest;
                 string? slTriggerBy = this.safeString(paramsValue, "slTriggerBy", "LastPrice");
                 request["slTriggerBy"] = slTriggerBy;
@@ -5974,7 +5974,7 @@ public partial class bybit : Exchange
             if (hasTakeProfit)
             {
                 string? tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                object takeProfitRequest = (tpTriggerPrice == "0") ? tpTriggerPrice : this.getPrice(symbol, tpTriggerPrice);
+                string? takeProfitRequest = (tpTriggerPrice == "0") ? tpTriggerPrice : this.getPrice(symbol, tpTriggerPrice);
                 request["takeProfit"] = takeProfitRequest;
                 string? tpTriggerBy = this.safeString(paramsValue, "tpTriggerBy", "LastPrice");
                 request["tpTriggerBy"] = tpTriggerBy;
@@ -8319,13 +8319,15 @@ public partial class bybit : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            object rawPosition = positions[i];
+            object rawPosition = (positions != null && i < positions.Count ? positions[i] : null);
             if ((inOp(rawPosition, "data")) && (inOp(rawPosition, "is_valid")))
             {
                 // futures only
-                rawPosition = this.safeDict(rawPosition, "data");
+                results.Add(this.parsePosition(this.safeDict(rawPosition, "data", new Dictionary<string, object>() {})));
+            } else
+            {
+                results.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {})));
             }
-            results.Add(this.parsePosition(rawPosition));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));
     }
@@ -10729,26 +10731,24 @@ public partial class bybit : Exchange
         //  ]
         //
         List<object> tiers = new List<object>() {};
-        for (Int64 i = 0; i < getArrayLength(info); i++)
+        double? minNotional = this.parseNumber("0");
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
             string? marketId = this.safeString(tier, "symbol");
             Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, "contract");
-            double? minNotional = this.parseNumber("0");
-            if ((i != 0))
-            {
-                minNotional = this.safeNumber(getValue(info, (i - 1)), "riskLimitValue");
-            }
+            double? tierMaxNotional = this.safeNumber(tier, "riskLimitValue");
             tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "id") },
                 { "symbol", this.safeSymbol(marketId, marketResolved) },
                 { "currency", (marketResolved != null && marketResolved.ContainsKey("settle") ? marketResolved["settle"] : null) },
                 { "minNotional", minNotional },
-                { "maxNotional", this.safeNumber(tier, "riskLimitValue") },
+                { "maxNotional", tierMaxNotional },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMargin") },
                 { "maxLeverage", this.safeNumber(tier, "maxLeverage") },
                 { "info", tier },
             });
+            minNotional = tierMaxNotional;
         }
         return tiers;
     }

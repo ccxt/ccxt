@@ -610,7 +610,7 @@ public partial class kalshi : PredictionExchange
         {
             chunk.Add((tickers != null && ti < tickers.Count ? tickers[ti] : null));
             int chunkLength = (chunk?.Count ?? 0);
-            if ((chunkLength < chunkSize) && (ti < lastTickerIndex))
+            if ((chunkLength < chunkSize.GetValueOrDefault()) && (ti < lastTickerIndex))
             {
                 continue;
             }
@@ -1259,7 +1259,7 @@ public partial class kalshi : PredictionExchange
         {
             chunk.Add((tickers != null && ti < tickers.Count ? tickers[ti] : null));
             int chunkLength = (chunk?.Count ?? 0);
-            if ((chunkLength < chunkSize) && (ti < lastTickerIndex))
+            if ((chunkLength < chunkSize.GetValueOrDefault()) && (ti < lastTickerIndex))
             {
                 continue;
             }
@@ -2710,7 +2710,7 @@ public partial class kalshi : PredictionExchange
                 }
             }
         }
-        List<object> rawEvents = new List<object>() {};
+        List<Dictionary<string, object>> rawEvents = new List<Dictionary<string, object>>() {};
         int eventTickersLength = (eventTickers?.Count ?? 0);
         bool hasLimit = ((limit != null));
         Int64? limitOrZero = hasLimit ? limit : 0;
@@ -2734,7 +2734,7 @@ public partial class kalshi : PredictionExchange
                 }
             }
         }
-        return ccxt.BaseExchange.ToDictList(rawEvents);
+        return rawEvents;
     }
 
     /**
@@ -2869,7 +2869,7 @@ public partial class kalshi : PredictionExchange
                 break;
             }
             string? cursor = null;
-            for (int page = 0; page < maxPages; page++)
+            for (int page = 0; page < maxPages.GetValueOrDefault(); page++)
             {
                 Int64? reqLimit = pageLimit;
                 if (hasLimit)
@@ -3124,7 +3124,8 @@ public partial class kalshi : PredictionExchange
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
         object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string? baseUrl = this.safeString(baseUrls, apiGroup, this.safeString(baseUrls, "kalshi", ""));
+        string? baseUrlDefault = this.safeString(baseUrls, "kalshi", "");
+        string? baseUrl = this.safeString(baseUrls, apiGroup, baseUrlDefault);
         string? implodedPath = this.implodeParams(path, parameters);
         object url = (baseUrl == null ? null : baseUrl + "/" + implodedPath);
         object query = this.omit(parameters, this.extractParams(path));

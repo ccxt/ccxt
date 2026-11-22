@@ -1319,15 +1319,16 @@ public partial class bitso : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "type", type },
-            { "major", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
+            { "major", this.amountToPrecision(precisionSymbol, amount) },
         };
         if ((type == "limit"))
         {
-            request["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
+            request["price"] = this.priceToPrecision(precisionSymbol, price);
         }
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, parameters));
         IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
@@ -1572,7 +1573,7 @@ public partial class bitso : Exchange
         int numOrders = payload.Count;
         if ((numOrders == 1))
         {
-            return this.parseOrder((payload != null && 0 < payload.Count ? payload[0] : null));
+            return this.parseOrder(this.safeDict(payload, 0, new Dictionary<string, object>() {}));
         }
         throw new OrderNotFound ((((this.id + ": The order ") + id) + " not found.")) ;
     }

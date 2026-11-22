@@ -292,7 +292,7 @@ public partial class sxbet : PredictionExchange
             page = (page + 1);
             int rawMarketsCount = (rawMarkets?.Count ?? 0);
             Int64? collectedLength = this.parseToInt(rawMarketsCount);
-            if ((pageMarketsLength < pageSize) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
+            if ((pageMarketsLength < pageSize.GetValueOrDefault()) || (page >= maxPages.GetValueOrDefault()) || ((paginationKey == null)) || (((collectCap != null)) && ((collectCap == null || collectedLength >= collectCap))))
             {
                 break;
             }
@@ -3176,7 +3176,7 @@ public partial class sxbet : PredictionExchange
             baseUrl = groupUrl;
         }
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
-        object query = this.omit(parameters, this.extractParams(path));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, this.extractParams(path)));
         Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
         Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
@@ -3191,7 +3191,13 @@ public partial class sxbet : PredictionExchange
         bool sendAsQuery = ((method == "GET"));
         if ((method == "DELETE"))
         {
-            sendAsQuery = !(inOp(query, "orders"));
+            if (query.ContainsKey("orders"))
+            {
+                sendAsQuery = false;
+            } else
+            {
+                sendAsQuery = true;
+            }
         }
         string? bodyValue = null;
         if (sendAsQuery)
@@ -3203,7 +3209,7 @@ public partial class sxbet : PredictionExchange
             }
         } else
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 bodyValue = this.json(query);
             }

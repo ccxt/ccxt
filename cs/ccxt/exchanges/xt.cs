@@ -2182,7 +2182,7 @@ public partial class xt : Exchange
         if ((this.safeBool(market, "spot", false) == true))
         {
             List<object> tickers = this.safeList(response, "result", new List<object>() {});
-            return this.parseTicker((tickers != null && 0 < tickers.Count ? tickers[0] : null), market);
+            return this.parseTicker(this.safeDict(tickers, 0, new Dictionary<string, object>() {}), market);
         }
         IDictionary<string, object> ticker = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
@@ -2285,7 +2285,7 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            ccxt.Ticker ticker = this.parseTicker(tickers[i], market);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(tickers, i, new Dictionary<string, object>() {}), market);
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {

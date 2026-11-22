@@ -763,7 +763,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            ccxt.Ticker ticker = this.parseTicker(data[i]);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {}));
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             newTickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
         }
@@ -1304,7 +1304,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54588 && ((hxArr54588 is IList<object>) || (hxArr54588.GetType().IsGenericType && hxArr54588.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54608 && ((hxArr54608 is IList<object>) || (hxArr54608.GetType().IsGenericType && hxArr54608.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1359,7 +1359,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57064 && ((hxArr57064 is IList<object>) || (hxArr57064.GetType().IsGenericType && hxArr57064.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57084 && ((hxArr57084 is IList<object>) || (hxArr57084.GetType().IsGenericType && hxArr57084.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

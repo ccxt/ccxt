@@ -821,10 +821,8 @@ public partial class grvt : Exchange
         {
             return ((bool?)((object)(true)));  // skip if builder fee is already approved
         }
-        var hxauTask33770_0 = this.privateTradingPostFullV1GetAuthorizedBuilders();
-        var hxauTask33770_1 = this.loadAccountInfos();
-        await Task.WhenAll(hxauTask33770_0, hxauTask33770_1);
-        List<object> results = new List<object> { hxauTask33770_0.Result, hxauTask33770_1.Result };
+        await this.loadAccountInfos();
+        List<object> results = new List<object>(await Task.WhenAll(new List<Task<Dictionary<string, object>>> {this.privateTradingPostFullV1GetAuthorizedBuilders()}));
         //
         // {
         //     "results": [{

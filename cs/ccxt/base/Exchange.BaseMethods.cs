@@ -3443,7 +3443,7 @@ public partial class BaseExchange
             Int64? maxRetries = this.safeInteger(options, "webApiRetries", 10);
             object response = null;
             bool shouldBreak = false;
-            for (int retry = 0; retry < maxRetries; retry++)
+            for (int retry = 0; retry < maxRetries.GetValueOrDefault(); retry++)
             {
                 try
                 {
@@ -4410,7 +4410,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positionsArray?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.extend(this.parsePosition(positionsArray[i]), parameters);
+            Dictionary<string, object> position = this.extend(this.parsePosition(this.safeDict(positionsArray, i, new Dictionary<string, object>() {})), parameters);
             result.Add(position);
         }
         return ((IList<object>)((object)(this.filterByArrayPositions(result, "symbol", symbolsNormalized))));

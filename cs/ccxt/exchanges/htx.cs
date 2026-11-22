@@ -5037,7 +5037,7 @@ public partial class htx : Exchange
         return this.extend(account, updates);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(object states, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(string states, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
@@ -8591,7 +8591,7 @@ public partial class htx : Exchange
         IDictionary<string, object> paramsPaginate = (paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            if ((((market.ContainsKey("linear") ? market["linear"] : null) as bool?) == true))
+            if ((this.safeBool(market, "linear", false) == true))
             {
                 return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 100));
             }
@@ -9174,10 +9174,13 @@ public partial class htx : Exchange
                     {
                         bodyRequest = query;
                     }
-                    signedBody = this.json(bodyRequest);
-                    if (!isArrayParams && ((signedBody.Length == 2)))
+                    string bodyJson = this.json(bodyRequest);
+                    if (!isArrayParams && ((bodyJson.Length == 2)))
                     {
                         signedBody = "{}";
+                    } else
+                    {
+                        signedBody = bodyJson;
                     }
                     signedHeaders = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },
@@ -10915,13 +10918,13 @@ public partial class htx : Exchange
                 }
             } else
             {
-                result.Add(this.parseSettlement((settlements != null && i < settlements.Count ? settlements[i] : null), market));
+                result.Add(this.parseSettlement(settlement, market));
             }
         }
         return result;
     }
 
-    public virtual Dictionary<string, object> parseSettlement(object settlement, IDictionary<string, object> market)
+    public virtual Dictionary<string, object> parseSettlement(IDictionary<string, object> settlement, IDictionary<string, object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory

@@ -3849,7 +3849,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(data, 0), market));
+        return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market));
     }
 
     /**
@@ -4011,7 +4011,7 @@ public partial class cryptocom : Exchange
             {
                 for (int j = 0; j < getArrayLength(value); j++)
                 {
-                    returnString = returnString + (this.paramsToString(getValue(value, j), (depth + 1)));
+                    returnString = returnString + this.paramsToString(getValue(value, j), (depth + 1));
                 }
             } else
             {
@@ -4043,6 +4043,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", "MARKET" },
@@ -4055,7 +4056,7 @@ public partial class cryptocom : Exchange
         }
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
+            request["price"] = this.priceToPrecision(precisionSymbol, price);
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateClosePosition(this.extend(request, parameters));
         //
@@ -4243,7 +4244,7 @@ public partial class cryptocom : Exchange
             string payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
             string signature = this.hmac(payload, this.secret, sha256);
             int paramsKeysLength = paramsKeys.Count;
-            requestBody = this.json(new Dictionary<string, object>() {
+            string jsonBody = this.json(new Dictionary<string, object>() {
                 { "id", nonce },
                 { "method", path },
                 { "params", parameters },
@@ -4260,8 +4261,9 @@ public partial class cryptocom : Exchange
             {
                 string paramsString = "{}";
                 string arrayString = "[]";
-                requestBody = requestBody.Replace(arrayString, (string)paramsString);
+                jsonBody = jsonBody.Replace(arrayString, (string)paramsString);
             }
+            requestBody = jsonBody;
             requestHeaders = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
             };

@@ -1783,7 +1783,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {boolean} [isPrivate] whether to authenticate before sending the request
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> requestWs(object method, IDictionary<string, object>? parameters = null, bool? isPrivate = null)
+    public async virtual Task<object> requestWs(string method, IDictionary<string, object>? parameters = null, bool? isPrivate = null)
     {
         parameters ??= new Dictionary<string, object>();
         isPrivate ??= false;

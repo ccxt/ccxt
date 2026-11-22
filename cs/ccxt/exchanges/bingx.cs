@@ -6330,6 +6330,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         string? positionSide = this.safeString(parameters, "positionSide");
         if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((positionSide == null)))
         {
@@ -6341,7 +6342,7 @@ public partial class bingx : Exchange
             amountString = this.currencyToPrecision(((string)(market.ContainsKey("settle") ? market["settle"] : null)), amount);
         } else
         {
-            amountString = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+            amountString = this.amountToPrecision(precisionSymbol, amount);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -7012,7 +7013,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> success = this.safeList(data, "success", new List<object>() {});
         List<object> positions = new List<object>() {};
-        for (int i = 0; i < (success?.Count ?? 0); i++)
+        for (int i = 0; i < success.Count; i++)
         {
             Dictionary<string, object> position = this.parsePosition(new Dictionary<string, object>() {
                 { "positionId", success[i] },

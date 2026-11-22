@@ -3109,7 +3109,7 @@ public partial class phemex : Exchange
         {
             request["clOrdID"] = clientOrderId;
         }
-        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId"});
         string? triggerPrice = this.safeStringN(paramsOmitted, new List<object>() {"stopPx", "stopPrice", "triggerPrice"});
         if ((triggerPrice != null))
         {
@@ -3446,6 +3446,7 @@ public partial class phemex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -3464,7 +3465,7 @@ public partial class phemex : Exchange
         {
             if (isStableSettled)
             {
-                request["priceRp"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
+                request["priceRp"] = this.priceToPrecision(precisionSymbol, price);
             } else
             {
                 request["priceEp"] = this.toEp(price, market);
@@ -3480,7 +3481,7 @@ public partial class phemex : Exchange
         {
             if (isStableSettled)
             {
-                request["orderQtyRq"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+                request["orderQtyRq"] = this.amountToPrecision(precisionSymbol, amount);
             } else
             {
                 request["baseQtyEV"] = this.toEv(amount, market);
@@ -3667,9 +3668,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170837))
+        if ((data is IList<object> hxList170874))
         {
-            int numOrders = hxList170837.Count;
+            int numOrders = hxList170874.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

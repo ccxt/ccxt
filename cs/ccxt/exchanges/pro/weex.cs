@@ -116,7 +116,7 @@ public partial class weex : ccxt.weex
         return await this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscriptionExtended);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string? channel, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> subscribePrivate(object messageHash, object subscribeHash, string channel, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();

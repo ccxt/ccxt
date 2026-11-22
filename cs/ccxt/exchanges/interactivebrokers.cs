@@ -1190,7 +1190,7 @@ public partial class interactivebrokers : Exchange
         Int64? retries = this.safeInteger(this.options, "gatewayReauthenticateRetries", 5);
         Int64? retryDelay = this.safeInteger(this.options, "gatewayReauthenticateDelay", 1000);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        for (int i = 0; i < retries; i++)
+        for (int i = 0; i < retries.GetValueOrDefault(); i++)
         {
             await this.sleep(retryDelay);
             response = await this.webapiPostV1ApiIserverAuthStatus(parameters);
@@ -2338,8 +2338,8 @@ public partial class interactivebrokers : Exchange
     {
         IDictionary<string, object> opts = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(opts, "endpointRetries", 3);
-        object retryDelay = this.safeInteger(opts, "retryDelay", 1000);
-        for (int i = 0; i < retries; i++)
+        Int64? retryDelay = this.safeInteger(opts, "retryDelay", 1000);
+        for (int i = 0; i < retries.GetValueOrDefault(); i++)
         {
             bool isLastRetry = ((i >= (retries - 1)));
             object data = null;
@@ -2350,7 +2350,7 @@ public partial class interactivebrokers : Exchange
                     data = await this.webapiGetV1ApiTrsrvSecdef(request);
                 } else if ((ep == "webapiPostV1ApiIserverScannerRun"))
                 {
-                    retryDelay = mathMax(retryDelay, 1000);
+                    retryDelay = Math.Max(retryDelay.GetValueOrDefault(), 1000);
                     data = await this.webapiPostV1ApiIserverScannerRun(request);
                 } else if ((ep == "webapiGetV1ApiTrsrvFutures"))
                 {
@@ -2734,14 +2734,14 @@ public partial class interactivebrokers : Exchange
             { "fields", fields },
         };
         object response = new List<object>() {};
-        for (int i = 0; i <= retries; i++)
+        for (int i = 0; i <= retries.GetValueOrDefault(); i++)
         {
             response = ((object)await this.webapiGetV1ApiIserverMarketdataSnapshot(this.extend(request, parameters)));
             if (this.ibkrSnapshotReady(response, readyFields))
             {
                 break;
             }
-            if (i < retries)
+            if (i < retries.GetValueOrDefault())
             {
                 await this.sleep(retryDelay);
             }
@@ -3017,7 +3017,7 @@ public partial class interactivebrokers : Exchange
         string? marketId = this.safeString(ticker, "conid");
         Dictionary<string, object> resolved = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(ticker, "_updated");
-        object last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
+        string? last = this.ibkrParseValue(this.safeString(ticker, "7296")); // 31 might contain symbol
         if ((last == null))
         {
             // if precise fields are not provided, use generic "last price" field
@@ -3074,11 +3074,16 @@ public partial class interactivebrokers : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? maxLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {}), "limit", 1000);
+        Int64? maxLimit = 1000;
+        Int64? configuredLimit = this.safeInteger(this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {}), "limit");
+        if ((configuredLimit != null))
+        {
+            maxLimit = configuredLimit;
+        }
         object requestLimit = maxLimit;
         if ((limit != null))
         {
-            requestLimit = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
+            requestLimit = mathMin(limit, maxLimit);
         }
         int duration = this.parseTimeframe(timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3091,7 +3096,13 @@ public partial class interactivebrokers : Exchange
             // and the extra leading bar is removed by filterBySinceLimit in parseOHLCVs
             request["startTime"] = this.ibkrFormatTime((since - (duration * 1000L)));
             request["direction"] = "1"; // forward from startTime, by default startTime is the end of the range
-            requestLimit = mathMin(add(requestLimit, 1), maxLimit);
+            if ((limit != null))
+            {
+                if ((limit < maxLimit))
+                {
+                    requestLimit = (limit + 1);
+                }
+            }
         }
         request["period"] = this.ibkrPeriod(duration, requestLimit);
         Dictionary<string, object> response = await this.webapiGetV1ApiIserverMarketdataHistory(this.extend(request, parameters));
@@ -3540,8 +3551,13 @@ public partial class interactivebrokers : Exchange
         }
         request["cOID"] = clientOrderId;
         IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trailingAmount", "trailingPercent", "clientOrderId", "cOID", "timeInForce", "tif", "cost", "cashQty"}));
-        Dictionary<string, object> orderTicket = this.extend(request, query); // typed local, so the go transpiler returns a dict
-        return orderTicket;
+        List<object> queryKeys = new List<object>(query.Keys);
+        for (int i = 0; i < queryKeys.Count; i++)
+        {
+            string? key = ((string)queryKeys[i]);
+            request[(string)key] = (query != null && key != null && query.ContainsKey(key) ? query[key] : null);
+        }
+        return request;
     }
 
     /**
@@ -3560,7 +3576,7 @@ public partial class interactivebrokers : Exchange
         Int64? maxReplies = this.safeInteger(options, "maxReplies", 10);
         string errorPrefix = (((this.id + " ") + methodName) + "() ");
         object current = response;
-        for (int i = 0; i <= maxReplies; i++)
+        for (int i = 0; i <= maxReplies.GetValueOrDefault(); i++)
         {
             if (!((current is IList<object>) || (current.GetType().IsGenericType && current.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -4500,7 +4516,7 @@ public partial class interactivebrokers : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.parsePosition(positions[i], market);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market);
             if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
                 result.Add(position);
@@ -4555,7 +4571,7 @@ public partial class interactivebrokers : Exchange
         });
     }
 
-    public virtual string? ibkrEncrypt(object value)
+    public virtual string? ibkrEncrypt(string value)
     {
         // RFC 3986 percent-encoding (also escapes !'()*), as required by the oauth 1.0a signature base string
         string encoded = this.urlencode(new Dictionary<string, object>() {
@@ -4564,7 +4580,7 @@ public partial class interactivebrokers : Exchange
         return ((string?)((object)(((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length))))));  // strip the 'v=' prefix
     }
 
-    public virtual string? ibkrBaseString(object method, object url, object parameters, object prepend = null)
+    public virtual string? ibkrBaseString(object method, string url, object parameters, object prepend = null)
     {
         prepend ??= "";
         string query = this.rawencode(this.keysort(parameters));
@@ -4603,12 +4619,11 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
      * @param {object} params the request params, the path params are read from here
-     * @returns {Array} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders', and the names of the path params
+     * @returns {string} the imploded path, e.g. 'v1/api/iserver/account/U1234567/orders'
      */
-    public virtual List<object> ibkrImplodePath(object path, object parameters)
+    public virtual string? ibkrImplodePath(object path, object parameters)
     {
         List<object> segments = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        List<object> pathParams = new List<object>() {};
         List<object> imploded = new List<object>() {};
         for (int i = 0; i < segments.Count; i++)
         {
@@ -4616,7 +4631,6 @@ public partial class interactivebrokers : Exchange
             if (segment.StartsWith(":"))
             {
                 string? name = ((segment == null) ? null : segment.Substring(Math.Min(1, segment.Length)));
-                pathParams.Add(name);
                 string? value = this.safeString(parameters, name, segment);
                 imploded.Add(value);
             } else
@@ -4624,7 +4638,30 @@ public partial class interactivebrokers : Exchange
                 imploded.Add(segment);
             }
         }
-        return new List<object> {String.Join("/", imploded.ToArray()), pathParams};
+        return String.Join("/", imploded.ToArray());
+    }
+
+    /**
+     * @method
+     * @name interactivebrokers#ibkrPathParams
+     * @description the names of the ':name' path parameters of a webapi endpoint
+     * @ignore
+     * @param {string} path the endpoint path, e.g. 'v1/api/iserver/account/:accountId/orders'
+     * @returns {string[]} the names of the path params, e.g. [ 'accountId' ]
+     */
+    public virtual List<object> ibkrPathParams(object path)
+    {
+        List<object> segments = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
+        List<object> pathParams = new List<object>() {};
+        for (int i = 0; i < segments.Count; i++)
+        {
+            string? segment = ((string)segments[i]);
+            if (segment.StartsWith(":"))
+            {
+                pathParams.Add(((segment == null) ? null : segment.Substring(Math.Min(1, segment.Length))));
+            }
+        }
+        return pathParams;
     }
 
     /**
@@ -4636,7 +4673,7 @@ public partial class interactivebrokers : Exchange
      * @param {string} gatewayUrl options.gatewayUrl
      * @returns {string} the gateway base url
      */
-    public virtual string? ibkrGatewayBaseUrl(object baseUrl, object gatewayUrl)
+    public virtual string? ibkrGatewayBaseUrl(string baseUrl, string gatewayUrl)
     {
         object gateway = gatewayUrl;
         if (!((string)gateway).EndsWith("/"))
@@ -4644,9 +4681,9 @@ public partial class interactivebrokers : Exchange
             gateway = ((object)(gateway == null ? null : gateway + "/"));
         }
         string prefix = "https://api.ibkr.com/";
-        if (((string)baseUrl).StartsWith(prefix))
+        if (baseUrl.StartsWith(prefix))
         {
-            string path = ((string)baseUrl).Replace(prefix, (string)"");
+            string path = baseUrl.Replace(prefix, (string)"");
             return ((string?)((object)(((object)(gateway == null ? null : gateway + path)))));
         }
         return ((string?)((object)(baseUrl)));
@@ -4702,13 +4739,12 @@ public partial class interactivebrokers : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        var implodedPathpathParamsVariable = this.ibkrImplodePath(path, parameters);
-        var implodedPath = implodedPathpathParamsVariable[0];
-        var pathParams = implodedPathpathParamsVariable[1];
+        string? implodedPath = this.ibkrImplodePath(path, parameters);
         string? apiBase = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrl = add((this.urlsApi != null && apiBase != null && this.urlsApi.ContainsKey(apiBase) ? this.urlsApi[apiBase] : null), implodedPath);
-        object url = baseUrl;
-        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, pathParams));
+        string apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiBase, "");
+        string baseUrl = (apiUrl + implodedPath);
+        string url = baseUrl;
+        Dictionary<string, object> query = ((Dictionary<string, object>)this.omit(parameters, this.ibkrPathParams(path)));
         bool hasQuery = (new List<object>(query.Keys)).Count > 0;
         bool isGetOrDelete = ((method == "GET")) || ((method == "DELETE"));
         string? requestBody = null;
@@ -4718,12 +4754,12 @@ public partial class interactivebrokers : Exchange
         {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
-            url = (this.ibkrGatewayBaseUrl((this.urlsApi != null && apiBase != null && this.urlsApi.ContainsKey(apiBase) ? this.urlsApi[apiBase] : null), gatewayUrl) + implodedPath);
+            url = (this.ibkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath);
             if (isGetOrDelete)
             {
                 if (hasQuery)
                 {
-                    url = (url + ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {
@@ -4772,7 +4808,7 @@ public partial class interactivebrokers : Exchange
             {
                 if (hasQuery)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                     // the query-string params are part of the signature base string too
                     signingParams = this.extend(oauthParams, query);
                 }
@@ -4836,7 +4872,7 @@ public partial class interactivebrokers : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "queryAccountsFirst", new Dictionary<string, object>() {});
         Int64? retries = this.safeInteger(options, "retries", 3);
         Int64? retryDelay = this.safeInteger(options, "retryDelay", 1000);
-        for (int i = 0; i <= retries; i++)
+        for (int i = 0; i <= retries.GetValueOrDefault(); i++)
         {
             try
             {

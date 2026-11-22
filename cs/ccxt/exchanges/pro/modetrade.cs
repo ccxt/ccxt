@@ -76,7 +76,7 @@ public partial class modetrade : ccxt.modetrade
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
+    public async virtual Task<object> watchPublic(string messageHash, IDictionary<string, object> message)
     {
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
         IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
@@ -721,7 +721,7 @@ public partial class modetrade : ccxt.modetrade
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);

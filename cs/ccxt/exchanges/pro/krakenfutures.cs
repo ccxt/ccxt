@@ -158,7 +158,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribePrivate(object name, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(object name, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

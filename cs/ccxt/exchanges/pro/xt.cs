@@ -184,16 +184,14 @@ public partial class xt : ccxt.xt
         ccxt.pro.IAsks asks = orderbook?.asks;
         for (int i = 0; i < obBids.Count; i++)
         {
-            List<object> bid = this.safeList(obBids, i);
-            double? price = this.safeNumber(bid, 0);
-            double? quantity = this.safeNumber(bid, 1);
+            double? price = this.safeNumber(obBids[i], 0);
+            double? quantity = this.safeNumber(obBids[i], 1);
             (bids as IOrderBookSide).store(price, quantity);
         }
         for (int i = 0; i < obAsks.Count; i++)
         {
-            List<object> ask = this.safeList(obAsks, i);
-            double? price = this.safeNumber(ask, 0);
-            double? quantity = this.safeNumber(ask, 1);
+            double? price = this.safeNumber(obAsks[i], 0);
+            double? quantity = this.safeNumber(obAsks[i], 1);
             (asks as IOrderBookSide).store(price, quantity);
         }
     }
@@ -212,7 +210,7 @@ public partial class xt : ccxt.xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribe(string? name, string access, string methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string access, string methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool privateAccess = (access == "private");
@@ -262,7 +260,7 @@ public partial class xt : ccxt.xt
         };
         IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, tradeType, "") + "/") + (tail));
-        return await this.watch(url, messageHash, request, messageHash, subscription);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscription);
     }
 
     /**
@@ -282,7 +280,7 @@ public partial class xt : ccxt.xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> unSubscribe(object messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object> symbols = null, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> unSubscribe(string messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object> symbols = null, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
@@ -365,7 +363,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        return ccxt.BaseExchange.ToTicker(await this.subscribe((method == null ? null : method + "@" + this.safeString(market, "id", "")), "public", "watchTicker", market, null, parameters));
+        return ccxt.BaseExchange.ToTicker(await this.subscribe<object>((method == null ? null : method + "@" + this.safeString(market, "id", "")), "public", "watchTicker", market, null, parameters));
     }
 
     /**
@@ -427,7 +425,7 @@ public partial class xt : ccxt.xt
         }
         if ((name != null))
         {
-            object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
+            object tickers = await this.subscribe<object>(name, "public", "watchTickers", market, symbols, parameters);
             if (this.newUpdates)
             {
                 return ccxt.BaseExchange.ToTickers(tickers);
@@ -496,13 +494,13 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object ohlcv = await this.subscribe(((("kline@" + this.safeString(market, "id", "")) + ",") + (timeframeVar)), "public", "watchOHLCV", market, null, parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribe<ccxt.pro.ArrayCacheByTimestamp>(((("kline@" + this.safeString(market, "id", "")) + ",") + (timeframeVar)), "public", "watchOHLCV", market, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -554,13 +552,13 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object trades = await this.subscribe(("trade@" + this.safeString(market, "id", "")), "public", "watchTrades", market, null, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribe<ccxt.pro.ArrayCache>(("trade@" + this.safeString(market, "id", "")), "public", "watchTrades", market, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
     }
 
     /**
@@ -616,7 +614,7 @@ public partial class xt : ccxt.xt
         {
             name = ((("depth@" + marketId) + ",") + levels);
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, "public", "watchOrderBook", market, null, paramsOmitted));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe<object>(name, "public", "watchOrderBook", market, null, paramsOmitted));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -678,13 +676,13 @@ public partial class xt : ccxt.xt
         {
             market = this.market(symbol);
         }
-        object orders = await this.subscribe(name, "private", "watchOrders", market, null, parameters);
+        ccxt.pro.ArrayCache orders = await this.subscribe<ccxt.pro.ArrayCache>(name, "private", "watchOrders", market, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp"));
     }
 
     /**
@@ -712,13 +710,13 @@ public partial class xt : ccxt.xt
         {
             market = this.market(symbol);
         }
-        object trades = await this.subscribe(name, "private", "watchMyTrades", market, null, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribe<ccxt.pro.ArrayCache>(name, "private", "watchMyTrades", market, null, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp"));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp"));
     }
 
     /**
@@ -738,7 +736,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         string name = "balance";
-        return ccxt.BaseExchange.ToBalances(await this.subscribe(name, "private", "watchBalance", null, null, parameters));
+        return ccxt.BaseExchange.ToBalances(await this.subscribe<object>(name, "private", "watchBalance", null, null, parameters));
     }
 
     /**
@@ -772,7 +770,7 @@ public partial class xt : ccxt.xt
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         string name = "position";
-        object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
+        object newPositions = await this.subscribe<object>(name, "private", "watchPositions", null, null, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
@@ -801,7 +799,7 @@ public partial class xt : ccxt.xt
         {
             throw new NotSupported ((this.id + " watchFundingRate() supports swap contracts only")) ;
         }
-        return ccxt.BaseExchange.ToFundingRate(await this.subscribe(("fund_rate@" + this.safeString(market, "id", "")), "public", "watchFundingRate", market, null, parameters));
+        return ccxt.BaseExchange.ToFundingRate(await this.subscribe<object>(("fund_rate@" + this.safeString(market, "id", "")), "public", "watchFundingRate", market, null, parameters));
     }
 
     /**
@@ -1398,9 +1396,8 @@ public partial class xt : ccxt.xt
                 ccxt.pro.IAsks asks = orderbook?.asks;
                 for (int i = 0; i < obAsks.Count; i++)
                 {
-                    List<object> ask = this.safeList(obAsks, i);
-                    double? price = this.safeNumber(ask, 0);
-                    double? quantity = this.safeNumber(ask, 1);
+                    double? price = this.safeNumber(obAsks[i], 0);
+                    double? quantity = this.safeNumber(obAsks[i], 1);
                     (asks as IOrderBookSide).store(price, quantity);
                 }
             }
@@ -1409,9 +1406,8 @@ public partial class xt : ccxt.xt
                 ccxt.pro.IBids bids = orderbook?.bids;
                 for (int i = 0; i < obBids.Count; i++)
                 {
-                    List<object> bid = this.safeList(obBids, i);
-                    double? price = this.safeNumber(bid, 0);
-                    double? quantity = this.safeNumber(bid, 1);
+                    double? price = this.safeNumber(obBids[i], 0);
+                    double? quantity = this.safeNumber(obBids[i], 1);
                     (bids as IOrderBookSide).store(price, quantity);
                 }
             }

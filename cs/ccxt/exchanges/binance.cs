@@ -11844,7 +11844,7 @@ public partial class binance : Exchange
         List<object> results = this.safeList(response, "userAssetDribblets", new List<object>() {});
         Int64? rows = this.safeInteger(response, "total", 0);
         List<object> data = new List<object>() {};
-        for (int i = 0; i < rows; i++)
+        for (int i = 0; i < rows.GetValueOrDefault(); i++)
         {
             List<object> logs = this.safeList(this.safeDict(results, i), "userAssetDribbletDetails", new List<object>() {});
             for (int j = 0; j < logs.Count; j++)

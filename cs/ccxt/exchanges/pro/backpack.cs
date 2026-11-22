@@ -149,9 +149,9 @@ public partial class backpack : ccxt.backpack
             {
                 continue;
             }
-            List<object> marketSelection = this.handleStockParams(methodName, query, market);
-            bool? marketStock = this.safeBool(marketSelection, 0, false);
-            IDictionary<string, object> marketParams = this.safeDict(marketSelection, 1, new Dictionary<string, object>() {});
+            IList<object> marketStockmarketParamsVariable = (IList<object>)this.handleStockParams(methodName, query, market);
+            var marketStock = marketStockmarketParamsVariable[0];
+            IDictionary<string, object> marketParams = ((IDictionary<string, object>)marketStockmarketParamsVariable[1]);
             bool isRfq = (this.safeString((market.ContainsKey("info") ? market["info"] : null), "marketType") == "RFQ");
             string? source = explicitSource;
             if ((source == null))
@@ -829,7 +829,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35853 && ((hxArr35853 is IList<object>) || (hxArr35853.GetType().IsGenericType && hxArr35853.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35719 && ((hxArr35719 is IList<object>) || (hxArr35719.GetType().IsGenericType && hxArr35719.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -878,7 +878,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38351 && ((hxArr38351 is IList<object>) || (hxArr38351.GetType().IsGenericType && hxArr38351.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38217 && ((hxArr38217 is IList<object>) || (hxArr38217.GetType().IsGenericType && hxArr38217.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }

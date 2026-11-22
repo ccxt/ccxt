@@ -217,14 +217,14 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
         var client = this.client(url);
-        if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
         {
             ((IDictionary<string,object>)client.subscriptions)[requestId] = messageHash;
         }
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivateUta(IList<object> messageHashes, object subscribeHash, object channel, object symbol = null, IDictionary<string, object>? parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePrivateUta(IList<object> messageHashes, object subscribeHash, string channel, object symbol = null, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -248,7 +248,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> message = this.extend(request, parameters);
         string? url = await this.getUtaUrl();
         var client = this.client(url);
-        if (!((client.subscriptions != null && subscribeHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+        if (!((client.subscriptions != null && subscribeHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
         {
             ((IDictionary<string,object>)client.subscriptions)[requestId] = subscribeHash;
         }
@@ -273,7 +273,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
         Int64? refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", 86400000); // 24 hours
         Int64 now = this.milliseconds();
-        bool expired = (((now - lastUpdate)) >= refreshInterval);
+        bool expired = (now - lastUpdate) >= refreshInterval.GetValueOrDefault();
         string messageHash = "utaToken";
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private", "");
         var client = this.client(url);
@@ -577,7 +577,7 @@ public partial class kucoin : ccxt.kucoin
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), urlType);
         var client = this.client(url);
         string messageHashWithSymbols = ((channel + ":") + String.Join(",", symbols.ToArray()));
-        if (!((client.subscriptions != null && messageHashWithSymbols != null && client.subscriptions.ContainsKey(messageHashWithSymbols))))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHashWithSymbols))))
         {
             ((IDictionary<string,object>)client.subscriptions)[requestId] = messageHashWithSymbols;
         }
@@ -865,7 +865,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiHelper(string methodName, string? channelName, bool? isFuturesChannel, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<object> watchMultiHelper(string methodName, string channelName, bool? isFuturesChannel, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2079,7 +2079,7 @@ public partial class kucoin : ccxt.kucoin
             object symbol = symbols[i];
             Int64? storedLimit = this.safeInteger(limits, symbol);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
-            if (!((this.orderbooks != null && symbol is string inOpKey3 && this.orderbooks.ContainsKey(inOpKey3))) || ((storedLimit != limit)))
+            if (!((this.orderbooks != null && symbol is string inOpKey2 && this.orderbooks.ContainsKey(inOpKey2))) || ((storedLimit != limit)))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             } else

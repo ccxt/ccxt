@@ -2419,7 +2419,14 @@ public partial class bitfinex : Exchange
                 { "id", this.parseToInt(id) },
             };
         }
-        IDictionary<string, object> paramsOmitted = ((cid != null)) ? this.omit(parameters, new List<object>() {"cid", "clientOrderId"}) : parameters;
+        IDictionary<string, object> paramsOmitted = new Dictionary<string, object>() {};
+        if ((cid != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {"cid", "clientOrderId"});
+        } else
+        {
+            paramsOmitted = parameters;
+        }
         List<object> response = await this.privatePostAuthWOrderCancel(this.extend(request, paramsOmitted));
         List<object> order = this.safeList(response, 4);
         Dictionary<string, object> newOrder = new Dictionary<string, object>() {

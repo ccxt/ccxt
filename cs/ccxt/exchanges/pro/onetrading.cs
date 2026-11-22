@@ -795,11 +795,11 @@ public partial class onetrading : ccxt.onetrading
         ccxt.pro.ArrayCache orders = this.orders;
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            ccxt.Order order = this.parseOrder(rawOrders[i]);
+            ccxt.Order order = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(order), "symbol", "");
             orders.append(ccxt.BaseExchange.FromOrder(order));
             client.resolve(this.orders, ("orders:" + symbol));
-            List<object> rawTrades = this.safeList(rawOrders[i], "trades", new List<object>() {});
+            List<object> rawTrades = this.safeList((rawOrders != null && i < rawOrders.Count ? rawOrders[i] : null), "trades", new List<object>() {});
             for (int ii = 0; ii < rawTrades.Count; ii++)
             {
                 ccxt.Trade trade = this.parseTrade(rawTrades[ii]);

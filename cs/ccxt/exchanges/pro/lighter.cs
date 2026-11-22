@@ -122,8 +122,10 @@ public partial class lighter : ccxt.lighter
     {
         parameters ??= new Dictionary<string, object>();
         await this.preLoadLighterLibrary();
-        parameters["auth"] = this.createAuth(parameters);
-        return await this.subscribePublic(messageHash, parameters);
+        Dictionary<string, object> request = this.extend(parameters, new Dictionary<string, object>() {
+            { "auth", this.createAuth(parameters) },
+        });
+        return await this.subscribePublic(messageHash, request);
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -1513,7 +1515,7 @@ public partial class lighter : ccxt.lighter
             List<object> orders = this.safeList(data, marketId, new List<object>() {});
             for (int j = 0; j < orders.Count; j++)
             {
-                ccxt.Order order = this.parseOrder(orders[j], market);
+                ccxt.Order order = this.parseOrder(this.safeDict(orders, j, new Dictionary<string, object>() {}), market);
                 stored.append(ccxt.BaseExchange.FromOrder(order));
                 string? symbol = order.symbol;
                 if ((symbol != null))

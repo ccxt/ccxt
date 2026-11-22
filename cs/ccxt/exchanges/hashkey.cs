@@ -1197,14 +1197,12 @@ public partial class hashkey : Exchange
             }
         }
         IDictionary<string, object> tradingFees = this.safeDict(this.fees, "trading");
-        IDictionary<string, object> fees = null;
+        string feeKey = "swap";
         if (isSpot)
         {
-            fees = this.safeDict(tradingFees, "spot");
-        } else
-        {
-            fees = this.safeDict(tradingFees, "swap");
+            feeKey = "spot";
         }
+        IDictionary<string, object> fees = this.safeDict(tradingFees, feeKey);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },

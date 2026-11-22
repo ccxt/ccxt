@@ -2221,15 +2221,16 @@ public partial class delta : Exchange
         await this.loadMarkets();
         string orderType = (type + "_order");
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_id", (market.ContainsKey("numericId") ? market["numericId"] : null) },
-            { "size", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
+            { "size", this.amountToPrecision(precisionSymbol, amount) },
             { "side", side },
             { "order_type", orderType },
         };
         if ((type == "limit"))
         {
-            request["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
+            request["limit_price"] = this.priceToPrecision(precisionSymbol, price);
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});

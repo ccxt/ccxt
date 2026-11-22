@@ -724,8 +724,8 @@ public partial class predictfun : PredictionExchange
             //     }
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            IList<object> categories = (IList<object>)(this.safeList(data, "categories", new List<object>() {}));
-            int categoriesLength = (categories?.Count ?? 0);
+            List<object> categories = this.safeList(data, "categories", new List<object>() {});
+            int categoriesLength = categories.Count;
             for (int ci = 0; ci < categoriesLength; ci++)
             {
                 IDictionary<string, object> category = this.safeDict(categories, ci);
@@ -1950,7 +1950,7 @@ public partial class predictfun : PredictionExchange
         Int64? expiresAt = this.safeInteger(this.options, "jwtTokenExpiresAt", 0);
         // a token outlives its window silently: the venue answers 401 on every order action once
         // it lapses, so re-issue before that rather than after the first failure
-        if (((cached != null)) && (now < expiresAt))
+        if (((cached != null)) && (now < expiresAt.GetValueOrDefault()))
         {
             return cached;
         }

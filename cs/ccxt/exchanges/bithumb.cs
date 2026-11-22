@@ -534,7 +534,7 @@ public partial class bithumb : Exchange
     public override string? amountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeInteger((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
     public virtual string? getGen2MarketId(IDictionary<string, object> market)
@@ -1134,7 +1134,7 @@ public partial class bithumb : Exchange
             // the exchange rejects more than 200 market ids per request
             Int64? maxMarketIdsOption = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 200);
             Int64? maxMarketIdsPerRequest = 200;
-            if (((maxMarketIdsOption != null)) && (maxMarketIdsOption >= 1))
+            if (((maxMarketIdsOption != null)) && (maxMarketIdsOption.GetValueOrDefault() >= 1))
             {
                 maxMarketIdsPerRequest = this.parseToInt(maxMarketIdsOption);
             }

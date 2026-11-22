@@ -2721,7 +2721,7 @@ public partial class gate : ccxt.gate
         return reqid;
     }
 
-    public async virtual Task<object> subscribePublic(object url, object messageHash, object payload, object channel, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublic(object url, string messageHash, object payload, string channel, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2736,7 +2736,7 @@ public partial class gate : ccxt.gate
         if ((subscription != null))
         {
             var client = this.client(url);
-            if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+            if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
             {
                 string tempSubscriptionHash = requestId.ToString();
                 ((IDictionary<string,object>)client.subscriptions)[tempSubscriptionHash] = messageHash;
@@ -2746,7 +2746,7 @@ public partial class gate : ccxt.gate
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePublicMultiple(object url, object messageHashes, object payload, object channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePublicMultiple(object url, object messageHashes, object payload, string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2762,7 +2762,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object payload, object channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object payload, string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2786,9 +2786,9 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple(url, messageHashes, message, messageHashes, sub);
     }
 
-    public async virtual Task<object> authenticate(string? url, object messageType)
+    public async virtual Task<object> authenticate(string? url, string messageType)
     {
-        string? channel = ((string)(add(messageType, ".login")));
+        string channel = (messageType + ".login");
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -2841,7 +2841,7 @@ public partial class gate : ccxt.gate
         return await this.watch(url, messageHash, request, messageHash, requestIdResolved);
     }
 
-    public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, object channel, object parameters, bool? requiresUid = null)
+    public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, string channel, object parameters, bool? requiresUid = null)
     {
         requiresUid ??= false;
         this.checkRequiredCredentials();
@@ -2881,7 +2881,7 @@ public partial class gate : ccxt.gate
             request["payload"] = payload;
         }
         var client = this.client(url);
-        if (!((client.subscriptions != null && messageHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+        if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
         {
             string tempSubscriptionHash = requestId.ToString();
             // in case of authenticationError we will throw

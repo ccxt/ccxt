@@ -1757,13 +1757,14 @@ public partial class polymarket : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         if (((amount == null)) || ((price == null)))
         {
             throw new ArgumentsRequired ((this.id + " editOrder() requires both the amount and the price arguments")) ;
         }
         Int64? orderId = this.parseToInt(id);
-        string? priceString = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
-        string? quantity = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+        string? priceString = this.priceToPrecision(precisionSymbol, price);
+        string? quantity = this.amountToPrecision(precisionSymbol, amount);
         List<object> signable = new List<object>() {"modifyOrders", new List<object>() {new List<object>() {orderId, priceString, quantity}}};
         Dictionary<string, object> bodyOp = new Dictionary<string, object>() {
             { "type", "modifyOrders" },

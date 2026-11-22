@@ -1230,12 +1230,12 @@ public partial class polymarket : ccxt.polymarket
             var error = new ExchangeError(((this.id + " ") + errorMessage));
             for (int i = 0; i < messageHashes.Count; i++)
             {
-                client.reject(error, messageHashes[i]);
+                string? messageHash = ((string)messageHashes[i]);
+                client.reject(error, messageHash);
                 // clearing the awaited hash lets a later call resend, and a
                 // failed subscribe must also clear the shared hash the base
                 // watch registered - a failed unsubscribe keeps the live
                 // subscription untouched instead
-                string? messageHash = ((string)messageHashes[i]);
                 if (((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);

@@ -399,7 +399,7 @@ public partial class myriad : PredictionExchange
                 }
             }
             page = this.sum(page, 1);
-            if (rawMarketsLength < limit || (maxMarkets == null || collected >= maxMarkets))
+            if (rawMarketsLength < limit.GetValueOrDefault() || (maxMarkets == null || collected >= maxMarkets))
             {
                 break;
             }
@@ -604,7 +604,7 @@ public partial class myriad : PredictionExchange
                 }
             }
             page = this.sum(page, 1);
-            if ((rawQuestionsLength < limit) || ((maxQuestions == null || collected >= maxQuestions)))
+            if ((rawQuestionsLength < limit.GetValueOrDefault()) || ((maxQuestions == null || collected >= maxQuestions)))
             {
                 break;
             }
@@ -748,7 +748,7 @@ public partial class myriad : PredictionExchange
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string? side, double amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchTradeQuote(object outcome, string side, double amount, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -4100,8 +4100,8 @@ public partial class myriad : PredictionExchange
         int ohlcvcLength = (ohlcvc?.Count ?? 0);
         for (int i = 0; i < ohlcvcLength; i++)
         {
-            object candle = (ohlcvc != null && i < ohlcvc.Count ? ohlcvc[i] : null);
-            result.Add(new List<object>() {getValue(candle, 0), getValue(candle, 1), getValue(candle, 2), getValue(candle, 3), getValue(candle, 4), getValue(candle, 5)});
+            IList<object> candle = ((ohlcvc != null && i < ohlcvc.Count ? ohlcvc[i] : null) as IList<object>);
+            result.Add(new List<object>() {(candle != null && 0 < candle.Count ? candle[0] : null), (candle != null && 1 < candle.Count ? candle[1] : null), (candle != null && 2 < candle.Count ? candle[2] : null), (candle != null && 3 < candle.Count ? candle[3] : null), (candle != null && 4 < candle.Count ? candle[4] : null), (candle != null && 5 < candle.Count ? candle[5] : null)});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(result, since, limit, 0, true));
     }

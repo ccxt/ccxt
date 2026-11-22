@@ -3862,7 +3862,7 @@ public partial class coinbaseinternational : Exchange
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
-    public virtual Dictionary<string, object> handleRouteAndParams(object methodName, object parameters = null)
+    public virtual Dictionary<string, object> handleRouteAndParams(string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (string?, IDictionary<string, object>) routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, methodName, "route", "auto");

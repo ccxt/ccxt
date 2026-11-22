@@ -151,7 +151,7 @@ public partial class extended : ccxt.extended
         }
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object subscription = null)
+    public async virtual Task<object> watchPrivate(string messageHash, object subscription = null)
     {
         this.checkRequiredCredentials();
         string url = (this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "") + "/account");

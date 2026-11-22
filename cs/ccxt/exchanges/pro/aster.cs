@@ -665,10 +665,10 @@ public partial class aster : ccxt.aster
     public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market)
     {
         Int64? timestamp = this.safeInteger(message, "T");
-        object bidAskSymbol = null;
+        string? bidAskSymbol = null;
         if ((market != null))
         {
-            bidAskSymbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+            bidAskSymbol = this.safeString(market, "symbol");
         }
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
@@ -1483,7 +1483,7 @@ public partial class aster : ccxt.aster
         Int64? lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
         IDictionary<string, object> listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new Dictionary<string, object>() {});
         Int64? listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
-        if (((time - lastAuthenticatedTime) > listenKeyRefreshRate))
+        if ((time - lastAuthenticatedTime) > listenKeyRefreshRate.GetValueOrDefault())
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: concurrent watch

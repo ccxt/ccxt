@@ -134,7 +134,7 @@ public partial class deepcoin : ccxt.deepcoin
         return request;
     }
 
-    public async virtual Task<object> watchPublic(IDictionary<string, object> market, object messageHash, string topicID, object parameters = null, object suffix = null)
+    public async virtual Task<object> watchPublic(IDictionary<string, object> market, string messageHash, string topicID, object parameters = null, object suffix = null)
     {
         parameters ??= new Dictionary<string, object>();
         suffix ??= "";
@@ -149,7 +149,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, object messageHash, string topicID, object parameters = null, IDictionary<string, object>? subscription = null, object suffix = null)
+    public async virtual Task<object> unWatchPublic(IDictionary<string, object> market, string messageHash, string topicID, object parameters = null, IDictionary<string, object>? subscription = null, object suffix = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
@@ -175,7 +175,7 @@ public partial class deepcoin : ccxt.deepcoin
         return await this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscriptionExtended);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();

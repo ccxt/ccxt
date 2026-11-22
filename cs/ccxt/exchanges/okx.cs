@@ -3428,7 +3428,7 @@ public partial class okx : Exchange
         // }
         //
         List<object> data = this.safeList(response, "data");
-        return this.parseTicker(this.safeDict(data, 0), market);
+        return this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -7766,7 +7766,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            result.Add(this.parsePosition(positions[i]));
+            result.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {})));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
     }

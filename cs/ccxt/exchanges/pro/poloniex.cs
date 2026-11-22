@@ -151,7 +151,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribe(string? name, string? messageHash, bool? isPrivate, object symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string? messageHash, bool? isPrivate, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string publicOrPrivate = "public";
@@ -191,7 +191,7 @@ public partial class poloniex : ccxt.poloniex
             subscribe["symbols"] = marketIds;
         }
         Dictionary<string, object> request = this.extend(subscribe, parameters);
-        return await this.watch(url, symbolsHash, request, symbolsHash);
+        return await this.watch<T>(url, symbolsHash, request, symbolsHash);
     }
 
     /**
@@ -268,6 +268,7 @@ public partial class poloniex : ccxt.poloniex
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         string uppercaseType = type.ToUpper();
         if ((side == null))
         {
@@ -316,7 +317,7 @@ public partial class poloniex : ccxt.poloniex
             request["amount"] = quoteAmount;
         } else
         {
-            request["quantity"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+            request["quantity"] = this.amountToPrecision(precisionSymbol, amount);
             if ((price != null))
             {
                 request["price"] = this.priceToPrecision(symbol, price);
@@ -449,13 +450,13 @@ public partial class poloniex : ccxt.poloniex
         {
             throw new BadRequest ((string)((this.id + " watchOHLCV cannot take a timeframe of ") + (timeframeVar))) ;
         }
-        object ohlcv = await this.subscribe(channel, channel, false, new List<object>() {symbol}, parameters);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = await this.subscribe<ccxt.pro.ArrayCacheByTimestamp>(channel, channel, false, new List<object>() {symbol}, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbol, limit));
+            limitResolved = ((Int64?)ohlcv.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -527,7 +528,7 @@ public partial class poloniex : ccxt.poloniex
         }
         string name = "ticker";
         IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        object newTickers = await this.subscribe(name, name, false, symbolsNormalized, parameters);
+        object newTickers = await this.subscribe<object>(name, name, false, symbolsNormalized, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
@@ -662,7 +663,7 @@ public partial class poloniex : ccxt.poloniex
         (string?, IDictionary<string, object>) nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
         string? nameOption = nameOptionparamsNameVariable.Item1;
         IDictionary<string, object> paramsName = (nameOptionparamsNameVariable.Item2);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(nameOption, nameOption, false, new List<object>() {symbol}, paramsName));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe<object>(nameOption, nameOption, false, new List<object>() {symbol}, paramsName));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -688,13 +689,13 @@ public partial class poloniex : ccxt.poloniex
         await this.authenticate();
         string? symbolResolved = ((symbol == null)) ? null : this.symbol(symbol);
         List<object> symbols = ((symbolResolved == null)) ? null : new List<object>() {symbolResolved};
-        object orders = await this.subscribe(name, name, true, symbols, parameters);
+        ccxt.pro.ArrayCache orders = await this.subscribe<ccxt.pro.ArrayCache>(name, name, true, symbols, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -720,13 +721,13 @@ public partial class poloniex : ccxt.poloniex
         await this.authenticate();
         string? symbolResolved = ((symbol == null)) ? null : this.symbol(symbol);
         List<object> symbols = ((symbolResolved == null)) ? null : new List<object>() {symbolResolved};
-        object trades = await this.subscribe(name, messageHash, true, symbols, parameters);
+        ccxt.pro.ArrayCache trades = await this.subscribe<ccxt.pro.ArrayCache>(name, messageHash, true, symbols, parameters);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -760,12 +761,12 @@ public partial class poloniex : ccxt.poloniex
         {
             await client.future((name + ":fetchBalanceSnapshot"));
         }
-        return ccxt.BaseExchange.ToBalances(await this.subscribe(name, name, true, null, parameters));
+        return ccxt.BaseExchange.ToBalances(await this.subscribe<object>(name, name, true, null, parameters));
     }
 
     public virtual void setBalanceCache(WebSocketClient client, string type)
     {
-        if ((client.subscriptions != null && type != null && client.subscriptions.ContainsKey(type)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(type)))
         {
             return;
         }

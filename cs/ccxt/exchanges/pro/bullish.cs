@@ -86,7 +86,7 @@ public partial class bullish : ccxt.bullish
         return message;  // current line is for transpilation compatibility
     }
 
-    public async virtual Task<object> watchPublic(object url, object messageHash, object request = null, object parameters = null)
+    public async virtual Task<object> watchPublic(string url, string messageHash, object request = null, object parameters = null)
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -106,7 +106,7 @@ public partial class bullish : ccxt.bullish
         return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object subscribeHash, object request = null, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, string subscribeHash, object request = null, object parameters = null)
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -519,7 +519,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
             {
-                ccxt.Order parsedOrder = this.parseOrder(rawOrders[i]);
+                ccxt.Order parsedOrder = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}));
                 orders.append(ccxt.BaseExchange.FromOrder(parsedOrder));
                 string? symbol = parsedOrder.symbol;
                 if ((symbol != null))
@@ -843,7 +843,7 @@ public partial class bullish : ccxt.bullish
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
-            Dictionary<string, object> position = this.parsePosition(rawPositions[i]);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(rawPositions, i, new Dictionary<string, object>() {}));
             positions.append(position);
             newPositions.Add(position);
         }

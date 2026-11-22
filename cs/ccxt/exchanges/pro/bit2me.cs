@@ -49,7 +49,7 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the resolved value of the subscription
      */
-    public async virtual Task<object> subscribePublic(string name, object symbol, object messageHash, object parameters = null)
+    public async virtual Task<object> subscribePublic(string name, object symbol, string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -75,7 +75,7 @@ public partial class bit2me : ccxt.bit2me
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the resolved value of the subscription
      */
-    public async virtual Task<object> subscribePrivate(string name, object messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(string name, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -564,7 +564,7 @@ public partial class bit2me : ccxt.bit2me
      */
     public virtual void settleRequest(WebSocketClient client, string messageHash, object result, object error = null)
     {
-        if ((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
         }

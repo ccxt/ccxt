@@ -1968,7 +1968,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["client_oid"] = clientOrderId;
         }
-        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2209,7 +2209,7 @@ public partial class coinbaseexchange : Exchange
         {
             request["end_date"] = this.iso8601(until);
         }
-        IDictionary<string, object> paramsUntil = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
+        Dictionary<string, object> paramsUntil = this.omit(parameters, new List<object>() {"until"});
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, paramsUntil));
         IList<object> entries = response;
         List<object> entriesWithCurrency = new List<object>() {};

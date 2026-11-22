@@ -1252,7 +1252,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? messageHash = this.safeString(message, "subscription");
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        List<object> positionBalances = this.safeList((data != null && 0 < data.Count ? data[0] : null), "position_balances", new List<object>() {});
+        List<object> positionBalances = this.safeList(this.safeDict(data, 0), "position_balances", new List<object>() {});
         this.balance["info"] = data;
         for (int i = 0; i < positionBalances.Count; i++)
         {
@@ -1427,7 +1427,7 @@ public partial class cryptocom : ccxt.cryptocom
         client.resolve(message, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
+    public async virtual Task<object> watchPublic(string messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));

@@ -84,7 +84,7 @@ public partial class woo : ccxt.woo
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
+    public async virtual Task<object> watchPublic(string messageHash, IDictionary<string, object> message)
     {
         string urlUid = "";
         if (((this.uid != null)) && (!(this.uid == "")))
@@ -934,7 +934,7 @@ public partial class woo : ccxt.woo
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbol = this.safeString(market, "symbol", "");
         ccxt.Trade trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
@@ -1077,7 +1077,7 @@ public partial class woo : ccxt.woo
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
@@ -1607,8 +1607,7 @@ public partial class woo : ccxt.woo
         {
             string? marketId = ((string)postitionsIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object rawPosition = (marketId != null && rawPositions.ContainsKey(marketId) ? rawPositions[marketId] : null);
-            Dictionary<string, object> position = this.parsePosition(rawPosition, market);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(rawPositions, marketId, new Dictionary<string, object>() {}), market);
             newPositions.Add(position);
             cache.append(position);
             string? marketSymbol = this.safeString(market, "symbol", "");

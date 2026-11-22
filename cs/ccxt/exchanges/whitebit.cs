@@ -1533,7 +1533,7 @@ public partial class whitebit : Exchange
         for (int i = 0; i < currencyKeys.Count; i++)
         {
             string? code = ((string)currencyKeys[i]);
-            object currency = (code != null && currenciesData.ContainsKey(code) ? currenciesData[code] : null);
+            IDictionary<string, object> currency = this.safeDict(currenciesData, code);
             if ((currency == null))
             {
                 continue;
@@ -3073,7 +3073,7 @@ public partial class whitebit : Exchange
             List<object> orders = this.safeList(response, marketId, new List<object>() {});
             for (int j = 0; j < orders.Count; j++)
             {
-                ccxt.Order order = this.parseOrder(orders[j], marketNew);
+                ccxt.Order order = this.parseOrder(this.safeDict(orders, j, new Dictionary<string, object>() {}), marketNew);
                 results.Add(this.extend(ccxt.BaseExchange.FromOrder(order), new Dictionary<string, object>() {
                     { "status", "closed" },
                 }));

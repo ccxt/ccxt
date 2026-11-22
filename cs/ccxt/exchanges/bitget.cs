@@ -3652,7 +3652,7 @@ public partial class bitget : Exchange
         return new List<object>() {productType, paramsSubType};
     }
 
-    public async virtual Task<(bool?, IDictionary<string, object>)> handleUTAAndParams(object parameters, object methodName, bool? defaultValue = null)
+    public async virtual Task<(bool?, IDictionary<string, object>)> handleUTAAndParams(object parameters, string methodName, bool? defaultValue = null)
     {
         defaultValue ??= false;
         IList<object> utaparamsUtaVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta");
@@ -5774,7 +5774,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market);
+        return this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -5810,7 +5810,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTicker((data != null && 0 < data.Count ? data[0] : null), market);
+        return this.parseTicker(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -11655,7 +11655,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (position?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsedPosition = this.parsePosition(position[i], market);
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(position, i, new Dictionary<string, object>() {}), market);
             result.Add(parsedPosition);
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
@@ -12463,7 +12463,7 @@ public partial class bitget : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -3863,7 +3863,7 @@ public partial class poloniex : Exchange
         {
             string? currencyId = ((string)responseKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            IDictionary<string, object> feeInfo = this.safeDict(response, currencyId);
+            IDictionary<string, object> feeInfo = this.safeDict(feesById, currencyId);
             if (((code != null)) && (((codesValue == null)) || (this.inArray(code, codesValue))))
             {
                 Dictionary<string, object> currency = this.currency(code);
@@ -3878,7 +3878,7 @@ public partial class poloniex : Exchange
                         string? rawNetworkId = this.safeString(childChains, j, "");
                         string networkId = rawNetworkId.Replace(code, (string)"");
                         string? networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
-                        IDictionary<string, object> networkInfo = this.safeDict(response, networkId);
+                        IDictionary<string, object> networkInfo = this.safeDict(feesById, networkId);
                         Dictionary<string, object> networkObject = new Dictionary<string, object>() {};
                         double? withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
                         Dictionary<string, object> withdrawObject = new Dictionary<string, object>() {

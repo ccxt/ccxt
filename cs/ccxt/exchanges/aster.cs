@@ -4116,12 +4116,11 @@ public partial class aster : Exchange
         string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
-            object bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0)))
             {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         double? notional = this.parseNumber(notionalStringAbs);
         string? contractsAbs = Precise.stringAbs(this.safeString(position, "positionAmt"));
@@ -4470,12 +4469,11 @@ public partial class aster : Exchange
         string? maintenanceMarginPercentageString = null;
         for (int i = 0; i < leverageBracket.Count; i++)
         {
-            object bracket = leverageBracket[i];
-            if (Precise.stringLt(notionalStringAbs, this.safeString(bracket, 0)))
+            if (Precise.stringLt(notionalStringAbs, this.safeString(leverageBracket[i], 0)))
             {
                 break;
             }
-            maintenanceMarginPercentageString = this.safeString(bracket, 1);
+            maintenanceMarginPercentageString = this.safeString(leverageBracket[i], 1);
         }
         double? maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         string? unrealizedPnlString = this.safeString(position, "unrealizedProfit");

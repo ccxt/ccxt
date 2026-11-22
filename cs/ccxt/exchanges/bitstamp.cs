@@ -1327,7 +1327,7 @@ public partial class bitstamp : Exchange
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
-        if (((timestamp == null)) || (((expires != null)) && (((now - timestamp) > expires))))
+        if (((timestamp == null)) || (((expires != null)) && ((now - timestamp) > expires.GetValueOrDefault())))
         {
             List<object> response = await this.publicGetMarkets(parameters);
             //

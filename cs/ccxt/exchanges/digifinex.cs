@@ -2518,13 +2518,12 @@ public partial class digifinex : Exchange
         string? marketType = null;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)(orders != null && i < orders.Count ? orders[i] : null));
-            string? id = this.safeString(order, "id");
+            string? id = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "id");
             if ((id == null))
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires an id for each order")) ;
             }
-            string? symbol = this.safeString(order, "symbol");
+            string? symbol = this.safeString((orders != null && i < orders.Count ? orders[i] : null), "symbol");
             if ((symbol == null))
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
@@ -3532,7 +3531,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToDepositAddress(address);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsByType(string? type, string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsByType(string type, string code = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3991,10 +3990,10 @@ public partial class digifinex : Exchange
         object result = null;
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
-            if ((this.safeString(entry, "currency") == code))
+            string? entryCurrency = this.safeString(data[i], "currency", "");
+            if ((entryCurrency == code))
             {
-                result = entry;
+                result = data[i];
             }
         }
         Dictionary<string, object> currency = this.currency(code);
@@ -4460,7 +4459,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            result.Add(this.parsePosition(positions[i], market));
+            result.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
@@ -4570,7 +4569,7 @@ public partial class digifinex : Exchange
             dataRequest = "data";
         }
         List<object> data = this.safeList(response, dataRequest, new List<object>() {});
-        Dictionary<string, object> position = this.parsePosition((data != null && 0 < data.Count ? data[0] : null), market);
+        Dictionary<string, object> position = this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
         if (marketType == "swap")
         {
             return ccxt.BaseExchange.ToPosition(position);

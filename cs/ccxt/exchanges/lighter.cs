@@ -1922,8 +1922,7 @@ public partial class lighter : Exchange
         List<object> spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
         List<object> swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         List<object> tickers = this.arrayConcat(spotTickers, swapTickers);
-        IDictionary<string, object> first = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return this.parseTicker(first, market);
+        return this.parseTicker(this.safeDict(tickers, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**

@@ -129,7 +129,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePublic(string? name, string? messageHashPrefix, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublic(string? name, string messageHashPrefix, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -177,7 +177,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the hitbtc api
      * @returns {boolean} true once the exchange acknowledges the unsubscribe
      */
-    public async virtual Task<object> unSubscribePublic(object name, string? messageHashPrefix, IList<object> symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublic(string name, string messageHashPrefix, IList<object> symbols, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
@@ -185,7 +185,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            string? subMessageHash = ((string)(((messageHashPrefix + "::") + (symbols != null && i < symbols.Count ? symbols[i] : null))));
+            string subMessageHash = ((messageHashPrefix + "::") + (symbols != null && i < symbols.Count ? symbols[i] : null));
             subMessageHashes.Add(subMessageHash);
             messageHashes.Add(("unsubscribe:" + subMessageHash));
         }
@@ -214,7 +214,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> subscribePrivate(string? name, object symbol = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> subscribePrivate(string name, object symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1615,22 +1615,21 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
-        if ((result is IList<object> hxList69538))
+        List<object> rows = this.safeList(message, "result");
+        if ((rows == null))
+        {
+            ccxt.Order parsedOrder = this.parseWsOrder(this.safeDict(message, "result", new Dictionary<string, object>() {}));
+            client.resolve(ccxt.BaseExchange.FromOrder(parsedOrder), messageHash);
+        } else
         {
             List<object> parsedOrders = new List<object>() {};
-            List<object> rows = this.safeList(message, "result", new List<object>() {});
             int rowsLength = rows.Count;
             for (int i = 0; i < rowsLength; i++)
             {
-                ccxt.Order parsedOrder = this.parseWsOrder((rows != null && i < rows.Count ? rows[i] : null));
-                parsedOrders.Add(ccxt.BaseExchange.FromOrder(parsedOrder));
+                Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder((rows != null && i < rows.Count ? rows[i] : null)));
+                parsedOrders.Add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
-        } else
-        {
-            Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(result));
-            client.resolve(parsedOrder, messageHash);
         }
         return message;
     }
@@ -1692,7 +1691,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72240))
+            if ((result is IList<object> hxList72196))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});

@@ -76,7 +76,7 @@ public partial class woofipro : ccxt.woofipro
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message)
+    public async virtual Task<object> watchPublic(string messageHash, IDictionary<string, object> message)
     {
         // the default id
         object id = "OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY";
@@ -705,7 +705,7 @@ public partial class woofipro : ccxt.woofipro
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object> message, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);

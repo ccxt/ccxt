@@ -2188,7 +2188,7 @@ public partial class coinbase : Exchange
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
-        if (((timestamp == null)) || (((now - timestamp) > expires)))
+        if (((timestamp == null)) || ((now - timestamp) > expires.GetValueOrDefault()))
         {
             List<Task<Dictionary<string, object>>> promises = new List<Task<Dictionary<string, object>>> {this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)};
             List<object> promisesResult = new List<object>(await Task.WhenAll(promises));
@@ -2420,7 +2420,7 @@ public partial class coinbase : Exchange
             string marketId = ((baseId + delimiter) + quoteId);
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = this.safeString(market, "symbol", "");
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker((baseId != null && rates.ContainsKey(baseId) ? rates[baseId] : null), market));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(rates, baseId, new Dictionary<string, object>() {}), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -4260,7 +4260,7 @@ public partial class coinbase : Exchange
         return this.parseOrders(orders, market, since, limitVar);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5873,15 +5873,15 @@ public partial class coinbase : Exchange
         return (this.secret.Length == 88) || (this.safeBool(this.options, "v2CloudAPiKey", false) == true) || this.secret.EndsWith("=");
     }
 
-    public virtual string? createAuthToken(Int64 seconds, object url, string? method = null, bool? useEddsa = null)
+    public virtual string? createAuthToken(Int64 seconds, string url, string? method = null, bool? useEddsa = null)
     {
         // v1 https://docs.cdp.coinbase.com/api-reference/authentication#php-2
         // v2  https://docs.cdp.coinbase.com/api-reference/v2/authentication
         useEddsa ??= false;
         string? uri = null;
-        if ((!(url is "")) && ((method != null)))
+        if (((url != "")) && ((method != null)))
         {
-            string fullUri = ((method + " ") + ((string)url).Replace("https://", (string)""));
+            string fullUri = ((method + " ") + url.Replace("https://", (string)""));
             int quesPos = fullUri.IndexOf("?", StringComparison.Ordinal);
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.

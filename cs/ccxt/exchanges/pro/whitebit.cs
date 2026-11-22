@@ -855,7 +855,7 @@ public partial class whitebit : ccxt.whitebit
 
     public virtual void setBalanceCache(WebSocketClient client, string? type, string subscriptionHash)
     {
-        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
+        if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -975,7 +975,7 @@ public partial class whitebit : ccxt.whitebit
         client.resolve(this.balance, messageHash);
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, object method, object reqParams = null, object parameters = null)
+    public async virtual Task<object> watchPublic(string messageHash, string method, object reqParams = null, object parameters = null)
     {
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -990,7 +990,7 @@ public partial class whitebit : ccxt.whitebit
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchMultipleSubscription(object messageHash, object method, object symbol, bool? isNested = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> watchMultipleSubscription(string messageHash, string method, object symbol, bool? isNested = null, IDictionary<string, object> parameters = null)
     {
         isNested ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -1057,16 +1057,16 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if ((client.subscriptions != null && method is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(method)))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(method);
                 }
                 return await this.watch(url, messageHash, resubRequest, method, subscription);
             }
         }
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, object method, IList<object>? reqParams = null, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, object method, IList<object>? reqParams = null, object parameters = null)
     {
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();

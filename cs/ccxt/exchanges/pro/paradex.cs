@@ -236,7 +236,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {boolean} true once the reply is in
      */
-    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, IDictionary<string, object> request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> sendUnsubscribe(object url, string unsubHash, IDictionary<string, object> request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         // an error reply rejects the unwatch only, the watchers keep their subscription
         parameters ??= new Dictionary<string, object>();
@@ -296,7 +296,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? refused = 0;
@@ -330,7 +330,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, IList<object> channels, IList<object> subMessageHashes, object symbols, Int64 index, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelAt(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, Int64 index, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? channel = ((string)(channels != null && index < channels.Count ? channels[(int)index] : null));
@@ -340,7 +340,7 @@ public partial class paradex : ccxt.paradex
         if ((symbol != null))
         {
             channelSymbols.Add(symbol);
-            if ((topic is "trades"))
+            if ((topic == "trades"))
             {
                 // the liquidations of a market come from its trades channel
                 hashes.Add(("liquidations:" + symbol));
@@ -2347,7 +2347,7 @@ public partial class paradex : ccxt.paradex
             Int64? next = (position + 2);
             int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
             int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
-            result = this.parseToInt(this.sum(result, ((high * 16L) * factor), (low * factor)));
+            result = this.parseToInt(this.sum(result, ((high * factor) * 16), (low * factor)));
             factor = this.parseToInt((factor * 256));
             position = this.parseToInt(next);
         }
@@ -2355,7 +2355,7 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(result);
     }
 
-    public virtual string? sbeReadInt64(object frameHex, object offset)
+    public virtual string? sbeReadInt64(string frameHex, object offset)
     {
         // a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
         Int64? low = this.parseToInt(this.sbeReadUint(frameHex, offset, 4));
@@ -2376,7 +2376,7 @@ public partial class paradex : ccxt.paradex
         return result;
     }
 
-    public virtual string? sbeReadDecimal(object frameHex, object offset)
+    public virtual string? sbeReadDecimal(string frameHex, object offset)
     {
         // prices, sizes and rates are int64 mantissas with a fixed exponent of -8
         string? mantissa = this.sbeReadInt64(frameHex, offset);
@@ -2387,7 +2387,7 @@ public partial class paradex : ccxt.paradex
         return ((string?)((object)(Precise.stringDiv(mantissa, "100000000", 8))));
     }
 
-    public virtual object sbeReadTimestamp(object frameHex, Int64 offset)
+    public virtual object sbeReadTimestamp(string frameHex, Int64 offset)
     {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
@@ -2399,13 +2399,13 @@ public partial class paradex : ccxt.paradex
         return this.parseToInt(Precise.stringDiv(microseconds, "1000", 0));
     }
 
-    public virtual string? sbeReadEnum(object frameHex, Int64 offset, IDictionary<string, object> values)
+    public virtual string? sbeReadEnum(string frameHex, Int64 offset, IDictionary<string, object> values)
     {
         Int64? value = this.parseToInt(this.sbeReadUint(frameHex, offset, 1));
         return this.safeString(values, this.numberToString(value));
     }
 
-    public virtual string? sbeReadString(object frameHex, object offset, Int64? length)
+    public virtual string? sbeReadString(string frameHex, object offset, Int64? length)
     {
         Int64? first = this.parseToInt(offset);
         Int64? size = this.parseToInt(length);
@@ -2414,7 +2414,7 @@ public partial class paradex : ccxt.paradex
         return ((string?)((object)(this.binaryToString(this.base16ToBinary(slice(frameHex, start, end))))));
     }
 
-    public virtual string? sbeReadAddress(object frameHex, Int64 offset)
+    public virtual string? sbeReadAddress(string frameHex, Int64 offset)
     {
         // a 32-byte big-endian account address, printed without leading zeros like the JSON feed
         Int64? first = this.parseToInt(offset);
@@ -2434,7 +2434,7 @@ public partial class paradex : ccxt.paradex
         return ("0x" + ((raw == null) ? null : raw.Substring(Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), Math.Max(Math.Min(64, raw.Length) - Math.Max(Math.Min((start < 0 ? raw.Length + (start) : start), raw.Length), 0), 0))));
     }
 
-    public virtual List<object> sbeReadVarStrings(object frameHex, object offset, Int64 count, object frameLength)
+    public virtual List<object> sbeReadVarStrings(string frameHex, object offset, Int64 count, object frameLength)
     {
         // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
@@ -2462,7 +2462,7 @@ public partial class paradex : ccxt.paradex
         return result;
     }
 
-    public virtual Dictionary<string, object> parseSbeTrade(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeTrade(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2504,7 +2504,7 @@ public partial class paradex : ccxt.paradex
         })));
     }
 
-    public virtual object parseSbeBbo(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual object parseSbeBbo(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2534,7 +2534,7 @@ public partial class paradex : ccxt.paradex
         };
     }
 
-    public virtual Dictionary<string, object> parseSbeOrderBook(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeOrderBook(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2606,7 +2606,7 @@ public partial class paradex : ccxt.paradex
         return result;
     }
 
-    public virtual Dictionary<string, object> parseSbeMarketSummary(WebSocketClient client, object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeMarketSummary(WebSocketClient client, string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2657,7 +2657,7 @@ public partial class paradex : ccxt.paradex
         })));
     }
 
-    public virtual Dictionary<string, object> parseSbeFundingData(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeFundingData(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2687,7 +2687,7 @@ public partial class paradex : ccxt.paradex
         })));
     }
 
-    public virtual Dictionary<string, object> parseSbeOrder(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeOrder(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2773,7 +2773,7 @@ public partial class paradex : ccxt.paradex
         return order;
     }
 
-    public virtual List<object> sbeReadFlags(object frameHex, Int64 offset, IList<object> names)
+    public virtual List<object> sbeReadFlags(string frameHex, Int64 offset, IList<object> names)
     {
         // a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
         List<object> flags = new List<object>() {};
@@ -2791,7 +2791,7 @@ public partial class paradex : ccxt.paradex
         return flags;
     }
 
-    public virtual Dictionary<string, object> parseSbeFill(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeFill(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2855,7 +2855,7 @@ public partial class paradex : ccxt.paradex
         return fill;
     }
 
-    public virtual Dictionary<string, object> parseSbePosition(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbePosition(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //
@@ -2916,7 +2916,7 @@ public partial class paradex : ccxt.paradex
         })));
     }
 
-    public virtual Dictionary<string, object> parseSbeAccount(object frameHex, Int64? blockLength, Int64? frameLength)
+    public virtual Dictionary<string, object> parseSbeAccount(string frameHex, Int64? blockLength, Int64? frameLength)
     {
         Int64? blockSize = this.parseToInt(blockLength);
         //

@@ -819,8 +819,7 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawTrade = this.safeDict(lists, i, new Dictionary<string, object>() {});
-            ccxt.Trade parsed = this.parseWsTrade(rawTrade);
+            ccxt.Trade parsed = this.parseWsTrade(this.safeDict(lists, i, new Dictionary<string, object>() {}));
             string? symbol = parsed.symbol;
             symbols[(string)symbol] = true;
             trades.append(ccxt.BaseExchange.FromTrade(parsed));
@@ -963,8 +962,7 @@ public partial class apex : ccxt.apex
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < (lists?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawPosition = this.safeDict(lists, i, new Dictionary<string, object>() {});
-            Dictionary<string, object> position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(lists, i, new Dictionary<string, object>() {}));
             string? side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

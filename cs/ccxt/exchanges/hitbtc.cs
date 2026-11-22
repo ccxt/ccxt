@@ -1612,7 +1612,7 @@ public partial class hitbtc : Exchange
         }, marketResolved);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string? types, string? code, object since = null, object limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(string types, string? code, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1736,8 +1736,7 @@ public partial class hitbtc : Exchange
         string? addressTo = address;
         string? tag = this.safeString(native, "payment_id");
         string? tagTo = tag;
-        List<object> sender = this.safeList(native, "senders");
-        string? addressFrom = this.safeString(sender, 0);
+        string? addressFrom = this.safeString(this.safeList(native, "senders", new List<object>() {}), 0);
         double? amount = this.safeNumber(native, "amount");
         string? subType = this.safeString(transaction, "subtype");
         bool intern = subType == "OFFCHAIN";
@@ -2294,8 +2293,7 @@ public partial class hitbtc : Exchange
         //       }
         //     ]
         //
-        IDictionary<string, object> order = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.safeDict(response, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -3823,7 +3821,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string type, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -697,10 +697,9 @@ public partial class indodax : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object rawTicker = (key != null && tickers.ContainsKey(key) ? tickers[key] : null);
             string marketId = key.Replace("_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            ccxt.Ticker parsed = this.parseTicker(rawTicker, market);
+            ccxt.Ticker parsed = this.parseTicker(this.safeDict(tickers, key, new Dictionary<string, object>() {}), market);
             parsedTickers[(string)marketId] = ccxt.BaseExchange.FromTicker(parsed);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(parsedTickers, "symbol", symbols));

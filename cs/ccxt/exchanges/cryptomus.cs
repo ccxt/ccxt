@@ -988,7 +988,7 @@ public partial class cryptomus : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(result[i], market)));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.safeDict(result, i, new Dictionary<string, object>() {}), market)));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }

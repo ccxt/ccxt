@@ -915,7 +915,7 @@ public partial class bitget : ccxt.bitget
         return await this.unWatchChannel(symbol, channel, "orderbook", "watchOrderBook", paramsOmitted);
     }
 
-    public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, string methodName, object parameters = null)
+    public async virtual Task<object> unWatchChannel(object symbol, string channel, string messageHashTopic, string methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -948,7 +948,7 @@ public partial class bitget : ccxt.bitget
         {
             args["topic"] = channel;
             args["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            if ((channel is "kline"))
+            if ((channel == "kline"))
             {
                 args["interval"] = this.safeString(paramsInstType, "interval", "1m");
             }
@@ -3010,7 +3010,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> unWatchPublic(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
+    public async virtual Task<object> unWatchPublic(object uta, string messageHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);
@@ -3120,7 +3120,7 @@ public partial class bitget : ccxt.bitget
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object uta, object messageHash, object subscriptionHash, IDictionary<string, object> args, object parameters = null)
+    public async virtual Task<object> watchPrivate(object uta, string messageHash, string subscriptionHash, IDictionary<string, object> args, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPrivate") ? this.urlsApiSections["ws"]["utaPrivate"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null);

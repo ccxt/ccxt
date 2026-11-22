@@ -2333,7 +2333,7 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int i = 0; i < rawOrders.Count; i++)
         {
-            ccxt.Order parsed = this.parseOrder(rawOrders[i]);
+            ccxt.Order parsed = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

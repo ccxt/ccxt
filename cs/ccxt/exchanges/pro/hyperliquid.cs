@@ -1921,7 +1921,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} subHash the subscription hash the watch call is about to register
      * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
      */
-    public async virtual Task<object> waitForPendingUnsubscribe(object url, object subHash)
+    public async virtual Task<object> waitForPendingUnsubscribe(object url, string subHash)
     {
         if ((this.clients != null && url != null && this.clients.ContainsKey((string)url)))
         {

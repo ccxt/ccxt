@@ -209,7 +209,7 @@ public partial class opinion : PredictionExchange
         List<object> eventsList = new List<object>() {};
         // every raw (unflattened) row fetched so far, so its length is the raw fetched count
         List<object> fetchedRawRows = new List<object>() {};
-        for (int page = 1; page <= maxPages; page++)
+        for (int page = 1; page <= maxPages.GetValueOrDefault(); page++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "marketType", 2 },
@@ -251,7 +251,7 @@ public partial class opinion : PredictionExchange
             }
             int collectedLength = (flatMarkets?.Count ?? 0);
             int fetchedRawCount = (fetchedRawRows?.Count ?? 0);
-            if ((rawMarketsLength < pageLimit) || (page >= maxPages.GetValueOrDefault()) || (((total != null)) && (fetchedRawCount >= total.Value)) || (((userLimit != null)) && (collectedLength >= userLimit.Value)))
+            if ((rawMarketsLength < pageLimit.GetValueOrDefault()) || (page >= maxPages.GetValueOrDefault()) || (((total != null)) && (fetchedRawCount >= total.Value)) || (((userLimit != null)) && (collectedLength >= userLimit.Value)))
             {
                 break;
             }
@@ -486,7 +486,7 @@ public partial class opinion : PredictionExchange
         Int64? fetchCap = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchEventsResults", 100));
         Int64? maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
         List<object> rawEvents = new List<object>() {};
-        for (int page = 1; page <= maxPages; page++)
+        for (int page = 1; page <= maxPages.GetValueOrDefault(); page++)
         {
             int fetchedSoFar = (rawEvents?.Count ?? 0);
             Int64? remaining = this.parseToInt((fetchCap - fetchedSoFar));
@@ -1500,20 +1500,31 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(result, "list", new List<object>() {});
         int tradesLength = trades.Count;
+        List<object> filled = new List<object>() {};
         for (int i = 0; i < tradesLength; i++)
         {
-            IDictionary<string, object> trade = ((IDictionary<string, object>)(trades != null && i < trades.Count ? trades[i] : null));
-            string? tokenId = this.safeString(trade, "tokenId");
-            Int64? marketId = this.safeInteger(trade, "marketId");
+            string? tokenId = this.safeString((trades != null && i < trades.Count ? trades[i] : null), "tokenId");
+            Int64? marketId = this.safeInteger((trades != null && i < trades.Count ? trades[i] : null), "marketId");
             if (((tokenId == null)) && ((marketId != null)))
             {
                 object tradeMarket = await this.loadTradeMarket(marketId);
                 IDictionary<string, object> info = this.safeDict(tradeMarket, "info", new Dictionary<string, object>() {});
-                bool isYes = ((this.safeStringLower(trade, "outcomeSideEnum") == "yes"));
-                trade["tokenId"] = isYes ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
+                bool isYes = ((this.safeStringLower((trades != null && i < trades.Count ? trades[i] : null), "outcomeSideEnum") == "yes"));
+                Dictionary<string, object> extra = new Dictionary<string, object>() {};
+                if (isYes)
+                {
+                    extra["tokenId"] = this.safeString(info, "yesTokenId");
+                } else
+                {
+                    extra["tokenId"] = this.safeString(info, "noTokenId");
+                }
+                filled.Add(this.extend((trades != null && i < trades.Count ? trades[i] : null), extra));
+            } else
+            {
+                filled.Add((trades != null && i < trades.Count ? trades[i] : null));
             }
         }
-        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(filled, outcomeObj, since, limit));
     }
 
     /**

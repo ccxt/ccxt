@@ -115,7 +115,7 @@ public partial class bitfinex : ccxt.bitfinex
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash)
+    public async virtual Task<object> subscribePrivate(string messageHash)
     {
         if ((this.markets == null))
         {
@@ -1297,8 +1297,7 @@ public partial class bitfinex : ccxt.bitfinex
             }
             for (int i = 0; i < data.Count; i++)
             {
-                object value = data[i];
-                ccxt.Order parsed = this.parseWsOrder(value);
+                ccxt.Order parsed = this.parseWsOrder(data[i]);
                 string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "");
                 symbolIds[(string)symbol] = true;
                 orders.append(ccxt.BaseExchange.FromOrder(parsed));

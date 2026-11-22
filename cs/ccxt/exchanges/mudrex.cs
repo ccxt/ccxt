@@ -1153,7 +1153,7 @@ public partial class mudrex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(rows[i], market)));
+            orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.safeDict(rows, i, new Dictionary<string, object>() {}), market)));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1237,10 +1237,9 @@ public partial class mudrex : Exchange
         List<object> outPos = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            IDictionary<string, object> p = ((IDictionary<string, object>)rows[i]);
-            string? symRaw = this.safeString(p, "symbol");
+            string? symRaw = this.safeString((rows != null && i < rows.Count ? rows[i] : null), "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
-            Dictionary<string, object> pos = this.parsePosition(p, m);
+            Dictionary<string, object> pos = this.parsePosition(this.safeDict(rows, i, new Dictionary<string, object>() {}), m);
             outPos.Add(pos);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols));

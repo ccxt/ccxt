@@ -2987,7 +2987,7 @@ public partial class toobit : Exchange
         return await this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Transaction>> FetchDepositsOrWithdrawalsHelper(string? type, string? code, object since, object limit, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> FetchDepositsOrWithdrawalsHelper(string type, string? code, object since, object limit, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

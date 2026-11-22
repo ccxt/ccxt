@@ -1793,7 +1793,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
         for (int i = 0; i < result.Count; i++)
         {
-            ccxt.Ticker ticker = this.parseTicker(result[i]);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(result, i, new Dictionary<string, object>() {}));
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {
@@ -2023,7 +2023,11 @@ public partial class deribit : Exchange
             request["count"] = Math.Min(limit.Value, 1000); // default 10
         }
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
-        IDictionary<string, object> paramsOmitted = ((until != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {});
+        if ((until != null))
+        {
+            paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        }
         if ((until != null))
         {
             request["end_timestamp"] = until;
@@ -2689,7 +2693,7 @@ public partial class deribit : Exchange
         }
         string? trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
         bool isTrailingAmountOrder = (trailingAmount != null);
-        IDictionary<string, object> paramsOmitted = parameters;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {});
         if (isTrailingAmountOrder)
         {
             paramsOmitted = this.omit(paramsOmitted, "trigger_offset");

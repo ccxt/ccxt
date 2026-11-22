@@ -1580,7 +1580,7 @@ public partial class derive : Exchange
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         List<Dictionary<string, object>> parsed = this.parseSettlements(settlements, market);
         List<Dictionary<string, object>> sorted = this.sortBy(parsed, "timestamp");
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
 
@@ -2909,7 +2909,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(data, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (page.Value > currentPage.GetValueOrDefault())
+            if (page > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToOrderList(new List<object>() {});
             }
@@ -3443,7 +3443,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (page.Value > currentPage.GetValueOrDefault())
+            if (page > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToTradeList(new List<object>() {});
             }
@@ -3697,7 +3697,7 @@ public partial class derive : Exchange
         {
             IDictionary<string, object> pagination = this.safeDict(result, "pagination");
             Int64? currentPage = this.safeInteger(pagination, "num_pages", 0);
-            if (page.Value > currentPage.GetValueOrDefault())
+            if (page > currentPage.GetValueOrDefault())
             {
                 return ccxt.BaseExchange.ToFundingHistoryList(new List<object>() {});
             }

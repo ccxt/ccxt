@@ -1681,7 +1681,7 @@ public partial class polymarket : PredictionExchange
         // `since` anchor (oldest chunk first, consistent with since/limit paging),
         // or the most recent window when no `since` was given
         Int64? maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
-        if (isGreaterThan(((endS - startS)), maxWindow))
+        if ((endS - startS) > maxWindow.GetValueOrDefault())
         {
             if ((since != null))
             {

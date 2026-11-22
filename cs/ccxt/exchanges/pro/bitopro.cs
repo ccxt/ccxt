@@ -45,7 +45,7 @@ public partial class bitopro : ccxt.bitopro
         });
     }
 
-    public async virtual Task<object> watchPublic(string path, string? messageHash, object marketId)
+    public async virtual Task<object> watchPublic(string path, string messageHash, object marketId)
     {
         string? wsUrl = this.safeString((this.urls != null && this.urls.ContainsKey("ws") ? this.urls["ws"] : null), "public");
         if ((wsUrl == null))

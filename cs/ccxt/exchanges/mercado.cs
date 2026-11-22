@@ -660,14 +660,15 @@ public partial class mercado : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? precisionSymbol = this.safeString(market, "symbol", "");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin_pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         if ((type == "limit"))
         {
-            request["limit_price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
-            request["quantity"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+            request["limit_price"] = this.priceToPrecision(precisionSymbol, price);
+            request["quantity"] = this.amountToPrecision(precisionSymbol, amount);
             if ((side == "buy"))
             {
                 response = await this.privatePostPlaceBuyOrder(this.extend(request, parameters));
@@ -685,11 +686,11 @@ public partial class mercado : Exchange
                 }
                 string? amountString = this.numberToString(amount);
                 string? priceString = this.numberToString(price);
-                request["cost"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), this.parseToNumeric(Precise.stringMul(amountString, priceString)));
+                request["cost"] = this.priceToPrecision(precisionSymbol, this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters));
             } else
             {
-                request["quantity"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+                request["quantity"] = this.amountToPrecision(precisionSymbol, amount);
                 response = await this.privatePostPlaceMarketSellOrder(this.extend(request, parameters));
             }
         }

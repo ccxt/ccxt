@@ -96,8 +96,8 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             string gatewayUrl = this.safeString(this.options, "gatewayUrl");
             string replacedUrl = wsUrl.Replace("wss://", (string)"https://");
-            object restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
-            url = ((string)restUrl).Replace("https://", (string)"wss://");
+            string? restUrl = this.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl);
+            url = restUrl.Replace("https://", (string)"wss://");
             url = url.Replace("http://", (string)"ws://");
         } else
         {
@@ -823,7 +823,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      */
     public virtual void ibkrUpdateOHLCVs(WebSocketClient client, string symbol, object delta)
     {
-        string? lastString = ((string)this.ibkrParseValue(this.safeString(delta, "31")));
+        string? lastString = this.ibkrParseValue(this.safeString(delta, "31"));
         if ((lastString == null))
         {
             return;
@@ -834,7 +834,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
             return;
         }
         double? price = this.parseNumber(lastString);
-        string? sizeString = ((string)this.ibkrParseValue(this.safeString(delta, "7059")));
+        string? sizeString = this.ibkrParseValue(this.safeString(delta, "7059"));
         object size = 0;
         if ((sizeString != null))
         {
@@ -1030,13 +1030,13 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 List<object> priceWords = pricePart.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
                 rawPrice = String.Join("", priceWords.ToArray());
             }
-            string? price = ((string)this.ibkrParseValue(rawPrice));
+            string? price = this.ibkrParseValue(rawPrice);
             if ((price == null))
             {
                 continue;
             }
-            string? bid = ((string)this.ibkrParseValue(this.safeString(row, "bid")));
-            string? ask = ((string)this.ibkrParseValue(this.safeString(row, "ask")));
+            string? bid = this.ibkrParseValue(this.safeString(row, "bid"));
+            string? ask = this.ibkrParseValue(this.safeString(row, "ask"));
             if ((bid != null))
             {
                 bids.Add(new List<object>() {price, bid});

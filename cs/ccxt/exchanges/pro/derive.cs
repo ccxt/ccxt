@@ -58,7 +58,7 @@ public partial class derive : ccxt.derive
         return newValue;
     }
 
-    public async virtual Task<object> watchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<T> watchPublic<T>(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId(url);
@@ -69,7 +69,7 @@ public partial class derive : ccxt.derive
             { "id", requestId },
             { "method", "subscribe" },
         });
-        return await this.watch(url, messageHash, request, messageHash, subscriptionExtended);
+        return await this.watch<T>(url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -105,7 +105,7 @@ public partial class derive : ccxt.derive
             { "limit", limitResolved },
             { "params", parameters },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, request, subscription));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic<object>(topic, request, subscription));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -176,7 +176,7 @@ public partial class derive : ccxt.derive
             { "symbol", symbol },
             { "params", parameters },
         };
-        return ccxt.BaseExchange.ToTicker(await this.watchPublic(topic, request, subscription));
+        return ccxt.BaseExchange.ToTicker(await this.watchPublic<object>(topic, request, subscription));
     }
 
     /**
@@ -393,7 +393,7 @@ public partial class derive : ccxt.derive
         return await this.unWatchPublic(messageHah, request, subscription);
     }
 
-    public async virtual Task<object> unWatchPublic(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<object> unWatchPublic(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Int64 requestId = this.requestId(url);
@@ -543,13 +543,13 @@ public partial class derive : ccxt.derive
             { "symbol", symbol },
             { "params", parameters },
         };
-        object trades = await this.watchPublic(topic, request, subscription);
+        ccxt.pro.ArrayCache trades = await this.watchPublic<ccxt.pro.ArrayCache>(topic, request, subscription);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
+            limitResolved = ((Int64?)trades.getLimit((market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.toArray(trades), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -615,7 +615,7 @@ public partial class derive : ccxt.derive
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<object> watchPrivate(object messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
+    public async virtual Task<object> watchPrivate(string messageHash, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         await this.authenticate();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -1058,7 +1058,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, subaccountIdKey)), symbolsResolved, since, limit, true));
     }
 
-    public virtual IDictionary<string, object> handlePositionDelta(object subaccountIdKey, object entry)
+    public virtual IDictionary<string, object> handlePositionDelta(string subaccountIdKey, object entry)
     {
         string? marketId = this.safeString(entry, "name");
         Dictionary<string, object> market = this.safeMarket(marketId);

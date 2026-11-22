@@ -2231,7 +2231,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public async virtual Task<string?> authenticate(object subscriptionHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<string?> authenticate(string subscriptionHash, IDictionary<string, object>? parameters = null)
     {
         // we only need one listenKey since ccxt shares connections
         parameters ??= new Dictionary<string, object>();
