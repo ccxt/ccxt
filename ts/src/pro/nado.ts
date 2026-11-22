@@ -1642,7 +1642,7 @@ export default class nado extends nadoRest {
                     'bid': this.parseX18 (bid),
                     'info': bbo,
                 }, market);
-                const symbol = market['symbol'];
+                const symbol: string = this.safeString (market, 'symbol', '');
                 result[symbol] = ticker;
             }
         }
