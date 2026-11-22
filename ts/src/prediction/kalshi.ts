@@ -411,7 +411,8 @@ export default class kalshi extends Exchange {
             if (outcomeSymbol.indexOf (':') >= 0) {
                 continue;
             }
-            let baseTicker: Str = outcomeSymbol;
+            const tickerText: string = this.safeString (outcomeSymbols, i, '');
+            let baseTicker: string = tickerText;
             if (outcomeSymbol.endsWith ('-NO')) {
                 baseTicker = outcomeSymbol.slice (0, -3);
             }
