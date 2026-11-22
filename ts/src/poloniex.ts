@@ -769,11 +769,7 @@ export default class poloniex extends Exchange {
         //         ]
         //     ]
         //
-        let candles: List = [];
-        if (Array.isArray (response)) {
-            candles = response;
-        }
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     override async loadMarkets (reload = false, params: Dict = {}) {
