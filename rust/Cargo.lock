@@ -137,6 +137,7 @@ dependencies = [
  "num-traits",
  "reqwest",
  "rsa",
+ "rustls",
  "serde_json",
  "sha1",
  "sha2",

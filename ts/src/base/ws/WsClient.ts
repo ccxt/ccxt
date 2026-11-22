@@ -23,9 +23,12 @@ export default class WsClient extends Client {
 
     connectionStarted: number | undefined;
 
-    protocols: any;
+    // 'declare' - these are assigned by the Client constructor (Object.assign), a plain field
+    // declaration would reset them to undefined after super () under useDefineForClassFields
+    // semantics (e.g. when run directly via tsx/esbuild), dropping the ws headers and agent
+    declare protocols: any;
 
-    options: any;
+    declare options: any;
 
     duplex: any;
 
@@ -58,6 +61,9 @@ export default class WsClient extends Client {
             const bunOptions: any = { 'protocols': this.protocols };
             if (this.options && this.options['headers']) {
                 bunOptions['headers'] = this.options['headers'];
+            }
+            if (this.options && this.options['rejectUnauthorized'] === false) {
+                bunOptions['tls'] = { 'rejectUnauthorized': false };
             }
             this.connection = new WebSocketPlatform (this.url, bunOptions);
             this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
@@ -157,6 +163,11 @@ export default class WsClient extends Client {
         if (this.connection instanceof WebSocketPlatform) {
             if (this.disconnected === undefined) {
                 this.disconnected = Future ();
+            }
+            if (this.connection.readyState === WebSocketPlatform.CLOSED) {
+                // onClose already fired (e.g. a failed tls handshake), nothing left to wait for
+                this.disconnected.resolve (true);
+                return this.disconnected;
             }
             this.connection.close ();
         } else {

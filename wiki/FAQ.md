@@ -466,7 +466,199 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
 
-### How to use the GRVT Exchange in CCXT?
+## How to use the InteractiveBrokers in CCXT?
+
+InteractiveBrokers (IBKR) works differently from the other exchanges in CCXT: it is a broker rather than a single exchange, and you connect through the IBKR Web API. This section covers:
+
+1. [Choosing a connection method](#choosing-a-connection-method)
+2. [Connecting with OAuth 1.0](#connecting-with-oauth-10)
+3. [Connecting with the Client Portal Gateway](#connecting-with-the-client-portal-gateway)
+4. [One session per user](#one-session-per-user)
+5. [Account ids](#account-ids)
+6. [Paper trading](#paper-trading)
+7. [Symbols](#symbols)
+8. [Choosing which markets to load](#choosing-which-markets-to-load)
+9. [Examples](#examples)
+
+### Choosing a connection method
+
+There are two ways to connect, and which one you can use depends on your IBKR account:
+
+| | OAuth 1.0 | Client Portal Gateway |
+|---|---|---|
+| Who can use it | only accounts approved by IBKR for programmatic access (does not seem to be available to all retail users) | any account |
+| Credentials | api keys + `.pem` files | none, you log in to a local gateway app |
+| Maintenance | none once the keys are activated | the gateway has to be running, and may need a manual login once every 24 hours |
+
+If you can get OAuth access, use it. Otherwise use the Client Portal Gateway.
+
+### Connecting with OAuth 1.0
+
+1. Visit https://ndcdyn.interactivebrokers.com/oauth/ and try to generate credentials.
+2. If that page shows the error `Oauth1.0 is only available to institutional clients`, you first need to go through [this registration process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and email IBKR to request programmatic access. If your request is rejected, use the [Client Portal Gateway](#connecting-with-the-client-portal-gateway) instead.
+
+    ![OAuth 1.0 is only available to institutional clients error](https://i.imgur.com/vu8JXK9.png)
+
+3. Once approved, generate your api keys.
+
+    ![generating the OAuth api keys](https://i.imgur.com/pSHadxF.png)
+
+4. Wait for the keys to be activated, which might take up to 24 hours.
+5. Set the credentials:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'apiKey': '______ACCESS_TOKEN______',
+    'secret': '______ACCESS_TOKEN_SECRET______',
+    'options': {
+        'consumer_key': '______VALUE_HERE______',
+        'signaturePemPath': '______PATH_TO_FILE______',
+        'encryptionPemPath': '______PATH_TO_FILE______',
+        'dhParamPemPath': '______PATH_TO_FILE______',
+    },
+});
+```
+
+### Connecting with the Client Portal Gateway
+
+If your account is not permitted to generate OAuth credentials, you can use the `Client Portal Gateway`, a local IBKR bridge that does not need api keys.
+
+1. Get the gateway running, in one of two ways:
+    - **Docker (preferred)**: use the dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (you need [Docker](https://docs.docker.com/engine/install/) installed):
+        - Clone the repository and start the container:
+
+            ```bash
+            git clone https://github.com/ccxt/interactive-brokers-cpg-wrapper.git
+            cd interactive-brokers-cpg-wrapper
+            docker compose up -d --build
+            ```
+
+        - To use another port (e.g. when 5000 is taken, as on macOS where AirPlay Receiver uses it), change the port mapping in `docker-compose.yml` from `"5000:5000"` to e.g. `"5001:5000"` before starting it.
+    - **Manual**: download the files from https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow the instructions shown there. In this case you have to re-run the gateway manually after every device restart and similar cases, which is why the dockerized approach is preferred.
+2. Log in at https://localhost:5000
+3. Enable the gateway in CCXT:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        // if a custom port is needed, add the field below
+        // 'gatewayUrl': 'https://localhost:5000/',
+    },
+});
+```
+
+The gateway listens on port 5000 by default. If that port is already taken on your machine, you can run the gateway on any other port, then log in at that port and set `gatewayUrl` to match, e.g. `'gatewayUrl': 'https://localhost:5001/'`.
+
+Note that the gateway needs slightly more maintenance than OAuth: it might require you to log in manually once every 24 hours at https://localhost:5000
+
+### One session per user
+
+IBKR allows only one active session per user. If you log in to the IBKR website or to another IBKR app with the same user, your running CCXT session may be disconnected.
+
+To avoid this, create an additional user in Account Management and use it only for the API (this also applies when connecting through the gateway). Each user needs its own market data subscriptions.
+
+### Account ids
+
+If you have multiple sub-accounts, you need to specify the one you want to trade in, by providing its account id in the options:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'accountId': 'UXXXXX', // your account id here
+    },
+});
+```
+
+### Paper trading
+
+Paper trading is also supported, just toggle the option upon logging in.
+
+### Symbols
+
+IBKR is a broker, not a single exchange: the same ticker can be listed on many venues (`AAPL` on NASDAQ, on the Mexican exchange, as a CFD, ...) and the same coin is offered by several crypto providers. To keep every market unique, CCXT puts the **listing exchange** in the base part of the symbol, right after the IBKR ticker:
+
+```
+<ticker>.<listingExchange>/<currency>                        // spot: stocks, crypto, forex, bonds
+<ticker>.<listingExchange>/<currency>:<currency>             // swap: cfds and perp-style futures
+<ticker>.<listingExchange>/<currency>:<currency>-<YYMMDD>    // future: dated futures, with the expiry date
+```
+
+For example, the Apple stock is `AAPL.NASDAQ/USD`:
+
+| part | value | meaning |
+|------|-------|---------|
+| ticker | `AAPL` | the IBKR ticker |
+| listing exchange | `NASDAQ` | the venue the contract is listed on |
+| currency | `USD` | the currency the contract is quoted in |
+
+The market `id` is always the IBKR contract id (`conid`), e.g. `265598` for `AAPL.NASDAQ/USD`, and the raw IBKR contract is available in `market['info']`.
+
+#### Symbols by market type
+
+| market | example symbol | notes |
+|--------|----------------|-------|
+| stock | `AAPL.NASDAQ/USD`, `IBM.NYSE/USD`, `BRK.B.NYSE/USD` | a space in the IBKR ticker becomes a dot (`BRK B` -> `BRK.B`) |
+| crypto | `BTC.PAXOS/USD`, `BTC.ZEROHASH/USD` | one market per crypto provider |
+| forex | `EUR.OTC/USD` | |
+| cfd | `AAPL.IBUSCFD/USD:USD` | unified as a swap, `IBUSCFD` = US cfds, `IBCFD` = non-US cfds |
+| perp-style future | `BTC.NANO.COINDERIV/USD:USD` | Coinbase Derivatives, unified as a swap |
+| dated future | `BTC.MICRO.CME/USD:USD-261224`, `ETH.CME/USD:USD-261127` | the suffix is the expiry date (2026-12-24) |
+| bond | `US-T-4.125-270131.SMART/USD`, `US-T-270114.SMART/USD` | see the bond rules below |
+
+#### Special cases
+
+- **Futures**: the base is the underlying coin instead of the IBKR ticker (`MBT` -> `BTC`, `BIP` -> `BTC`), and the contract size goes in between as `NANO.` / `MICRO.` when the IBKR contract is a nano or micro one. For example, `BTC.MICRO.CME/USD:USD-261224` is the CME Micro Bitcoin future (0.1 BTC) expiring on 2026-12-24.
+- **Bonds**: every bond of an issuer has the same IBKR ticker (`US-T` for the US treasuries), so the coupon and the maturity date (`YYMMDD`) are added to tell them apart. `US-T-4.125-270131.SMART/USD` is the 4.125% note maturing on 2027-01-31, and a bill (no coupon) is `US-T-270114.SMART/USD`. Bonds are routed across many venues, so the exchange part is always `SMART`.
+- **Collisions**: if two contracts still end up with the same symbol, the later one gets the IBKR conid in place of the exchange (or appended to the base for bonds), e.g. `BTC.150045489/USD:USD`.
+
+#### Finding a symbol
+
+Since the exchange and the expiry are part of the symbol, the easiest way to find a symbol is to look it up in the loaded markets:
+
+```
+const symbols = exchange.symbols.filter ((symbol) => symbol.startsWith ('BTC.'));
+// [ 'BTC.PAXOS/USD', 'BTC.ZEROHASH/USD', ... ]
+```
+
+### Choosing which markets to load
+
+Which markets are loaded is configured in `options.fetchMarkets`. Loading only what you need makes `loadMarkets` much faster:
+
+```
+const exchange = new ccxt.interactivebrokers ({
+    'options': {
+        'useGateway': true,
+        'fetchMarkets': {
+            // 'crypto', 'forex', 'swap', 'future', 'cfd', 'stock' are loaded by default, 'bond' is opt-in
+            'types': [ 'stock', 'crypto', 'bond' ],
+            'exchanges': {
+                'STK': [ 'NASDAQ' ], // the stock exchanges to load, the default is NYSE
+            },
+            'cryptoSpotSymbols': [ 'BTC', 'ETH' ], // the coins to load, on every provider
+            'bondSymbols': [ 'US-T' ], // the bond issuers to load, US-T = US treasuries
+            'bondFilters': { '29': 'Notes', '27': '202701' }, // 29 = type (Bills, Notes, Bonds, ...), 27 = maturity month (YYYYMM)
+        },
+    },
+});
+await exchange.loadMarkets ();
+const ticker = await exchange.fetchTicker ('AAPL.NASDAQ/USD');
+```
+
+| option | what it controls |
+|--------|------------------|
+| `types` | the market types to load |
+| `exchanges` | the listing exchanges to load, per IBKR security type (`STK` = stocks) |
+| `cryptoSpotSymbols` | the coins to load, on every crypto provider |
+| `bondSymbols` | the bond issuers to load |
+| `bondFilters` | IBKR bond filters: `29` = type (Bills, Notes, Bonds, ...), `27` = maturity month (`YYYYMM`) |
+
+### Examples
+
+Complete examples: [stocks](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-stocks.ts), [crypto](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-crypto.ts) and [bonds](https://github.com/ccxt/ccxt/blob/master/examples/ts/ibkr-trade-bonds.ts).
+
+## How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
 
@@ -491,7 +683,7 @@ CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Extended Exchange in CCXT?
+## How to use the Extended Exchange in CCXT?
 
 Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
 
@@ -516,7 +708,7 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Apex Exchange in CCXT?
+## How to use the Apex Exchange in CCXT?
 
 An example on how to instantiate the Apex exchange:
 
@@ -533,7 +725,7 @@ exchange = ccxt.apex({
 })
 ```
 
-### How to trade stocks at Backpack?
+## How to trade stocks at Backpack?
 
 Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
 
@@ -564,7 +756,7 @@ exchange.cancel_order(order['id'], 'SPCX.US/USDC')
 
 Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
 
-### How to trade stocks at Bitget?
+## How to trade stocks at Bitget?
 
 Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
 
@@ -660,7 +852,7 @@ order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
 
 All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
 
-### How to use the Prediction Exchange Polymarket?
+## How to use the Prediction Exchange Polymarket?
 
 Polymarket requires two credentials:
 
@@ -682,7 +874,7 @@ Notes:
 - Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
 - Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
 
-### How to use the Prediction Exchange Kalshi?
+## How to use the Prediction Exchange Kalshi?
 
 Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
 
@@ -696,7 +888,7 @@ exchange = ccxt.prediction.kalshi({
 })
 ```
 
-### How to use the Prediction Exchange Hyperliquid?
+## how to use the Prediction Exchange Hyperliquid?
 
 Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
 
