@@ -1078,7 +1078,7 @@ export default class interactivebrokers extends interactivebrokersRest {
             }
             const parsed = this.parseOrder (merged);
             orders.append (parsed);
-            const orderSymbol = parsed['symbol'];
+            const orderSymbol = this.safeString (parsed, 'symbol');
             if (orderSymbol !== undefined) {
                 symbols[orderSymbol] = true;
             }
@@ -1222,7 +1222,7 @@ export default class interactivebrokers extends interactivebrokersRest {
                 }
             }
             trades.append (trade);
-            const tradeSymbol = trade['symbol'] as string;
+            const tradeSymbol = this.safeString (trade, 'symbol', '');
             symbols[tradeSymbol] = true;
         }
         const keys = Object.keys (symbols);
