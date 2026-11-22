@@ -2994,12 +2994,7 @@ export default class polymarket extends Exchange {
             return;
         }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString (this.options, 'l2ApiKey');
-        let secret: Str = undefined;
-        if (this.secret !== undefined) {
-            secret = this.secret;
-        } else {
-            secret = this.safeString (this.options, 'l2Secret');
-        }
+        const secret = (this.secret !== undefined) ? this.secret : this.safeString (this.options, 'l2Secret');
         const passphrase = (this.password !== undefined) ? this.password : this.safeString (this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
