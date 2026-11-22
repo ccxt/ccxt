@@ -2838,7 +2838,8 @@ class polymarket extends Exchange {
             $headersResolved['Content-Type'] = 'application/json';
         } else {
             if ($method === 'GET') {
-                $keys = is_array($query) ? array_keys($query) : array();
+                $queryCopy = $this->extend(array(), $query);
+                $keys = is_array($queryCopy) ? array_keys($queryCopy) : array();
                 $keysLength = count($keys);
                 if ($keysLength > 0) {
                     $url = $baseUrl . '/' . $implodedPath . '?' . $this->urlencode($query);

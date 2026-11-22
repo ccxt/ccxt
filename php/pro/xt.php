@@ -1750,12 +1750,14 @@ class xt extends \ccxt\async\xt {
     }
 
     public function handle_un_subscription(Client $client, array $subscription) {
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($j = 0; $j < count($messageHashes); $j++) {
-            $unsubHash = $messageHashes[$j];
-            $subHash = $subMessageHashes[$j];
-            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        if ($messageHashes !== null) {
+            for ($j = 0; $j < count($messageHashes); $j++) {
+                $unsubHash = $messageHashes[$j];
+                $subHash = $subMessageHashes[$j];
+                $this->clean_unsubscription($client, $subHash, $unsubHash);
+            }
         }
         $this->clean_cache($subscription);
     }

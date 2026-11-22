@@ -2139,8 +2139,9 @@ class hyperliquid extends Exchange {
         if ($vaultAddress === null) {
             $data .= '00';
         } else {
+            $vaultHex = strtolower($vaultAddress);
             $data .= '01';
-            $data .= $vaultAddress;
+            $data .= $vaultHex;
         }
         return $this->hash($this->base16_to_binary($data), 'keccak', 'binary');
     }

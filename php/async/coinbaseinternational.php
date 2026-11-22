@@ -1593,23 +1593,18 @@ class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             $summaries = $this->safe_list($result, 'summaries');
             if ($summaries !== null) {
-                return $this->parse_balance_list($summaries);
+                return $this->parse_balance_list($summaries, $summaries);
             }
-            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()));
+            // a missing summary row has no currency, so the loop skips it
+            return $this->parse_balance_list($this->safe_dict($result, 'summaries', array()), array( $this->safe_dict($result, 'summaries', array()) ));
         }
-        return $this->parse_balance_list($result);
+        return $this->parse_balance_list($result, $this->safe_list($result, 'summaries', array( $result )));
     }
 
-    public function parse_balance_list(mixed $response): array {
+    public function parse_balance_list(mixed $response, array $summaries): array {
         $result = array(
             'info' => $response,
         );
-        $summaries = array( $response );
-        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
-            $summaries = $response;
-        } elseif ($this->is_native_deribit_credentials()) {
-            $summaries = $this->safe_list($response, 'summaries', array( $response ));
-        }
         for ($i = 0; $i < count($summaries); $i++) {
             $data = $this->safe_dict($summaries, $i);
             $currencyId = $this->safe_string($data, 'currency');

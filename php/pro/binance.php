@@ -816,7 +816,7 @@ class binance extends \ccxt\async\binance {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
         } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
@@ -902,7 +902,7 @@ class binance extends \ccxt\async\binance {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         if ($this->safe_bool($firstMarket, 'option', false)) {
             $type = 'option';
         } elseif ($this->safe_bool($firstMarket, 'contract', false)) {
@@ -1316,12 +1316,14 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_un_subscription(Client $client, array $subscription) {
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($j = 0; $j < count($messageHashes); $j++) {
-            $unsubHash = $messageHashes[$j];
-            $subHash = $subMessageHashes[$j];
-            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        if ($messageHashes !== null) {
+            for ($j = 0; $j < count($messageHashes); $j++) {
+                $unsubHash = $messageHashes[$j];
+                $subHash = $subMessageHashes[$j];
+                $this->clean_unsubscription($client, $subHash, $unsubHash);
+            }
         }
         $this->clean_cache($subscription);
     }
@@ -1363,7 +1365,7 @@ class binance extends \ccxt\async\binance {
         list($name, $paramsName) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
         $paramsOmitted = $this->omit($paramsName, 'callerMethodName');
         $firstMarket = $this->market($symbolsNormalized[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         $isOption = $firstMarket['option'];
         if ($isOption === true) {
             $type = 'option';
@@ -1457,7 +1459,7 @@ class binance extends \ccxt\async\binance {
         list($name, $paramsName) = $this->handle_option_string_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
         $paramsOmitted = $this->omit($paramsName, 'callerMethodName');
         $firstMarket = $this->market($symbolsNormalized[0]);
-        $type = $firstMarket['type'];
+        $type = $this->safe_string($firstMarket, 'type', '');
         $isOption = $firstMarket['option'];
         if ($isOption === true) {
             $type = 'option';

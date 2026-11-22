@@ -1018,12 +1018,14 @@ class bitfinex extends \ccxt\async\bitfinex {
         $subMessageHash = $this->safe_string($client->subscriptions, $unSubChannel, '');
         $subscription = $this->safe_dict($client->subscriptions, 'unsubscribe:' . $subMessageHash);
         unset($client->subscriptions[$unSubChannel]);
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
-            $subHash = $subMessageHashes[$i];
-            $this->clean_unsubscription($client, $subHash, $messageHash);
+        if ($messageHashes !== null) {
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $messageHash = $messageHashes[$i];
+                $subHash = $subMessageHashes[$i];
+                $this->clean_unsubscription($client, $subHash, $messageHash);
+            }
         }
         $this->clean_cache($subscription);
         return true;

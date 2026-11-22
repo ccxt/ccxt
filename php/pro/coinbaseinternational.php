@@ -277,7 +277,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
     public function handle_balance(Client $client, array $message) {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
-        $parsed = $this->parseBalanceList($data);
+        $parsed = $this->parseBalanceList($data, array( $data ));
         $this->balance = $this->deep_extend($this->balance, $parsed);
         $client->resolve($this->balance, 'balance');
     }
@@ -2023,7 +2023,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $balance = array( 'info' => $result );
         $summariesLength = count($summaries);
         for ($i = 0; $i < $summariesLength; $i++) {
-            $balance = $this->deep_extend($balance, $this->parseBalanceList($summaries[$i]));
+            $balance = $this->deep_extend($balance, $this->parseBalanceList($summaries[$i], array( $this->safe_dict($summaries, $i, array()) )));
         }
         return $this->safe_balance($balance);
     }

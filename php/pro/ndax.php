@@ -379,7 +379,7 @@ class ndax extends \ccxt\async\ndax {
         $marketIds = is_array($updates) ? array_keys($updates) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $timeframes = is_array($updates[$marketId]) ? array_keys($updates[$marketId]) : array();
+            $timeframes = is_array($this->safe_dict($updates, $marketId, array())) ? array_keys($this->safe_dict($updates, $marketId, array())) : array();
             for ($j = 0; $j < count($timeframes); $j++) {
                 $timeframe = $timeframes[$j];
                 $messageHash = $name . ':' . $timeframe . ':' . $marketId;

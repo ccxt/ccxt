@@ -2908,8 +2908,11 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
+        $prepared = $this->prepare_request_for_deposit_address($code, $params);
+        $request = $this->safe_dict($prepared, 'request');
+        $paramsValue = $this->safe_dict($prepared, 'query');
+        $currency = $this->currency($code);
+        $networkEntry = $this->safe_dict($prepared, 'networkEntry');
         $response = $this->privatePostWalletsAddress($this->extend($request, $paramsValue));
         //
         //     {
@@ -2930,8 +2933,11 @@ class poloniex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
-        list($request, $extraParams, $currency, $networkEntry) = $this->prepare_request_for_deposit_address($code, $params);
-        $paramsValue = $extraParams;
+        $prepared = $this->prepare_request_for_deposit_address($code, $params);
+        $request = $this->safe_dict($prepared, 'request');
+        $paramsValue = $this->safe_dict($prepared, 'query');
+        $currency = $this->currency($code);
+        $networkEntry = $this->safe_dict($prepared, 'networkEntry');
         $response = $this->privateGetWalletsAddresses($this->extend($request, $paramsValue));
         //
         //     {
@@ -2946,7 +2952,7 @@ class poloniex extends Exchange {
         return $this->parse_deposit_address_special($response, $currency, $networkEntry);
     }
 
-    public function prepare_request_for_deposit_address(string $code, $params = array()): mixed {
+    public function prepare_request_for_deposit_address(string $code, $params = array()): array {
         if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' currency, you might try using unified currency-code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
@@ -2969,10 +2975,15 @@ class poloniex extends Exchange {
         $request = array(
             'currency' => $exchangeNetworkId,
         );
-        return array( $request, $query, $currency, $networkEntry );
+        return array(
+            'request' => $request,
+            'query' => $query,
+            'currency' => $currency,
+            'networkEntry' => $networkEntry,
+        );
     }
 
-    public function parse_deposit_address_special(array $response, array $currency, array $networkEntry): array {
+    public function parse_deposit_address_special(array $response, array $currency, ?array $networkEntry): array {
         $address = $this->safe_string($response, 'address');
         if ($address === null) {
             $address = $this->safe_string($response, $this->safe_string($networkEntry, 'id'));

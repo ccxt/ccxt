@@ -1328,7 +1328,7 @@ class paradex extends \ccxt\async\paradex {
             $subscribeHashes[] = $subscribeHash;
             if (!(is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
                 $missing[] = $marketId;
-                $missingHashes[] = $messageHashes[$i];
+                $missingHashes[] = $this->safe_string($messageHashes, $i, '');
             }
         }
         $missingLength = count($missing);
@@ -1433,7 +1433,8 @@ class paradex extends \ccxt\async\paradex {
         $newBidAsk = Async\await($this->subscribe_channels($url, $messageHashes, $channels, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$newBidAsk['symbol']] = $newBidAsk;
+            $bidAskSymbol = $this->safe_string($newBidAsk, 'symbol', '');
+            $result[$bidAskSymbol] = $newBidAsk;
             return $result;
         }
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);

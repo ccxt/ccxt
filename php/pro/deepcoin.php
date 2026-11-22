@@ -188,7 +188,8 @@ class deepcoin extends \ccxt\async\deepcoin {
     }
 
     private function do_watch_private(string $messageHash, $params = array()) {
-        $listenKey = Async\await($this->authenticate());
+        Async\await($this->authenticate());
+        $listenKey = $this->safe_string($this->options, 'listenKey', '');
         return Async\await($this->watch($this->safe_string($this->urls['api']['ws'], 'private', '') . '?listenKey=' . $listenKey, $messageHash, null, 'private', $params));
     }
 
@@ -1182,7 +1183,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $listenKey = Async\await($this->authenticate());
+        Async\await($this->authenticate());
+        $listenKey = $this->safe_string($this->options, 'listenKey', '');
         $symbolsNormalized = $this->market_symbols($symbols);
         $messageHash = 'positions';
         $messageHashes = array();

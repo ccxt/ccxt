@@ -2158,7 +2158,8 @@ class mexc extends \ccxt\async\mexc {
         // spot ws client - the first caller fetches the listenKey, concurrent
         // callers wait on the future and resume when the listenKey is ready,
         // otherwise the user-data subscriptions would be split across two connections
-        $client = $this->client($this->urls['api']['ws']['spot']);
+        $spotUrl = $this->urls['api']['ws']['spot'];
+        $client = $this->client($spotUrl);
         $messageHash = 'authenticate:listenKey';
         $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
         if ($isFetching) {

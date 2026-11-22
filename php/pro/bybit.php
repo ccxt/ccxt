@@ -2612,7 +2612,8 @@ class bybit extends \ccxt\async\bybit {
                 $recordedTopics = $this->safe_list($existing, 'topics', array());
                 $recordedLength = count($recordedTopics);
                 for ($j = 0; $j < $recordedLength; $j++) {
-                    $subscribedTopics[$recordedTopics[$j]] = true;
+                    $recordedTopic = $this->safe_string($recordedTopics, $j, '');
+                    $subscribedTopics[$recordedTopic] = true;
                 }
             }
             for ($i = 0; $i < $topicsLength; $i++) {
@@ -2994,13 +2995,15 @@ class bybit extends \ccxt\async\bybit {
                 if ($reqId !== $subId) {
                     continue;
                 }
-                $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+                $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-                for ($j = 0; $j < count($messageHashes); $j++) {
-                    $unsubHash = $messageHashes[$j];
-                    $subHash = $this->safe_string($subMessageHashes, $j);
-                    $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
-                    $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
+                if ($messageHashes !== null) {
+                    for ($j = 0; $j < count($messageHashes); $j++) {
+                        $unsubHash = $messageHashes[$j];
+                        $subHash = $this->safe_string($subMessageHashes, $j);
+                        $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
+                        $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
+                    }
                 }
                 $this->clean_cache($subscription);
             }

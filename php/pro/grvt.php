@@ -133,7 +133,7 @@ class grvt extends \ccxt\async\grvt {
         if ($publicOrPrivate) {
             $apiPart = 'publicMarket';
         }
-        return Async\await($this->watch_multiple($this->urls['api']['ws'][$apiPart], $messageHashes, $payload, $rawHashes));
+        return Async\await($this->watch_multiple($this->safe_string($this->urls['api']['ws'], $apiPart), $messageHashes, $payload, $rawHashes));
     }
 
     public function request_id(): int {
@@ -706,7 +706,7 @@ class grvt extends \ccxt\async\grvt {
                 ),
             );
             $this->extend_exchange_options($defaultOptions);
-            $this->client($this->urls['api']['ws']['privateTrading']);
+            $this->client($this->safe_string($this->urls['api']['ws'], 'privateTrading'));
         }
     }
 

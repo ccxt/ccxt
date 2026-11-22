@@ -1163,8 +1163,9 @@ class paradex extends Exchange {
         } else {
             $endAtRaw = $this->safe_integer($requestUntil, 'end_at', $this->milliseconds());
             $endAt = $this->parse_to_int($endAtRaw);
+            $startAt = $endAt - ($windowLength - 1);
             $requestUntil['end_at'] = $endAt;
-            $requestUntil['start_at'] = $endAt - ($windowLength - 1);
+            $requestUntil['start_at'] = $startAt;
         }
         $response = Async\await($this->publicGetMarketsKlines($this->extend($requestUntil, $paramsOmitted)));
         //
@@ -1451,7 +1452,7 @@ class paradex extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $rates = Async\await($this->fetch_funding_rates(array( $market['symbol'] ), $params));
+        $rates = Async\await($this->fetch_funding_rates(array( $this->safe_string($market, 'symbol', '') ), $params));
         $rate = $this->safe_dict($rates, $market['symbol']);
         if ($rate === null) {
             throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding rate for ' . $symbol);
@@ -2349,9 +2350,8 @@ class paradex extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->omit($request, array( 'instruction', 'client_id', 'flags', 'recv_window' ));
-        $request['order_id'] = $id;
-        $request['id'] = $id;
-        $request = Async\await($this->sign_order_request($request, true));
+        $editRequest = $this->extend($request, array( 'order_id' => $id, 'id' => $id ));
+        $request = Async\await($this->sign_order_request($editRequest, true));
         $response = Async\await($this->privatePutOrdersOrderId($request));
         //
         //     {
@@ -2976,7 +2976,7 @@ class paradex extends Exchange {
                 $matching[] = $data[$i];
             }
         }
-        $positions = $this->parse_positions($matching, array( $market['symbol'] ));
+        $positions = $this->parse_positions($matching, array( $this->safe_string($market, 'symbol', '') ));
         return $this->safe_dict($positions, 0, array());
     }
 
@@ -4215,7 +4215,7 @@ class paradex extends Exchange {
         $next = $this->safe_string($response, 'next');
         $rates = array();
         for ($i = 0; $i < count($results); $i++) {
-            $rate = $results[$i];
+            $rate = $this->extend(array(), $results[$i]);
             if ($next !== null) {
                 $rate['next'] = $next; // the cursor helper reads it from info, the last page has none
             }

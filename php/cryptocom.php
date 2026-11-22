@@ -2155,7 +2155,8 @@ class cryptocom extends Exchange {
                 return $this->safe_dict($depositAddresses, $network);
             }
         }
-        $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
+        $addressesCopy = $this->extend(array(), $depositAddresses);
+        $keys = is_array($addressesCopy) ? array_keys($addressesCopy) : array();
         return $this->safe_dict($depositAddresses, $this->safe_string($keys, 0));
     }
 
@@ -3414,7 +3415,8 @@ class cryptocom extends Exchange {
         if ((gettype($object) === 'array' && array_keys($object) === array_keys(array_keys($object)))) {
             $paramsKeys = $object;
         } else {
-            $objectKeys = is_array($object) ? array_keys($object) : array();
+            $objectDict = $this->extend(array(), $object);
+            $objectKeys = is_array($objectDict) ? array_keys($objectDict) : array();
             $paramsKeys = $this->sort($objectKeys);
         }
         for ($i = 0; $i < count(($paramsKeys)); $i++) {

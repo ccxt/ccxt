@@ -907,7 +907,7 @@ class polymarket extends Exchange {
                 $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
                 $ccxtMarketsLength = count($ccxtMarkets);
                 for ($i = 0; $i < $ccxtMarketsLength; $i++) {
-                    $mkt = $ccxtMarkets[$i];
+                    $mkt = $this->safe_dict($ccxtMarkets, $i);
                     if ($mkt === null) {
                         throw new ExchangeError($this->id . ' fetchOutcome() could not resolve mkt');
                     }
@@ -971,7 +971,7 @@ class polymarket extends Exchange {
                 $rawMarkets = ($response !== null) ? $response : array();
                 $ccxtMarkets = $this->parse_event_to_markets(array( 'markets' => $rawMarkets ));
                 for ($i = 0; $i < count($ccxtMarkets); $i++) {
-                    $mkt = $ccxtMarkets[$i];
+                    $mkt = $this->safe_dict($ccxtMarkets, $i);
                     if ($mkt === null) {
                         throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve mkt');
                     }
@@ -1320,8 +1320,11 @@ class polymarket extends Exchange {
                 $endS = ($endBound < $nowS) ? $endBound : $nowS;
             }
         } else {
-            $barCount = ($limit !== null) ? $limit : 100;
-            $startS = $this->parse_to_int($nowS - ($barCount * $fidelityMin * 60));
+            if ($limit !== null) {
+                $startS = $this->parse_to_int($nowS - ($limit * $fidelityMin * 60));
+            } else {
+                $startS = $this->parse_to_int($nowS - (100 * $fidelityMin * 60));
+            }
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -2617,7 +2620,7 @@ class polymarket extends Exchange {
                 }
             }
             for ($mi = 0; $mi < count($ccxtMarkets); $mi++) {
-                $m = $ccxtMarkets[$mi];
+                $m = $this->safe_dict($ccxtMarkets, $mi);
                 if ($m === null) {
                     throw new ExchangeError($this->id . ' fetchEvents() missing m');
                 }
@@ -3355,8 +3358,8 @@ class polymarket extends Exchange {
         }
         $url = $this->urls['api']['ws'];
         $orderbook = Async\await($this->watch($url, $messageHash, $subscribeMsg, $subscribeHash));
-        $bids = $orderbook['bids'];
-        $asks = $orderbook['asks'];
+        $bids = $this->safe_list($orderbook, 'bids', array());
+        $asks = $this->safe_list($orderbook, 'asks', array());
         $bestBid = null;
         $bestBidVolume = null;
         $bidsLength = 0;

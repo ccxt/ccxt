@@ -8970,11 +8970,19 @@ class bybit extends Exchange {
         $lastIndex = $total - 1;
         $last = $this->safe_dict($result, $lastIndex, array());
         $cursorValue = $this->safe_string($first, 'nextPageCursor');
-        $last['info'] = array(
-            'nextPageCursor' => $cursorValue,
-        );
-        $result[$lastIndex] = $last;
-        return $this->to_array($result);
+        $lastRow = $this->extend($last, array(
+            'info' => array(
+                'nextPageCursor' => $cursorValue,
+            ),
+        ));
+        $rows = array();
+        for ($i = 0; $i < $lastIndex; $i++) {
+            $rows[] = $this->safe_dict($result, $i, array());
+        }
+        if ($total > 0) {
+            $rows[] = $lastRow;
+        }
+        return $this->to_array($rows);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): array {
@@ -10168,11 +10176,9 @@ class bybit extends Exchange {
                 ));
                 $sortedQuery = $this->keysort($query);
                 $auth = $this->rawencode($sortedQuery, true);
-                $signature = null;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
                     $signature = $this->rsa($auth, $this->secret, 'sha256');
-                } else {
-                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 }
                 if ($method === 'POST') {
                     $isSpot = mb_strpos($baseUrl, 'spot') !== false;

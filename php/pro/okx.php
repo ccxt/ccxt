@@ -1275,9 +1275,8 @@ class okx extends \ccxt\async\okx {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-            $sym = $symbolAndTimeframe[0];
-            $tf = $symbolAndTimeframe[1];
+            $sym = $this->safe_string($symbolsAndTimeframes[$i], 0, '');
+            $tf = $this->safe_string($symbolsAndTimeframes[$i], 1, '');
             $marketId = $this->market_id($sym);
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
             $channel = 'candle' . $interval;
@@ -1326,9 +1325,8 @@ class okx extends \ccxt\async\okx {
         $topics = array();
         $messageHashes = array();
         for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-            $symbolAndTimeframe = $symbolsAndTimeframes[$i];
-            $sym = $symbolAndTimeframe[0];
-            $tf = $symbolAndTimeframe[1];
+            $sym = $this->safe_string($symbolsAndTimeframes[$i], 0, '');
+            $tf = $this->safe_string($symbolsAndTimeframes[$i], 1, '');
             $marketId = $this->market_id($sym);
             $interval = $this->safe_string($this->timeframes, $tf, $tf);
             $channel = 'candle' . $interval;

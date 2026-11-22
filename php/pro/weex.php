@@ -2108,12 +2108,14 @@ class weex extends \ccxt\async\weex {
         $unsubscribe = $this->safe_bool($subscription, 'unsubscribe', false);
         if ($unsubscribe) {
             $subHashIsPrefix = $this->safe_bool($subscription, 'subHashIsPrefix', false);
-            $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+            $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
             $subHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $unSubHash = $this->safe_string($messageHashes, $i);
-                $subHash = $this->safe_string($subHashes, $i);
-                $this->clean_unsubscription($client, $subHash, $unSubHash, $subHashIsPrefix);
+            if ($messageHashes !== null) {
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $unSubHash = $this->safe_string($messageHashes, $i);
+                    $subHash = $this->safe_string($subHashes, $i);
+                    $this->clean_unsubscription($client, $subHash, $unSubHash, $subHashIsPrefix);
+                }
             }
             $this->clean_cache($subscription);
         }

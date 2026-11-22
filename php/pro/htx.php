@@ -2307,12 +2307,14 @@ class htx extends \ccxt\async\htx {
     }
 
     public function handle_un_subscription(Client $client, ?array $subscription) {
-        $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+        $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-        for ($i = 0; $i < count($messageHashes); $i++) {
-            $unsubHash = $messageHashes[$i];
-            $subHash = $subMessageHashes[$i];
-            $this->clean_unsubscription($client, $subHash, $unsubHash);
+        if ($messageHashes !== null) {
+            for ($i = 0; $i < count($messageHashes); $i++) {
+                $unsubHash = $messageHashes[$i];
+                $subHash = $subMessageHashes[$i];
+                $this->clean_unsubscription($client, $subHash, $unsubHash);
+            }
         }
         $this->clean_cache($subscription);
     }

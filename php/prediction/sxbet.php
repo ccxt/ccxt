@@ -1984,7 +1984,7 @@ class sxbet extends Exchange {
         $hasApiKey = !$this->is_empty_string($this->apiKey);
         if (!$hasApiKey) {
             for ($i = 0; $i < $hashesLength; $i++) {
-                $marketHash = $hashesOrder[$i];
+                $marketHash = $this->safe_string($hashesOrder, $i, '');
                 $snapshot = Async\await($this->fetch_sxbet_book_snapshot($marketHash));
                 $rowsByHash[$marketHash] = $this->parse_sxbet_snapshot_best_odds($snapshot);
             }
@@ -2514,7 +2514,7 @@ class sxbet extends Exchange {
             $refreshed = $this->apply_sxbet_ws_snapshot($rows[$i]);
             $refreshedLength = count($refreshed);
             for ($j = 0; $j < $refreshedLength; $j++) {
-                $sym = $refreshed[$j];
+                $sym = $this->safe_string($refreshed, $j, '');
                 $client->resolve($this->safe_value($this->orderbooks, $sym), 'orderbook::' . $sym);
             }
         }
@@ -2545,7 +2545,9 @@ class sxbet extends Exchange {
         $client = $this->client($url);
         $channel = 'best_odds_v3:global';
         $hydrated = false;
-        if ($this->safe_dict($this->safe_dict($this->options, 'wsTickers', array()), $sym) === null) {
+        $cachedTickers = $this->safe_dict($this->options, 'wsTickers', array());
+        $cachedTicker = $this->safe_dict($cachedTickers, $sym);
+        if ($cachedTicker === null) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription

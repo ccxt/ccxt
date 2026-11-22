@@ -945,7 +945,8 @@ class whitebit extends Exchange {
         //
         $depositWithdrawFees = array();
         $codesValue = $this->market_codes($codes);
-        $currencyIds = is_array($response) ? array_keys($response) : array();
+        $feesById = $this->extend(array(), $response);
+        $currencyIds = is_array($feesById) ? array_keys($feesById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $entry = $currencyIds[$i];
             $splitEntry = explode(' ', $entry);
@@ -1554,7 +1555,8 @@ class whitebit extends Exchange {
             try {
                 $response = Async\await($this->v4PrivatePostTradeAccountOrderHistory($this->extend($request, $paramsOmitted)));
                 // Search for order in executed orders response (object format)
-                $marketIds = is_array($response) ? array_keys($response) : array();
+                $executedById = $this->extend(array(), $response);
+                $marketIds = is_array($executedById) ? array_keys($executedById) : array();
                 for ($i = 0; $i < count($marketIds); $i++) {
                     $marketId = $marketIds[$i];
                     $marketNew = $this->safe_market($marketId, null, '_');
@@ -1849,7 +1851,8 @@ class whitebit extends Exchange {
             return $this->parse_trades($response, $market, $since, $limit);
         } else {
             $results = array();
-            $keys = is_array($response) ? array_keys($response) : array();
+            $tradesById = $this->extend(array(), $response);
+            $keys = is_array($tradesById) ? array_keys($tradesById) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $marketId = $keys[$i];
                 $marketNew = $this->safe_market($marketId, null, '_');

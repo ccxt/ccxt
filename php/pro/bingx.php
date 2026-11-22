@@ -431,7 +431,8 @@ class bingx extends \ccxt\async\bingx {
             $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
         $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
-        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
+        list($ignoreDuplicates) = $this->handle_option_bool_and_params(array(), 'watchTrades', 'ignoreDuplicates', true);
+        if ($ignoreDuplicates) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
             return $filtered;

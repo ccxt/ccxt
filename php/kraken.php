@@ -2125,11 +2125,11 @@ class kraken extends Exchange {
         $rawTrades = $this->safe_list($orderOmitted, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
-            $rawTrade = $rawTrades[$i];
-            if (gettype($rawTrade) === 'string') {
-                $trades[] = $this->safe_trade(array( 'id' => $rawTrade, 'order' => $id, 'symbol' => $symbol, 'info' => array()));
+            $rawTradeId = $this->safe_string($rawTrades, $i);
+            if ($rawTradeId !== null) {
+                $trades[] = $this->safe_trade(array( 'id' => $rawTradeId, 'order' => $id, 'symbol' => $symbol, 'info' => array()));
             } else {
-                $trades[] = $rawTrade;
+                $trades[] = $rawTrades[$i];
             }
         }
         // as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2491,11 +2491,11 @@ class kraken extends Exchange {
             throw new ArgumentsRequired($this->id . " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)");
         } else {
             for ($i = 0; $i < count($orderTrades); $i++) {
-                $orderTrade = $orderTrades[$i];
-                if (gettype($orderTrade) === 'string') {
-                    $tradeIds[] = $orderTrade;
+                $orderTradeId = $this->safe_string($orderTrades, $i);
+                if ($orderTradeId !== null) {
+                    $tradeIds[] = $orderTradeId;
                 } else {
-                    $tradeIds[] = $this->safe_string($orderTrade, 'id');
+                    $tradeIds[] = $this->safe_string($orderTrades[$i], 'id');
                 }
             }
         }

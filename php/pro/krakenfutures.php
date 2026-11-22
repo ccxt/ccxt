@@ -1534,7 +1534,6 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         if ($this->balance === null) {
             $this->balance = array();
         }
-        $updatedBalance = null;
         if ($holding !== null) {
             $holdingKeys = is_array($holding) ? array_keys($holding) : array();                  // cashAccount
             $this->balance['cash'] = $this->safe_dict($this->balance, 'cash', array());
@@ -1555,7 +1554,6 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             }
             $this->balance['cash'] = $this->prune_stale_balance_keys($cashBalance, $holdingCodes);
             $this->balance['cash'] = $this->safe_balance($this->balance['cash']);
-            $updatedBalance = $this->balance['cash'];
         }
         if ($futures !== null) {
             $futuresKeys = is_array($futures) ? array_keys($futures) : array();                  // marginAccount
@@ -1585,9 +1583,6 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->balance['margin'] = $this->prune_stale_balance_keys($marginBalance, $futuresSymbols);
             $this->balance['margin'] = $this->safe_balance($this->balance['margin']);
             $client->resolve($this->balance['margin'], $messageHash . ':futures');
-            if ($updatedBalance === null) {
-                $updatedBalance = $this->balance['margin'];
-            }
         }
         if ($flexFutures !== null) {
             $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
@@ -1614,16 +1609,17 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $this->balance['flex'] = $this->prune_stale_balance_keys($flexBalance, $flexCodes);
             $this->balance['flex'] = $this->safe_balance($this->balance['flex']);
             $client->resolve($this->balance['flex'], $messageHash . ':flex_futures');
-            if ($updatedBalance === null) {
-                $updatedBalance = $this->balance['flex'];
-            }
         }
         // resolve the plain hash exactly once per message, with the unified
         // balance of the account the message updated (cash first, matching the
         // legacy behaviour): a second resolve on the same hash is not portable
         // (the rust client hands the consumer the LAST resolved value)
-        if ($updatedBalance !== null) {
-            $client->resolve($updatedBalance, $messageHash);
+        if ($holding !== null) {
+            $client->resolve($this->balance['cash'], $messageHash);
+        } elseif ($futures !== null) {
+            $client->resolve($this->balance['margin'], $messageHash);
+        } elseif ($flexFutures !== null) {
+            $client->resolve($this->balance['flex'], $messageHash);
         }
     }
 

@@ -1158,12 +1158,14 @@ class coinbase extends \ccxt\async\coinbase {
         $subKeysLength = count($subKeys);
         if ($isUnsub && $subKeysLength === 0) {
             $unSubObject = $this->safe_dict($this->options, 'unSubscription', array());
-            $messageHashes = $this->safe_list($unSubObject, 'messageHashes', array());
+            $messageHashes = $this->safe_string_list($unSubObject, array( 'messageHashes' ));
             $subMessageHashes = $this->safe_list($unSubObject, 'subMessageHashes', array());
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $messageHashes[$i];
-                $subHash = $subMessageHashes[$i];
-                $this->clean_unsubscription($client, $subHash, $messageHash);
+            if ($messageHashes !== null) {
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $messageHash = $messageHashes[$i];
+                    $subHash = $subMessageHashes[$i];
+                    $this->clean_unsubscription($client, $subHash, $messageHash);
+                }
             }
             $this->clean_cache($unSubObject);
         }

@@ -1206,7 +1206,8 @@ class bitstamp extends Exchange {
         // resolved in the key scan below, falling back to the passed market
         $marketResolved = $market;
         if ($market === null) {
-            $keys = is_array($trade) ? array_keys($trade) : array();
+            $tradeCopy = $this->extend(array(), $trade);
+            $keys = is_array($tradeCopy) ? array_keys($tradeCopy) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currentKey = $keys[$i];
                 if ($currentKey !== 'order_id' && mb_strpos($currentKey, '_') !== false) {
@@ -1217,7 +1218,7 @@ class bitstamp extends Exchange {
         }
         // if the market is still not defined
         // try to deduce it from used keys
-        if ($marketResolved === null) {
+        if ($this->safe_string($marketResolved, 'id') === null) {
             $marketResolved = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
@@ -1574,7 +1575,7 @@ class bitstamp extends Exchange {
         $feesList = $this->to_array($fees);
         for ($i = 0; $i < count($feesList); $i++) {
             $fee = $this->parse_trading_fee($feesList[$i]);
-            $symbol = $fee['symbol'];
+            $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;
             }
@@ -2521,7 +2522,7 @@ class bitstamp extends Exchange {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if ($market === null) {
+            if ($this->safe_string($market, 'id') === null) {
                 $market = $this->get_market_from_trade($item);
             }
             $direction = ($this->safe_string($parsedTrade, 'side') === 'buy') ? 'in' : 'out';
@@ -2972,7 +2973,8 @@ class bitstamp extends Exchange {
             if (gettype($error) === 'string') {
                 $errors[] = $error;
             } elseif ($error !== null) {
-                $keys = is_array($error) ? array_keys($error) : array();
+                $errorDict = $this->extend(array(), $error);
+                $keys = is_array($errorDict) ? array_keys($errorDict) : array();
                 for ($i = 0; $i < count($keys); $i++) {
                     $key = $keys[$i];
                     $value = $this->safe_value($error, $key);

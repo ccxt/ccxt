@@ -1235,7 +1235,8 @@ class bitget extends \ccxt\async\bitget {
             $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
         $result = $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
-        if ($this->handle_option('watchTrades', 'ignoreDuplicates', true) === true) {
+        list($ignoreDuplicates) = $this->handle_option_bool_and_params(array(), 'watchTrades', 'ignoreDuplicates', true);
+        if ($ignoreDuplicates) {
             $filtered = $this->remove_repeated_trades_from_array($result);
             $filtered = $this->sort_by($filtered, 'timestamp');
             return $filtered;
@@ -1845,7 +1846,10 @@ class bitget extends \ccxt\async\bitget {
             $instType = 'UTA';
             $channel = 'order';
         }
-        $subscriptionHash = $subscriptionHash . ':' . $instType;
+        $subscriptionHashInst = $subscriptionHash . ':';
+        if ($instType !== null) {
+            $subscriptionHashInst = $subscriptionHashInst . $instType;
+        }
         $args = array(
             'instType' => $instType,
         );
@@ -1861,7 +1865,7 @@ class bitget extends \ccxt\async\bitget {
         if (!$uta) {
             $args['instId'] = $instId;
         }
-        $orders = Async\await($this->watch_private($uta, $messageHash, $subscriptionHash, $args, $paramsRequest));
+        $orders = Async\await($this->watch_private($uta, $messageHash, $subscriptionHashInst, $args, $paramsRequest));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);

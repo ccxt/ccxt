@@ -1617,8 +1617,7 @@ class dydx extends Exchange {
         $goodTillBlockTime = null;
         $defaultOrderFlags = ($isTrigger) ? 32 : 64;
         $orderFlags = $this->safe_integer($paramsGoodTillBlockTimeInSeconds, 'orderFlags', $defaultOrderFlags);
-        $subAccountId = 0;
-        list($subAccountIdOption) = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', $subAccountId);
+        list($subAccountIdOption) = $this->handle_option_integer_and_params($paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', 0);
         if ($orderFlags !== 0 && $orderFlags !== 64 && $orderFlags !== 32) {
             throw new InvalidOrder($this->id . ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1700,8 +1699,7 @@ class dydx extends Exchange {
         if ($clientOrderIds === null) {
             throw new NotSupported($this->id . ' cancelOrders only support clientOrderIds.');
         }
-        $subAccountId = 0;
-        list($subAccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', $subAccountId);
+        list($subAccountIdOption, $paramsSubAccountId) = $this->handle_option_integer_and_params($params, 'cancelOrders', 'subAccountId', 0);
         $goodTillBlock = $this->safe_integer($paramsSubAccountId, 'goodTillBlock');
         if ($goodTillBlock === null) {
             $latestBlockHeight = $this->fetch_latest_block_height();
@@ -2162,7 +2160,8 @@ class dydx extends Exchange {
          * @param {string} [$params->tag] memo / destination $tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $tag = $this->safe_string($params, 'tag');
+        $paramsWithdrawTag = $this->omit($params, 'tag');
         if ($code !== 'USDC') {
             throw new NotSupported($this->id . ' withdraw() only support USDC');
         }

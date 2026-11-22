@@ -585,7 +585,11 @@ class kalshi extends Exchange {
             $eventParts = explode('-', $eventTicker);
             $eventPartsLength = count($eventParts);
             if ($eventPartsLength > 1) {
-                $seriesParts = $this->array_slice($eventParts, 0, $eventPartsLength - 1);
+                $seriesParts = array();
+                for ($si = 0; $si < $eventPartsLength - 1; $si++) {
+                    $seriesPart = $this->safe_string($eventParts, $si, '');
+                    $seriesParts[] = $seriesPart;
+                }
                 $seriesTicker = implode('-', $seriesParts);
             }
         }
@@ -929,7 +933,7 @@ class kalshi extends Exchange {
         //     }
         //
         $outcomeObj = $this->safe_outcome($this->safe_string($market, 'outcome'), $market);
-        $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string_upper($market, 'label', $this->safe_string_upper($market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        $outcomeLabel = ($market !== null && $market !== null) ? $this->safe_string_upper($market, 'label', $this->safe_string_upper($this->safe_dict($market, 'info'), 'outcomeLabel', 'YES')) : 'YES';
         $isNo = $outcomeLabel === 'NO';
         $timestamp = $this->parse8601($this->safe_string($raw, 'updated_time'));
         $outcome = $this->safe_string($outcomeObj, 'outcome');

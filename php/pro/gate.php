@@ -313,8 +313,8 @@ class gate extends \ccxt\async\gate {
         $channel = $messageType . '.order_cancel';
         $url = $this->get_url_by_market($market);
         Async\await($this->authenticate($url, $messageType));
-        $request['order_id'] = (string) $id;
-        $res = Async\await($this->request_private($url, $this->extend($request, $requestParams), $channel));
+        $orderRequest = $this->extend($request, array( 'order_id' => (string) $id ));
+        $res = Async\await($this->request_private($url, $this->extend($orderRequest, $requestParams), $channel));
         return $this->parse_order($res, $market);
     }
 
@@ -2297,12 +2297,14 @@ class gate extends \ccxt\async\gate {
                 if ($id !== $subId) {
                     continue;
                 }
-                $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+                $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-                for ($j = 0; $j < count($messageHashes); $j++) {
-                    $unsubHash = $messageHashes[$j];
-                    $subHash = $subMessageHashes[$j];
-                    $this->clean_unsubscription($client, $subHash, $unsubHash);
+                if ($messageHashes !== null) {
+                    for ($j = 0; $j < count($messageHashes); $j++) {
+                        $unsubHash = $messageHashes[$j];
+                        $subHash = $subMessageHashes[$j];
+                        $this->clean_unsubscription($client, $subHash, $unsubHash);
+                    }
                 }
                 $this->clean_cache($subscription);
             }
@@ -2651,11 +2653,8 @@ class gate extends \ccxt\async\gate {
             }
         }
         $idArray = array( $this->uid );
-        $payloadWithUid = ($payload === null) ? $idArray : $this->array_concat($idArray, $payload);
-        $payloadValue = $payload;
-        if ($requiresUid) {
-            $payloadValue = $payloadWithUid;
-        }
+        $noPayload = ($payload === null);
+        $payloadWithUid = $noPayload ? $idArray : $this->array_concat($idArray, $payload);
         $time = $this->seconds();
         $event = 'subscribe';
         $signaturePayload = 'channel=' . $channel . '&' . 'event=' . $event . '&' . 'time=' . (string) $time;
@@ -2673,8 +2672,10 @@ class gate extends \ccxt\async\gate {
             'event' => $event,
             'auth' => $auth,
         );
-        if ($payloadValue !== null) {
-            $request['payload'] = $payloadValue;
+        if ($requiresUid) {
+            $request['payload'] = $payloadWithUid;
+        } elseif (!$noPayload) {
+            $request['payload'] = $payload;
         }
         $client = $this->client($url);
         if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {

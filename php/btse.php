@@ -1191,7 +1191,7 @@ class btse extends Exchange {
             $entry = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($entry, 'symbol');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             if ($symbolsNormalized === null || $this->in_array($symbol, $symbolsNormalized)) {
                 $levels = $this->safe_list($entry, 'riskLimits', array());
                 $tiers = array();

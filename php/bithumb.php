@@ -1071,7 +1071,8 @@ class bithumb extends Exchange {
                     if (($this->safe_string($response, 'market') !== null) || ($this->safe_string($response, 'trade_date') !== null) || ($this->safe_string($response, 'trade_timestamp') !== null)) {
                         $tickers = array( $response );
                     } else {
-                        $ids = is_array($response) ? array_keys($response) : array();
+                        $responseDict = $this->extend(array(), $response);
+                        $ids = is_array($responseDict) ? array_keys($responseDict) : array();
                         for ($j = 0; $j < count($ids); $j++) {
                             $id = $ids[$j];
                             $ticker = $this->safe_dict($response, $id);
@@ -3298,7 +3299,8 @@ class bithumb extends Exchange {
     }
 
     public function urlencode_with_array_brackets(array $query): string {
-        $keys = is_array($query) ? array_keys($query) : array();
+        $queryCopy = $this->extend(array(), $query);
+        $keys = is_array($queryCopy) ? array_keys($queryCopy) : array();
         $result = '';
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];

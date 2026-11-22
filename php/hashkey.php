@@ -1926,7 +1926,10 @@ class hashkey extends Exchange {
             'coin' => $currency['id'],
         );
         list($networkCodeInParams, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        $networkCode = ($networkCodeInParams === null) ? $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork')) : $networkCodeInParams;
+        $networkCode = $networkCodeInParams;
+        if ($networkCode === null) {
+            $networkCode = $this->safe_string($this->safe_dict($this->options, 'defaultNetworks', array()), $code, $this->safe_string($this->options, 'defaultNetwork'));
+        }
         $request['chainType'] = $this->network_code_to_id($networkCode, $code);
         $response = $this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsNetworkCode));
         //

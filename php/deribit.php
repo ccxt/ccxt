@@ -991,7 +991,7 @@ class deribit extends Exchange {
                 } elseif (!$isComboMarket) {
                     $symbol = $base . '/' . $quote . ':' . $settle;
                     if ($option || $future) {
-                        $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                        $symbol = $symbol . ('-' . $this->yymmdd($expiry, ''));
                         if ($option) {
                             $strike = $this->safe_number($market, 'strike');
                             $optionType = $this->safe_string($market, 'option_type');

@@ -8387,13 +8387,14 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $symbol = $this->safe_string($params, 'symbol');
-        $paramsOmitted = $this->omit($params, 'symbol');
+        $paramsNoSymbol = $this->omit($params, 'symbol');
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
         $marketType = null;
-        list($marketType, $paramsOmitted) = $this->handle_market_type_and_params('fetchLedger', $market, $paramsOmitted);
+        $paramsOmitted = null;
+        list($marketType, $paramsOmitted) = $this->handle_market_type_and_params('fetchLedger', $market, $paramsNoSymbol);
         $uta = null;
         list($uta, $paramsOmitted) = Async\await($this->handle_uta_and_params($paramsOmitted, 'fetchLedger', false));
         $paginate = false;
@@ -11282,7 +11283,8 @@ class bitget extends Exchange {
         if ($since !== null) {
             $requestUntil['startTime'] = $since;
         } else {
-            $requestUntil['startTime'] = $this->milliseconds() - 7776000000;
+            $defaultStart = $this->milliseconds() - 7776000000;
+            $requestUntil['startTime'] = $defaultStart;
         }
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;

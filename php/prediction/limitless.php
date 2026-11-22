@@ -302,16 +302,11 @@ class limitless extends Exchange {
             $m = $this->parse_market($raw);
             $markets[] = $m;
             if (($eventKey !== null) && ($eventKey !== '')) {
-                if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
-                    $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
-                }
-                $eventGroup = $eventGroups[$eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                $eventGroup = $this->safe_dict($eventGroups, $eventKey, array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() ));
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;
                 $eventGroup['markets'] = $groupMarkets;
+                $eventGroups[$eventKey] = $eventGroup;
             }
         }
         $eventsDict = array();
@@ -3075,16 +3070,11 @@ class limitless extends Exchange {
             }
             $this->markets[$m['market']] = $m;
             if (($eventKey !== null) && ($eventKey !== '')) {
-                if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
-                    $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
-                }
-                $eventGroup = $eventGroups[$eventKey];
-                // push through a local and write the slice back — the go transpiler's
-                // AppendToArray reassigns only a local copy of a map-stored array, so a
-                // direct push on eventGroup['markets'] loses the element in go
+                $eventGroup = $this->safe_dict($eventGroups, $eventKey, array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() ));
                 $groupMarkets = $eventGroup['markets'];
                 $groupMarkets[] = $m;
                 $eventGroup['markets'] = $groupMarkets;
+                $eventGroups[$eventKey] = $eventGroup;
             }
         }
         $result = array();

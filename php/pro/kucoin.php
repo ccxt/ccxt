@@ -2018,19 +2018,21 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $isUnSub = $this->safe_bool($subscription, 'unsubscribe', false);
         if ($isUnSub) {
-            $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+            $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
             $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-            for ($i = 0; $i < count($messageHashes); $i++) {
-                $messageHash = $this->safe_string($messageHashes, $i);
-                $subHash = $this->safe_string($subMessageHashes, $i);
-                $this->clean_unsubscription($client, $subHash, $messageHash);
+            if ($messageHashes !== null) {
+                for ($i = 0; $i < count($messageHashes); $i++) {
+                    $messageHash = $this->safe_string($messageHashes, $i);
+                    $subHash = $this->safe_string($subMessageHashes, $i);
+                    $this->clean_unsubscription($client, $subHash, $messageHash);
+                }
             }
             $topic = $this->safe_string($subscription, 'topic');
             if ($topic === 'fundingRate') {
                 // todo: add fundingRate topic to cleanCache
                 $symbols = $this->safe_list($subscription, 'symbols', array());
                 for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
+                    $symbol = $this->safe_string($symbols, $i, '');
                     if (is_array($this->fundingRates) && array_key_exists($symbol ?? '', $this->fundingRates)) {
                         unset($this->fundingRates[$symbol]);
                     }
@@ -3085,7 +3087,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $url = Async\await($this->get_uta_url());
         $client = $this->client($url);
-        $this->set_positions_cache($client, $utaOption);
+        $this->set_positions_cache($client, $utaOption === true);
         $fetchPositionSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         $awaitPositionSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
         $cache = $this->positions;

@@ -776,11 +776,9 @@ class polymarket extends \ccxt\async\polymarket {
         //         }
         //     }
         //
-        $data = $this->safe_value($message, 'data');
+        $data = $this->safe_dict($message, 'data');
         $rows = array();
-        if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
-            $rows = $data;
-        } else {
+        if ($data !== null) {
             $rows[] = $data;
         }
         $rowsLength = count($rows);
@@ -1224,7 +1222,7 @@ class polymarket extends \ccxt\async\polymarket {
                 }
             }
             for ($i = 0; $i < count($messageHashes); $i++) {
-                $this->clean_unsubscription($client, $subMessageHashes[$i], $messageHashes[$i]);
+                $this->clean_unsubscription($client, $this->safe_string($subMessageHashes, $i), $messageHashes[$i]);
             }
         }
     }

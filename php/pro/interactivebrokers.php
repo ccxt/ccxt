@@ -331,7 +331,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $ticker = Async\await($this->ibkr_watch_market_data('ticker', $symbols, $params));
         if ($this->newUpdates) {
             $result = array();
-            $tickerSymbol = $ticker['symbol'];
+            $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
             $result[$tickerSymbol] = $ticker;
             return $result;
         }
@@ -355,7 +355,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $ticker = Async\await($this->ibkr_watch_market_data('bidask', $symbols, $params));
         if ($this->newUpdates) {
             $result = array();
-            $tickerSymbol = $ticker['symbol'];
+            $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
             $result[$tickerSymbol] = $ticker;
             return $result;
         }
@@ -542,7 +542,8 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $unifiedSymbol = $market['symbol'];
+        $unifiedSymbol = $this->safe_string($market, 'symbol', '');
+        $historyMarketId = $this->safe_string($market, 'id', '');
         $url = Async\await($this->ibkr_connect());
         $client = $this->client($url);
         $messageHash = 'ohlcv::' . $unifiedSymbol . '::' . $timeframe;
@@ -552,7 +553,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         list($marketDataRequest, $query) = $this->ibkr_market_data_request($market['id'], $params);
         Async\await($this->ibkr_subscribe($client, $messageHash, $marketDataRequest, array( 'conid' => $market['id'], 'symbol' => $unifiedSymbol, 'timeframe' => $timeframe )));
         // the history, it seeds the candles
-        $historyHash = 'smh::' . $market['id'] . '::' . $timeframe;
+        $historyHash = 'smh::' . $historyMarketId . '::' . $timeframe;
         if (!(is_array($client->subscriptions) && array_key_exists($historyHash ?? '', $client->subscriptions))) {
             if (!(is_array($this->ohlcvs) && array_key_exists($unifiedSymbol ?? '', $this->ohlcvs))) {
                 $this->ohlcvs[$unifiedSymbol] = array();
@@ -573,7 +574,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
                 // no 'format', the bars carry the "t" timestamp only with the default format
             );
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            $request = 'smh+' . $market['id'] . '+' . $this->json($this->keysort($this->extend($historyRequest, $query)));
+            $request = 'smh+' . $historyMarketId . '+' . $this->json($this->keysort($this->extend($historyRequest, $query)));
             Async\await($this->ibkr_subscribe($client, $historyHash, $request, array( 'conid' => $market['id'], 'symbol' => $unifiedSymbol, 'timeframe' => $timeframe, 'duration' => $duration )));
         }
         $ohlcv = Async\await($future);
@@ -601,10 +602,11 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
          */
         Async\await($this->load_markets());
         $market = $this->market($symbol);
-        $unifiedSymbol = $market['symbol'];
+        $unifiedSymbol = $this->safe_string($market, 'symbol', '');
+        $historyMarketId = $this->safe_string($market, 'id', '');
         $url = Async\await($this->ibkr_connect());
         $client = $this->client($url);
-        $subHashes = array( 'ohlcv::' . $unifiedSymbol . '::' . $timeframe, 'smh::' . $market['id'] . '::' . $timeframe );
+        $subHashes = array( 'ohlcv::' . $unifiedSymbol . '::' . $timeframe, 'smh::' . $historyMarketId . '::' . $timeframe );
         $subscription = array(
             'topic' => 'ohlcv',
             'symbolsAndTimeframes' => array( array( $unifiedSymbol, $timeframe ) ),
@@ -790,8 +792,16 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
             if ($candle === null) {
                 $stored->append(array( $candleTimestamp, $price, $price, $price, $price, $size ));
             } else {
-                $high = max($candle[2], $price);
-                $low = min($candle[3], $price);
+                $high = $price;
+                $prevHigh = $this->safe_number($candle, 2);
+                if (($prevHigh !== null) && ($price !== null) && ($prevHigh > $price)) {
+                    $high = $prevHigh;
+                }
+                $low = $price;
+                $prevLow = $this->safe_number($candle, 3);
+                if (($prevLow !== null) && ($price !== null) && ($price > $prevLow)) {
+                    $low = $prevLow;
+                }
                 $volume = $this->sum($candle[5], $size);
                 $stored->append(array( $candleTimestamp, $candle[1], $high, $low, $price, $volume ));
             }
@@ -1261,7 +1271,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         for ($i = 0; $i < count($args); $i++) {
             $rawTrade = $args[$i];
             $trade = $this->parse_trade($rawTrade);
-            $tradeTimestamp = $trade['timestamp'];
+            $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
             if (($threshold !== null) && ($tradeTimestamp !== null) && ($tradeTimestamp < $threshold)) {
                 continue;
             }

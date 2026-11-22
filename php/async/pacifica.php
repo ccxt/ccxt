@@ -3662,7 +3662,8 @@ class pacifica extends Exchange {
         if ($subAccountPrivateKey === null) {
             throw new ArgumentsRequired($this->id . ' createSubAccount() requires a "subAccountPrivateKey"!');
         }
-        list($timestamp, $paramsTimestamp) = $this->handle_param_integer($paramsSubAccountPrivateKey, 'timestamp', $this->milliseconds());
+        $timestamp = $this->safe_integer($paramsSubAccountPrivateKey, 'timestamp', $this->milliseconds());
+        $paramsTimestamp = $this->omit($paramsSubAccountPrivateKey, 'timestamp');
         list($expiryWindow, $paramsExpiryWindow) = $this->handle_option_integer_and_params_2($paramsTimestamp, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
         $subaccountSignatureHeader = array(
             'timestamp' => $timestamp,
@@ -3940,7 +3941,8 @@ class pacifica extends Exchange {
     public function sort_json_keys(mixed $value): mixed {
         if ($this->is_dictionary($value)) {
             $result = array();
-            $keys = is_array($value) ? array_keys($value) : array();
+            $valueCopy = $this->extend(array(), $value);
+            $keys = is_array($valueCopy) ? array_keys($valueCopy) : array();
             $sortedKeys = $this->sort($keys);
             for ($i = 0; $i < count($sortedKeys); $i++) {
                 $key = $this->safe_string($sortedKeys, $i, '');

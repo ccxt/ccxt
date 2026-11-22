@@ -2058,7 +2058,8 @@ class foxbit extends Exchange {
         $query = '';
         $signatureQuery = '';
         if ($method === 'GET') {
-            $paramKeys = is_array($paramsOmitted) ? array_keys($paramsOmitted) : array();
+            $paramsCopy = $this->extend(array(), $paramsOmitted);
+            $paramKeys = is_array($paramsCopy) ? array_keys($paramsCopy) : array();
             $paramKeysLength = count($paramKeys);
             $lastKeyIndex = $paramKeysLength - 1;
             if ($paramKeysLength > 0) {

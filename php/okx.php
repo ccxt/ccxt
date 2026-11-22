@@ -5680,7 +5680,8 @@ class okx extends Exchange {
             return $this->safe_dict($response, $codeNetwork);
         }
         // if the network is not specified, return the first address
-        $keys = is_array($response) ? array_keys($response) : array();
+        $responseDict = $this->extend(array(), $response);
+        $keys = is_array($responseDict) ? array_keys($responseDict) : array();
         $first = $this->safe_string($keys, 0, '');
         return $this->safe_dict($response, $first);
     }
@@ -6342,7 +6343,8 @@ class okx extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $entry = $symbols[$i];
                 $market = $this->market($entry);
-                $marketIds[] = $market['id'];
+                $marketId = $this->safe_string($market, 'id', '');
+                $marketIds[] = $marketId;
             }
             $marketIdsLength = count($marketIds);
             if ($marketIdsLength > 0) {

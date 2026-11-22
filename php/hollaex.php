@@ -692,7 +692,8 @@ class hollaex extends Exchange {
 
     public function parse_tickers(mixed $tickers, ?array $symbols = null, $params = array()): array {
         $result = array();
-        $keys = is_array($tickers) ? array_keys($tickers) : array();
+        $tickersDict = $this->extend(array(), $tickers);
+        $keys = is_array($tickersDict) ? array_keys($tickersDict) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $ticker = $this->safe_dict($tickers, $key, array());

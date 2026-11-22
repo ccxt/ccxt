@@ -870,7 +870,7 @@ class bitrue extends Exchange {
             $types = $this->safe_list($this->options, 'fetchMarkets', $defaultTypes);
         }
         for ($i = 0; $i < count($types); $i++) {
-            $marketType = $types[$i];
+            $marketType = $this->safe_string($types, $i, '');
             if ($marketType === 'spot') {
                 $promisesRaw[] = $this->spotV1PublicGetExchangeInfo($params);
             } elseif ($marketType === 'linear') {
@@ -1682,7 +1682,8 @@ class bitrue extends Exchange {
         //     }
         //
         $data = array();
-        $data[($market['id'])] = $response;
+        $tickerKey = $this->safe_string($market, 'id', '');
+        $data[$tickerKey] = $response;
         return $this->parse_tickers($data, $symbolsNormalized);
     }
 
@@ -1779,7 +1780,8 @@ class bitrue extends Exchange {
                 continue;
             }
             $market = $this->safe_market($marketId);
-            $tickers[($market['id'])] = $ticker;
+            $tickerKey = $this->safe_string($market, 'id', '');
+            $tickers[$tickerKey] = $ticker;
         }
         return $this->parse_tickers($tickers, $symbolsNormalized);
     }

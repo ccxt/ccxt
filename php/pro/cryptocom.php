@@ -483,7 +483,9 @@ class cryptocom extends \ccxt\async\cryptocom {
         for ($j = 0; $j < count($parsedTrades); $j++) {
             $stored->append($this->safe_dict($parsedTrades, $j));
         }
-        $channelReplaced = str_replace('.' . $marketId, '', $channel);
+        $channelName = $this->safe_string($message, 'channel', '');
+        $marketIdName = $this->safe_string($message, 'instrument_name', '');
+        $channelReplaced = str_replace('.' . $marketIdName, '', $channelName);
         $client->resolve($stored, $symbolSpecificMessageHash);
         $client->resolve($stored, $channelReplaced);
     }
@@ -1638,12 +1640,14 @@ class cryptocom extends \ccxt\async\cryptocom {
                 if ($id !== $subId) {
                     continue;
                 }
-                $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
+                $messageHashes = $this->safe_string_list($subscription, array( 'messageHashes' ));
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
-                for ($j = 0; $j < count($messageHashes); $j++) {
-                    $unsubHash = $messageHashes[$j];
-                    $subHash = $subMessageHashes[$j];
-                    $this->clean_unsubscription($client, $subHash, $unsubHash);
+                if ($messageHashes !== null) {
+                    for ($j = 0; $j < count($messageHashes); $j++) {
+                        $unsubHash = $messageHashes[$j];
+                        $subHash = $subMessageHashes[$j];
+                        $this->clean_unsubscription($client, $subHash, $unsubHash);
+                    }
                 }
                 $this->clean_cache($subscription);
             }

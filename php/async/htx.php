@@ -1592,7 +1592,8 @@ class htx extends Exchange {
         list($types, $paramsTypes) = $this->handle_option_and_params($params, 'fetchMarkets', 'types', array());
         $allMarkets = array();
         $promises = array();
-        $keys = is_array($types) ? array_keys($types) : array();
+        $typesDict = $this->extend(array(), $types);
+        $keys = is_array($typesDict) ? array_keys($typesDict) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             if ($this->safe_bool($types, $key, false)) {
@@ -3126,8 +3127,8 @@ class htx extends Exchange {
         );
         $priceType = $this->safe_string_2($paramsPaginate, 'priceType', 'price');
         $paramsOmitted = $this->omit($paramsPaginate, array( 'priceType', 'price' ));
-        list($untilParam, $paramsUntil) = $this->handle_param_integer($paramsOmitted, 'until');
-        $until = $this->safe_integer($paramsOmitted, 'until', $untilParam);
+        $until = $this->safe_integer($paramsOmitted, 'until');
+        $paramsUntil = $this->omit($paramsOmitted, 'until');
         $untilSeconds = null;
         if ($until !== null) {
             $untilSeconds = $this->parse_to_int($until / 1000);

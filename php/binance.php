@@ -7212,30 +7212,31 @@ class binance extends Exchange {
         if ($method !== 'POST') {
             return $params;
         }
+        $generated = array();
         if (($path === 'order') || ($path === 'sor/order') || ($path === 'order/cancelReplace') || ($path === 'um/order') || ($path === 'cm/order') || ($path === 'margin/order')) {
             // the eapi order endpoint takes clientOrderId instead of newClientOrderId
             $clientOrderIdKey = ($api === 'eapiPrivate') ? 'clientOrderId' : 'newClientOrderId';
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'newClientOrderId');
             if ($clientOrderId === null) {
-                $params[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                $generated[$clientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'algoOrder') || ($path === 'um/algo/order')) {
             // the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
             $clientAlgoId = $this->safe_string($params, 'clientAlgoId');
             if ($clientAlgoId === null) {
-                $params['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['clientAlgoId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'cm/conditional/order') || ($path === 'um/conditional/order')) {
             // the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
             $newClientStrategyId = $this->safe_string($params, 'newClientStrategyId');
             if ($newClientStrategyId === null) {
-                $params['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['newClientStrategyId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif ($path === 'equity/order/place') {
             // the equity order endpoint takes clientOrderId instead of newClientOrderId
             $equityClientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($equityClientOrderId === null) {
-                $params['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
+                $generated['clientOrderId'] = $this->generate_client_order_id(null, $api, $path);
             }
         } elseif (($path === 'order/oco') || ($path === 'margin/order/oco') || ($path === 'orderList/oco') || ($path === 'orderList/oto') || ($path === 'orderList/otoco') || ($path === 'orderList/opo') || ($path === 'orderList/opoco')) {
             // the order list endpoints take a listClientOrderId and one client order id per leg
@@ -7251,7 +7252,7 @@ class binance extends Exchange {
                 $currentClientOrderIdKey = $clientOrderIdKeys[$i];
                 $currentClientOrderId = $this->safe_string($params, $currentClientOrderIdKey);
                 if ($currentClientOrderId === null) {
-                    $params[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
+                    $generated[$currentClientOrderIdKey] = $this->generate_client_order_id(null, $api, $path);
                 }
             }
         } elseif ($path === 'batchOrders') {
@@ -7271,7 +7272,8 @@ class binance extends Exchange {
                 $params['batchOrders'] = $checkedBatchOrders;
             }
         }
-        return $params;
+        $withIds = $this->extend($params, $generated);
+        return $withIds;
     }
 
     public function is_conditional_order($params = array()): bool {
@@ -13428,7 +13430,8 @@ class binance extends Exchange {
                     $origclientorderidlist = $this->safe_list_2($extendedParams, 'origclientorderidlist', 'origClientOrderIdList', array());
                     $extendedParams = $this->omit($extendedParams, array( 'orderidlist', 'origclientorderidlist', 'origClientOrderIdList' ));
                     if (is_array($extendedParams) && array_key_exists('symbol' ?? '', $extendedParams)) {
-                        $extendedParams['symbol'] = $this->encode_uri_component($this->safe_string($extendedParams, 'symbol', ''));
+                        $encodedSymbol = $this->encode_uri_component($this->safe_string($extendedParams, 'symbol', ''));
+                        $extendedParams['symbol'] = $encodedSymbol;
                     }
                     $query = $this->rawencode($extendedParams);
                     $orderidlistLength = count($orderidlist);
@@ -13649,7 +13652,11 @@ class binance extends Exchange {
     }
 
     public function request(string $path, array $api = array('public'), mixed $method = 'GET', $params = array(), array $config = array()) {
-        $response = $this->fetch2($path, $api, $method, $params, $config);
+        // generate the client order ids once, so a retry inside fetch2 signs the same ids
+        $route = array( 'path' => $path, 'method' => $method );
+        $requestPath = $this->safe_string($route, 'path', '');
+        $requestMethod = $this->safe_string($route, 'method', '');
+        $response = $this->fetch2($requestPath, $api, $requestMethod, $this->handle_client_order_id($params, $api[0], $requestPath, $requestMethod), $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ($api[0] === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;

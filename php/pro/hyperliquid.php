@@ -1482,9 +1482,12 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $symbolsNormalized = $symbols;
         if ($hasSymbols) {
             $symbolsNormalized = $this->market_symbols($symbols);
-        }
-        if ($hasSymbols && ($symbolsNormalized !== null)) {
-            $messageHash .= '::' . implode(',', $symbolsNormalized);
+            $joinParts = array();
+            for ($si = 0; $si < count($symbolsNormalized); $si++) {
+                $symbolEntry = $this->safe_string($symbolsNormalized, $si, '');
+                $joinParts[] = $symbolEntry;
+            }
+            $messageHash .= '::' . implode(',', $joinParts);
         }
         $url = $this->urls['api']['ws']['public'];
         $subscription = array(

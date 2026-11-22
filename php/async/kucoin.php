@@ -1983,7 +1983,8 @@ class kucoin extends Exchange {
             $symbol = $base . '/' . $quote . ':' . $settle;
             $type = 'swap';
             if ($future) {
-                $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                $expirySuffix = '-' . $this->yymmdd($expiry, '');
+                $symbol = $symbol . $expirySuffix;
                 $type = 'future';
             }
             $inverse = $this->safe_bool($market, 'isInverse');

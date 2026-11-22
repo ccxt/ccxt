@@ -2000,11 +2000,12 @@ class phemex extends Exchange {
                 $priceString = $this->safe_string($trade, 'execPriceRp');
                 $amountString = $this->safe_string($trade, 'execQtyRq');
                 $costString = $this->safe_string($trade, 'execValueRv');
-                $feeCostString = $this->omit_zero($this->safe_string($trade, 'execFeeRv'));
+                $execFeeRv = $this->omit_zero($this->safe_string($trade, 'execFeeRv'));
                 $feeRateString = $this->safe_string($trade, 'feeRateRr');
-                if ($feeCostString !== null) {
+                if ($execFeeRv !== null) {
                     $currencyId = $this->safe_string($trade, 'currency');
                     $feeCurrencyCode = $this->safe_currency_code($currencyId);
+                    $feeCostString = $execFeeRv;
                 } else {
                     $ptFeeRv = $this->omit_zero($this->safe_string($trade, 'ptFeeRv'));
                     if ($ptFeeRv !== null) {
@@ -2036,9 +2037,10 @@ class phemex extends Exchange {
                         }
                     }
                 } else {
-                    $feeCostString = $this->safe_string($trade, 'ptFeeRv');
-                    if ($feeCostString !== null) {
+                    $ptFeeRvString = $this->safe_string($trade, 'ptFeeRv');
+                    if ($ptFeeRvString !== null) {
                         $feeCurrencyCode = 'PT';
+                        $feeCostString = $ptFeeRvString;
                     }
                 }
             }

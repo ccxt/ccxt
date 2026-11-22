@@ -2271,7 +2271,7 @@ class myriad extends Exchange {
             'linear' => null,
             'inverse' => null,
             'contractSize' => null,
-            'expiry' => ($endDate !== null && $endDate !== '') ? $this->parse8601($endDate) : null,
+            'expiry' => $this->parse8601($endDate),
             'expiryDatetime' => $endDate,
             'strike' => null,
             'optionType' => null,
@@ -2834,6 +2834,7 @@ class myriad extends Exchange {
         //
         $outcomes = $this->safe_list($response, 'outcomes', array());
         $selectedOutcome = null;
+        $outcomeSelected = false;
         for ($i = 0; $i < count($outcomes); $i++) {
             $oc = $outcomes[$i];
             $currentId = $this->safe_string($oc, 'id', $this->safe_string($oc, 'outcomeId'));
@@ -2842,8 +2843,9 @@ class myriad extends Exchange {
                 $selectedOutcome = $oc;
                 break;
             }
-            if (($selectedOutcome === null) && ($outcomeTitle !== null) && ($currentTitle === $outcomeTitle)) {
+            if ((!$outcomeSelected) && ($outcomeTitle !== null) && ($currentTitle === $outcomeTitle)) {
                 $selectedOutcome = $oc;
+                $outcomeSelected = true;
             }
         }
         // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments

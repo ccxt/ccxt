@@ -965,11 +965,11 @@ class bit2me extends Exchange {
         } else {
             // the endpoint returns the oldest candles first, so request a window that covers `limit` candles
             $duration = $this->parse_timeframe($timeframe) * 1000;
-            $end = $this->milliseconds();
             if ($until !== null) {
-                $end = $until;
+                $request['startTime'] = $until - $requestLimit * $duration;
+            } else {
+                $request['startTime'] = $this->milliseconds() - $requestLimit * $duration;
             }
-            $request['startTime'] = $end - $requestLimit * $duration;
         }
         if ($until !== null) {
             $request['endTime'] = $until;
@@ -1409,9 +1409,12 @@ class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if (($since !== null) || ($until !== null)) {
             $start = ($since !== null) ? $since : 0;
-            $end = ($until !== null) ? $until : $this->milliseconds();
             $request['startTime'] = $this->iso8601($start);
-            $request['endTime'] = $this->iso8601($end);
+            if ($until !== null) {
+                $request['endTime'] = $this->iso8601($until);
+            } else {
+                $request['endTime'] = $this->iso8601($this->milliseconds());
+            }
         }
         $response = Async\await($this->privateGetV1TradingOrder($this->extend($request, $query)));
         //
@@ -1653,9 +1656,12 @@ class bit2me extends Exchange {
         // startTime and endTime must always be sent together
         if (($since !== null) || ($until !== null)) {
             $start = ($since !== null) ? $since : 0;
-            $end = ($until !== null) ? $until : $this->milliseconds();
             $request['startTime'] = $this->iso8601($start);
-            $request['endTime'] = $this->iso8601($end);
+            if ($until !== null) {
+                $request['endTime'] = $this->iso8601($until);
+            } else {
+                $request['endTime'] = $this->iso8601($this->milliseconds());
+            }
         }
         $response = Async\await($this->privateGetV1TradingTrade($this->extend($request, $query)));
         //

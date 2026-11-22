@@ -7224,10 +7224,11 @@ class bingx extends Exchange {
                     $arrayElement = $value[$j];
                     $isString = (gettype($arrayElement) === 'string');
                     if ($isString) {
+                        $elementStr = $this->safe_string($value, $j, '');
                         if ($j > 0) {
-                            $arrStr .= ',' . '"' . (string) $arrayElement . '"';
+                            $arrStr .= ',' . '"' . $elementStr . '"';
                         } else {
-                            $arrStr = '"' . (string) $arrayElement . '"';
+                            $arrStr = '"' . $elementStr . '"';
                         }
                     } else {
                         if ($j > 0) {

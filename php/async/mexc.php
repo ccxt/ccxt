@@ -1081,7 +1081,8 @@ class mexc extends Exchange {
             //
             //     {}
             //
-            $keys = is_array($spotResponse) ? array_keys($spotResponse) : array();
+            $spotResponseCopy = $this->extend(array(), $spotResponse);
+            $keys = is_array($spotResponseCopy) ? array_keys($spotResponseCopy) : array();
             $length = count($keys);
             $status = ($length > 0) ? $this->json($response) : 'ok';
         } elseif ($marketType === 'swap') {
