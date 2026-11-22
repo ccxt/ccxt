@@ -2741,7 +2741,8 @@ export default class toobit extends Exchange {
         const result: Dict = {};
         const marketResolved: Market = this.safeMarket (this.safeString (response, 'symbol'), market);
         const fee = this.parseTradingFee (response, marketResolved);
-        result[marketResolved['symbol']] = fee;
+        const feeSymbol: string = this.safeString (marketResolved, 'symbol', '');
+        result[feeSymbol] = fee;
         return result;
     }
 

@@ -601,7 +601,8 @@ export default class hyperliquid extends Exchange {
             const dex = this.safeDict (fetchDexes, i, {});
             const secondPart = i * 10000 - 10000;
             const offset = this.sum (110000, secondPart);
-            perpDexesOffset[this.safeString (dex, 'name', '')] = offset;
+            const dexKey: string = this.safeString (dex, 'name', '');
+            perpDexesOffset[dexKey] = offset;
         }
         let fetchDexesList: Str[] = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});

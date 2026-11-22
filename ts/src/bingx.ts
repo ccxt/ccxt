@@ -6563,7 +6563,7 @@ export default class bingx extends Exchange {
     }
 
     parseParams (params: Dict): Dict {
-        const copied: Dict = this.clone (params);
+        const copied: Dict = this.extend ({}, params);
         const sortedParams: Dict = this.keysort (params);
         const rawKeys = Object.keys (sortedParams);
         const rawKeysLength = rawKeys.length;
