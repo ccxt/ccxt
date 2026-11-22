@@ -1078,12 +1078,14 @@ export default class coinbase extends coinbaseRest {
         const subKeysLength = subKeys.length;
         if (isUnsub && subKeysLength === 0) {
             const unSubObject = this.safeDict (this.options, 'unSubscription', {});
-            const messageHashes: string[] = this.safeList (unSubObject, 'messageHashes', []);
+            const messageHashes: Strings = this.safeStringList (unSubObject, [ 'messageHashes' ]);
             const subMessageHashes: string[] = this.safeList (unSubObject, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = messageHashes[i];
-                const subHash = subMessageHashes[i];
-                this.cleanUnsubscription (client, subHash, messageHash);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const messageHash = messageHashes[i];
+                    const subHash = subMessageHashes[i];
+                    this.cleanUnsubscription (client, subHash, messageHash);
+                }
             }
             this.cleanCache (unSubObject);
         }

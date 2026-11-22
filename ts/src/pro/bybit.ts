@@ -2850,13 +2850,15 @@ export default class bybit extends bybitRest {
                 if (reqId !== subId) {
                     continue;
                 }
-                const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+                const messageHashes: Strings = this.safeStringList (subscription, [ 'messageHashes' ]);
                 const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-                for (let j = 0; j < messageHashes.length; j++) {
-                    const unsubHash = messageHashes[j];
-                    const subHash = this.safeString (subMessageHashes, j);
-                    const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
-                    this.cleanUnsubscription (client, subHash, unsubHash, usePrefix);
+                if (messageHashes !== undefined) {
+                    for (let j = 0; j < messageHashes.length; j++) {
+                        const unsubHash = messageHashes[j];
+                        const subHash = this.safeString (subMessageHashes, j);
+                        const usePrefix = (subHash === 'orders') || (subHash === 'myTrades') || (subHash === 'positions');
+                        this.cleanUnsubscription (client, subHash, unsubHash, usePrefix);
+                    }
                 }
                 this.cleanCache (subscription);
             }

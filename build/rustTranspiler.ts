@@ -5291,6 +5291,14 @@ function rustTypedMarketSymbols (content: string): string {
     return rustTypedOptListProducer (content, 'market_symbols', '');
 }
 
+// `safeStringList` is declared `Strings` (ts/src/base/Exchange.ts): a one-string list, the list safeListN finds, or undefined.
+function rustTypedSafeStringList (content: string): string {
+    const def = /(fn safe_string_list\(&self, dictionaryOrList: impl KeyRead, mut keys: Value\)) -> Value \{([\s\S]*?)return Value::from\(vec!\[str_val\.map\(Value::from\)\.unwrap_or\(Value::Null\)\]\);(\s*\}\s*)return (self\.safe_list_n\(&dictionaryOrList, keys, &\[\]\));\n\n(\s*)Value::Null\n\}/;
+    content = content.replace (def, (_s, sig: string, head: string, mid: string, list: string, ind: string) =>
+        `${sig} -> Option<crate::value::List> {${head}return Some(std::sync::Arc::new(vec![str_val.map(Value::from).unwrap_or(Value::Null)]));${mid}if let Value::Arr(list) = ${list} {\n${ind}    return Some(list);\n${ind}}\n${ind}None\n}`);
+    return rustTypedOptListProducer (content, 'safe_string_list', '');
+}
+
 // `marketIds` / `marketCodes` return their argument only under `=== undefined` (so Null) or the list they build.
 function rustTypedOptListProducer (content: string, name: string, arg: string): string {
     const sig = 'fn ' + name + '(&self, optional_args: &[Value]) -> Value {';
@@ -15026,6 +15034,7 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedSafeTrade(rustContent);
                 if (exchangeName === 'coinbaseinternational') rustContent = rustTypedRouteAndParams(rustContent);
                 rustContent = rustTypedMarketSymbols(rustContent);
+                rustContent = rustTypedSafeStringList(rustContent);
                 rustContent = rustTypedMarketIdsCodes(rustContent);
                 rustContent = rustTypedListNarrowers(rustContent);
                 rustContent = rustTypedListProducer(rustContent, 'add_pagination_cursor_to_result');
@@ -15892,6 +15901,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedSafeTrade(finalFile);
         finalFile = rustTypedParseTrade(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
+        finalFile = rustTypedSafeStringList(finalFile);
         finalFile = rustTypedMarketIdsCodes(finalFile);
         finalFile = rustTypedListNarrowers(finalFile);
         finalFile = rustStrParamCopyDrop(finalFile);

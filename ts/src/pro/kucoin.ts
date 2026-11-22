@@ -1912,12 +1912,14 @@ export default class kucoin extends kucoinRest {
         }
         const isUnSub = this.safeBool (subscription, 'unsubscribe', false);
         if (isUnSub) {
-            const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+            const messageHashes: Strings = this.safeStringList (subscription, [ 'messageHashes' ]);
             const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
-            for (let i = 0; i < messageHashes.length; i++) {
-                const messageHash = this.safeString (messageHashes, i);
-                const subHash = this.safeString (subMessageHashes, i);
-                this.cleanUnsubscription (client, subHash, messageHash);
+            if (messageHashes !== undefined) {
+                for (let i = 0; i < messageHashes.length; i++) {
+                    const messageHash = this.safeString (messageHashes, i);
+                    const subHash = this.safeString (subMessageHashes, i);
+                    this.cleanUnsubscription (client, subHash, messageHash);
+                }
             }
             const topic = this.safeString (subscription, 'topic');
             if (topic === 'fundingRate') {

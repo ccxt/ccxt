@@ -6,7 +6,7 @@ import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString, List } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString, List, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -988,12 +988,14 @@ export default class bitfinex extends bitfinexRest {
         const subMessageHash = this.safeString (client.subscriptions, unSubChannel, '');
         const subscription = this.safeDict (client.subscriptions, 'unsubscribe:' + subMessageHash);
         delete client.subscriptions[unSubChannel];
-        const messageHashes: string[] = this.safeList (subscription, 'messageHashes', []);
+        const messageHashes: Strings = this.safeStringList (subscription, [ 'messageHashes' ]);
         const subMessageHashes: string[] = this.safeList (subscription, 'subMessageHashes', []);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
-            this.cleanUnsubscription (client, subHash, messageHash);
+        if (messageHashes !== undefined) {
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                this.cleanUnsubscription (client, subHash, messageHash);
+            }
         }
         this.cleanCache (subscription);
         return true;

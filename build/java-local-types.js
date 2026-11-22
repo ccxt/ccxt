@@ -20456,7 +20456,7 @@ export function installJavaR77j2ConditionalLocals (transpiler) {
 // List form), every later write must be proven the same box, and the type is published so its uses go native.
 const J6_READER_FAMILIES = {
     map: { accessors: SAFE_DICT_ACCESSORS, type: 'java.util.Map<String, Object>', cast: '(java.util.Map<String, Object>)' },
-    list: { accessors: new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]), type: 'java.util.List<Object>', cast: '(java.util.List<Object>)' },
+    list: { accessors: new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ], [ 'safeStringList', 2 ] ]), type: 'java.util.List<Object>', cast: '(java.util.List<Object>)' },
 };
 
 function j6TsShapeIs (printer, node, family) {
@@ -20508,8 +20508,10 @@ function j6ReaderValue (printer, node, family) {
     }
     const name = String (value.expression.name.text);
     const defaultAt = J6_READER_FAMILIES[family].accessors.get (name);
-    if (defaultAt === undefined || value.arguments.length !== defaultAt + 1
-        || !resolvesToBaseOrStrippedAccessor (printer, value, name) || !j6DefaultIsFamily (printer, value.arguments[defaultAt], family)) {
+    // safeStringList has no default slot: it answers a string list or null (its declared `Strings`)
+    const noDefault = family === 'list' && name === 'safeStringList' && value.arguments.length === 2;
+    if (defaultAt === undefined || (value.arguments.length !== defaultAt + 1 && !noDefault)
+        || !resolvesToBaseOrStrippedAccessor (printer, value, name) || (!noDefault && !j6DefaultIsFamily (printer, value.arguments[defaultAt], family))) {
         return undefined;
     }
     return { cast: true };
