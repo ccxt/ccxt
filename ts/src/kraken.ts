@@ -3799,33 +3799,31 @@ export default class kraken extends Exchange {
             return undefined;
         }
         if (this.safeString (body, 0) === '{') {
-            if (typeof response !== 'string') {
-                const message = this.id + ' ' + body;
-                const errors = this.safeList (response, 'error');
-                if (errors !== undefined) {
-                    const numErrors = errors.length;
-                    if (numErrors > 0) {
-                        for (let i = 0; i < numErrors; i++) {
-                            const error = errors[i];
+            const message = this.id + ' ' + body;
+            const errors = this.safeList (response, 'error');
+            if (errors !== undefined) {
+                const numErrors = errors.length;
+                if (numErrors > 0) {
+                    for (let i = 0; i < numErrors; i++) {
+                        const error = errors[i];
+                        this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
+                        this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
+                    }
+                    throw new ExchangeError (message);
+                }
+            }
+            // handleCreateOrdersErrors:
+            const result = this.safeDict (response, 'result');
+            if (result !== undefined) {
+                if ('orders' in result) {
+                    const orders: Dict[] = this.safeList (result, 'orders', []);
+                    for (let i = 0; i < orders.length; i++) {
+                        const order = this.safeDict (orders, i);
+                        const error = this.safeString (order, 'error');
+                        if (error !== undefined) {
                             this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
                             this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
-                        }
-                        throw new ExchangeError (message);
-                    }
-                }
-                // handleCreateOrdersErrors:
-                const result = this.safeDict (response, 'result');
-                if (result !== undefined) {
-                    if ('orders' in result) {
-                        const orders: Dict[] = this.safeList (result, 'orders', []);
-                        for (let i = 0; i < orders.length; i++) {
-                            const order = this.safeDict (orders, i);
-                            const error = this.safeString (order, 'error');
-                            if (error !== undefined) {
-                                this.throwExactlyMatchedException (this.exceptions['exact'], error, message);
-                                this.throwBroadlyMatchedException (this.exceptions['broad'], error, message);
-                                throw new ExchangeError (message);
-                            }
+                            throw new ExchangeError (message);
                         }
                     }
                 }
