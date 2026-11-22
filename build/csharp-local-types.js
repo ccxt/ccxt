@@ -6268,6 +6268,10 @@ function callReturnType (csharp, initializer) {
         if (sameFileGuardedStringCall (csharp, initializer)) {
             return 'string?';
         }
+        // a venue method (this class or an ancestor) whose printed signature is `string?`
+        if (venueStringReturnCall (csharp, initializer)) {
+            return 'string?';
+        }
         // a prediction-tier local fed by a venue helper whose DECLARATION this module already
         // retypes (installCsharp*Returns): the call's own C# static type IS the table's box, so
         // the declaration names it with no cast (see predictionRetypedCallType)
@@ -11097,6 +11101,25 @@ function nonNullReferenceArgument (csharp, argument) {
 }
 
 // `this.<method>(…)` of the SAME class whose body proves a non-null string at this site
+// a `this.<m> (..)` bound to a venue-file method (own class or a REST parent) whose printed
+// signature is `string?` (`: string` / `: Str`): C# overrides cannot change the return type
+function venueStringReturnCall (csharp, call) {
+    if (typeof csharp?.csharpPrintedReturnType !== 'function' || call?.expression?.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = csharp.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    const file = String (declaration?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || !/(^|\/)ts\/src\/[a-z0-9_]+\.ts$/.test (file)) {
+        return false;
+    }
+    return csharp.csharpPrintedReturnType (declaration) === 'string?';
+}
+
 function sameFileGuardedStringCall (csharp, node) {
     const call = stripParens (node);
     if (call?.kind !== ts.SyntaxKind.CallExpression) {
