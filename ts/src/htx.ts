@@ -7185,7 +7185,7 @@ export default class htx extends Exchange {
         const market = this.market (symbol);
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            if (market['linear']) {
+            if (this.safeBool (market, 'linear', false)) {
                 return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100) as FundingRateHistory[];
             }
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50) as FundingRateHistory[];
@@ -7751,9 +7751,11 @@ export default class htx extends Exchange {
                     } else {
                         bodyRequest = query;
                     }
-                    signedBody = this.json (bodyRequest);
-                    if (!isArrayParams && (signedBody.length === 2)) {
+                    const bodyJson: string = this.json (bodyRequest);
+                    if (!isArrayParams && (bodyJson.length === 2)) {
                         signedBody = '{}';
+                    } else {
+                        signedBody = bodyJson;
                     }
                     signedHeaders = {
                         'Content-Type': 'application/json',
@@ -9580,7 +9582,7 @@ export default class htx extends Exchange {
                     result.push (this.extend (parsedSettlement, timestampDetails));
                 }
             } else {
-                result.push (this.parseSettlement (settlements[i], market));
+                result.push (this.parseSettlement (settlement, market));
             }
         }
         return result;
