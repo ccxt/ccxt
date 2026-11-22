@@ -1690,10 +1690,13 @@ export default class interactivebrokers extends Exchange {
         const detailMarkets = await this.fetchSecWithDetails (entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         const result = [];
+        const detailMarketsLength = detailMarkets.length;
         for (let i = 0; i < cfdExchanges.length; i++) {
-            for (let j = 0; j < detailMarkets.length; j++) {
+            const cfdExchange: string = this.safeString (cfdExchanges, i, '');
+            for (let j = 0; j < detailMarketsLength; j++) {
                 const detail = detailMarkets[j];
-                if (this.safeString (detail, 'listingExchange') === cfdExchanges[i]) {
+                const listingExchange: string = this.safeString (detail, 'listingExchange', '');
+                if (listingExchange === cfdExchange) {
                     result.push (detail);
                 }
             }
@@ -1745,7 +1748,8 @@ export default class interactivebrokers extends Exchange {
         const filterParts = [];
         for (let i = 0; i < filterIds.length; i++) {
             const filterId = filterIds[i];
-            filterParts.push (filterId + ':' + this.safeString (bondFilters, filterId));
+            const filterValue: string = this.safeString (bondFilters, filterId, '');
+            filterParts.push (filterId + ':' + filterValue);
         }
         const filterPartsLength = filterParts.length;
         const contractPromises = [];
@@ -1805,10 +1809,15 @@ export default class interactivebrokers extends Exchange {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             let market: Dict = this.extend ({}, markets[i]);
-            let symbol = this.safeString (market, 'symbol') as string;
+            let symbol: string = this.safeString (market, 'symbol', '');
             if (symbol in seen) {
-                const base = this.safeString (market, 'base') + '-' + this.safeString (market, 'id');
-                symbol = base + '.' + this.safeString (market['info'], 'exchange', 'SMART') + '/' + this.safeString (market, 'quote');
+                const marketBase: string = this.safeString (market, 'base', '');
+                const marketId: string = this.safeString (market, 'id', '');
+                const marketQuote: string = this.safeString (market, 'quote', '');
+                const marketInfo = this.safeDict (market, 'info', {});
+                const listingExchange: string = this.safeString (marketInfo, 'exchange', 'SMART');
+                const base = marketBase + '-' + marketId;
+                symbol = base + '.' + listingExchange + '/' + marketQuote;
                 market = this.extend (market, {
                     'symbol': symbol,
                     'base': base,
