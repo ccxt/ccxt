@@ -2383,10 +2383,7 @@ export default class extended extends Exchange {
      */
     override async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         await this.loadMarkets ();
-        let symbolsList: Strings = symbols;
-        if (typeof symbols === 'string') {
-            symbolsList = [ symbols ];
-        }
+        const symbolsList: Strings = symbols;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchPositionsHistory', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchPositionsHistory', symbolsList, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000) as Position[];
