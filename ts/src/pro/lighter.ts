@@ -1359,7 +1359,7 @@ export default class lighter extends lighterRest {
             const market = this.safeMarket (marketId);
             const orders: Dict[] = this.safeList (data, marketId, []);
             for (let j = 0; j < orders.length; j++) {
-                const order = this.parseOrder (orders[j], market);
+                const order = this.parseOrder (this.safeDict (orders, j, {}), market);
                 stored.append (order);
                 const symbol = this.safeString (order, 'symbol');
                 if (symbol !== undefined) {

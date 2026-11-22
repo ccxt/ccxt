@@ -1408,7 +1408,7 @@ export default class bitso extends Exchange {
         const payload: Dict[] = this.safeList (response, 'payload', []);
         const numOrders = payload.length;
         if (numOrders === 1) {
-            return this.parseOrder (payload[0]);
+            return this.parseOrder (this.safeDict (payload, 0, {}));
         }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }

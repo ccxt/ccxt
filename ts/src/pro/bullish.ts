@@ -477,7 +477,7 @@ export default class bullish extends bullishRest {
             const orders = this.orders;
             const symbols: Dict = {};
             for (let i = 0; i < rawOrders.length; i++) {
-                const parsedOrder = this.parseOrder (rawOrders[i]);
+                const parsedOrder = this.parseOrder (this.safeDict (rawOrders, i, {}));
                 orders.append (parsedOrder);
                 const symbol = this.safeString (parsedOrder, 'symbol');
                 if (symbol !== undefined) {

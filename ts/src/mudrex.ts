@@ -975,7 +975,7 @@ export default class mudrex extends Exchange {
         }
         const orders: Order[] = [];
         for (let i = 0; i < rows.length; i++) {
-            orders.push (this.parseOrder (rows[i], market));
+            orders.push (this.parseOrder (this.safeDict (rows, i, {}), market));
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit) as Order[];
     }
