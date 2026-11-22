@@ -3746,7 +3746,8 @@ export default class pacifica extends Exchange {
     sortJsonKeys (value: any): any {
         if (this.isDictionary (value)) {
             const result: Dict = {};
-            const keys = Object.keys (value);
+            const valueCopy: Dict = this.extend ({}, value);
+            const keys = Object.keys (valueCopy);
             const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
                 const key = this.safeString (sortedKeys, i, '');

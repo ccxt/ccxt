@@ -3307,7 +3307,8 @@ export default class bithumb extends Exchange {
     }
 
     urlencodeWithArrayBrackets (query: Dict): string {
-        const keys = Object.keys (query);
+        const queryCopy: Dict = this.extend ({}, query);
+        const keys = Object.keys (queryCopy);
         let result = '';
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

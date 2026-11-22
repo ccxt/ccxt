@@ -1181,7 +1181,8 @@ export default class bitstamp extends Exchange {
         // resolved in the key scan below, falling back to the passed market
         let marketResolved: Market = market;
         if (market === undefined) {
-            const keys = Object.keys (trade);
+            const tradeCopy: Dict = this.extend ({}, trade);
+            const keys = Object.keys (tradeCopy);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {

@@ -2159,7 +2159,8 @@ export default class cryptocom extends Exchange {
                 return this.safeDict (depositAddresses, network) as DepositAddress;
             }
         }
-        const keys = Object.keys (depositAddresses);
+        const addressesCopy: Dict = this.extend ({}, depositAddresses);
+        const keys = Object.keys (addressesCopy);
         return this.safeDict (depositAddresses, this.safeString (keys, 0)) as DepositAddress;
     }
 
