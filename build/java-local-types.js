@@ -18643,6 +18643,7 @@ function javaStringReturnsIndexSource (files, fileName, text) {
     const methods = new Set ();
     const hazards = new Set ();
     const stringHazards = new Set ();
+    const stringMethods = new Set ();
     for (const statement of sf.statements) {
         if (ts.isImportDeclaration (statement) && statement.importClause?.name !== undefined && ts.isStringLiteral (statement.moduleSpecifier)) {
             imports.set (statement.importClause.name.text, path.resolve (path.dirname (fileName), statement.moduleSpecifier.text.replace (/\.js$/, '.ts')));
@@ -18657,6 +18658,10 @@ function javaStringReturnsIndexSource (files, fileName, text) {
             for (const member of n.members) {
                 if (ts.isMethodDeclaration (member) && member.name !== undefined && ts.isIdentifier (member.name)) {
                     methods.add (member.name.text);
+                    if (member.type !== undefined && (member.type.kind === ts.SyntaxKind.StringKeyword
+                        || (ts.isTypeReferenceNode (member.type) && ts.isIdentifier (member.type.typeName) && member.type.typeName.text === 'Str'))) {
+                        stringMethods.add (member.name.text);
+                    }
                 }
             }
         }
@@ -18669,7 +18674,7 @@ function javaStringReturnsIndexSource (files, fileName, text) {
         n.forEachChild (visit);
     };
     visit (sf);
-    files.set (fileName, { parent, methods, hazards, stringHazards });
+    files.set (fileName, { parent, methods, hazards, stringHazards, stringMethods });
 }
 
 // `cond ? undefined : <box>` prints `cond ? null : <box>`, typed as the box itself, so it never unboxes
@@ -18724,11 +18729,49 @@ function javaStringUseHazard (call) {
         && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'omitZero') {
         return true;
     }
-    return !plusUsesAreSafe (call);
+    return !plusUsesAreSafe (call) && !javaPlusRightIsTsString (call);
+}
+
+// `<call> + s` where s is a literal or a local the TS declaration types `string` (an annotation, a literal,
+// or a `+` chain led by one): both Helpers.add overloads and the native concat agree on a non-null String right
+function javaPlusRightIsTsString (call, depth = 0) {
+    let child = call;
+    while (ts.isParenthesizedExpression (child.parent)) {
+        child = child.parent;
+    }
+    const parent = child.parent;
+    if (!ts.isBinaryExpression (parent) || parent.operatorToken.kind !== ts.SyntaxKind.PlusToken || parent.left !== child) {
+        return false;
+    }
+    return javaTsStringOperand (unwrapParens (parent.right), enclosingFunction (call), depth);
+}
+
+function javaTsStringOperand (node, scope, depth) {
+    if (node === undefined || depth > 8) {
+        return false;
+    }
+    if (isProvablyStringOperand (node)) {
+        return true;
+    }
+    if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return javaTsStringOperand (unwrapParens (node.left), scope, depth + 1);
+    }
+    if (!ts.isIdentifier (node) || scope === undefined) {
+        return false;
+    }
+    const declarations = (identifierIndex (scope).get (node.text) ?? []).filter ((n) => ts.isVariableDeclaration (n.parent) && n.parent.name === n);
+    if (declarations.length !== 1) {
+        return false;
+    }
+    const declaration = declarations[0].parent;
+    if (declaration.type !== undefined) {
+        return declaration.type.kind === ts.SyntaxKind.StringKeyword;
+    }
+    return javaTsStringOperand (unwrapParens (declaration.initializer), scope, depth + 1);
 }
 
 // some other ts/src class that extends this file's class (transitively) declares the same method name
-function javaRedeclaredByDescendant (method) {
+function javaRedeclaredByDescendant (method, stringRedeclarationsOk = false) {
     const name = method?.name?.text;
     if (name === undefined) {
         return true;
@@ -18737,6 +18780,10 @@ function javaRedeclaredByDescendant (method) {
     const own = path.resolve (method.getSourceFile ().fileName);
     for (const [ file, entry ] of files) {
         if (file === own || !entry.methods.has (name)) {
+            continue;
+        }
+        // a venue redeclaration annotated `Str` / `string` is bound to String by the printer's override rule (or the build stops)
+        if (stringRedeclarationsOk && entry.stringMethods.has (name)) {
             continue;
         }
         let ancestor = entry.parent;
@@ -18909,6 +18956,20 @@ function javaBaseStringCoreCall (printer, node) {
     }
 }
 
+// a sync `this.m (..)` whose resolved declaration this generator retypes to a String signature (the
+// string-return tables): every same-name venue method prints that signature, so the call prints String
+function javaRetypedStringCall (printer, node) {
+    try {
+        if (!isThisCall (node) || node.arguments.some ((a) => ts.isSpreadElement (a)) || isAsyncMethodCall (printer, node)) {
+            return false;
+        }
+        const member = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
+        return member !== undefined && ts.isMethodDeclaration (member) && javaMethodReturnType (printer, member, 'Object') === 'String';
+    } catch (e) {
+        return false;
+    }
+}
+
 // a returned `let s = '<literal>'` accumulator whose every write is `s = s + <TS string>` or a string literal:
 // the TS declaration alone proves String, so the proof does not read locals published while printing
 function javaStringLocalReturn (printer, node) {
@@ -18962,7 +19023,7 @@ export function installJavaStringReturns (transpiler) {
         }
         let redeclared;
         try {
-            redeclared = javaRedeclaredByDescendant (node) || javaNumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
+            redeclared = javaRedeclaredByDescendant (node, type === 'String' && !BASE_SOURCE_FILE.test (node.getSourceFile ().fileName)) || javaNumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
         } catch (e) {
             console.error ('[java-local-types] string-returns index failed: ' + (e?.stack ?? e));
             process.exit (1);
@@ -18994,7 +19055,8 @@ export function installJavaStringReturns (transpiler) {
             const unwrapped = printer.javaUnwrapReturnExpression (expression);
             // the order-free local proof runs first: the upstream identifier proof marks the read of published locals
             return javaStringLocalReturn (printer, unwrapped) || upstreamPrints (expression, target)
-                || javaBaseStringPrecisionCall (printer, unwrapped) || javaBaseStringCoreCall (printer, unwrapped);
+                || javaBaseStringPrecisionCall (printer, unwrapped) || javaBaseStringCoreCall (printer, unwrapped)
+                || javaRetypedStringCall (printer, unwrapped);
         }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
