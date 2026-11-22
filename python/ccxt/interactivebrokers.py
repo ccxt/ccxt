@@ -1282,7 +1282,10 @@ class interactivebrokers(Exchange, ImplicitAPI):
         offset = 0
         while(offset < numDetails):
             end = min(self.sum(offset, chunkSize), numDetails)
-            chunk = self.array_slice(detailIds, offset, end)
+            chunk = []
+            for k in range(offset, end):
+                detailId = self.safe_string(detailIds, k, '')
+                chunk.append(detailId)
             secdefRequest = {
                 'conids': ','.join(chunk),
             }
@@ -1989,7 +1992,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             'fields': fields,
         }
         response = []
-        for i in range(0, retries):
+        for i in range(0, retries + 1):
             response = self.webapiGetV1ApiIserverMarketdataSnapshot(self.extend(request, params))
             if self.ibkr_snapshot_ready(response, readyFields):
                 break
@@ -2120,7 +2123,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         #
         #     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         #
-        return self.parse_open_interests(response, symbolsNormalized)
+        return self.parse_open_interests(self.to_array(response), symbolsNormalized)
 
     def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         marketId = self.safe_string(interest, 'conid')
@@ -2684,7 +2687,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         autoConfirm = self.safe_bool(options, 'autoConfirmOrderReplies', True)
         maxReplies = self.safe_integer(options, 'maxReplies', 10)
         current = response
-        for i in range(0, maxReplies):
+        for i in range(0, maxReplies + 1):
             if not isinstance(current, list):
                 #
                 # advanced order reject
@@ -3706,7 +3709,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'queryAccountsFirst', {})
         retries = self.safe_integer(options, 'retries', 3)
         retryDelay = self.safe_integer(options, 'retryDelay', 1000)
-        for i in range(0, retries):
+        for i in range(0, retries + 1):
             try:
                 return self.fetch2(path, api, method, params, config)
             except Exception as e:

@@ -96,16 +96,17 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         await self.authenticate()
         useGateway = self.safe_bool(self.options, 'useGateway', False)
         url = None
+        wsUrl = self.safe_string(self.urls['api'], 'ws', '')
         if useGateway:
             # wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             gatewayUrl = self.safe_string(self.options, 'gatewayUrl')
-            replacedUrl = self.urls['api']['ws'].replace('wss://', 'https://')
+            replacedUrl = wsUrl.replace('wss://', 'https://')
             restUrl = self.ibkrGatewayBaseUrl(replacedUrl, gatewayUrl)
             url = restUrl.replace('https://', 'wss://')
             url = url.replace('http://', 'ws://')
         else:
             # this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
-            url = self.urls['api']['ws'] + '?oauth_token=' + self.apiKey
+            url = wsUrl + '?oauth_token=' + self.apiKey
         if not (url in self.clients):
             response = await self.webapiPostV1ApiTickle()
             #
@@ -1101,8 +1102,8 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 }
                 snapshot = await self.fetch_balance(self.extend(query, snapshotRequest))
                 # typed copy: the statically typed ports keep this.balance as a dictionary
-                snapshotBalance = self.extend({}, snapshot)
-                self.balance = snapshotBalance
+                emptyBalance = {}
+                self.balance = self.extend(emptyBalance, snapshot)
         # reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         future = client.reusableFuture(messageHash)
         emptyArgs = '{}'  # a separate literal, the php transpiler turns '+{}' into '+array()'
